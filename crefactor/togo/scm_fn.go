@@ -158,7 +158,7 @@ func (s *sgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 func (f *sfn) print() string {
 	lf := f.lf
 	f.shape()
-	var locals []string
+	var locals []*slocal
 	for _, bl := range lf.blocks {
 		if f.local(bl) {
 			locals = append(locals, f.block(bl))
@@ -198,7 +198,173 @@ func (f *sfn) print() string {
 		}
 		defs = append(defs, fmt.Sprintf("(define-c-local %s &%s %s %d)", f.base[v], f.base[v], kind, f.mem[v]))
 	}
-	return strings.Join(append(append(defs, locals...), forms...), "\n")
+	entry := strings.Join(forms, "\n")
+	locals, entry = namedLets(locals, entry)
+	var procs []string
+	for _, l := range locals {
+		procs = append(procs, "(define ("+strings.Join(append([]string{l.name}, l.params...), " ")+")\n"+indent(l.body, 2)+")")
+	}
+	return strings.Join(append(append(defs, procs...), entry), "\n")
+}
+
+// slocal is a block that is a local procedure: its name, its parameters,
+// its body's text; loop, a loop's head.
+type slocal struct {
+	name   string
+	params []string
+	body   string
+	loop   bool
+}
+
+// namedLets writes each loop that one place outside its body enters as a
+// named let there, (let loop3 ([p q]) ...), where it was a procedure of the
+// function's and a call: the locals left, and the entry's text.
+func namedLets(locals []*slocal, entry string) ([]*slocal, string) {
+	for changed := true; changed; {
+		changed = false
+		for i, l := range locals {
+			if !l.loop {
+				continue
+			}
+			// the calls of l outside its own body
+			where, at, calls := -1, -1, 0
+			texts := func(k int) *string {
+				if k == len(locals) {
+					return &entry
+				}
+				return &locals[k].body
+			}
+			for k := 0; k <= len(locals); k++ {
+				if k == i {
+					continue
+				}
+				for _, p := range scmCallsOf(*texts(k), l.name) {
+					where, at = k, p
+					calls++
+				}
+			}
+			if calls != 1 {
+				continue
+			}
+			t := texts(where)
+			*t = scmNamedLet(*t, at, l)
+			locals = append(locals[:i], locals[i+1:]...)
+			changed = true
+			break
+		}
+	}
+	return locals, entry
+}
+
+// scmCallsOf are where text calls name: the offsets of the calls' parentheses.
+func scmCallsOf(text, name string) []int {
+	var at []int
+	scmTokens(text, func(t string, i int) {
+		if t == name && i > 0 && text[i-1] == '(' {
+			at = append(at, i-1)
+		}
+	})
+	return at
+}
+
+// scmNamedLet is text with the call of l at offset at written as a named
+// let of l's body.
+func scmNamedLet(text string, at int, l *slocal) string {
+	end := scmFormEnd(text, at)
+	args := scmSplit(text[at+1+len(l.name) : end-1])
+	col := at - (strings.LastIndexByte(text[:at], '\n') + 1)
+	var bs []string
+	for k, p := range l.params {
+		a := ""
+		if k < len(args) {
+			a = args[k]
+		}
+		bs = append(bs, "["+p+" "+scmHang(a, len(p)+2)+"]")
+	}
+	open := "(let " + l.name + " ("
+	nl := "(let " + l.name + " (" + scmHang(strings.Join(bs, "\n"), len(open)) + ")\n" + indent(l.body, 2) + ")"
+	return text[:at] + scmHang(nl, col) + text[end:]
+}
+
+// scmFormEnd is the offset after the form that starts at the parenthesis
+// at.
+func scmFormEnd(text string, at int) int {
+	depth := 0
+	for i := at; i < len(text); i++ {
+		switch text[i] {
+		case '"':
+			for i++; i < len(text) && text[i] != '"'; i++ {
+				if text[i] == '\\' {
+					i++
+				}
+			}
+		case '(', '[':
+			depth++
+		case ')', ']':
+			depth--
+			if depth == 0 {
+				return i + 1
+			}
+		}
+	}
+	return len(text)
+}
+
+// scmSplit are the forms of text, a sequence of them.
+func scmSplit(text string) []string {
+	var out []string
+	for i := 0; i < len(text); {
+		switch c := text[i]; {
+		case c == ' ' || c == '\n':
+			i++
+		case c == '(' || c == '[':
+			e := scmFormEnd(text, i)
+			out = append(out, scmDedent(text[i:e]))
+			i = e
+		case c == '"':
+			j := i + 1
+			for j < len(text) && text[j] != '"' {
+				if text[j] == '\\' {
+					j++
+				}
+				j++
+			}
+			out = append(out, text[i:j+1])
+			i = j + 1
+		default:
+			j := i
+			for j < len(text) && !strings.ContainsRune(" \n()[]", rune(text[j])) {
+				j++
+			}
+			out = append(out, text[i:j])
+			i = j
+		}
+	}
+	return out
+}
+
+// scmDedent is a form cut from a text, its lines after the first indented
+// back by the column its first line had.
+func scmDedent(form string) string {
+	ls := strings.Split(form, "\n")
+	if len(ls) == 1 {
+		return form
+	}
+	// the least indentation of the lines after the first
+	least := -1
+	for _, l := range ls[1:] {
+		if t := strings.TrimLeft(l, " "); t != "" {
+			if n := len(l) - len(t); least < 0 || n < least {
+				least = n
+			}
+		}
+	}
+	for k := 1; k < len(ls); k++ {
+		if len(ls[k]) >= least {
+			ls[k] = ls[k][least:]
+		}
+	}
+	return strings.Join(ls, "\n")
 }
 
 // scmUsesMem says a function's text reads or writes memory: it binds mem.
@@ -498,17 +664,18 @@ func (f *sfn) valueOf(v *lvar) string {
 
 // block is a block that is a local procedure: of what is live at its
 // start.
-func (f *sfn) block(b *lblock) string {
-	head := []string{f.bname(b)}
+func (f *sfn) block(b *lblock) *slocal {
+	l := &slocal{name: f.bname(b), loop: f.loop[b]}
 	f.cur = map[*lvar]string{}
 	for v := range f.fixed {
 		f.cur[v] = f.base[v]
 	}
 	for _, v := range f.params(b) {
 		f.cur[v] = f.base[v]
-		head = append(head, f.base[v])
+		l.params = append(l.params, f.base[v])
 	}
-	return "(define (" + strings.Join(head, " ") + ")\n" + indent(strings.Join(scmDropVoid(f.body(b, 0)), "\n"), 2) + ")"
+	l.body = strings.Join(scmDropVoid(f.body(b, 0)), "\n")
+	return l
 }
 
 // body is block b's forms where the printing is (f.cur): its steps, and

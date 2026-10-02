@@ -1956,7 +1956,9 @@
 
 (define (musl_memcpy ed dest src n)
   (let ([mem (ed-mem ed)])
-    (define (loop1 n d s)
+    (let loop1 ([n n]
+                [d dest]
+                [s src])
       (if (not (eqv? n 0))
           (let* ([t1 d]
                  [d (fx+ d 1)]
@@ -1964,68 +1966,72 @@
                  [s (fx+ s 1)])
             (st-u8! t1 (ld-u8 t2))
             (loop1 (u64- n 1) d s))
-          dest))
-    (loop1 n dest src)))
+          dest))))
 
 (define (musl_memmove ed dest src n)
   (let ([mem (ed-mem ed)])
-    (define (loop3 n d s)
-      (if (not (eqv? n 0))
-          (let ([n (u64- n 1)])
-            (st-u8! (fx+ d (->i64 n)) (ld-u8 (fx+ s (->i64 n))))
-            (loop3 n d s))
-          (join7)))
-    (define (loop6 n d s)
-      (if (not (eqv? n 0))
-          (let* ([t1 d]
-                 [d (fx+ d 1)]
-                 [t2 s]
-                 [s (fx+ s 1)])
-            (st-u8! t1 (ld-u8 t2))
-            (loop6 (u64- n 1) d s))
-          (join7)))
     (define (join7)
       dest)
     (cond
       [(fx=? dest src) dest]
-      [(fx<? dest src) (loop6 n dest src)]
-      [else (loop3 n dest src)])))
+      [(fx<? dest src) (let loop6 ([n n]
+                                   [d dest]
+                                   [s src])
+                         (if (not (eqv? n 0))
+                             (let* ([t1 d]
+                                    [d (fx+ d 1)]
+                                    [t2 s]
+                                    [s (fx+ s 1)])
+                               (st-u8! t1 (ld-u8 t2))
+                               (loop6 (u64- n 1) d s))
+                             (join7)))]
+      [else (let loop3 ([n n]
+                        [d dest]
+                        [s src])
+              (if (not (eqv? n 0))
+                  (let ([n (u64- n 1)])
+                    (st-u8! (fx+ d (->i64 n)) (ld-u8 (fx+ s (->i64 n))))
+                    (loop3 n d s))
+                  (join7)))])))
 
 (define (musl_memset ed dest c n)
   (let ([mem (ed-mem ed)])
-    (define (loop1 n s)
+    (let loop1 ([n n]
+                [s dest])
       (if (not (eqv? n 0))
           (let* ([t1 s]
                  [s (fx+ s 1)])
             (st-u8! t1 (->u8 c))
             (loop1 (u64- n 1) s))
-          dest))
-    (loop1 n dest)))
+          dest))))
 
 (define (musl_memcmp ed vl vr n)
   (let ([mem (ed-mem ed)])
-    (define (loop1 n l r)
+    (let loop1 ([n n]
+                [l vl]
+                [r vr])
       (if (and (not (eqv? n 0)) (fx=? (ld-u8 l) (ld-u8 r)))
           (loop1 (u64- n 1) (fx+ l 1) (fx+ r 1))
-          (if (not (eqv? n 0)) (i32- (ld-u8 l) (ld-u8 r)) 0)))
-    (loop1 n vl vr)))
+          (if (not (eqv? n 0)) (i32- (ld-u8 l) (ld-u8 r)) 0)))))
 
 (define (musl_strlen ed s)
   (let ([mem (ed-mem ed)])
-    (define (loop1 s a)
-      (if (not (fxzero? (ld-s8 s))) (loop1 (fx+ s 1) a) (->u64 (fx- s a))))
-    (loop1 s s)))
+    (let loop1 ([s s]
+                [a s])
+      (if (not (fxzero? (ld-s8 s))) (loop1 (fx+ s 1) a) (->u64 (fx- s a))))))
 
 (define (musl_strcpy ed dest src)
   (let ([mem (ed-mem ed)])
-    (define (loop1 src d)
+    (let loop1 ([src src]
+                [d dest])
       (st-s8! d (ld-s8 src))
-      (if (not (fx=? (ld-s8 d) 0)) (loop1 (fx+ src 1) (fx+ d 1)) dest))
-    (loop1 src dest)))
+      (if (not (fx=? (ld-s8 d) 0)) (loop1 (fx+ src 1) (fx+ d 1)) dest))))
 
 (define (musl_strncpy ed dest src n)
   (let ([mem (ed-mem ed)])
-    (define (loop1 src n d)
+    (let loop1 ([src src]
+                [n n]
+                [d dest])
       (if (and (not (eqv? n 0)) (not (fxzero? (ld-s8 src))))
           (let* ([t1 d]
                  [d (fx+ d 1)]
@@ -2033,15 +2039,14 @@
                  [src (fx+ src 1)])
             (st-s8! t1 (ld-s8 t2))
             (loop1 src (u64- n 1) d))
-          (loop3 n d)))
-    (define (loop3 n d)
-      (if (not (eqv? n 0))
-          (let* ([t3 d]
-                 [d (fx+ d 1)])
-            (st-s8! t3 0)
-            (loop3 (u64- n 1) d))
-          dest))
-    (loop1 src n dest)))
+          (let loop3 ([n n]
+                      [d d])
+            (if (not (eqv? n 0))
+                (let* ([t3 d]
+                       [d (fx+ d 1)])
+                  (st-s8! t3 0)
+                  (loop3 (u64- n 1) d))
+                dest))))))
 
 (define (musl_strcat ed dest src)
   (musl_strcpy ed (fx+ dest (->i64 (musl_strlen ed dest))) src)
@@ -2049,77 +2054,77 @@
 
 (define (musl_strcmp ed l r)
   (let ([mem (ed-mem ed)])
-    (define (loop1 l r)
+    (let loop1 ([l l]
+                [r r])
       (if (and (fx=? (ld-s8 l) (ld-s8 r)) (not (fxzero? (ld-s8 l))))
           (loop1 (fx+ l 1) (fx+ r 1))
-          (i32- (ld-u8 l) (ld-u8 r))))
-    (loop1 l r)))
+          (i32- (ld-u8 l) (ld-u8 r))))))
 
 (define (musl_strncmp ed ls rs n)
   (let ([mem (ed-mem ed)])
-    (define (loop2 n l r)
-      (if (and (and (and (not (fxzero? (ld-u8 l))) (not (fxzero? (ld-u8 r)))) (not (eqv? n 0))) (fx=? (ld-u8 l) (ld-u8 r)))
-          (loop2 (u64- n 1) (fx+ l 1) (fx+ r 1))
-          (i32- (ld-u8 l) (ld-u8 r))))
     (let* ([t1 n]
            [n (u64- n 1)])
-      (if (not (not (eqv? t1 0))) 0 (loop2 n ls rs)))))
+      (if (not (not (eqv? t1 0))) 0 (let loop2 ([n n]
+                                                [l ls]
+                                                [r rs])
+                                      (if (and (and (and (not (fxzero? (ld-u8 l))) (not (fxzero? (ld-u8 r)))) (not (eqv? n 0))) (fx=? (ld-u8 l) (ld-u8 r)))
+                                          (loop2 (u64- n 1) (fx+ l 1) (fx+ r 1))
+                                          (i32- (ld-u8 l) (ld-u8 r))))))))
 
 (define (musl_strcasecmp ed ls rs)
   (let ([mem (ed-mem ed)])
-    (define (loop1 l r)
+    (let loop1 ([l ls]
+                [r rs])
       (if (and (and (not (fxzero? (ld-u8 l))) (not (fxzero? (ld-u8 r))))
                (let ([r1 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
                  (fx=? r1 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r)))))
           (loop1 (fx+ l 1) (fx+ r 1))
           (let ([r2 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
-            (i32- r2 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r))))))
-    (loop1 ls rs)))
+            (i32- r2 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r))))))))
 
 (define (musl_strncasecmp ed ls rs n)
   (let ([mem (ed-mem ed)])
-    (define (loop2 n l r)
-      (if (and (and (and (not (fxzero? (ld-u8 l))) (not (fxzero? (ld-u8 r)))) (not (eqv? n 0)))
-               (let ([r1 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
-                 (fx=? r1 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r)))))
-          (loop2 (u64- n 1) (fx+ l 1) (fx+ r 1))
-          (let ([r2 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
-            (i32- r2 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r))))))
     (let* ([t1 n]
            [n (u64- n 1)])
-      (if (not (not (eqv? t1 0))) 0 (loop2 n ls rs)))))
+      (if (not (not (eqv? t1 0))) 0 (let loop2 ([n n]
+                                                [l ls]
+                                                [r rs])
+                                      (if (and (and (and (not (fxzero? (ld-u8 l))) (not (fxzero? (ld-u8 r)))) (not (eqv? n 0)))
+                                               (let ([r1 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
+                                                 (fx=? r1 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r)))))
+                                          (loop2 (u64- n 1) (fx+ l 1) (fx+ r 1))
+                                          (let ([r2 (if (ascii_isupper ed (ld-u8 l)) (fxior (ld-u8 l) 32) (ld-u8 l))])
+                                            (i32- r2 (if (ascii_isupper ed (ld-u8 r)) (fxior (ld-u8 r) 32) (ld-u8 r))))))))))
 
 (define (musl_strchr ed s c)
   (let ([mem (ed-mem ed)])
-    (define (loop1 s ch)
+    (let loop1 ([s s]
+                [ch (->u8 c)])
       (cond
         [(and (not (fxzero? (ld-s8 s))) (not (fx=? (ld-u8 s) ch))) (loop1 (fx+ s 1) ch)]
         [(fx=? (ld-u8 s) ch) s]
-        [else 0]))
-    (loop1 s (->u8 c))))
+        [else 0]))))
 
 (define (musl_strstr ed h n)
   (let ([mem (ed-mem ed)])
-    (define (loop2 h)
-      (if (not (fxzero? (ld-s8 h))) (loop5 h 0) 0))
-    (define (loop5 h i)
-      (cond
-        [(and (not (fxzero? (ld-s8 (fx+ n (->i64 i))))) (fx=? (ld-s8 (fx+ h (->i64 i))) (ld-s8 (fx+ n (->i64 i)))))
-         (loop5 h (u64+ i 1))]
-        [(not (not (fxzero? (ld-s8 (fx+ n (->i64 i)))))) h]
-        [else (loop2 (fx+ h 1))]))
-    (if (not (not (fxzero? (ld-s8 n)))) h (loop2 h))))
+    (if (not (not (fxzero? (ld-s8 n)))) h (let loop2 ([h h])
+                                            (if (not (fxzero? (ld-s8 h))) (let loop5 ([h h]
+                                                                                      [i 0])
+                                                                            (cond
+                                                                              [(and (not (fxzero? (ld-s8 (fx+ n (->i64 i))))) (fx=? (ld-s8 (fx+ h (->i64 i))) (ld-s8 (fx+ n (->i64 i)))))
+                                                                               (loop5 h (u64+ i 1))]
+                                                                              [(not (not (fxzero? (ld-s8 (fx+ n (->i64 i)))))) h]
+                                                                              [else (loop2 (fx+ h 1))])) 0)))))
 
 (define (musl_strpbrk ed s b)
   (let ([mem (ed-mem ed)])
-    (define (loop1 s)
-      (if (not (fxzero? (ld-s8 s))) (loop4 s b) 0))
-    (define (loop4 s c)
-      (cond
-        [(fxzero? (ld-s8 c)) (loop1 (fx+ s 1))]
-        [(fx=? (ld-s8 s) (ld-s8 c)) s]
-        [else (loop4 s (fx+ c 1))]))
-    (loop1 s)))
+    (let loop1 ([s s])
+      (if (not (fxzero? (ld-s8 s))) (let loop4 ([s s]
+                                                [c b])
+                                      (cond
+                                        [(fxzero? (ld-s8 c)) (loop1 (fx+ s 1))]
+                                        [(fx=? (ld-s8 s) (ld-s8 c)) s]
+                                        [else (loop4 s (fx+ c 1))])) 0))))
 
 (define (musl_isdigit ed c)
   (ascii_isdigit ed c))
@@ -2156,58 +2161,67 @@
 
 (define (musl_atoi ed s)
   (let ([mem (ed-mem ed)])
-    (define (loop1 s n neg)
-      (cond
-        [(musl_isspace ed (ld-s8 s)) (loop1 (fx+ s 1) n neg)]
-        [(fx=? (ld-s8 s) 45) (loop7 (fx+ s 1) n 1)]
-        [(fx=? (ld-s8 s) 43) (loop7 (fx+ s 1) n neg)]
-        [else (loop7 s n neg)]))
     (define (loop7 s n neg)
       (if (musl_isdigit ed (ld-s8 s))
           (loop7 (fx+ s 1) (i32- (i32* 10 n) (i32- (ld-s8 s) 48)) neg)
           (if (not (fxzero? neg)) n (i32- 0 n))))
-    (loop1 s 0 0)))
-
-(define (musl_atol ed s)
-  (let ([mem (ed-mem ed)])
-    (define (loop1 s n neg)
+    (let loop1 ([s s]
+                [n 0]
+                [neg 0])
       (cond
         [(musl_isspace ed (ld-s8 s)) (loop1 (fx+ s 1) n neg)]
         [(fx=? (ld-s8 s) 45) (loop7 (fx+ s 1) n 1)]
         [(fx=? (ld-s8 s) 43) (loop7 (fx+ s 1) n neg)]
-        [else (loop7 s n neg)]))
+        [else (loop7 s n neg)]))))
+
+(define (musl_atol ed s)
+  (let ([mem (ed-mem ed)])
     (define (loop7 s n neg)
       (if (musl_isdigit ed (ld-s8 s))
           (loop7 (fx+ s 1) (i64- (i64* 10 n) (i32- (ld-s8 s) 48)) neg)
           (if (not (fxzero? neg)) n (i64- 0 n))))
-    (loop1 s 0 0)))
+    (let loop1 ([s s]
+                [n 0]
+                [neg 0])
+      (cond
+        [(musl_isspace ed (ld-s8 s)) (loop1 (fx+ s 1) n neg)]
+        [(fx=? (ld-s8 s) 45) (loop7 (fx+ s 1) n 1)]
+        [(fx=? (ld-s8 s) 43) (loop7 (fx+ s 1) n neg)]
+        [else (loop7 s n neg)]))))
 
 (define (musl_strtol ed s end base)
   (let ([mem (ed-mem ed)])
-    (define (loop1 p n neg any over)
-      (cond
-        [(musl_isspace ed (ld-s8 p)) (loop1 (fx+ p 1) n neg any over)]
-        [(fx=? (ld-s8 p) 45) (join6 (fx+ p 1) n 1 any over)]
-        [(fx=? (ld-s8 p) 43) (join6 (fx+ p 1) n neg any over)]
-        [else (join6 p n neg any over)]))
     (define (join6 p n neg any over)
-      (loop7 p n (u64+ 9223372036854775807 (->u64 neg)) neg any over))
-    (define (loop7 p n lim neg any over)
-      (cond
-        [(and (fx=? base 10) (musl_isdigit ed (ld-s8 p)))
-         (let* ([t1 p]
-                [p (fx+ p 1)]
-                [d (->u64 (i32- (ld-s8 t1) 48))])
-           (if (or (not (fxzero? over)) (> n (u64/ (u64- lim d) 10)))
-               (loop7 p n lim neg 1 1)
-               (loop7 p (u64+ (u64* 10 n) d) lim neg 1 over)))]
-        [(not (fxzero? end)) (st-ptr! end (if (not (fxzero? any)) p s)) (join10 n lim neg over)]
-        [else (join10 n lim neg over)]))
+      (let loop7 ([p p]
+                  [n n]
+                  [lim (u64+ 9223372036854775807 (->u64 neg))]
+                  [neg neg]
+                  [any any]
+                  [over over])
+        (cond
+          [(and (fx=? base 10) (musl_isdigit ed (ld-s8 p)))
+           (let* ([t1 p]
+                  [p (fx+ p 1)]
+                  [d (->u64 (i32- (ld-s8 t1) 48))])
+             (if (or (not (fxzero? over)) (> n (u64/ (u64- lim d) 10)))
+                 (loop7 p n lim neg 1 1)
+                 (loop7 p (u64+ (u64* 10 n) d) lim neg 1 over)))]
+          [(not (fxzero? end)) (st-ptr! end (if (not (fxzero? any)) p s)) (join10 n lim neg over)]
+          [else (join10 n lim neg over)])))
     (define (join10 n lim neg over)
       (if (not (fxzero? over)) (join12 lim neg) (join12 n neg)))
     (define (join12 n neg)
       (if (not (fxzero? neg)) (->i64 (u64- 0 n)) (->i64 n)))
-    (loop1 s 0 0 0 0)))
+    (let loop1 ([p s]
+                [n 0]
+                [neg 0]
+                [any 0]
+                [over 0])
+      (cond
+        [(musl_isspace ed (ld-s8 p)) (loop1 (fx+ p 1) n neg any over)]
+        [(fx=? (ld-s8 p) 45) (join6 (fx+ p 1) n 1 any over)]
+        [(fx=? (ld-s8 p) 43) (join6 (fx+ p 1) n neg any over)]
+        [else (join6 p n neg any over)]))))
 
 (define (musl_abs ed a)
   (if (fx>? a 0) a (i32- 0 a)))
@@ -2282,11 +2296,10 @@
 
 (define (ga_clear_strings ed gap)
   (let ([mem (ed-mem ed)])
-    (define (loop2 i)
-      (if (fx<? i (garray_T.ga_len gap)) (loop2 (i32+ i 1)) (join3)))
     (define (join3)
       (ga_clear ed gap))
-    (if (not (fx=? (garray_T.ga_data gap) 0)) (loop2 0) (join3))))
+    (if (not (fx=? (garray_T.ga_data gap) 0)) (let loop2 ([i 0])
+                                                (if (fx<? i (garray_T.ga_len gap)) (loop2 (i32+ i 1)) (join3))) (join3))))
 
 (define (ga_init ed gap)
   (let ([mem (ed-mem ed)])
@@ -2538,13 +2551,12 @@
 
 (define (clear_wininfo ed buf)
   (let ([mem (ed-mem ed)])
-    (define (loop1)
+    (let loop1 ()
       (when (not (fx=? (buf_T.b_wininfo buf) 0))
         (let ([wip (buf_T.b_wininfo buf)])
           (buf_T.b_wininfo-set! buf (wininfo_T.wi_next wip))
           (free_wininfo ed wip)
-          (loop1))))
-    (loop1)))
+          (loop1))))))
 
 (define (free_buffer_stuff ed buf free_options)
   (define (join2)
@@ -2638,11 +2650,6 @@
 
 (define (buflist_setfpos ed buf win lnum col copy_options)
   (let ([mem (ed-mem ed)])
-    (define (loop1 lnum wip)
-      (cond
-        [(fx=? wip 0) (join4 lnum wip)]
-        [(fx=? (wininfo_T.wi_win wip) win) (join4 lnum wip)]
-        [else (loop1 lnum (wininfo_T.wi_next wip))]))
     (define (join4 lnum wip)
       (cond
         [(fx=? wip 0)
@@ -2684,7 +2691,12 @@
       (buf_T.b_wininfo-set! buf wip)
       (wininfo_T.wi_prev-set! wip 0)
       (when (not (fxzero? (wininfo_T.wi_next wip))) (wininfo_T.wi_prev-set! (wininfo_T.wi_next wip) wip)))
-    (loop1 lnum (buf_T.b_wininfo buf))))
+    (let loop1 ([lnum lnum]
+                [wip (buf_T.b_wininfo buf)])
+      (cond
+        [(fx=? wip 0) (join4 lnum wip)]
+        [(fx=? (wininfo_T.wi_win wip) win) (join4 lnum wip)]
+        [else (loop1 lnum (wininfo_T.wi_next wip))]))))
 
 (define (getaltfname ed errmsg)
   (cond
@@ -3020,12 +3032,11 @@
   (ins_bytes_len ed p (->i32 (musl_strlen ed p))))
 
 (define (ins_bytes_len ed p len)
-  (define (loop1 i)
+  (let loop1 ([i 0])
     (when (fx<? i len)
       (let ([n (utfc_ptr2len_len ed (fx+ p i) (i32- len i))])
         (ins_char_bytes ed (fx+ p i) n)
-        (loop1 (i32+ i n)))))
-  (loop1 0))
+        (loop1 (i32+ i n))))))
 
 (define (ins_char ed c)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
@@ -3060,29 +3071,40 @@
     (define (join8 newlen oldlen oldp linelen col lnum old_list)
       (getvcol ed curwin (win_T.w_cursor& curwin) 0 &vcol 0 0)
       (let ([r1 vcol])
-        (loop9 newlen oldlen oldp linelen col lnum (i32+ r1 (chartabsize ed buf vcol)) old_list)))
-    (define (loop9 newlen oldlen oldp linelen col lnum new_vcol old_list)
-      (if (and (not (fx=? (ld-u8 (fx+ oldp (i32+ col oldlen))) 0)) (fx<? vcol new_vcol))
-          (let ([t1 (chartabsize ed (fx+ (fx+ oldp col) oldlen) vcol)])
-            (set! vcol (i32+ vcol t1))
-            (if (and (fx>? vcol new_vcol) (fx=? (ld-u8 (fx+ oldp (i32+ col oldlen))) 9))
-                (join14 newlen oldlen oldp linelen col lnum old_list)
-                (let* ([t2 (utfc_ptr2len ed (fx+ (fx+ oldp col) oldlen))]
-                       [oldlen (i32+ oldlen t2)])
-                  (if (fx>? vcol new_vcol)
-                      (loop9 (i32+ newlen (i32- vcol new_vcol)) oldlen oldp linelen col lnum new_vcol old_list)
-                      (loop9 newlen oldlen oldp linelen col lnum new_vcol old_list)))))
-          (join14 newlen oldlen oldp linelen col lnum old_list)))
+        (let loop9 ([newlen newlen]
+                    [oldlen oldlen]
+                    [oldp oldp]
+                    [linelen linelen]
+                    [col col]
+                    [lnum lnum]
+                    [new_vcol (i32+ r1 (chartabsize ed buf vcol))]
+                    [old_list old_list])
+          (if (and (not (fx=? (ld-u8 (fx+ oldp (i32+ col oldlen))) 0)) (fx<? vcol new_vcol))
+              (let ([t1 (chartabsize ed (fx+ (fx+ oldp col) oldlen) vcol)])
+                (set! vcol (i32+ vcol t1))
+                (if (and (fx>? vcol new_vcol) (fx=? (ld-u8 (fx+ oldp (i32+ col oldlen))) 9))
+                    (join14 newlen oldlen oldp linelen col lnum old_list)
+                    (let* ([t2 (utfc_ptr2len ed (fx+ (fx+ oldp col) oldlen))]
+                           [oldlen (i32+ oldlen t2)])
+                      (if (fx>? vcol new_vcol)
+                          (loop9 (i32+ newlen (i32- vcol new_vcol)) oldlen oldp linelen col lnum new_vcol old_list)
+                          (loop9 newlen oldlen oldp linelen col lnum new_vcol old_list)))))
+              (join14 newlen oldlen oldp linelen col lnum old_list)))))
     (define (join14 newlen oldlen oldp linelen col lnum old_list)
       (win_T.w_onebuf_opt.wo_list-set! curwin old_list)
       (join15 newlen oldlen oldp linelen col lnum))
     (define (join15 newlen oldlen oldp linelen col lnum)
       (replace_push ed 0)
-      (loop16 newlen oldlen oldp linelen col lnum 0))
-    (define (loop16 newlen oldlen oldp linelen col lnum i)
-      (if (fx<? i oldlen)
-          (loop16 newlen oldlen oldp linelen col lnum (i32+ (i32+ i (i32- (replace_push_mb ed (fx+ (fx+ oldp col) i)) 1)) 1))
-          (join17 newlen oldlen oldp linelen col lnum)))
+      (let loop16 ([newlen newlen]
+                   [oldlen oldlen]
+                   [oldp oldp]
+                   [linelen linelen]
+                   [col col]
+                   [lnum lnum]
+                   [i 0])
+        (if (fx<? i oldlen)
+            (loop16 newlen oldlen oldp linelen col lnum (i32+ (i32+ i (i32- (replace_push_mb ed (fx+ (fx+ oldp col) i)) 1)) 1))
+            (join17 newlen oldlen oldp linelen col lnum))))
     (define (join17 newlen oldlen oldp linelen col lnum)
       (let ([newp (alloc ed (->u64 (i32- (i32+ linelen newlen) oldlen)))])
         (cond
@@ -3099,22 +3121,26 @@
           [else (join21 newlen p newp col lnum)])))
     (define (join21 newlen p newp col lnum)
       (musl_memmove ed p buf (->u64 charlen))
-      (loop22 newlen p newp col lnum charlen))
-    (define (loop22 newlen p newp col lnum i)
-      (cond
-        [(fx<? i newlen)
-         (let* ([t4 i]
-                [i (i32+ i 1)])
-           (st-u8! (fx+ p t4) 32)
-           (loop22 newlen p newp col lnum i))]
-        [else
-         (ml_replace ed lnum newp #f)
-         (changed_bytes ed lnum col)
-         (cond
-           [(and (and (not (fxzero? p_sm)) (not (fxzero? (fxand State 16)))) (fx=? msg_silent 0))
-            (showmatch ed (utf_ptr2char ed buf))
-            (join25)]
-           [else (join25)])]))
+      (let loop22 ([newlen newlen]
+                   [p p]
+                   [newp newp]
+                   [col col]
+                   [lnum lnum]
+                   [i charlen])
+        (cond
+          [(fx<? i newlen)
+           (let* ([t4 i]
+                  [i (i32+ i 1)])
+             (st-u8! (fx+ p t4) 32)
+             (loop22 newlen p newp col lnum i))]
+          [else
+           (ml_replace ed lnum newp #f)
+           (changed_bytes ed lnum col)
+           (cond
+             [(and (and (not (fxzero? p_sm)) (not (fxzero? (fxand State 16)))) (fx=? msg_silent 0))
+              (showmatch ed (utf_ptr2char ed buf))
+              (join25)]
+             [else (join25)])])))
     (define (join25)
       (let ([r2 curwin])
         (win_T.w_cursor.col-set! r2 (i32+ (win_T.w_cursor.col r2) charlen))
@@ -3159,23 +3185,17 @@
 
 (define (del_chars ed count fixpos)
   (let ([mem (ed-mem ed)])
-    (define (loop1 bytes i p)
+    (let loop1 ([bytes 0]
+                [i 0]
+                [p (ml_get_cursor ed)])
       (if (and (< i count) (not (fx=? (ld-u8 p) 0)))
           (let ([l (utfc_ptr2len ed p)])
             (loop1 (i64+ bytes l) (i64+ i 1) (fx+ p l)))
-          (del_bytes ed bytes fixpos #t)))
-    (loop1 0 0 (ml_get_cursor ed))))
+          (del_bytes ed bytes fixpos #t)))))
 
 (define (del_bytes ed count fixpos_arg use_delcombine)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local cc &cc agg 0)
-    (define (loop6 oldp oldlen lnum n)
-      (let* ([count (utf_ptr2len ed (fx+ oldp n))]
-             [col n]
-             [n (->i32 (i64+ n count))])
-        (if (utf_iscomposing ed (utf_ptr2char ed (fx+ oldp n)))
-            (loop6 oldp oldlen lnum n)
-            (join9 count oldp oldlen lnum col 0))))
     (define (join9 count oldp oldlen lnum col fixpos)
       (let ([movelen (i64+ (i64- (i64- oldlen col) count) 1)])
         (if (<= movelen 1)
@@ -3229,7 +3249,16 @@
         [(and (and (not (fxzero? p_deco)) use_delcombine) (>= (utfc_ptr2len ed (fx+ oldp col)) count))
          (utfc_ptr2char ed (fx+ oldp col) cc)
          (if (not (fx=? (ld-s32 cc) 0))
-             (loop6 oldp oldlen lnum col)
+             (let loop6 ([oldp oldp]
+                         [oldlen oldlen]
+                         [lnum lnum]
+                         [n col])
+               (let* ([count (utf_ptr2len ed (fx+ oldp n))]
+                      [col n]
+                      [n (->i32 (i64+ n count))])
+                 (if (utf_iscomposing ed (utf_ptr2char ed (fx+ oldp n)))
+                     (loop6 oldp oldlen lnum n)
+                     (join9 count oldp oldlen lnum col 0))))
              (join9 count oldp oldlen lnum col fixpos))]
         [else (join9 count oldp oldlen lnum col fixpos)]))))
 
@@ -3241,14 +3270,27 @@
         [else
          (replace_push ed 0)
          (replace_push ed 0)
-         (loop6 saved_line next_line p_extra less_cols less_cols_off newcol newindent trunc_line retval (fx+ saved_line (win_T.w_cursor.col curwin)) saved_char do_si no_si first_char saved_pi)]))
-    (define (loop6 saved_line next_line p_extra less_cols less_cols_off newcol newindent trunc_line retval p saved_char do_si no_si first_char saved_pi)
-      (cond
-        [(not (fx=? (ld-u8 p) 0))
-         (loop6 saved_line next_line p_extra less_cols less_cols_off newcol newindent trunc_line retval (fx+ p (replace_push_mb ed p)) saved_char do_si no_si first_char saved_pi)]
-        [else
-         (st-u8! (fx+ saved_line (win_T.w_cursor.col curwin)) 0)
-         (join8 saved_line next_line p_extra less_cols less_cols_off newcol newindent trunc_line retval saved_char do_si no_si first_char saved_pi)]))
+         (let loop6 ([saved_line saved_line]
+                     [next_line next_line]
+                     [p_extra p_extra]
+                     [less_cols less_cols]
+                     [less_cols_off less_cols_off]
+                     [newcol newcol]
+                     [newindent newindent]
+                     [trunc_line trunc_line]
+                     [retval retval]
+                     [p (fx+ saved_line (win_T.w_cursor.col curwin))]
+                     [saved_char saved_char]
+                     [do_si do_si]
+                     [no_si no_si]
+                     [first_char first_char]
+                     [saved_pi saved_pi])
+           (cond
+             [(not (fx=? (ld-u8 p) 0))
+              (loop6 saved_line next_line p_extra less_cols less_cols_off newcol newindent trunc_line retval (fx+ p (replace_push_mb ed p)) saved_char do_si no_si first_char saved_pi)]
+             [else
+              (st-u8! (fx+ saved_line (win_T.w_cursor.col curwin)) 0)
+              (join8 saved_line next_line p_extra less_cols less_cols_off newcol newindent trunc_line retval saved_char do_si no_si first_char saved_pi)]))]))
     (define (join8 saved_line next_line p_extra less_cols less_cols_off newcol newindent trunc_line retval saved_char do_si no_si first_char saved_pi)
       (if (and (not (fxzero? (fxand State 16))) (fx=? (fxand State 512) 0))
           (let ([p_extra (fx+ saved_line (win_T.w_cursor.col curwin))])
@@ -3287,7 +3329,27 @@
             (cond
               [(fx=? dir 1)
                (if (fx=? (ld-u8 saved_line) 35)
-                   (loop35 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line retval saved_char do_si no_si saved_pi saved_line)
+                   (let loop35 ([saved_line saved_line]
+                                [next_line next_line]
+                                [p_extra p_extra]
+                                [less_cols less_cols]
+                                [less_cols_off less_cols_off]
+                                [old_cursor_lnum old_cursor_lnum]
+                                [old_cursor_col old_cursor_col]
+                                [old_cursor_coladd old_cursor_coladd]
+                                [newcol newcol]
+                                [trunc_line trunc_line]
+                                [retval retval]
+                                [saved_char saved_char]
+                                [do_si do_si]
+                                [no_si no_si]
+                                [saved_pi saved_pi]
+                                [ptr saved_line])
+                     (if (and (fx=? (ld-u8 ptr) 35) (> (win_T.w_cursor.lnum curwin) 1))
+                         (let ([r2 curwin])
+                           (win_T.w_cursor.lnum-set! r2 (i64- (win_T.w_cursor.lnum r2) 1))
+                           (loop35 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line retval saved_char do_si no_si saved_pi (ml_get ed (win_T.w_cursor.lnum curwin))))
+                         (join37 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol (get_indent ed) trunc_line retval saved_char do_si no_si saved_pi ptr)))
                    (join37 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval saved_char do_si no_si saved_pi saved_line))]
               [(fx=? (ld-u8 saved_line) 35)
                (loop22 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line retval saved_char do_si no_si saved_pi saved_line #f)]
@@ -3317,23 +3379,33 @@
       (let ([r1 curwin])
         (win_T.w_cursor.lnum-set! r1 (i64+ (win_T.w_cursor.lnum r1) 1))
         (loop22 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line retval saved_char do_si no_si saved_pi (ml_get ed (win_T.w_cursor.lnum curwin)) was_backslashed)))
-    (define (loop35 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line retval saved_char do_si no_si saved_pi ptr)
-      (if (and (fx=? (ld-u8 ptr) 35) (> (win_T.w_cursor.lnum curwin) 1))
-          (let ([r2 curwin])
-            (win_T.w_cursor.lnum-set! r2 (i64- (win_T.w_cursor.lnum r2) 1))
-            (loop35 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line retval saved_char do_si no_si saved_pi (ml_get ed (win_T.w_cursor.lnum curwin))))
-          (join37 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol (get_indent ed) trunc_line retval saved_char do_si no_si saved_pi ptr)))
     (define (join37 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval saved_char do_si no_si saved_pi ptr)
-      (loop38 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval (fx+ (fx+ ptr (->i64 (musl_strlen ed ptr))) -1) saved_char do_si no_si saved_pi ptr))
-    (define (loop38 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval p saved_char do_si no_si saved_pi ptr)
-      (if (and (fx>? p ptr) (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9)))
-          (loop38 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval (fx+ p -1) saved_char do_si no_si saved_pi ptr)
-          (let ([last_char (ld-u8 p)])
-            (if (or (fx=? last_char 123) (fx=? last_char 59))
-                (if (fx>? p ptr)
-                    (loop43 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval (fx+ p -1) saved_char do_si no_si saved_pi ptr last_char)
-                    (loop43 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval p saved_char do_si no_si saved_pi ptr last_char))
-                (join44 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval p saved_char do_si no_si saved_pi ptr last_char)))))
+      (let loop38 ([saved_line saved_line]
+                   [next_line next_line]
+                   [p_extra p_extra]
+                   [less_cols less_cols]
+                   [less_cols_off less_cols_off]
+                   [old_cursor_lnum old_cursor_lnum]
+                   [old_cursor_col old_cursor_col]
+                   [old_cursor_coladd old_cursor_coladd]
+                   [newcol newcol]
+                   [newindent newindent]
+                   [trunc_line trunc_line]
+                   [retval retval]
+                   [p (fx+ (fx+ ptr (->i64 (musl_strlen ed ptr))) -1)]
+                   [saved_char saved_char]
+                   [do_si do_si]
+                   [no_si no_si]
+                   [saved_pi saved_pi]
+                   [ptr ptr])
+        (if (and (fx>? p ptr) (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9)))
+            (loop38 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval (fx+ p -1) saved_char do_si no_si saved_pi ptr)
+            (let ([last_char (ld-u8 p)])
+              (if (or (fx=? last_char 123) (fx=? last_char 59))
+                  (if (fx>? p ptr)
+                      (loop43 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval (fx+ p -1) saved_char do_si no_si saved_pi ptr last_char)
+                      (loop43 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval p saved_char do_si no_si saved_pi ptr last_char))
+                  (join44 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval p saved_char do_si no_si saved_pi ptr last_char))))))
     (define (loop43 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval p saved_char do_si no_si saved_pi ptr last_char)
       (if (and (fx>? p ptr) (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9)))
           (loop43 saved_line next_line p_extra less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol newindent trunc_line retval (fx+ p -1) saved_char do_si no_si saved_pi ptr last_char)
@@ -3463,15 +3535,26 @@
       (let ([less_cols (i32- less_cols (win_T.w_cursor.col curwin))])
         (set! ai_col (win_T.w_cursor.col curwin))
         (if (and (not (fxzero? (fxand State 256))) (not (not (fxzero? (fxand State 512)))))
-            (loop84 saved_line next_line less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol 0 trunc_line no_si did_append saved_pi)
+            (let loop84 ([saved_line saved_line]
+                         [next_line next_line]
+                         [less_cols less_cols]
+                         [less_cols_off less_cols_off]
+                         [old_cursor_lnum old_cursor_lnum]
+                         [old_cursor_col old_cursor_col]
+                         [old_cursor_coladd old_cursor_coladd]
+                         [newcol newcol]
+                         [n 0]
+                         [trunc_line trunc_line]
+                         [no_si no_si]
+                         [did_append did_append]
+                         [saved_pi saved_pi])
+              (cond
+                [(fx<? n (win_T.w_cursor.col curwin))
+                 (replace_push ed 0)
+                 (loop84 saved_line next_line less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol (i32+ n 1) trunc_line no_si did_append saved_pi)]
+                [else
+                 (join85 saved_line next_line less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line no_si did_append saved_pi)]))
             (join85 saved_line next_line less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line no_si did_append saved_pi))))
-    (define (loop84 saved_line next_line less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol n trunc_line no_si did_append saved_pi)
-      (cond
-        [(fx<? n (win_T.w_cursor.col curwin))
-         (replace_push ed 0)
-         (loop84 saved_line next_line less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol (i32+ n 1) trunc_line no_si did_append saved_pi)]
-        [else
-         (join85 saved_line next_line less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line no_si did_append saved_pi)]))
     (define (join85 saved_line next_line less_cols less_cols_off old_cursor_lnum old_cursor_col old_cursor_coladd newcol trunc_line no_si did_append saved_pi)
       (let ([newcol (i32+ newcol (win_T.w_cursor.col curwin))])
         (cond
@@ -3579,21 +3662,21 @@
 
 (define (del_lines ed nlines undo)
   (let ([mem (ed-mem ed)])
-    (define (loop3 n first)
-      (if (< n nlines)
-          (cond
-            [(not (fxzero? (fxand (buf_T.b_ml.ml_flags curbuf) 1))) (join7 n first)]
-            [else
-             (ml_delete_flags ed first 1)
-             (let ([n (i64+ n 1)])
-               (if (> first (buf_T.b_ml.ml_line_count curbuf)) (join7 n first) (loop3 n first)))])
-          (join7 n first)))
     (define (join7 n first)
       (win_T.w_cursor.col-set! curwin 0)
       (check_cursor_lnum ed)
       (deleted_lines_mark ed first n))
     (let ([first (win_T.w_cursor.lnum curwin)])
-      (unless (<= nlines 0) (unless (and undo (not (u_savedel ed first nlines))) (loop3 0 first))))))
+      (unless (<= nlines 0) (unless (and undo (not (u_savedel ed first nlines))) (let loop3 ([n 0]
+                                                                                             [first first])
+                                                                                   (if (< n nlines)
+                                                                                       (cond
+                                                                                         [(not (fxzero? (fxand (buf_T.b_ml.ml_flags curbuf) 1))) (join7 n first)]
+                                                                                         [else
+                                                                                          (ml_delete_flags ed first 1)
+                                                                                          (let ([n (i64+ n 1)])
+                                                                                            (if (> first (buf_T.b_ml.ml_line_count curbuf)) (join7 n first) (loop3 n first)))])
+                                                                                       (join7 n first))))))))
 
 (define (init_chartab ed)
   (let ([mem (ed-mem ed)])
@@ -3601,32 +3684,6 @@
 
 (define (buf_init_chartab ed buf global)
   (let ([mem (ed-mem ed)])
-    (define (loop2 c)
-      (if (fx<? c 32)
-          (let* ([t1 c]
-                 [c (i32+ c 1)])
-            (st-u8! (fx+ g_chartab t1) (->u8 (if (not (fxzero? (fxand dy_flags 4))) 4 2)))
-            (loop2 c))
-          (loop4 c)))
-    (define (loop4 c)
-      (if (fx<=? c 126)
-          (let* ([t2 c]
-                 [c (i32+ c 1)])
-            (st-u8! (fx+ g_chartab t2) 17)
-            (loop4 c))
-          (loop6 c)))
-    (define (loop6 c)
-      (if (fx<? c 256)
-          (if (fx>=? c 160)
-              (let* ([t3 c]
-                     [c (i32+ c 1)])
-                (st-u8! (fx+ g_chartab t3) 17)
-                (loop6 c))
-              (let* ([t4 c]
-                     [c (i32+ c 1)])
-                (st-u8! (fx+ g_chartab t4) (->u8 (if (not (fxzero? (fxand dy_flags 4))) 4 2)))
-                (loop6 c)))
-          (loop8 1)))
     (define (loop8 c)
       (if (fx<? c 256)
           (cond
@@ -3649,7 +3706,30 @@
       (if (not (parse_isopt ed p buf #f)) #f (loop10 (i32+ i 1))))
     (define (join24 c)
       (loop8 (i32+ c 1)))
-    (if global (loop2 0) (join9))))
+    (if global (let loop2 ([c 0])
+                 (if (fx<? c 32)
+                     (let* ([t1 c]
+                            [c (i32+ c 1)])
+                       (st-u8! (fx+ g_chartab t1) (->u8 (if (not (fxzero? (fxand dy_flags 4))) 4 2)))
+                       (loop2 c))
+                     (let loop4 ([c c])
+                       (if (fx<=? c 126)
+                           (let* ([t2 c]
+                                  [c (i32+ c 1)])
+                             (st-u8! (fx+ g_chartab t2) 17)
+                             (loop4 c))
+                           (let loop6 ([c c])
+                             (if (fx<? c 256)
+                                 (if (fx>=? c 160)
+                                     (let* ([t3 c]
+                                            [c (i32+ c 1)])
+                                       (st-u8! (fx+ g_chartab t3) 17)
+                                       (loop6 c))
+                                     (let* ([t4 c]
+                                            [c (i32+ c 1)])
+                                       (st-u8! (fx+ g_chartab t4) (->u8 (if (not (fxzero? (fxand dy_flags 4))) 4 2)))
+                                       (loop6 c)))
+                                 (loop8 1))))))) (join9))))
 
 (define (check_isopt ed var)
   (parse_isopt ed var 0 #t))
@@ -3873,20 +3953,19 @@
 (define (linetabsize_col ed startcol s)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local cts &cts agg 0)
-    (define (loop1 vcol)
+    (define (join6)
+      (let ([r1 (chartabsize_T.cts_vcol cts)])
+        (frame-pop! ed fr)
+        r1))
+    (init_chartabsize_arg ed cts curwin 0 startcol s s)
+    (let loop1 ([vcol (chartabsize_T.cts_vcol cts)])
       (if (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0))
           (let* ([t1 (lbr_chartabsize_adv ed cts)]
                  [vcol (i64+ vcol t1)])
             (cond
               [(> vcol 2147483647) (chartabsize_T.cts_vcol-set! cts 2147483647) (join6)]
               [else (chartabsize_T.cts_vcol-set! cts (->i32 vcol)) (loop1 vcol)]))
-          (join6)))
-    (define (join6)
-      (let ([r1 (chartabsize_T.cts_vcol cts)])
-        (frame-pop! ed fr)
-        r1))
-    (init_chartabsize_arg ed cts curwin 0 startcol s s)
-    (loop1 (chartabsize_T.cts_vcol cts))))
+          (join6)))))
 
 (define (win_linetabsize ed wp lnum line len)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
@@ -3913,7 +3992,7 @@
 
 (define (win_linetabsize_cts ed cts len)
   (let ([mem (ed-mem ed)])
-    (define (loop1 vcol)
+    (let loop1 ([vcol (chartabsize_T.cts_vcol cts)])
       (when (and (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)) (or (fx=? len 2147483647) (fx<? (chartabsize_T.cts_ptr cts) (fx+ (chartabsize_T.cts_line cts) len))))
         (let* ([t1 (win_lbr_chartabsize ed cts 0 0)]
                [vcol (i64+ vcol t1)])
@@ -3923,8 +4002,7 @@
              (chartabsize_T.cts_vcol-set! cts (->i32 vcol))
              (let ([t2 (utfc_ptr2len ed (chartabsize_T.cts_ptr cts))])
                (chartabsize_T.cts_ptr-set! cts (fx+ (chartabsize_T.cts_ptr cts) t2))
-               (loop1 vcol))]))))
-    (loop1 (chartabsize_T.cts_vcol cts))))
+               (loop1 vcol))]))))))
 
 (define (vim_isIDc ed c)
   (let ([mem (ed-mem ed)])
@@ -4039,20 +4117,6 @@
     (define-c-local head &head s32 0)
     (define-c-local tail &tail s32 4)
     (define-c-local cts &cts agg 8)
-    (define (loop2 line)
-      (set! head 0)
-      (set! tail 0)
-      (let ([incr (win_lbr_chartabsize ed cts &head &tail)])
-        (if (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)
-            (join6 line 1)
-            (let* ([r1 (chartabsize_T.cts_ptr cts)]
-                   [next_ptr_2 (fx+ r1 (utfc_ptr2len ed (chartabsize_T.cts_ptr cts)))])
-              (cond
-                [(> (fx- next_ptr_2 line) (pos_T.col pos)) (join6 line incr)]
-                [else
-                 (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) incr))
-                 (chartabsize_T.cts_ptr-set! cts next_ptr_2)
-                 (loop2 line)])))))
     (define (join6 line incr)
       (let ([vcol (chartabsize_T.cts_vcol cts)])
         (join20 vcol (chartabsize_T.cts_ptr cts) line incr)))
@@ -4113,7 +4177,20 @@
       (chartabsize_T.cts_max_head_vcol-set! cts -1)
       (if (or (not (not (fxzero? (win_T.w_onebuf_opt.wo_list wp)))) (not (fx=? (win_T.w_lcs_chars.tab1 wp) 0)))
           (loop8 0 ptr ptr ts)
-          (loop2 ptr)))))
+          (let loop2 ([line ptr])
+            (set! head 0)
+            (set! tail 0)
+            (let ([incr (win_lbr_chartabsize ed cts &head &tail)])
+              (if (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)
+                  (join6 line 1)
+                  (let* ([r1 (chartabsize_T.cts_ptr cts)]
+                         [next_ptr_2 (fx+ r1 (utfc_ptr2len ed (chartabsize_T.cts_ptr cts)))])
+                    (cond
+                      [(> (fx- next_ptr_2 line) (pos_T.col pos)) (join6 line incr)]
+                      [else
+                       (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) incr))
+                       (chartabsize_T.cts_ptr-set! cts next_ptr_2)
+                       (loop2 line)])))))))))
 
 (define (getvcol_nolist ed posp)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
@@ -4194,9 +4271,8 @@
 
 (define (skipwhite ed q)
   (let ([mem (ed-mem ed)])
-    (define (loop1 p)
-      (if (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9)) (loop1 (fx+ p 1)) p))
-    (loop1 q)))
+    (let loop1 ([p q])
+      (if (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9)) (loop1 (fx+ p 1)) p))))
 
 (define (getwhitecols_curline ed)
   (getwhitecols ed (ml_get_curline ed)))
@@ -4206,9 +4282,8 @@
 
 (define (skipdigits ed q)
   (let ([mem (ed-mem ed)])
-    (define (loop1 p)
-      (if (ascii_isdigit ed (ld-u8 p)) (loop1 (fx+ p 1)) p))
-    (loop1 q)))
+    (let loop1 ([p q])
+      (if (ascii_isdigit ed (ld-u8 p)) (loop1 (fx+ p 1)) p))))
 
 (define (vim_isdigit ed c)
   (and (fx>=? c 48) (fx<=? c 57)))
@@ -4254,11 +4329,10 @@
 
 (define (skiptowhite ed p)
   (let ([mem (ed-mem ed)])
-    (define (loop1 p)
+    (let loop1 ([p p])
       (if (and (and (not (fx=? (ld-u8 p) 32)) (not (fx=? (ld-u8 p) 9))) (not (fx=? (ld-u8 p) 0)))
           (loop1 (fx+ p 1))
-          p))
-    (loop1 p)))
+          p))))
 
 (define (getdigits ed pp)
   (let ([mem (ed-mem ed)])
@@ -4301,14 +4375,18 @@
                (join16 len (fx+ ptr 2) pre negative un)]
               [(and (and (and (not (fxzero? (fxand what 8))) (or (fx=? pre 79) (fx=? pre 111))) (vim_isodigit ed (ld-u8 (fx+ ptr 2)))) (or (fx=? maxlen 0) (fx>? maxlen 2)))
                (join16 len (fx+ ptr 2) pre negative un)]
-              [(not (fxzero? (fxand what 2))) (loop8 len ptr 0 negative un 1)]
+              [(not (fxzero? (fxand what 2))) (let loop8 ([len len]
+                                                          [ptr ptr]
+                                                          [pre 0]
+                                                          [negative negative]
+                                                          [un un]
+                                                          [n 1])
+                                                (if (and (not (fx=? n maxlen)) (ascii_isdigit ed (ld-u8 (fx+ ptr n))))
+                                                    (if (fx>? (ld-u8 (fx+ ptr n)) 55)
+                                                        (join16 len ptr 0 negative un)
+                                                        (loop8 len ptr 48 negative un (i32+ n 1)))
+                                                    (join16 len ptr pre negative un)))]
               [else (join16 len ptr 0 negative un)]))
-          (join16 len ptr pre negative un)))
-    (define (loop8 len ptr pre negative un n)
-      (if (and (not (fx=? n maxlen)) (ascii_isdigit ed (ld-u8 (fx+ ptr n))))
-          (if (fx>? (ld-u8 (fx+ ptr n)) 55)
-              (join16 len ptr 0 negative un)
-              (loop8 len ptr 48 negative un (i32+ n 1)))
           (join16 len ptr pre negative un)))
     (define (join16 len ptr pre negative un)
       (cond
@@ -4464,20 +4542,23 @@
         [(fx=? (ld-u8 p) 39)
          (cond
            [(fx=? (ld-u8 (fx+ p 1)) 0) (join25 p)]
-           [(and (fx=? (ld-u8 (fx+ p 1)) 92) (not (fx=? (ld-u8 (fx+ p 2)) 0))) (loop20 p (i32+ 2 1))]
+           [(and (fx=? (ld-u8 (fx+ p 1)) 92) (not (fx=? (ld-u8 (fx+ p 2)) 0))) (let loop20 ([p p]
+                                                                                            [i (i32+ 2 1)])
+                                                                                 (if (vim_isdigit ed (ld-u8 (fx+ p (i32- i 1)))) (loop20 p (i32+ i 1)) (join21 p i)))]
            [else (join21 p 2)])]
         [(fx=? (ld-u8 p) 34) (loop11 (fx+ p 1))]
         [(and (fx=? (ld-u8 p) 82) (fx=? (ld-u8 (fx+ p 1)) 34))
          (let* ([delim (fx+ p 2)]
                 [paren (vim_strchr ed delim 40)])
-           (if (not (fx=? paren 0)) (loop5 (fx+ p 3) delim (->u64 (fx- paren delim))) (join25 p)))]
+           (if (not (fx=? paren 0)) (let loop5 ([p (fx+ p 3)]
+                                                [delim delim]
+                                                [delim_len (->u64 (fx- paren delim))])
+                                      (cond
+                                        [(fxzero? (ld-u8 p)) (join9 p)]
+                                        [(and (and (fx=? (ld-u8 p) 41) (fx=? (musl_strncmp ed (fx+ p 1) delim delim_len) 0)) (fx=? (ld-u8 (fx+ p (->i64 (u64+ delim_len 1)))) 34))
+                                         (join9 (fx+ p (->i64 (u64+ delim_len 1))))]
+                                        [else (loop5 (fx+ p 1) delim delim_len)])) (join25 p)))]
         [else (join25 p)]))
-    (define (loop5 p delim delim_len)
-      (cond
-        [(fxzero? (ld-u8 p)) (join9 p)]
-        [(and (and (fx=? (ld-u8 p) 41) (fx=? (musl_strncmp ed (fx+ p 1) delim delim_len) 0)) (fx=? (ld-u8 (fx+ p (->i64 (u64+ delim_len 1)))) 34))
-         (join9 (fx+ p (->i64 (u64+ delim_len 1))))]
-        [else (loop5 (fx+ p 1) delim delim_len)]))
     (define (join9 p)
       (if (fx=? (ld-u8 p) 34) (join23 p) (join25 p)))
     (define (loop11 p)
@@ -4490,8 +4571,6 @@
       (if (fx=? (ld-u8 p) 34) (join23 p) (join25 p)))
     (define (join16 p)
       (loop11 (fx+ p 1)))
-    (define (loop20 p i)
-      (if (vim_isdigit ed (ld-u8 (fx+ p (i32- i 1)))) (loop20 p (i32+ i 1)) (join21 p i)))
     (define (join21 p i)
       (if (and (not (fx=? (ld-u8 (fx+ p (i32- i 1))) 0)) (fx=? (ld-u8 (fx+ p i)) 39))
           (join23 (fx+ p i))
@@ -4506,7 +4585,11 @@
 
 (define (check_linecomment ed line)
   (let ([mem (ed-mem ed)])
-    (define (loop1 p)
+    (define (join5 p)
+      (if (fx=? (ld-u8 p) 0) (join7 0) (join7 p)))
+    (define (join7 p)
+      (if (fx=? p 0) 2147483647 (->i32 (fx- p line))))
+    (let loop1 ([p line])
       (if (not (fx=? (ld-u8 p) 0))
           (let ([p (skip_string ed p)])
             (cond
@@ -4514,12 +4597,7 @@
               [(and (and (fx=? (ld-u8 p) 47) (fx=? (ld-u8 (fx+ p 1)) 47)) (or (or (fx=? p line) (not (fx=? (ld-u8 (fx+ p -1)) 42))) (not (fx=? (ld-u8 (fx+ p 2)) 42))))
                (join5 p)]
               [else (loop1 (fx+ p 1))]))
-          (join5 p)))
-    (define (join5 p)
-      (if (fx=? (ld-u8 p) 0) (join7 0) (join7 p)))
-    (define (join7 p)
-      (if (fx=? p 0) 2147483647 (->i32 (fx- p line))))
-    (loop1 line)))
+          (join5 p)))))
 
 (define (free_xp_files_extra ed xp numfiles)
   (let ([mem (ed-mem ed)])
@@ -4599,8 +4677,40 @@
           (set! hislen newlen)))
     (define (join7 newlen temp type)
       (cond
-        [(fx<? (ld-s32 (fx+ hisidx (fx* type 4))) 0) (loop31 newlen temp type 0)]
-        [(fx>? newlen hislen) (loop19 newlen temp type 0)]
+        [(fx<? (ld-s32 (fx+ hisidx (fx* type 4))) 0) (let loop31 ([newlen newlen]
+                                                                  [temp temp]
+                                                                  [type type]
+                                                                  [i 0])
+                                                       (cond
+                                                         [(fx<? i newlen) (clear_hist_entry ed (fx+ temp (fx* i 32))) (loop31 newlen temp type (i32+ i 1))]
+                                                         [else (join32 newlen temp type)]))]
+        [(fx>? newlen hislen) (let loop19 ([newlen newlen]
+                                           [temp temp]
+                                           [type type]
+                                           [i_2 0])
+                                (cond
+                                  [(fx<=? i_2 (ld-s32 (fx+ hisidx (fx* type 4))))
+                                   (mem-copy! (fx+ temp (fx* i_2 32)) (fx+ (ld-ptr (fx+ history (fx* type 8))) (fx* i_2 32)) 32)
+                                   (loop19 newlen temp type (i32+ i_2 1))]
+                                  [else (let loop21 ([newlen newlen]
+                                                     [temp temp]
+                                                     [type type]
+                                                     [i_2 i_2]
+                                                     [j i_2])
+                                          (cond
+                                            [(fx<=? i_2 (i32- newlen (i32- hislen (ld-s32 (fx+ hisidx (fx* type 4))))))
+                                             (clear_hist_entry ed (fx+ temp (fx* i_2 32)))
+                                             (loop21 newlen temp type (i32+ i_2 1) j)]
+                                            [else (let loop23 ([newlen newlen]
+                                                               [temp temp]
+                                                               [type type]
+                                                               [i_2 i_2]
+                                                               [j j])
+                                                    (cond
+                                                      [(fx<? j hislen)
+                                                       (mem-copy! (fx+ temp (fx* i_2 32)) (fx+ (ld-ptr (fx+ history (fx* type 8))) (fx* j 32)) 32)
+                                                       (loop23 newlen temp type (i32+ i_2 1) (i32+ j 1))]
+                                                      [else (join32 newlen temp type)]))]))]))]
         [else (loop10 newlen temp type (i32- newlen 1) (ld-s32 (fx+ hisidx (fx* type 4))))]))
     (define (loop10 newlen temp type i_3 j_2)
       (cond
@@ -4619,28 +4729,6 @@
          (st-s32! (fx+ hisidx (fx* type 4)) (i32- newlen 1))
          (join32 newlen temp type)]
         [else (loop10 newlen temp type (i32- i_3 1) j_2)]))
-    (define (loop19 newlen temp type i_2)
-      (cond
-        [(fx<=? i_2 (ld-s32 (fx+ hisidx (fx* type 4))))
-         (mem-copy! (fx+ temp (fx* i_2 32)) (fx+ (ld-ptr (fx+ history (fx* type 8))) (fx* i_2 32)) 32)
-         (loop19 newlen temp type (i32+ i_2 1))]
-        [else (loop21 newlen temp type i_2 i_2)]))
-    (define (loop21 newlen temp type i_2 j)
-      (cond
-        [(fx<=? i_2 (i32- newlen (i32- hislen (ld-s32 (fx+ hisidx (fx* type 4))))))
-         (clear_hist_entry ed (fx+ temp (fx* i_2 32)))
-         (loop21 newlen temp type (i32+ i_2 1) j)]
-        [else (loop23 newlen temp type i_2 j)]))
-    (define (loop23 newlen temp type i_2 j)
-      (cond
-        [(fx<? j hislen)
-         (mem-copy! (fx+ temp (fx* i_2 32)) (fx+ (ld-ptr (fx+ history (fx* type 8))) (fx* j 32)) 32)
-         (loop23 newlen temp type (i32+ i_2 1) (i32+ j 1))]
-        [else (join32 newlen temp type)]))
-    (define (loop31 newlen temp type i)
-      (cond
-        [(fx<? i newlen) (clear_hist_entry ed (fx+ temp (fx* i 32))) (loop31 newlen temp type (i32+ i 1))]
-        [else (join32 newlen temp type)]))
     (define (join32 newlen temp type)
       (st-ptr! (fx+ history (fx* type 8)) temp)
       (loop2 newlen (i32+ type 1)))
@@ -4695,17 +4783,17 @@
 
 (define (get_histtype ed name)
   (let ([mem (ed-mem ed)])
-    (define (loop2 i len)
-      (cond
-        [(not (fx=? (ld-ptr (fx+ history_names (fx* i 8))) 0))
-         (if (fx=? (musl_strncasecmp ed name (ld-ptr (fx+ history_names (fx* i 8))) (->u64 len)) 0)
-             i
-             (loop2 (i32+ i 1) len))]
-        [(and (not (fx=? (vim_strchr ed (c-str 162445 ":=@>?/") (ld-u8 name)) 0)) (fx=? (ld-u8 (fx+ name 1)) 0))
-         (hist_char2type ed (ld-u8 name))]
-        [else -1]))
     (let ([len (->i32 (musl_strlen ed name))])
-      (if (fx=? len 0) (hist_char2type ed (get_cmdline_firstc ed)) (loop2 0 len)))))
+      (if (fx=? len 0) (hist_char2type ed (get_cmdline_firstc ed)) (let loop2 ([i 0]
+                                                                               [len len])
+                                                                     (cond
+                                                                       [(not (fx=? (ld-ptr (fx+ history_names (fx* i 8))) 0))
+                                                                        (if (fx=? (musl_strncasecmp ed name (ld-ptr (fx+ history_names (fx* i 8))) (->u64 len)) 0)
+                                                                            i
+                                                                            (loop2 (i32+ i 1) len))]
+                                                                       [(and (not (fx=? (vim_strchr ed (c-str 162445 ":=@>?/") (ld-u8 name)) 0)) (fx=? (ld-u8 (fx+ name 1)) 0))
+                                                                        (hist_char2type ed (ld-u8 name))]
+                                                                       [else -1]))))))
 
 (define (add_to_history ed histype new_entry new_entrylen in_map sep)
   (let ([mem (ed-mem ed)])
@@ -4746,23 +4834,6 @@
 
 (define (ex_history ed eap)
   (let ([mem (ed-mem ed)])
-    (define (loop4 hisidx1 hisidx2 end arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2)
-      (if (or (or (ascii_isupper ed (ld-u8 end)) (ascii_islower ed (ld-u8 end))) (not (fx=? (vim_strchr ed (c-str 162452 ":=@>/?") (ld-u8 end)) 0)))
-          (loop4 hisidx1 hisidx2 (fx+ end 1) arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2)
-          (let ([i (ld-u8 end)])
-            (st-u8! end 0)
-            (let ([histype1 (get_histtype ed arg)])
-              (if (fx=? histype1 -1)
-                  (cond
-                    [(fx=? (musl_strncasecmp ed arg (c-str 162459 "all") (musl_strlen ed arg)) 0)
-                     (join10 0 4 hisidx1 hisidx2 i end arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2)]
-                    [else
-                     (st-u8! end (->u8 i))
-                     (let ([r1 IObuff])
-                       (vim_snprintf ed r1 (emsg_iobuff_room ed) e_trailing_characters_str (list arg))
-                       (emsg ed (iobuff_or ed e_trailing_characters_str))
-                       (void))])
-                  (join10 histype1 histype1 hisidx1 hisidx2 i end arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2))))))
     (define (join10 histype1 histype2 hisidx1 hisidx2 i end arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2)
       (st-u8! end (->u8 i))
       (join11 histype1 histype2 hisidx1 hisidx2 end arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2))
@@ -4837,7 +4908,30 @@
       (cond
         [(fx=? hislen 0) (msg ed (c-str 162492 "'history' option is zero"))]
         [(not (or (or (ascii_isdigit ed (ld-u8 arg)) (fx=? (ld-u8 arg) 45)) (fx=? (ld-u8 arg) 44)))
-         (loop4 1 -1 arg arg #f 0 0 0)]
+         (let loop4 ([hisidx1 1]
+                     [hisidx2 -1]
+                     [end arg]
+                     [arg arg]
+                     [get_list_range__o_r__ #f]
+                     [get_list_range__o_str 0]
+                     [get_list_range__o_num1 0]
+                     [get_list_range__o_num2 0])
+           (if (or (or (ascii_isupper ed (ld-u8 end)) (ascii_islower ed (ld-u8 end))) (not (fx=? (vim_strchr ed (c-str 162452 ":=@>/?") (ld-u8 end)) 0)))
+               (loop4 hisidx1 hisidx2 (fx+ end 1) arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2)
+               (let ([i (ld-u8 end)])
+                 (st-u8! end 0)
+                 (let ([histype1 (get_histtype ed arg)])
+                   (if (fx=? histype1 -1)
+                       (cond
+                         [(fx=? (musl_strncasecmp ed arg (c-str 162459 "all") (musl_strlen ed arg)) 0)
+                          (join10 0 4 hisidx1 hisidx2 i end arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2)]
+                         [else
+                          (st-u8! end (->u8 i))
+                          (let ([r1 IObuff])
+                            (vim_snprintf ed r1 (emsg_iobuff_room ed) e_trailing_characters_str (list arg))
+                            (emsg ed (iobuff_or ed e_trailing_characters_str))
+                            (void))])
+                       (join10 histype1 histype1 hisidx1 hisidx2 i end arg get_list_range__o_r__ get_list_range__o_str get_list_range__o_num1 get_list_range__o_num2))))))]
         [else (join11 0 0 1 -1 arg arg #f 0 0 0)]))))
 
 (define (get_lcs_ext ed wp)
@@ -4854,14 +4948,13 @@
       (cond
         [(and (fx>? (win_T.w_skipcol wp) 0) (fx=? (winlinevars_T.startrow wlv) 0))
          (winlinevars_T.p_extra-set! wlv (winlinevars_T.extra& wlv))
-         (loop9)]
-        [else (join10)]))
-    (define (loop9)
-      (cond
-        [(fx=? (ld-u8 (winlinevars_T.p_extra wlv)) 32)
-         (st-u8! (winlinevars_T.p_extra wlv) 45)
-         (winlinevars_T.p_extra-set! wlv (fx+ (winlinevars_T.p_extra wlv) 1))
-         (loop9)]
+         (let loop9 ()
+           (cond
+             [(fx=? (ld-u8 (winlinevars_T.p_extra wlv)) 32)
+              (st-u8! (winlinevars_T.p_extra wlv) 45)
+              (winlinevars_T.p_extra-set! wlv (fx+ (winlinevars_T.p_extra wlv) 1))
+              (loop9)]
+             [else (join10)]))]
         [else (join10)]))
     (define (join10)
       (winlinevars_T.p_extra-set! wlv (winlinevars_T.extra& wlv))
@@ -4898,10 +4991,6 @@
 
 (define (wlv_screen_line ed wp wlv clear_end)
   (let ([mem (ed-mem ed)])
-    (define (loop3 off max_off skip)
-      (if (and (fx<? skip (win_T.w_width wp)) (ascii_isdigit ed (ld-u8 (fx+ ScreenLines off))))
-          (loop3 (i32+ off 1) max_off (i32+ skip 1))
-          (join4 off max_off skip)))
     (define (join4 off max_off skip)
       (loop5 off max_off skip 0))
     (define (loop5 off max_off skip i)
@@ -4923,7 +5012,12 @@
         (let* ([off (->i32 (fx- current_ScreenLine ScreenLines))]
                [max_off (i32+ off screen_Columns)])
           (if (and (not (fxzero? (win_T.w_onebuf_opt.wo_nu wp))) (not (fxzero? (win_T.w_onebuf_opt.wo_rnu wp))))
-              (loop3 off max_off 0)
+              (let loop3 ([off off]
+                          [max_off max_off]
+                          [skip 0])
+                (if (and (fx<? skip (win_T.w_width wp)) (ascii_isdigit ed (ld-u8 (fx+ ScreenLines off))))
+                    (loop3 (i32+ off 1) max_off (i32+ skip 1))
+                    (join4 off max_off skip)))
               (join4 off max_off 0)))
         (join6))))
 
@@ -5085,24 +5179,82 @@
            (join41 line line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)])))
     (define (join41 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (if (not (fxzero? (win_T.w_lcs_chars.trail wp)))
-          (loop43 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr (ml_get_buf_len ed (win_T.w_buffer wp) lnum) leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
+          (let loop43 ([line line]
+                       [ptr ptr]
+                       [in_curline in_curline]
+                       [lcs_eol_one lcs_eol_one]
+                       [lcs_prec_todo lcs_prec_todo]
+                       [n_attr n_attr]
+                       [saved_attr2 saved_attr2]
+                       [n_attr3 n_attr3]
+                       [saved_attr3 saved_attr3]
+                       [skip_cells skip_cells]
+                       [skipped_cells skipped_cells]
+                       [attr_pri attr_pri]
+                       [area_highlighting area_highlighting]
+                       [vi_attr vi_attr]
+                       [search_attr search_attr]
+                       [extra_check extra_check]
+                       [multi_attr multi_attr]
+                       [trailcol (ml_get_buf_len ed (win_T.w_buffer wp) lnum)]
+                       [leadcol leadcol]
+                       [in_multispace in_multispace]
+                       [multispace_pos multispace_pos]
+                       [sign_present sign_present]
+                       [num_attr num_attr]
+                       [did_line_attr did_line_attr]
+                       [on_last_col on_last_col]
+                       [prepare_search_hl_line__o_r__ prepare_search_hl_line__o_r__]
+                       [prepare_search_hl_line__o_line prepare_search_hl_line__o_line]
+                       [prepare_search_hl_line__o_search_attr prepare_search_hl_line__o_search_attr]
+                       [update_search_hl__o_r__ update_search_hl__o_r__]
+                       [update_search_hl__o_line update_search_hl__o_line]
+                       [update_search_hl__o_on_last_col update_search_hl__o_on_last_col])
+            (if (and (fx>? trailcol 0) (or (fx=? (ld-u8 (fx+ ptr (i32- trailcol 1))) 32) (fx=? (ld-u8 (fx+ ptr (i32- trailcol 1))) 9)))
+                (loop43 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr (i32- trailcol 1) leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
+                (join45 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr (i32+ trailcol (->i32 (fx- ptr line))) leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))
           (join45 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))
-    (define (loop43 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-      (if (and (fx>? trailcol 0) (or (fx=? (ld-u8 (fx+ ptr (i32- trailcol 1))) 32) (fx=? (ld-u8 (fx+ ptr (i32- trailcol 1))) 9)))
-          (loop43 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr (i32- trailcol 1) leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-          (join45 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr (i32+ trailcol (->i32 (fx- ptr line))) leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))
     (define (join45 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (if (or (or (not (fxzero? (win_T.w_lcs_chars.lead wp))) (not (fx=? (win_T.w_lcs_chars.leadmultispace wp) 0))) (not (fx=? (win_T.w_lcs_chars.leadtab1 wp) 0)))
-          (loop47 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol 0 in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
+          (let loop47 ([line line]
+                       [ptr ptr]
+                       [in_curline in_curline]
+                       [lcs_eol_one lcs_eol_one]
+                       [lcs_prec_todo lcs_prec_todo]
+                       [n_attr n_attr]
+                       [saved_attr2 saved_attr2]
+                       [n_attr3 n_attr3]
+                       [saved_attr3 saved_attr3]
+                       [skip_cells skip_cells]
+                       [skipped_cells skipped_cells]
+                       [attr_pri attr_pri]
+                       [area_highlighting area_highlighting]
+                       [vi_attr vi_attr]
+                       [search_attr search_attr]
+                       [extra_check extra_check]
+                       [multi_attr multi_attr]
+                       [trailcol trailcol]
+                       [leadcol 0]
+                       [in_multispace in_multispace]
+                       [multispace_pos multispace_pos]
+                       [sign_present sign_present]
+                       [num_attr num_attr]
+                       [did_line_attr did_line_attr]
+                       [on_last_col on_last_col]
+                       [prepare_search_hl_line__o_r__ prepare_search_hl_line__o_r__]
+                       [prepare_search_hl_line__o_line prepare_search_hl_line__o_line]
+                       [prepare_search_hl_line__o_search_attr prepare_search_hl_line__o_search_attr]
+                       [update_search_hl__o_r__ update_search_hl__o_r__]
+                       [update_search_hl__o_line update_search_hl__o_line]
+                       [update_search_hl__o_on_last_col update_search_hl__o_on_last_col])
+            (cond
+              [(or (fx=? (ld-u8 (fx+ ptr leadcol)) 32) (fx=? (ld-u8 (fx+ ptr leadcol)) 9))
+               (loop47 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol (i32+ leadcol 1) in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
+              [(fx=? (ld-u8 (fx+ ptr leadcol)) 0)
+               (join51 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol 0 in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
+              [else
+               (join51 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol (i32+ leadcol (i32+ (->i32 (fx- ptr line)) 1)) in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
           (join51 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))
-    (define (loop47 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-      (cond
-        [(or (fx=? (ld-u8 (fx+ ptr leadcol)) 32) (fx=? (ld-u8 (fx+ ptr leadcol)) 9))
-         (loop47 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol (i32+ leadcol 1) in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
-        [(fx=? (ld-u8 (fx+ ptr leadcol)) 0)
-         (join51 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol 0 in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
-        [else
-         (join51 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol (i32+ leadcol (i32+ (->i32 (fx- ptr line)) 1)) in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
     (define (join51 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (cond
         [(not (fx=? (get_win_attr ed wp) 0))
@@ -5120,40 +5272,71 @@
          (set! head 0)
          (init_chartabsize_arg ed cts wp lnum (->i32 (winlinevars_T.vcol wlv)) line ptr)
          (chartabsize_T.cts_max_head_vcol-set! cts (->i32 v))
-         (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col ptr 0 prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
+         (let loop58 ([line line]
+                      [in_curline in_curline]
+                      [lcs_eol_one lcs_eol_one]
+                      [lcs_prec_todo lcs_prec_todo]
+                      [n_attr n_attr]
+                      [saved_attr2 saved_attr2]
+                      [n_attr3 n_attr3]
+                      [saved_attr3 saved_attr3]
+                      [skip_cells skip_cells]
+                      [skipped_cells skipped_cells]
+                      [v v]
+                      [attr_pri attr_pri]
+                      [area_highlighting area_highlighting]
+                      [vi_attr vi_attr]
+                      [search_attr search_attr]
+                      [extra_check extra_check]
+                      [multi_attr multi_attr]
+                      [trailcol trailcol]
+                      [leadcol leadcol]
+                      [in_multispace in_multispace]
+                      [multispace_pos multispace_pos]
+                      [sign_present sign_present]
+                      [num_attr num_attr]
+                      [did_line_attr did_line_attr]
+                      [on_last_col on_last_col]
+                      [prev_ptr ptr]
+                      [charsize 0]
+                      [prepare_search_hl_line__o_r__ prepare_search_hl_line__o_r__]
+                      [prepare_search_hl_line__o_line prepare_search_hl_line__o_line]
+                      [prepare_search_hl_line__o_search_attr prepare_search_hl_line__o_search_attr]
+                      [update_search_hl__o_r__ update_search_hl__o_r__]
+                      [update_search_hl__o_line update_search_hl__o_line]
+                      [update_search_hl__o_on_last_col update_search_hl__o_on_last_col])
+           (cond
+             [(< (chartabsize_T.cts_vcol cts) v)
+              (set! head 0)
+              (let ([charsize (win_lbr_chartabsize ed cts &head 0)])
+                (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) charsize))
+                (let ([prev_ptr (chartabsize_T.cts_ptr cts)])
+                  (if (fx=? (ld-u8 prev_ptr) 0)
+                      (join70 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
+                      (let ([t1 (utfc_ptr2len ed (chartabsize_T.cts_ptr cts))])
+                        (chartabsize_T.cts_ptr-set! cts (fx+ (chartabsize_T.cts_ptr cts) t1))
+                        (if (not (fxzero? (win_T.w_onebuf_opt.wo_list wp)))
+                            (let ([in_multispace (and (fx=? (ld-u8 prev_ptr) 32) (or (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 32) (and (fx>? prev_ptr line) (fx=? (ld-u8 (fx+ prev_ptr -1)) 32))))])
+                              (cond
+                                [(not in_multispace)
+                                 (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace 0 sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
+                                [(and (fx>=? (chartabsize_T.cts_ptr cts) (fx+ line leadcol)) (not (fx=? (win_T.w_lcs_chars.multispace wp) 0)))
+                                 (let ([multispace_pos (i32+ multispace_pos 1)])
+                                   (if (fx=? (ld-s32 (fx+ (win_T.w_lcs_chars.multispace wp) (fx* multispace_pos 4))) 0)
+                                       (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace 0 sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
+                                       (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))]
+                                [(and (fx<? (chartabsize_T.cts_ptr cts) (fx+ line leadcol)) (not (fx=? (win_T.w_lcs_chars.leadmultispace wp) 0)))
+                                 (let ([multispace_pos (i32+ multispace_pos 1)])
+                                   (if (fx=? (ld-s32 (fx+ (win_T.w_lcs_chars.leadmultispace wp) (fx* multispace_pos 4))) 0)
+                                       (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace 0 sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
+                                       (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))]
+                                [else
+                                 (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
+                            (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col))))))]
+             [else
+              (join70 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))]
         [else
          (join80 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
-    (define (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-      (cond
-        [(< (chartabsize_T.cts_vcol cts) v)
-         (set! head 0)
-         (let ([charsize (win_lbr_chartabsize ed cts &head 0)])
-           (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) charsize))
-           (let ([prev_ptr (chartabsize_T.cts_ptr cts)])
-             (if (fx=? (ld-u8 prev_ptr) 0)
-                 (join70 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-                 (let ([t1 (utfc_ptr2len ed (chartabsize_T.cts_ptr cts))])
-                   (chartabsize_T.cts_ptr-set! cts (fx+ (chartabsize_T.cts_ptr cts) t1))
-                   (if (not (fxzero? (win_T.w_onebuf_opt.wo_list wp)))
-                       (let ([in_multispace (and (fx=? (ld-u8 prev_ptr) 32) (or (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 32) (and (fx>? prev_ptr line) (fx=? (ld-u8 (fx+ prev_ptr -1)) 32))))])
-                         (cond
-                           [(not in_multispace)
-                            (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace 0 sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
-                           [(and (fx>=? (chartabsize_T.cts_ptr cts) (fx+ line leadcol)) (not (fx=? (win_T.w_lcs_chars.multispace wp) 0)))
-                            (let ([multispace_pos (i32+ multispace_pos 1)])
-                              (if (fx=? (ld-s32 (fx+ (win_T.w_lcs_chars.multispace wp) (fx* multispace_pos 4))) 0)
-                                  (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace 0 sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-                                  (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))]
-                           [(and (fx<? (chartabsize_T.cts_ptr cts) (fx+ line leadcol)) (not (fx=? (win_T.w_lcs_chars.leadmultispace wp) 0)))
-                            (let ([multispace_pos (i32+ multispace_pos 1)])
-                              (if (fx=? (ld-s32 (fx+ (win_T.w_lcs_chars.leadmultispace wp) (fx* multispace_pos 4))) 0)
-                                  (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace 0 sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-                                  (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))]
-                           [else
-                            (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
-                       (loop58 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col))))))]
-        [else
-         (join70 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
     (define (join70 line in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells v attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr charsize prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (winlinevars_T.vcol-set! wlv (chartabsize_T.cts_vcol cts))
       (let ([ptr (chartabsize_T.cts_ptr cts)])
@@ -5334,16 +5517,51 @@
             (join124 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l c #f trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col))))
     (define (join120 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (if (utf_iscomposing ed mb_c)
-          (loop122 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l mb_c #t trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 (i32- Screen_mco 1) prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
+          (let loop122 ([c c]
+                        [line line]
+                        [ptr ptr]
+                        [in_curline in_curline]
+                        [lcs_eol_one lcs_eol_one]
+                        [lcs_prec_todo lcs_prec_todo]
+                        [n_attr n_attr]
+                        [saved_attr2 saved_attr2]
+                        [n_attr3 n_attr3]
+                        [saved_attr3 saved_attr3]
+                        [skip_cells skip_cells]
+                        [skipped_cells skipped_cells]
+                        [attr_pri attr_pri]
+                        [area_highlighting area_highlighting]
+                        [vi_attr vi_attr]
+                        [search_attr search_attr]
+                        [extra_check extra_check]
+                        [multi_attr multi_attr]
+                        [mb_l mb_l]
+                        [mb_c mb_c]
+                        [mb_utf8 #t]
+                        [trailcol trailcol]
+                        [leadcol leadcol]
+                        [in_multispace in_multispace]
+                        [multispace_pos multispace_pos]
+                        [sign_present sign_present]
+                        [num_attr num_attr]
+                        [did_line_attr did_line_attr]
+                        [on_last_col on_last_col]
+                        [prev_ptr_2 prev_ptr_2]
+                        [i (i32- Screen_mco 1)]
+                        [prepare_search_hl_line__o_r__ prepare_search_hl_line__o_r__]
+                        [prepare_search_hl_line__o_line prepare_search_hl_line__o_line]
+                        [prepare_search_hl_line__o_search_attr prepare_search_hl_line__o_search_attr]
+                        [update_search_hl__o_r__ update_search_hl__o_r__]
+                        [update_search_hl__o_line update_search_hl__o_line]
+                        [update_search_hl__o_on_last_col update_search_hl__o_on_last_col])
+            (cond
+              [(fx>? i 0)
+               (st-s32! (fx+ u8cc (fx* i 4)) (ld-s32 (fx+ u8cc (fx* (i32- i 1) 4))))
+               (loop122 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l mb_c mb_utf8 trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 (i32- i 1) prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
+              [else
+               (st-s32! u8cc mb_c)
+               (join124 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l 32 mb_utf8 trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
           (join124 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l mb_c #t trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)))
-    (define (loop122 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l mb_c mb_utf8 trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 i prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-      (cond
-        [(fx>? i 0)
-         (st-s32! (fx+ u8cc (fx* i 4)) (ld-s32 (fx+ u8cc (fx* (i32- i 1) 4))))
-         (loop122 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l mb_c mb_utf8 trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 (i32- i 1) prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]
-        [else
-         (st-s32! u8cc mb_c)
-         (join124 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l 32 mb_utf8 trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
     (define (join124 c line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_l mb_c mb_utf8 trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prev_ptr_2 prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (cond
         [(or (or (and (fx=? mb_l 1) (fx>=? c 128)) (and (fx>=? mb_l 1) (fx=? mb_c 0))) (and (fx>? mb_l 1) (not (vim_isprintc ed mb_c))))
@@ -5695,16 +5913,47 @@
         [else
          (join265 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 (i32- skip_cells 1) skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
     (define (join248 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-      (loop249 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col 0 prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col))
-    (define (loop249 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col i_2 prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-      (cond
-        [(fx<? i_2 Screen_mco)
-         (st-u32! (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i_2 8))) (fx* (winlinevars_T.off wlv) 4)) (->u32 (ld-s32 (fx+ u8cc (fx* i_2 4)))))
-         (if (fx=? (ld-s32 (fx+ u8cc (fx* i_2 4))) 0)
-             (join252 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-             (loop249 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col (i32+ i_2 1) prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col))]
-        [else
-         (join252 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)]))
+      (let loop249 ([line line]
+                    [ptr ptr]
+                    [in_curline in_curline]
+                    [lcs_eol_one lcs_eol_one]
+                    [lcs_prec_todo lcs_prec_todo]
+                    [n_attr n_attr]
+                    [saved_attr2 saved_attr2]
+                    [n_attr3 n_attr3]
+                    [saved_attr3 saved_attr3]
+                    [skip_cells skip_cells]
+                    [skipped_cells skipped_cells]
+                    [attr_pri attr_pri]
+                    [area_highlighting area_highlighting]
+                    [vi_attr vi_attr]
+                    [search_attr search_attr]
+                    [extra_check extra_check]
+                    [multi_attr multi_attr]
+                    [mb_c mb_c]
+                    [trailcol trailcol]
+                    [leadcol leadcol]
+                    [in_multispace in_multispace]
+                    [multispace_pos multispace_pos]
+                    [sign_present sign_present]
+                    [num_attr num_attr]
+                    [did_line_attr did_line_attr]
+                    [on_last_col on_last_col]
+                    [i_2 0]
+                    [prepare_search_hl_line__o_r__ prepare_search_hl_line__o_r__]
+                    [prepare_search_hl_line__o_line prepare_search_hl_line__o_line]
+                    [prepare_search_hl_line__o_search_attr prepare_search_hl_line__o_search_attr]
+                    [update_search_hl__o_r__ update_search_hl__o_r__]
+                    [update_search_hl__o_line update_search_hl__o_line]
+                    [update_search_hl__o_on_last_col update_search_hl__o_on_last_col])
+        (cond
+          [(fx<? i_2 Screen_mco)
+           (st-u32! (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i_2 8))) (fx* (winlinevars_T.off wlv) 4)) (->u32 (ld-s32 (fx+ u8cc (fx* i_2 4)))))
+           (if (fx=? (ld-s32 (fx+ u8cc (fx* i_2 4))) 0)
+               (join252 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
+               (loop249 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col (i32+ i_2 1) prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col))]
+          [else
+           (join252 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)])))
     (define (join252 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr mb_c trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
       (cond
         [(not (fxzero? multi_attr))
@@ -6081,52 +6330,73 @@
     (define (join11 row fillchar attr p this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
       (if (fx<=? this_ru_col 1)
           (join19 row fillchar attr (c-str 162541 "<") 1 this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
-          (loop13 row fillchar attr 0 p (mb_string2cells ed p -1) this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)))
-    (define (loop13 row fillchar attr i p plen this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
-      (cond
-        [(and (not (fx=? (ld-u8 (fx+ p i)) 0)) (fx>=? plen (i32- this_ru_col 1)))
-         (let ([t5 (utf_ptr2cells ed (fx+ p i))])
-           (loop13 row fillchar attr (i32+ i (utfc_ptr2len ed (fx+ p i))) p (i32- plen t5) this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr))]
-        [(fx>? i 0)
-         (let ([p (fx+ (fx+ p i) -1)])
-           (st-u8! p 60)
-           (join19 row fillchar attr p (i32+ plen 1) this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr))]
-        [else
-         (join19 row fillchar attr p plen this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)]))
+          (let loop13 ([row row]
+                       [fillchar fillchar]
+                       [attr attr]
+                       [i 0]
+                       [p p]
+                       [plen (mb_string2cells ed p -1)]
+                       [this_ru_col this_ru_col]
+                       [fillchar_status__o_r__ fillchar_status__o_r__]
+                       [fillchar_status__o_attr fillchar_status__o_attr]
+                       [fillchar_vsep__o_r__ fillchar_vsep__o_r__]
+                       [fillchar_vsep__o_attr fillchar_vsep__o_attr])
+            (cond
+              [(and (not (fx=? (ld-u8 (fx+ p i)) 0)) (fx>=? plen (i32- this_ru_col 1)))
+               (let ([t5 (utf_ptr2cells ed (fx+ p i))])
+                 (loop13 row fillchar attr (i32+ i (utfc_ptr2len ed (fx+ p i))) p (i32- plen t5) this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr))]
+              [(fx>? i 0)
+               (let ([p (fx+ (fx+ p i) -1)])
+                 (st-u8! p 60)
+                 (join19 row fillchar attr p (i32+ plen 1) this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr))]
+              [else
+               (join19 row fillchar attr p plen this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)]))))
     (define (join19 row fillchar attr p plen this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
       (screen_puts ed p row (win_T.w_wincol wp) attr)
       (screen_fill ed row (i32+ row 1) (i32+ plen (win_T.w_wincol wp)) (i32+ this_ru_col (win_T.w_wincol wp)) fillchar fillchar attr)
-      (loop20 row fillchar attr 1 plen this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr))
-    (define (loop20 row fillchar attr i plen this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
-      (cond
-        [(fx<? i (win_T.w_status_height wp))
-         (screen_fill ed (i32+ row i) (i32+ (i32+ row i) 1) (win_T.w_wincol wp) (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) fillchar fillchar attr)
-         (loop20 row fillchar attr (i32+ i 1) plen this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)]
-        [else
-         (win_redr_ruler ed wp #t ignore_pum)
-         (if (and (not (fxzero? p_sc)) (fx=? (ld-u8 p_sloc) 115))
-             (let* ([n (i32- (i32- this_ru_col plen) 2)]
-                    [width (if (fx<? 10 n) 10 n)])
-               (cond
-                 [(fx>? width 0)
-                  (screen_puts_len ed showcmd_buf width row (i32- (i32- (i32+ (win_T.w_wincol wp) this_ru_col) width) 1) attr)
-                  (join24 row fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)]
-                 [else
-                  (join24 row fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)]))
-             (join29 row fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr))]))
+      (let loop20 ([row row]
+                   [fillchar fillchar]
+                   [attr attr]
+                   [i 1]
+                   [plen plen]
+                   [this_ru_col this_ru_col]
+                   [fillchar_status__o_r__ fillchar_status__o_r__]
+                   [fillchar_status__o_attr fillchar_status__o_attr]
+                   [fillchar_vsep__o_r__ fillchar_vsep__o_r__]
+                   [fillchar_vsep__o_attr fillchar_vsep__o_attr])
+        (cond
+          [(fx<? i (win_T.w_status_height wp))
+           (screen_fill ed (i32+ row i) (i32+ (i32+ row i) 1) (win_T.w_wincol wp) (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) fillchar fillchar attr)
+           (loop20 row fillchar attr (i32+ i 1) plen this_ru_col fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)]
+          [else
+           (win_redr_ruler ed wp #t ignore_pum)
+           (if (and (not (fxzero? p_sc)) (fx=? (ld-u8 p_sloc) 115))
+               (let* ([n (i32- (i32- this_ru_col plen) 2)]
+                      [width (if (fx<? 10 n) 10 n)])
+                 (cond
+                   [(fx>? width 0)
+                    (screen_puts_len ed showcmd_buf width row (i32- (i32- (i32+ (win_T.w_wincol wp) this_ru_col) width) 1) attr)
+                    (join24 row fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)]
+                   [else
+                    (join24 row fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)]))
+               (join29 row fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr))])))
     (define (join24 row fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
       (showcmd_update_clear_state ed)
       (join29 row fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr))
     (define (join29 row fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
       (if (and (and (not (fx=? (win_T.w_vsep_width wp) 0)) (not (fx=? (win_T.w_status_height wp) 0))) (redrawing ed))
-          (loop31 row 0 fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
-          (join32 fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)))
-    (define (loop31 row i fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
-      (if (fx<? i (win_T.w_status_height wp))
-          (let ([r (i32+ row i)])
-            (let-values ([(r1 r2) (fillchar_vsep ed wp r)])
-              (screen_putchar ed r1 r (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) r2)
-              (loop31 row (i32+ i 1) fillchar_status__o_r__ fillchar_status__o_attr r1 r2)))
+          (let loop31 ([row row]
+                       [i 0]
+                       [fillchar_status__o_r__ fillchar_status__o_r__]
+                       [fillchar_status__o_attr fillchar_status__o_attr]
+                       [fillchar_vsep__o_r__ fillchar_vsep__o_r__]
+                       [fillchar_vsep__o_attr fillchar_vsep__o_attr])
+            (if (fx<? i (win_T.w_status_height wp))
+                (let ([r (i32+ row i)])
+                  (let-values ([(r1 r2) (fillchar_vsep ed wp r)])
+                    (screen_putchar ed r1 r (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) r2)
+                    (loop31 row (i32+ i 1) fillchar_status__o_r__ fillchar_status__o_attr r1 r2)))
+                (join32 fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)))
           (join32 fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)))
     (define (join32 fillchar_status__o_r__ fillchar_status__o_attr fillchar_vsep__o_r__ fillchar_vsep__o_attr)
       (set! win_redr_status:busy #f))
@@ -6207,25 +6477,47 @@
             (join16 empty_line row fillchar attr off width bufferlen rel_poslen this_ru_col n1 override_success fillchar_status__o_r__ fillchar_status__o_attr))))
     (define (join16 empty_line row fillchar attr off width bufferlen rel_poslen this_ru_col n1 override_success fillchar_status__o_r__ fillchar_status__o_attr)
       (if (fx<? (i32+ this_ru_col n1) width)
-          (loop18 empty_line row fillchar attr off width bufferlen rel_poslen this_ru_col n1 override_success fillchar_status__o_r__ fillchar_status__o_attr)
+          (let loop18 ([empty_line empty_line]
+                       [row row]
+                       [fillchar fillchar]
+                       [attr attr]
+                       [off off]
+                       [width width]
+                       [bufferlen bufferlen]
+                       [rel_poslen rel_poslen]
+                       [this_ru_col this_ru_col]
+                       [n1 n1]
+                       [override_success override_success]
+                       [fillchar_status__o_r__ fillchar_status__o_r__]
+                       [fillchar_status__o_attr fillchar_status__o_attr])
+            (if (and (fx<? (i32+ this_ru_col n1) width) (fx>? 70 (i32+ (i32+ bufferlen rel_poslen) 1)))
+                (loop18 empty_line row fillchar attr off width (i32+ bufferlen (utf_char2bytes ed fillchar (fx+ buffer bufferlen))) rel_poslen this_ru_col (i32+ n1 1) override_success fillchar_status__o_r__ fillchar_status__o_attr)
+                (join20 empty_line row fillchar attr off width (i32+ bufferlen (vim_snprintf ed (fx+ buffer bufferlen) (->u64 (i32- 70 bufferlen)) (c-str 162260 "%s") (list rel_pos))) this_ru_col override_success fillchar_status__o_r__ fillchar_status__o_attr)))
           (join20 empty_line row fillchar attr off width bufferlen this_ru_col override_success fillchar_status__o_r__ fillchar_status__o_attr)))
-    (define (loop18 empty_line row fillchar attr off width bufferlen rel_poslen this_ru_col n1 override_success fillchar_status__o_r__ fillchar_status__o_attr)
-      (if (and (fx<? (i32+ this_ru_col n1) width) (fx>? 70 (i32+ (i32+ bufferlen rel_poslen) 1)))
-          (loop18 empty_line row fillchar attr off width (i32+ bufferlen (utf_char2bytes ed fillchar (fx+ buffer bufferlen))) rel_poslen this_ru_col (i32+ n1 1) override_success fillchar_status__o_r__ fillchar_status__o_attr)
-          (join20 empty_line row fillchar attr off width (i32+ bufferlen (vim_snprintf ed (fx+ buffer bufferlen) (->u64 (i32- 70 bufferlen)) (c-str 162260 "%s") (list rel_pos))) this_ru_col override_success fillchar_status__o_r__ fillchar_status__o_attr)))
     (define (join20 empty_line row fillchar attr off width bufferlen this_ru_col override_success fillchar_status__o_r__ fillchar_status__o_attr)
-      (loop21 empty_line row fillchar attr off width bufferlen this_ru_col 0 0 override_success fillchar_status__o_r__ fillchar_status__o_attr))
-    (define (loop21 empty_line row fillchar attr off width bufferlen this_ru_col n1 n2 override_success fillchar_status__o_r__ fillchar_status__o_attr)
-      (if (not (fx=? (ld-u8 (fx+ buffer n1)) 0))
-          (let* ([t4 (utf_ptr2cells ed (fx+ buffer n1))]
-                 [n2 (i32+ n2 t4)])
-            (cond
-              [(fx>? (i32+ this_ru_col n2) width)
-               (st-u8! (fx+ buffer n1) 0)
-               (join25 empty_line row fillchar attr off width n1 this_ru_col override_success fillchar_status__o_r__ fillchar_status__o_attr)]
-              [else
-               (loop21 empty_line row fillchar attr off width bufferlen this_ru_col (i32+ n1 (utfc_ptr2len ed (fx+ buffer n1))) n2 override_success fillchar_status__o_r__ fillchar_status__o_attr)]))
-          (join25 empty_line row fillchar attr off width bufferlen this_ru_col override_success fillchar_status__o_r__ fillchar_status__o_attr)))
+      (let loop21 ([empty_line empty_line]
+                   [row row]
+                   [fillchar fillchar]
+                   [attr attr]
+                   [off off]
+                   [width width]
+                   [bufferlen bufferlen]
+                   [this_ru_col this_ru_col]
+                   [n1 0]
+                   [n2 0]
+                   [override_success override_success]
+                   [fillchar_status__o_r__ fillchar_status__o_r__]
+                   [fillchar_status__o_attr fillchar_status__o_attr])
+        (if (not (fx=? (ld-u8 (fx+ buffer n1)) 0))
+            (let* ([t4 (utf_ptr2cells ed (fx+ buffer n1))]
+                   [n2 (i32+ n2 t4)])
+              (cond
+                [(fx>? (i32+ this_ru_col n2) width)
+                 (st-u8! (fx+ buffer n1) 0)
+                 (join25 empty_line row fillchar attr off width n1 this_ru_col override_success fillchar_status__o_r__ fillchar_status__o_attr)]
+                [else
+                 (loop21 empty_line row fillchar attr off width bufferlen this_ru_col (i32+ n1 (utfc_ptr2len ed (fx+ buffer n1))) n2 override_success fillchar_status__o_r__ fillchar_status__o_attr)]))
+            (join25 empty_line row fillchar attr off width bufferlen this_ru_col override_success fillchar_status__o_r__ fillchar_status__o_attr))))
     (define (join25 empty_line row fillchar attr off width bufferlen this_ru_col override_success fillchar_status__o_r__ fillchar_status__o_attr)
       (screen_puts ed buffer row (i32+ this_ru_col off) attr)
       (let ([n1 redraw_cmdline])
@@ -6322,15 +6614,29 @@
     (define (join19 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
       (if (and (not (fx=? (match_T.rm.regprog screen_search_hl) 0)) (not (fxzero? (re_multiline ed (match_T.rm.regprog screen_search_hl)))))
           (join26 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod #t eof didline old_botline mod_top mod_bot override_success)
-          (loop21 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success (win_T.w_match_head wp))))
-    (define (loop21 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success cur)
-      (cond
-        [(fx=? cur 0)
-         (join26 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)]
-        [(and (not (fx=? (matchitem_T.mit_match.regprog cur) 0)) (not (fxzero? (re_multiline ed (matchitem_T.mit_match.regprog cur)))))
-         (join26 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod #t eof didline old_botline mod_top mod_bot override_success)]
-        [else
-         (loop21 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success (matchitem_T.mit_next cur))]))
+          (let loop21 ([buf buf]
+                       [type type]
+                       [top_end top_end]
+                       [mid_start mid_start]
+                       [mid_end mid_end]
+                       [bot_start bot_start]
+                       [scrolled_down scrolled_down]
+                       [scrolled_for_mod scrolled_for_mod]
+                       [top_to_mod top_to_mod]
+                       [eof eof]
+                       [didline didline]
+                       [old_botline old_botline]
+                       [mod_top mod_top]
+                       [mod_bot mod_bot]
+                       [override_success override_success]
+                       [cur (win_T.w_match_head wp)])
+            (cond
+              [(fx=? cur 0)
+               (join26 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)]
+              [(and (not (fx=? (matchitem_T.mit_match.regprog cur) 0)) (not (fxzero? (re_multiline ed (matchitem_T.mit_match.regprog cur)))))
+               (join26 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod #t eof didline old_botline mod_top mod_bot override_success)]
+              [else
+               (loop21 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success (matchitem_T.mit_next cur))]))))
     (define (join26 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
       (if (> search_hl_has_cursor_lnum 0)
           (if (or (= mod_top 0) (> mod_top search_hl_has_cursor_lnum))
@@ -6352,15 +6658,29 @@
       (win_T.w_redraw_bot-set! wp 0)
       (set! search_hl_has_cursor_lnum 0)
       (if (fx=? type 30)
-          (loop36 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline 0 0 old_botline mod_top mod_bot override_success)
+          (let loop36 ([buf buf]
+                       [top_end top_end]
+                       [mid_start mid_start]
+                       [mid_end mid_end]
+                       [bot_start bot_start]
+                       [scrolled_down scrolled_down]
+                       [scrolled_for_mod scrolled_for_mod]
+                       [top_to_mod top_to_mod]
+                       [eof eof]
+                       [didline didline]
+                       [i 0]
+                       [j 0]
+                       [old_botline old_botline]
+                       [mod_top mod_top]
+                       [mod_bot mod_bot]
+                       [override_success override_success])
+            (if (fx<? i (win_T.w_lines_valid wp))
+                (let ([j (i64+ j (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* i 16))))])
+                  (if (>= j (win_T.w_upd_rows wp))
+                      (join40 buf (->i32 j) mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
+                      (loop36 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline (i32+ i 1) j old_botline mod_top mod_bot override_success)))
+                (join40 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))
           (join43 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))
-    (define (loop36 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline i j old_botline mod_top mod_bot override_success)
-      (if (fx<? i (win_T.w_lines_valid wp))
-          (let ([j (i64+ j (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* i 16))))])
-            (if (>= j (win_T.w_upd_rows wp))
-                (join40 buf (->i32 j) mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
-                (loop36 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline (i32+ i 1) j old_botline mod_top mod_bot override_success)))
-          (join40 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))
     (define (join40 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
       (if (fx=? top_end 0)
           (join43 buf 40 top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
@@ -6391,14 +6711,30 @@
                          (join87 buf type top_end 0 mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))
                    (join87 buf type top_end 0 mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))]
             [else
-             (loop50 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod 0 eof didline 0 -1 old_botline mod_top mod_bot override_success)])
+             (let loop50 ([buf buf]
+                          [type type]
+                          [top_end top_end]
+                          [mid_start mid_start]
+                          [mid_end mid_end]
+                          [bot_start bot_start]
+                          [scrolled_down scrolled_down]
+                          [scrolled_for_mod scrolled_for_mod]
+                          [top_to_mod top_to_mod]
+                          [row 0]
+                          [eof eof]
+                          [didline didline]
+                          [i 0]
+                          [j -1]
+                          [old_botline old_botline]
+                          [mod_top mod_top]
+                          [mod_bot mod_bot]
+                          [override_success override_success])
+               (if (and (fx<? i (win_T.w_lines_valid wp)) (< i Rows))
+                   (if (and (not (fxzero? (wline_T.wl_valid (fx+ (win_T.w_lines wp) (fx* i 16))))) (= (wline_T.wl_lnum (fx+ (win_T.w_lines wp) (fx* i 16))) (win_T.w_topline wp)))
+                       (join55 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row eof didline i old_botline mod_top mod_bot override_success)
+                       (loop50 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod (i32+ row (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* i 16)))) eof didline (i32+ i 1) j old_botline mod_top mod_bot override_success))
+                   (join55 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row eof didline j old_botline mod_top mod_bot override_success)))])
           (join91 buf type top_end 0 (win_T.w_height wp) bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))
-    (define (loop50 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row eof didline i j old_botline mod_top mod_bot override_success)
-      (if (and (fx<? i (win_T.w_lines_valid wp)) (< i Rows))
-          (if (and (not (fxzero? (wline_T.wl_valid (fx+ (win_T.w_lines wp) (fx* i 16))))) (= (wline_T.wl_lnum (fx+ (win_T.w_lines wp) (fx* i 16))) (win_T.w_topline wp)))
-              (join55 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row eof didline i old_botline mod_top mod_bot override_success)
-              (loop50 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod (i32+ row (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* i 16)))) eof didline (i32+ i 1) j old_botline mod_top mod_bot override_success))
-          (join55 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row eof didline j old_botline mod_top mod_bot override_success)))
     (define (join55 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row eof didline j old_botline mod_top mod_bot override_success)
       (cond
         [(= j -1)
@@ -6418,26 +6754,42 @@
          (join62 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row eof didline j old_botline mod_top mod_bot override_success)]))
     (define (join62 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row eof didline j old_botline mod_top mod_bot override_success)
       (if (and (or (fx=? row 0) (fx<? bot_start 999)) (not (fx=? (win_T.w_lines_valid wp) 0)))
-          (loop64 buf type top_end mid_start mid_end 0 scrolled_down scrolled_for_mod top_to_mod row 0 eof didline j old_botline mod_top mod_bot override_success)
+          (let loop64 ([buf buf]
+                       [type type]
+                       [top_end top_end]
+                       [mid_start mid_start]
+                       [mid_end mid_end]
+                       [bot_start 0]
+                       [scrolled_down scrolled_down]
+                       [scrolled_for_mod scrolled_for_mod]
+                       [top_to_mod top_to_mod]
+                       [row row]
+                       [idx 0]
+                       [eof eof]
+                       [didline didline]
+                       [j j]
+                       [old_botline old_botline]
+                       [mod_top mod_top]
+                       [mod_bot mod_bot]
+                       [override_success override_success])
+            (mem-copy! (fx+ (win_T.w_lines wp) (fx* idx 16)) (fx+ (win_T.w_lines wp) (fx* j 16)) 16)
+            (cond
+              [(and (fx>? row 0) (fx>? (i32+ (i32+ bot_start row) (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* j 16)))) (win_T.w_height wp)))
+               (win_T.w_lines_valid-set! wp (i32+ idx 1))
+               (join87 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)]
+              [else
+               (let* ([t2 idx]
+                      [idx (i32+ idx 1)]
+                      [t3 (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* t2 16)))]
+                      [bot_start (i32+ bot_start t3)]
+                      [j (i64+ j 1)])
+                 (cond
+                   [(>= j (win_T.w_lines_valid wp))
+                    (win_T.w_lines_valid-set! wp idx)
+                    (join87 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)]
+                   [else
+                    (loop64 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row idx eof didline j old_botline mod_top mod_bot override_success)]))]))
           (join87 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))
-    (define (loop64 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row idx eof didline j old_botline mod_top mod_bot override_success)
-      (mem-copy! (fx+ (win_T.w_lines wp) (fx* idx 16)) (fx+ (win_T.w_lines wp) (fx* j 16)) 16)
-      (cond
-        [(and (fx>? row 0) (fx>? (i32+ (i32+ bot_start row) (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* j 16)))) (win_T.w_height wp)))
-         (win_T.w_lines_valid-set! wp (i32+ idx 1))
-         (join87 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)]
-        [else
-         (let* ([t2 idx]
-                [idx (i32+ idx 1)]
-                [t3 (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* t2 16)))]
-                [bot_start (i32+ bot_start t3)]
-                [j (i64+ j 1)])
-           (cond
-             [(>= j (win_T.w_lines_valid wp))
-              (win_T.w_lines_valid-set! wp idx)
-              (join87 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)]
-             [else
-              (loop64 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row idx eof didline j old_botline mod_top mod_bot override_success)]))]))
     (define (join75 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline i j old_botline mod_top mod_bot override_success)
       (if (fx=? (win_ins_lines ed wp 0 i #f #t) 1)
           (cond
@@ -6453,21 +6805,50 @@
              (join87 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)])
           (join87 buf type top_end 0 mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))
     (define (join80 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline j old_botline mod_top mod_bot override_success)
-      (loop81 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod (win_T.w_lines_valid wp) eof didline j old_botline mod_top mod_bot override_success))
-    (define (loop81 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod idx eof didline j old_botline mod_top mod_bot override_success)
-      (cond
-        [(>= (i64- idx j) 0)
-         (mem-copy! (fx+ (win_T.w_lines wp) (fx* idx 16)) (fx+ (win_T.w_lines wp) (fx* (i64- idx j) 16)) 16)
-         (loop81 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod (i32- idx 1) eof didline j old_botline mod_top mod_bot override_success)]
-        [else
-         (loop83 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod idx eof didline old_botline mod_top mod_bot override_success)]))
-    (define (loop83 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod idx eof didline old_botline mod_top mod_bot override_success)
-      (if (fx>=? idx 0)
-          (let* ([t1 idx]
-                 [idx (i32- idx 1)])
-            (wline_T.wl_valid-set! (fx+ (win_T.w_lines wp) (fx* t1 16)) 0)
-            (loop83 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod idx eof didline old_botline mod_top mod_bot override_success))
-          (join87 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))
+      (let loop81 ([buf buf]
+                   [type type]
+                   [top_end top_end]
+                   [mid_start mid_start]
+                   [mid_end mid_end]
+                   [bot_start bot_start]
+                   [scrolled_down scrolled_down]
+                   [scrolled_for_mod scrolled_for_mod]
+                   [top_to_mod top_to_mod]
+                   [idx (win_T.w_lines_valid wp)]
+                   [eof eof]
+                   [didline didline]
+                   [j j]
+                   [old_botline old_botline]
+                   [mod_top mod_top]
+                   [mod_bot mod_bot]
+                   [override_success override_success])
+        (cond
+          [(>= (i64- idx j) 0)
+           (mem-copy! (fx+ (win_T.w_lines wp) (fx* idx 16)) (fx+ (win_T.w_lines wp) (fx* (i64- idx j) 16)) 16)
+           (loop81 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod (i32- idx 1) eof didline j old_botline mod_top mod_bot override_success)]
+          [else
+           (let loop83 ([buf buf]
+                        [type type]
+                        [top_end top_end]
+                        [mid_start mid_start]
+                        [mid_end mid_end]
+                        [bot_start bot_start]
+                        [scrolled_down scrolled_down]
+                        [scrolled_for_mod scrolled_for_mod]
+                        [top_to_mod top_to_mod]
+                        [idx idx]
+                        [eof eof]
+                        [didline didline]
+                        [old_botline old_botline]
+                        [mod_top mod_top]
+                        [mod_bot mod_bot]
+                        [override_success override_success])
+             (if (fx>=? idx 0)
+                 (let* ([t1 idx]
+                        [idx (i32- idx 1)])
+                   (wline_T.wl_valid-set! (fx+ (win_T.w_lines wp) (fx* t1 16)) 0)
+                   (loop83 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod idx eof didline old_botline mod_top mod_bot override_success))
+                 (join87 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))])))
     (define (join87 buf type top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
       (if (fx=? mid_start 0)
           (join89 buf type top_end mid_start (win_T.w_height wp) bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
@@ -6625,13 +7006,28 @@
              (join264 buf top_end mid_start bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx (i32+ srow (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* idx 16)))) eof didline old_botline mod_top mod_bot override_success from to)]
             [else
              (join264 buf top_end mid_start bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot override_success from to)])
-          (loop150 buf top_end mid_start (win_T.w_height wp) bot_start scrolled_down scrolled_for_mod top_to_mod idx (i32+ srow mid_start) eof didline old_botline mod_top mod_bot override_success to)))
-    (define (loop150 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod idx srow eof didline old_botline mod_top mod_bot override_success to)
-      (if (fx<? idx (win_T.w_lines_valid wp))
-          (if (and (not (fxzero? (wline_T.wl_valid (fx+ (win_T.w_lines wp) (fx* idx 16))))) (>= (wline_T.wl_lnum (fx+ (win_T.w_lines wp) (fx* idx 16))) (i64+ to 1)))
-              (join155 buf top_end mid_start srow bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
-              (loop150 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod (i32+ idx 1) (i32+ srow (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* idx 16)))) eof didline old_botline mod_top mod_bot override_success to))
-          (join155 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))
+          (let loop150 ([buf buf]
+                        [top_end top_end]
+                        [mid_start mid_start]
+                        [mid_end (win_T.w_height wp)]
+                        [bot_start bot_start]
+                        [scrolled_down scrolled_down]
+                        [scrolled_for_mod scrolled_for_mod]
+                        [top_to_mod top_to_mod]
+                        [idx idx]
+                        [srow (i32+ srow mid_start)]
+                        [eof eof]
+                        [didline didline]
+                        [old_botline old_botline]
+                        [mod_top mod_top]
+                        [mod_bot mod_bot]
+                        [override_success override_success]
+                        [to to])
+            (if (fx<? idx (win_T.w_lines_valid wp))
+                (if (and (not (fxzero? (wline_T.wl_valid (fx+ (win_T.w_lines wp) (fx* idx 16))))) (>= (wline_T.wl_lnum (fx+ (win_T.w_lines wp) (fx* idx 16))) (i64+ to 1)))
+                    (join155 buf top_end mid_start srow bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
+                    (loop150 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod (i32+ idx 1) (i32+ srow (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* idx 16)))) eof didline old_botline mod_top mod_bot override_success to))
+                (join155 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)))))
     (define (join155 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod eof didline old_botline mod_top mod_bot override_success)
       (cond
         [(and VIsual_active (fx=? buf (win_T.w_buffer curwin)))
@@ -6735,7 +7131,39 @@
     (define (join198 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod row lnum idx srow eof didline i j old_botline mod_top mod_bot save_got_int override_success new_rows)
       (if (and (not (= mod_bot 9223372036854775807)) (not (= i j)))
           (if (< j i)
-              (loop210 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline i j old_botline mod_top mod_bot save_got_int override_success (i32+ row new_rows))
+              (let loop210 ([buf buf]
+                            [top_end top_end]
+                            [mid_start mid_start]
+                            [mid_end mid_end]
+                            [bot_start bot_start]
+                            [scrolled_down scrolled_down]
+                            [scrolled_for_mod scrolled_for_mod]
+                            [top_to_mod top_to_mod]
+                            [lnum lnum]
+                            [idx idx]
+                            [srow srow]
+                            [eof eof]
+                            [didline didline]
+                            [i i]
+                            [j j]
+                            [old_botline old_botline]
+                            [mod_top mod_top]
+                            [mod_bot mod_bot]
+                            [save_got_int save_got_int]
+                            [override_success override_success]
+                            [x (i32+ row new_rows)])
+                (cond
+                  [(fx>=? i (win_T.w_lines_valid wp))
+                   (win_T.w_lines_valid-set! wp (->i32 j))
+                   (join215 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot save_got_int override_success x)]
+                  [else
+                   (mem-copy! (fx+ (win_T.w_lines wp) (fx* j 16)) (fx+ (win_T.w_lines wp) (fx* i 16)) 16)
+                   (cond
+                     [(fx>? (i32+ x (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* j 16)))) (win_T.w_height wp))
+                      (win_T.w_lines_valid-set! wp (->i32 (i64+ j 1)))
+                      (join215 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot save_got_int override_success x)]
+                     [else
+                      (loop210 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline (i32+ i 1) (i64+ j 1) old_botline mod_top mod_bot save_got_int override_success (i32+ x (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* j 16)))))])]))
               (let ([j (i64- j i)])
                 (win_T.w_lines_valid-set! wp (->i32 (i64+ (win_T.w_lines_valid wp) j)))
                 (cond
@@ -6746,37 +7174,59 @@
                    (join202 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline j old_botline mod_top mod_bot save_got_int override_success)])))
           (join218 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot save_got_int override_success)))
     (define (join202 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline j old_botline mod_top mod_bot save_got_int override_success)
-      (loop203 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline (win_T.w_lines_valid wp) j old_botline mod_top mod_bot save_got_int override_success))
-    (define (loop203 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline i j old_botline mod_top mod_bot save_got_int override_success)
-      (cond
-        [(>= (i64- i j) idx)
-         (mem-copy! (fx+ (win_T.w_lines wp) (fx* i 16)) (fx+ (win_T.w_lines wp) (fx* (i64- i j) 16)) 16)
-         (loop203 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline (i32- i 1) j old_botline mod_top mod_bot save_got_int override_success)]
-        [else
-         (loop205 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline i old_botline mod_top mod_bot save_got_int override_success)]))
-    (define (loop205 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline i old_botline mod_top mod_bot save_got_int override_success)
-      (cond
-        [(fx>=? i idx)
-         (wline_T.wl_size-set! (fx+ (win_T.w_lines wp) (fx* i 16)) 0)
-         (let* ([t7 i]
-                [i (i32- i 1)])
-           (wline_T.wl_valid-set! (fx+ (win_T.w_lines wp) (fx* t7 16)) 0)
-           (loop205 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline i old_botline mod_top mod_bot save_got_int override_success))]
-        [else
-         (join218 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot save_got_int override_success)]))
-    (define (loop210 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline i j old_botline mod_top mod_bot save_got_int override_success x)
-      (cond
-        [(fx>=? i (win_T.w_lines_valid wp))
-         (win_T.w_lines_valid-set! wp (->i32 j))
-         (join215 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot save_got_int override_success x)]
-        [else
-         (mem-copy! (fx+ (win_T.w_lines wp) (fx* j 16)) (fx+ (win_T.w_lines wp) (fx* i 16)) 16)
-         (cond
-           [(fx>? (i32+ x (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* j 16)))) (win_T.w_height wp))
-            (win_T.w_lines_valid-set! wp (->i32 (i64+ j 1)))
-            (join215 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot save_got_int override_success x)]
-           [else
-            (loop210 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline (i32+ i 1) (i64+ j 1) old_botline mod_top mod_bot save_got_int override_success (i32+ x (wline_T.wl_size (fx+ (win_T.w_lines wp) (fx* j 16)))))])]))
+      (let loop203 ([buf buf]
+                    [top_end top_end]
+                    [mid_start mid_start]
+                    [mid_end mid_end]
+                    [bot_start bot_start]
+                    [scrolled_down scrolled_down]
+                    [scrolled_for_mod scrolled_for_mod]
+                    [top_to_mod top_to_mod]
+                    [lnum lnum]
+                    [idx idx]
+                    [srow srow]
+                    [eof eof]
+                    [didline didline]
+                    [i (win_T.w_lines_valid wp)]
+                    [j j]
+                    [old_botline old_botline]
+                    [mod_top mod_top]
+                    [mod_bot mod_bot]
+                    [save_got_int save_got_int]
+                    [override_success override_success])
+        (cond
+          [(>= (i64- i j) idx)
+           (mem-copy! (fx+ (win_T.w_lines wp) (fx* i 16)) (fx+ (win_T.w_lines wp) (fx* (i64- i j) 16)) 16)
+           (loop203 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline (i32- i 1) j old_botline mod_top mod_bot save_got_int override_success)]
+          [else
+           (let loop205 ([buf buf]
+                         [top_end top_end]
+                         [mid_start mid_start]
+                         [mid_end mid_end]
+                         [bot_start bot_start]
+                         [scrolled_down scrolled_down]
+                         [scrolled_for_mod scrolled_for_mod]
+                         [top_to_mod top_to_mod]
+                         [lnum lnum]
+                         [idx idx]
+                         [srow srow]
+                         [eof eof]
+                         [didline didline]
+                         [i i]
+                         [old_botline old_botline]
+                         [mod_top mod_top]
+                         [mod_bot mod_bot]
+                         [save_got_int save_got_int]
+                         [override_success override_success])
+             (cond
+               [(fx>=? i idx)
+                (wline_T.wl_size-set! (fx+ (win_T.w_lines wp) (fx* i 16)) 0)
+                (let* ([t7 i]
+                       [i (i32- i 1)])
+                  (wline_T.wl_valid-set! (fx+ (win_T.w_lines wp) (fx* t7 16)) 0)
+                  (loop205 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline i old_botline mod_top mod_bot save_got_int override_success))]
+               [else
+                (join218 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot save_got_int override_success)]))])))
     (define (join215 buf top_end mid_start mid_end bot_start scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot save_got_int override_success x)
       (if (fx>? bot_start x)
           (join218 buf top_end mid_start mid_end x scrolled_down scrolled_for_mod top_to_mod lnum idx srow eof didline old_botline mod_top mod_bot save_got_int override_success)
@@ -6930,54 +7380,79 @@
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 48)])
     (define-c-local screenlineC &screenlineC agg 0)
     (define (join3 rows cols ret screenline screenattr)
-      (loop4 rows cols ret screenline screenattr 0 (lalloc ed (u64* 4 (->u64 (i32* rows cols))) #f)))
-    (define (loop4 rows cols ret screenline screenattr i screenlineUC)
-      (cond
-        [(< i p_mco)
-         (st-ptr! (fx+ screenlineC (fx* i 8)) (lalloc ed (u64* 4 (->u64 (i32* rows cols))) #f))
-         (loop4 rows cols ret screenline screenattr (i32+ i 1) screenlineUC)]
-        [(not (fx=? ret 2)) (loop7 rows cols 0 screenline screenattr screenlineUC)]
-        [else (join12 ret)]))
-    (define (loop7 rows cols r screenline screenattr screenlineUC)
-      (cond
-        [(fx<? r rows)
-         (musl_memmove ed (fx+ screenline (i32* r cols)) (fx+ ScreenLines (ld-u32 (fx+ LineOffset (fx* (i32+ cmdline_row r) 4)))) (u64* (->u64 cols) 1))
-         (musl_memmove ed (fx+ screenattr (fx* (i32* r cols) 2)) (fx+ ScreenAttrs (fx* (ld-u32 (fx+ LineOffset (fx* (i32+ cmdline_row r) 4))) 2)) (u64* (->u64 cols) 2))
-         (musl_memmove ed (fx+ screenlineUC (fx* (i32* r cols) 4)) (fx+ ScreenLinesUC (fx* (ld-u32 (fx+ LineOffset (fx* (i32+ cmdline_row r) 4))) 4)) (u64* (->u64 cols) 4))
-         (loop23 rows cols r screenline screenattr 0 screenlineUC)]
-        [else
-         (update_screen ed 0)
-         (if (fx=? must_redraw 0)
-             (loop10 rows cols 0 screenline screenattr screenlineUC (->i32 (fx- current_ScreenLine ScreenLines)))
-             (join12 3))]))
-    (define (loop10 rows cols r screenline screenattr screenlineUC off)
-      (cond
-        [(fx<? r rows)
-         (musl_memmove ed current_ScreenLine (fx+ screenline (i32* r cols)) (u64* (->u64 cols) 1))
-         (musl_memmove ed (fx+ ScreenAttrs (fx* off 2)) (fx+ screenattr (fx* (i32* r cols) 2)) (u64* (->u64 cols) 2))
-         (musl_memmove ed (fx+ ScreenLinesUC (fx* off 4)) (fx+ screenlineUC (fx* (i32* r cols) 4)) (u64* (->u64 cols) 4))
-         (loop17 rows cols r screenline screenattr 0 screenlineUC off)]
-        [else (join12 4)]))
+      (let loop4 ([rows rows]
+                  [cols cols]
+                  [ret ret]
+                  [screenline screenline]
+                  [screenattr screenattr]
+                  [i 0]
+                  [screenlineUC (lalloc ed (u64* 4 (->u64 (i32* rows cols))) #f)])
+        (cond
+          [(< i p_mco)
+           (st-ptr! (fx+ screenlineC (fx* i 8)) (lalloc ed (u64* 4 (->u64 (i32* rows cols))) #f))
+           (loop4 rows cols ret screenline screenattr (i32+ i 1) screenlineUC)]
+          [(not (fx=? ret 2)) (let loop7 ([rows rows]
+                                          [cols cols]
+                                          [r 0]
+                                          [screenline screenline]
+                                          [screenattr screenattr]
+                                          [screenlineUC screenlineUC])
+                                (cond
+                                  [(fx<? r rows)
+                                   (musl_memmove ed (fx+ screenline (i32* r cols)) (fx+ ScreenLines (ld-u32 (fx+ LineOffset (fx* (i32+ cmdline_row r) 4)))) (u64* (->u64 cols) 1))
+                                   (musl_memmove ed (fx+ screenattr (fx* (i32* r cols) 2)) (fx+ ScreenAttrs (fx* (ld-u32 (fx+ LineOffset (fx* (i32+ cmdline_row r) 4))) 2)) (u64* (->u64 cols) 2))
+                                   (musl_memmove ed (fx+ screenlineUC (fx* (i32* r cols) 4)) (fx+ ScreenLinesUC (fx* (ld-u32 (fx+ LineOffset (fx* (i32+ cmdline_row r) 4))) 4)) (u64* (->u64 cols) 4))
+                                   (let loop23 ([rows rows]
+                                                [cols cols]
+                                                [r r]
+                                                [screenline screenline]
+                                                [screenattr screenattr]
+                                                [i 0]
+                                                [screenlineUC screenlineUC])
+                                     (cond
+                                       [(< i p_mco)
+                                        (musl_memmove ed (fx+ (ld-ptr (fx+ screenlineC (fx* i 8))) (fx* (i32* r cols) 4)) (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* (ld-u32 (fx+ LineOffset (fx* (i32+ cmdline_row r) 4))) 4)) (u64* (->u64 cols) 4))
+                                        (loop23 rows cols r screenline screenattr (i32+ i 1) screenlineUC)]
+                                       [else (loop7 rows cols (i32+ r 1) screenline screenattr screenlineUC)]))]
+                                  [else
+                                   (update_screen ed 0)
+                                   (if (fx=? must_redraw 0)
+                                       (let loop10 ([rows rows]
+                                                    [cols cols]
+                                                    [r 0]
+                                                    [screenline screenline]
+                                                    [screenattr screenattr]
+                                                    [screenlineUC screenlineUC]
+                                                    [off (->i32 (fx- current_ScreenLine ScreenLines))])
+                                         (cond
+                                           [(fx<? r rows)
+                                            (musl_memmove ed current_ScreenLine (fx+ screenline (i32* r cols)) (u64* (->u64 cols) 1))
+                                            (musl_memmove ed (fx+ ScreenAttrs (fx* off 2)) (fx+ screenattr (fx* (i32* r cols) 2)) (u64* (->u64 cols) 2))
+                                            (musl_memmove ed (fx+ ScreenLinesUC (fx* off 4)) (fx+ screenlineUC (fx* (i32* r cols) 4)) (u64* (->u64 cols) 4))
+                                            (let loop17 ([rows rows]
+                                                         [cols cols]
+                                                         [r r]
+                                                         [screenline screenline]
+                                                         [screenattr screenattr]
+                                                         [i 0]
+                                                         [screenlineUC screenlineUC]
+                                                         [off off])
+                                              (cond
+                                                [(< i p_mco)
+                                                 (musl_memmove ed (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off 4)) (fx+ (ld-ptr (fx+ screenlineC (fx* i 8))) (fx* (i32* r cols) 4)) (u64* (->u64 cols) 4))
+                                                 (loop17 rows cols r screenline screenattr (i32+ i 1) screenlineUC off)]
+                                                [else
+                                                 (screen_line ed curwin (i32+ cmdline_row r) 0 cols cols -1 0)
+                                                 (loop10 rows cols (i32+ r 1) screenline screenattr screenlineUC off)]))]
+                                           [else (join12 4)]))
+                                       (join12 3))]))]
+          [else (join12 ret)])))
     (define (join12 ret)
-      (loop13 ret 0))
-    (define (loop13 ret i)
-      (cond
-        [(< i p_mco) (loop13 ret (i32+ i 1))]
-        [else (setcursor ed) (frame-pop! ed fr) ret]))
-    (define (loop17 rows cols r screenline screenattr i screenlineUC off)
-      (cond
-        [(< i p_mco)
-         (musl_memmove ed (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off 4)) (fx+ (ld-ptr (fx+ screenlineC (fx* i 8))) (fx* (i32* r cols) 4)) (u64* (->u64 cols) 4))
-         (loop17 rows cols r screenline screenattr (i32+ i 1) screenlineUC off)]
-        [else
-         (screen_line ed curwin (i32+ cmdline_row r) 0 cols cols -1 0)
-         (loop10 rows cols (i32+ r 1) screenline screenattr screenlineUC off)]))
-    (define (loop23 rows cols r screenline screenattr i screenlineUC)
-      (cond
-        [(< i p_mco)
-         (musl_memmove ed (fx+ (ld-ptr (fx+ screenlineC (fx* i 8))) (fx* (i32* r cols) 4)) (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* (ld-u32 (fx+ LineOffset (fx* (i32+ cmdline_row r) 4))) 4)) (u64* (->u64 cols) 4))
-         (loop23 rows cols r screenline screenattr (i32+ i 1) screenlineUC)]
-        [else (loop7 rows cols (i32+ r 1) screenline screenattr screenlineUC)]))
+      (let loop13 ([ret ret]
+                   [i 0])
+        (cond
+          [(< i p_mco) (loop13 ret (i32+ i 1))]
+          [else (setcursor ed) (frame-pop! ed fr) ret])))
     (let ([cols screen_Columns])
       (redraw_later ed type)
       (cond
@@ -7916,26 +8391,16 @@
 
 (define (backspace_until_column ed col)
   (let ([mem (ed-mem ed)])
-    (define (loop1)
+    (let loop1 ()
       (when (fx>? (win_T.w_cursor.col curwin) col)
         (let ([r1 curwin])
           (win_T.w_cursor.col-set! r1 (i32- (win_T.w_cursor.col r1) 1))
           (cond
             [(not (fxzero? (fxand State 256))) (replace_do_bs ed col) (loop1)]
-            [else (unless (not (del_char_after_col ed col)) (loop1))]))))
-    (loop1)))
+            [else (unless (not (del_char_after_col ed col)) (loop1))]))))))
 
 (define (del_char_after_col ed limit_col)
   (let ([mem (ed-mem ed)])
-    (define (loop3 ecol)
-      (if (fx<? (win_T.w_cursor.col curwin) limit_col)
-          (let ([l (utf_ptr2len ed (ml_get_cursor ed))])
-            (if (fx=? l 0)
-                (join6 ecol)
-                (let ([r1 curwin])
-                  (win_T.w_cursor.col-set! r1 (i32+ (win_T.w_cursor.col r1) l))
-                  (loop3 ecol))))
-          (join6 ecol)))
     (define (join6 ecol)
       (cond
         [(or (fx=? (ld-u8 (ml_get_cursor ed)) 0) (fx=? (win_T.w_cursor.col curwin) ecol)) #f]
@@ -7944,7 +8409,15 @@
       [(fx>=? limit_col 0)
        (let ([ecol (i32+ (win_T.w_cursor.col curwin) 1)])
          (mb_adjust_cursor ed)
-         (loop3 ecol))]
+         (let loop3 ([ecol ecol])
+           (if (fx<? (win_T.w_cursor.col curwin) limit_col)
+               (let ([l (utf_ptr2len ed (ml_get_cursor ed))])
+                 (if (fx=? l 0)
+                     (join6 ecol)
+                     (let ([r1 curwin])
+                       (win_T.w_cursor.col-set! r1 (i32+ (win_T.w_cursor.col r1) l))
+                       (loop3 ecol))))
+               (join6 ecol))))]
       [else (del_char ed #f) #t])))
 
 (define (get_literal ed noReduceKeys)
@@ -8290,12 +8763,6 @@
 
 (define (beginline ed flags)
   (let ([mem (ed-mem ed)])
-    (define (loop3 ptr)
-      (if (and (or (fx=? (ld-u8 ptr) 32) (fx=? (ld-u8 ptr) 9)) (not (and (not (fxzero? (fxand flags 4))) (fx=? (ld-u8 (fx+ ptr 1)) 0))))
-          (let ([r1 curwin])
-            (win_T.w_cursor.col-set! r1 (i32+ (win_T.w_cursor.col r1) 1))
-            (loop3 (fx+ ptr 1)))
-          (join4)))
     (define (join4)
       (win_T.w_set_curswant-set! curwin #t)
       (join8))
@@ -8308,7 +8775,12 @@
       [else
        (win_T.w_cursor.col-set! curwin 0)
        (win_T.w_cursor.coladd-set! curwin 0)
-       (if (not (fxzero? (fxand flags 3))) (loop3 (ml_get_curline ed)) (join4))])))
+       (if (not (fxzero? (fxand flags 3))) (let loop3 ([ptr (ml_get_curline ed)])
+                                             (if (and (or (fx=? (ld-u8 ptr) 32) (fx=? (ld-u8 ptr) 9)) (not (and (not (fxzero? (fxand flags 4))) (fx=? (ld-u8 (fx+ ptr 1)) 0))))
+                                                 (let ([r1 curwin])
+                                                   (win_T.w_cursor.col-set! r1 (i32+ (win_T.w_cursor.col r1) 1))
+                                                   (loop3 (fx+ ptr 1)))
+                                                 (join4))) (join4))])))
 
 (define (oneright ed)
   (let ([mem (ed-mem ed)])
@@ -8409,13 +8881,16 @@
   (let ([mem (ed-mem ed)])
     (define (join3 count last insert_string insert_length)
       (if (> insert_length 0)
-          (loop5 count last (fx+ (fx+ insert_string (->i64 insert_length)) -1) insert_string insert_length)
-          (join9 count last insert_string insert_length)))
-    (define (loop5 count last p insert_string insert_length)
-      (if (fx>=? p insert_string)
-          (if (fx=? (ld-u8 p) 27)
-              (join9 count last insert_string (->u64 (fx- p insert_string)))
-              (loop5 count last (fx+ p -1) insert_string insert_length))
+          (let loop5 ([count count]
+                      [last last]
+                      [p (fx+ (fx+ insert_string (->i64 insert_length)) -1)]
+                      [insert_string insert_string]
+                      [insert_length insert_length])
+            (if (fx>=? p insert_string)
+                (if (fx=? (ld-u8 p) 27)
+                    (join9 count last insert_string (->u64 (fx- p insert_string)))
+                    (loop5 count last (fx+ p -1) insert_string insert_length))
+                (join9 count last insert_string insert_length)))
           (join9 count last insert_string insert_length)))
     (define (join9 count last insert_string insert_length)
       (if (> insert_length 0)
@@ -8498,12 +8973,12 @@
 
 (define (replace_push_mb ed p)
   (let ([mem (ed-mem ed)])
-    (define (loop1 l j)
-      (cond
-        [(fx>=? j 0) (replace_push ed (ld-u8 (fx+ p j))) (loop1 l (i32- j 1))]
-        [else l]))
     (let ([l (utfc_ptr2len ed p)])
-      (loop1 l (i32- l 1)))))
+      (let loop1 ([l l]
+                  [j (i32- l 1)])
+        (cond
+          [(fx>=? j 0) (replace_push ed (ld-u8 (fx+ p j))) (loop1 l (i32- j 1))]
+          [else l])))))
 
 (define (replace_pop ed)
   (let ([mem (ed-mem ed)])
@@ -8530,22 +9005,17 @@
 
 (define (replace_pop_ins ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 oldState)
-      (let ([cc (replace_pop ed)])
-        (cond
-          [(fx>? cc 0) (mb_replace_pop_ins ed cc) (dec_cursor ed) (loop1 oldState)]
-          [else (set! State oldState)])))
     (let ([oldState State])
       (set! State 1)
-      (loop1 oldState))))
+      (let loop1 ([oldState oldState])
+        (let ([cc (replace_pop ed)])
+          (cond
+            [(fx>? cc 0) (mb_replace_pop_ins ed cc) (dec_cursor ed) (loop1 oldState)]
+            [else (set! State oldState)]))))))
 
 (define (mb_replace_pop_ins ed cc)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local buf &buf agg 0)
-    (define (loop3 n i)
-      (cond
-        [(fx<? i n) (st-u8! (fx+ buf i) (->u8 (replace_pop ed))) (loop3 n (i32+ i 1))]
-        [else (ins_bytes_len ed buf n) (loop5)]))
     (define (loop5)
       (let ([c (replace_pop ed)])
         (if (fx=? c -1)
@@ -8553,21 +9023,24 @@
             (let ([n (ld-s8 (fx+ mb_bytelen_tab c))])
               (cond
                 [(fx=? n 1) (replace_push ed c) (join18)]
-                [else (st-u8! buf (->u8 c)) (loop8 n 1)])))))
-    (define (loop8 n i)
-      (cond
-        [(fx<? i n) (st-u8! (fx+ buf i) (->u8 (replace_pop ed))) (loop8 n (i32+ i 1))]
-        [(utf_iscomposing ed (utf_ptr2char ed buf)) (ins_bytes_len ed buf n) (loop5)]
-        [else (loop11 (i32- n 1))]))
-    (define (loop11 i)
-      (cond
-        [(fx>=? i 0) (replace_push ed (ld-u8 (fx+ buf i))) (loop11 (i32- i 1))]
-        [else (join18)]))
+                [else (st-u8! buf (->u8 c)) (let loop8 ([n n]
+                                                        [i 1])
+                                              (cond
+                                                [(fx<? i n) (st-u8! (fx+ buf i) (->u8 (replace_pop ed))) (loop8 n (i32+ i 1))]
+                                                [(utf_iscomposing ed (utf_ptr2char ed buf)) (ins_bytes_len ed buf n) (loop5)]
+                                                [else (let loop11 ([i (i32- n 1)])
+                                                        (cond
+                                                          [(fx>=? i 0) (replace_push ed (ld-u8 (fx+ buf i))) (loop11 (i32- i 1))]
+                                                          [else (join18)]))]))])))))
     (define (join18)
       (frame-pop! ed fr))
     (let ([n (ld-s8 (fx+ mb_bytelen_tab cc))])
       (cond
-        [(fx>? n 1) (st-u8! buf (->u8 cc)) (loop3 n 1)]
+        [(fx>? n 1) (st-u8! buf (->u8 cc)) (let loop3 ([n n]
+                                                       [i 1])
+                                             (cond
+                                               [(fx<? i n) (st-u8! (fx+ buf i) (->u8 (replace_pop ed))) (loop3 n (i32+ i 1))]
+                                               [else (ins_bytes_len ed buf n) (loop5)]))]
         [else (ins_char ed cc) (loop5)]))))
 
 (define (replace_flush ed)
@@ -8590,25 +9063,29 @@
       (if (not (fxzero? (fxand State 512)))
           (let* ([p (ml_get_cursor ed)]
                  [ins_len (i32- (ml_get_cursor_len ed) orig_len)])
-            (loop9 ins_len orig_vcols p 0 start_vcol))
+            (let loop9 ([ins_len ins_len]
+                        [orig_vcols orig_vcols]
+                        [p p]
+                        [i 0]
+                        [vcol start_vcol])
+              (if (fx<? i ins_len)
+                  (let ([t1 (chartabsize ed (fx+ p i) vcol)])
+                    (loop9 ins_len orig_vcols p (i32+ (i32+ i (i32- (utfc_ptr2len ed (fx+ p i)) 1)) 1) (i32+ vcol t1)))
+                  (let* ([vcol (i32- vcol start_vcol)]
+                         [r1 curwin])
+                    (win_T.w_cursor.col-set! r1 (i32+ (win_T.w_cursor.col r1) ins_len))
+                    (let loop11 ([ins_len ins_len]
+                                 [orig_vcols orig_vcols]
+                                 [vcol vcol])
+                      (cond
+                        [(and (fx>? vcol orig_vcols) (fx=? (gchar_cursor ed) 32))
+                         (del_char ed #f)
+                         (loop11 ins_len (i32+ orig_vcols 1) vcol)]
+                        [else
+                         (let ([r2 curwin])
+                           (win_T.w_cursor.col-set! r2 (i32- (win_T.w_cursor.col r2) ins_len))
+                           (join13))]))))))
           (join13)))
-    (define (loop9 ins_len orig_vcols p i vcol)
-      (if (fx<? i ins_len)
-          (let ([t1 (chartabsize ed (fx+ p i) vcol)])
-            (loop9 ins_len orig_vcols p (i32+ (i32+ i (i32- (utfc_ptr2len ed (fx+ p i)) 1)) 1) (i32+ vcol t1)))
-          (let* ([vcol (i32- vcol start_vcol)]
-                 [r1 curwin])
-            (win_T.w_cursor.col-set! r1 (i32+ (win_T.w_cursor.col r1) ins_len))
-            (loop11 ins_len orig_vcols vcol))))
-    (define (loop11 ins_len orig_vcols vcol)
-      (cond
-        [(and (fx>? vcol orig_vcols) (fx=? (gchar_cursor ed) 32))
-         (del_char ed #f)
-         (loop11 ins_len (i32+ orig_vcols 1) vcol)]
-        [else
-         (let ([r2 curwin])
-           (win_T.w_cursor.col-set! r2 (i32- (win_T.w_cursor.col r2) ins_len))
-           (join13))]))
     (define (join13)
       (changed_bytes ed (win_T.w_cursor.lnum curwin) (win_T.w_cursor.col curwin))
       (join14))
@@ -8994,15 +9471,20 @@
     (define (loop31 inserted_space_p call_fix_indent want_vcol line space_ptr space_vcol out___r__ out___inserted_space_p)
       (let ([size (chartabsize ed space_ptr space_vcol)])
         (if (fx>? (i32+ space_vcol size) want_vcol)
-            (loop34 inserted_space_p call_fix_indent want_vcol space_vcol (->i32 (fx- space_ptr line)) out___r__ out___inserted_space_p)
+            (let loop34 ([inserted_space_p inserted_space_p]
+                         [call_fix_indent call_fix_indent]
+                         [want_vcol want_vcol]
+                         [space_vcol space_vcol]
+                         [want_col (->i32 (fx- space_ptr line))]
+                         [out___r__ out___r__]
+                         [out___inserted_space_p out___inserted_space_p])
+              (cond
+                [(fx>? (win_T.w_cursor.col curwin) want_col)
+                 (ins_bs_one ed)
+                 (loop34 inserted_space_p call_fix_indent want_vcol space_vcol want_col out___r__ out___inserted_space_p)]
+                [else
+                 (loop36 inserted_space_p call_fix_indent want_vcol space_vcol out___r__ out___inserted_space_p)]))
             (loop31 inserted_space_p call_fix_indent want_vcol line (fx+ space_ptr (utfc_ptr2len ed space_ptr)) (i32+ space_vcol size) out___r__ out___inserted_space_p))))
-    (define (loop34 inserted_space_p call_fix_indent want_vcol space_vcol want_col out___r__ out___inserted_space_p)
-      (cond
-        [(fx>? (win_T.w_cursor.col curwin) want_col)
-         (ins_bs_one ed)
-         (loop34 inserted_space_p call_fix_indent want_vcol space_vcol want_col out___r__ out___inserted_space_p)]
-        [else
-         (loop36 inserted_space_p call_fix_indent want_vcol space_vcol out___r__ out___inserted_space_p)]))
     (define (loop36 inserted_space_p call_fix_indent want_vcol space_vcol out___r__ out___inserted_space_p)
       (if (fx<? space_vcol want_vcol)
           (cond
@@ -9058,19 +9540,24 @@
       (if (not (fxzero? (fxand State 256)))
           (let ([oldState State])
             (set! State 1)
-            (loop61 inserted_space_p cc did_backspace oldState call_fix_indent out___r__ out___inserted_space_p))
+            (let loop61 ([inserted_space_p inserted_space_p]
+                         [cc cc]
+                         [did_backspace did_backspace]
+                         [oldState oldState]
+                         [call_fix_indent call_fix_indent]
+                         [out___r__ out___r__]
+                         [out___inserted_space_p out___inserted_space_p])
+              (cond
+                [(fx>? cc 0)
+                 (let ([save_col (win_T.w_cursor.col curwin)])
+                   (mb_replace_pop_ins ed cc)
+                   (win_T.w_cursor.col-set! curwin save_col)
+                   (loop61 inserted_space_p (replace_pop ed) did_backspace oldState call_fix_indent out___r__ out___inserted_space_p))]
+                [else
+                 (replace_pop_ins ed)
+                 (set! State oldState)
+                 (join65 inserted_space_p did_backspace call_fix_indent out___r__ out___inserted_space_p)])))
           (join65 inserted_space_p did_backspace call_fix_indent out___r__ out___inserted_space_p)))
-    (define (loop61 inserted_space_p cc did_backspace oldState call_fix_indent out___r__ out___inserted_space_p)
-      (cond
-        [(fx>? cc 0)
-         (let ([save_col (win_T.w_cursor.col curwin)])
-           (mb_replace_pop_ins ed cc)
-           (win_T.w_cursor.col-set! curwin save_col)
-           (loop61 inserted_space_p (replace_pop ed) did_backspace oldState call_fix_indent out___r__ out___inserted_space_p))]
-        [else
-         (replace_pop_ins ed)
-         (set! State oldState)
-         (join65 inserted_space_p did_backspace call_fix_indent out___r__ out___inserted_space_p)]))
     (define (join65 inserted_space_p did_backspace call_fix_indent out___r__ out___inserted_space_p)
       (set! did_ai #f)
       (join66 inserted_space_p did_backspace call_fix_indent out___r__ out___inserted_space_p))
@@ -9141,51 +9628,54 @@
     (define (loop5 idx end ret_char save_allow_keys save_paste)
       (if (and (fx=? end 0) (fx=? (vpeekc ed) 0))
           (join24 ret_char save_allow_keys save_paste)
-          (loop7 idx end ret_char save_allow_keys save_paste)))
-    (define (loop7 idx end ret_char save_allow_keys save_paste)
-      (let ([c (vgetc ed)])
-        (cond
-          [(or (or (fx=? c -13821) (fx=? c -22777)) (fx=? c -22776))
-           (loop7 idx end ret_char save_allow_keys save_paste)]
-          [(or (or (fx=? c 0) (not (fxzero? got_int))) (and (fx>? ex_normal_busy 0) (fx=? c 3)))
-           (join24 ret_char save_allow_keys save_paste)]
-          [else
-           (let* ([t1 (utf_char2bytes ed c (fx+ buf idx))]
-                  [idx (i32+ idx t1)])
-             (st-u8! (fx+ buf idx) 0)
-             (cond
-               [(and (not (fx=? end 0)) (fx=? (musl_strncmp ed buf end (->u64 idx)) 0))
-                (if (fx=? (ld-u8 (fx+ end idx)) 0)
-                    (join24 ret_char save_allow_keys save_paste)
-                    (loop5 idx end ret_char save_allow_keys save_paste))]
-               [(not drop)
-                (case mode
-                  [(1) (put_on_cmdline ed buf idx #t) (join22 end ret_char save_allow_keys save_paste)]
-                  [(2)
+          (let loop7 ([idx idx]
+                      [end end]
+                      [ret_char ret_char]
+                      [save_allow_keys save_allow_keys]
+                      [save_paste save_paste])
+            (let ([c (vgetc ed)])
+              (cond
+                [(or (or (fx=? c -13821) (fx=? c -22777)) (fx=? c -22776))
+                 (loop7 idx end ret_char save_allow_keys save_paste)]
+                [(or (or (fx=? c 0) (not (fxzero? got_int))) (and (fx>? ex_normal_busy 0) (fx=? c 3)))
+                 (join24 ret_char save_allow_keys save_paste)]
+                [else
+                 (let* ([t1 (utf_char2bytes ed c (fx+ buf idx))]
+                        [idx (i32+ idx t1)])
+                   (st-u8! (fx+ buf idx) 0)
                    (cond
-                     [(and (not (fx=? gap 0)) (ga_grow ed gap (i32+ idx 1)))
-                      (musl_memmove ed (fx+ (garray_T.ga_data gap) (garray_T.ga_len gap)) buf (->u64 idx))
-                      (garray_T.ga_len-set! gap (i32+ (garray_T.ga_len gap) idx))
-                      (join22 end ret_char save_allow_keys save_paste)]
-                     [else (join22 end ret_char save_allow_keys save_paste)])]
-                  [(0)
-                   (if (stop_arrow ed)
-                       (let ([c (ld-u8 buf)])
+                     [(and (not (fx=? end 0)) (fx=? (musl_strncmp ed buf end (->u64 idx)) 0))
+                      (if (fx=? (ld-u8 (fx+ end idx)) 0)
+                          (join24 ret_char save_allow_keys save_paste)
+                          (loop5 idx end ret_char save_allow_keys save_paste))]
+                     [(not drop)
+                      (case mode
+                        [(1) (put_on_cmdline ed buf idx #t) (join22 end ret_char save_allow_keys save_paste)]
+                        [(2)
                          (cond
-                           [(and (fx=? idx 1) (or (or (fx=? c 13) (fx=? c -16715)) (fx=? c 10)))
-                            (ins_eol ed c)
+                           [(and (not (fx=? gap 0)) (ga_grow ed gap (i32+ idx 1)))
+                            (musl_memmove ed (fx+ (garray_T.ga_data gap) (garray_T.ga_len gap)) buf (->u64 idx))
+                            (garray_T.ga_len-set! gap (i32+ (garray_T.ga_len gap) idx))
                             (join22 end ret_char save_allow_keys save_paste)]
-                           [else
-                            (ins_char_bytes ed buf idx)
-                            (AppendToRedobuffLit ed buf idx)
-                            (join22 end ret_char save_allow_keys save_paste)]))
-                       (join22 end ret_char save_allow_keys save_paste))]
-                  [(3)
-                   (if (fx=? ret_char -1)
-                       (join22 end (utf_ptr2char ed buf) save_allow_keys save_paste)
-                       (join22 end ret_char save_allow_keys save_paste))]
-                  [else (join22 end ret_char save_allow_keys save_paste)])]
-               [else (join22 end ret_char save_allow_keys save_paste)]))])))
+                           [else (join22 end ret_char save_allow_keys save_paste)])]
+                        [(0)
+                         (if (stop_arrow ed)
+                             (let ([c (ld-u8 buf)])
+                               (cond
+                                 [(and (fx=? idx 1) (or (or (fx=? c 13) (fx=? c -16715)) (fx=? c 10)))
+                                  (ins_eol ed c)
+                                  (join22 end ret_char save_allow_keys save_paste)]
+                                 [else
+                                  (ins_char_bytes ed buf idx)
+                                  (AppendToRedobuffLit ed buf idx)
+                                  (join22 end ret_char save_allow_keys save_paste)]))
+                             (join22 end ret_char save_allow_keys save_paste))]
+                        [(3)
+                         (if (fx=? ret_char -1)
+                             (join22 end (utf_ptr2char ed buf) save_allow_keys save_paste)
+                             (join22 end ret_char save_allow_keys save_paste))]
+                        [else (join22 end ret_char save_allow_keys save_paste)])]
+                     [else (join22 end ret_char save_allow_keys save_paste)]))])))))
     (define (join22 end ret_char save_allow_keys save_paste)
       (loop5 0 end ret_char save_allow_keys save_paste))
     (define (join24 ret_char save_allow_keys save_paste)
@@ -9408,31 +9898,31 @@
       (let* ([t1 (i32% (get_nolist_virtcol ed) temp)]
              [temp (i32- temp t1)])
         (ins_char ed 32)
-        (loop8 ind temp)))
-    (define (loop8 ind temp)
-      (let ([temp (i32- temp 1)])
-        (cond
-          [(fx>? temp 0)
-           (cond
-             [(not (fxzero? (fxand State 512))) (ins_char ed 32) (loop8 ind temp)]
-             [else
-              (ins_str ed (c-str 162293 " ") 1)
-              (cond
-                [(not (fxzero? (fxand State 256))) (replace_push ed 0) (loop8 ind temp)]
-                [else (loop8 ind temp)])])]
-          [(and (not (not (fxzero? (buf_T.b_p_et curbuf)))) (or (not (eqv? (get_sts_value ed) 0)) (and (not (fxzero? p_sta)) ind)))
-           (let* ([save_list (win_T.w_onebuf_opt.wo_list curwin)]
-                  [tab (c-str 162584 "\t")])
-             (cond
-               [(not (fxzero? (fxand State 512)))
-                (mem-copy! pos (win_T.w_cursor& curwin) 16)
-                (let* ([len (ml_get_curline_len ed)]
-                       [saved_line (vim_strnsave ed (ml_get_curline ed) (->u64 len))])
-                  (join13 (fx+ saved_line (pos_T.col pos)) saved_line pos -1 save_list tab))]
-               [else
-                (let ([ptr (ml_get_cursor ed)])
-                  (join13 ptr 0 (win_T.w_cursor& curwin) -1 save_list tab))]))]
-          [else (join39)])))
+        (let loop8 ([ind ind]
+                    [temp temp])
+          (let ([temp (i32- temp 1)])
+            (cond
+              [(fx>? temp 0)
+               (cond
+                 [(not (fxzero? (fxand State 512))) (ins_char ed 32) (loop8 ind temp)]
+                 [else
+                  (ins_str ed (c-str 162293 " ") 1)
+                  (cond
+                    [(not (fxzero? (fxand State 256))) (replace_push ed 0) (loop8 ind temp)]
+                    [else (loop8 ind temp)])])]
+              [(and (not (not (fxzero? (buf_T.b_p_et curbuf)))) (or (not (eqv? (get_sts_value ed) 0)) (and (not (fxzero? p_sta)) ind)))
+               (let* ([save_list (win_T.w_onebuf_opt.wo_list curwin)]
+                      [tab (c-str 162584 "\t")])
+                 (cond
+                   [(not (fxzero? (fxand State 512)))
+                    (mem-copy! pos (win_T.w_cursor& curwin) 16)
+                    (let* ([len (ml_get_curline_len ed)]
+                           [saved_line (vim_strnsave ed (ml_get_curline ed) (->u64 len))])
+                      (join13 (fx+ saved_line (pos_T.col pos)) saved_line pos -1 save_list tab))]
+                   [else
+                    (let ([ptr (ml_get_cursor ed)])
+                      (join13 ptr 0 (win_T.w_cursor& curwin) -1 save_list tab))]))]
+              [else (join39)])))))
     (define (join13 ptr saved_line cursor change_col save_list tab)
       (cond
         [(fx=? (vim_strchr ed p_cpo 76) 0)
@@ -9441,17 +9931,21 @@
         [else (join15 ptr saved_line cursor change_col save_list tab)]))
     (define (join15 ptr saved_line cursor change_col save_list tab)
       (mem-copy! fpos (win_T.w_cursor& curwin) 16)
-      (loop16 ptr saved_line cursor change_col save_list tab))
-    (define (loop16 ptr saved_line cursor change_col save_list tab)
-      (cond
-        [(and (fx>? (pos_T.col fpos) 0) (or (fx=? (ld-u8 (fx+ ptr -1)) 32) (fx=? (ld-u8 (fx+ ptr -1)) 9)))
-         (pos_T.col-set! fpos (i32- (pos_T.col fpos) 1))
-         (loop16 (fx+ ptr -1) saved_line cursor change_col save_list tab)]
-        [(and (and (not (fxzero? (fxand State 256))) (= (pos_T.lnum fpos) (pos_T.lnum Insstart))) (fx<? (pos_T.col fpos) (pos_T.col Insstart)))
-         (let ([ptr (fx+ ptr (i32- (pos_T.col Insstart) (pos_T.col fpos)))])
-           (pos_T.col-set! fpos (pos_T.col Insstart))
-           (join19 ptr saved_line cursor change_col save_list tab))]
-        [else (join19 ptr saved_line cursor change_col save_list tab)]))
+      (let loop16 ([ptr ptr]
+                   [saved_line saved_line]
+                   [cursor cursor]
+                   [change_col change_col]
+                   [save_list save_list]
+                   [tab tab])
+        (cond
+          [(and (fx>? (pos_T.col fpos) 0) (or (fx=? (ld-u8 (fx+ ptr -1)) 32) (fx=? (ld-u8 (fx+ ptr -1)) 9)))
+           (pos_T.col-set! fpos (i32- (pos_T.col fpos) 1))
+           (loop16 (fx+ ptr -1) saved_line cursor change_col save_list tab)]
+          [(and (and (not (fxzero? (fxand State 256))) (= (pos_T.lnum fpos) (pos_T.lnum Insstart))) (fx<? (pos_T.col fpos) (pos_T.col Insstart)))
+           (let ([ptr (fx+ ptr (i32- (pos_T.col Insstart) (pos_T.col fpos)))])
+             (pos_T.col-set! fpos (pos_T.col Insstart))
+             (join19 ptr saved_line cursor change_col save_list tab))]
+          [else (join19 ptr saved_line cursor change_col save_list tab)])))
     (define (join19 ptr saved_line cursor change_col save_list tab)
       (getvcol ed curwin fpos &vcol 0 0 0)
       (getvcol ed curwin cursor &want_vcol 0 0 0)
@@ -9485,19 +9979,22 @@
       (cond
         [(fx>=? change_col 0)
          (init_chartabsize_arg ed cts curwin 0 vcol ptr ptr)
-         (loop29 saved_line cursor change_col save_list 0)]
+         (let loop29 ([saved_line saved_line]
+                      [cursor cursor]
+                      [change_col change_col]
+                      [save_list save_list]
+                      [repl_off 0])
+           (if (and (fx<? (chartabsize_T.cts_vcol cts) want_vcol) (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 32))
+               (let ([t2 (lbr_chartabsize ed cts)])
+                 (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) t2))
+                 (chartabsize_T.cts_ptr-set! cts (fx+ (chartabsize_T.cts_ptr cts) 1))
+                 (loop29 saved_line cursor change_col save_list (i32+ repl_off 1)))
+               (let ([ptr (chartabsize_T.cts_ptr cts)])
+                 (set! vcol (chartabsize_T.cts_vcol cts))
+                 (if (fx>? vcol want_vcol)
+                     (join32 (fx+ ptr -1) saved_line cursor change_col save_list (i32- repl_off 1))
+                     (join32 ptr saved_line cursor change_col save_list repl_off)))))]
         [else (join38 save_list)]))
-    (define (loop29 saved_line cursor change_col save_list repl_off)
-      (if (and (fx<? (chartabsize_T.cts_vcol cts) want_vcol) (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 32))
-          (let ([t2 (lbr_chartabsize ed cts)])
-            (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) t2))
-            (chartabsize_T.cts_ptr-set! cts (fx+ (chartabsize_T.cts_ptr cts) 1))
-            (loop29 saved_line cursor change_col save_list (i32+ repl_off 1)))
-          (let ([ptr (chartabsize_T.cts_ptr cts)])
-            (set! vcol (chartabsize_T.cts_vcol cts))
-            (if (fx>? vcol want_vcol)
-                (join32 (fx+ ptr -1) saved_line cursor change_col save_list (i32- repl_off 1))
-                (join32 ptr saved_line cursor change_col save_list repl_off)))))
     (define (join32 ptr saved_line cursor change_col save_list repl_off)
       (pos_T.col-set! fpos (i32+ (pos_T.col fpos) repl_off))
       (let ([i (i32- (pos_T.col cursor) (pos_T.col fpos))])
@@ -9505,15 +10002,20 @@
           [(fx>? i 0)
            (musl_memmove ed ptr (fx+ ptr i) (u64+ (musl_strlen ed (fx+ ptr i)) 1))
            (if (and (not (fxzero? (fxand State 256))) (not (not (fxzero? (fxand State 512)))))
-               (loop35 i i saved_line cursor change_col save_list repl_off)
+               (let loop35 ([i i]
+                            [temp i]
+                            [saved_line saved_line]
+                            [cursor cursor]
+                            [change_col change_col]
+                            [save_list save_list]
+                            [repl_off repl_off])
+                 (let ([temp (i32- temp 1)])
+                   (cond
+                     [(fx>=? temp 0)
+                      (replace_join ed repl_off)
+                      (loop35 i temp saved_line cursor change_col save_list repl_off)]
+                     [else (join36 i saved_line cursor change_col save_list)])))
                (join36 i saved_line cursor change_col save_list))]
-          [else (join36 i saved_line cursor change_col save_list)])))
-    (define (loop35 i temp saved_line cursor change_col save_list repl_off)
-      (let ([temp (i32- temp 1)])
-        (cond
-          [(fx>=? temp 0)
-           (replace_join ed repl_off)
-           (loop35 i temp saved_line cursor change_col save_list repl_off)]
           [else (join36 i saved_line cursor change_col save_list)])))
     (define (join36 i saved_line cursor change_col save_list)
       (pos_T.col-set! cursor (i32- (pos_T.col cursor) i))
@@ -9574,15 +10076,6 @@
 (define (ins_copychar ed lnum)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local cts &cts agg 0)
-    (define (loop2 prev_ptr)
-      (cond
-        [(and (fx<? (chartabsize_T.cts_vcol cts) (win_T.w_virtcol curwin)) (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)))
-         (let* ([prev_ptr (chartabsize_T.cts_ptr cts)]
-                [t1 (lbr_chartabsize_adv ed cts)])
-           (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) t1))
-           (loop2 prev_ptr))]
-        [(fx>? (chartabsize_T.cts_vcol cts) (win_T.w_virtcol curwin)) (join6 prev_ptr)]
-        [else (join6 (chartabsize_T.cts_ptr cts))]))
     (define (join6 ptr)
       (let ([c (utf_ptr2char ed ptr)])
         (cond
@@ -9597,7 +10090,15 @@
        (validate_virtcol ed)
        (let ([line (ml_get ed lnum)])
          (init_chartabsize_arg ed cts curwin lnum 0 line line)
-         (loop2 line))])))
+         (let loop2 ([prev_ptr line])
+           (cond
+             [(and (fx<? (chartabsize_T.cts_vcol cts) (win_T.w_virtcol curwin)) (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)))
+              (let* ([prev_ptr (chartabsize_T.cts_ptr cts)]
+                     [t1 (lbr_chartabsize_adv ed cts)])
+                (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) t1))
+                (loop2 prev_ptr))]
+             [(fx>? (chartabsize_T.cts_vcol cts) (win_T.w_virtcol curwin)) (join6 prev_ptr)]
+             [else (join6 (chartabsize_T.cts_ptr cts))])))])))
 
 (define (ins_ctrl_ey ed tc)
   (let ([mem (ed-mem ed)])
@@ -9729,17 +10230,19 @@
       (mark_adjust_nofold ed (i64+ (i64- last_line num_lines) 1) last_line (i64- 0 (i64- (i64- last_line dest) extra)) 0)
       (if (not (u_save ed (i64- (i64+ line1 extra) 1) (i64+ (i64+ line2 extra) 1)))
           #f
-          (loop14 dest line1 extra num_lines)))
-    (define (loop14 dest l extra num_lines)
-      (cond
-        [(<= l line2) (ml_delete_flags ed (i64+ line1 extra) 1) (loop14 dest (i64+ l 1) extra num_lines)]
-        [(and (not (not (fxzero? global_busy))) (> num_lines p_report))
-         (let* ([r1 IObuff]
-                [r2 (iobuff_room ed)])
-           (vim_snprintf ed r1 r2 (NGETTEXT ed (c-str 162695 "%ld line moved") (c-str 162710 "%ld lines moved") (->u64 num_lines)) (list num_lines))
-           (msg ed (iobuff_or ed (NGETTEXT ed (c-str 162695 "%ld line moved") (c-str 162710 "%ld lines moved") (->u64 num_lines))))
-           (join17 dest num_lines))]
-        [else (join17 dest num_lines)]))
+          (let loop14 ([dest dest]
+                       [l line1]
+                       [extra extra]
+                       [num_lines num_lines])
+            (cond
+              [(<= l line2) (ml_delete_flags ed (i64+ line1 extra) 1) (loop14 dest (i64+ l 1) extra num_lines)]
+              [(and (not (not (fxzero? global_busy))) (> num_lines p_report))
+               (let* ([r1 IObuff]
+                      [r2 (iobuff_room ed)])
+                 (vim_snprintf ed r1 r2 (NGETTEXT ed (c-str 162695 "%ld line moved") (c-str 162710 "%ld lines moved") (->u64 num_lines)) (list num_lines))
+                 (msg ed (iobuff_or ed (NGETTEXT ed (c-str 162695 "%ld line moved") (c-str 162710 "%ld lines moved") (->u64 num_lines))))
+                 (join17 dest num_lines))]
+              [else (join17 dest num_lines)]))))
     (define (join17 dest num_lines)
       (cond
         [(>= dest line1) (win_T.w_cursor.lnum-set! curwin dest) (join20 dest num_lines)]
@@ -9965,13 +10468,12 @@
 (define (ex_change ed eap)
   (let ([mem (ed-mem ed)])
     (define (join3)
-      (loop4 (exarg_T.line2 eap)))
-    (define (loop4 lnum)
-      (if (>= lnum (exarg_T.line1 eap))
-          (cond
-            [(not (fxzero? (fxand (buf_T.b_ml.ml_flags curbuf) 1))) (join8 lnum)]
-            [else (ml_delete ed (exarg_T.line1 eap)) (loop4 (i64- lnum 1))])
-          (join8 lnum)))
+      (let loop4 ([lnum (exarg_T.line2 eap)])
+        (if (>= lnum (exarg_T.line1 eap))
+            (cond
+              [(not (fxzero? (fxand (buf_T.b_ml.ml_flags curbuf) 1))) (join8 lnum)]
+              [else (ml_delete ed (exarg_T.line1 eap)) (loop4 (i64- lnum 1))])
+            (join8 lnum))))
     (define (join8 lnum)
       (check_cursor_lnum ed)
       (deleted_lines_mark ed (exarg_T.line1 eap) (i64- (exarg_T.line2 eap) lnum))
@@ -10010,11 +10512,14 @@
           (join15 x bigness kind minus lnum)))
     (define (join15 x bigness kind minus lnum)
       (if (or (fx=? (ld-u8 kind) 45) (fx=? (ld-u8 kind) 43))
-          (loop17 (fx+ kind 1) bigness kind minus lnum)
-          (join18 x bigness kind minus lnum)))
-    (define (loop17 x bigness kind minus lnum)
-      (if (fx=? (ld-u8 x) (ld-u8 kind))
-          (loop17 (fx+ x 1) bigness kind minus lnum)
+          (let loop17 ([x (fx+ kind 1)]
+                       [bigness bigness]
+                       [kind kind]
+                       [minus minus]
+                       [lnum lnum])
+            (if (fx=? (ld-u8 x) (ld-u8 kind))
+                (loop17 (fx+ x 1) bigness kind minus lnum)
+                (join18 x bigness kind minus lnum)))
           (join18 x bigness kind minus lnum)))
     (define (join18 x bigness kind minus lnum)
       (case (ld-u8 kind)
@@ -10055,23 +10560,31 @@
     (define (loop37 minus end curs i lnum)
       (if (<= i end)
           (cond
-            [(and (not (fxzero? minus)) (= i lnum)) (msg_putchar ed 10) (loop43 minus end curs i 1 lnum)]
+            [(and (not (fxzero? minus)) (= i lnum)) (msg_putchar ed 10) (let loop43 ([minus minus]
+                                                                                     [end end]
+                                                                                     [curs curs]
+                                                                                     [i i]
+                                                                                     [j 1]
+                                                                                     [lnum lnum])
+                                                                          (cond
+                                                                            [(< j Columns) (msg_putchar ed 45) (loop43 minus end curs i (i32+ j 1) lnum)]
+                                                                            [else (join44 minus end curs i lnum)]))]
             [else (join44 minus end curs i lnum)])
           (when (not (= (win_T.w_cursor.lnum curwin) curs))
             (win_T.w_cursor.lnum-set! curwin curs)
             (win_T.w_cursor.col-set! curwin 0))))
-    (define (loop43 minus end curs i j lnum)
-      (cond
-        [(< j Columns) (msg_putchar ed 45) (loop43 minus end curs i (i32+ j 1) lnum)]
-        [else (join44 minus end curs i lnum)]))
     (define (join44 minus end curs i lnum)
       (print_line ed i (fxand (exarg_T.flags eap) 2) (fxand (exarg_T.flags eap) 1))
       (cond
-        [(and (not (fxzero? minus)) (= i lnum)) (msg_putchar ed 10) (loop46 minus end curs i 1 lnum)]
-        [else (join47 minus end curs i lnum)]))
-    (define (loop46 minus end curs i j lnum)
-      (cond
-        [(< j Columns) (msg_putchar ed 45) (loop46 minus end curs i (i32+ j 1) lnum)]
+        [(and (not (fxzero? minus)) (= i lnum)) (msg_putchar ed 10) (let loop46 ([minus minus]
+                                                                                 [end end]
+                                                                                 [curs curs]
+                                                                                 [i i]
+                                                                                 [j 1]
+                                                                                 [lnum lnum])
+                                                                      (cond
+                                                                        [(< j Columns) (msg_putchar ed 45) (loop46 minus end curs i (i32+ j 1) lnum)]
+                                                                        [else (join47 minus end curs i lnum)]))]
         [else (join47 minus end curs i lnum)]))
     (define (join47 minus end curs i lnum)
       (loop37 minus end curs (i64+ i 1) lnum))
@@ -10105,17 +10618,18 @@
 
 (define (match_range ed rmp do_all line1 line2)
   (let ([mem (ed-mem ed)])
-    (define (loop1 n lines k)
-      (cond
-        [(< k n)
-         (string_T.string-set! (fx+ lines (fx* k 16)) (ml_get ed (i64+ line1 k)))
-         (string_T.length-set! (fx+ lines (fx* k 16)) (->u64 (ml_get_len ed (i64+ line1 k))))
-         (loop1 n lines (i64+ k 1))]
-        [else
-         (let ([found (alloc_clear ed (u64* 24 (->u64 n)))])
-           (if (match_lines ed rmp do_all curbuf lines line1 n found) found 0))]))
     (let ([n (i64+ (i64- line2 line1) 1)])
-      (loop1 n (alloc ed (u64* 16 (->u64 n))) 0))))
+      (let loop1 ([n n]
+                  [lines (alloc ed (u64* 16 (->u64 n)))]
+                  [k 0])
+        (cond
+          [(< k n)
+           (string_T.string-set! (fx+ lines (fx* k 16)) (ml_get ed (i64+ line1 k)))
+           (string_T.length-set! (fx+ lines (fx* k 16)) (->u64 (ml_get_len ed (i64+ line1 k))))
+           (loop1 n lines (i64+ k 1))]
+          [else
+           (let ([found (alloc_clear ed (u64* 24 (->u64 n)))])
+             (if (match_lines ed rmp do_all curbuf lines line1 n found) found 0))])))))
 
 (define (search_found ed found line1 count rmp lnum col)
   (let ([mem (ed-mem ed)])
@@ -10712,22 +11226,49 @@
                       (let ([lnum (i64+ lnum 1)])
                         (if (not (u_savedel ed lnum nmatch_tl))
                             (join203 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count did_sub)
-                            (loop182 lnum 0 save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count copycol matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match)))
+                            (let loop182 ([lnum lnum]
+                                          [i 0]
+                                          [save_do_all save_do_all]
+                                          [save_do_ask save_do_ask]
+                                          [sub sub]
+                                          [got_quit got_quit]
+                                          [got_match got_match]
+                                          [first_line first_line]
+                                          [last_line last_line]
+                                          [old_line_count old_line_count]
+                                          [line2 line2]
+                                          [nmatch nmatch]
+                                          [endcolumn endcolumn]
+                                          [old_cursor_lnum old_cursor_lnum]
+                                          [old_cursor_col old_cursor_col]
+                                          [old_cursor_coladd old_cursor_coladd]
+                                          [start_nsubs start_nsubs]
+                                          [found found]
+                                          [found_count found_count]
+                                          [copycol copycol]
+                                          [matchcol matchcol]
+                                          [prev_matchcol prev_matchcol]
+                                          [new_start_string new_start_string]
+                                          [new_start_length new_start_length]
+                                          [new_start_size new_start_size]
+                                          [did_sub did_sub]
+                                          [lastone lastone]
+                                          [nmatch_tl nmatch_tl]
+                                          [skip_match skip_match])
+                              (cond
+                                [(< i nmatch_tl)
+                                 (ml_delete ed lnum)
+                                 (loop182 lnum (i64+ i 1) save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count copycol matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match)]
+                                [(fx>? copycol 0)
+                                 (mark_adjust ed lnum (i64- (i64+ lnum nmatch_tl) 1) 9223372036854775807 (i64- 0 nmatch_tl))
+                                 (join186 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match)]
+                                [else
+                                 (mark_adjust ed (i64- lnum 1) (i64- lnum 1) 9223372036854775807 (i64- 0 nmatch_tl))
+                                 (join186 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match)]))))
                       (join189 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match))]))]
             [else
              (join195 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch sub_firstline_string sub_firstline_length endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count copycol matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match sub_firstlnum did_split)])
           (join198 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch sub_firstline_string sub_firstline_length endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count copycol matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub nmatch_tl skip_match sub_firstlnum did_split)))
-    (define (loop182 lnum i save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count copycol matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match)
-      (cond
-        [(< i nmatch_tl)
-         (ml_delete ed lnum)
-         (loop182 lnum (i64+ i 1) save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count copycol matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match)]
-        [(fx>? copycol 0)
-         (mark_adjust ed lnum (i64- (i64+ lnum nmatch_tl) 1) 9223372036854775807 (i64- 0 nmatch_tl))
-         (join186 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match)]
-        [else
-         (mark_adjust ed (i64- lnum 1) (i64- lnum 1) 9223372036854775807 (i64- 0 nmatch_tl))
-         (join186 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match)]))
     (define (join186 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 nmatch endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count matchcol prev_matchcol new_start_string new_start_length new_start_size did_sub lastone nmatch_tl skip_match)
       (cond
         [(not (fxzero? (subflags_T.do_ask ex_substitute:subflags)))
@@ -11219,20 +11760,24 @@
          (join92 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]
         [else
          (exarg_T.cmd-set! ea (skipwhite ed (exarg_T.cmd ea)))
-         (loop10 p after_modifier save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]))
-    (define (loop10 p after_modifier save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
-      (cond
-        [(fx=? (ld-u8 (exarg_T.cmd ea)) 58)
-         (exarg_T.cmd-set! ea (skipwhite ed (fx+ (exarg_T.cmd ea) 1)))
-         (loop10 p after_modifier save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]
-        [else
-         (let ([t1 (fx=? (ld-u8 (exarg_T.cmd ea)) 0)])
+         (let loop10 ([p p]
+                      [after_modifier after_modifier]
+                      [save_reg_executing save_reg_executing]
+                      [save_pending_end_reg_executing save_pending_end_reg_executing]
+                      [sourcing sourcing]
+                      [did_append_cmd did_append_cmd])
            (cond
-             [t1
-              (join13 p after_modifier save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd t1)]
+             [(fx=? (ld-u8 (exarg_T.cmd ea)) 58)
+              (exarg_T.cmd-set! ea (skipwhite ed (fx+ (exarg_T.cmd ea) 1)))
+              (loop10 p after_modifier save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]
              [else
-              (exarg_T.nextcmd-set! ea (check_nextcmd ed (exarg_T.cmd ea)))
-              (join13 p after_modifier save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd (not (fx=? (exarg_T.nextcmd ea) 0)))]))]))
+              (let ([t1 (fx=? (ld-u8 (exarg_T.cmd ea)) 0)])
+                (cond
+                  [t1
+                   (join13 p after_modifier save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd t1)]
+                  [else
+                   (exarg_T.nextcmd-set! ea (check_nextcmd ed (exarg_T.cmd ea)))
+                   (join13 p after_modifier save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd (not (fx=? (exarg_T.nextcmd ea) 0)))]))]))]))
     (define (join13 p after_modifier save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd t1)
       (cond
         [t1
@@ -11314,17 +11859,19 @@
       (cond
         [(or (fx=? (exarg_T.cmdidx ea) 92) (fx=? (exarg_T.cmdidx ea) 94))
          (exarg_T.amount-set! ea 1)
-         (loop36 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]
+         (let loop36 ([save_reg_executing save_reg_executing]
+                      [save_pending_end_reg_executing save_pending_end_reg_executing]
+                      [sourcing sourcing]
+                      [did_append_cmd did_append_cmd])
+           (cond
+             [(fx=? (ld-u8 (exarg_T.arg ea)) (ld-u8 (exarg_T.cmd ea)))
+              (exarg_T.arg-set! ea (fx+ (exarg_T.arg ea) 1))
+              (exarg_T.amount-set! ea (i32+ (exarg_T.amount ea) 1))
+              (loop36 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]
+             [else
+              (exarg_T.arg-set! ea (skipwhite ed (exarg_T.arg ea)))
+              (join38 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]))]
         [else (join38 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]))
-    (define (loop36 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
-      (cond
-        [(fx=? (ld-u8 (exarg_T.arg ea)) (ld-u8 (exarg_T.cmd ea)))
-         (exarg_T.arg-set! ea (fx+ (exarg_T.arg ea) 1))
-         (exarg_T.amount-set! ea (i32+ (exarg_T.amount ea) 1))
-         (loop36 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]
-        [else
-         (exarg_T.arg-set! ea (skipwhite ed (exarg_T.arg ea)))
-         (join38 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)]))
     (define (join38 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
       (cond
         [(not (eqv? (bitwise-and (exarg_T.argt ea) 16384) 0))
@@ -11508,18 +12055,17 @@
 
 (define (checkforcmd_opt ed pp cmd len noparen)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
-      (cond
-        [(fx=? (ld-s8 (fx+ cmd i)) 0) (join4 i)]
-        [(not (fx=? (ld-u8 (fx+ cmd i)) (ld-u8 (fx+ (ld-ptr pp) i)))) (join4 i)]
-        [else (loop1 (i32+ i 1))]))
     (define (join4 i)
       (cond
         [(and (and (and (fx>=? i len) (not (or (ascii_isupper ed (ld-u8 (fx+ (ld-ptr pp) i))) (ascii_islower ed (ld-u8 (fx+ (ld-ptr pp) i)))))) (not (fx=? (ld-u8 (fx+ (ld-ptr pp) i)) 95))) (or (not noparen) (and (not (fx=? (ld-u8 (fx+ (ld-ptr pp) i)) 40)) (not (fx=? (ld-u8 (fx+ (ld-ptr pp) i)) 46)))))
          (st-ptr! pp (skipwhite ed (fx+ (ld-ptr pp) i)))
          #t]
         [else #f]))
-    (loop1 0)))
+    (let loop1 ([i 0])
+      (cond
+        [(fx=? (ld-s8 (fx+ cmd i)) 0) (join4 i)]
+        [(not (fx=? (ld-u8 (fx+ cmd i)) (ld-u8 (fx+ (ld-ptr pp) i)))) (join4 i)]
+        [else (loop1 (i32+ i 1))]))))
 
 (define (checkforcmd_noparen ed pp cmd len)
   (checkforcmd_opt ed pp cmd len #t))
@@ -11790,19 +12336,21 @@
     (define (join2 s mb_copy_char__o_fp mb_copy_char__o_tp)
       (musl_strcat ed IObuff (c-str 163237 ": "))
       (let ([r1 IObuff])
-        (loop3 s (fx+ r1 (->i64 (musl_strlen ed IObuff))) mb_copy_char__o_fp mb_copy_char__o_tp)))
-    (define (loop3 s d mb_copy_char__o_fp mb_copy_char__o_tp)
-      (if (and (not (fx=? (ld-u8 s) 0)) (< (i64+ (fx- d IObuff) 5) 1025))
-          (if (and (fx=? (ld-u8 s) 194) (fx=? (ld-u8 (fx+ s 1)) 160))
-              (let ([s (fx+ s 2)])
-                (musl_strcpy ed d (c-str 163240 "<a0>"))
-                (loop3 s (fx+ d 4) mb_copy_char__o_fp mb_copy_char__o_tp))
-              (let ([r2 (fx- d IObuff)])
-                (if (>= (i64+ (i64+ r2 (utfc_ptr2len ed s)) 1) 1025)
-                    (join7 d mb_copy_char__o_fp mb_copy_char__o_tp)
-                    (let-values ([(r3 r4) (mb_copy_char ed s d)])
-                      (loop3 r3 r4 r3 r4)))))
-          (join7 d mb_copy_char__o_fp mb_copy_char__o_tp)))
+        (let loop3 ([s s]
+                    [d (fx+ r1 (->i64 (musl_strlen ed IObuff)))]
+                    [mb_copy_char__o_fp mb_copy_char__o_fp]
+                    [mb_copy_char__o_tp mb_copy_char__o_tp])
+          (if (and (not (fx=? (ld-u8 s) 0)) (< (i64+ (fx- d IObuff) 5) 1025))
+              (if (and (fx=? (ld-u8 s) 194) (fx=? (ld-u8 (fx+ s 1)) 160))
+                  (let ([s (fx+ s 2)])
+                    (musl_strcpy ed d (c-str 163240 "<a0>"))
+                    (loop3 s (fx+ d 4) mb_copy_char__o_fp mb_copy_char__o_tp))
+                  (let ([r2 (fx- d IObuff)])
+                    (if (>= (i64+ (i64+ r2 (utfc_ptr2len ed s)) 1) 1025)
+                        (join7 d mb_copy_char__o_fp mb_copy_char__o_tp)
+                        (let-values ([(r3 r4) (mb_copy_char ed s d)])
+                          (loop3 r3 r4 r3 r4)))))
+              (join7 d mb_copy_char__o_fp mb_copy_char__o_tp)))))
     (define (join7 d mb_copy_char__o_fp mb_copy_char__o_tp)
       (st-u8! d 0))
     (let ([len (musl_strlen ed IObuff)])
@@ -11832,23 +12380,18 @@
 
 (define (find_ex_command ed eap full)
   (let ([mem (ed-mem ed)])
-    (define (loop2 p)
-      (cond
-        [(or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p))) (loop2 (fx+ p 1))]
-        [(and (fx=? p (exarg_T.cmd eap)) (not (fx=? (vim_strchr ed (c-str 163249 "@*=><&~#") (ld-u8 p)) 0)))
-         (join5 (fx+ p 1))]
-        [else (join5 p)]))
     (define (join5 p)
       (let ([len (->i32 (fx- p (exarg_T.cmd eap)))])
         (if (and (fx=? (ld-u8 (exarg_T.cmd eap)) 100) (or (fx=? (ld-u8 (fx+ p -1)) 108) (fx=? (ld-u8 (fx+ p -1)) 112)))
-            (loop7 len p 0)
+            (let loop7 ([len len]
+                        [p p]
+                        [i 0])
+              (if (fx<? i len)
+                  (if (not (fx=? (ld-u8 (fx+ (exarg_T.cmd eap) i)) (ld-u8 (fx+ (c-str 163258 "delete") i))))
+                      (join10 len p i)
+                      (loop7 len p (i32+ i 1)))
+                  (join10 len p i)))
             (join14 len p))))
-    (define (loop7 len p i)
-      (if (fx<? i len)
-          (if (not (fx=? (ld-u8 (fx+ (exarg_T.cmd eap) i)) (ld-u8 (fx+ (c-str 163258 "delete") i))))
-              (join10 len p i)
-              (loop7 len p (i32+ i 1)))
-          (join10 len p i)))
     (define (join10 len p i)
       (if (fx=? i (i32- len 1))
           (let ([len (i32- len 1)])
@@ -11860,25 +12403,24 @@
           (join14 len p)))
     (define (join14 len p)
       (exarg_T.cmdidx-set! eap 0)
-      (loop15 len p))
-    (define (loop15 len p)
-      (if (fx<? (exarg_T.cmdidx eap) 98)
-          (cond
-            [(and (fx>=? len (cmdname.cmd_minlen (fx+ cmdnames (fx* (exarg_T.cmdidx eap) 40)))) (fx=? (musl_strncmp ed (cmdname.cmd_name (fx+ cmdnames (fx* (exarg_T.cmdidx eap) 40))) (exarg_T.cmd eap) (->u64 len)) 0))
-             (join18 p)]
-            [else (exarg_T.cmdidx-set! eap (i32+ (exarg_T.cmdidx eap) 1)) (loop15 len p)])
-          (join18 p)))
+      (let loop15 ([len len]
+                   [p p])
+        (if (fx<? (exarg_T.cmdidx eap) 98)
+            (cond
+              [(and (fx>=? len (cmdname.cmd_minlen (fx+ cmdnames (fx* (exarg_T.cmdidx eap) 40)))) (fx=? (musl_strncmp ed (cmdname.cmd_name (fx+ cmdnames (fx* (exarg_T.cmdidx eap) 40))) (exarg_T.cmd eap) (->u64 len)) 0))
+               (join18 p)]
+              [else (exarg_T.cmdidx-set! eap (i32+ (exarg_T.cmdidx eap) 1)) (loop15 len p)])
+            (join18 p))))
     (define (join18 p)
       (if (and (fx=? (exarg_T.cmdidx eap) 91) (fx=? (vim_strchr ed p_cpo 42) 0))
           (join20 (exarg_T.cmd eap))
           (join20 p)))
     (define (join20 p)
       (if (and (and (or (fx=? (exarg_T.cmdidx eap) 98) (fx=? (exarg_T.cmdidx eap) 97)) (fx>=? (ld-u8 (exarg_T.cmd eap)) 65)) (fx<=? (ld-u8 (exarg_T.cmd eap)) 90))
-          (loop22 p)
-          (join23 p)))
-    (define (loop22 p)
-      (if (or (or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p))) (ascii_isdigit ed (ld-u8 p)))
-          (loop22 (fx+ p 1))
+          (let loop22 ([p p])
+            (if (or (or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p))) (ascii_isdigit ed (ld-u8 p)))
+                (loop22 (fx+ p 1))
+                (join23 p)))
           (join23 p)))
     (define (join23 p)
       (cond
@@ -11892,7 +12434,12 @@
             (cond
               [(not (fx=? full 0)) (st-s32! full 1) (join29 p)]
               [else (join29 p)]))
-          (loop2 p)))))
+          (let loop2 ([p p])
+            (cond
+              [(or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p))) (loop2 (fx+ p 1))]
+              [(and (fx=? p (exarg_T.cmd eap)) (not (fx=? (vim_strchr ed (c-str 163249 "@*=><&~#") (ld-u8 p)) 0)))
+               (join5 (fx+ p 1))]
+              [else (join5 p)]))))))
 
 (define (skip_range ed cmd_start skip_star ctx)
   (let ([mem (ed-mem ed)])
@@ -11903,24 +12450,24 @@
          (if (or (or (fx=? (ld-u8 (fx+ cmd 1)) 63) (fx=? (ld-u8 (fx+ cmd 1)) 47)) (fx=? (ld-u8 (fx+ cmd 1)) 38))
              (join27 (fx+ cmd 1))
              (loop21 cmd))]
-        [(fx=? (ld-u8 cmd) 39) (loop13 cmd cmd)]
-        [(or (fx=? (ld-u8 cmd) 47) (fx=? (ld-u8 cmd) 63)) (loop6 (fx+ cmd 1) (ld-u8 cmd))]
+        [(fx=? (ld-u8 cmd) 39) (let loop13 ([cmd cmd]
+                                            [p cmd])
+                                 (if (fx>? p cmd_start)
+                                     (let ([p (fx+ p -1)])
+                                       (if (not (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9))) (join16 cmd p) (loop13 cmd p)))
+                                     (join16 cmd p)))]
+        [(or (fx=? (ld-u8 cmd) 47) (fx=? (ld-u8 cmd) 63)) (let loop6 ([cmd (fx+ cmd 1)]
+                                                                      [delim (ld-u8 cmd)])
+                                                            (cond
+                                                              [(and (not (fx=? (ld-u8 cmd) 0)) (not (fx=? (ld-u8 cmd) delim)))
+                                                               (let* ([t2 cmd]
+                                                                      [cmd (fx+ cmd 1)])
+                                                                 (if (and (fx=? (ld-u8 t2) 92) (not (fx=? (ld-u8 cmd) 0)))
+                                                                     (loop6 (fx+ cmd 1) delim)
+                                                                     (loop6 cmd delim)))]
+                                                              [(and (fx=? (ld-u8 cmd) 0) (not (fx=? ctx 0))) (st-s32! ctx 0) (join27 cmd)]
+                                                              [else (join27 cmd)]))]
         [else (join27 cmd)]))
-    (define (loop6 cmd delim)
-      (cond
-        [(and (not (fx=? (ld-u8 cmd) 0)) (not (fx=? (ld-u8 cmd) delim)))
-         (let* ([t2 cmd]
-                [cmd (fx+ cmd 1)])
-           (if (and (fx=? (ld-u8 t2) 92) (not (fx=? (ld-u8 cmd) 0)))
-               (loop6 (fx+ cmd 1) delim)
-               (loop6 cmd delim)))]
-        [(and (fx=? (ld-u8 cmd) 0) (not (fx=? ctx 0))) (st-s32! ctx 0) (join27 cmd)]
-        [else (join27 cmd)]))
-    (define (loop13 cmd p)
-      (if (fx>? p cmd_start)
-          (let ([p (fx+ p -1)])
-            (if (not (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9))) (join16 cmd p) (loop13 cmd p)))
-          (join16 cmd p)))
     (define (join16 cmd p)
       (if (and (and (and (fx>? cmd cmd_start) (not (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9)))) (not (fx=? (ld-u8 p) 44))) (not (fx=? (ld-u8 p) 59)))
           (loop21 cmd)
@@ -12279,12 +12826,11 @@
 
 (define (find_nextcmd ed p)
   (let ([mem (ed-mem ed)])
-    (define (loop1 p)
+    (let loop1 ([p p])
       (cond
         [(fx=? (ld-u8 p) 10) (fx+ p 1)]
         [(fx=? (ld-u8 p) 0) 0]
-        [else (loop1 (fx+ p 1))]))
-    (loop1 p)))
+        [else (loop1 (fx+ p 1))]))))
 
 (define (check_nextcmd ed p)
   (let ([mem (ed-mem ed)])
@@ -12349,20 +12895,19 @@
 
 (define (ex_print ed eap)
   (let ([mem (ed-mem ed)])
-    (define (loop2)
-      (cond
-        [(not (not (fxzero? got_int)))
-         (print_line ed (exarg_T.line1 eap) (b->i (or (or (fx=? (exarg_T.cmdidx eap) 46) (fx=? (exarg_T.cmdidx eap) 89)) (not (fxzero? (fxand (exarg_T.flags eap) 2))))) (b->i (or (fx=? (exarg_T.cmdidx eap) 30) (not (fxzero? (fxand (exarg_T.flags eap) 1))))))
-         (exarg_T.line1-set! eap (i64+ (exarg_T.line1 eap) 1))
-         (cond
-           [(> (exarg_T.line1 eap) (exarg_T.line2 eap)) (join6)]
-           [else (out_flush ed) (ui_breakcheck ed) (loop2)])]
-        [else (join6)]))
     (define (join6)
       (setpcmark ed)
       (win_T.w_cursor.lnum-set! curwin (exarg_T.line2 eap))
       (beginline ed 6))
-    (if (not (fxzero? (fxand (buf_T.b_ml.ml_flags curbuf) 1))) (emsg ed e_empty_buffer) (loop2))))
+    (if (not (fxzero? (fxand (buf_T.b_ml.ml_flags curbuf) 1))) (emsg ed e_empty_buffer) (let loop2 ()
+                                                                                          (cond
+                                                                                            [(not (not (fxzero? got_int)))
+                                                                                             (print_line ed (exarg_T.line1 eap) (b->i (or (or (fx=? (exarg_T.cmdidx eap) 46) (fx=? (exarg_T.cmdidx eap) 89)) (not (fxzero? (fxand (exarg_T.flags eap) 2))))) (b->i (or (fx=? (exarg_T.cmdidx eap) 30) (not (fxzero? (fxand (exarg_T.flags eap) 1))))))
+                                                                                             (exarg_T.line1-set! eap (i64+ (exarg_T.line1 eap) 1))
+                                                                                             (cond
+                                                                                               [(> (exarg_T.line1 eap) (exarg_T.line2 eap)) (join6)]
+                                                                                               [else (out_flush ed) (ui_breakcheck ed) (loop2)])]
+                                                                                            [else (join6)])))))
 
 (define (ex_wrongmodifier ed eap)
   (let ([mem (ed-mem ed)])
@@ -12381,16 +12926,16 @@
   (let ([mem (ed-mem ed)])
     (define (join3 done start_tv)
       (out_flush_cursor ed #f #f)
-      (loop4 done start_tv))
-    (define (loop4 done start_tv)
-      (cond
-        [(and (not (not (fxzero? got_int))) (< done msec))
-         (let ([wait_now (if (> (i64- msec done) 1000) 1000 (i64- msec done))])
-           (ui_delay ed wait_now #t)
-           (ui_breakcheck ed)
-           (loop4 (i64- (musl_now_ms ed) start_tv) start_tv))]
-        [(not (fxzero? got_int)) (vpeekc ed) (join7)]
-        [else (join7)]))
+      (let loop4 ([done done]
+                  [start_tv start_tv])
+        (cond
+          [(and (not (not (fxzero? got_int))) (< done msec))
+           (let ([wait_now (if (> (i64- msec done) 1000) 1000 (i64- msec done))])
+             (ui_delay ed wait_now #t)
+             (ui_breakcheck ed)
+             (loop4 (i64- (musl_now_ms ed) start_tv) start_tv))]
+          [(not (fxzero? got_int)) (vpeekc ed) (join7)]
+          [else (join7)])))
     (define (join7)
       (when hide_cursor (cursor_unsleep ed)))
     (let ([start_tv (musl_now_ms ed)])
@@ -12528,13 +13073,13 @@
           (beep_flush ed)
           (let ([save_efr exec_from_reg])
             (set! exec_from_reg #t)
-            (loop4 prev_len save_efr))))
-    (define (loop4 prev_len save_efr)
-      (cond
-        [(or (not (stuff_empty ed)) (fx>? (typebuf_T.tb_len typebuf) prev_len))
-         (do_cmdline ed 0 (fn-ptr 156) 67)
-         (loop4 prev_len save_efr)]
-        [else (set! exec_from_reg save_efr)]))
+            (let loop4 ([prev_len prev_len]
+                        [save_efr save_efr])
+              (cond
+                [(or (not (stuff_empty ed)) (fx>? (typebuf_T.tb_len typebuf) prev_len))
+                 (do_cmdline ed 0 (fn-ptr 156) 67)
+                 (loop4 prev_len save_efr)]
+                [else (set! exec_from_reg save_efr)])))))
     (let ([prev_len (typebuf_T.tb_len typebuf)])
       (win_T.w_cursor.lnum-set! curwin (exarg_T.line2 eap))
       (check_cursor_col ed)
@@ -12823,11 +13368,10 @@
 
 (define (empty_pattern_magic ed p len magic_val)
   (let ([mem (ed-mem ed)])
-    (define (loop1 len)
+    (let loop1 ([len len])
       (if (and (and (>= len 2) (fx=? (ld-u8 (fx+ p (->i64 (u64- len 2)))) 92)) (not (fx=? (vim_strchr ed (c-str 163367 "mMvVcCZ") (ld-u8 (fx+ p (->i64 (u64- len 1))))) 0)))
           (loop1 (u64- len 2))
-          (or (= len 0) (and (and (> len 1) (fx=? (ld-u8 (fx+ p (->i64 (u64- len 1)))) 124)) (or (and (fx=? (ld-u8 (fx+ p (->i64 (u64- len 2)))) 92) (fx=? magic_val 3)) (and (not (fx=? (ld-u8 (fx+ p (->i64 (u64- len 2)))) 92)) (fx=? magic_val 4)))))))
-    (loop1 len)))
+          (or (= len 0) (and (and (> len 1) (fx=? (ld-u8 (fx+ p (->i64 (u64- len 1)))) 124)) (or (and (fx=? (ld-u8 (fx+ p (->i64 (u64- len 2)))) 92) (fx=? magic_val 3)) (and (not (fx=? (ld-u8 (fx+ p (->i64 (u64- len 2)))) 92)) (fx=? magic_val 4)))))))))
 
 (define (save_viewstate ed vs)
   (let ([mem (ed-mem ed)])
@@ -12875,32 +13419,6 @@
     (define-c-local ea &ea agg 216)
     (define-c-local magic &magic s32 328)
     (define-c-local dummy &dummy ptr 336)
-    (define (loop2 cmd p delim_optional)
-      (cond
-        [(or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p)))
-         (loop2 cmd (fx+ p 1) delim_optional)]
-        [(fx=? (ld-u8 (skipwhite ed p)) 0) (frame-pop! ed fr) #f]
-        [(or (or (or (fx=? (musl_strncmp ed cmd (c-str 163375 "substitute") (->u64 (fx- p cmd))) 0) (fx=? (musl_strncmp ed cmd (c-str 163386 "smagic") (->u64 (fx- p cmd))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163393 "snomagic") (->u64 (if (> (fx- p cmd) 3) (fx- p cmd) 3))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163402 "vglobal") (->u64 (fx- p cmd))) 0))
-         (cond
-           [(and (fx=? (ld-u8 cmd) 115) (fx=? (ld-u8 (fx+ cmd 1)) 109))
-            (set! magic_overruled 1)
-            (join26 cmd p delim_optional)]
-           [(and (fx=? (ld-u8 cmd) 115) (fx=? (ld-u8 (fx+ cmd 1)) 110))
-            (set! magic_overruled 2)
-            (join26 cmd p delim_optional)]
-           [else (join26 cmd p delim_optional)])]
-        [(or (fx=? (musl_strncmp ed cmd (c-str 163410 "sort") (->u64 (if (> (fx- p cmd) 3) (fx- p cmd) 3))) 0) (fx=? (musl_strncmp ed cmd (c-str 163415 "uniq") (->u64 (if (> (fx- p cmd) 3) (fx- p cmd) 3))) 0))
-         (if (fx=? (ld-u8 p) 33)
-             (loop16 cmd (skipwhite ed (fx+ p 1)) delim_optional)
-             (loop16 cmd p delim_optional))]
-        [(or (or (or (or (fx=? (musl_strncmp ed cmd (c-str 163420 "vimgrep") (->u64 (if (> (fx- p cmd) 3) (fx- p cmd) 3))) 0) (fx=? (musl_strncmp ed cmd (c-str 163428 "vimgrepadd") (->u64 (if (> (fx- p cmd) 8) (fx- p cmd) 8))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163439 "lvimgrep") (->u64 (if (> (fx- p cmd) 2) (fx- p cmd) 2))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163448 "lvimgrepadd") (->u64 (if (> (fx- p cmd) 9) (fx- p cmd) 9))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163460 "global") (->u64 (fx- p cmd))) 0))
-         (if (fx=? (ld-u8 p) 33)
-             (let ([p (fx+ p 1)])
-               (cond
-                 [(fx=? (ld-u8 (skipwhite ed p)) 0) (frame-pop! ed fr) #f]
-                 [else (join10 cmd p delim_optional)]))
-             (join10 cmd p delim_optional))]
-        [else (frame-pop! ed fr) #f]))
     (define (join10 cmd p delim_optional)
       (if (not (fx=? (ld-u8 cmd) 103)) (join26 cmd p #t) (join26 cmd p delim_optional)))
     (define (loop16 cmd p delim_optional)
@@ -12974,7 +13492,34 @@
     (let ([cmd (skip_range ed (exarg_T.cmd ea) #t 0)])
       (cond
         [(fx=? (vim_strchr ed (c-str 163467 "sgvlu") (ld-u8 cmd)) 0) (frame-pop! ed fr) #f]
-        [else (loop2 cmd cmd #f)]))))
+        [else (let loop2 ([cmd cmd]
+                          [p cmd]
+                          [delim_optional #f])
+                (cond
+                  [(or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p)))
+                   (loop2 cmd (fx+ p 1) delim_optional)]
+                  [(fx=? (ld-u8 (skipwhite ed p)) 0) (frame-pop! ed fr) #f]
+                  [(or (or (or (fx=? (musl_strncmp ed cmd (c-str 163375 "substitute") (->u64 (fx- p cmd))) 0) (fx=? (musl_strncmp ed cmd (c-str 163386 "smagic") (->u64 (fx- p cmd))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163393 "snomagic") (->u64 (if (> (fx- p cmd) 3) (fx- p cmd) 3))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163402 "vglobal") (->u64 (fx- p cmd))) 0))
+                   (cond
+                     [(and (fx=? (ld-u8 cmd) 115) (fx=? (ld-u8 (fx+ cmd 1)) 109))
+                      (set! magic_overruled 1)
+                      (join26 cmd p delim_optional)]
+                     [(and (fx=? (ld-u8 cmd) 115) (fx=? (ld-u8 (fx+ cmd 1)) 110))
+                      (set! magic_overruled 2)
+                      (join26 cmd p delim_optional)]
+                     [else (join26 cmd p delim_optional)])]
+                  [(or (fx=? (musl_strncmp ed cmd (c-str 163410 "sort") (->u64 (if (> (fx- p cmd) 3) (fx- p cmd) 3))) 0) (fx=? (musl_strncmp ed cmd (c-str 163415 "uniq") (->u64 (if (> (fx- p cmd) 3) (fx- p cmd) 3))) 0))
+                   (if (fx=? (ld-u8 p) 33)
+                       (loop16 cmd (skipwhite ed (fx+ p 1)) delim_optional)
+                       (loop16 cmd p delim_optional))]
+                  [(or (or (or (or (fx=? (musl_strncmp ed cmd (c-str 163420 "vimgrep") (->u64 (if (> (fx- p cmd) 3) (fx- p cmd) 3))) 0) (fx=? (musl_strncmp ed cmd (c-str 163428 "vimgrepadd") (->u64 (if (> (fx- p cmd) 8) (fx- p cmd) 8))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163439 "lvimgrep") (->u64 (if (> (fx- p cmd) 2) (fx- p cmd) 2))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163448 "lvimgrepadd") (->u64 (if (> (fx- p cmd) 9) (fx- p cmd) 9))) 0)) (fx=? (musl_strncmp ed cmd (c-str 163460 "global") (->u64 (fx- p cmd))) 0))
+                   (if (fx=? (ld-u8 p) 33)
+                       (let ([p (fx+ p 1)])
+                         (cond
+                           [(fx=? (ld-u8 (skipwhite ed p)) 0) (frame-pop! ed fr) #f]
+                           [else (join10 cmd p delim_optional)]))
+                       (join10 cmd p delim_optional))]
+                  [else (frame-pop! ed fr) #f]))]))))
 
 (define (do_incsearch_highlighting ed firstc search_delim is_state skiplen patlen)
   (let ([mem (ed-mem ed)])
@@ -13322,18 +13867,20 @@
     (define (join8 c out___r__ out___c)
       (let ([r1 (utf_char2len ed c)])
         (if (not (fx=? r1 (utfc_ptr2len ed (ml_get_cursor ed))))
-            (loop10 c c out___r__ out___c)
+            (let loop10 ([c c]
+                         [save_c c]
+                         [out___r__ out___r__]
+                         [out___c out___c])
+              (let ([r2 (utf_char2len ed c)])
+                (if (not (fx=? r2 (utfc_ptr2len ed (ml_get_cursor ed))))
+                    (let* ([t1 (utf_char2len ed c)]
+                           [r3 curwin])
+                      (win_T.w_cursor.col-set! r3 (i32+ (win_T.w_cursor.col r3) t1))
+                      (let ([c (gchar_cursor ed)])
+                        (stuffcharReadbuff ed c)
+                        (loop10 c save_c out___r__ out___c)))
+                    (join12 save_c out___r__ out___c))))
             (join12 c out___r__ out___c))))
-    (define (loop10 c save_c out___r__ out___c)
-      (let ([r2 (utf_char2len ed c)])
-        (if (not (fx=? r2 (utfc_ptr2len ed (ml_get_cursor ed))))
-            (let* ([t1 (utf_char2len ed c)]
-                   [r3 curwin])
-              (win_T.w_cursor.col-set! r3 (i32+ (win_T.w_cursor.col r3) t1))
-              (let ([c (gchar_cursor ed)])
-                (stuffcharReadbuff ed c)
-                (loop10 c save_c out___r__ out___c)))
-            (join12 save_c out___r__ out___c))))
     (define (join12 c out___r__ out___c)
       (frame-pop! ed fr)
       (values #f c))
@@ -13396,7 +13943,18 @@
          (let* ([j (cmdline_info_T.cmdpos ccline)]
                 [p (fx+ (cmdline_info_T.cmdbuff ccline) j)]
                 [p (mb_prevptr ed (cmdline_info_T.cmdbuff ccline) p)])
-           (if (fx=? c 23) (loop13 j p) (join18 j p)))]
+           (if (fx=? c 23) (let loop13 ([j j]
+                                        [p p])
+                             (if (and (fx>? p (cmdline_info_T.cmdbuff ccline)) (vim_isspace ed (ld-u8 p)))
+                                 (loop13 j (mb_prevptr ed (cmdline_info_T.cmdbuff ccline) p))
+                                 (let loop15 ([i (mb_get_class ed p)]
+                                              [j j]
+                                              [p p])
+                                   (cond
+                                     [(and (fx>? p (cmdline_info_T.cmdbuff ccline)) (fx=? (mb_get_class ed p) i))
+                                      (loop15 i j (mb_prevptr ed (cmdline_info_T.cmdbuff ccline) p))]
+                                     [(not (fx=? (mb_get_class ed p) i)) (join18 j (fx+ p (utfc_ptr2len ed p)))]
+                                     [else (join18 j p)])))) (join18 j p)))]
         [(and (and (and (fx=? (cmdline_info_T.cmdlen ccline) 0) (not (fx=? c 23))) (fx=? (cmdline_info_T.cmdprompt ccline) 0)) (fx=? indent 0))
          (dealloc_cmdbuff ed)
          (cond
@@ -13407,37 +13965,27 @@
       (mem-copy! (incsearch_state_T.search_start& isp) (incsearch_state_T.save_cursor& isp) 16)
       (set! redraw_cmdline 1)
       3)
-    (define (loop13 j p)
-      (if (and (fx>? p (cmdline_info_T.cmdbuff ccline)) (vim_isspace ed (ld-u8 p)))
-          (loop13 j (mb_prevptr ed (cmdline_info_T.cmdbuff ccline) p))
-          (loop15 (mb_get_class ed p) j p)))
-    (define (loop15 i j p)
-      (cond
-        [(and (fx>? p (cmdline_info_T.cmdbuff ccline)) (fx=? (mb_get_class ed p) i))
-         (loop15 i j (mb_prevptr ed (cmdline_info_T.cmdbuff ccline) p))]
-        [(not (fx=? (mb_get_class ed p) i)) (join18 j (fx+ p (utfc_ptr2len ed p)))]
-        [else (join18 j p)]))
     (define (join18 j p)
       (cmdline_info_T.cmdpos-set! ccline (->i32 (fx- p (cmdline_info_T.cmdbuff ccline))))
       (cmdline_info_T.cmdlen-set! ccline (i32- (cmdline_info_T.cmdlen ccline) (i32- j (cmdline_info_T.cmdpos ccline))))
-      (loop19 (cmdline_info_T.cmdpos ccline) j))
-    (define (loop19 i j)
-      (cond
-        [(fx<? i (cmdline_info_T.cmdlen ccline))
-         (let* ([t3 i]
-                [i (i32+ i 1)]
-                [t4 j]
-                [j (i32+ j 1)])
-           (st-u8! (fx+ (cmdline_info_T.cmdbuff ccline) t3) (ld-u8 (fx+ (cmdline_info_T.cmdbuff ccline) t4)))
-           (loop19 i j))]
-        [else
-         (st-u8! (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdlen ccline)) 0)
-         (cond
-           [(fx=? (cmdline_info_T.cmdlen ccline) 0)
-            (mem-copy! (incsearch_state_T.search_start& isp) (incsearch_state_T.save_cursor& isp) 16)
-            (mem-copy! (incsearch_state_T.old_viewstate& isp) (incsearch_state_T.init_viewstate& isp) 40)
-            (join22)]
-           [else (join22)])]))
+      (let loop19 ([i (cmdline_info_T.cmdpos ccline)]
+                   [j j])
+        (cond
+          [(fx<? i (cmdline_info_T.cmdlen ccline))
+           (let* ([t3 i]
+                  [i (i32+ i 1)]
+                  [t4 j]
+                  [j (i32+ j 1)])
+             (st-u8! (fx+ (cmdline_info_T.cmdbuff ccline) t3) (ld-u8 (fx+ (cmdline_info_T.cmdbuff ccline) t4)))
+             (loop19 i j))]
+          [else
+           (st-u8! (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdlen ccline)) 0)
+           (cond
+             [(fx=? (cmdline_info_T.cmdlen ccline) 0)
+              (mem-copy! (incsearch_state_T.search_start& isp) (incsearch_state_T.save_cursor& isp) 16)
+              (mem-copy! (incsearch_state_T.old_viewstate& isp) (incsearch_state_T.init_viewstate& isp) 40)
+              (join22)]
+             [else (join22)])])))
     (define (join22)
       (redrawcmd ed)
       2)
@@ -13769,7 +14317,42 @@
              (let ([j (cmdline_info_T.cmdpos ccline)])
                (cmdline_info_T.cmdlen-set! ccline (i32- (cmdline_info_T.cmdlen ccline) j))
                (cmdline_info_T.cmdpos-set! ccline 0)
-               (loop69 (cmdline_info_T.cmdpos ccline) j lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c))]
+               (let loop69 ([i (cmdline_info_T.cmdpos ccline)]
+                            [j j]
+                            [lookfor lookfor]
+                            [lookforlen lookforlen]
+                            [hiscnt hiscnt]
+                            [histype histype]
+                            [save_msg_scroll save_msg_scroll]
+                            [save_State save_State]
+                            [some_key_typed some_key_typed]
+                            [did_save_ccline did_save_ccline]
+                            [wild_type wild_type]
+                            [prev_cmdbuff prev_cmdbuff]
+                            [trigger_cmdlinechanged trigger_cmdlinechanged]
+                            [prev_cmdpos prev_cmdpos]
+                            [cmdline_browse_history__o_r__ cmdline_browse_history__o_r__]
+                            [cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstr]
+                            [cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_curcmdstrlen]
+                            [cmdline_browse_history__o_hiscnt_p cmdline_browse_history__o_hiscnt_p]
+                            [may_add_char_to_search__o_r__ may_add_char_to_search__o_r__]
+                            [may_add_char_to_search__o_c may_add_char_to_search__o_c])
+                 (cond
+                   [(fx<? i (cmdline_info_T.cmdlen ccline))
+                    (let* ([t1 i]
+                           [i (i32+ i 1)]
+                           [t2 j]
+                           [j (i32+ j 1)])
+                      (st-u8! (fx+ (cmdline_info_T.cmdbuff ccline) t1) (ld-u8 (fx+ (cmdline_info_T.cmdbuff ccline) t2)))
+                      (loop69 i j lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c))]
+                   [else
+                    (st-u8! (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdlen ccline)) 0)
+                    (cond
+                      [(fx=? (cmdline_info_T.cmdlen ccline) 0)
+                       (mem-copy! (incsearch_state_T.search_start& is_state) (incsearch_state_T.save_cursor& is_state) 16)
+                       (join72 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
+                      [else
+                       (join72 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)])])))]
             [(27)
              (join67 histype save_msg_scroll save_State some_key_typed did_save_ccline cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
             [(3)
@@ -13913,19 +14496,36 @@
     (define (join54 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
       (if (fx=? (cmdline_info_T.cmdpos ccline) 0)
           (join91 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
-          (loop56 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)))
-    (define (loop56 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
-      (cmdline_info_T.cmdpos-set! ccline (i32- (cmdline_info_T.cmdpos ccline) 1))
-      (let ([t4 (utf_head_off ed (cmdline_info_T.cmdbuff ccline) (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)))])
-        (cmdline_info_T.cmdpos-set! ccline (i32- (cmdline_info_T.cmdpos ccline) t4))
-        (let ([t5 (cmdline_charsize ed (cmdline_info_T.cmdpos ccline))])
-          (cmdline_info_T.cmdspos-set! ccline (i32- (cmdline_info_T.cmdspos ccline) t5))
-          (cond
-            [(and (and (fx>? (cmdline_info_T.cmdpos ccline) 0) (or (or (fx=? c -13347) (fx=? c -22013)) (not (fxzero? (fxand mod_mask 6))))) (not (fx=? (ld-u8 (fx+ (cmdline_info_T.cmdbuff ccline) (i32- (cmdline_info_T.cmdpos ccline) 1))) 32)))
-             (loop56 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-            [else
-             (set_cmdspos_cursor ed)
-             (join91 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]))))
+          (let loop56 ([c c]
+                       [lookfor lookfor]
+                       [lookforlen lookforlen]
+                       [hiscnt hiscnt]
+                       [histype histype]
+                       [save_msg_scroll save_msg_scroll]
+                       [save_State save_State]
+                       [some_key_typed some_key_typed]
+                       [did_save_ccline did_save_ccline]
+                       [wild_type wild_type]
+                       [prev_cmdbuff prev_cmdbuff]
+                       [trigger_cmdlinechanged trigger_cmdlinechanged]
+                       [prev_cmdpos prev_cmdpos]
+                       [cmdline_browse_history__o_r__ cmdline_browse_history__o_r__]
+                       [cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstr]
+                       [cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_curcmdstrlen]
+                       [cmdline_browse_history__o_hiscnt_p cmdline_browse_history__o_hiscnt_p]
+                       [may_add_char_to_search__o_r__ may_add_char_to_search__o_r__]
+                       [may_add_char_to_search__o_c may_add_char_to_search__o_c])
+            (cmdline_info_T.cmdpos-set! ccline (i32- (cmdline_info_T.cmdpos ccline) 1))
+            (let ([t4 (utf_head_off ed (cmdline_info_T.cmdbuff ccline) (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)))])
+              (cmdline_info_T.cmdpos-set! ccline (i32- (cmdline_info_T.cmdpos ccline) t4))
+              (let ([t5 (cmdline_charsize ed (cmdline_info_T.cmdpos ccline))])
+                (cmdline_info_T.cmdspos-set! ccline (i32- (cmdline_info_T.cmdspos ccline) t5))
+                (cond
+                  [(and (and (fx>? (cmdline_info_T.cmdpos ccline) 0) (or (or (fx=? c -13347) (fx=? c -22013)) (not (fxzero? (fxand mod_mask 6))))) (not (fx=? (ld-u8 (fx+ (cmdline_info_T.cmdbuff ccline) (i32- (cmdline_info_T.cmdpos ccline) 1))) 32)))
+                   (loop56 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
+                  [else
+                   (set_cmdspos_cursor ed)
+                   (join91 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]))))))
     (define (loop60 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
       (if (fx>=? (cmdline_info_T.cmdpos ccline) (cmdline_info_T.cmdlen ccline))
           (join64 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
@@ -13946,23 +14546,6 @@
     (define (join67 histype save_msg_scroll save_State some_key_typed did_save_ccline cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
       (set! gotesc 1)
       (join82 histype save_msg_scroll save_State some_key_typed did_save_ccline cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c))
-    (define (loop69 i j lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
-      (cond
-        [(fx<? i (cmdline_info_T.cmdlen ccline))
-         (let* ([t1 i]
-                [i (i32+ i 1)]
-                [t2 j]
-                [j (i32+ j 1)])
-           (st-u8! (fx+ (cmdline_info_T.cmdbuff ccline) t1) (ld-u8 (fx+ (cmdline_info_T.cmdbuff ccline) t2)))
-           (loop69 i j lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c))]
-        [else
-         (st-u8! (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdlen ccline)) 0)
-         (cond
-           [(fx=? (cmdline_info_T.cmdlen ccline) 0)
-            (mem-copy! (incsearch_state_T.search_start& is_state) (incsearch_state_T.save_cursor& is_state) 16)
-            (join72 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-           [else
-            (join72 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)])]))
     (define (join72 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c)
       (redrawcmd ed)
       (join96 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c))
@@ -14097,15 +14680,15 @@
 (define (set_cmdspos_cursor ed)
   (let ([mem (ed-mem ed)])
     (define (join4 m)
-      (loop5 0 m))
-    (define (loop5 i m)
-      (when (and (fx<? i (cmdline_info_T.cmdlen ccline)) (fx<? i (cmdline_info_T.cmdpos ccline)))
-        (let ([c (cmdline_charsize ed i)])
-          (correct_cmdspos ed i c)
-          (cmdline_info_T.cmdspos-set! ccline (i32+ (cmdline_info_T.cmdspos ccline) c))
-          (if (fx>=? (cmdline_info_T.cmdspos ccline) m)
-              (cmdline_info_T.cmdspos-set! ccline (i32- (cmdline_info_T.cmdspos ccline) c))
-              (loop5 (i32+ (i32+ i (i32- (utfc_ptr2len ed (fx+ (cmdline_info_T.cmdbuff ccline) i)) 1)) 1) m)))))
+      (let loop5 ([i 0]
+                  [m m])
+        (when (and (fx<? i (cmdline_info_T.cmdlen ccline)) (fx<? i (cmdline_info_T.cmdpos ccline)))
+          (let ([c (cmdline_charsize ed i)])
+            (correct_cmdspos ed i c)
+            (cmdline_info_T.cmdspos-set! ccline (i32+ (cmdline_info_T.cmdspos ccline) c))
+            (if (fx>=? (cmdline_info_T.cmdspos ccline) m)
+                (cmdline_info_T.cmdspos-set! ccline (i32- (cmdline_info_T.cmdspos ccline) c))
+                (loop5 (i32+ (i32+ i (i32- (utfc_ptr2len ed (fx+ (cmdline_info_T.cmdbuff ccline) i)) 1)) 1) m))))))
     (set_cmdspos ed)
     (if KeyTyped
         (let ([m (->i32 (i64* cmdline_width Rows))])
@@ -14210,44 +14793,50 @@
              (musl_memmove ed (fx+ (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)) len) (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)) (->u64 (i32- (cmdline_info_T.cmdlen ccline) (cmdline_info_T.cmdpos ccline))))
              (cmdline_info_T.cmdlen-set! ccline (i32+ (cmdline_info_T.cmdlen ccline) len))
              (join19 len retval)]
-            [else (loop8 len retval 0 0)])
+            [else (let loop8 ([len len]
+                              [retval retval]
+                              [i 0]
+                              [m 0])
+                    (if (fx<? i len)
+                        (loop8 len retval (i32+ i (utfc_ptr2len ed (fx+ str i))) (i32+ m 1))
+                        (let loop10 ([len len]
+                                     [retval retval]
+                                     [i (cmdline_info_T.cmdpos ccline)]
+                                     [m m])
+                          (cond
+                            [(and (fx<? i (cmdline_info_T.cmdlen ccline)) (fx>? m 0))
+                             (loop10 len retval (i32+ i (utfc_ptr2len ed (fx+ (cmdline_info_T.cmdbuff ccline) i))) (i32- m 1))]
+                            [(fx<? i (cmdline_info_T.cmdlen ccline))
+                             (musl_memmove ed (fx+ (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)) len) (fx+ (cmdline_info_T.cmdbuff ccline) i) (->u64 (i32- (cmdline_info_T.cmdlen ccline) i)))
+                             (cmdline_info_T.cmdlen-set! ccline (i32+ (cmdline_info_T.cmdlen ccline) (i32- (i32+ (cmdline_info_T.cmdpos ccline) len) i)))
+                             (join19 len retval)]
+                            [else
+                             (cmdline_info_T.cmdlen-set! ccline (i32+ (cmdline_info_T.cmdpos ccline) len))
+                             (join19 len retval)]))))])
           (join34 retval)))
-    (define (loop8 len retval i m)
-      (if (fx<? i len)
-          (loop8 len retval (i32+ i (utfc_ptr2len ed (fx+ str i))) (i32+ m 1))
-          (loop10 len retval (cmdline_info_T.cmdpos ccline) m)))
-    (define (loop10 len retval i m)
-      (cond
-        [(and (fx<? i (cmdline_info_T.cmdlen ccline)) (fx>? m 0))
-         (loop10 len retval (i32+ i (utfc_ptr2len ed (fx+ (cmdline_info_T.cmdbuff ccline) i))) (i32- m 1))]
-        [(fx<? i (cmdline_info_T.cmdlen ccline))
-         (musl_memmove ed (fx+ (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)) len) (fx+ (cmdline_info_T.cmdbuff ccline) i) (->u64 (i32- (cmdline_info_T.cmdlen ccline) i)))
-         (cmdline_info_T.cmdlen-set! ccline (i32+ (cmdline_info_T.cmdlen ccline) (i32- (i32+ (cmdline_info_T.cmdpos ccline) len) i)))
-         (join19 len retval)]
-        [else
-         (cmdline_info_T.cmdlen-set! ccline (i32+ (cmdline_info_T.cmdpos ccline) len))
-         (join19 len retval)]))
     (define (join19 len retval)
       (musl_memmove ed (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)) str (->u64 len))
       (st-u8! (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdlen ccline)) 0)
-      (loop20 len retval 0 (utf_ptr2char ed (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)))))
-    (define (loop20 len retval i c)
-      (cond
-        [(and (fx>? (cmdline_info_T.cmdpos ccline) 0) (utf_iscomposing ed c))
-         (let ([i (i32+ (utf_head_off ed (cmdline_info_T.cmdbuff ccline) (fx+ (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)) -1)) 1)])
-           (cmdline_info_T.cmdpos-set! ccline (i32- (cmdline_info_T.cmdpos ccline) i))
-           (loop20 (i32+ len i) retval i (utf_ptr2char ed (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)))))]
-        [(not (fx=? i 0))
-         (let ([i (ptr2cells ed (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)))])
-           (cmdline_info_T.cmdspos-set! ccline (i32- (cmdline_info_T.cmdspos ccline) i))
-           (set! msg_col (i32- msg_col i))
-           (cond
-             [(fx<? msg_col 0)
-              (set! msg_col (i32+ msg_col cmdline_width))
-              (set! msg_row (i32- msg_row 1))
-              (join24 len retval)]
-             [else (join24 len retval)]))]
-        [else (join24 len retval)]))
+      (let loop20 ([len len]
+                   [retval retval]
+                   [i 0]
+                   [c (utf_ptr2char ed (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)))])
+        (cond
+          [(and (fx>? (cmdline_info_T.cmdpos ccline) 0) (utf_iscomposing ed c))
+           (let ([i (i32+ (utf_head_off ed (cmdline_info_T.cmdbuff ccline) (fx+ (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)) -1)) 1)])
+             (cmdline_info_T.cmdpos-set! ccline (i32- (cmdline_info_T.cmdpos ccline) i))
+             (loop20 (i32+ len i) retval i (utf_ptr2char ed (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)))))]
+          [(not (fx=? i 0))
+           (let ([i (ptr2cells ed (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)))])
+             (cmdline_info_T.cmdspos-set! ccline (i32- (cmdline_info_T.cmdspos ccline) i))
+             (set! msg_col (i32- msg_col i))
+             (cond
+               [(fx<? msg_col 0)
+                (set! msg_col (i32+ msg_col cmdline_width))
+                (set! msg_row (i32- msg_row 1))
+                (join24 len retval)]
+               [else (join24 len retval)]))]
+          [else (join24 len retval)])))
     (define (join24 len retval)
       (cond
         [(and redraw (not cmd_silent))
@@ -14317,13 +14906,6 @@
 (define (cmdline_paste ed regname literally remcr)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local arg &arg ptr 0)
-    (define (loop7 p w get_spec_reg__o_r__ get_spec_reg__o_allocated)
-      (if (fx>? w (cmdline_info_T.cmdbuff ccline))
-          (let ([len (i32+ (utf_head_off ed (cmdline_info_T.cmdbuff ccline) (fx+ w -1)) 1)])
-            (if (not (vim_iswordc ed (utf_ptr2char ed (fx+ w (fx- 0 len)))))
-                (join11 p w get_spec_reg__o_r__ get_spec_reg__o_allocated)
-                (loop7 p (fx+ w (fx- 0 len)) get_spec_reg__o_r__ get_spec_reg__o_allocated)))
-          (join11 p w get_spec_reg__o_r__ get_spec_reg__o_allocated)))
     (define (join11 p w get_spec_reg__o_r__ get_spec_reg__o_allocated)
       (let ([len (->i32 (fx- (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)) w))])
         (if (not (fxzero? (if (not (fxzero? p_ic))
@@ -14357,7 +14939,16 @@
                 [else
                  (let ([p arg])
                    (if (and (not (fxzero? p_is)) (fx=? regname 23))
-                       (loop7 p (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline)) r1 r2)
+                       (let loop7 ([p p]
+                                   [w (fx+ (cmdline_info_T.cmdbuff ccline) (cmdline_info_T.cmdpos ccline))]
+                                   [get_spec_reg__o_r__ r1]
+                                   [get_spec_reg__o_allocated r2])
+                         (if (fx>? w (cmdline_info_T.cmdbuff ccline))
+                             (let ([len (i32+ (utf_head_off ed (cmdline_info_T.cmdbuff ccline) (fx+ w -1)) 1)])
+                               (if (not (vim_iswordc ed (utf_ptr2char ed (fx+ w (fx- 0 len)))))
+                                   (join11 p w get_spec_reg__o_r__ get_spec_reg__o_allocated)
+                                   (loop7 p (fx+ w (fx- 0 len)) get_spec_reg__o_r__ get_spec_reg__o_allocated)))
+                             (join11 p w get_spec_reg__o_r__ get_spec_reg__o_allocated)))
                        (join13 p r1 r2)))])))])])))
 
 (define (cmdline_paste_str ed s literally)
@@ -14403,9 +14994,8 @@
          (cmdline_info_T.cmdindent-set! ccline (i32+ msg_col (i32* (i32- msg_row cmdline_row) cmdline_width)))
          (when (not (fx=? (cmdline_info_T.cmdfirstc ccline) 0))
            (cmdline_info_T.cmdindent-set! ccline (i32- (cmdline_info_T.cmdindent ccline) 1)))]
-        [else (loop5 (cmdline_info_T.cmdindent ccline))]))
-    (define (loop5 i)
-      (when (fx>? i 0) (msg_putchar ed 32) (loop5 (i32- i 1))))
+        [else (let loop5 ([i (cmdline_info_T.cmdindent ccline)])
+                (when (fx>? i 0) (msg_putchar ed 32) (loop5 (i32- i 1))))]))
     (unless cmd_silent
       (cond
         [(not (fx=? (cmdline_info_T.cmdfirstc ccline) 0))
@@ -14536,16 +15126,20 @@
                (join7 tail s d skip dirchunk_len)))]
         [else (join12 tail s d skip dirchunk_len)]))
     (define (join7 tail s d skip dirchunk_len)
-      (loop8 tail s d skip dirchunk_len (utfc_ptr2len ed s)))
-    (define (loop8 tail s d skip dirchunk_len l)
-      (let ([l (i32- l 1)])
-        (if (fx>? l 0)
-            (let* ([t4 d]
-                   [d (fx+ d 1)]
-                   [s (fx+ s 1)])
-              (st-u8! t4 (ld-u8 s))
-              (loop8 tail s d skip dirchunk_len l))
-            (join12 tail s d skip dirchunk_len))))
+      (let loop8 ([tail tail]
+                  [s s]
+                  [d d]
+                  [skip skip]
+                  [dirchunk_len dirchunk_len]
+                  [l (utfc_ptr2len ed s)])
+        (let ([l (i32- l 1)])
+          (if (fx>? l 0)
+              (let* ([t4 d]
+                     [d (fx+ d 1)]
+                     [s (fx+ s 1)])
+                (st-u8! t4 (ld-u8 s))
+                (loop8 tail s d skip dirchunk_len l))
+              (join12 tail s d skip dirchunk_len)))))
     (define (join12 tail s d skip dirchunk_len)
       (loop1 tail (fx+ s 1) d skip dirchunk_len))
     (loop1 (gettail ed str) str str #f 0)))
@@ -14581,9 +15175,8 @@
 
 (define (get_past_head ed path)
   (let ([mem (ed-mem ed)])
-    (define (loop1 retval)
-      (if (vim_ispathsep ed (ld-u8 retval)) (loop1 (fx+ retval 1)) retval))
-    (loop1 path)))
+    (let loop1 ([retval path])
+      (if (vim_ispathsep ed (ld-u8 retval)) (loop1 (fx+ retval 1)) retval))))
 
 (define (vim_ispathsep ed c)
   (fx=? c 47))
@@ -14592,11 +15185,10 @@
   (vim_ispathsep ed c))
 
 (define (FreeWild ed count files)
-  (define (loop2 count)
-    (let* ([t1 count]
-           [count (i32- count 1)])
-      (when (not (fxzero? t1)) (loop2 count))))
-  (unless (or (fx<=? count 0) (fx=? files 0)) (loop2 count)))
+  (unless (or (fx<=? count 0) (fx=? files 0)) (let loop2 ([count count])
+                                                (let* ([t1 count]
+                                                       [count (i32- count 1)])
+                                                  (when (not (fxzero? t1)) (loop2 count))))))
 
 (define (file_name_at_cursor ed options count file_lnum)
   (let ([mem (ed-mem ed)])
@@ -14606,24 +15198,6 @@
 (define (file_name_in_line ed line col options count rel_fname file_lnum)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local p &p ptr 0)
-    (define (loop1 ptr in_type is_url)
-      (cond
-        [(and (not (fx=? (ld-u8 ptr) 0)) (not (vim_isfilec ed (ld-u8 ptr))))
-         (loop1 (fx+ ptr (utfc_ptr2len ed ptr)) in_type is_url)]
-        [(fx=? (ld-u8 ptr) 0)
-         (cond
-           [(not (fxzero? (fxand options 1))) (emsg ed e_no_file_name_under_cursor) (join35)]
-           [else (join35)])]
-        [else (loop4 ptr in_type is_url)]))
-    (define (loop4 ptr in_type is_url)
-      (if (fx>? ptr line)
-          (let ([len (utf_head_off ed line (fx+ ptr -1))])
-            (cond
-              [(fx>? len 0) (loop4 (fx+ ptr (fx- 0 (i32+ len 1))) in_type is_url)]
-              [(or (vim_isfilec ed (ld-u8 (fx+ ptr -1))) (and (not (fxzero? (fxand options 4))) (not (fxzero? (path_is_url ed (fx+ ptr -1))))))
-               (loop4 (fx+ ptr -1) in_type is_url)]
-              [else (join7 ptr in_type is_url)]))
-          (join7 ptr in_type is_url)))
     (define (join7 ptr in_type is_url)
       (loop8 ptr 0 in_type is_url))
     (define (loop8 ptr len in_type is_url)
@@ -14674,22 +15248,72 @@
     (define (join35)
       (frame-pop! ed fr)
       0)
-    (loop1 (fx+ line col) #t #f)))
+    (let loop1 ([ptr (fx+ line col)]
+                [in_type #t]
+                [is_url #f])
+      (cond
+        [(and (not (fx=? (ld-u8 ptr) 0)) (not (vim_isfilec ed (ld-u8 ptr))))
+         (loop1 (fx+ ptr (utfc_ptr2len ed ptr)) in_type is_url)]
+        [(fx=? (ld-u8 ptr) 0)
+         (cond
+           [(not (fxzero? (fxand options 1))) (emsg ed e_no_file_name_under_cursor) (join35)]
+           [else (join35)])]
+        [else (let loop4 ([ptr ptr]
+                          [in_type in_type]
+                          [is_url is_url])
+                (if (fx>? ptr line)
+                    (let ([len (utf_head_off ed line (fx+ ptr -1))])
+                      (cond
+                        [(fx>? len 0) (loop4 (fx+ ptr (fx- 0 (i32+ len 1))) in_type is_url)]
+                        [(or (vim_isfilec ed (ld-u8 (fx+ ptr -1))) (and (not (fxzero? (fxand options 4))) (not (fxzero? (path_is_url ed (fx+ ptr -1))))))
+                         (loop4 (fx+ ptr -1) in_type is_url)]
+                        [else (join7 ptr in_type is_url)]))
+                    (join7 ptr in_type is_url)))]))))
 
 (define (find_file_name_in_path ed ptr len options count rel_fname)
   (if (fx=? len 0) 0 (vim_strnsave ed ptr (->u64 len))))
 
 (define (free_buff ed buf)
   (let ([mem (ed-mem ed)])
-    (define (loop1 p)
+    (let loop1 ([p (buffheader_T.bh_first.b_next buf)])
       (cond
         [(not (fx=? p 0)) (loop1 (buffblock_T.b_next p))]
-        [else (buffheader_T.bh_first.b_next-set! buf 0) (buffheader_T.bh_curr-set! buf 0)]))
-    (loop1 (buffheader_T.bh_first.b_next buf))))
+        [else (buffheader_T.bh_first.b_next-set! buf 0) (buffheader_T.bh_curr-set! buf 0)]))))
 
 (define (get_buffcont ed buffer dozero len)
   (let ([mem (ed-mem ed)])
-    (define (loop1 count p bp i out___r__ out___len)
+    (define (join4 p i t1 out___r__ out___len)
+      (if t1
+          (let loop6 ([p p]
+                      [p2 p]
+                      [bp (buffheader_T.bh_first.b_next buffer)]
+                      [out___r__ out___r__]
+                      [out___len out___len])
+            (cond
+              [(not (fx=? bp 0)) (let loop10 ([p p]
+                                              [p2 p2]
+                                              [str (buffblock_T.b_str bp)]
+                                              [bp bp]
+                                              [out___r__ out___r__]
+                                              [out___len out___len])
+                                   (if (not (fxzero? (ld-u8 str)))
+                                       (let* ([t2 p2]
+                                              [p2 (fx+ p2 1)]
+                                              [t3 str]
+                                              [str (fx+ str 1)])
+                                         (st-u8! t2 (ld-u8 t3))
+                                         (loop10 p p2 str bp out___r__ out___len))
+                                       (loop6 p p2 (buffblock_T.b_next bp) out___r__ out___len)))]
+              [else (st-u8! p2 0) (join8 p (->u64 (fx- p2 p)) out___r__ out___len)]))
+          (join8 p i out___r__ out___len)))
+    (define (join8 p i out___r__ out___len)
+      (values p i))
+    (let loop1 ([count 0]
+                [p 0]
+                [bp (buffheader_T.bh_first.b_next buffer)]
+                [i 0]
+                [out___r__ 0]
+                [out___len 0])
       (if (not (fx=? bp 0))
           (let ([count (u64+ count (buffblock_T.b_strlen bp))])
             (loop1 count p (buffblock_T.b_next bp) i out___r__ out___len))
@@ -14697,27 +15321,7 @@
             (if t1
                 (let ([p (alloc ed (u64+ count 1))])
                   (join4 p i (not (fx=? p 0)) out___r__ out___len))
-                (join4 p i t1 out___r__ out___len)))))
-    (define (join4 p i t1 out___r__ out___len)
-      (if t1
-          (loop6 p p (buffheader_T.bh_first.b_next buffer) out___r__ out___len)
-          (join8 p i out___r__ out___len)))
-    (define (loop6 p p2 bp out___r__ out___len)
-      (cond
-        [(not (fx=? bp 0)) (loop10 p p2 (buffblock_T.b_str bp) bp out___r__ out___len)]
-        [else (st-u8! p2 0) (join8 p (->u64 (fx- p2 p)) out___r__ out___len)]))
-    (define (join8 p i out___r__ out___len)
-      (values p i))
-    (define (loop10 p p2 str bp out___r__ out___len)
-      (if (not (fxzero? (ld-u8 str)))
-          (let* ([t2 p2]
-                 [p2 (fx+ p2 1)]
-                 [t3 str]
-                 [str (fx+ str 1)])
-            (st-u8! t2 (ld-u8 t3))
-            (loop10 p p2 str bp out___r__ out___len))
-          (loop6 p p2 (buffblock_T.b_next bp) out___r__ out___len)))
-    (loop1 0 0 (buffheader_T.bh_first.b_next buffer) 0 0 0)))
+                (join4 p i t1 out___r__ out___len)))))))
 
 (define (get_recorded ed)
   (let ([mem (ed-mem ed)])
@@ -14875,25 +15479,6 @@
 
 (define (flush_buffers ed flush_typeahead)
   (let ([mem (ed-mem ed)])
-    (define (loop1)
-      (cond
-        [(not (fx=? (read_readbuffers ed #t) 0)) (loop1)]
-        [(fx=? flush_typeahead 0)
-         (cond
-           [(fx>=? (i32+ (typebuf_T.tb_off typebuf) (typebuf_T.tb_maplen typebuf)) (typebuf_T.tb_buflen typebuf))
-            (typebuf_T.tb_off-set! typebuf 50)
-            (typebuf_T.tb_len-set! typebuf 0)
-            (join11)]
-           [else
-            (typebuf_T.tb_off-set! typebuf (i32+ (typebuf_T.tb_off typebuf) (typebuf_T.tb_maplen typebuf)))
-            (typebuf_T.tb_len-set! typebuf (i32- (typebuf_T.tb_len typebuf) (typebuf_T.tb_maplen typebuf)))
-            (join11)])]
-        [(fx=? flush_typeahead 2) (loop5)]
-        [else (join6)]))
-    (define (loop5)
-      (if (not (fx=? (inchar ed (typebuf_T.tb_buf typebuf) (i32- (typebuf_T.tb_buflen typebuf) 1) 10) 0))
-          (loop5)
-          (join6)))
     (define (join6)
       (typebuf_T.tb_off-set! typebuf 50)
       (typebuf_T.tb_len-set! typebuf 0)
@@ -14907,7 +15492,24 @@
       (when (fx=? (typebuf_T.tb_change_cnt typebuf) 0) (typebuf_T.tb_change_cnt-set! typebuf 1)))
     (init_typebuf ed)
     (start_stuff ed)
-    (loop1)))
+    (let loop1 ()
+      (cond
+        [(not (fx=? (read_readbuffers ed #t) 0)) (loop1)]
+        [(fx=? flush_typeahead 0)
+         (cond
+           [(fx>=? (i32+ (typebuf_T.tb_off typebuf) (typebuf_T.tb_maplen typebuf)) (typebuf_T.tb_buflen typebuf))
+            (typebuf_T.tb_off-set! typebuf 50)
+            (typebuf_T.tb_len-set! typebuf 0)
+            (join11)]
+           [else
+            (typebuf_T.tb_off-set! typebuf (i32+ (typebuf_T.tb_off typebuf) (typebuf_T.tb_maplen typebuf)))
+            (typebuf_T.tb_len-set! typebuf (i32- (typebuf_T.tb_len typebuf) (typebuf_T.tb_maplen typebuf)))
+            (join11)])]
+        [(fx=? flush_typeahead 2) (let loop5 ()
+                                    (if (not (fx=? (inchar ed (typebuf_T.tb_buf typebuf) (i32- (typebuf_T.tb_buflen typebuf) 1) 10) 0))
+                                        (loop5)
+                                        (join6)))]
+        [else (join6)]))))
 
 (define (ResetRedobuff ed)
   (let ([mem (ed-mem ed)])
@@ -14918,14 +15520,13 @@
 
 (define (CancelRedo ed)
   (let ([mem (ed-mem ed)])
-    (define (loop2)
-      (when (not (fx=? (read_readbuffers ed #t) 0)) (loop2)))
     (unless block_redo
       (free_buff ed redobuff)
       (mem-copy! redobuff old_redobuff 48)
       (buffheader_T.bh_first.b_next-set! old_redobuff 0)
       (start_stuff ed)
-      (loop2))))
+      (let loop2 ()
+        (when (not (fx=? (read_readbuffers ed #t) 0)) (loop2))))))
 
 (define (AppendToRedobuff ed s)
   (let ([mem (ed-mem ed)])
@@ -14935,14 +15536,16 @@
   (let ([mem (ed-mem ed)])
     (define (loop2 s mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)
       (when (not (fxzero? (if (fx<? len 0) (b->i (not (fx=? (ld-u8 s) 0))) (b->i (< (fx- s str) len)))))
-        (loop4 s s mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)))
-    (define (loop4 s start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)
-      (cond
-        [(and (and (fx>=? (ld-u8 s) 32) (fx<? (ld-u8 s) 127)) (or (fx<? len 0) (< (fx- s str) len)))
-         (loop4 (fx+ s 1) start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
-        [(and (fx=? (ld-u8 s) 0) (or (fx=? (ld-u8 (fx+ s -1)) 48) (fx=? (ld-u8 (fx+ s -1)) 94)))
-         (join7 (fx+ s -1) start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
-        [else (join7 s start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]))
+        (let loop4 ([s s]
+                    [start s]
+                    [mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_r__]
+                    [mb_cptr2char_adv__o_pp mb_cptr2char_adv__o_pp])
+          (cond
+            [(and (and (fx>=? (ld-u8 s) 32) (fx<? (ld-u8 s) 127)) (or (fx<? len 0) (< (fx- s str) len)))
+             (loop4 (fx+ s 1) start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
+            [(and (fx=? (ld-u8 s) 0) (or (fx=? (ld-u8 (fx+ s -1)) 48) (fx=? (ld-u8 (fx+ s -1)) 94)))
+             (join7 (fx+ s -1) start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
+            [else (join7 s start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]))))
     (define (join7 s start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)
       (cond
         [(fx>? s start)
@@ -14967,17 +15570,18 @@
 
 (define (AppendToRedobuffSpec ed s)
   (let ([mem (ed-mem ed)])
-    (define (loop2 s mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)
-      (when (not (fx=? (ld-u8 s) 0))
-        (cond
-          [(and (and (fx=? (ld-u8 s) 128) (not (fx=? (ld-u8 (fx+ s 1)) 0))) (not (fx=? (ld-u8 (fx+ s 2)) 0)))
-           (add_buff ed redobuff s 3)
-           (loop2 (fx+ s 3) mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
-          [else
-           (let-values ([(r1 r2) (mb_cptr2char_adv ed s)])
-             (add_char_buff ed redobuff r1)
-             (loop2 r2 r1 r2))])))
-    (unless block_redo (loop2 s 0 0))))
+    (unless block_redo (let loop2 ([s s]
+                                   [mb_cptr2char_adv__o_r__ 0]
+                                   [mb_cptr2char_adv__o_pp 0])
+                         (when (not (fx=? (ld-u8 s) 0))
+                           (cond
+                             [(and (and (fx=? (ld-u8 s) 128) (not (fx=? (ld-u8 (fx+ s 1)) 0))) (not (fx=? (ld-u8 (fx+ s 2)) 0)))
+                              (add_buff ed redobuff s 3)
+                              (loop2 (fx+ s 3) mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
+                             [else
+                              (let-values ([(r1 r2) (mb_cptr2char_adv ed s)])
+                                (add_char_buff ed redobuff r1)
+                                (loop2 r2 r1 r2))]))))))
 
 (define (AppendCharToRedobuff ed c)
   (let ([mem (ed-mem ed)])
@@ -15005,15 +15609,17 @@
 (define (stuffescaped ed arg literally)
   (let ([mem (ed-mem ed)])
     (define (loop1 arg mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)
-      (when (not (fx=? (ld-u8 arg) 0)) (loop4 arg arg mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)))
-    (define (loop4 arg start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)
-      (cond
-        [(or (and (fx>=? (ld-u8 arg) 32) (fx<? (ld-u8 arg) 127)) (and (fx=? (ld-u8 arg) 128) (not (not (fxzero? literally)))))
-         (loop4 (fx+ arg 1) start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
-        [(fx>? arg start)
-         (stuffReadbuffLen ed start (fx- arg start))
-         (join7 arg mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
-        [else (join7 arg mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]))
+      (when (not (fx=? (ld-u8 arg) 0)) (let loop4 ([arg arg]
+                                                   [start arg]
+                                                   [mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_r__]
+                                                   [mb_cptr2char_adv__o_pp mb_cptr2char_adv__o_pp])
+                                         (cond
+                                           [(or (and (fx>=? (ld-u8 arg) 32) (fx<? (ld-u8 arg) 127)) (and (fx=? (ld-u8 arg) 128) (not (not (fxzero? literally)))))
+                                            (loop4 (fx+ arg 1) start mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
+                                           [(fx>? arg start)
+                                            (stuffReadbuffLen ed start (fx- arg start))
+                                            (join7 arg mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]
+                                           [else (join7 arg mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)]))))
     (define (join7 arg mb_cptr2char_adv__o_r__ mb_cptr2char_adv__o_pp)
       (if (not (fx=? (ld-u8 arg) 0))
           (let-values ([(r1 r2) (mb_cptr2char_adv ed arg)])
@@ -15076,10 +15682,9 @@
             [else (join5 c 1)])))))
 
 (define (copy_redo ed old_redo)
-  (define (loop1)
+  (let loop1 ()
     (let ([c (read_redo ed #f old_redo)])
-      (when (not (fx=? c 0)) (add_char_buff ed readbuf2 c) (loop1))))
-  (loop1))
+      (when (not (fx=? c 0)) (add_char_buff ed readbuf2 c) (loop1)))))
 
 (define (start_redo ed count old_redo)
   (let ([mem (ed-mem ed)])
@@ -15101,11 +15706,10 @@
          (join9 (read_redo ed #f old_redo))]
         [else (join9 c)]))
     (define (join9 c)
-      (if (not (eqv? count 0)) (loop11 c) (join13 c)))
-    (define (loop11 c)
-      (cond
-        [(ascii_isdigit ed c) (loop11 (read_redo ed #f old_redo))]
-        [else (add_num_buff ed readbuf2 count) (join13 c)]))
+      (if (not (eqv? count 0)) (let loop11 ([c c])
+                                 (cond
+                                   [(ascii_isdigit ed c) (loop11 (read_redo ed #f old_redo))]
+                                   [else (add_num_buff ed readbuf2 count) (join13 c)])) (join13 c)))
     (define (join13 c)
       (add_char_buff ed readbuf2 c)
       (copy_redo ed old_redo)
@@ -15122,20 +15726,19 @@
 
 (define (start_redo_ins ed)
   (let ([mem (ed-mem ed)])
-    (define (loop2)
-      (let ([c (read_redo ed #f #f)])
-        (cond
-          [(fx=? c 0) (join7)]
-          [(fx=? (vim_strchr ed (c-str 163509 "AaIiRrOo") c) 0) (loop2)]
-          [(or (fx=? c 79) (fx=? c 111)) (add_buff ed readbuf2 (c-str 162586 "\n") -1) (join7)]
-          [else (join7)])))
     (define (join7)
       (copy_redo ed #f)
       (set! block_redo #t)
       #t)
     (cond
       [(fx=? (read_redo ed #t #f) 0) #f]
-      [else (start_stuff ed) (loop2)])))
+      [else (start_stuff ed) (let loop2 ()
+                               (let ([c (read_redo ed #f #f)])
+                                 (cond
+                                   [(fx=? c 0) (join7)]
+                                   [(fx=? (vim_strchr ed (c-str 163509 "AaIiRrOo") c) 0) (loop2)]
+                                   [(or (fx=? c 79) (fx=? c 111)) (add_buff ed readbuf2 (c-str 162586 "\n") -1) (join7)]
+                                   [else (join7)])))])))
 
 (define (stop_redo_ins ed)
   (let ([mem (ed-mem ed)])
@@ -15197,17 +15800,19 @@
         [(fx<? noremap 0) (join19 addlen val addlen)]
         [else (join19 addlen val noremap)]))
     (define (join19 addlen val nrm)
-      (loop20 addlen 0 val nrm))
-    (define (loop20 addlen i val nrm)
-      (cond
-        [(fx<? i addlen)
-         (let ([nrm (i32- nrm 1)])
-           (st-u8! (fx+ (typebuf_T.tb_noremap typebuf) (i32+ (i32+ (typebuf_T.tb_off typebuf) i) offset)) (->u8 (if (fx>=? nrm 0) val 0)))
-           (loop20 addlen (i32+ i 1) val nrm))]
-        [(or nottyped (fx>? (typebuf_T.tb_maplen typebuf) offset))
-         (typebuf_T.tb_maplen-set! typebuf (i32+ (typebuf_T.tb_maplen typebuf) addlen))
-         (join23 addlen)]
-        [else (join23 addlen)]))
+      (let loop20 ([addlen addlen]
+                   [i 0]
+                   [val val]
+                   [nrm nrm])
+        (cond
+          [(fx<? i addlen)
+           (let ([nrm (i32- nrm 1)])
+             (st-u8! (fx+ (typebuf_T.tb_noremap typebuf) (i32+ (i32+ (typebuf_T.tb_off typebuf) i) offset)) (->u8 (if (fx>=? nrm 0) val 0)))
+             (loop20 addlen (i32+ i 1) val nrm))]
+          [(or nottyped (fx>? (typebuf_T.tb_maplen typebuf) offset))
+           (typebuf_T.tb_maplen-set! typebuf (i32+ (typebuf_T.tb_maplen typebuf) addlen))
+           (join23 addlen)]
+          [else (join23 addlen)])))
     (define (join23 addlen)
       (cond
         [(or (not (fxzero? silent)) (fx>? (typebuf_T.tb_silent typebuf) offset))
@@ -15653,10 +16258,9 @@
     (if (fx=? c 0) (join2 (get_keystroke ed)) (join2 c))))
 
 (define (plain_vgetc_nopaste ed)
-  (define (loop1)
+  (let loop1 ()
     (let ([c (safe_vgetc ed)])
-      (if (or (or (or (fx=? c -13821) (fx=? c -22777)) (fx=? c -22776)) (fx=? c -25853)) (loop1) c)))
-  (loop1))
+      (if (or (or (or (fx=? c -13821) (fx=? c -22777)) (fx=? c -22776)) (fx=? c -25853)) (loop1) c))))
 
 (define (plain_vgetc ed)
   (define (join2 c)
@@ -15721,14 +16325,15 @@
              [(not (put_string_in_typebuf ed key_offset 1 new_string len 0 0 0)) (frame-pop! ed fr) -1]
              [else (join15 len key_offset)]))]))
     (define (join15 len key_offset)
-      (loop16 len key_offset 0))
-    (define (loop16 len key_offset i)
-      (cond
-        [(fx<? i len)
-         (let ([r1 (fx+ (typebuf_T.tb_noremap typebuf) (i32+ (i32+ (typebuf_T.tb_off typebuf) key_offset) i))])
-           (st-u8! r1 (->u8 (fxior (ld-u8 r1) 8)))
-           (loop16 len key_offset (i32+ i 1)))]
-        [else (frame-pop! ed fr) len]))
+      (let loop16 ([len len]
+                   [key_offset key_offset]
+                   [i 0])
+        (cond
+          [(fx<? i len)
+           (let ([r1 (fx+ (typebuf_T.tb_noremap typebuf) (i32+ (i32+ (typebuf_T.tb_off typebuf) key_offset) i))])
+             (st-u8! r1 (->u8 (fxior (ld-u8 r1) 8)))
+             (loop16 len key_offset (i32+ i 1)))]
+          [else (frame-pop! ed fr) len])))
     (define (join21)
       (frame-pop! ed fr)
       0)
@@ -15760,16 +16365,31 @@
         [(fx=? mp 0)
          (join32 keylenp mapdepth mp mp_match mp_match_len max_mlen want_termcode keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)]
         [(and (and (fx=? (ld-u8 (mapblock_T.m_keys mp)) tb_c1) (not (fxzero? (fxand (mapblock_T.m_mode mp) local_State)))) (not (and (and (and (mapblock_T.m_simplified mp) (key_protocol_enabled ed)) (fx=? (typebuf_T.tb_maplen typebuf) 0)) (fx=? (fxand (ld-u8 (fx+ (typebuf_T.tb_noremap typebuf) (typebuf_T.tb_off typebuf))) 8) 0))))
-         (loop9 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 1 local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)]
+         (let loop9 ([keylenp keylenp]
+                     [mapdepth mapdepth]
+                     [mp mp]
+                     [mp2 mp2]
+                     [mp_match mp_match]
+                     [mp_match_len mp_match_len]
+                     [max_mlen max_mlen]
+                     [want_termcode want_termcode]
+                     [tb_c1 tb_c1]
+                     [mlen 1]
+                     [local_State local_State]
+                     [is_plug_map is_plug_map]
+                     [in_osc in_osc]
+                     [out___r__ out___r__]
+                     [out___keylenp out___keylenp]
+                     [out___timedout out___timedout]
+                     [out___mapdepth out___mapdepth])
+           (if (fx<? mlen (typebuf_T.tb_len typebuf))
+               (let ([c2 (ld-u8 (fx+ (typebuf_T.tb_buf typebuf) (i32+ (typebuf_T.tb_off typebuf) mlen)))])
+                 (if (not (fx=? (ld-u8 (fx+ (mapblock_T.m_keys mp) mlen)) c2))
+                     (join12 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 mlen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)
+                     (loop9 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 (i32+ mlen 1) local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)))
+               (join12 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 mlen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)))]
         [else
          (join92 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)]))
-    (define (loop9 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 mlen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)
-      (if (fx<? mlen (typebuf_T.tb_len typebuf))
-          (let ([c2 (ld-u8 (fx+ (typebuf_T.tb_buf typebuf) (i32+ (typebuf_T.tb_off typebuf) mlen)))])
-            (if (not (fx=? (ld-u8 (fx+ (mapblock_T.m_keys mp) mlen)) c2))
-                (join12 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 mlen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)
-                (loop9 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 (i32+ mlen 1) local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)))
-          (join12 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 mlen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)))
     (define (join12 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 mlen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)
       (set! p1 (mapblock_T.m_keys mp))
       (let ([p2 (mb_unescape ed &p1)])
@@ -15785,7 +16405,33 @@
            (let ([s (fx+ (typebuf_T.tb_noremap typebuf) (typebuf_T.tb_off typebuf))])
              (if (and (fx=? (fxand (ld-u8 s) -9) 2) (or (or (not (fx=? (ld-u8 (mapblock_T.m_keys mp)) 128)) (not (fx=? (ld-u8 (fx+ (mapblock_T.m_keys mp) 1)) 253))) (not (fx=? (ld-u8 (fx+ (mapblock_T.m_keys mp) 2)) 82))))
                  (join92 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)
-                 (loop23 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc s mlen out___r__ out___keylenp out___timedout out___mapdepth)))]
+                 (let loop23 ([keylenp keylenp]
+                              [mapdepth mapdepth]
+                              [mp mp]
+                              [mp2 mp2]
+                              [mp_match mp_match]
+                              [mp_match_len mp_match_len]
+                              [max_mlen max_mlen]
+                              [want_termcode want_termcode]
+                              [tb_c1 tb_c1]
+                              [keylen keylen]
+                              [local_State local_State]
+                              [is_plug_map is_plug_map]
+                              [in_osc in_osc]
+                              [s s]
+                              [n mlen]
+                              [out___r__ out___r__]
+                              [out___keylenp out___keylenp]
+                              [out___timedout out___timedout]
+                              [out___mapdepth out___mapdepth])
+                   (let ([n (i32- n 1)])
+                     (if (fx>=? n 0)
+                         (let* ([t1 s]
+                                [s (fx+ s 1)])
+                           (if (not (fxzero? (fxand (ld-u8 t1) 5)))
+                               (join26 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc n out___r__ out___keylenp out___timedout out___mapdepth)
+                               (loop23 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc s n out___r__ out___keylenp out___timedout out___mapdepth)))
+                         (join26 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc n out___r__ out___keylenp out___timedout out___mapdepth))))))]
           [(fx<? max_mlen mlen)
            (join19 keylenp mapdepth mp mp2 mp_match mp_match_len mlen (b->i (fx=? (ld-u8 (fx+ (mapblock_T.m_keys mp) mlen)) 128)) tb_c1 mlen keylen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)]
           [(and (fx=? max_mlen mlen) (fx=? (ld-u8 (fx+ (mapblock_T.m_keys mp) mlen)) 128))
@@ -15796,15 +16442,6 @@
       (if (ascii_isupper ed (ld-u8 (fx+ (mapblock_T.m_keys mp) mlen)))
           (join92 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen 1 tb_c1 keylen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)
           (join92 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc out___r__ out___keylenp out___timedout out___mapdepth)))
-    (define (loop23 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc s n out___r__ out___keylenp out___timedout out___mapdepth)
-      (let ([n (i32- n 1)])
-        (if (fx>=? n 0)
-            (let* ([t1 s]
-                   [s (fx+ s 1)])
-              (if (not (fxzero? (fxand (ld-u8 t1) 5)))
-                  (join26 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc n out___r__ out___keylenp out___timedout out___mapdepth)
-                  (loop23 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc s n out___r__ out___keylenp out___timedout out___mapdepth)))
-            (join26 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc n out___r__ out___keylenp out___timedout out___mapdepth))))
     (define (join26 keylenp mapdepth mp mp2 mp_match mp_match_len max_mlen want_termcode tb_c1 keylen local_State is_plug_map in_osc n out___r__ out___keylenp out___timedout out___mapdepth)
       (cond
         [(and (not is_plug_map) (fx>=? n 0))
@@ -15823,14 +16460,25 @@
           (join34 keylenp mapdepth mp mp_match_len max_mlen want_termcode keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)))
     (define (join34 keylenp mapdepth mp mp_match_len max_mlen want_termcode keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)
       (if (and (and (and (not in_osc) (not (fx=? (ld-u8 p_pt) 0))) (fx=? mp 0)) (not (fxzero? (fxand State 17))))
-          (loop36 keylenp mapdepth mp mp_match_len max_mlen want_termcode 0 keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)
+          (let loop36 ([keylenp keylenp]
+                       [mapdepth mapdepth]
+                       [mp mp]
+                       [mp_match_len mp_match_len]
+                       [max_mlen max_mlen]
+                       [want_termcode want_termcode]
+                       [mlen 0]
+                       [keylen keylen]
+                       [in_osc in_osc]
+                       [out___r__ out___r__]
+                       [out___keylenp out___keylenp]
+                       [out___timedout out___timedout]
+                       [out___mapdepth out___mapdepth])
+            (if (and (fx<? mlen (typebuf_T.tb_len typebuf)) (not (fxzero? (ld-u8 (fx+ p_pt mlen)))))
+                (if (not (fx=? (ld-u8 (fx+ p_pt mlen)) (ld-u8 (fx+ (typebuf_T.tb_buf typebuf) (i32+ (typebuf_T.tb_off typebuf) mlen)))))
+                    (join39 keylenp mapdepth mp mp_match_len max_mlen want_termcode mlen keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)
+                    (loop36 keylenp mapdepth mp mp_match_len max_mlen want_termcode (i32+ mlen 1) keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth))
+                (join39 keylenp mapdepth mp mp_match_len max_mlen want_termcode mlen keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)))
           (join44 keylenp mapdepth mp mp_match_len max_mlen want_termcode keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)))
-    (define (loop36 keylenp mapdepth mp mp_match_len max_mlen want_termcode mlen keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)
-      (if (and (fx<? mlen (typebuf_T.tb_len typebuf)) (not (fxzero? (ld-u8 (fx+ p_pt mlen)))))
-          (if (not (fx=? (ld-u8 (fx+ p_pt mlen)) (ld-u8 (fx+ (typebuf_T.tb_buf typebuf) (i32+ (typebuf_T.tb_off typebuf) mlen)))))
-              (join39 keylenp mapdepth mp mp_match_len max_mlen want_termcode mlen keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)
-              (loop36 keylenp mapdepth mp mp_match_len max_mlen want_termcode (i32+ mlen 1) keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth))
-          (join39 keylenp mapdepth mp mp_match_len max_mlen want_termcode mlen keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)))
     (define (join39 keylenp mapdepth mp mp_match_len max_mlen want_termcode mlen keylen in_osc out___r__ out___keylenp out___timedout out___mapdepth)
       (cond
         [(fx=? (ld-u8 (fx+ p_pt mlen)) 0)
@@ -16115,33 +16763,43 @@
     (define (join36 c timedout mapdepth mode_deleted new_wcol new_wrow keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)
       (if (fx<? c 0)
           (loop10 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)
-          (loop38 c timedout mapdepth mode_deleted new_wcol new_wrow 1 keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)))
-    (define (loop38 c timedout mapdepth mode_deleted new_wcol new_wrow n keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)
-      (cond
-        [(fx<=? n c)
-         (st-u8! (fx+ (typebuf_T.tb_noremap typebuf) (i32+ (typebuf_T.tb_off typebuf) n)) 0)
-         (loop38 c timedout mapdepth mode_deleted new_wcol new_wrow (i32+ n 1) keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
-        [else
-         (typebuf_T.tb_len-set! typebuf (i32+ (typebuf_T.tb_len typebuf) c))
-         (cond
-           [(fx>=? (typebuf_T.tb_len typebuf) (i32+ (typebuf_T.tb_maplen typebuf) 50))
-            (loop10 #t mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
-           [(fx>? ex_normal_busy 0)
+          (let loop38 ([c c]
+                       [timedout timedout]
+                       [mapdepth mapdepth]
+                       [mode_deleted mode_deleted]
+                       [new_wcol new_wcol]
+                       [new_wrow new_wrow]
+                       [n 1]
+                       [keylen keylen]
+                       [handle_mapping__o_r__ handle_mapping__o_r__]
+                       [handle_mapping__o_keylenp handle_mapping__o_keylenp]
+                       [handle_mapping__o_timedout handle_mapping__o_timedout]
+                       [handle_mapping__o_mapdepth handle_mapping__o_mapdepth])
             (cond
-              [(fx>? (typebuf_T.tb_len typebuf) 0)
-               (loop10 #t mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
-              [(and (not (fxzero? p_im)) (not (fxzero? (fxand State 16))))
-               (join86 12 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
-              [(not (fxzero? (fxand State 8)))
-               (join86 3 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
+              [(fx<=? n c)
+               (st-u8! (fx+ (typebuf_T.tb_noremap typebuf) (i32+ (typebuf_T.tb_off typebuf) n)) 0)
+               (loop38 c timedout mapdepth mode_deleted new_wcol new_wrow (i32+ n 1) keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
               [else
-               (join86 27 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)])]
-           [(and (and (and (and (or (not (fx=? (fxand State 16) 0)) (not (fxzero? p_lz))) (fx=? (fxand State 8) 0)) advance) (not (fx=? must_redraw 0))) (not need_wait_return))
-            (update_screen ed 0)
-            (setcursor ed)
-            (join43 timedout mapdepth mode_deleted new_wcol new_wrow keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
-           [else
-            (join43 timedout mapdepth mode_deleted new_wcol new_wrow keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)])]))
+               (typebuf_T.tb_len-set! typebuf (i32+ (typebuf_T.tb_len typebuf) c))
+               (cond
+                 [(fx>=? (typebuf_T.tb_len typebuf) (i32+ (typebuf_T.tb_maplen typebuf) 50))
+                  (loop10 #t mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
+                 [(fx>? ex_normal_busy 0)
+                  (cond
+                    [(fx>? (typebuf_T.tb_len typebuf) 0)
+                     (loop10 #t mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
+                    [(and (not (fxzero? p_im)) (not (fxzero? (fxand State 16))))
+                     (join86 12 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
+                    [(not (fxzero? (fxand State 8)))
+                     (join86 3 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
+                    [else
+                     (join86 27 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)])]
+                 [(and (and (and (and (or (not (fx=? (fxand State 16) 0)) (not (fxzero? p_lz))) (fx=? (fxand State 8) 0)) advance) (not (fx=? must_redraw 0))) (not need_wait_return))
+                  (update_screen ed 0)
+                  (setcursor ed)
+                  (join43 timedout mapdepth mode_deleted new_wcol new_wrow keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]
+                 [else
+                  (join43 timedout mapdepth mode_deleted new_wcol new_wrow keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)])]))))
     (define (join43 timedout mapdepth mode_deleted new_wcol new_wrow keylen handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)
       (if (and (fx>? (typebuf_T.tb_len typebuf) 0) advance)
           (if (and (not (fxzero? (fxand State 17))) (not (fx=? State 8193)))
@@ -16234,15 +16892,20 @@
            [else
             (loop10 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)])]
         [else
-         (loop74 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)]))
-    (define (loop74 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)
-      (if (not (fx=? (ld-u8 (fx+ (typebuf_T.tb_buf typebuf) (i32+ (typebuf_T.tb_off typebuf) (typebuf_T.tb_len typebuf)))) 0))
-          (let ([t7 (typebuf_T.tb_len typebuf)])
-            (typebuf_T.tb_len-set! typebuf (i32+ (typebuf_T.tb_len typebuf) 1))
-            (let ([t8 (i32+ (typebuf_T.tb_off typebuf) t7)])
-              (st-u8! (fx+ (typebuf_T.tb_noremap typebuf) t8) 0)
-              (loop74 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)))
-          (loop10 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)))
+         (let loop74 ([timedout timedout]
+                      [mapdepth mapdepth]
+                      [mode_deleted mode_deleted]
+                      [handle_mapping__o_r__ handle_mapping__o_r__]
+                      [handle_mapping__o_keylenp handle_mapping__o_keylenp]
+                      [handle_mapping__o_timedout handle_mapping__o_timedout]
+                      [handle_mapping__o_mapdepth handle_mapping__o_mapdepth])
+           (if (not (fx=? (ld-u8 (fx+ (typebuf_T.tb_buf typebuf) (i32+ (typebuf_T.tb_off typebuf) (typebuf_T.tb_len typebuf)))) 0))
+               (let ([t7 (typebuf_T.tb_len typebuf)])
+                 (typebuf_T.tb_len-set! typebuf (i32+ (typebuf_T.tb_len typebuf) 1))
+                 (let ([t8 (i32+ (typebuf_T.tb_off typebuf) t7)])
+                   (st-u8! (fx+ (typebuf_T.tb_noremap typebuf) t8) 0)
+                   (loop74 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)))
+               (loop10 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)))]))
     (define (join86 c timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)
       (typebuf_T.tb_no_abbr_cnt-set! typebuf 0)
       (join110 c timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth))
@@ -16330,7 +16993,11 @@
     (define (join4 tb_change_cnt)
       (set! undo_off #f)
       (cond
-        [(not (fxzero? got_int)) (loop15)]
+        [(not (fxzero? got_int)) (let loop15 ()
+                                   (let ([len (ui_inchar ed dum 153 0 0)])
+                                     (cond
+                                       [(or (fx=? len 0) (and (fx=? len 1) (fx=? (ld-u8 dum) 3))) (frame-pop! ed fr) 0]
+                                       [else (loop15)])))]
         [(or (= wait_time -1) (> wait_time 10)) (out_flush ed) (join7 tb_change_cnt)]
         [else (join7 tb_change_cnt)]))
     (define (join7 tb_change_cnt)
@@ -16352,11 +17019,6 @@
       (let ([r1 (fix_input_buffer ed buf len)])
         (frame-pop! ed fr)
         r1))
-    (define (loop15)
-      (let ([len (ui_inchar ed dum 153 0 0)])
-        (cond
-          [(or (fx=? len 0) (and (fx=? len 1) (fx=? (ld-u8 dum) 3))) (frame-pop! ed fr) 0]
-          [else (loop15)])))
     (let ([tb_change_cnt (typebuf_T.tb_change_cnt typebuf)])
       (cond
         [(or (= wait_time -1) (> wait_time 100))
@@ -16452,25 +17114,19 @@
 
 (define (init_highlight ed both reset)
   (let ([mem (ed-mem ed)])
-    (define (loop4 i pp)
-      (cond
-        [(not (fx=? (ld-ptr (fx+ pp (fx* i 8))) 0))
-         (do_highlight ed (ld-ptr (fx+ pp (fx* i 8))) reset #t)
-         (loop4 (i32+ i 1) pp)]
-        [else (join5)]))
     (define (join5)
       (if (fx=? (ld-u8 p_bg) 108) (join8 highlight_init_light) (join8 highlight_init_dark)))
     (define (join8 pp)
-      (loop9 0 pp))
-    (define (loop9 i pp)
-      (cond
-        [(not (fx=? (ld-ptr (fx+ pp (fx* i 8))) 0))
-         (do_highlight ed (ld-ptr (fx+ pp (fx* i 8))) reset #t)
-         (loop9 (i32+ i 1) pp)]
-        [(fx<? t_colors 8)
-         (do_highlight ed (c-str 163558 "Visual term=reverse cterm=reverse ctermbg=NONE ctermfg=NONE") #f #t)
-         (join12)]
-        [else (join12)]))
+      (let loop9 ([i 0]
+                  [pp pp])
+        (cond
+          [(not (fx=? (ld-ptr (fx+ pp (fx* i 8))) 0))
+           (do_highlight ed (ld-ptr (fx+ pp (fx* i 8))) reset #t)
+           (loop9 (i32+ i 1) pp)]
+          [(fx<? t_colors 8)
+           (do_highlight ed (c-str 163558 "Visual term=reverse cterm=reverse ctermbg=NONE ctermfg=NONE") #f #t)
+           (join12)]
+          [else (join12)])))
     (define (join12)
       (if (fx<=? t_colors 8)
           (cond
@@ -16481,7 +17137,13 @@
       (resolve_fallback_fg_to_rgb ed)
       (resolve_fallback_bg_to_rgb ed))
     (cond
-      [both (set! init_highlight:had_both #t) (loop4 0 highlight_init_both)]
+      [both (set! init_highlight:had_both #t) (let loop4 ([i 0]
+                                                          [pp highlight_init_both])
+                                                (cond
+                                                  [(not (fx=? (ld-ptr (fx+ pp (fx* i 8))) 0))
+                                                   (do_highlight ed (ld-ptr (fx+ pp (fx* i 8))) reset #t)
+                                                   (loop4 (i32+ i 1) pp)]
+                                                  [else (join5)]))]
       [else (unless (not init_highlight:had_both) (join5))])))
 
 (define (lookup_color ed idx foreground boldp)
@@ -16547,17 +17209,29 @@
 
 (define (highlight_reset_all ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 idx)
+    (restore_cterm_colors ed)
+    (let loop1 ([idx 0])
       (cond
         [(fx<? idx (garray_T.ga_len highlight_ga)) (highlight_clear ed idx) (loop1 (i32+ idx 1))]
-        [else (init_highlight ed #t #t) (highlight_changed ed) (redraw_later_clear ed)]))
-    (restore_cterm_colors ed)
-    (loop1 0)))
+        [else (init_highlight ed #t #t) (highlight_changed ed) (redraw_later_clear ed)]))))
 
 (define (highlight_set_termgui_attr ed idx key arg init)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local target &target agg 0)
-    (define (loop1 attr off)
+    (define (join7 attr)
+      (hl_group_T.sg_cterm-set! (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88)) attr)
+      (hl_group_T.sg_cterm_bold-set! (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88)) #f)
+      (join12))
+    (define (join11 attr)
+      (hl_group_T.sg_term-set! (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88)) attr)
+      (join12))
+    (define (join12)
+      (frame-pop! ed fr)
+      #t)
+    (keyvalue_T.key-set! target 0)
+    (keyvalue_T.value.length-set! target 0)
+    (let loop1 ([attr 0]
+                [off 0])
       (cond
         [(not (fx=? (ld-u8 (fx+ arg (->i64 off))) 0))
          (keyvalue_T.value.string-set! target (fx+ arg (->i64 off)))
@@ -16587,20 +17261,7 @@
                    (join7 attr))
                  (join7 attr))
              (join12))]
-        [else (join12)]))
-    (define (join7 attr)
-      (hl_group_T.sg_cterm-set! (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88)) attr)
-      (hl_group_T.sg_cterm_bold-set! (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88)) #f)
-      (join12))
-    (define (join11 attr)
-      (hl_group_T.sg_term-set! (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88)) attr)
-      (join12))
-    (define (join12)
-      (frame-pop! ed fr)
-      #t)
-    (keyvalue_T.key-set! target 0)
-    (keyvalue_T.value.length-set! target 0)
-    (loop1 0 0)))
+        [else (join12)]))))
 
 (define (hl_set_ctermfg_normal_group ed color bold)
   (let ([mem (ed-mem ed)])
@@ -16751,22 +17412,29 @@
     (define (join2)
       (cond
         [(fx=? (musl_strncmp ed arg (c-str 163664 "t_") 2) 0) (st-u8! buf 0) (loop11 0)]
-        [else (set! p arg) (loop4 0)]))
-    (define (loop4 off)
-      (cond
-        [(and (fx<? off 94) (not (fxzero? (ld-u8 p))))
-         (let ([len (trans_special ed &p (fx+ buf off) 8 #f 0)])
-           (if (fx>? len 0)
-               (loop4 (i32+ off len))
-               (let* ([t1 off]
-                      [off (i32+ off 1)]
-                      [t2 p])
-                 (set! p (fx+ p 1))
-                 (st-u8! (fx+ buf t1) (ld-u8 t2))
-                 (loop4 off))))]
-        [else (st-u8! (fx+ buf off) 0) (join12)]))
+        [else (set! p arg) (let loop4 ([off 0])
+                             (cond
+                               [(and (fx<? off 94) (not (fxzero? (ld-u8 p))))
+                                (let ([len (trans_special ed &p (fx+ buf off) 8 #f 0)])
+                                  (if (fx>? len 0)
+                                      (loop4 (i32+ off len))
+                                      (let* ([t1 off]
+                                             [off (i32+ off 1)]
+                                             [t2 p])
+                                        (set! p (fx+ p 1))
+                                        (st-u8! (fx+ buf t1) (ld-u8 t2))
+                                        (loop4 off))))]
+                               [else (st-u8! (fx+ buf off) 0) (join12)]))]))
     (define (loop11 off)
-      (if (not (fx=? (ld-u8 (fx+ arg off)) 0)) (loop20 off 0) (join12)))
+      (if (not (fx=? (ld-u8 (fx+ arg off)) 0)) (let loop20 ([off off]
+                                                            [len 0])
+                                                 (if (and (not (fxzero? (ld-u8 (fx+ arg (i32+ off len))))) (not (fx=? (ld-u8 (fx+ arg (i32+ off len))) 44)))
+                                                     (loop20 off (i32+ len 1))
+                                                     (let ([tname (vim_strnsave ed (fx+ arg off) (->u64 len))])
+                                                       (set! p (get_term_code ed tname))
+                                                       (cond
+                                                         [(fx=? p 0) (set! p (c-str 162263 "")) (join23 off len)]
+                                                         [else (join23 off len)])))) (join12)))
     (define (join12)
       (cond
         [(fx=? (musl_strcmp ed buf (c-str 163639 "NONE")) 0) (set! p 0) (join15)]
@@ -16780,14 +17448,6 @@
     (define (join18)
       (frame-pop! ed fr)
       #t)
-    (define (loop20 off len)
-      (if (and (not (fxzero? (ld-u8 (fx+ arg (i32+ off len))))) (not (fx=? (ld-u8 (fx+ arg (i32+ off len))) 44)))
-          (loop20 off (i32+ len 1))
-          (let ([tname (vim_strnsave ed (fx+ arg off) (->u64 len))])
-            (set! p (get_term_code ed tname))
-            (cond
-              [(fx=? p 0) (set! p (c-str 162263 "")) (join23 off len)]
-              [else (join23 off len)]))))
     (define (join23 off len)
       (let ([r1 (musl_strlen ed buf)])
         (cond
@@ -16893,40 +17553,45 @@
            (vim_snprintf ed r4 (emsg_iobuff_room ed) e_unexpected_equal_sign_str (list linep))
            (emsg ed (iobuff_or ed e_unexpected_equal_sign_str))
            (join63 idx did_change #t is_normal_group))]
-        [else (loop24 line linep linep idx did_change error_ is_normal_group)]))
-    (define (loop24 line linep key_start idx did_change error_ is_normal_group)
-      (if (and (and (not (fxzero? (ld-u8 linep))) (not (or (fx=? (ld-u8 linep) 32) (fx=? (ld-u8 linep) 9)))) (not (fx=? (ld-u8 linep) 61)))
-          (loop24 line (fx+ linep 1) key_start idx did_change error_ is_normal_group)
-          (let* ([key (vim_strnsave_up ed key_start (->u64 (fx- linep key_start)))]
-                 [linep (skipwhite ed linep)])
-            (cond
-              [(fx=? (musl_strcmp ed key (c-str 163639 "NONE")) 0)
-               (if (or (not init) (fx=? (hl_group_T.sg_set (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88))) 0))
-                   (if (not init)
-                       (let ([r5 (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88))])
-                         (hl_group_T.sg_set-set! r5 (fxior (hl_group_T.sg_set r5) 7))
-                         (join59 line linep idx did_change error_ is_normal_group))
-                       (join59 line linep idx did_change error_ is_normal_group))
-                   (loop21 line linep idx did_change error_ is_normal_group))]
-              [(not (fx=? (ld-u8 linep) 61))
-               (let ([r6 IObuff])
-                 (vim_snprintf ed r6 (emsg_iobuff_room ed) e_missing_equal_sign_str_2 (list key_start))
-                 (emsg ed (iobuff_or ed e_missing_equal_sign_str_2))
-                 (join63 idx did_change #t is_normal_group))]
-              [else
-               (let* ([linep (fx+ linep 1)]
-                      [linep (skipwhite ed linep)])
-                 (if (fx=? (ld-u8 linep) 39)
-                     (let* ([linep (fx+ linep 1)]
-                            [arg_start linep]
-                            [linep (vim_strchr ed linep 39)])
-                       (if (fx=? linep 0)
-                           (let ([r7 IObuff])
-                             (vim_snprintf ed r7 (emsg_iobuff_room ed) e_invalid_argument_str (list key_start))
-                             (emsg ed (iobuff_or ed e_invalid_argument_str))
-                             (join63 idx did_change #t is_normal_group))
-                           (join30 line linep key_start arg_start key idx did_change error_ is_normal_group)))
-                     (join30 line (skiptowhite ed linep) key_start linep key idx did_change error_ is_normal_group)))]))))
+        [else (let loop24 ([line line]
+                           [linep linep]
+                           [key_start linep]
+                           [idx idx]
+                           [did_change did_change]
+                           [error_ error_]
+                           [is_normal_group is_normal_group])
+                (if (and (and (not (fxzero? (ld-u8 linep))) (not (or (fx=? (ld-u8 linep) 32) (fx=? (ld-u8 linep) 9)))) (not (fx=? (ld-u8 linep) 61)))
+                    (loop24 line (fx+ linep 1) key_start idx did_change error_ is_normal_group)
+                    (let* ([key (vim_strnsave_up ed key_start (->u64 (fx- linep key_start)))]
+                           [linep (skipwhite ed linep)])
+                      (cond
+                        [(fx=? (musl_strcmp ed key (c-str 163639 "NONE")) 0)
+                         (if (or (not init) (fx=? (hl_group_T.sg_set (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88))) 0))
+                             (if (not init)
+                                 (let ([r5 (fx+ (garray_T.ga_data highlight_ga) (fx* idx 88))])
+                                   (hl_group_T.sg_set-set! r5 (fxior (hl_group_T.sg_set r5) 7))
+                                   (join59 line linep idx did_change error_ is_normal_group))
+                                 (join59 line linep idx did_change error_ is_normal_group))
+                             (loop21 line linep idx did_change error_ is_normal_group))]
+                        [(not (fx=? (ld-u8 linep) 61))
+                         (let ([r6 IObuff])
+                           (vim_snprintf ed r6 (emsg_iobuff_room ed) e_missing_equal_sign_str_2 (list key_start))
+                           (emsg ed (iobuff_or ed e_missing_equal_sign_str_2))
+                           (join63 idx did_change #t is_normal_group))]
+                        [else
+                         (let* ([linep (fx+ linep 1)]
+                                [linep (skipwhite ed linep)])
+                           (if (fx=? (ld-u8 linep) 39)
+                               (let* ([linep (fx+ linep 1)]
+                                      [arg_start linep]
+                                      [linep (vim_strchr ed linep 39)])
+                                 (if (fx=? linep 0)
+                                     (let ([r7 IObuff])
+                                       (vim_snprintf ed r7 (emsg_iobuff_room ed) e_invalid_argument_str (list key_start))
+                                       (emsg ed (iobuff_or ed e_invalid_argument_str))
+                                       (join63 idx did_change #t is_normal_group))
+                                     (join30 line linep key_start arg_start key idx did_change error_ is_normal_group)))
+                               (join30 line (skiptowhite ed linep) key_start linep key idx did_change error_ is_normal_group)))]))))]))
     (define (join30 line linep key_start arg_start key idx did_change error_ is_normal_group)
       (if (fx=? linep arg_start)
           (let ([r8 IObuff])
@@ -17005,14 +17670,13 @@
       (frame-pop! ed fr))
     (define (join84)
       (frame-pop! ed fr))
-    (define (loop86 i)
-      (cond
-        [(and (<= i (garray_T.ga_len highlight_ga)) (not (not (fxzero? got_int))))
-         (highlight_list_one ed (->i32 i))
-         (loop86 (i64+ i 1))]
-        [else (frame-pop! ed fr)]))
     (if (and (not init) (ends_excmd2 ed (fx+ line -1) line))
-        (loop86 1)
+        (let loop86 ([i 1])
+          (cond
+            [(and (<= i (garray_T.ga_len highlight_ga)) (not (not (fxzero? got_int))))
+             (highlight_list_one ed (->i32 i))
+             (loop86 (i64+ i 1))]
+            [else (frame-pop! ed fr)]))
         (let* ([name_end (skiptowhite ed line)]
                [linep (skipwhite ed name_end)])
           (if (fx=? (musl_strncmp ed line (c-str 163768 "default") (->u64 (fx- name_end line))) 0)
@@ -17049,22 +17713,6 @@
 
 (define (get_attr_entry ed table aep)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
-      (cond
-        [(fx<? i (garray_T.ga_len table))
-         (let ([taep (fx+ (garray_T.ga_data table) (fx* i 24))])
-           (if (and (fx=? (attrentry_T.ae_attr aep) (attrentry_T.ae_attr taep)) (or (and (and (and (and (fx=? table term_attr_table) (fx=? (b->i (fx=? (attrentry_T.ae_u.term.start aep) 0)) (b->i (fx=? (attrentry_T.ae_u.term.start taep) 0)))) (or (fx=? (attrentry_T.ae_u.term.start aep) 0) (fx=? (musl_strcmp ed (attrentry_T.ae_u.term.start aep) (attrentry_T.ae_u.term.start taep)) 0))) (fx=? (b->i (fx=? (attrentry_T.ae_u.term.stop aep) 0)) (b->i (fx=? (attrentry_T.ae_u.term.stop taep) 0)))) (or (fx=? (attrentry_T.ae_u.term.stop aep) 0) (fx=? (musl_strcmp ed (attrentry_T.ae_u.term.stop aep) (attrentry_T.ae_u.term.stop taep)) 0))) (and (and (and (and (fx=? table cterm_attr_table) (fx=? (attrentry_T.ae_u.cterm.fg_color aep) (attrentry_T.ae_u.cterm.fg_color taep))) (fx=? (attrentry_T.ae_u.cterm.bg_color aep) (attrentry_T.ae_u.cterm.bg_color taep))) (fx=? (attrentry_T.ae_u.cterm.ul_color aep) (attrentry_T.ae_u.cterm.ul_color taep))) (fx=? (attrentry_T.ae_u.cterm.font aep) (attrentry_T.ae_u.cterm.font taep)))))
-               (i32+ i 2048)
-               (loop1 (i32+ i 1))))]
-        [(fx>? (i32+ (garray_T.ga_len table) 2048) 65535)
-         (cond
-           [get_attr_entry:recursive (emsg ed e_too_many_different_highlighting_attributes_in_use) 0]
-           [else (set! get_attr_entry:recursive #t) (clear_hl_tables ed) (set_must_redraw ed 50) (loop5 0)])]
-        [else (join7)]))
-    (define (loop5 i)
-      (cond
-        [(fx<? i (garray_T.ga_len highlight_ga)) (set_hl_attr ed i) (loop5 (i32+ i 1))]
-        [else (set! get_attr_entry:recursive #f) (join7)]))
     (define (join7)
       (if (not (ga_grow ed table 1))
           0
@@ -17096,15 +17744,28 @@
       (i32+ (i32- (garray_T.ga_len table) 1) 2048))
     (garray_T.ga_itemsize-set! table 24)
     (garray_T.ga_growsize-set! table 7)
-    (loop1 0)))
+    (let loop1 ([i 0])
+      (cond
+        [(fx<? i (garray_T.ga_len table))
+         (let ([taep (fx+ (garray_T.ga_data table) (fx* i 24))])
+           (if (and (fx=? (attrentry_T.ae_attr aep) (attrentry_T.ae_attr taep)) (or (and (and (and (and (fx=? table term_attr_table) (fx=? (b->i (fx=? (attrentry_T.ae_u.term.start aep) 0)) (b->i (fx=? (attrentry_T.ae_u.term.start taep) 0)))) (or (fx=? (attrentry_T.ae_u.term.start aep) 0) (fx=? (musl_strcmp ed (attrentry_T.ae_u.term.start aep) (attrentry_T.ae_u.term.start taep)) 0))) (fx=? (b->i (fx=? (attrentry_T.ae_u.term.stop aep) 0)) (b->i (fx=? (attrentry_T.ae_u.term.stop taep) 0)))) (or (fx=? (attrentry_T.ae_u.term.stop aep) 0) (fx=? (musl_strcmp ed (attrentry_T.ae_u.term.stop aep) (attrentry_T.ae_u.term.stop taep)) 0))) (and (and (and (and (fx=? table cterm_attr_table) (fx=? (attrentry_T.ae_u.cterm.fg_color aep) (attrentry_T.ae_u.cterm.fg_color taep))) (fx=? (attrentry_T.ae_u.cterm.bg_color aep) (attrentry_T.ae_u.cterm.bg_color taep))) (fx=? (attrentry_T.ae_u.cterm.ul_color aep) (attrentry_T.ae_u.cterm.ul_color taep))) (fx=? (attrentry_T.ae_u.cterm.font aep) (attrentry_T.ae_u.cterm.font taep)))))
+               (i32+ i 2048)
+               (loop1 (i32+ i 1))))]
+        [(fx>? (i32+ (garray_T.ga_len table) 2048) 65535)
+         (cond
+           [get_attr_entry:recursive (emsg ed e_too_many_different_highlighting_attributes_in_use) 0]
+           [else (set! get_attr_entry:recursive #t) (clear_hl_tables ed) (set_must_redraw ed 50) (let loop5 ([i 0])
+                                                                                                   (cond
+                                                                                                     [(fx<? i (garray_T.ga_len highlight_ga)) (set_hl_attr ed i) (loop5 (i32+ i 1))]
+                                                                                                     [else (set! get_attr_entry:recursive #f) (join7)]))])]
+        [else (join7)]))))
 
 (define (clear_hl_tables ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (cond
         [(fx<? i (garray_T.ga_len term_attr_table)) (loop1 (i32+ i 1))]
-        [else (ga_clear ed term_attr_table) (ga_clear ed cterm_attr_table)]))
-    (loop1 0)))
+        [else (ga_clear ed term_attr_table) (ga_clear ed cterm_attr_table)]))))
 
 (define (hl_combine_attr ed char_attr prim_attr)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
@@ -17550,15 +18211,14 @@
 
 (define (syn_override ed id)
   (let ([mem (ed-mem ed)])
-    (define (loop2 k)
-      (if (fx<? k (hl_overrides_T.len overrides))
-          (if (fx=? (hl_override_T.from (fx+ (hl_overrides_T.arr overrides) (fx* k 8))) id)
-              (hl_override_T.to (fx+ (hl_overrides_T.arr overrides) (fx* k 8)))
-              (loop2 (i32+ k 1)))
-          (join3)))
     (define (join3)
       id)
-    (if (and (not (fx=? overrides 0)) (not (fx=? (hl_overrides_T.arr overrides) 0))) (loop2 0) (join3))))
+    (if (and (not (fx=? overrides 0)) (not (fx=? (hl_overrides_T.arr overrides) 0))) (let loop2 ([k 0])
+                                                                                       (if (fx<? k (hl_overrides_T.len overrides))
+                                                                                           (if (fx=? (hl_override_T.from (fx+ (hl_overrides_T.arr overrides) (fx* k 8))) id)
+                                                                                               (hl_override_T.to (fx+ (hl_overrides_T.arr overrides) (fx* k 8)))
+                                                                                               (loop2 (i32+ k 1)))
+                                                                                           (join3))) (join3))))
 
 (define (syn_name2id_len ed name len)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 208)])
@@ -17567,16 +18227,15 @@
       (musl_memmove ed name_u name (->u64 len))
       (st-u8! (fx+ name_u len) 0)
       (vim_strup ed name_u)
-      (loop3 0))
-    (define (loop3 i)
-      (cond
-        [(fx<? i (garray_T.ga_len highlight_ga))
-         (cond
-           [(fx=? (musl_strcmp ed (hl_group_T.sg_name_u (fx+ (garray_T.ga_data highlight_ga) (fx* i 88))) name_u) 0)
-            (frame-pop! ed fr)
-            (i32+ i 1)]
-           [else (loop3 (i32+ i 1))])]
-        [else (frame-pop! ed fr) 0]))
+      (let loop3 ([i 0])
+        (cond
+          [(fx<? i (garray_T.ga_len highlight_ga))
+           (cond
+             [(fx=? (musl_strcmp ed (hl_group_T.sg_name_u (fx+ (garray_T.ga_data highlight_ga) (fx* i 88))) name_u) 0)
+              (frame-pop! ed fr)
+              (i32+ i 1)]
+             [else (loop3 (i32+ i 1))])]
+          [else (frame-pop! ed fr) 0])))
     (if (fx>? len 200) (join2 200) (join2 len))))
 
 (define (syn_namen2id ed linep len)
@@ -17596,15 +18255,6 @@
 
 (define (syn_add_group ed name)
   (let ([mem (ed-mem ed)])
-    (define (loop1 p)
-      (cond
-        [(fx=? (ld-u8 p) 0) (join6)]
-        [(not (vim_isprintc ed (ld-u8 p))) (emsg ed e_unprintable_character_in_group_name) 0]
-        [(and (and (and (not (or (or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p))) (ascii_isdigit ed (ld-u8 p)))) (not (fx=? (ld-u8 p) 95))) (not (fx=? (ld-u8 p) 46))) (not (fx=? (ld-u8 p) 45)))
-         (msg_source ed (ld-s32 (fx+ highlight_attr 100)))
-         (msg ed (c-str 163852 "W18: Invalid character in group name"))
-         (join6)]
-        [else (loop1 (fx+ p 1))]))
     (define (join6)
       (cond
         [(fx=? (garray_T.ga_data highlight_ga) 0)
@@ -17624,7 +18274,15 @@
            (hl_group_T.sg_name_u-set! (fx+ (garray_T.ga_data highlight_ga) (fx* (garray_T.ga_len highlight_ga) 88)) name_up)
            (garray_T.ga_len-set! highlight_ga (i32+ (garray_T.ga_len highlight_ga) 1))
            (garray_T.ga_len highlight_ga))]))
-    (loop1 name)))
+    (let loop1 ([p name])
+      (cond
+        [(fx=? (ld-u8 p) 0) (join6)]
+        [(not (vim_isprintc ed (ld-u8 p))) (emsg ed e_unprintable_character_in_group_name) 0]
+        [(and (and (and (not (or (or (ascii_isupper ed (ld-u8 p)) (ascii_islower ed (ld-u8 p))) (ascii_isdigit ed (ld-u8 p)))) (not (fx=? (ld-u8 p) 95))) (not (fx=? (ld-u8 p) 46))) (not (fx=? (ld-u8 p) 45)))
+         (msg_source ed (ld-s32 (fx+ highlight_attr 100)))
+         (msg ed (c-str 163852 "W18: Invalid character in group name"))
+         (join6)]
+        [else (loop1 (fx+ p 1))]))))
 
 (define (syn_unadd_group ed)
   (let ([mem (ed-mem ed)])
@@ -17640,30 +18298,22 @@
 
 (define (syn_get_final_id ed hl_id)
   (let ([mem (ed-mem ed)])
-    (define (loop2 hl_id count)
-      (let ([count (i32- count 1)])
-        (if (fx>=? count 0)
-            (let ([sgp (fx+ (garray_T.ga_data highlight_ga) (fx* (i32- hl_id 1) 88))])
-              (if (or (fx=? (hl_group_T.sg_link sgp) 0) (fx>? (hl_group_T.sg_link sgp) (garray_T.ga_len highlight_ga)))
-                  (join7 hl_id)
-                  (let* ([tmp hl_id]
-                         [hl_id (syn_override ed hl_id)])
-                    (if (not (fx=? tmp hl_id)) (loop2 hl_id count) (loop2 (hl_group_T.sg_link sgp) count)))))
-            (join7 hl_id))))
     (define (join7 hl_id)
       (syn_override ed hl_id))
-    (if (or (fx>? hl_id (garray_T.ga_len highlight_ga)) (fx<? hl_id 1)) 0 (loop2 hl_id 100))))
+    (if (or (fx>? hl_id (garray_T.ga_len highlight_ga)) (fx<? hl_id 1)) 0 (let loop2 ([hl_id hl_id]
+                                                                                      [count 100])
+                                                                            (let ([count (i32- count 1)])
+                                                                              (if (fx>=? count 0)
+                                                                                  (let ([sgp (fx+ (garray_T.ga_data highlight_ga) (fx* (i32- hl_id 1) 88))])
+                                                                                    (if (or (fx=? (hl_group_T.sg_link sgp) 0) (fx>? (hl_group_T.sg_link sgp) (garray_T.ga_len highlight_ga)))
+                                                                                        (join7 hl_id)
+                                                                                        (let* ([tmp hl_id]
+                                                                                               [hl_id (syn_override ed hl_id)])
+                                                                                          (if (not (fx=? tmp hl_id)) (loop2 hl_id count) (loop2 (hl_group_T.sg_link sgp) count)))))
+                                                                                  (join7 hl_id)))))))
 
 (define (highlight_changed ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 hlf)
-      (cond
-        [(fx<? hlf 70)
-         (st-s32! (fx+ highlight_attr (fx* hlf 4)) 0)
-         (st-s32! (fx+ highlight_attr_raw (fx* hlf 4)) 0)
-         (st-s32! (fx+ highlight_ids (fx* hlf 4)) 0)
-         (loop1 (i32+ hlf 1))]
-        [else (loop3 0 (get_highlight_default ed))]))
     (define (loop3 i default_hl)
       (if (fx<? i 2)
           (cond
@@ -17679,13 +18329,15 @@
     (define (join11 i p default_hl)
       (if (fx=? p 0) (join46 i default_hl) (loop13 i p default_hl)))
     (define (loop13 i p default_hl)
-      (if (not (fxzero? (ld-u8 p))) (loop15 0 i p default_hl) (join46 i default_hl)))
-    (define (loop15 hlf i p default_hl)
-      (if (fx<? hlf 70)
-          (if (fx=? (ld-s32 (fx+ hl_flags (fx* hlf 4))) (ld-u8 p))
-              (join18 hlf i p default_hl)
-              (loop15 (i32+ hlf 1) i p default_hl))
-          (join18 hlf i p default_hl)))
+      (if (not (fxzero? (ld-u8 p))) (let loop15 ([hlf 0]
+                                                 [i i]
+                                                 [p p]
+                                                 [default_hl default_hl])
+                                      (if (fx<? hlf 70)
+                                          (if (fx=? (ld-s32 (fx+ hl_flags (fx* hlf 4))) (ld-u8 p))
+                                              (join18 hlf i p default_hl)
+                                              (loop15 (i32+ hlf 1) i p default_hl))
+                                          (join18 hlf i p default_hl))) (join46 i default_hl)))
     (define (join18 hlf i p default_hl)
       (let ([p (fx+ p 1)])
         (if (or (fx=? hlf 70) (fx=? (ld-u8 p) 0)) #f (loop20 hlf i p default_hl 0 0))))
@@ -17731,7 +18383,14 @@
     (define (join46 i default_hl)
       (loop3 (i32+ i 1) default_hl))
     (set! need_highlight_changed #f)
-    (loop1 0)))
+    (let loop1 ([hlf 0])
+      (cond
+        [(fx<? hlf 70)
+         (st-s32! (fx+ highlight_attr (fx* hlf 4)) 0)
+         (st-s32! (fx+ highlight_attr_raw (fx* hlf 4)) 0)
+         (st-s32! (fx+ highlight_ids (fx* hlf 4)) 0)
+         (loop1 (i32+ hlf 1))]
+        [else (loop3 0 (get_highlight_default ed))]))))
 
 (define (update_highlight_overrides ed old hl_new newlen)
   (let ([mem (ed-mem ed)])
@@ -17754,13 +18413,15 @@
         (let ([override (fx+ arr (fx* i 8))])
           (if (fx<=? (hl_override_T.from override) 0)
               (join11 i override (i32- 0 (hl_override_T.from override)))
-              (loop5 i override -1 0)))))
-    (define (loop5 i override hlf k)
-      (if (fx<? k 70)
-          (if (fx=? (hl_override_T.from override) (ld-s32 (fx+ highlight_ids (fx* k 4))))
-              (join9 i override k)
-              (loop5 i override hlf (i32+ k 1)))
-          (join9 i override hlf)))
+              (let loop5 ([i i]
+                          [override override]
+                          [hlf -1]
+                          [k 0])
+                (if (fx<? k 70)
+                    (if (fx=? (hl_override_T.from override) (ld-s32 (fx+ highlight_ids (fx* k 4))))
+                        (join9 i override k)
+                        (loop5 i override hlf (i32+ k 1)))
+                    (join9 i override hlf)))))))
     (define (join9 i override hlf)
       (if (fx=? hlf -1) (join21 i) (join11 i override hlf)))
     (define (join11 i override hlf)
@@ -17819,18 +18480,6 @@
     (define-c-local fromid &fromid s32 56)
     (define-c-local toid &toid s32 60)
     (define-c-local ids &ids agg 64)
-    (define (loop2 len errmsg p i num n_colons out___r__ out___len out___errmsg)
-      (let ([p (vim_strchr ed p 44)])
-        (if (not (fx=? p 0))
-            (loop2 len errmsg (fx+ p 1) i (i32+ num 1) n_colons out___r__ out___len out___errmsg)
-            (loop4 len errmsg opt i num n_colons out___r__ out___len out___errmsg))))
-    (define (loop4 len errmsg p i num n_colons out___r__ out___len out___errmsg)
-      (let ([p (vim_strchr ed p 58)])
-        (cond
-          [(not (fx=? p 0))
-           (loop4 len errmsg (fx+ p 1) i num (i32+ n_colons 1) out___r__ out___len out___errmsg)]
-          [(not (fx=? num n_colons)) (frame-pop! ed fr) (values 0 len e_invalid_argument)]
-          [else (loop7 len errmsg opt (alloc ed (u64* 8 (->u64 num))) i num out___r__ out___len out___errmsg)])))
     (define (loop7 len errmsg p arr i num out___r__ out___len out___errmsg)
       (let* ([t1 i]
              [i (i32+ i 1)]
@@ -17880,7 +18529,25 @@
              [(fx=? (ld-u8 name) 33)
               (cond
                 [(not (fx=? nlen 2)) (frame-pop! ed fr) (values 0 len e_invalid_argument)]
-                [else (loop28 len errmsg p arr i num override tmp k name 0 out___r__ out___len out___errmsg)])]
+                [else (let loop28 ([len len]
+                                   [errmsg errmsg]
+                                   [p p]
+                                   [arr arr]
+                                   [i i]
+                                   [num num]
+                                   [override override]
+                                   [tmp tmp]
+                                   [k k]
+                                   [name name]
+                                   [hlf 0]
+                                   [out___r__ out___r__]
+                                   [out___len out___len]
+                                   [out___errmsg out___errmsg])
+                        (if (fx<? hlf 70)
+                            (if (fx=? (ld-s32 (fx+ hl_flags (fx* hlf 4))) (ld-u8 (fx+ name 1)))
+                                (join31 len errmsg p arr i num override tmp k hlf out___r__ out___len out___errmsg)
+                                (loop28 len errmsg p arr i num override tmp k name (i32+ hlf 1) out___r__ out___len out___errmsg))
+                            (join31 len errmsg p arr i num override tmp k hlf out___r__ out___len out___errmsg)))])]
              [(fx=? (syn_check_group ed name nlen) 0) (frame-pop! ed fr) (values 0 len e_invalid_argument)]
              [else
               (let ([r1 (ld-ptr (fx+ ids (fx* k 8)))])
@@ -17899,12 +18566,6 @@
          (cond
            [(fx=? tmp 0) (frame-pop! ed fr) (values arr num errmsg)]
            [else (loop7 len errmsg p arr i num out___r__ out___len out___errmsg)])]))
-    (define (loop28 len errmsg p arr i num override tmp k name hlf out___r__ out___len out___errmsg)
-      (if (fx<? hlf 70)
-          (if (fx=? (ld-s32 (fx+ hl_flags (fx* hlf 4))) (ld-u8 (fx+ name 1)))
-              (join31 len errmsg p arr i num override tmp k hlf out___r__ out___len out___errmsg)
-              (loop28 len errmsg p arr i num override tmp k name (i32+ hlf 1) out___r__ out___len out___errmsg))
-          (join31 len errmsg p arr i num override tmp k hlf out___r__ out___len out___errmsg)))
     (define (join31 len errmsg p arr i num override tmp k hlf out___r__ out___len out___errmsg)
       (cond
         [(fx>=? hlf 70) (frame-pop! ed fr) (values 0 len e_invalid_argument)]
@@ -17915,7 +18576,33 @@
       (loop15 len errmsg p arr i num override tmp (i32+ k 1) out___r__ out___len out___errmsg))
     (cond
       [(fx=? (ld-u8 opt) 0) (frame-pop! ed fr) (values 0 len errmsg)]
-      [else (loop2 len errmsg opt 0 1 0 0 0 0)])))
+      [else (let loop2 ([len len]
+                        [errmsg errmsg]
+                        [p opt]
+                        [i 0]
+                        [num 1]
+                        [n_colons 0]
+                        [out___r__ 0]
+                        [out___len 0]
+                        [out___errmsg 0])
+              (let ([p (vim_strchr ed p 44)])
+                (if (not (fx=? p 0))
+                    (loop2 len errmsg (fx+ p 1) i (i32+ num 1) n_colons out___r__ out___len out___errmsg)
+                    (let loop4 ([len len]
+                                [errmsg errmsg]
+                                [p opt]
+                                [i i]
+                                [num num]
+                                [n_colons n_colons]
+                                [out___r__ out___r__]
+                                [out___len out___len]
+                                [out___errmsg out___errmsg])
+                      (let ([p (vim_strchr ed p 58)])
+                        (cond
+                          [(not (fx=? p 0))
+                           (loop4 len errmsg (fx+ p 1) i num (i32+ n_colons 1) out___r__ out___len out___errmsg)]
+                          [(not (fx=? num n_colons)) (frame-pop! ed fr) (values 0 len e_invalid_argument)]
+                          [else (loop7 len errmsg opt (alloc ed (u64* 8 (->u64 num))) i num out___r__ out___len out___errmsg)]))))))])))
 
 (define (update_winhighlight ed wp opt)
   (let ([mem (ed-mem ed)])
@@ -18064,22 +18751,35 @@
       (if (not (fx=? orig_char_len -1))
           (let* ([newline_ (alloc ed (->u64 (i32+ (i32- (i32+ orig_char_len size) ind_done) line_len)))]
                  [todo (i32- size ind_done)])
-            (loop24 oldline newline_ oldline newline_ todo (i32+ orig_char_len todo) line_len retval orig_char_len))
+            (let loop24 ([p oldline]
+                         [newline_ newline_]
+                         [oldline oldline]
+                         [s newline_]
+                         [todo todo]
+                         [ind_len (i32+ orig_char_len todo)]
+                         [line_len line_len]
+                         [retval retval]
+                         [orig_char_len orig_char_len])
+              (if (fx>? orig_char_len 0)
+                  (let* ([t1 s]
+                         [s (fx+ s 1)]
+                         [t2 p]
+                         [p (fx+ p 1)])
+                    (st-u8! t1 (ld-u8 t2))
+                    (loop24 p newline_ oldline s todo ind_len line_len retval (i32- orig_char_len 1)))
+                  (let loop26 ([p p]
+                               [newline_ newline_]
+                               [oldline oldline]
+                               [s s]
+                               [todo todo]
+                               [ind_len ind_len]
+                               [line_len line_len]
+                               [retval retval])
+                    (if (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9))
+                        (loop26 (fx+ p 1) newline_ oldline s todo ind_len line_len retval)
+                        (join27 p newline_ oldline s todo ind_len line_len retval))))))
           (let ([newline_ (alloc ed (->u64 (i32+ ind_len line_len)))])
             (join27 p newline_ oldline newline_ size ind_len line_len retval))))
-    (define (loop24 p newline_ oldline s todo ind_len line_len retval orig_char_len)
-      (if (fx>? orig_char_len 0)
-          (let* ([t1 s]
-                 [s (fx+ s 1)]
-                 [t2 p]
-                 [p (fx+ p 1)])
-            (st-u8! t1 (ld-u8 t2))
-            (loop24 p newline_ oldline s todo ind_len line_len retval (i32- orig_char_len 1)))
-          (loop26 p newline_ oldline s todo ind_len line_len retval)))
-    (define (loop26 p newline_ oldline s todo ind_len line_len retval)
-      (if (or (fx=? (ld-u8 p) 32) (fx=? (ld-u8 p) 9))
-          (loop26 (fx+ p 1) newline_ oldline s todo ind_len line_len retval)
-          (join27 p newline_ oldline s todo ind_len line_len retval)))
     (define (join27 p newline_ oldline s todo ind_len line_len retval)
       (cond
         [(not (fxzero? (buf_T.b_p_et curbuf))) (loop42 p newline_ oldline s todo ind_len line_len retval)]
@@ -18168,12 +18868,12 @@
 
 (define (inindent ed extra)
   (let ([mem (ed-mem ed)])
-    (define (loop1 ptr col)
+    (let loop1 ([ptr (ml_get_curline ed)]
+                [col 0])
       (cond
         [(or (fx=? (ld-u8 ptr) 32) (fx=? (ld-u8 ptr) 9)) (loop1 (fx+ ptr 1) (i32+ col 1))]
         [(fx>=? col (i32+ (win_T.w_cursor.col curwin) extra)) #t]
-        [else #f]))
-    (loop1 (ml_get_curline ed) 0)))
+        [else #f]))))
 
 (define (preprocs_left ed)
   (let ([mem (ed-mem ed)])
@@ -18194,25 +18894,37 @@
                 [ptr (ml_get ed (pos_T.lnum pos))]
                 [i (pos_T.col pos)])
            (if (fx>? i 0)
-               (loop17 pos old_pos_lnum old_pos_col old_pos_coladd ptr i)
+               (let loop17 ([pos pos]
+                            [old_pos_lnum old_pos_lnum]
+                            [old_pos_col old_pos_col]
+                            [old_pos_coladd old_pos_coladd]
+                            [ptr ptr]
+                            [i i])
+                 (let ([i (i32- i 1)])
+                   (if (and (fx>? i 0) (or (fx=? (ld-u8 (fx+ ptr i)) 32) (fx=? (ld-u8 (fx+ ptr i)) 9)))
+                       (loop17 pos old_pos_lnum old_pos_col old_pos_coladd ptr i)
+                       (join18 pos old_pos_lnum old_pos_col old_pos_coladd ptr i))))
                (join18 pos old_pos_lnum old_pos_col old_pos_coladd ptr i)))]
         [(fx>? (win_T.w_cursor.col curwin) 0)
          (if (and (and (fx=? c 123) can_si_back) (> (win_T.w_cursor.lnum curwin) 1))
              (let* ([old_pos_lnum (win_T.w_cursor.lnum curwin)]
                     [old_pos_col (win_T.w_cursor.col curwin)]
                     [old_pos_coladd (win_T.w_cursor.coladd curwin)])
-               (loop7 old_pos_lnum old_pos_col old_pos_coladd (get_indent ed) #t))
+               (let loop7 ([old_pos_lnum old_pos_lnum]
+                           [old_pos_col old_pos_col]
+                           [old_pos_coladd old_pos_coladd]
+                           [i (get_indent ed)]
+                           [temp #t])
+                 (if (> (win_T.w_cursor.lnum curwin) 1)
+                     (let ([r1 curwin])
+                       (win_T.w_cursor.lnum-set! r1 (i64- (win_T.w_cursor.lnum r1) 1))
+                       (let ([ptr (skipwhite ed (ml_get ed (win_T.w_cursor.lnum curwin)))])
+                         (if (and (not (fx=? (ld-u8 ptr) 35)) (not (fx=? (ld-u8 ptr) 0)))
+                             (join10 old_pos_lnum old_pos_col old_pos_coladd i temp)
+                             (loop7 old_pos_lnum old_pos_col old_pos_coladd i temp))))
+                     (join10 old_pos_lnum old_pos_col old_pos_coladd i temp))))
              (join13 #t))]
         [else (join25)]))
-    (define (loop7 old_pos_lnum old_pos_col old_pos_coladd i temp)
-      (if (> (win_T.w_cursor.lnum curwin) 1)
-          (let ([r1 curwin])
-            (win_T.w_cursor.lnum-set! r1 (i64- (win_T.w_cursor.lnum r1) 1))
-            (let ([ptr (skipwhite ed (ml_get ed (win_T.w_cursor.lnum curwin)))])
-              (if (and (not (fx=? (ld-u8 ptr) 35)) (not (fx=? (ld-u8 ptr) 0)))
-                  (join10 old_pos_lnum old_pos_col old_pos_coladd i temp)
-                  (loop7 old_pos_lnum old_pos_col old_pos_coladd i temp))))
-          (join10 old_pos_lnum old_pos_col old_pos_coladd i temp)))
     (define (join10 old_pos_lnum old_pos_col old_pos_coladd i temp)
       (if (fx>=? (get_indent ed) i)
           (join12 old_pos_lnum old_pos_col old_pos_coladd #f)
@@ -18226,11 +18938,6 @@
       (cond
         [temp (shift_line ed #t 0 1 #t) (join25)]
         [else (join25)]))
-    (define (loop17 pos old_pos_lnum old_pos_col old_pos_coladd ptr i)
-      (let ([i (i32- i 1)])
-        (if (and (fx>? i 0) (or (fx=? (ld-u8 (fx+ ptr i)) 32) (fx=? (ld-u8 (fx+ ptr i)) 9)))
-            (loop17 pos old_pos_lnum old_pos_col old_pos_coladd ptr i)
-            (join18 pos old_pos_lnum old_pos_col old_pos_coladd ptr i))))
     (define (join18 pos old_pos_lnum old_pos_col old_pos_coladd ptr i)
       (win_T.w_cursor.lnum-set! curwin (pos_T.lnum pos))
       (win_T.w_cursor.col-set! curwin i)
@@ -18343,17 +19050,24 @@
                   [ptr (alloc ed (->u64 (i32+ i 1)))]
                   [new_cursor_col (i32+ new_cursor_col i)])
              (st-u8! (fx+ ptr i) 0)
-             (loop21 replaced new_cursor_col i ptr save_p_list start_col orig_col orig_line (->u64 i)))]
+             (let loop21 ([replaced replaced]
+                          [new_cursor_col new_cursor_col]
+                          [i i]
+                          [ptr ptr]
+                          [save_p_list save_p_list]
+                          [start_col start_col]
+                          [orig_col orig_col]
+                          [orig_line orig_line]
+                          [ptrlen (->u64 i)])
+               (let ([i (i32- i 1)])
+                 (cond
+                   [(fx>=? i 0)
+                    (st-u8! (fx+ ptr i) 32)
+                    (loop21 replaced new_cursor_col i ptr save_p_list start_col orig_col orig_line ptrlen)]
+                   [else
+                    (ins_str ed ptr ptrlen)
+                    (join23 replaced new_cursor_col save_p_list start_col orig_col orig_line)]))))]
           [else (join23 replaced new_cursor_col save_p_list start_col orig_col orig_line)])))
-    (define (loop21 replaced new_cursor_col i ptr save_p_list start_col orig_col orig_line ptrlen)
-      (let ([i (i32- i 1)])
-        (cond
-          [(fx>=? i 0)
-           (st-u8! (fx+ ptr i) 32)
-           (loop21 replaced new_cursor_col i ptr save_p_list start_col orig_col orig_line ptrlen)]
-          [else
-           (ins_str ed ptr ptrlen)
-           (join23 replaced new_cursor_col save_p_list start_col orig_col orig_line)])))
     (define (join23 replaced new_cursor_col save_p_list start_col orig_col orig_line)
       (join29 replaced 2147483647 new_cursor_col save_p_list start_col orig_col orig_line))
     (define (join28 replaced insstart_less new_cursor_col save_p_list start_col orig_col orig_line)
@@ -18387,14 +19101,16 @@
         [else (set! ai_col (i32- ai_col insstart_less)) (join40 replaced start_col orig_col orig_line)]))
     (define (join40 replaced start_col orig_col orig_line)
       (if (and (and (not (fxzero? (fxand State 256))) (not (not (fxzero? (fxand State 512))))) (fx>=? start_col 0))
-          (loop42 replaced start_col orig_col orig_line)
+          (let loop42 ([replaced replaced]
+                       [start_col start_col]
+                       [orig_col orig_col]
+                       [orig_line orig_line])
+            (cond
+              [(fx>? start_col (win_T.w_cursor.col curwin))
+               (replace_join ed 0)
+               (loop42 replaced (i32- start_col 1) orig_col orig_line)]
+              [else (loop44 replaced start_col orig_col orig_line)]))
           (join45 orig_col orig_line)))
-    (define (loop42 replaced start_col orig_col orig_line)
-      (cond
-        [(fx>? start_col (win_T.w_cursor.col curwin))
-         (replace_join ed 0)
-         (loop42 replaced (i32- start_col 1) orig_col orig_line)]
-        [else (loop44 replaced start_col orig_col orig_line)]))
     (define (loop44 replaced start_col orig_col orig_line)
       (cond
         [(or (fx<? start_col (win_T.w_cursor.col curwin)) (not (fxzero? replaced)))
@@ -18469,18 +19185,22 @@
             (join15 p line todo ind_len line_len round_))))
     (define (join15 p line todo ind_len line_len round_)
       (if (not (not (fxzero? (buf_T.b_p_et curbuf))))
-          (loop17 p line todo ind_len line_len round_)
-          (loop19 p line todo ind_len line_len round_)))
-    (define (loop17 p line todo ind_len line_len round_)
-      (if (fx>=? todo (->i32 (buf_T.b_p_ts curbuf)))
-          (let* ([todo (i32- todo (->i32 (buf_T.b_p_ts curbuf)))]
-                 [ind_len (i32+ ind_len 1)])
-            (if (not (fx=? p 0))
-                (let* ([t3 p]
-                       [p (fx+ p 1)])
-                  (st-u8! t3 9)
-                  (loop17 p line todo ind_len line_len round_))
-                (loop17 p line todo ind_len line_len round_)))
+          (let loop17 ([p p]
+                       [line line]
+                       [todo todo]
+                       [ind_len ind_len]
+                       [line_len line_len]
+                       [round_ round_])
+            (if (fx>=? todo (->i32 (buf_T.b_p_ts curbuf)))
+                (let* ([todo (i32- todo (->i32 (buf_T.b_p_ts curbuf)))]
+                       [ind_len (i32+ ind_len 1)])
+                  (if (not (fx=? p 0))
+                      (let* ([t3 p]
+                             [p (fx+ p 1)])
+                        (st-u8! t3 9)
+                        (loop17 p line todo ind_len line_len round_))
+                      (loop17 p line todo ind_len line_len round_)))
+                (loop19 p line todo ind_len line_len round_)))
           (loop19 p line todo ind_len line_len round_)))
     (define (loop19 p line todo ind_len line_len round_)
       (cond
@@ -18575,19 +19295,18 @@
       (let ([len (i32+ len 1)])
         (cond
           [(fx<=? len 3) (msg_putchar ed 32) (loop6 len)]
-          [else (loop8 (msg_outtrans_special ed (mapblock_T.m_keys mp) #t 0))])))
-    (define (loop8 len)
-      (msg_putchar ed 32)
-      (let ([len (i32+ len 1)])
-        (cond
-          [(fx<? len 12) (loop8 len)]
-          [(fx=? (mapblock_T.m_noremap mp) -1)
-           (msg_puts_attr ed (c-str 163908 "*") (ld-s32 highlight_attr))
-           (join15)]
-          [(fx=? (mapblock_T.m_noremap mp) -2)
-           (msg_puts_attr ed (c-str 163910 "&") (ld-s32 highlight_attr))
-           (join15)]
-          [else (msg_putchar ed 32) (join15)])))
+          [else (let loop8 ([len (msg_outtrans_special ed (mapblock_T.m_keys mp) #t 0)])
+                  (msg_putchar ed 32)
+                  (let ([len (i32+ len 1)])
+                    (cond
+                      [(fx<? len 12) (loop8 len)]
+                      [(fx=? (mapblock_T.m_noremap mp) -1)
+                       (msg_puts_attr ed (c-str 163908 "*") (ld-s32 highlight_attr))
+                       (join15)]
+                      [(fx=? (mapblock_T.m_noremap mp) -2)
+                       (msg_puts_attr ed (c-str 163910 "&") (ld-s32 highlight_attr))
+                       (join15)]
+                      [else (msg_putchar ed 32) (join15)])))])))
     (define (join15)
       (cond
         [local (msg_putchar ed 64) (join18)]
@@ -18820,14 +19539,36 @@
                (join133 maptype keys rhs p n len hasarg haskey do_print keyround alt_keys_buf retval abbr_table map_table unique nowait silent unmap_lhs_only noremap orig_rhs did_it did_local keyround1_simplified first last same keys_unescaped_len replace_termcodes__o_r__ replace_termcodes__o_bufp)))]
         [(and (and (and last (fx>? n 2)) (fx>=? same 0)) (fx<? same (i32- n 1))) (frame-pop! ed fr) 1]
         [else
-         (loop40 maptype keys rhs 0 len hasarg haskey do_print keyround alt_keys_buf retval abbr_table map_table unique nowait silent unmap_lhs_only noremap orig_rhs did_it did_local keyround1_simplified replace_termcodes__o_r__ replace_termcodes__o_bufp)]))
-    (define (loop40 maptype keys rhs n len hasarg haskey do_print keyround alt_keys_buf retval abbr_table map_table unique nowait silent unmap_lhs_only noremap orig_rhs did_it did_local keyround1_simplified replace_termcodes__o_r__ replace_termcodes__o_bufp)
-      (if (fx<? n len)
-          (cond
-            [(or (fx=? (ld-u8 (fx+ keys n)) 32) (fx=? (ld-u8 (fx+ keys n)) 9)) (frame-pop! ed fr) 1]
-            [else
-             (loop40 maptype keys rhs (i32+ n 1) len hasarg haskey do_print keyround alt_keys_buf retval abbr_table map_table unique nowait silent unmap_lhs_only noremap orig_rhs did_it did_local keyround1_simplified replace_termcodes__o_r__ replace_termcodes__o_bufp)])
-          (join41 maptype keys rhs len hasarg haskey do_print keyround alt_keys_buf retval abbr_table map_table unique nowait silent unmap_lhs_only noremap orig_rhs did_it did_local keyround1_simplified replace_termcodes__o_r__ replace_termcodes__o_bufp)))
+         (let loop40 ([maptype maptype]
+                      [keys keys]
+                      [rhs rhs]
+                      [n 0]
+                      [len len]
+                      [hasarg hasarg]
+                      [haskey haskey]
+                      [do_print do_print]
+                      [keyround keyround]
+                      [alt_keys_buf alt_keys_buf]
+                      [retval retval]
+                      [abbr_table abbr_table]
+                      [map_table map_table]
+                      [unique unique]
+                      [nowait nowait]
+                      [silent silent]
+                      [unmap_lhs_only unmap_lhs_only]
+                      [noremap noremap]
+                      [orig_rhs orig_rhs]
+                      [did_it did_it]
+                      [did_local did_local]
+                      [keyround1_simplified keyround1_simplified]
+                      [replace_termcodes__o_r__ replace_termcodes__o_r__]
+                      [replace_termcodes__o_bufp replace_termcodes__o_bufp])
+           (if (fx<? n len)
+               (cond
+                 [(or (fx=? (ld-u8 (fx+ keys n)) 32) (fx=? (ld-u8 (fx+ keys n)) 9)) (frame-pop! ed fr) 1]
+                 [else
+                  (loop40 maptype keys rhs (i32+ n 1) len hasarg haskey do_print keyround alt_keys_buf retval abbr_table map_table unique nowait silent unmap_lhs_only noremap orig_rhs did_it did_local keyround1_simplified replace_termcodes__o_r__ replace_termcodes__o_bufp)])
+               (join41 maptype keys rhs len hasarg haskey do_print keyround alt_keys_buf retval abbr_table map_table unique nowait silent unmap_lhs_only noremap orig_rhs did_it did_local keyround1_simplified replace_termcodes__o_r__ replace_termcodes__o_bufp)))]))
     (define (join41 maptype keys rhs len hasarg haskey do_print keyround alt_keys_buf retval abbr_table map_table unique nowait silent unmap_lhs_only noremap orig_rhs did_it did_local keyround1_simplified replace_termcodes__o_r__ replace_termcodes__o_bufp)
       (cond
         [(and (and haskey hasarg) abbrev)
@@ -19129,35 +19870,37 @@
 
 (define (vim_strsave_escape_csi ed p)
   (let ([mem (ed-mem ed)])
-    (define (loop1 res s d)
-      (cond
-        [(fx=? (ld-u8 s) 0) (st-u8! d 0) res]
-        [(and (and (fx=? (ld-u8 s) 128) (not (fx=? (ld-u8 (fx+ s 1)) 0))) (not (fx=? (ld-u8 (fx+ s 2)) 0)))
-         (let* ([t1 d]
-                [d (fx+ d 1)]
-                [t2 s]
-                [s (fx+ s 1)])
-           (st-u8! t1 (ld-u8 t2))
-           (let* ([t3 d]
-                  [d (fx+ d 1)]
-                  [t4 s]
-                  [s (fx+ s 1)])
-             (st-u8! t3 (ld-u8 t4))
-             (let* ([t5 d]
-                    [d (fx+ d 1)]
-                    [t6 s]
-                    [s (fx+ s 1)])
-               (st-u8! t5 (ld-u8 t6))
-               (loop1 res s d))))]
-        [else
-         (let ([d (add_char2buf ed (utf_ptr2char ed s) d)])
-           (loop1 res (fx+ s (utf_ptr2len ed s)) d))]))
     (let ([res (alloc ed (u64+ (u64* (musl_strlen ed p) 4) 1))])
-      (loop1 res p res))))
+      (let loop1 ([res res]
+                  [s p]
+                  [d res])
+        (cond
+          [(fx=? (ld-u8 s) 0) (st-u8! d 0) res]
+          [(and (and (fx=? (ld-u8 s) 128) (not (fx=? (ld-u8 (fx+ s 1)) 0))) (not (fx=? (ld-u8 (fx+ s 2)) 0)))
+           (let* ([t1 d]
+                  [d (fx+ d 1)]
+                  [t2 s]
+                  [s (fx+ s 1)])
+             (st-u8! t1 (ld-u8 t2))
+             (let* ([t3 d]
+                    [d (fx+ d 1)]
+                    [t4 s]
+                    [s (fx+ s 1)])
+               (st-u8! t3 (ld-u8 t4))
+               (let* ([t5 d]
+                      [d (fx+ d 1)]
+                      [t6 s]
+                      [s (fx+ s 1)])
+                 (st-u8! t5 (ld-u8 t6))
+                 (loop1 res s d))))]
+          [else
+           (let ([d (add_char2buf ed (utf_ptr2char ed s) d)])
+             (loop1 res (fx+ s (utf_ptr2len ed s)) d))])))))
 
 (define (vim_unescape_csi ed p)
   (let ([mem (ed-mem ed)])
-    (define (loop1 s d)
+    (let loop1 ([s p]
+                [d p])
       (cond
         [(fx=? (ld-u8 s) 0) (st-u8! d 0) (->u64 (fx- d p))]
         [(and (and (fx=? (ld-u8 s) 128) (fx=? (ld-u8 (fx+ s 1)) 254)) (fx=? (ld-u8 (fx+ s 2)) 88))
@@ -19176,8 +19919,7 @@
                 [t4 s]
                 [s (fx+ s 1)])
            (st-u8! t3 (ld-u8 t4))
-           (loop1 s d))]))
-    (loop1 p p)))
+           (loop1 s d))]))))
 
 (define (check_map_keycodes ed)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
@@ -19234,11 +19976,10 @@
 
 (define (init_mappings ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (when (fx<? i 4)
         (add_map ed (initmap.arg (fx+ vimrc_mappings (fx* i 16))) (initmap.mode (fx+ vimrc_mappings (fx* i 16))) #f)
-        (loop1 (i32+ i 1))))
-    (loop1 0)))
+        (loop1 (i32+ i 1))))))
 
 (define (add_map ed map_ mode nore)
   (let ([mem (ed-mem ed)])
@@ -19447,7 +20188,7 @@
 
 (define (clrallmarks ed buf)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (cond
         [(fx<? i 26) (pos_T.lnum-set! (fx+ (buf_T.b_namedm& buf) (fx* i 16)) 0) (loop1 (i32+ i 1))]
         [else
@@ -19458,17 +20199,10 @@
          (buf_T.b_last_cursor.coladd-set! buf 0)
          (buf_T.b_last_insert.lnum-set! buf 0)
          (buf_T.b_last_change.lnum-set! buf 0)
-         (buf_T.b_changelistlen-set! buf 0)]))
-    (loop1 0)))
+         (buf_T.b_changelistlen-set! buf 0)]))))
 
 (define (mark_line ed mp lead_len)
   (let ([mem (ed-mem ed)])
-    (define (loop2 s p len)
-      (if (not (fx=? (ld-u8 p) 0))
-          (let* ([t1 (ptr2cells ed p)]
-                 [len (i32+ len t1)])
-            (if (>= len (i64- Columns lead_len)) (join5 s p) (loop2 s (fx+ p (utfc_ptr2len ed p)) len)))
-          (join5 s p)))
     (define (join5 s p)
       (st-u8! p 0)
       s)
@@ -19476,33 +20210,40 @@
         (vim_strsave ed (c-str 164137 "-invalid-"))
         (let* ([r1 (skipwhite ed (ml_get ed (pos_T.lnum mp)))]
                [s (vim_strnsave ed r1 (->u64 (i64* Columns 5)))])
-          (loop2 s s 0)))))
+          (let loop2 ([s s]
+                      [p s]
+                      [len 0])
+            (if (not (fx=? (ld-u8 p) 0))
+                (let* ([t1 (ptr2cells ed p)]
+                       [len (i32+ len t1)])
+                  (if (>= len (i64- Columns lead_len)) (join5 s p) (loop2 s (fx+ p (utfc_ptr2len ed p)) len)))
+                (join5 s p)))))))
 
 (define (ex_marks ed eap)
   (let ([mem (ed-mem ed)])
     (define (join2 arg)
       (show_one_mark ed 39 arg (win_T.w_pcmark& curwin) 0 #t)
-      (loop3 arg 0))
-    (define (loop3 arg i)
-      (cond
-        [(fx<? i 26)
-         (show_one_mark ed (i32+ i 97) arg (fx+ (buf_T.b_namedm& curbuf) (fx* i 16)) 0 #t)
-         (loop3 arg (i32+ i 1))]
-        [else
-         (show_one_mark ed 34 arg (buf_T.b_last_cursor& curbuf) 0 #t)
-         (show_one_mark ed 91 arg (buf_T.b_op_start& curbuf) 0 #t)
-         (show_one_mark ed 93 arg (buf_T.b_op_end& curbuf) 0 #t)
-         (show_one_mark ed 94 arg (buf_T.b_last_insert& curbuf) 0 #t)
-         (show_one_mark ed 46 arg (buf_T.b_last_change& curbuf) 0 #t)
-         (let* ([startp (buf_T.b_visual.vi_start& curbuf)]
-                [endp (buf_T.b_visual.vi_end& curbuf)])
-           (if (and (or (not (fxzero? (if (not (= (pos_T.lnum startp) (pos_T.lnum endp)))
-                   (b->i (< (pos_T.lnum startp) (pos_T.lnum endp)))
-                   (if (not (fx=? (pos_T.col startp) (pos_T.col endp)))
-                       (b->i (fx<? (pos_T.col startp) (pos_T.col endp)))
-                       (b->i (fx<? (pos_T.coladd startp) (pos_T.coladd endp))))))) (= (pos_T.lnum endp) 0)) (not (= (pos_T.lnum startp) 0)))
-               (join7 arg startp startp endp)
-               (join7 arg endp startp endp)))]))
+      (let loop3 ([arg arg]
+                  [i 0])
+        (cond
+          [(fx<? i 26)
+           (show_one_mark ed (i32+ i 97) arg (fx+ (buf_T.b_namedm& curbuf) (fx* i 16)) 0 #t)
+           (loop3 arg (i32+ i 1))]
+          [else
+           (show_one_mark ed 34 arg (buf_T.b_last_cursor& curbuf) 0 #t)
+           (show_one_mark ed 91 arg (buf_T.b_op_start& curbuf) 0 #t)
+           (show_one_mark ed 93 arg (buf_T.b_op_end& curbuf) 0 #t)
+           (show_one_mark ed 94 arg (buf_T.b_last_insert& curbuf) 0 #t)
+           (show_one_mark ed 46 arg (buf_T.b_last_change& curbuf) 0 #t)
+           (let* ([startp (buf_T.b_visual.vi_start& curbuf)]
+                  [endp (buf_T.b_visual.vi_end& curbuf)])
+             (if (and (or (not (fxzero? (if (not (= (pos_T.lnum startp) (pos_T.lnum endp)))
+                     (b->i (< (pos_T.lnum startp) (pos_T.lnum endp)))
+                     (if (not (fx=? (pos_T.col startp) (pos_T.col endp)))
+                         (b->i (fx<? (pos_T.col startp) (pos_T.col endp)))
+                         (b->i (fx<? (pos_T.coladd startp) (pos_T.coladd endp))))))) (= (pos_T.lnum endp) 0)) (not (= (pos_T.lnum startp) 0)))
+                 (join7 arg startp startp endp)
+                 (join7 arg endp startp endp)))])))
     (define (join7 arg posp startp endp)
       (show_one_mark ed 60 arg posp 0 #t)
       (show_one_mark ed 62 arg (if (fx=? posp startp) endp startp) 0 #t)
@@ -19577,13 +20318,14 @@
                  (emsg ed (iobuff_or ed e_invalid_argument_str))
                  (void))]))))
     (define (join19 p from to)
-      (loop20 p to from))
-    (define (loop20 p to i)
-      (cond
-        [(fx<=? i to)
-         (pos_T.lnum-set! (fx+ (buf_T.b_namedm& curbuf) (fx* (i32- i 97) 16)) 0)
-         (loop20 p to (i32+ i 1))]
-        [else (join21 p)]))
+      (let loop20 ([p p]
+                   [to to]
+                   [i from])
+        (cond
+          [(fx<=? i to)
+           (pos_T.lnum-set! (fx+ (buf_T.b_namedm& curbuf) (fx* (i32- i 97) 16)) 0)
+           (loop20 p to (i32+ i 1))]
+          [else (join21 p)])))
     (define (join21 p)
       (loop4 (fx+ p 1)))
     (cond
@@ -19641,32 +20383,18 @@
 
 (define (mark_adjust_internal ed line1 line2 amount amount_after adjust_folds)
   (let ([mem (ed-mem ed)])
-    (define (loop3 i fnum)
-      (if (fx<? i 26)
-          (let ([r1 (fx+ (buf_T.b_namedm& curbuf) (fx* i 16))])
-            (pos_T.lnum-set! r1 (one_adjust ed (pos_T.lnum (fx+ (buf_T.b_namedm& curbuf) (fx* i 16))) line1 line2 amount amount_after))
-            (loop3 (i32+ i 1) fnum))
-          (let ([r2 curbuf])
-            (buf_T.b_last_insert.lnum-set! r2 (one_adjust ed (buf_T.b_last_insert.lnum curbuf) line1 line2 amount amount_after))
-            (let ([r3 curbuf])
-              (buf_T.b_last_change.lnum-set! r3 (one_adjust ed (buf_T.b_last_change.lnum curbuf) line1 line2 amount amount_after))
-              (if (not (and (and (= (buf_T.b_last_cursor.lnum curbuf) (pos_T.lnum mark_adjust_internal:initpos)) (fx=? (buf_T.b_last_cursor.col curbuf) (pos_T.col mark_adjust_internal:initpos))) (fx=? (buf_T.b_last_cursor.coladd curbuf) (pos_T.coladd mark_adjust_internal:initpos))))
-                  (let ([r4 curbuf])
-                    (buf_T.b_last_cursor.lnum-set! r4 (one_adjust ed (buf_T.b_last_cursor.lnum curbuf) line1 line2 amount amount_after))
-                    (join6 fnum))
-                  (join6 fnum))))))
     (define (join6 fnum)
-      (loop7 0 fnum))
-    (define (loop7 i fnum)
-      (if (fx<? i (buf_T.b_changelistlen curbuf))
-          (let ([r5 (fx+ (buf_T.b_changelist& curbuf) (fx* i 16))])
-            (pos_T.lnum-set! r5 (one_adjust_nodel ed (pos_T.lnum (fx+ (buf_T.b_changelist& curbuf) (fx* i 16))) line1 line2 amount amount_after))
-            (loop7 (i32+ i 1) fnum))
-          (let ([r6 curbuf])
-            (buf_T.b_visual.vi_start.lnum-set! r6 (one_adjust_nodel ed (buf_T.b_visual.vi_start.lnum curbuf) line1 line2 amount amount_after))
-            (let ([r7 curbuf])
-              (buf_T.b_visual.vi_end.lnum-set! r7 (one_adjust_nodel ed (buf_T.b_visual.vi_end.lnum curbuf) line1 line2 amount amount_after))
-              (join9 fnum)))))
+      (let loop7 ([i 0]
+                  [fnum fnum])
+        (if (fx<? i (buf_T.b_changelistlen curbuf))
+            (let ([r5 (fx+ (buf_T.b_changelist& curbuf) (fx* i 16))])
+              (pos_T.lnum-set! r5 (one_adjust_nodel ed (pos_T.lnum (fx+ (buf_T.b_changelist& curbuf) (fx* i 16))) line1 line2 amount amount_after))
+              (loop7 (i32+ i 1) fnum))
+            (let ([r6 curbuf])
+              (buf_T.b_visual.vi_start.lnum-set! r6 (one_adjust_nodel ed (buf_T.b_visual.vi_start.lnum curbuf) line1 line2 amount amount_after))
+              (let ([r7 curbuf])
+                (buf_T.b_visual.vi_end.lnum-set! r7 (one_adjust_nodel ed (buf_T.b_visual.vi_end.lnum curbuf) line1 line2 amount amount_after))
+                (join9 fnum))))))
     (define (join9 fnum)
       (let ([r8 curwin])
         (win_T.w_pcmark.lnum-set! r8 (one_adjust ed (win_T.w_pcmark.lnum curwin) line1 line2 amount amount_after))
@@ -19751,7 +20479,21 @@
       (loop14 (i32+ i 1) fnum win))
     (let ([fnum (buf_T.b_fnum curbuf)])
       (unless (and (< line2 line1) (= amount_after 0))
-        (if (fx=? (fxand (cmdmod_T.cmod_flags cmdmod) 2048) 0) (loop3 0 fnum) (join9 fnum))))))
+        (if (fx=? (fxand (cmdmod_T.cmod_flags cmdmod) 2048) 0) (let loop3 ([i 0]
+                                                                           [fnum fnum])
+                                                                 (if (fx<? i 26)
+                                                                     (let ([r1 (fx+ (buf_T.b_namedm& curbuf) (fx* i 16))])
+                                                                       (pos_T.lnum-set! r1 (one_adjust ed (pos_T.lnum (fx+ (buf_T.b_namedm& curbuf) (fx* i 16))) line1 line2 amount amount_after))
+                                                                       (loop3 (i32+ i 1) fnum))
+                                                                     (let ([r2 curbuf])
+                                                                       (buf_T.b_last_insert.lnum-set! r2 (one_adjust ed (buf_T.b_last_insert.lnum curbuf) line1 line2 amount amount_after))
+                                                                       (let ([r3 curbuf])
+                                                                         (buf_T.b_last_change.lnum-set! r3 (one_adjust ed (buf_T.b_last_change.lnum curbuf) line1 line2 amount amount_after))
+                                                                         (if (not (and (and (= (buf_T.b_last_cursor.lnum curbuf) (pos_T.lnum mark_adjust_internal:initpos)) (fx=? (buf_T.b_last_cursor.col curbuf) (pos_T.col mark_adjust_internal:initpos))) (fx=? (buf_T.b_last_cursor.coladd curbuf) (pos_T.coladd mark_adjust_internal:initpos))))
+                                                                             (let ([r4 curbuf])
+                                                                               (buf_T.b_last_cursor.lnum-set! r4 (one_adjust ed (buf_T.b_last_cursor.lnum curbuf) line1 line2 amount amount_after))
+                                                                               (join6 fnum))
+                                                                             (join6 fnum)))))) (join9 fnum))))))
 
 (define (mark_col_adjust ed lnum mincol lnum_amount col_amount spaces_removed)
   (let ([mem (ed-mem ed)])
@@ -19931,19 +20673,6 @@
 
 (define (match_add ed wp grp pat prio id conceal_char)
   (let ([mem (ed-mem ed)])
-    (define (loop4 id cur regprog rtype)
-      (cond
-        [(not (fx=? cur 0))
-         (if (fx=? (matchitem_T.mit_id cur) id)
-             (let ([r1 IObuff])
-               (vim_snprintf ed r1 (emsg_iobuff_room ed) e_id_already_taken_nr (list id))
-               (emsg ed (iobuff_or ed e_id_already_taken_nr))
-               -1)
-             (loop4 id (matchitem_T.mit_next cur) regprog rtype))]
-        [(fx<? (win_T.w_next_match_id wp) (i32+ id 100))
-         (win_T.w_next_match_id-set! wp (i32+ id 100))
-         (join11 id regprog rtype)]
-        [else (join11 id regprog rtype)]))
     (define (join11 id regprog rtype)
       (let ([hlg_id (syn_namen2id ed grp (->i32 (musl_strlen ed grp)))])
         (if (fx=? hlg_id 0)
@@ -19971,13 +20700,16 @@
             (matchitem_T.mit_match.rmm_ic-set! m 0)
             (matchitem_T.mit_match.rmm_maxcol-set! m 0)
             (let ([cur (win_T.w_match_head wp)])
-              (loop16 id cur cur m rtype)))))
-    (define (loop16 id cur prev m rtype)
-      (cond
-        [(and (not (fx=? cur 0)) (fx>=? prio (matchitem_T.mit_priority cur)))
-         (loop16 id (matchitem_T.mit_next cur) cur m rtype)]
-        [(fx=? cur prev) (win_T.w_match_head-set! wp m) (join20 id cur m rtype)]
-        [else (matchitem_T.mit_next-set! prev m) (join20 id cur m rtype)]))
+              (let loop16 ([id id]
+                           [cur cur]
+                           [prev cur]
+                           [m m]
+                           [rtype rtype])
+                (cond
+                  [(and (not (fx=? cur 0)) (fx>=? prio (matchitem_T.mit_priority cur)))
+                   (loop16 id (matchitem_T.mit_next cur) cur m rtype)]
+                  [(fx=? cur prev) (win_T.w_match_head-set! wp m) (join20 id cur m rtype)]
+                  [else (matchitem_T.mit_next-set! prev m) (join20 id cur m rtype)]))))))
     (define (join20 id cur m rtype)
       (matchitem_T.mit_next-set! m cur)
       (redraw_win_later ed wp rtype)
@@ -19993,23 +20725,25 @@
        (let ([t1 (win_T.w_next_match_id wp)])
          (win_T.w_next_match_id-set! wp (i32+ (win_T.w_next_match_id wp) 1))
          (join11 t1 0 35))]
-      [else (loop4 id (win_T.w_match_head wp) 0 35)])))
+      [else (let loop4 ([id id]
+                        [cur (win_T.w_match_head wp)]
+                        [regprog 0]
+                        [rtype 35])
+              (cond
+                [(not (fx=? cur 0))
+                 (if (fx=? (matchitem_T.mit_id cur) id)
+                     (let ([r1 IObuff])
+                       (vim_snprintf ed r1 (emsg_iobuff_room ed) e_id_already_taken_nr (list id))
+                       (emsg ed (iobuff_or ed e_id_already_taken_nr))
+                       -1)
+                     (loop4 id (matchitem_T.mit_next cur) regprog rtype))]
+                [(fx<? (win_T.w_next_match_id wp) (i32+ id 100))
+                 (win_T.w_next_match_id-set! wp (i32+ id 100))
+                 (join11 id regprog rtype)]
+                [else (join11 id regprog rtype)]))])))
 
 (define (match_delete ed wp id perr)
   (let ([mem (ed-mem ed)])
-    (define (loop2 cur prev rtype)
-      (cond
-        [(and (not (fx=? cur 0)) (not (fx=? (matchitem_T.mit_id cur) id)))
-         (loop2 (matchitem_T.mit_next cur) cur rtype)]
-        [(fx=? cur 0)
-         (if (fx=? (b->i perr) 1)
-             (let ([r1 IObuff])
-               (vim_snprintf ed r1 (emsg_iobuff_room ed) e_id_not_found_nr (list id))
-               (emsg ed (iobuff_or ed e_id_not_found_nr))
-               -1)
-             -1)]
-        [(fx=? cur prev) (win_T.w_match_head-set! wp (matchitem_T.mit_next cur)) (join7 cur rtype)]
-        [else (matchitem_T.mit_next-set! prev (matchitem_T.mit_next cur)) (join7 cur rtype)]))
     (define (join7 cur rtype)
       (vim_regfree ed (matchitem_T.mit_match.regprog cur))
       (cond
@@ -20028,7 +20762,21 @@
                 (emsg ed (iobuff_or ed e_invalid_id_nr_must_be_greater_than_or_equal_to_one_2))
                 -1)
               -1)
-          (loop2 cur cur 35)))))
+          (let loop2 ([cur cur]
+                      [prev cur]
+                      [rtype 35])
+            (cond
+              [(and (not (fx=? cur 0)) (not (fx=? (matchitem_T.mit_id cur) id)))
+               (loop2 (matchitem_T.mit_next cur) cur rtype)]
+              [(fx=? cur 0)
+               (if (fx=? (b->i perr) 1)
+                   (let ([r1 IObuff])
+                     (vim_snprintf ed r1 (emsg_iobuff_room ed) e_id_not_found_nr (list id))
+                     (emsg ed (iobuff_or ed e_id_not_found_nr))
+                     -1)
+                   -1)]
+              [(fx=? cur prev) (win_T.w_match_head-set! wp (matchitem_T.mit_next cur)) (join7 cur rtype)]
+              [else (matchitem_T.mit_next-set! prev (matchitem_T.mit_next cur)) (join7 cur rtype)]))))))
 
 (define (init_search_hl ed wp search_hl)
   (let ([mem (ed-mem ed)])
@@ -20175,20 +20923,23 @@
         [(not (fx=? cur 0)) (matchitem_T.mit_pos_cur-set! cur 0) (join11 cur shl shl_flag)]
         [else (join11 cur shl shl_flag)]))
     (define (join11 cur shl shl_flag)
-      (loop12 cur shl shl_flag #t 0))
-    (define (loop12 cur shl shl_flag pos_inprogress n)
-      (cond
-        [(and (< (match_T.first_lnum shl) lnum) (or (not (fx=? (match_T.rm.regprog shl) 0)) (and (not (fx=? cur 0)) pos_inprogress)))
-         (next_search_hl ed wp search_hl shl (match_T.first_lnum shl) n (if (fx=? shl search_hl) 0 cur))
-         (let ([pos_inprogress (not (fxzero? (if (or (fx=? cur 0) (fx=? (matchitem_T.mit_pos_cur cur) 0)) 0 1)))])
-           (cond
-             [(not (= (match_T.lnum shl) 0))
-              (match_T.first_lnum-set! shl (i64- (i64+ (match_T.lnum shl) (lpos_T.lnum (match_T.rm.endpos& shl))) (lpos_T.lnum (match_T.rm.startpos& shl))))
-              (loop12 cur shl shl_flag pos_inprogress (lpos_T.col (match_T.rm.endpos& shl)))]
-             [else
-              (match_T.first_lnum-set! shl (i64+ (match_T.first_lnum shl) 1))
-              (loop12 cur shl shl_flag pos_inprogress 0)]))]
-        [else (join13 cur shl shl_flag)]))
+      (let loop12 ([cur cur]
+                   [shl shl]
+                   [shl_flag shl_flag]
+                   [pos_inprogress #t]
+                   [n 0])
+        (cond
+          [(and (< (match_T.first_lnum shl) lnum) (or (not (fx=? (match_T.rm.regprog shl) 0)) (and (not (fx=? cur 0)) pos_inprogress)))
+           (next_search_hl ed wp search_hl shl (match_T.first_lnum shl) n (if (fx=? shl search_hl) 0 cur))
+           (let ([pos_inprogress (not (fxzero? (if (or (fx=? cur 0) (fx=? (matchitem_T.mit_pos_cur cur) 0)) 0 1)))])
+             (cond
+               [(not (= (match_T.lnum shl) 0))
+                (match_T.first_lnum-set! shl (i64- (i64+ (match_T.lnum shl) (lpos_T.lnum (match_T.rm.endpos& shl))) (lpos_T.lnum (match_T.rm.startpos& shl))))
+                (loop12 cur shl shl_flag pos_inprogress (lpos_T.col (match_T.rm.endpos& shl)))]
+               [else
+                (match_T.first_lnum-set! shl (i64+ (match_T.first_lnum shl) 1))
+                (loop12 cur shl shl_flag pos_inprogress 0)]))]
+          [else (join13 cur shl shl_flag)])))
     (define (join13 cur shl shl_flag)
       (if (and (not (fx=? shl search_hl)) (not (fx=? cur 0)))
           (loop1 (matchitem_T.mit_next cur) shl_flag)
@@ -20377,13 +21128,14 @@
     (define (join2 prevcol prevcol_hl_flag)
       (if (and (not (not (fxzero? (match_T.is_addpos search_hl)))) (or (= prevcol (match_T.startcol search_hl)) (and (> prevcol (match_T.startcol search_hl)) (fx=? (match_T.endcol search_hl) 2147483647))))
           (join9 #t)
-          (loop4 prevcol prevcol_hl_flag (win_T.w_match_head wp))))
-    (define (loop4 prevcol prevcol_hl_flag cur)
-      (cond
-        [(fx=? cur 0) (join9 prevcol_hl_flag)]
-        [(and (not (not (fxzero? (matchitem_T.mit_hl.is_addpos cur)))) (or (= prevcol (matchitem_T.mit_hl.startcol cur)) (and (> prevcol (matchitem_T.mit_hl.startcol cur)) (fx=? (matchitem_T.mit_hl.endcol cur) 2147483647))))
-         (join9 #t)]
-        [else (loop4 prevcol prevcol_hl_flag (matchitem_T.mit_next cur))]))
+          (let loop4 ([prevcol prevcol]
+                      [prevcol_hl_flag prevcol_hl_flag]
+                      [cur (win_T.w_match_head wp)])
+            (cond
+              [(fx=? cur 0) (join9 prevcol_hl_flag)]
+              [(and (not (not (fxzero? (matchitem_T.mit_hl.is_addpos cur)))) (or (= prevcol (matchitem_T.mit_hl.startcol cur)) (and (> prevcol (matchitem_T.mit_hl.startcol cur)) (fx=? (matchitem_T.mit_hl.endcol cur) 2147483647))))
+               (join9 #t)]
+              [else (loop4 prevcol prevcol_hl_flag (matchitem_T.mit_next cur))]))))
     (define (join9 prevcol_hl_flag)
       prevcol_hl_flag)
     (if (> (if (not (fxzero? (win_T.w_onebuf_opt.wo_wrap wp))) (win_T.w_skipcol wp) (win_T.w_leftcol wp)) curcol)
@@ -20448,14 +21200,13 @@
 
 (define (mb_init ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (cond
         [(fx<? i 256)
          (let ([n (ld-s8 (fx+ utf8len_tab i))])
            (st-s8! (fx+ mb_bytelen_tab i) (->i8 n))
            (loop1 (i32+ i 1)))]
-        [else (init_chartab ed) (screenalloc ed #f) 0]))
-    (loop1 0)))
+        [else (init_chartab ed) (screenalloc ed #f) 0]))))
 
 (define (mb_get_class ed p)
   (let ([mem (ed-mem ed)])
@@ -20472,15 +21223,15 @@
 
 (define (intable ed table size c)
   (let ([mem (ed-mem ed)])
-    (define (loop2 bot top)
-      (if (fx>=? top bot)
-          (let ([mid (i32/ (i32+ bot top) 2)])
-            (cond
-              [(< (interval.last (fx+ table (fx* mid 16))) c) (loop2 (i32+ mid 1) top)]
-              [(> (interval.first (fx+ table (fx* mid 16))) c) (loop2 bot (i32- mid 1))]
-              [else #t]))
-          #f))
-    (if (< c (interval.first table)) #f (loop2 0 (->i32 (u64- (u64/ size 16) 1))))))
+    (if (< c (interval.first table)) #f (let loop2 ([bot 0]
+                                                    [top (->i32 (u64- (u64/ size 16) 1))])
+                                          (if (fx>=? top bot)
+                                              (let ([mid (i32/ (i32+ bot top) 2)])
+                                                (cond
+                                                  [(< (interval.last (fx+ table (fx* mid 16))) c) (loop2 (i32+ mid 1) top)]
+                                                  [(> (interval.first (fx+ table (fx* mid 16))) c) (loop2 bot (i32- mid 1))]
+                                                  [else #t]))
+                                              #f)))))
 
 (define (utf_char2cells ed c)
   (let ([mem (ed-mem ed)])
@@ -20508,12 +21259,12 @@
 
 (define (mb_string2cells ed p len)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i clen)
+    (let loop1 ([i 0]
+                [clen 0])
       (if (and (or (fx<? len 0) (fx<? i len)) (not (fx=? (ld-u8 (fx+ p i)) 0)))
           (let ([t1 (utf_ptr2cells ed (fx+ p i))])
             (loop1 (i32+ i (utfc_ptr2len ed (fx+ p i))) (i32+ clen t1)))
-          clen))
-    (loop1 0 0)))
+          clen))))
 
 (define (utf_off2cells ed off max_off)
   (let ([mem (ed-mem ed)])
@@ -20562,14 +21313,6 @@
 
 (define (utf_ptr2char_and_len_len ed p size)
   (let ([mem (ed-mem ed)])
-    (define (loop24 len i out___r__ out___lenp)
-      (if (fx<? i size)
-          (if (not (fx=? (fxand (ld-u8 (fx+ p i)) 192) 128))
-              (let ([out___r__ (ld-u8 p)])
-                (values out___r__ 1))
-              (loop24 len (i32+ i 1) out___r__ out___lenp))
-          (let ([out___r__ (ld-u8 p)])
-            (values out___r__ len))))
     (cond
       [(fx<? size 1) (values 0 1)]
       [(fx<? (ld-u8 p) 128)
@@ -20581,7 +21324,17 @@
            [(fx<=? len 1)
             (let ([out___r__ (ld-u8 p)])
               (values out___r__ 1))]
-           [(fx>? len size) (loop24 len 1 0 0)]
+           [(fx>? len size) (let loop24 ([len len]
+                                         [i 1]
+                                         [out___r__ 0]
+                                         [out___lenp 0])
+                              (if (fx<? i size)
+                                  (if (not (fx=? (fxand (ld-u8 (fx+ p i)) 192) 128))
+                                      (let ([out___r__ (ld-u8 p)])
+                                        (values out___r__ 1))
+                                      (loop24 len (i32+ i 1) out___r__ out___lenp))
+                                  (let ([out___r__ (ld-u8 p)])
+                                    (values out___r__ len))))]
            [(not (fx=? (fxand (ld-u8 (fx+ p 1)) 192) 128))
             (let ([out___r__ (ld-u8 p)])
               (values out___r__ 1))]
@@ -20662,17 +21415,6 @@
 
 (define (utfc_ptr2char ed p pcc)
   (let ([mem (ed-mem ed)])
-    (define (loop3 len c cc cc_len i utf_ptr2char_and_len__o_r__ utf_ptr2char_and_len__o_lenp)
-      (let* ([t1 i]
-             [i (i32+ i 1)])
-        (st-s32! (fx+ pcc (fx* t1 4)) cc)
-        (if (fx=? i 6)
-            (join6 c i utf_ptr2char_and_len__o_r__ utf_ptr2char_and_len__o_lenp)
-            (let ([len (i32+ len cc_len)])
-              (if (fx<? (ld-u8 (fx+ p len)) 128)
-                  (join6 c i utf_ptr2char_and_len__o_r__ utf_ptr2char_and_len__o_lenp)
-                  (let-values ([(r1 r2) (utf_ptr2char_and_len ed (fx+ p len))])
-                    (if (not (utf_iscomposing ed r1)) (join6 c i r1 r2) (loop3 len c r1 r2 i r1 r2))))))))
     (define (join6 c i utf_ptr2char_and_len__o_r__ utf_ptr2char_and_len__o_lenp)
       (cond
         [(fx<? i 6)
@@ -20684,24 +21426,27 @@
     (let-values ([(r3 r4) (utf_ptr2char_and_len ed p)])
       (if (and (or (fx>? r4 1) (fx<? (ld-u8 p) 128)) (fx>=? (ld-u8 (fx+ p r4)) 128))
           (let-values ([(r5 r6) (utf_ptr2char_and_len ed (fx+ p r4))])
-            (if (utf_iscomposinglike_char ed r3 r5) (loop3 r4 r3 r5 r6 0 r5 r6) (join6 r3 0 r5 r6)))
+            (if (utf_iscomposinglike_char ed r3 r5) (let loop3 ([len r4]
+                                                                [c r3]
+                                                                [cc r5]
+                                                                [cc_len r6]
+                                                                [i 0]
+                                                                [utf_ptr2char_and_len__o_r__ r5]
+                                                                [utf_ptr2char_and_len__o_lenp r6])
+                                                      (let* ([t1 i]
+                                                             [i (i32+ i 1)])
+                                                        (st-s32! (fx+ pcc (fx* t1 4)) cc)
+                                                        (if (fx=? i 6)
+                                                            (join6 c i utf_ptr2char_and_len__o_r__ utf_ptr2char_and_len__o_lenp)
+                                                            (let ([len (i32+ len cc_len)])
+                                                              (if (fx<? (ld-u8 (fx+ p len)) 128)
+                                                                  (join6 c i utf_ptr2char_and_len__o_r__ utf_ptr2char_and_len__o_lenp)
+                                                                  (let-values ([(r1 r2) (utf_ptr2char_and_len ed (fx+ p len))])
+                                                                    (if (not (utf_iscomposing ed r1)) (join6 c i r1 r2) (loop3 len c r1 r2 i r1 r2)))))))) (join6 r3 0 r5 r6)))
           (join6 r3 0 r3 r4)))))
 
 (define (utfc_ptr2char_len ed p pcc maxlen)
   (let ([mem (ed-mem ed)])
-    (define (loop3 len c cc cc_len i utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
-      (let* ([t1 i]
-             [i (i32+ i 1)])
-        (st-s32! (fx+ pcc (fx* t1 4)) cc)
-        (if (fx=? i 6)
-            (join6 c i utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
-            (let ([len (i32+ len cc_len)])
-              (if (or (fx>=? len maxlen) (fx<? (ld-u8 (fx+ p len)) 128))
-                  (join6 c i utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
-                  (let-values ([(r1 r2) (utf_ptr2char_and_len_len ed (fx+ p len) (i32- maxlen len))])
-                    (if (or (fx>? r2 (i32- maxlen len)) (not (utf_iscomposing ed r1)))
-                        (join6 c i r1 r2)
-                        (loop3 len c r1 r2 i r1 r2))))))))
     (define (join6 c i utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
       (cond
         [(fx<? i 6)
@@ -20714,21 +21459,39 @@
       (if (and (and (or (fx>? r4 1) (fx<? (ld-u8 p) 128)) (fx<? r4 maxlen)) (fx>=? (ld-u8 (fx+ p r4)) 128))
           (let-values ([(r5 r6) (utf_ptr2char_and_len_len ed (fx+ p r4) (i32- maxlen r4))])
             (if (and (fx<=? r6 (i32- maxlen r4)) (utf_iscomposinglike_char ed r3 r5))
-                (loop3 r4 r3 r5 r6 0 r5 r6)
+                (let loop3 ([len r4]
+                            [c r3]
+                            [cc r5]
+                            [cc_len r6]
+                            [i 0]
+                            [utf_ptr2char_and_len_len__o_r__ r5]
+                            [utf_ptr2char_and_len_len__o_lenp r6])
+                  (let* ([t1 i]
+                         [i (i32+ i 1)])
+                    (st-s32! (fx+ pcc (fx* t1 4)) cc)
+                    (if (fx=? i 6)
+                        (join6 c i utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
+                        (let ([len (i32+ len cc_len)])
+                          (if (or (fx>=? len maxlen) (fx<? (ld-u8 (fx+ p len)) 128))
+                              (join6 c i utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
+                              (let-values ([(r1 r2) (utf_ptr2char_and_len_len ed (fx+ p len) (i32- maxlen len))])
+                                (if (or (fx>? r2 (i32- maxlen len)) (not (utf_iscomposing ed r1)))
+                                    (join6 c i r1 r2)
+                                    (loop3 len c r1 r2 i r1 r2))))))))
                 (join6 r3 0 r5 r6)))
           (join6 r3 0 r3 r4)))))
 
 (define (utfc_char2bytes ed off buf)
   (let ([mem (ed-mem ed)])
-    (define (loop1 len i)
+    (define (join5 len)
+      len)
+    (let loop1 ([len (utf_char2bytes ed (->i32 (ld-u32 (fx+ ScreenLinesUC (fx* off 4)))) buf)]
+                [i 0])
       (if (fx<? i Screen_mco)
           (if (fx=? (ld-u32 (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off 4))) 0)
               (join5 len)
               (loop1 (i32+ len (utf_char2bytes ed (->i32 (ld-u32 (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off 4)))) (fx+ buf len))) (i32+ i 1)))
-          (join5 len)))
-    (define (join5 len)
-      len)
-    (loop1 (utf_char2bytes ed (->i32 (ld-u32 (fx+ ScreenLinesUC (fx* off 4)))) buf) 0)))
+          (join5 len)))))
 
 (define (utf_ptr2len ed p)
   (let-values ([(r1 r2) (utf_ptr2char_and_len ed p)])
@@ -20736,12 +21499,6 @@
 
 (define (utfc_ptr2len ed p)
   (let ([mem (ed-mem ed)])
-    (define (loop6 len cc_len utf_ptr2char_and_len__o_r__ utf_ptr2char_and_len__o_lenp)
-      (let ([len (i32+ len cc_len)])
-        (if (fx<? (ld-u8 (fx+ p len)) 128)
-            len
-            (let-values ([(r1 r2) (utf_ptr2char_and_len ed (fx+ p len))])
-              (if (not (utf_iscomposing ed r1)) len (loop6 len r2 r1 r2))))))
     (let ([b0 (ld-u8 p)])
       (cond
         [(fx=? b0 0) 0]
@@ -20753,21 +21510,18 @@
              [(fx<? (ld-u8 (fx+ p r4)) 128) r4]
              [else
               (let-values ([(r5 r6) (utf_ptr2char_and_len ed (fx+ p r4))])
-                (if (not (utf_iscomposinglike_char ed r3 r5)) r4 (loop6 r4 r6 r5 r6)))]))]))))
+                (if (not (utf_iscomposinglike_char ed r3 r5)) r4 (let loop6 ([len r4]
+                                                                             [cc_len r6]
+                                                                             [utf_ptr2char_and_len__o_r__ r5]
+                                                                             [utf_ptr2char_and_len__o_lenp r6])
+                                                                   (let ([len (i32+ len cc_len)])
+                                                                     (if (fx<? (ld-u8 (fx+ p len)) 128)
+                                                                         len
+                                                                         (let-values ([(r1 r2) (utf_ptr2char_and_len ed (fx+ p len))])
+                                                                           (if (not (utf_iscomposing ed r1)) len (loop6 len r2 r1 r2))))))))]))]))))
 
 (define (utfc_ptr2len_len ed p size)
   (let ([mem (ed-mem ed)])
-    (define (loop6 len cc_len utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
-      (if (fx<? len size)
-          (let ([len (i32+ len cc_len)])
-            (if (or (fx>=? len size) (fx<? (ld-u8 (fx+ p len)) 128))
-                (join11 len utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
-                (let-values ([(r1 r2) (utf_ptr2char_and_len_len ed (fx+ p len) (i32- size len))])
-                  (cond
-                    [(fx>? r2 (i32- size len)) (join11 len r1 r2)]
-                    [(not (utf_iscomposing ed r1)) (join11 len r1 r2)]
-                    [else (loop6 len r2 r1 r2)]))))
-          (join11 len utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)))
     (define (join11 len utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
       len)
     (cond
@@ -20780,7 +21534,20 @@
            [(or (fx>=? r4 size) (fx<? (ld-u8 (fx+ p r4)) 128)) r4]
            [else
             (let-values ([(r5 r6) (utf_ptr2char_and_len_len ed (fx+ p r4) (i32- size r4))])
-              (if (or (fx>? r6 (i32- size r4)) (not (utf_iscomposinglike_char ed r3 r5))) r4 (loop6 r4 r6 r5 r6)))]))])))
+              (if (or (fx>? r6 (i32- size r4)) (not (utf_iscomposinglike_char ed r3 r5))) r4 (let loop6 ([len r4]
+                                                                                                         [cc_len r6]
+                                                                                                         [utf_ptr2char_and_len_len__o_r__ r5]
+                                                                                                         [utf_ptr2char_and_len_len__o_lenp r6])
+                                                                                               (if (fx<? len size)
+                                                                                                   (let ([len (i32+ len cc_len)])
+                                                                                                     (if (or (fx>=? len size) (fx<? (ld-u8 (fx+ p len)) 128))
+                                                                                                         (join11 len utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)
+                                                                                                         (let-values ([(r1 r2) (utf_ptr2char_and_len_len ed (fx+ p len) (i32- size len))])
+                                                                                                           (cond
+                                                                                                             [(fx>? r2 (i32- size len)) (join11 len r1 r2)]
+                                                                                                             [(not (utf_iscomposing ed r1)) (join11 len r1 r2)]
+                                                                                                             [else (loop6 len r2 r1 r2)]))))
+                                                                                                   (join11 len utf_ptr2char_and_len_len__o_r__ utf_ptr2char_and_len_len__o_lenp)))))]))])))
 
 (define (utf_char2len ed c)
   (cond
@@ -20838,16 +21605,6 @@
 
 (define (utf_class_buf ed c buf)
   (let ([mem (ed-mem ed)])
-    (define (loop3 bot top)
-      (if (fx>=? top bot)
-          (let ([mid (i32/ (i32+ bot top) 2)])
-            (cond
-              [(fx<? (clinterval.last (fx+ utf_class_buf:classes (fx* mid 12))) (->u32 c))
-               (loop3 (i32+ mid 1) top)]
-              [(fx>? (clinterval.first (fx+ utf_class_buf:classes (fx* mid 12))) (->u32 c))
-               (loop3 bot (i32- mid 1))]
-              [else (->i32 (clinterval.class (fx+ utf_class_buf:classes (fx* mid 12))))]))
-          2))
     (cond
       [(fx<? c 256)
        (cond
@@ -20855,25 +21612,36 @@
          [(vim_iswordc_buf ed c buf) 2]
          [else 1])]
       [(intable ed emoji_all 2336 c) 3]
-      [else (loop3 0 70)])))
+      [else (let loop3 ([bot 0]
+                        [top 70])
+              (if (fx>=? top bot)
+                  (let ([mid (i32/ (i32+ bot top) 2)])
+                    (cond
+                      [(fx<? (clinterval.last (fx+ utf_class_buf:classes (fx* mid 12))) (->u32 c))
+                       (loop3 (i32+ mid 1) top)]
+                      [(fx>? (clinterval.first (fx+ utf_class_buf:classes (fx* mid 12))) (->u32 c))
+                       (loop3 bot (i32- mid 1))]
+                      [else (->i32 (clinterval.class (fx+ utf_class_buf:classes (fx* mid 12))))]))
+                  2))])))
 
 (define (utf_ambiguous_width ed c)
   (and (fx>=? c 128) (or (intable ed ambiguous 2864 c) (intable ed emoji_all 2336 c))))
 
 (define (utf_convert ed a table tableSize)
   (let ([mem (ed-mem ed)])
-    (define (loop1 start end entries)
-      (cond
-        [(fx<? start end)
-         (let ([mid (i32/ (i32+ end start) 2)])
-           (if (fx<? (convertStruct.rangeEnd (fx+ table (fx* mid 16))) a)
-               (loop1 (i32+ mid 1) end entries)
-               (loop1 start mid entries)))]
-        [(and (and (and (fx<? start entries) (fx<=? (convertStruct.rangeStart (fx+ table (fx* start 16))) a)) (fx<=? a (convertStruct.rangeEnd (fx+ table (fx* start 16))))) (fx=? (i32% (i32- a (convertStruct.rangeStart (fx+ table (fx* start 16)))) (convertStruct.step (fx+ table (fx* start 16)))) 0))
-         (i32+ a (convertStruct.offset (fx+ table (fx* start 16))))]
-        [else a]))
     (let ([entries (->i32 (u64/ (->u64 tableSize) 16))])
-      (loop1 0 entries entries))))
+      (let loop1 ([start 0]
+                  [end entries]
+                  [entries entries])
+        (cond
+          [(fx<? start end)
+           (let ([mid (i32/ (i32+ end start) 2)])
+             (if (fx<? (convertStruct.rangeEnd (fx+ table (fx* mid 16))) a)
+                 (loop1 (i32+ mid 1) end entries)
+                 (loop1 start mid entries)))]
+          [(and (and (and (fx<? start entries) (fx<=? (convertStruct.rangeStart (fx+ table (fx* start 16))) a)) (fx<=? a (convertStruct.rangeEnd (fx+ table (fx* start 16))))) (fx=? (i32% (i32- a (convertStruct.rangeStart (fx+ table (fx* start 16)))) (convertStruct.step (fx+ table (fx* start 16)))) 0))
+           (i32+ a (convertStruct.offset (fx+ table (fx* start 16))))]
+          [else a])))))
 
 (define (utf_fold ed a)
   (if (fx<? a 128)
@@ -20913,28 +21681,6 @@
 (define (utf_strnicmp ed s1 s2 n1 n2)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local buffer &buffer agg 0)
-    (define (loop0 s1 s2 n1 n2 utf_safe_read_char_adv__o_r__ utf_safe_read_char_adv__o_s utf_safe_read_char_adv__o_n)
-      (let*-values ([(r1 r2 r3) (utf_safe_read_char_adv ed s1 n1)]
-                    [(r4 r5 r6) (utf_safe_read_char_adv ed s2 n2)])
-        (cond
-          [(or (fx<=? r1 0) (fx<=? r4 0))
-           (cond
-             [(or (fx=? r1 0) (fx=? r4 0))
-              (cond
-                [(and (fx=? r1 0) (fx=? r4 0)) (frame-pop! ed fr) 0]
-                [else (frame-pop! ed fr) (if (fx=? r1 0) -1 1)])]
-             [(and (not (fx=? r1 -1)) (fx=? r4 -1))
-              (loop10 buffer r5 (->u64 (utf_char2bytes ed (utf_fold ed r1) buffer)) r6 r4 r5 r6)]
-             [(and (not (fx=? r4 -1)) (fx=? r1 -1))
-              (loop10 r2 buffer r3 (->u64 (utf_char2bytes ed (utf_fold ed r4) buffer)) r4 r5 r6)]
-             [else (loop10 r2 r5 r3 r6 r4 r5 r6)])]
-          [(fx=? r1 r4) (loop0 r2 r5 r3 r6 r4 r5 r6)]
-          [else
-           (let* ([r7 (utf_fold ed r1)]
-                  [cdiff (i32- r7 (utf_fold ed r4))])
-             (cond
-               [(not (fx=? cdiff 0)) (frame-pop! ed fr) cdiff]
-               [else (loop0 r2 r5 r3 r6 r4 r5 r6)]))])))
     (define (loop10 s1 s2 n1 n2 utf_safe_read_char_adv__o_r__ utf_safe_read_char_adv__o_s utf_safe_read_char_adv__o_n)
       (cond
         [(and (and (and (> n1 0) (> n2 0)) (not (fx=? (ld-u8 s1) 0))) (not (fx=? (ld-u8 s2) 0)))
@@ -20955,7 +21701,34 @@
       (cond
         [(and (= n1 0) (= n2 0)) (frame-pop! ed fr) 0]
         [else (frame-pop! ed fr) (if (= n1 0) -1 1)]))
-    (loop0 s1 s2 n1 n2 0 0 0)))
+    (let loop0 ([s1 s1]
+                [s2 s2]
+                [n1 n1]
+                [n2 n2]
+                [utf_safe_read_char_adv__o_r__ 0]
+                [utf_safe_read_char_adv__o_s 0]
+                [utf_safe_read_char_adv__o_n 0])
+      (let*-values ([(r1 r2 r3) (utf_safe_read_char_adv ed s1 n1)]
+                    [(r4 r5 r6) (utf_safe_read_char_adv ed s2 n2)])
+        (cond
+          [(or (fx<=? r1 0) (fx<=? r4 0))
+           (cond
+             [(or (fx=? r1 0) (fx=? r4 0))
+              (cond
+                [(and (fx=? r1 0) (fx=? r4 0)) (frame-pop! ed fr) 0]
+                [else (frame-pop! ed fr) (if (fx=? r1 0) -1 1)])]
+             [(and (not (fx=? r1 -1)) (fx=? r4 -1))
+              (loop10 buffer r5 (->u64 (utf_char2bytes ed (utf_fold ed r1) buffer)) r6 r4 r5 r6)]
+             [(and (not (fx=? r4 -1)) (fx=? r1 -1))
+              (loop10 r2 buffer r3 (->u64 (utf_char2bytes ed (utf_fold ed r4) buffer)) r4 r5 r6)]
+             [else (loop10 r2 r5 r3 r6 r4 r5 r6)])]
+          [(fx=? r1 r4) (loop0 r2 r5 r3 r6 r4 r5 r6)]
+          [else
+           (let* ([r7 (utf_fold ed r1)]
+                  [cdiff (i32- r7 (utf_fold ed r4))])
+             (cond
+               [(not (fx=? cdiff 0)) (frame-pop! ed fr) cdiff]
+               [else (loop0 r2 r5 r3 r6 r4 r5 r6)]))])))))
 
 (define (mb_strnicmp2 ed s1 s2 n1 n2)
   (if (= n1 n2) (mb_strnicmp ed s1 s2 n1) (utf_strnicmp ed s1 s2 n1 n2)))
@@ -20989,23 +21762,22 @@
 
 (define (utf_head_off ed base p)
   (let ([mem (ed-mem ed)])
-    (define (loop2 q)
-      (loop3 q q))
-    (define (loop3 q s)
-      (if (fx=? (fxand (ld-u8 (fx+ s 1)) 192) 128) (loop3 q (fx+ s 1)) (loop5 q s)))
-    (define (loop5 q s)
-      (if (and (fx>? q base) (fx=? (fxand (ld-u8 q) 192) 128))
-          (loop5 (fx+ q -1) s)
-          (let ([len (ld-s8 (fx+ utf8len_tab (ld-u8 q)))])
-            (cond
-              [(and (not (fx=? len (->i32 (i64+ (fx- s q) 1)))) (not (fx=? len (->i32 (i64+ (fx- p q) 1))))) 0]
-              [(fx<=? q base) (join10 q)]
-              [else
-               (let ([c (utf_ptr2char ed q)])
-                 (if (utf_iscomposing ed c) (loop2 (fx+ q -1)) (join10 q)))]))))
     (define (join10 q)
       (->i32 (fx- p q)))
-    (if (fx<? (ld-u8 p) 128) 0 (loop2 p))))
+    (if (fx<? (ld-u8 p) 128) 0 (let loop2 ([q p])
+                                 (let loop3 ([q q]
+                                             [s q])
+                                   (if (fx=? (fxand (ld-u8 (fx+ s 1)) 192) 128) (loop3 q (fx+ s 1)) (let loop5 ([q q]
+                                                                                                                [s s])
+                                                                                                      (if (and (fx>? q base) (fx=? (fxand (ld-u8 q) 192) 128))
+                                                                                                          (loop5 (fx+ q -1) s)
+                                                                                                          (let ([len (ld-s8 (fx+ utf8len_tab (ld-u8 q)))])
+                                                                                                            (cond
+                                                                                                              [(and (not (fx=? len (->i32 (i64+ (fx- s q) 1)))) (not (fx=? len (->i32 (i64+ (fx- p q) 1))))) 0]
+                                                                                                              [(fx<=? q base) (join10 q)]
+                                                                                                              [else
+                                                                                                               (let ([c (utf_ptr2char ed q)])
+                                                                                                                 (if (utf_iscomposing ed c) (loop2 (fx+ q -1)) (join10 q)))]))))))))))
 
 (define (mb_copy_char ed fp tp)
   (let ([l (utfc_ptr2len ed fp)])
@@ -21020,34 +21792,37 @@
 
 (define (utf_find_illegal ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 pos_lnum pos_col_ pos_coladd)
-      (loop2 pos_lnum pos_col_ pos_coladd (ml_get_cursor ed)))
-    (define (loop2 pos_lnum pos_col_ pos_coladd p)
-      (cond
-        [(not (fx=? (ld-u8 p) 0))
-         (let ([len (utf_ptr2len ed p)])
-           (if (and (fx>=? (ld-u8 p) 128) (or (fx=? len 1) (not (fx=? (utf_char2len ed (utf_ptr2char ed p)) len))))
-               (let* ([t1 (->i32 (fx- p (ml_get_cursor ed)))]
-                      [r1 curwin])
-                 (win_T.w_cursor.col-set! r1 (i32+ (win_T.w_cursor.col r1) t1))
-                 (win_T.w_set_curswant-set! curwin #t)
-                 (void))
-               (loop2 pos_lnum pos_col_ pos_coladd (fx+ p len))))]
-        [(= (win_T.w_cursor.lnum curwin) (buf_T.b_ml.ml_line_count curbuf))
-         (win_T.w_cursor.lnum-set! curwin pos_lnum)
-         (win_T.w_cursor.col-set! curwin pos_col_)
-         (win_T.w_cursor.coladd-set! curwin pos_coladd)
-         (beep_flush ed)]
-        [else
-         (let ([r2 curwin])
-           (win_T.w_cursor.lnum-set! r2 (i64+ (win_T.w_cursor.lnum r2) 1))
-           (win_T.w_cursor.col-set! curwin 0)
-           (loop1 pos_lnum pos_col_ pos_coladd))]))
     (let* ([pos_lnum (win_T.w_cursor.lnum curwin)]
            [pos_col_ (win_T.w_cursor.col curwin)]
            [pos_coladd (win_T.w_cursor.coladd curwin)])
       (win_T.w_cursor.coladd-set! curwin 0)
-      (loop1 pos_lnum pos_col_ pos_coladd))))
+      (let loop1 ([pos_lnum pos_lnum]
+                  [pos_col_ pos_col_]
+                  [pos_coladd pos_coladd])
+        (let loop2 ([pos_lnum pos_lnum]
+                    [pos_col_ pos_col_]
+                    [pos_coladd pos_coladd]
+                    [p (ml_get_cursor ed)])
+          (cond
+            [(not (fx=? (ld-u8 p) 0))
+             (let ([len (utf_ptr2len ed p)])
+               (if (and (fx>=? (ld-u8 p) 128) (or (fx=? len 1) (not (fx=? (utf_char2len ed (utf_ptr2char ed p)) len))))
+                   (let* ([t1 (->i32 (fx- p (ml_get_cursor ed)))]
+                          [r1 curwin])
+                     (win_T.w_cursor.col-set! r1 (i32+ (win_T.w_cursor.col r1) t1))
+                     (win_T.w_set_curswant-set! curwin #t)
+                     (void))
+                   (loop2 pos_lnum pos_col_ pos_coladd (fx+ p len))))]
+            [(= (win_T.w_cursor.lnum curwin) (buf_T.b_ml.ml_line_count curbuf))
+             (win_T.w_cursor.lnum-set! curwin pos_lnum)
+             (win_T.w_cursor.col-set! curwin pos_col_)
+             (win_T.w_cursor.coladd-set! curwin pos_coladd)
+             (beep_flush ed)]
+            [else
+             (let ([r2 curwin])
+               (win_T.w_cursor.lnum-set! r2 (i64+ (win_T.w_cursor.lnum r2) 1))
+               (win_T.w_cursor.col-set! curwin 0)
+               (loop1 pos_lnum pos_col_ pos_coladd))]))))))
 
 (define (mb_adjust_cursor ed)
   (let ([mem (ed-mem ed)])
@@ -21078,9 +21853,9 @@
 
 (define (mb_charlen ed str)
   (let ([mem (ed-mem ed)])
-    (define (loop2 p count)
-      (if (not (fx=? (ld-u8 p) 0)) (loop2 (fx+ p (utfc_ptr2len ed p)) (i32+ count 1)) count))
-    (if (fx=? str 0) 0 (loop2 str 0))))
+    (if (fx=? str 0) 0 (let loop2 ([p str]
+                                   [count 0])
+                         (if (not (fx=? (ld-u8 p) 0)) (loop2 (fx+ p (utfc_ptr2len ed p)) (i32+ count 1)) count)))))
 
 (define (mb_unescape ed pp)
   (let ([mem (ed-mem ed)])
@@ -21127,11 +21902,11 @@
 
 (define (ml_free_tree ed hp)
   (let ([mem (ed-mem ed)])
-    (define (loop3 pp i)
-      (when (fx<? i (PTR_BL.pb_count pp))
-        (ml_free_tree ed (PTR_EN.pe_block (fx+ (PTR_BL.pb_pointer& pp) (fx* i 16))))
-        (loop3 pp (i32+ i 1))))
-    (unless (fx=? hp 0) (when (fx=? (bhdr_T.bh_id hp) 28788) (loop3 (bhdr_T.bh_ptr hp) 0)))))
+    (unless (fx=? hp 0) (when (fx=? (bhdr_T.bh_id hp) 28788) (let loop3 ([pp (bhdr_T.bh_ptr hp)]
+                                                                         [i 0])
+                                                               (when (fx<? i (PTR_BL.pb_count pp))
+                                                                 (ml_free_tree ed (PTR_EN.pe_block (fx+ (PTR_BL.pb_pointer& pp) (fx* i 16))))
+                                                                 (loop3 pp (i32+ i 1))))))))
 
 (define (ml_alloc_line ed line len)
   (let ([text (alloc ed (->u64 len))])
@@ -21386,47 +22161,70 @@
                   (join47 pp line_count_left line_count_right stack_idx lineadd bp_left bp_right pb_idx)]
                  [else (join47 pp line_count_left line_count_right stack_idx lineadd bp_left bp_right pb_idx)])]
               [else
-               (loop30 hp pp ip ret line_count_left line_count_right stack_idx lineadd bp_left bp_right pb_idx)]))
+               (let loop30 ([hp hp]
+                            [pp pp]
+                            [ip ip]
+                            [ret ret]
+                            [line_count_left line_count_left]
+                            [line_count_right line_count_right]
+                            [stack_idx stack_idx]
+                            [lineadd lineadd]
+                            [bp_left bp_left]
+                            [bp_right bp_right]
+                            [pb_idx pb_idx])
+                 (let* ([hp_new (ml_new_ptr ed)]
+                        [pp_new (bhdr_T.bh_ptr hp_new)])
+                   (cond
+                     [(not (fx=? hp (buf_T.b_ml.ml_root buf)))
+                      (let ([total_moved (i32- (i32- (PTR_BL.pb_count pp) pb_idx) 1)])
+                        (cond
+                          [(not (fxzero? total_moved))
+                           (musl_memmove ed (PTR_BL.pb_pointer& pp_new) (fx+ (PTR_BL.pb_pointer& pp) (fx* (i32+ pb_idx 1) 16)) (u64* (->u64 total_moved) 16))
+                           (PTR_BL.pb_count-set! pp_new (->u16 total_moved))
+                           (PTR_BL.pb_count-set! pp (->u16 (i32- (PTR_BL.pb_count pp) (i32- total_moved 1))))
+                           (PTR_EN.pe_block-set! (fx+ (PTR_BL.pb_pointer& pp) (fx* (i32+ pb_idx 1) 16)) bp_right)
+                           (PTR_EN.pe_line_count-set! (fx+ (PTR_BL.pb_pointer& pp) (fx* (i32+ pb_idx 1) 16)) line_count_right)
+                           (join35 hp pp ret line_count_left hp_new stack_idx lineadd bp_left pb_idx pp_new)]
+                          [else
+                           (PTR_BL.pb_count-set! pp_new 1)
+                           (PTR_EN.pe_block-set! (PTR_BL.pb_pointer& pp_new) bp_right)
+                           (PTR_EN.pe_line_count-set! (PTR_BL.pb_pointer& pp_new) line_count_right)
+                           (join35 hp pp ret line_count_left hp_new stack_idx lineadd bp_left pb_idx pp_new)]))]
+                     [else
+                      (PTR_BL.pb_count-set! pp_new (PTR_BL.pb_count pp))
+                      (musl_memmove ed (PTR_BL.pb_pointer& pp_new) (PTR_BL.pb_pointer& pp) (u64* (PTR_BL.pb_count pp) 16))
+                      (PTR_BL.pb_count-set! pp 1)
+                      (PTR_EN.pe_block-set! (PTR_BL.pb_pointer& pp) hp_new)
+                      (PTR_EN.pe_line_count-set! (PTR_BL.pb_pointer& pp) (buf_T.b_ml.ml_line_count buf))
+                      (infoptr_T.ip_index-set! ip 0)
+                      (loop30 hp_new pp_new ip ret line_count_left line_count_right (i32+ stack_idx 1) lineadd bp_left bp_right pb_idx)])))]))
           (join49 stack_idx)))
-    (define (loop30 hp pp ip ret line_count_left line_count_right stack_idx lineadd bp_left bp_right pb_idx)
-      (let* ([hp_new (ml_new_ptr ed)]
-             [pp_new (bhdr_T.bh_ptr hp_new)])
-        (cond
-          [(not (fx=? hp (buf_T.b_ml.ml_root buf)))
-           (let ([total_moved (i32- (i32- (PTR_BL.pb_count pp) pb_idx) 1)])
-             (cond
-               [(not (fxzero? total_moved))
-                (musl_memmove ed (PTR_BL.pb_pointer& pp_new) (fx+ (PTR_BL.pb_pointer& pp) (fx* (i32+ pb_idx 1) 16)) (u64* (->u64 total_moved) 16))
-                (PTR_BL.pb_count-set! pp_new (->u16 total_moved))
-                (PTR_BL.pb_count-set! pp (->u16 (i32- (PTR_BL.pb_count pp) (i32- total_moved 1))))
-                (PTR_EN.pe_block-set! (fx+ (PTR_BL.pb_pointer& pp) (fx* (i32+ pb_idx 1) 16)) bp_right)
-                (PTR_EN.pe_line_count-set! (fx+ (PTR_BL.pb_pointer& pp) (fx* (i32+ pb_idx 1) 16)) line_count_right)
-                (join35 hp pp ret line_count_left hp_new stack_idx lineadd bp_left pb_idx pp_new)]
-               [else
-                (PTR_BL.pb_count-set! pp_new 1)
-                (PTR_EN.pe_block-set! (PTR_BL.pb_pointer& pp_new) bp_right)
-                (PTR_EN.pe_line_count-set! (PTR_BL.pb_pointer& pp_new) line_count_right)
-                (join35 hp pp ret line_count_left hp_new stack_idx lineadd bp_left pb_idx pp_new)]))]
-          [else
-           (PTR_BL.pb_count-set! pp_new (PTR_BL.pb_count pp))
-           (musl_memmove ed (PTR_BL.pb_pointer& pp_new) (PTR_BL.pb_pointer& pp) (u64* (PTR_BL.pb_count pp) 16))
-           (PTR_BL.pb_count-set! pp 1)
-           (PTR_EN.pe_block-set! (PTR_BL.pb_pointer& pp) hp_new)
-           (PTR_EN.pe_line_count-set! (PTR_BL.pb_pointer& pp) (buf_T.b_ml.ml_line_count buf))
-           (infoptr_T.ip_index-set! ip 0)
-           (loop30 hp_new pp_new ip ret line_count_left line_count_right (i32+ stack_idx 1) lineadd bp_left bp_right pb_idx)])))
     (define (join35 hp pp ret line_count_left hp_new stack_idx lineadd bp_left pb_idx pp_new)
       (PTR_EN.pe_block-set! (fx+ (PTR_BL.pb_pointer& pp) (fx* pb_idx 16)) bp_left)
       (PTR_EN.pe_line_count-set! (fx+ (PTR_BL.pb_pointer& pp) (fx* pb_idx 16)) line_count_left)
-      (loop36 0 hp pp ret 0 hp_new stack_idx lineadd pp_new))
-    (define (loop36 i hp pp ret line_count_right hp_new stack_idx lineadd pp_new)
-      (if (fx<? i (PTR_BL.pb_count pp_new))
-          (loop36 (i32+ i 1) hp pp ret (i64+ line_count_right (PTR_EN.pe_line_count (fx+ (PTR_BL.pb_pointer& pp_new) (fx* i 16)))) hp_new stack_idx lineadd pp_new)
-          (loop38 0 hp pp ret 0 line_count_right hp_new stack_idx lineadd)))
-    (define (loop38 i hp pp ret line_count_left line_count_right hp_new stack_idx lineadd)
-      (if (fx<? i (PTR_BL.pb_count pp))
-          (loop38 (i32+ i 1) hp pp ret (i64+ line_count_left (PTR_EN.pe_line_count (fx+ (PTR_BL.pb_pointer& pp) (fx* i 16)))) line_count_right hp_new stack_idx lineadd)
-          (loop26 ret line_count_left line_count_right (i32- stack_idx 1) lineadd hp hp_new)))
+      (let loop36 ([i 0]
+                   [hp hp]
+                   [pp pp]
+                   [ret ret]
+                   [line_count_right 0]
+                   [hp_new hp_new]
+                   [stack_idx stack_idx]
+                   [lineadd lineadd]
+                   [pp_new pp_new])
+        (if (fx<? i (PTR_BL.pb_count pp_new))
+            (loop36 (i32+ i 1) hp pp ret (i64+ line_count_right (PTR_EN.pe_line_count (fx+ (PTR_BL.pb_pointer& pp_new) (fx* i 16)))) hp_new stack_idx lineadd pp_new)
+            (let loop38 ([i 0]
+                         [hp hp]
+                         [pp pp]
+                         [ret ret]
+                         [line_count_left 0]
+                         [line_count_right line_count_right]
+                         [hp_new hp_new]
+                         [stack_idx stack_idx]
+                         [lineadd lineadd])
+              (if (fx<? i (PTR_BL.pb_count pp))
+                  (loop38 (i32+ i 1) hp pp ret (i64+ line_count_left (PTR_EN.pe_line_count (fx+ (PTR_BL.pb_pointer& pp) (fx* i 16)))) line_count_right hp_new stack_idx lineadd)
+                  (loop26 ret line_count_left line_count_right (i32- stack_idx 1) lineadd hp hp_new))))))
     (define (join47 pp line_count_left line_count_right stack_idx lineadd bp_left bp_right pb_idx)
       (PTR_BL.pb_count-set! pp (->u16 (i32+ (PTR_BL.pb_count pp) 1)))
       (PTR_EN.pe_line_count-set! (fx+ (PTR_BL.pb_pointer& pp) (fx* pb_idx 16)) line_count_left)
@@ -21529,7 +22327,27 @@
                  (cond
                    [(fx=? count 1)
                     (buf_T.b_ml.ml_locked-set! buf 0)
-                    (loop10 (i32- (buf_T.b_ml.ml_stack_top buf) 1) ret)]
+                    (let loop10 ([stack_idx (i32- (buf_T.b_ml.ml_stack_top buf) 1)]
+                                 [ret ret])
+                      (cond
+                        [(fx>=? stack_idx 0)
+                         (buf_T.b_ml.ml_stack_top-set! buf 0)
+                         (let* ([ip (fx+ (buf_T.b_ml.ml_stack buf) (fx* stack_idx 32))]
+                                [idx (infoptr_T.ip_index ip)]
+                                [hp (infoptr_T.ip_block ip)]
+                                [pp (bhdr_T.bh_ptr hp)])
+                           (cond
+                             [(not (fx=? (bhdr_T.bh_id hp) 28788)) (iemsg ed e_pointer_block_id_wrong_four) ret]
+                             [else
+                              (PTR_BL.pb_count-set! pp (->u16 (i32- (PTR_BL.pb_count pp) 1)))
+                              (let ([count (PTR_BL.pb_count pp)])
+                                (cond
+                                  [(fx=? count 0) (loop10 (i32- stack_idx 1) ret)]
+                                  [(not (fx=? count idx))
+                                   (musl_memmove ed (fx+ (PTR_BL.pb_pointer& pp) (fx* idx 16)) (fx+ (PTR_BL.pb_pointer& pp) (fx* (i32+ idx 1) 16)) (u64* (->u64 (i32- count idx)) 16))
+                                   (join15 stack_idx)]
+                                  [else (join15 stack_idx)]))]))]
+                        [else (join18)]))]
                    [(fx<? idx (i32- count 1))
                     (musl_memmove ed (fx+ (DATA_BL.db_line& dp) (fx* idx 16)) (fx+ (DATA_BL.db_line& dp) (fx* (i32+ idx 1) 16)) (u64* (->u64 (i32- (i32- count idx) 1)) 16))
                     (join8 dp)]
@@ -21537,26 +22355,6 @@
     (define (join8 dp)
       (DATA_BL.db_line_count-set! dp (i64- (DATA_BL.db_line_count dp) 1))
       (join18))
-    (define (loop10 stack_idx ret)
-      (cond
-        [(fx>=? stack_idx 0)
-         (buf_T.b_ml.ml_stack_top-set! buf 0)
-         (let* ([ip (fx+ (buf_T.b_ml.ml_stack buf) (fx* stack_idx 32))]
-                [idx (infoptr_T.ip_index ip)]
-                [hp (infoptr_T.ip_block ip)]
-                [pp (bhdr_T.bh_ptr hp)])
-           (cond
-             [(not (fx=? (bhdr_T.bh_id hp) 28788)) (iemsg ed e_pointer_block_id_wrong_four) ret]
-             [else
-              (PTR_BL.pb_count-set! pp (->u16 (i32- (PTR_BL.pb_count pp) 1)))
-              (let ([count (PTR_BL.pb_count pp)])
-                (cond
-                  [(fx=? count 0) (loop10 (i32- stack_idx 1) ret)]
-                  [(not (fx=? count idx))
-                   (musl_memmove ed (fx+ (PTR_BL.pb_pointer& pp) (fx* idx 16)) (fx+ (PTR_BL.pb_pointer& pp) (fx* (i32+ idx 1) 16)) (u64* (->u64 (i32- count idx)) 16))
-                   (join15 stack_idx)]
-                  [else (join15 stack_idx)]))]))]
-        [else (join18)]))
     (define (join15 stack_idx)
       (buf_T.b_ml.ml_stack_top-set! buf stack_idx)
       (cond
@@ -21606,24 +22404,24 @@
 
 (define (ml_firstmarked ed)
   (let ([mem (ed-mem ed)])
-    (define (loop2 lnum)
-      (if (<= lnum (buf_T.b_ml.ml_line_count curbuf))
-          (let ([hp (ml_find_line ed curbuf lnum 19)])
-            (if (fx=? hp 0)
-                0
-                (let ([dp (bhdr_T.bh_data hp)])
-                  (loop6 dp lnum (->i32 (i64- lnum (buf_T.b_ml.ml_locked_low curbuf)))))))
-          0))
-    (define (loop6 dp lnum i)
-      (if (<= lnum (buf_T.b_ml.ml_locked_high curbuf))
-          (cond
-            [(not (fxzero? (DATA_LN.dl_marked (fx+ (DATA_BL.db_line& dp) (fx* i 16)))))
-             (DATA_LN.dl_marked-set! (fx+ (DATA_BL.db_line& dp) (fx* i 16)) 0)
-             (set! lowest_marked (i64+ lnum 1))
-             lnum]
-            [else (loop6 dp (i64+ lnum 1) (i32+ i 1))])
-          (loop2 lnum)))
-    (if (fx=? (buf_T.b_ml.ml_root curbuf) 0) 0 (loop2 lowest_marked))))
+    (if (fx=? (buf_T.b_ml.ml_root curbuf) 0) 0 (let loop2 ([lnum lowest_marked])
+                                                 (if (<= lnum (buf_T.b_ml.ml_line_count curbuf))
+                                                     (let ([hp (ml_find_line ed curbuf lnum 19)])
+                                                       (if (fx=? hp 0)
+                                                           0
+                                                           (let ([dp (bhdr_T.bh_data hp)])
+                                                             (let loop6 ([dp dp]
+                                                                         [lnum lnum]
+                                                                         [i (->i32 (i64- lnum (buf_T.b_ml.ml_locked_low curbuf)))])
+                                                               (if (<= lnum (buf_T.b_ml.ml_locked_high curbuf))
+                                                                   (cond
+                                                                     [(not (fxzero? (DATA_LN.dl_marked (fx+ (DATA_BL.db_line& dp) (fx* i 16)))))
+                                                                      (DATA_LN.dl_marked-set! (fx+ (DATA_BL.db_line& dp) (fx* i 16)) 0)
+                                                                      (set! lowest_marked (i64+ lnum 1))
+                                                                      lnum]
+                                                                     [else (loop6 dp (i64+ lnum 1) (i32+ i 1))])
+                                                                   (loop2 lnum))))))
+                                                     0)))))
 
 (define (ml_clearmarked ed)
   (let ([mem (ed-mem ed)])
@@ -21699,19 +22497,21 @@
           (let* ([bp (buf_T.b_ml.ml_root buf)]
                  [high (buf_T.b_ml.ml_line_count buf)])
             (cond
-              [(fx=? action 19) (loop8 bp 1 high (i32- (buf_T.b_ml.ml_stack_top buf) 1))]
+              [(fx=? action 19) (let loop8 ([bp bp]
+                                            [low 1]
+                                            [high high]
+                                            [top (i32- (buf_T.b_ml.ml_stack_top buf) 1)])
+                                  (if (fx>=? top 0)
+                                      (let ([ip (fx+ (buf_T.b_ml.ml_stack buf) (fx* top 32))])
+                                        (if (and (<= (infoptr_T.ip_low ip) lnum) (>= (infoptr_T.ip_high ip) lnum))
+                                            (let* ([bp (infoptr_T.ip_block ip)]
+                                                   [low (infoptr_T.ip_low ip)]
+                                                   [high (infoptr_T.ip_high ip)])
+                                              (buf_T.b_ml.ml_stack_top-set! buf top)
+                                              (join12 bp low high top))
+                                            (loop8 bp low high (i32- top 1))))
+                                      (join12 bp low high top)))]
               [else (buf_T.b_ml.ml_stack_top-set! buf 0) (loop14 bp 1 high)]))))
-    (define (loop8 bp low high top)
-      (if (fx>=? top 0)
-          (let ([ip (fx+ (buf_T.b_ml.ml_stack buf) (fx* top 32))])
-            (if (and (<= (infoptr_T.ip_low ip) lnum) (>= (infoptr_T.ip_high ip) lnum))
-                (let* ([bp (infoptr_T.ip_block ip)]
-                       [low (infoptr_T.ip_low ip)]
-                       [high (infoptr_T.ip_high ip)])
-                  (buf_T.b_ml.ml_stack_top-set! buf top)
-                  (join12 bp low high top))
-                (loop8 bp low high (i32- top 1))))
-          (join12 bp low high top)))
     (define (join12 bp low high top)
       (cond
         [(fx<? top 0) (buf_T.b_ml.ml_stack_top-set! buf 0) (loop14 bp low high)]
@@ -21742,17 +22542,21 @@
                       (infoptr_T.ip_low-set! ip low)
                       (infoptr_T.ip_high-set! ip high)
                       (infoptr_T.ip_index-set! ip -1)
-                      (loop22 pp ip bp low high 0))))]))]))
-    (define (loop22 pp ip bp low high idx)
-      (if (fx<? idx (PTR_BL.pb_count pp))
-          (let* ([t (PTR_EN.pe_line_count (fx+ (PTR_BL.pb_pointer& pp) (fx* idx 16)))]
-                 [low (i64+ low t)])
-            (cond
-              [(> low lnum)
-               (infoptr_T.ip_index-set! ip idx)
-               (join26 pp (PTR_EN.pe_block (fx+ (PTR_BL.pb_pointer& pp) (fx* idx 16))) (i64- low t) (i64- low 1) idx)]
-              [else (loop22 pp ip bp low high (i32+ idx 1))]))
-          (join26 pp bp low high idx)))
+                      (let loop22 ([pp pp]
+                                   [ip ip]
+                                   [bp bp]
+                                   [low low]
+                                   [high high]
+                                   [idx 0])
+                        (if (fx<? idx (PTR_BL.pb_count pp))
+                            (let* ([t (PTR_EN.pe_line_count (fx+ (PTR_BL.pb_pointer& pp) (fx* idx 16)))]
+                                   [low (i64+ low t)])
+                              (cond
+                                [(> low lnum)
+                                 (infoptr_T.ip_index-set! ip idx)
+                                 (join26 pp (PTR_EN.pe_block (fx+ (PTR_BL.pb_pointer& pp) (fx* idx 16))) (i64- low t) (i64- low 1) idx)]
+                                [else (loop22 pp ip bp low high (i32+ idx 1))]))
+                            (join26 pp bp low high idx))))))]))]))
     (define (join26 pp bp low high idx)
       (cond
         [(fx>=? idx (PTR_BL.pb_count pp))
@@ -21823,7 +22627,7 @@
 
 (define (ml_lineadd ed buf count)
   (let ([mem (ed-mem ed)])
-    (define (loop1 idx)
+    (let loop1 ([idx (i32- (buf_T.b_ml.ml_stack_top buf) 1)])
       (when (fx>=? idx 0)
         (let* ([ip (fx+ (buf_T.b_ml.ml_stack buf) (fx* idx 32))]
                [hp (infoptr_T.ip_block ip)]
@@ -21833,8 +22637,7 @@
               (let ([r1 (fx+ (PTR_BL.pb_pointer& pp) (fx* (infoptr_T.ip_index ip) 16))])
                 (PTR_EN.pe_line_count-set! r1 (i64+ (PTR_EN.pe_line_count r1) count))
                 (infoptr_T.ip_high-set! ip (i64+ (infoptr_T.ip_high ip) count))
-                (loop1 (i32- idx 1)))))))
-    (loop1 (i32- (buf_T.b_ml.ml_stack_top buf) 1))))
+                (loop1 (i32- idx 1)))))))))
 
 (define (msg ed s)
   (b->i (msg_attr_keep ed s 0 #f)))
@@ -21905,40 +22708,46 @@
                     (join13 room len e)
                     (let ([len (u64+ len (->u64 n))])
                       (st-u8! (fx+ buf e) (ld-u8 (fx+ s e)))
-                      (loop8 room half len e (utfc_ptr2len ed (fx+ s e)))))))
+                      (let loop8 ([room room]
+                                  [half half]
+                                  [len len]
+                                  [e e]
+                                  [n (utfc_ptr2len ed (fx+ s e))])
+                        (let ([n (i32- n 1)])
+                          (if (fx>? n 0)
+                              (let ([e (i32+ e 1)])
+                                (cond
+                                  [(fx=? e buflen) (join12 room half len e)]
+                                  [else (st-u8! (fx+ buf e) (ld-u8 (fx+ s e))) (loop8 room half len e n)]))
+                              (join12 room half len e))))))))
           (join13 room len e)))
-    (define (loop8 room half len e n)
-      (let ([n (i32- n 1)])
-        (if (fx>? n 0)
-            (let ([e (i32+ e 1)])
-              (cond
-                [(fx=? e buflen) (join12 room half len e)]
-                [else (st-u8! (fx+ buf e) (ld-u8 (fx+ s e))) (loop8 room half len e n)]))
-            (join12 room half len e))))
     (define (join12 room half len e)
       (loop4 room half len (i32+ e 1)))
     (define (join13 room len e)
       (let ([i (->i32 (musl_strlen ed s))])
-        (loop15 room (->u64 i) len e i)))
-    (define (loop15 room half len e i)
-      (let ([half (u64- (u64- half (->u64 (utf_head_off ed s (fx+ (fx+ s (->i64 half)) -1)))) 1)])
-        (if (and (> half 0) (utf_iscomposing ed (utf_ptr2char ed (fx+ s (->i64 half)))))
-            (loop15 room half len e i)
-            (let ([n (ptr2cells ed (fx+ s (->i64 half)))])
-              (if (or (> (u64+ len (->u64 n)) room) (= half 0))
-                  (cond
-                    [(fx<=? i (i32+ e 3))
-                     (when (not (fx=? s buf))
-                       (let ([len (musl_strlen ed s)])
-                         (if (>= len (->u64 buflen)) (join28 (->u64 (i32- buflen 1)) e) (join28 len e))))]
-                    [(fx<? (i32+ e 3) buflen)
-                     (musl_memmove ed (fx+ buf e) (c-str 163245 "...") 3)
-                     (let ([len (u64+ (musl_strlen ed (fx+ s i)) 1)])
-                       (if (>= len (u64- (u64- (->u64 buflen) (->u64 e)) 3))
-                           (join24 (->u64 (i32- (i32- (i32- buflen e) 3) 1)) e i)
-                           (join24 len e i)))]
-                    [else (st-u8! (fx+ buf (i32- buflen 1)) 0)])
-                  (loop15 room half (u64+ len (->u64 n)) e (->i32 half)))))))
+        (let loop15 ([room room]
+                     [half (->u64 i)]
+                     [len len]
+                     [e e]
+                     [i i])
+          (let ([half (u64- (u64- half (->u64 (utf_head_off ed s (fx+ (fx+ s (->i64 half)) -1)))) 1)])
+            (if (and (> half 0) (utf_iscomposing ed (utf_ptr2char ed (fx+ s (->i64 half)))))
+                (loop15 room half len e i)
+                (let ([n (ptr2cells ed (fx+ s (->i64 half)))])
+                  (if (or (> (u64+ len (->u64 n)) room) (= half 0))
+                      (cond
+                        [(fx<=? i (i32+ e 3))
+                         (when (not (fx=? s buf))
+                           (let ([len (musl_strlen ed s)])
+                             (if (>= len (->u64 buflen)) (join28 (->u64 (i32- buflen 1)) e) (join28 len e))))]
+                        [(fx<? (i32+ e 3) buflen)
+                         (musl_memmove ed (fx+ buf e) (c-str 163245 "...") 3)
+                         (let ([len (u64+ (musl_strlen ed (fx+ s i)) 1)])
+                           (if (>= len (u64- (u64- (->u64 buflen) (->u64 e)) 3))
+                               (join24 (->u64 (i32- (i32- (i32- buflen e) 3) 1)) e i)
+                               (join24 len e i)))]
+                        [else (st-u8! (fx+ buf (i32- buflen 1)) 0)])
+                      (loop15 room half (u64+ len (->u64 n)) e (->i32 half)))))))))
     (define (join24 len e i)
       (musl_memmove ed (fx+ (fx+ buf e) 3) (fx+ s i) len)
       (st-u8! (fx+ buf (->i64 (u64- (u64+ (->u64 (i32+ e 3)) len) 1))) 0))
@@ -22126,16 +22935,18 @@
     (define (join2 s room t1)
       (if t1
           (let ([size (vim_strsize ed s)])
-            (if (fx<=? size room) s (loop5 s 0 room size)))
+            (if (fx<=? size room) s (let loop5 ([s s]
+                                                [n 0]
+                                                [room room]
+                                                [size size])
+                                      (if (fx>=? size room)
+                                          (let ([t2 (utf_ptr2cells ed (fx+ s n))])
+                                            (loop5 s (i32+ n (utfc_ptr2len ed (fx+ s n))) room (i32- size t2)))
+                                          (let* ([n (i32- n 1)]
+                                                 [s (fx+ s n)])
+                                            (st-u8! s 60)
+                                            (join7 s))))))
           (join7 s)))
-    (define (loop5 s n room size)
-      (if (fx>=? size room)
-          (let ([t2 (utf_ptr2cells ed (fx+ s n))])
-            (loop5 s (i32+ n (utfc_ptr2len ed (fx+ s n))) room (i32- size t2)))
-          (let* ([n (i32- n 1)]
-                 [s (fx+ s n)])
-            (st-u8! s 60)
-            (join7 s))))
     (define (join7 s)
       s)
     (let* ([room (i32- (i32+ (i32* (->i32 (i64- (i64- Rows cmdline_row) 1)) cmdline_width) sc_col) 1)]
@@ -22145,17 +22956,18 @@
 (define (add_msg_hist ed s len attr)
   (let ([mem (ed-mem ed)])
     (define (loop4 s len p)
-      (if (and (fx>? len 0) (fx=? (ld-u8 s) 10)) (loop4 (fx+ s 1) (i32- len 1) p) (loop6 s len p)))
-    (define (loop6 s len p)
-      (cond
-        [(and (fx>? len 0) (fx=? (ld-u8 (fx+ s (i32- len 1))) 10)) (loop6 s (i32- len 1) p)]
-        [else
-         (msg_hist.msg-set! p (vim_strnsave ed s (->u64 len)))
-         (msg_hist.next-set! p 0)
-         (msg_hist.attr-set! p attr)
-         (cond
-           [(not (fx=? last_msg_hist 0)) (msg_hist.next-set! last_msg_hist p) (join9 p)]
-           [else (join9 p)])]))
+      (if (and (fx>? len 0) (fx=? (ld-u8 s) 10)) (loop4 (fx+ s 1) (i32- len 1) p) (let loop6 ([s s]
+                                                                                              [len len]
+                                                                                              [p p])
+                                                                                    (cond
+                                                                                      [(and (fx>? len 0) (fx=? (ld-u8 (fx+ s (i32- len 1))) 10)) (loop6 s (i32- len 1) p)]
+                                                                                      [else
+                                                                                       (msg_hist.msg-set! p (vim_strnsave ed s (->u64 len)))
+                                                                                       (msg_hist.next-set! p 0)
+                                                                                       (msg_hist.attr-set! p attr)
+                                                                                       (cond
+                                                                                         [(not (fx=? last_msg_hist 0)) (msg_hist.next-set! last_msg_hist p) (join9 p)]
+                                                                                         [else (join9 p)])]))))
     (define (join9 p)
       (set! last_msg_hist p)
       (cond
@@ -22183,9 +22995,8 @@
 
 (define (check_msg_hist ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1)
-      (when (and (fx>? msg_hist_len 0) (fx>? msg_hist_len msg_hist_max)) (delete_first_msg ed) (loop1)))
-    (loop1)))
+    (let loop1 ()
+      (when (and (fx>? msg_hist_len 0) (fx>? msg_hist_len msg_hist_max)) (delete_first_msg ed) (loop1)))))
 
 (define (messagesopt_changed ed)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
@@ -22227,15 +23038,6 @@
 
 (define (ex_messages ed eap)
   (let ([mem (ed-mem ed)])
-    (define (loop4 p c)
-      (if (and (not (fx=? p 0)) (not (not (fxzero? got_int))))
-          (loop4 (msg_hist.next p) (i32+ c 1))
-          (let ([c (->i32 (i64- c (exarg_T.line2 eap)))])
-            (loop6 first_msg_hist c))))
-    (define (loop6 p c)
-      (if (and (and (not (fx=? p 0)) (not (not (fxzero? got_int)))) (fx>? c 0))
-          (loop6 (msg_hist.next p) (i32- c 1))
-          (loop8 p)))
     (define (loop8 p)
       (if (and (not (fx=? p 0)) (not (not (fxzero? got_int))))
           (cond
@@ -22244,16 +23046,24 @@
           (set! msg_hist_off #f)))
     (define (join12 p)
       (loop8 (msg_hist.next p)))
-    (define (loop18 keep)
-      (when (fx>? msg_hist_len keep) (delete_first_msg ed) (loop18 keep)))
     (cond
       [(fx=? (musl_strcmp ed (exarg_T.arg eap) (c-str 163667 "clear")) 0)
-       (loop18 (->i32 (if (fx=? (exarg_T.addr_count eap) 0) 0 (exarg_T.line2 eap))))]
+       (let loop18 ([keep (->i32 (if (fx=? (exarg_T.addr_count eap) 0) 0 (exarg_T.line2 eap)))])
+         (when (fx>? msg_hist_len keep) (delete_first_msg ed) (loop18 keep)))]
       [(not (fx=? (ld-u8 (exarg_T.arg eap)) 0)) (emsg ed e_invalid_argument)]
       [else
        (set! msg_hist_off #t)
        (let ([p first_msg_hist])
-         (if (not (fx=? (exarg_T.addr_count eap) 0)) (loop4 p 0) (loop8 p)))])))
+         (if (not (fx=? (exarg_T.addr_count eap) 0)) (let loop4 ([p p]
+                                                                 [c 0])
+                                                       (if (and (not (fx=? p 0)) (not (not (fxzero? got_int))))
+                                                           (loop4 (msg_hist.next p) (i32+ c 1))
+                                                           (let ([c (->i32 (i64- c (exarg_T.line2 eap)))])
+                                                             (let loop6 ([p first_msg_hist]
+                                                                         [c c])
+                                                               (if (and (and (not (fx=? p 0)) (not (not (fxzero? got_int)))) (fx>? c 0))
+                                                                   (loop6 (msg_hist.next p) (i32- c 1))
+                                                                   (loop8 p)))))) (loop8 p)))])))
 
 (define (wait_return ed redraw)
   (let ([mem (ed-mem ed)])
@@ -22593,7 +23403,11 @@
 (define (str2specialbuf ed sp.in buf len)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local sp &sp ptr 0)
-    (define (loop1 buf_len)
+    (define (join3)
+      (frame-pop! ed fr))
+    (set! sp sp.in)
+    (st-u8! buf 0)
+    (let loop1 ([buf_len 0])
       (if (not (fxzero? (ld-u8 sp)))
           (let* ([s (str2special ed &sp #f #f)]
                  [s_len (musl_strlen ed s)])
@@ -22602,12 +23416,7 @@
                (musl_strcpy ed (fx+ buf (->i64 buf_len)) s)
                (loop1 (u64+ buf_len s_len))]
               [else (join3)]))
-          (join3)))
-    (define (join3)
-      (frame-pop! ed fr))
-    (set! sp sp.in)
-    (st-u8! buf 0)
-    (loop1 0)))
+          (join3)))))
 
 (define (msg_prt_line ed s list_)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
@@ -22617,25 +23426,47 @@
         [(fxzero? list_)
          (join11 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)]
         [(not (fxzero? (win_T.w_lcs_chars.trail curwin)))
-         (loop5 s list_ col n_extra c_extra c_final p_extra n attr (fx+ s (->i64 (musl_strlen ed s))) lead in_multispace multispace_pos)]
+         (let loop5 ([s s]
+                     [list_ list_]
+                     [col col]
+                     [n_extra n_extra]
+                     [c_extra c_extra]
+                     [c_final c_final]
+                     [p_extra p_extra]
+                     [n n]
+                     [attr attr]
+                     [trail (fx+ s (->i64 (musl_strlen ed s)))]
+                     [lead lead]
+                     [in_multispace in_multispace]
+                     [multispace_pos multispace_pos])
+           (if (and (fx>? trail s) (or (fx=? (ld-u8 (fx+ trail -1)) 32) (fx=? (ld-u8 (fx+ trail -1)) 9)))
+               (loop5 s list_ col n_extra c_extra c_final p_extra n attr (fx+ trail -1) lead in_multispace multispace_pos)
+               (join6 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)))]
         [else
          (join6 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)]))
-    (define (loop5 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)
-      (if (and (fx>? trail s) (or (fx=? (ld-u8 (fx+ trail -1)) 32) (fx=? (ld-u8 (fx+ trail -1)) 9)))
-          (loop5 s list_ col n_extra c_extra c_final p_extra n attr (fx+ trail -1) lead in_multispace multispace_pos)
-          (join6 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)))
     (define (join6 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)
       (if (or (or (not (fxzero? (win_T.w_lcs_chars.lead curwin))) (not (fx=? (win_T.w_lcs_chars.leadmultispace curwin) 0))) (not (fx=? (win_T.w_lcs_chars.leadtab1 curwin) 0)))
-          (loop8 s list_ col n_extra c_extra c_final p_extra n attr trail s in_multispace multispace_pos)
+          (let loop8 ([s s]
+                      [list_ list_]
+                      [col col]
+                      [n_extra n_extra]
+                      [c_extra c_extra]
+                      [c_final c_final]
+                      [p_extra p_extra]
+                      [n n]
+                      [attr attr]
+                      [trail trail]
+                      [lead s]
+                      [in_multispace in_multispace]
+                      [multispace_pos multispace_pos])
+            (cond
+              [(or (fx=? (ld-u8 lead) 32) (fx=? (ld-u8 lead) 9))
+               (loop8 s list_ col n_extra c_extra c_final p_extra n attr trail (fx+ lead 1) in_multispace multispace_pos)]
+              [(fx=? (ld-u8 lead) 0)
+               (join11 s list_ col n_extra c_extra c_final p_extra n attr trail 0 in_multispace multispace_pos)]
+              [else
+               (join11 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)]))
           (join11 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)))
-    (define (loop8 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)
-      (cond
-        [(or (fx=? (ld-u8 lead) 32) (fx=? (ld-u8 lead) 9))
-         (loop8 s list_ col n_extra c_extra c_final p_extra n attr trail (fx+ lead 1) in_multispace multispace_pos)]
-        [(fx=? (ld-u8 lead) 0)
-         (join11 s list_ col n_extra c_extra c_final p_extra n attr trail 0 in_multispace multispace_pos)]
-        [else
-         (join11 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)]))
     (define (join11 s list_ col n_extra c_extra c_final p_extra n attr trail lead in_multispace multispace_pos)
       (cond
         [(and (fx=? (ld-u8 s) 0) (not (and (not (fxzero? list_)) (not (fx=? (win_T.w_lcs_chars.eol curwin) 0)))))
@@ -22918,7 +23749,17 @@
             (join51 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)]
            [else (join51 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)])]
         [(fx=? (ld-u8 s) 9)
-         (loop44 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)]
+         (let loop44 ([s s]
+                      [t_s t_s]
+                      [t_col t_col]
+                      [sb_str sb_str]
+                      [sb_col sb_col]
+                      [store_sb_text__o_sb_str store_sb_text__o_sb_str]
+                      [store_sb_text__o_sb_col store_sb_text__o_sb_col])
+           (msg_screen_putchar ed 32 attr)
+           (if (not (fxzero? (fxand msg_col 7)))
+               (loop44 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)
+               (join51 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)))]
         [(fx=? (ld-u8 s) 7)
          (vim_beep ed 65536)
          (join51 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)]
@@ -22941,11 +23782,6 @@
         [else (join38 s t_s t_col l cw sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)]))
     (define (join38 s t_s t_col l cw sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)
       (join51 (fx+ s (i32- l 1)) t_s (i32+ t_col cw) sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col))
-    (define (loop44 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)
-      (msg_screen_putchar ed 32 attr)
-      (if (not (fxzero? (fxand msg_col 7)))
-          (loop44 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)
-          (join51 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)))
     (define (join51 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)
       (loop1 (fx+ s 1) t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col))
     (define (join54 s t_s t_col sb_str sb_col store_sb_text__o_sb_str store_sb_text__o_sb_col)
@@ -23069,11 +23905,10 @@
 
 (define (msg_sb_start ed mps)
   (let ([mem (ed-mem ed)])
-    (define (loop1 mp)
+    (let loop1 ([mp mps])
       (if (and (and (not (fx=? mp 0)) (not (fx=? (msgchunk_T.sb_prev mp) 0))) (not (not (fxzero? (msgchunk_T.sb_eol (msgchunk_T.sb_prev mp))))))
           (loop1 (msgchunk_T.sb_prev mp))
-          mp))
-    (loop1 mps)))
+          mp))))
 
 (define (msg_sb_eol ed)
   (let ([mem (ed-mem ed)])
@@ -23120,10 +23955,6 @@
 
 (define (do_more_prompt ed typed_char)
   (let ([mem (ed-mem ed)])
-    (define (loop3 used_typed_char oldState mp_last i msg_attr)
-      (if (and (and (< i (i64- Rows 2)) (not (fx=? mp_last 0))) (not (fx=? (msgchunk_T.sb_prev mp_last) 0)))
-          (loop3 used_typed_char oldState (msg_sb_start ed (msgchunk_T.sb_prev mp_last)) (i32+ i 1) msg_attr)
-          (join4 used_typed_char oldState mp_last msg_attr)))
     (define (join4 used_typed_char oldState mp_last msg_attr)
       (set! State 12288)
       (cond
@@ -23188,24 +24019,32 @@
            [(not (fx=? (msgchunk_T.sb_prev mp_last) 0))
             (join32 used_typed_char oldState toscroll mp_last (msg_sb_start ed (msgchunk_T.sb_prev mp_last)) msg_attr)]
            [else (join32 used_typed_char oldState toscroll mp_last 0 msg_attr)])]
-        [else (loop25 used_typed_char oldState toscroll mp_last msg_attr)]))
-    (define (loop25 used_typed_char oldState toscroll mp_last msg_attr)
-      (cond
-        [(and (fx>? toscroll 0) (not (fx=? mp_last 0)))
-         (msg_scroll_up ed)
-         (inc_msg_scrolled ed)
-         (screen_fill ed (i32- (->i32 Rows) 2) (i32- (->i32 Rows) 1) cmdline_col_off (i32+ cmdline_col_off cmdline_width) 32 32 msg_attr)
-         (loop25 used_typed_char oldState (i32- toscroll 1) (disp_sb_line ed (i32- (->i32 Rows) 2) mp_last #f) msg_attr)]
-        [else (join49 used_typed_char oldState toscroll mp_last msg_attr)]))
+        [else (let loop25 ([used_typed_char used_typed_char]
+                           [oldState oldState]
+                           [toscroll toscroll]
+                           [mp_last mp_last]
+                           [msg_attr msg_attr])
+                (cond
+                  [(and (fx>? toscroll 0) (not (fx=? mp_last 0)))
+                   (msg_scroll_up ed)
+                   (inc_msg_scrolled ed)
+                   (screen_fill ed (i32- (->i32 Rows) 2) (i32- (->i32 Rows) 1) cmdline_col_off (i32+ cmdline_col_off cmdline_width) 32 32 msg_attr)
+                   (loop25 used_typed_char oldState (i32- toscroll 1) (disp_sb_line ed (i32- (->i32 Rows) 2) mp_last #f) msg_attr)]
+                  [else (join49 used_typed_char oldState toscroll mp_last msg_attr)]))]))
     (define (join32 used_typed_char oldState toscroll mp_last mp msg_attr)
-      (loop33 used_typed_char oldState toscroll mp_last mp 0 msg_attr))
-    (define (loop33 used_typed_char oldState toscroll mp_last mp i msg_attr)
-      (cond
-        [(and (and (< i (i64- Rows 2)) (not (fx=? mp 0))) (not (fx=? (msgchunk_T.sb_prev mp) 0)))
-         (loop33 used_typed_char oldState toscroll mp_last (msg_sb_start ed (msgchunk_T.sb_prev mp)) (i32+ i 1) msg_attr)]
-        [(and (not (fx=? mp 0)) (not (fx=? (msgchunk_T.sb_prev mp) 0)))
-         (loop36 used_typed_char oldState toscroll mp_last mp 0 msg_attr)]
-        [else (join49 used_typed_char oldState toscroll mp_last msg_attr)]))
+      (let loop33 ([used_typed_char used_typed_char]
+                   [oldState oldState]
+                   [toscroll toscroll]
+                   [mp_last mp_last]
+                   [mp mp]
+                   [i 0]
+                   [msg_attr msg_attr])
+        (cond
+          [(and (and (< i (i64- Rows 2)) (not (fx=? mp 0))) (not (fx=? (msgchunk_T.sb_prev mp) 0)))
+           (loop33 used_typed_char oldState toscroll mp_last (msg_sb_start ed (msgchunk_T.sb_prev mp)) (i32+ i 1) msg_attr)]
+          [(and (not (fx=? mp 0)) (not (fx=? (msgchunk_T.sb_prev mp) 0)))
+           (loop36 used_typed_char oldState toscroll mp_last mp 0 msg_attr)]
+          [else (join49 used_typed_char oldState toscroll mp_last msg_attr)])))
     (define (loop36 used_typed_char oldState toscroll mp_last mp i msg_attr)
       (if (fx>? i toscroll)
           (if (or (fx=? mp 0) (fx=? (msgchunk_T.sb_prev mp) 0))
@@ -23222,13 +24061,18 @@
         [(and (fx=? toscroll -1) (screen_ins_lines ed 0 0 1 (->i32 Rows) 0 0))
          (disp_sb_line ed 0 mp #f)
          (join48 used_typed_char oldState mp_last msg_attr)]
-        [else (loop44 used_typed_char oldState mp_last mp 0 msg_attr (screenclear ed))]))
-    (define (loop44 used_typed_char oldState mp_last mp i msg_attr did_clear)
-      (if (and (not (fx=? mp 0)) (< i (i64- Rows 1)))
-          (let ([mp (disp_sb_line ed i mp (not did_clear))])
-            (set! msg_scrolled (i32+ msg_scrolled 1))
-            (loop44 used_typed_char oldState mp_last mp (i32+ i 1) msg_attr did_clear))
-          (join48 used_typed_char oldState mp_last msg_attr)))
+        [else (let loop44 ([used_typed_char used_typed_char]
+                           [oldState oldState]
+                           [mp_last mp_last]
+                           [mp mp]
+                           [i 0]
+                           [msg_attr msg_attr]
+                           [did_clear (screenclear ed)])
+                (if (and (not (fx=? mp 0)) (< i (i64- Rows 1)))
+                    (let ([mp (disp_sb_line ed i mp (not did_clear))])
+                      (set! msg_scrolled (i32+ msg_scrolled 1))
+                      (loop44 used_typed_char oldState mp_last mp (i32+ i 1) msg_attr did_clear))
+                    (join48 used_typed_char oldState mp_last msg_attr)))]))
     (define (join48 used_typed_char oldState mp_last msg_attr)
       (join49 used_typed_char oldState 0 mp_last msg_attr))
     (define (join49 used_typed_char oldState toscroll mp_last msg_attr)
@@ -23254,7 +24098,14 @@
         [else
          (set! do_more_prompt:entered #t)
          (if (fx=? typed_char 71)
-             (loop3 typed_char oldState (msg_sb_start ed last_msgchunk) 0 msg_attr)
+             (let loop3 ([used_typed_char typed_char]
+                         [oldState oldState]
+                         [mp_last (msg_sb_start ed last_msgchunk)]
+                         [i 0]
+                         [msg_attr msg_attr])
+               (if (and (and (< i (i64- Rows 2)) (not (fx=? mp_last 0))) (not (fx=? (msgchunk_T.sb_prev mp_last) 0)))
+                   (loop3 used_typed_char oldState (msg_sb_start ed (msgchunk_T.sb_prev mp_last)) (i32+ i 1) msg_attr)
+                   (join4 used_typed_char oldState mp_last msg_attr)))
              (join4 typed_char oldState 0 msg_attr))]))))
 
 (define (msg_screen_putchar ed c attr)
@@ -23433,17 +24284,6 @@
 (define (plines_win_col ed wp lnum column)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local cts &cts agg 0)
-    (define (loop3 lines line)
-      (if (and (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)) (fx<? (chartabsize_T.cts_ptr cts) (fx+ line column)))
-          (let ([t1 (win_lbr_chartabsize ed cts 0 0)])
-            (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) t1))
-            (let ([t2 (utfc_ptr2len ed (chartabsize_T.cts_ptr cts))])
-              (chartabsize_T.cts_ptr-set! cts (fx+ (chartabsize_T.cts_ptr cts) t2))
-              (loop3 lines line)))
-          (let ([col (chartabsize_T.cts_vcol cts)])
-            (if (and (and (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 9) (not (fxzero? (fxand State 1)))) (or (not (not (fxzero? (win_T.w_onebuf_opt.wo_list wp)))) (not (fxzero? (win_T.w_lcs_chars.tab1 wp)))))
-                (join6 (i64+ col (i32- (win_lbr_chartabsize ed cts 0 0) 1)) lines)
-                (join6 col lines)))))
     (define (join6 col lines)
       (let* ([r1 (win_T.w_width wp)]
              [width (i32- r1 (win_col_off ed wp))])
@@ -23463,14 +24303,25 @@
       [else
        (let ([line (ml_get_buf ed (win_T.w_buffer wp) lnum #f)])
          (init_chartabsize_arg ed cts wp lnum 0 line line)
-         (loop3 0 line))])))
+         (let loop3 ([lines 0]
+                     [line line])
+           (if (and (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)) (fx<? (chartabsize_T.cts_ptr cts) (fx+ line column)))
+               (let ([t1 (win_lbr_chartabsize ed cts 0 0)])
+                 (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) t1))
+                 (let ([t2 (utfc_ptr2len ed (chartabsize_T.cts_ptr cts))])
+                   (chartabsize_T.cts_ptr-set! cts (fx+ (chartabsize_T.cts_ptr cts) t2))
+                   (loop3 lines line)))
+               (let ([col (chartabsize_T.cts_vcol cts)])
+                 (if (and (and (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 9) (not (fxzero? (fxand State 1)))) (or (not (not (fxzero? (win_T.w_onebuf_opt.wo_list wp)))) (not (fxzero? (win_T.w_lcs_chars.tab1 wp)))))
+                     (join6 (i64+ col (i32- (win_lbr_chartabsize ed cts 0 0) 1)) lines)
+                     (join6 col lines))))))])))
 
 (define (plines_m_win ed wp first last max_)
-  (define (loop1 first count)
+  (let loop1 ([first first]
+              [count 0])
     (if (and (<= first last) (fx<? count max_))
         (loop1 (i64+ first 1) (i32+ count (plines_win ed wp first #f)))
-        (if (fx<? max_ count) max_ count)))
-  (loop1 first 0))
+        (if (fx<? max_ count) max_ count))))
 
 (define (gchar_pos ed pos)
   (let ([mem (ed-mem ed)])
@@ -23801,17 +24652,20 @@
           (join6 wcol line linelen csize one_more)))
     (define (join6 wcol line linelen csize one_more)
       (init_chartabsize_arg ed cts curwin (pos_T.lnum pos) 0 line line)
-      (loop7 wcol line linelen csize one_more))
-    (define (loop7 wcol line linelen csize one_more)
-      (if (and (fx<=? (chartabsize_T.cts_vcol cts) wcol) (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)))
-          (let ([csize (lbr_chartabsize_adv ed cts)])
-            (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) csize))
-            (loop7 wcol line linelen csize one_more))
-          (let* ([col (chartabsize_T.cts_vcol cts)]
-                 [idx (->i32 (fx- (chartabsize_T.cts_ptr cts) line))])
-            (if (or (fx>? col wcol) (and (not (not (fxzero? (virtual_active ed)))) (fx=? (b->i one_more) 0)))
-                (join10 wcol (i32- idx 1) line linelen (i32- col csize) csize one_more)
-                (join10 wcol idx line linelen col csize one_more)))))
+      (let loop7 ([wcol wcol]
+                  [line line]
+                  [linelen linelen]
+                  [csize csize]
+                  [one_more one_more])
+        (if (and (fx<=? (chartabsize_T.cts_vcol cts) wcol) (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)))
+            (let ([csize (lbr_chartabsize_adv ed cts)])
+              (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) csize))
+              (loop7 wcol line linelen csize one_more))
+            (let* ([col (chartabsize_T.cts_vcol cts)]
+                   [idx (->i32 (fx- (chartabsize_T.cts_ptr cts) line))])
+              (if (or (fx>? col wcol) (and (not (not (fxzero? (virtual_active ed)))) (fx=? (b->i one_more) 0)))
+                  (join10 wcol (i32- idx 1) line linelen (i32- col csize) csize one_more)
+                  (join10 wcol idx line linelen col csize one_more))))))
     (define (join10 wcol idx line linelen col csize one_more)
       (if (and (and (and (not (fxzero? (virtual_active ed))) addspaces) (fx>=? wcol 0)) (or (and (not (fx=? col wcol)) (not (fx=? col (i32+ wcol 1)))) (fx>? csize 1)))
           (if (fx=? (ld-u8 (fx+ line idx)) 0)
@@ -23819,7 +24673,32 @@
                      [newline_ (alloc ed (->u64 (i32+ (i32+ idx correct) 1)))])
                 (cond
                   [(fx=? newline_ 0) (frame-pop! ed fr) #f]
-                  [else (loop26 wcol idx line one_more correct newline_ 0)]))
+                  [else (let loop26 ([wcol wcol]
+                                     [idx idx]
+                                     [line line]
+                                     [one_more one_more]
+                                     [correct correct]
+                                     [newline_ newline_]
+                                     [t 0])
+                          (cond
+                            [(fx<? t idx)
+                             (st-u8! (fx+ newline_ t) (ld-u8 (fx+ line t)))
+                             (loop26 wcol idx line one_more correct newline_ (i32+ t 1))]
+                            [else (let loop28 ([wcol wcol]
+                                               [idx idx]
+                                               [one_more one_more]
+                                               [correct correct]
+                                               [newline_ newline_]
+                                               [t 0])
+                                    (cond
+                                      [(fx<? t correct)
+                                       (st-u8! (fx+ newline_ (i32+ t idx)) 32)
+                                       (loop28 wcol idx one_more correct newline_ (i32+ t 1))]
+                                      [else
+                                       (st-u8! (fx+ newline_ (i32+ idx correct)) 0)
+                                       (ml_replace ed (pos_T.lnum pos) newline_ #f)
+                                       (changed_bytes ed (pos_T.lnum pos) idx)
+                                       (join39 wcol (i32+ idx correct) wcol one_more)]))]))]))
               (let ([correct_2 (i32+ (i32- (i32- wcol col) csize) 1)])
                 (cond
                   [(fx>? (i32- 0 correct_2) csize) (frame-pop! ed fr) #f]
@@ -23834,37 +24713,31 @@
                     [s (i32+ s 1)])
                (st-u8! (fx+ newline__2 t1) (ld-u8 (fx+ line t_2)))
                (join22 wcol idx line linelen col csize one_more correct_2 newline__2 t_2 s))
-             (loop18 wcol idx line linelen col csize one_more correct_2 newline__2 t_2 s 0))]
+             (let loop18 ([wcol wcol]
+                          [idx idx]
+                          [line line]
+                          [linelen linelen]
+                          [col col]
+                          [csize csize]
+                          [one_more one_more]
+                          [correct_2 correct_2]
+                          [newline__2 newline__2]
+                          [t_2 t_2]
+                          [s s]
+                          [v 0])
+               (if (fx<? v csize)
+                   (let* ([t2 s]
+                          [s (i32+ s 1)])
+                     (st-u8! (fx+ newline__2 t2) 32)
+                     (loop18 wcol idx line linelen col csize one_more correct_2 newline__2 t_2 s (i32+ v 1)))
+                   (join22 wcol idx line linelen col csize one_more correct_2 newline__2 t_2 s))))]
         [else
          (st-u8! (fx+ newline__2 (i32- (i32+ linelen csize) 1)) 0)
          (ml_replace ed (pos_T.lnum pos) newline__2 #f)
          (changed_bytes ed (pos_T.lnum pos) idx)
          (join39 wcol (i32+ idx (i32+ (i32- csize 1) correct_2)) (i32+ col correct_2) one_more)]))
-    (define (loop18 wcol idx line linelen col csize one_more correct_2 newline__2 t_2 s v)
-      (if (fx<? v csize)
-          (let* ([t2 s]
-                 [s (i32+ s 1)])
-            (st-u8! (fx+ newline__2 t2) 32)
-            (loop18 wcol idx line linelen col csize one_more correct_2 newline__2 t_2 s (i32+ v 1)))
-          (join22 wcol idx line linelen col csize one_more correct_2 newline__2 t_2 s)))
     (define (join22 wcol idx line linelen col csize one_more correct_2 newline__2 t_2 s)
       (loop14 wcol idx line linelen col csize one_more correct_2 newline__2 (i32+ t_2 1) s))
-    (define (loop26 wcol idx line one_more correct newline_ t)
-      (cond
-        [(fx<? t idx)
-         (st-u8! (fx+ newline_ t) (ld-u8 (fx+ line t)))
-         (loop26 wcol idx line one_more correct newline_ (i32+ t 1))]
-        [else (loop28 wcol idx one_more correct newline_ 0)]))
-    (define (loop28 wcol idx one_more correct newline_ t)
-      (cond
-        [(fx<? t correct)
-         (st-u8! (fx+ newline_ (i32+ t idx)) 32)
-         (loop28 wcol idx one_more correct newline_ (i32+ t 1))]
-        [else
-         (st-u8! (fx+ newline_ (i32+ idx correct)) 0)
-         (ml_replace ed (pos_T.lnum pos) newline_ #f)
-         (changed_bytes ed (pos_T.lnum pos) idx)
-         (join39 wcol (i32+ idx correct) wcol one_more)]))
     (define (join39 wcol idx col one_more)
       (cond
         [(fx<? idx 0) (pos_T.col-set! pos 0) (join42 wcol col one_more)]
@@ -24159,29 +25032,30 @@
 
 (define (name_to_mod_mask ed c)
   (let ([mem (ed-mem ed)])
-    (define (loop1 c i)
+    (let loop1 ([c (if (or (fx<? c 97) (fx>? c 122)) c (i32- c 32))]
+                [i 0])
       (cond
         [(fx=? (modmasktable.mod_mask (fx+ mod_mask_table (fx* i 6))) 0) 0]
         [(fx=? c (modmasktable.name (fx+ mod_mask_table (fx* i 6))))
          (modmasktable.mod_flag (fx+ mod_mask_table (fx* i 6)))]
-        [else (loop1 c (i32+ i 1))]))
-    (loop1 (if (or (fx<? c 97) (fx>? c 122)) c (i32- c 32)) 0)))
+        [else (loop1 c (i32+ i 1))]))))
 
 (define (simplify_key ed key modifiers)
   (let ([mem (ed-mem ed)])
-    (define (loop3 i key0 key1)
-      (cond
-        [(fx=? (ld-u8 (fx+ modifier_keys_table i)) 0) key]
-        [(and (and (fx=? key0 (ld-u8 (fx+ modifier_keys_table (i32+ i 3)))) (fx=? key1 (ld-u8 (fx+ modifier_keys_table (i32+ i 4))))) (not (fxzero? (fxand (ld-s32 modifiers) (ld-u8 (fx+ modifier_keys_table i))))))
-         (st-s32! modifiers (fxand (ld-s32 modifiers) (fxnot (ld-u8 (fx+ modifier_keys_table i)))))
-         (i32- 0 (i32+ (ld-u8 (fx+ modifier_keys_table (i32+ i 1))) (i32<< (ld-u8 (fx+ modifier_keys_table (i32+ i 2))) 8)))]
-        [else (loop3 (i32+ i 5) key0 key1)]))
     (cond
       [(not (not (fxzero? (fxand (ld-s32 modifiers) 6)))) key]
       [(and (fx=? key 9) (not (fxzero? (fxand (ld-s32 modifiers) 2))))
        (st-s32! modifiers (fxand (ld-s32 modifiers) -3))
        -17003]
-      [else (loop3 0 (fxand (i32- 0 key) 255) (->i32 (fxand (u32>> (->u32 (i32- 0 key)) 8) 255)))])))
+      [else (let loop3 ([i 0]
+                        [key0 (fxand (i32- 0 key) 255)]
+                        [key1 (->i32 (fxand (u32>> (->u32 (i32- 0 key)) 8) 255))])
+              (cond
+                [(fx=? (ld-u8 (fx+ modifier_keys_table i)) 0) key]
+                [(and (and (fx=? key0 (ld-u8 (fx+ modifier_keys_table (i32+ i 3)))) (fx=? key1 (ld-u8 (fx+ modifier_keys_table (i32+ i 4))))) (not (fxzero? (fxand (ld-s32 modifiers) (ld-u8 (fx+ modifier_keys_table i))))))
+                 (st-s32! modifiers (fxand (ld-s32 modifiers) (fxnot (ld-u8 (fx+ modifier_keys_table i)))))
+                 (i32- 0 (i32+ (ld-u8 (fx+ modifier_keys_table (i32+ i 1))) (i32<< (ld-u8 (fx+ modifier_keys_table (i32+ i 2))) 8)))]
+                [else (loop3 (i32+ i 5) key0 key1)]))])))
 
 (define (handle_x_keys ed key)
   (case key
@@ -24206,14 +25080,16 @@
 (define (get_special_key_name ed c modifiers)
   (let ([mem (ed-mem ed)])
     (define (join2 c modifiers idx)
-      (if (fx<? c 0) (loop4 c modifiers 0 idx) (join8 c modifiers idx)))
-    (define (loop4 c modifiers i idx)
-      (cond
-        [(fx=? (ld-u8 (fx+ modifier_keys_table i)) 0) (join8 c modifiers idx)]
-        [(and (fx=? (fxand (i32- 0 c) 255) (ld-u8 (fx+ modifier_keys_table (i32+ i 1)))) (fx=? (->i32 (fxand (u32>> (->u32 (i32- 0 c)) 8) 255)) (ld-u8 (fx+ modifier_keys_table (i32+ i 2)))))
-         (let ([modifiers (fxior modifiers (ld-u8 (fx+ modifier_keys_table i)))])
-           (join8 (i32- 0 (i32+ (ld-u8 (fx+ modifier_keys_table (i32+ i 3))) (i32<< (ld-u8 (fx+ modifier_keys_table (i32+ i 4))) 8))) modifiers idx))]
-        [else (loop4 c modifiers (i32+ i 5) idx)]))
+      (if (fx<? c 0) (let loop4 ([c c]
+                                 [modifiers modifiers]
+                                 [i 0]
+                                 [idx idx])
+                       (cond
+                         [(fx=? (ld-u8 (fx+ modifier_keys_table i)) 0) (join8 c modifiers idx)]
+                         [(and (fx=? (fxand (i32- 0 c) 255) (ld-u8 (fx+ modifier_keys_table (i32+ i 1)))) (fx=? (->i32 (fxand (u32>> (->u32 (i32- 0 c)) 8) 255)) (ld-u8 (fx+ modifier_keys_table (i32+ i 2)))))
+                          (let ([modifiers (fxior modifiers (ld-u8 (fx+ modifier_keys_table i)))])
+                            (join8 (i32- 0 (i32+ (ld-u8 (fx+ modifier_keys_table (i32+ i 3))) (i32<< (ld-u8 (fx+ modifier_keys_table (i32+ i 4))) 8))) modifiers idx))]
+                         [else (loop4 c modifiers (i32+ i 5) idx)])) (join8 c modifiers idx)))
     (define (join8 c modifiers idx)
       (let ([table_idx (find_special_key_in_table ed c)])
         (if (and (fx>? c 0) (fx=? (utf_char2len ed c) 1))
@@ -24263,7 +25139,16 @@
                     (st-u8! (fx+ get_special_key_name:string t7) (->u8 c))
                     (join27 idx))]
                  [(fx>? len 1) (join27 (i32+ idx (utf_char2bytes ed c (fx+ get_special_key_name:string idx))))]
-                 [else (loop22 idx (transchar ed c))])))]
+                 [else (let loop22 ([idx idx]
+                                    [s (transchar ed c)])
+                         (if (not (fxzero? (ld-u8 s)))
+                             (let* ([t9 idx]
+                                    [idx (i32+ idx 1)]
+                                    [t10 s]
+                                    [s (fx+ s 1)])
+                               (st-u8! (fx+ get_special_key_name:string t9) (ld-u8 t10))
+                               (loop22 idx s))
+                             (join27 idx)))])))]
         [else
          (let ([s_2 (key_name_entry.name& (fx+ key_names_table (fx* table_idx 32)))])
            (cond
@@ -24271,15 +25156,6 @@
               (musl_strcpy ed (fx+ get_special_key_name:string idx) (string_T.string s_2))
               (join27 (i32+ idx (->i32 (string_T.length s_2))))]
              [else (join27 idx)]))]))
-    (define (loop22 idx s)
-      (if (not (fxzero? (ld-u8 s)))
-          (let* ([t9 idx]
-                 [idx (i32+ idx 1)]
-                 [t10 s]
-                 [s (fx+ s 1)])
-            (st-u8! (fx+ get_special_key_name:string t9) (ld-u8 t10))
-            (loop22 idx s))
-          (join27 idx)))
     (define (join27 idx)
       (let* ([t11 idx]
              [idx (i32+ idx 1)])
@@ -24491,21 +25367,15 @@
 
 (define (find_special_key_in_table ed c)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (if (fx<? i 117)
           (if (and (fx=? c (key_name_entry.key (fx+ key_names_table (fx* i 32)))) (not (not (fxzero? (key_name_entry.is_alt (fx+ key_names_table (fx* i 32)))))))
               (if (not (fxzero? (key_name_entry.enabled (fx+ key_names_table (fx* i 32))))) i -1)
               (loop1 (i32+ i 1)))
-          -1))
-    (loop1 0)))
+          -1))))
 
 (define (cmp_key_name_entry ed a b)
   (let ([mem (ed-mem ed)])
-    (define (loop2 p1 p2 result)
-      (if (and (vim_isNormalIDc ed (ld-u8 p1)) (not (fx=? (ld-u8 p2) 0)))
-          (let ([result (i32- (if (or (fx<? (ld-u8 p1) 65) (fx>? (ld-u8 p1) 90)) (ld-u8 p1) (i32+ (ld-u8 p1) 32)) (if (or (fx<? (ld-u8 p2) 65) (fx>? (ld-u8 p2) 90)) (ld-u8 p2) (i32+ (ld-u8 p2) 32)))])
-            (if (not (fx=? result 0)) (join5 p1 p2 result) (loop2 (fx+ p1 1) (fx+ p2 1) result)))
-          (join5 p1 p2 result)))
     (define (join5 p1 p2 result)
       (if (fx=? result 0)
           (if (fx=? (ld-u8 p2) 0) (if (vim_isNormalIDc ed (ld-u8 p1)) (join10 1) (join10 result)) (join10 -1))
@@ -24514,10 +25384,17 @@
       result)
     (let* ([p1 (key_name_entry.name.string a)]
            [p2 (key_name_entry.name.string b)])
-      (if (fx=? p1 p2) 0 (loop2 p1 p2 0)))))
+      (if (fx=? p1 p2) 0 (let loop2 ([p1 p1]
+                                     [p2 p2]
+                                     [result 0])
+                           (if (and (vim_isNormalIDc ed (ld-u8 p1)) (not (fx=? (ld-u8 p2) 0)))
+                               (let ([result (i32- (if (or (fx<? (ld-u8 p1) 65) (fx>? (ld-u8 p1) 90)) (ld-u8 p1) (i32+ (ld-u8 p1) 32)) (if (or (fx<? (ld-u8 p2) 65) (fx>? (ld-u8 p2) 90)) (ld-u8 p2) (i32+ (ld-u8 p2) 32)))])
+                                 (if (not (fx=? result 0)) (join5 p1 p2 result) (loop2 (fx+ p1 1) (fx+ p2 1) result)))
+                               (join5 p1 p2 result)))))))
 
 (define (key_name_bsearch ed key base nel cmp)
-  (define (loop1 base nel)
+  (let loop1 ([base base]
+              [nel nel])
     (if (> nel 0)
         (let* ([tryp (fx+ base (fx* (->i64 (u64/ nel 2)) 32))]
                [sign (call-ptr cmp ed key tryp)])
@@ -24525,8 +25402,7 @@
             [(fx<? sign 0) (loop1 base (u64/ nel 2))]
             [(fx>? sign 0) (loop1 (fx+ tryp 32) (u64- nel (u64+ (u64/ nel 2) 1)))]
             [else tryp]))
-        0))
-  (loop1 base nel))
+        0)))
 
 (define (get_special_key_code ed name)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 48)])
@@ -24584,7 +25460,8 @@
         (keyvalue_T.value.length kv2)))))
 
 (define (keyvalue_bsearch ed key base nel cmp)
-  (define (loop1 base nel)
+  (let loop1 ([base base]
+              [nel nel])
     (if (> nel 0)
         (let* ([tryp (fx+ base (fx* (->i64 (u64/ nel 2)) 24))]
                [sign (call-ptr cmp ed key tryp)])
@@ -24592,8 +25469,7 @@
             [(fx<? sign 0) (loop1 base (u64/ nel 2))]
             [(fx>? sign 0) (loop1 (fx+ tryp 24) (u64- nel (u64+ (u64/ nel 2) 1)))]
             [else tryp]))
-        0))
-  (loop1 base nel))
+        0)))
 
 (define (adjust_plines_for_skipcol ed wp)
   (let ([mem (ed-mem ed)])
@@ -24618,11 +25494,13 @@
 (define (comp_botline ed wp)
   (let ([mem (ed-mem ed)])
     (define (join3 lnum done i use_cache)
-      (if use_cache (loop5 lnum done i use_cache) (loop7 lnum done i use_cache)))
-    (define (loop5 lnum done i use_cache)
-      (if (and (fx<? i (win_T.w_lines_valid wp)) (< (wline_T.wl_lnum (fx+ (win_T.w_lines wp) (fx* i 16))) lnum))
-          (loop5 lnum done (i32+ i 1) use_cache)
-          (loop7 lnum done i use_cache)))
+      (if use_cache (let loop5 ([lnum lnum]
+                                [done done]
+                                [i i]
+                                [use_cache use_cache])
+                      (if (and (fx<? i (win_T.w_lines_valid wp)) (< (wline_T.wl_lnum (fx+ (win_T.w_lines wp) (fx* i 16))) lnum))
+                          (loop5 lnum done (i32+ i 1) use_cache)
+                          (loop7 lnum done i use_cache))) (loop7 lnum done i use_cache)))
     (define (loop7 lnum done i use_cache)
       (if (<= lnum (buf_T.b_ml.ml_line_count (win_T.w_buffer wp)))
           (if (and use_cache (fx<? i (win_T.w_lines_valid wp)))
@@ -24782,17 +25660,21 @@
                   (let ([n (if eof_pressure 0 (win_T.w_empty_rows curwin))])
                     (lineoff_T.lnum-set! loff (win_T.w_cursor.lnum curwin))
                     (lineoff_T.height-set! loff 0)
-                    (loop34 n check_botline so_ptr save_so eof_pressure old_topline))
+                    (let loop34 ([n n]
+                                 [check_botline check_botline]
+                                 [so_ptr so_ptr]
+                                 [save_so save_so]
+                                 [eof_pressure eof_pressure]
+                                 [old_topline old_topline])
+                      (if (< (lineoff_T.lnum loff) (win_T.w_botline curwin))
+                          (let ([n (i32+ n (lineoff_T.height loff))])
+                            (cond
+                              [(>= n (ld-s64 so_ptr)) (join37 n check_botline so_ptr save_so eof_pressure old_topline)]
+                              [else (botline_forw ed loff) (loop34 n check_botline so_ptr save_so eof_pressure old_topline)]))
+                          (join37 n check_botline so_ptr save_so eof_pressure old_topline))))
                   (join39 #f so_ptr save_so eof_pressure old_topline))
               (join39 check_botline so_ptr save_so eof_pressure old_topline))
           (join45 so_ptr save_so old_topline)))
-    (define (loop34 n check_botline so_ptr save_so eof_pressure old_topline)
-      (if (< (lineoff_T.lnum loff) (win_T.w_botline curwin))
-          (let ([n (i32+ n (lineoff_T.height loff))])
-            (cond
-              [(>= n (ld-s64 so_ptr)) (join37 n check_botline so_ptr save_so eof_pressure old_topline)]
-              [else (botline_forw ed loff) (loop34 n check_botline so_ptr save_so eof_pressure old_topline)]))
-          (join37 n check_botline so_ptr save_so eof_pressure old_topline)))
     (define (join37 n check_botline so_ptr save_so eof_pressure old_topline)
       (if (and (>= n (ld-s64 so_ptr)) (not eof_pressure))
           (join39 #f so_ptr save_so eof_pressure old_topline)
@@ -24856,14 +25738,6 @@
 (define (check_top_offset ed)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local loff &loff agg 0)
-    (define (loop2 n so)
-      (cond
-        [(< n so)
-         (topline_back ed loff)
-         (if (< (lineoff_T.lnum loff) (win_T.w_topline curwin))
-             (join5 n so)
-             (loop2 (i32+ n (lineoff_T.height loff)) so))]
-        [else (join5 n so)]))
     (define (join5 n so)
       (cond
         [(< n so) (frame-pop! ed fr) #t]
@@ -24875,7 +25749,15 @@
       (cond
         [(< (win_T.w_cursor.lnum curwin) (i64+ (win_T.w_topline curwin) so))
          (lineoff_T.lnum-set! loff (win_T.w_cursor.lnum curwin))
-         (loop2 0 so)]
+         (let loop2 ([n 0]
+                     [so so])
+           (cond
+             [(< n so)
+              (topline_back ed loff)
+              (if (< (lineoff_T.lnum loff) (win_T.w_topline curwin))
+                  (join5 n so)
+                  (loop2 (i32+ n (lineoff_T.height loff)) so))]
+             [else (join5 n so)]))]
         [else (join6)]))))
 
 (define (update_curswant_force ed)
@@ -25217,16 +26099,17 @@
                (join72 width2 prev_skipcol did_sub_skipcol)))]
         [(fx=? extra 2)
          (set! endcol (i32* (i32+ (i32- n (win_T.w_height curwin)) 1) width2))
-         (loop56 width2 prev_skipcol did_sub_skipcol)]
-        [else (join72 width2 prev_skipcol did_sub_skipcol)]))
-    (define (loop56 width2 prev_skipcol did_sub_skipcol)
-      (cond
-        [(fx>? endcol (win_T.w_virtcol curwin))
-         (set! endcol (i32- endcol width2))
-         (loop56 width2 prev_skipcol did_sub_skipcol)]
-        [(fx>? endcol (win_T.w_skipcol curwin))
-         (win_T.w_skipcol-set! curwin endcol)
-         (join72 width2 prev_skipcol did_sub_skipcol)]
+         (let loop56 ([width2 width2]
+                      [prev_skipcol prev_skipcol]
+                      [did_sub_skipcol did_sub_skipcol])
+           (cond
+             [(fx>? endcol (win_T.w_virtcol curwin))
+              (set! endcol (i32- endcol width2))
+              (loop56 width2 prev_skipcol did_sub_skipcol)]
+             [(fx>? endcol (win_T.w_skipcol curwin))
+              (win_T.w_skipcol-set! curwin endcol)
+              (join72 width2 prev_skipcol did_sub_skipcol)]
+             [else (join72 width2 prev_skipcol did_sub_skipcol)]))]
         [else (join72 width2 prev_skipcol did_sub_skipcol)]))
     (define (join63 extra width2 prev_skipcol did_sub_skipcol)
       (let ([r7 curwin])
@@ -25301,11 +26184,13 @@
         (let ([col (win_T.w_virtcol curwin)])
           (if (fx<? col top)
               (if (fx<? col width1) (loop16 width2 overlap top (i32+ col width1)) (loop16 width2 overlap top col))
-              (loop11 width2 overlap bot col)))))
-    (define (loop11 width2 overlap bot col)
-      (if (and (fx>? width2 0) (fx>=? col bot))
-          (loop11 width2 overlap bot (i32- col width2))
-          (join17 overlap col)))
+              (let loop11 ([width2 width2]
+                           [overlap overlap]
+                           [bot bot]
+                           [col col])
+                (if (and (fx>? width2 0) (fx>=? col bot))
+                    (loop11 width2 overlap bot (i32- col width2))
+                    (join17 overlap col)))))))
     (define (loop16 width2 overlap top col)
       (if (and (fx>? width2 0) (fx<? col top))
           (loop16 width2 overlap top (i32+ col width2))
@@ -25556,10 +26441,13 @@
         [else
          (let ([col (i32+ (win_T.w_virtcol curwin) scrolloff_cols)])
            (if (fx>? scrolloff_cols 0)
-               (loop8 width1 width2 row col (i32+ width1 (i32* width2 (i32/ (i32- (i32+ (i32- (linetabsize_eol ed curwin (win_T.w_topline curwin)) width1) width2) 1) width2))))
+               (let loop8 ([width1 width1]
+                           [width2 width2]
+                           [row row]
+                           [col col]
+                           [size (i32+ width1 (i32* width2 (i32/ (i32- (i32+ (i32- (linetabsize_eol ed curwin (win_T.w_topline curwin)) width1) width2) 1) width2)))])
+                 (if (fx>? col size) (loop8 width1 width2 row (i32- col width2) size) (join9 width1 width2 row col)))
                (join9 width1 width2 row col)))]))
-    (define (loop8 width1 width2 row col size)
-      (if (fx>? col size) (loop8 width1 width2 row (i32- col width2) size) (join9 width1 width2 row col)))
     (define (join9 width1 width2 row col)
       (let ([col (i32- col (win_T.w_skipcol curwin))])
         (if (fx>=? col width1)
@@ -25756,25 +26644,6 @@
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local loff &loff agg 0)
     (define-c-local boff &boff agg 16)
-    (define (loop3 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)
-      (topline_back_winheight ed loff #f)
-      (cond
-        [(fx=? (lineoff_T.height loff) 2147483647)
-         (join9 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]
-        [(fx>? (i32+ used (lineoff_T.height loff)) (win_T.w_height curwin))
-         (if do_sms
-             (if (fx<? used (win_T.w_height curwin))
-                 (let* ([plines_offset (i32- (i32+ used (lineoff_T.height loff)) (win_T.w_height curwin))]
-                        [used (win_T.w_height curwin)])
-                   (win_T.w_topline-set! curwin (lineoff_T.lnum loff))
-                   (let ([r1 curwin])
-                     (win_T.w_skipcol-set! r1 (skipcol_from_plines ed curwin plines_offset))
-                     (join9 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)))
-                 (join9 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms))
-             (join9 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms))]
-        [else
-         (win_T.w_topline-set! curwin (lineoff_T.lnum loff))
-         (loop3 (i32+ used (lineoff_T.height loff)) scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]))
     (define (join9 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)
       (set_empty_rows ed curwin used)
       (let ([r2 curwin])
@@ -25878,16 +26747,25 @@
          (join54 scrolled used old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]
         [else
          (lineoff_T.lnum-set! boff (i64- (win_T.w_topline curwin) 1))
-         (loop47 scrolled 0 0 old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]))
-    (define (loop47 scrolled i line_count old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)
-      (cond
-        [(and (fx<? i scrolled) (< (lineoff_T.lnum boff) (win_T.w_botline curwin)))
-         (botline_forw ed boff)
-         (loop47 scrolled (i32+ i (lineoff_T.height boff)) (i64+ line_count 1) old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]
-        [(fx<? i scrolled)
-         (join54 scrolled 9999 old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]
-        [else
-         (join54 scrolled line_count old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]))
+         (let loop47 ([scrolled scrolled]
+                      [i 0]
+                      [line_count 0]
+                      [old_topline old_topline]
+                      [old_skipcol old_skipcol]
+                      [old_botline old_botline]
+                      [old_valid old_valid]
+                      [old_empty_rows old_empty_rows]
+                      [cln cln]
+                      [so so]
+                      [do_sms do_sms])
+           (cond
+             [(and (fx<? i scrolled) (< (lineoff_T.lnum boff) (win_T.w_botline curwin)))
+              (botline_forw ed boff)
+              (loop47 scrolled (i32+ i (lineoff_T.height boff)) (i64+ line_count 1) old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]
+             [(fx<? i scrolled)
+              (join54 scrolled 9999 old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]
+             [else
+              (join54 scrolled line_count old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]))]))
     (define (join54 scrolled line_count old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)
       (let ([eof_pressure (scrolloffpad_eof_pressure ed cln so)])
         (cond
@@ -25931,7 +26809,35 @@
         [set_topbot
          (win_T.w_botline-set! curwin (i64+ cln 1))
          (lineoff_T.lnum-set! loff (i64+ cln 1))
-         (loop3 0 0 0 old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]
+         (let loop3 ([used 0]
+                     [scrolled 0]
+                     [extra 0]
+                     [old_topline old_topline]
+                     [old_skipcol old_skipcol]
+                     [old_botline old_botline]
+                     [old_valid old_valid]
+                     [old_empty_rows old_empty_rows]
+                     [cln cln]
+                     [so so]
+                     [do_sms do_sms])
+           (topline_back_winheight ed loff #f)
+           (cond
+             [(fx=? (lineoff_T.height loff) 2147483647)
+              (join9 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]
+             [(fx>? (i32+ used (lineoff_T.height loff)) (win_T.w_height curwin))
+              (if do_sms
+                  (if (fx<? used (win_T.w_height curwin))
+                      (let* ([plines_offset (i32- (i32+ used (lineoff_T.height loff)) (win_T.w_height curwin))]
+                             [used (win_T.w_height curwin)])
+                        (win_T.w_topline-set! curwin (lineoff_T.lnum loff))
+                        (let ([r1 curwin])
+                          (win_T.w_skipcol-set! r1 (skipcol_from_plines ed curwin plines_offset))
+                          (join9 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)))
+                      (join9 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms))
+                  (join9 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms))]
+             [else
+              (win_T.w_topline-set! curwin (lineoff_T.lnum loff))
+              (loop3 (i32+ used (lineoff_T.height loff)) scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]))]
         [else
          (validate_botline ed)
          (join13 0 0 old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms)]))))
@@ -26385,44 +27291,50 @@
            (oparg_T.op_type-set! r1 (get_op_type ed (ld-s32 cp) 0))
            (join29 need_flushbuf idx lang out___r__ out___need_flushbuf))]
         [(fx=? (ld-s32 cp) 28)
-         (loop21 need_flushbuf idx lang (if (>= p_ttm 0) p_ttm p_tm) out___r__ out___need_flushbuf)]
-        [else (join29 need_flushbuf idx lang out___r__ out___need_flushbuf)]))
-    (define (loop21 need_flushbuf idx lang towait out___r__ out___need_flushbuf)
-      (let ([c (vpeekc ed)])
-        (cond
-          [(and (fx<=? c 0) (> towait 0))
-           (do_sleep ed (if (> towait 50) 50 towait) #f)
-           (loop21 need_flushbuf idx lang (i64- towait 50) out___r__ out___need_flushbuf)]
-          [(fx>? c 0)
-           (let ([c (plain_vgetc ed)])
+         (let loop21 ([need_flushbuf need_flushbuf]
+                      [idx idx]
+                      [lang lang]
+                      [towait (if (>= p_ttm 0) p_ttm p_tm)]
+                      [out___r__ out___r__]
+                      [out___need_flushbuf out___need_flushbuf])
+           (let ([c (vpeekc ed)])
              (cond
-               [(and (not (fx=? c 14)) (not (fx=? c 7)))
-                (vungetc ed c)
-                (join29 need_flushbuf idx lang out___r__ out___need_flushbuf)]
-               [else
-                (cmdarg_T.cmdchar-set! cap 28)
-                (cmdarg_T.nchar-set! cap c)
-                (join29 need_flushbuf (find_command ed (cmdarg_T.cmdchar cap)) lang out___r__ out___need_flushbuf)]))]
-          [else (join29 need_flushbuf idx lang out___r__ out___need_flushbuf)])))
+               [(and (fx<=? c 0) (> towait 0))
+                (do_sleep ed (if (> towait 50) 50 towait) #f)
+                (loop21 need_flushbuf idx lang (i64- towait 50) out___r__ out___need_flushbuf)]
+               [(fx>? c 0)
+                (let ([c (plain_vgetc ed)])
+                  (cond
+                    [(and (not (fx=? c 14)) (not (fx=? c 7)))
+                     (vungetc ed c)
+                     (join29 need_flushbuf idx lang out___r__ out___need_flushbuf)]
+                    [else
+                     (cmdarg_T.cmdchar-set! cap 28)
+                     (cmdarg_T.nchar-set! cap c)
+                     (join29 need_flushbuf (find_command ed (cmdarg_T.cmdchar cap)) lang out___r__ out___need_flushbuf)]))]
+               [else (join29 need_flushbuf idx lang out___r__ out___need_flushbuf)])))]
+        [else (join29 need_flushbuf idx lang out___r__ out___need_flushbuf)]))
     (define (join29 need_flushbuf idx lang out___r__ out___need_flushbuf)
       (cond
         [lang
          (set! no_mapping (i32- no_mapping 1))
-         (loop31 need_flushbuf idx out___r__ out___need_flushbuf)]
+         (let loop31 ([need_flushbuf need_flushbuf]
+                      [idx idx]
+                      [out___r__ out___r__]
+                      [out___need_flushbuf out___need_flushbuf])
+           (let ([c (vpeekc ed)])
+             (if (and (fx>? c 0) (or (fx>=? c 256) (fx>? (ld-s8 (fx+ mb_bytelen_tab (vpeekc ed))) 1)))
+                 (let ([c (plain_vgetc ed)])
+                   (cond
+                     [(not (utf_iscomposing ed c))
+                      (vungetc ed c)
+                      (join38 need_flushbuf idx out___r__ out___need_flushbuf)]
+                     [(fx=? (cmdarg_T.ncharC1 cap) 0)
+                      (cmdarg_T.ncharC1-set! cap c)
+                      (loop31 need_flushbuf idx out___r__ out___need_flushbuf)]
+                     [else (cmdarg_T.ncharC2-set! cap c) (loop31 need_flushbuf idx out___r__ out___need_flushbuf)]))
+                 (join38 need_flushbuf idx out___r__ out___need_flushbuf))))]
         [else (join39 need_flushbuf idx out___r__ out___need_flushbuf)]))
-    (define (loop31 need_flushbuf idx out___r__ out___need_flushbuf)
-      (let ([c (vpeekc ed)])
-        (if (and (fx>? c 0) (or (fx>=? c 256) (fx>? (ld-s8 (fx+ mb_bytelen_tab (vpeekc ed))) 1)))
-            (let ([c (plain_vgetc ed)])
-              (cond
-                [(not (utf_iscomposing ed c))
-                 (vungetc ed c)
-                 (join38 need_flushbuf idx out___r__ out___need_flushbuf)]
-                [(fx=? (cmdarg_T.ncharC1 cap) 0)
-                 (cmdarg_T.ncharC1-set! cap c)
-                 (loop31 need_flushbuf idx out___r__ out___need_flushbuf)]
-                [else (cmdarg_T.ncharC2-set! cap c) (loop31 need_flushbuf idx out___r__ out___need_flushbuf)]))
-            (join38 need_flushbuf idx out___r__ out___need_flushbuf))))
     (define (join38 need_flushbuf idx out___r__ out___need_flushbuf)
       (set! no_mapping (i32+ no_mapping 1))
       (set! no_u_sync (i32+ no_u_sync 1))
@@ -26797,21 +27709,24 @@
       (cond
         [(fx<? i 2)
          (set! col startcol)
-         (loop3 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp)]
+         (let loop3 ([startcol startcol]
+                     [ptr ptr]
+                     [i i]
+                     [find_is_eval_item__o_r__ find_is_eval_item__o_r__]
+                     [find_is_eval_item__o_bnp find_is_eval_item__o_bnp])
+           (cond
+             [(fx=? (ld-u8 (fx+ ptr col)) 0)
+              (join7 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp)]
+             [(and (not (fxzero? (fxand find_type 4))) (fx=? (ld-u8 (fx+ ptr col)) 93))
+              (join7 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp)]
+             [else
+              (let ([this_class (mb_get_class ed (fx+ ptr col))])
+                (if (and (not (fx=? this_class 0)) (or (fx=? i 1) (not (fx=? this_class 1))))
+                    (join7 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp)
+                    (let ([t1 (utfc_ptr2len ed (fx+ ptr col))])
+                      (set! col (i32+ col t1))
+                      (loop3 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp))))]))]
         [else (join22 startcol ptr i this_class find_is_eval_item__o_r__ find_is_eval_item__o_bnp)]))
-    (define (loop3 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp)
-      (cond
-        [(fx=? (ld-u8 (fx+ ptr col)) 0)
-         (join7 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp)]
-        [(and (not (fxzero? (fxand find_type 4))) (fx=? (ld-u8 (fx+ ptr col)) 93))
-         (join7 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp)]
-        [else
-         (let ([this_class (mb_get_class ed (fx+ ptr col))])
-           (if (and (not (fx=? this_class 0)) (or (fx=? i 1) (not (fx=? this_class 1))))
-               (join7 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp)
-               (let ([t1 (utfc_ptr2len ed (fx+ ptr col))])
-                 (set! col (i32+ col t1))
-                 (loop3 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp))))]))
     (define (join7 startcol ptr i find_is_eval_item__o_r__ find_is_eval_item__o_bnp)
       (let ([bn (b->i (fx=? (ld-u8 (fx+ ptr col)) 93))])
         (if (and (not (fxzero? (fxand find_type 4))) (fx=? (ld-u8 (fx+ ptr col)) 93))
@@ -27041,12 +27956,11 @@
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local mbyte_buf &mbyte_buf agg 0)
     (define (join3)
-      (if (fx<? c 0) (loop5 0) (join6)))
-    (define (loop5 i)
-      (cond
-        [(fx=? (ld-s32 (fx+ add_to_showcmd:ignore (fx* i 4))) 0) (join6)]
-        [(fx=? (ld-s32 (fx+ add_to_showcmd:ignore (fx* i 4))) c) (frame-pop! ed fr) #f]
-        [else (loop5 (i32+ i 1))]))
+      (if (fx<? c 0) (let loop5 ([i 0])
+                       (cond
+                         [(fx=? (ld-s32 (fx+ add_to_showcmd:ignore (fx* i 4))) 0) (join6)]
+                         [(fx=? (ld-s32 (fx+ add_to_showcmd:ignore (fx* i 4))) c) (frame-pop! ed fr) #f]
+                         [else (loop5 (i32+ i 1))])) (join6)))
     (define (join6)
       (if (or (fx<=? c 127) (not (vim_isprintc ed c)))
           (let ([p (transchar ed c)])
@@ -27276,36 +28190,38 @@
 
 (define (nv_z_get_count ed cap nchar_arg)
   (let ([mem (ed-mem ed)])
-    (define (loop2 nchar_arg n vim_append_digit_long__o_r__ vim_append_digit_long__o_value)
-      (set! no_mapping (i32+ no_mapping 1))
-      (set! allow_keys (i32+ allow_keys 1))
-      (let ([nchar (plain_vgetc ed)])
-        (set! no_mapping (i32- no_mapping 1))
-        (set! allow_keys (i32- allow_keys 1))
-        (add_to_showcmd ed nchar)
-        (cond
-          [(or (fx=? nchar -17515) (fx=? nchar -20733))
-           (loop2 nchar_arg (i64/ n 10) vim_append_digit_long__o_r__ vim_append_digit_long__o_value)]
-          [(ascii_isdigit ed nchar)
-           (let-values ([(r1 r2) (vim_append_digit_long ed n (i32- nchar 48))])
-             (cond
-               [(not r1) (clearopbeep ed (cmdarg_T.oap cap)) (join11 nchar_arg r1 r2)]
-               [else (loop2 nchar_arg r2 r1 r2)]))]
-          [(fx=? nchar 13)
-           (win_setheight ed (->i32 n))
-           (join11 nchar_arg vim_append_digit_long__o_r__ vim_append_digit_long__o_value)]
-          [(or (or (or (fx=? nchar 108) (fx=? nchar 104)) (fx=? nchar -27755)) (fx=? nchar -29291))
-           (cmdarg_T.count1-set! cap (if (not (eqv? n 0)) (i64* n (cmdarg_T.count1 cap)) (cmdarg_T.count1 cap)))
-           (values #t nchar)]
-          [else
-           (clearopbeep ed (cmdarg_T.oap cap))
-           (join11 nchar_arg vim_append_digit_long__o_r__ vim_append_digit_long__o_value)])))
     (define (join11 nchar_arg vim_append_digit_long__o_r__ vim_append_digit_long__o_value)
       (oparg_T.op_type-set! (cmdarg_T.oap cap) 0)
       (values #f nchar_arg))
     (if (checkclearop ed (cmdarg_T.oap cap))
         (values #f nchar_arg)
-        (loop2 nchar_arg (i32- nchar_arg 48) #f 0))))
+        (let loop2 ([nchar_arg nchar_arg]
+                    [n (i32- nchar_arg 48)]
+                    [vim_append_digit_long__o_r__ #f]
+                    [vim_append_digit_long__o_value 0])
+          (set! no_mapping (i32+ no_mapping 1))
+          (set! allow_keys (i32+ allow_keys 1))
+          (let ([nchar (plain_vgetc ed)])
+            (set! no_mapping (i32- no_mapping 1))
+            (set! allow_keys (i32- allow_keys 1))
+            (add_to_showcmd ed nchar)
+            (cond
+              [(or (fx=? nchar -17515) (fx=? nchar -20733))
+               (loop2 nchar_arg (i64/ n 10) vim_append_digit_long__o_r__ vim_append_digit_long__o_value)]
+              [(ascii_isdigit ed nchar)
+               (let-values ([(r1 r2) (vim_append_digit_long ed n (i32- nchar 48))])
+                 (cond
+                   [(not r1) (clearopbeep ed (cmdarg_T.oap cap)) (join11 nchar_arg r1 r2)]
+                   [else (loop2 nchar_arg r2 r1 r2)]))]
+              [(fx=? nchar 13)
+               (win_setheight ed (->i32 n))
+               (join11 nchar_arg vim_append_digit_long__o_r__ vim_append_digit_long__o_value)]
+              [(or (or (or (fx=? nchar 108) (fx=? nchar 104)) (fx=? nchar -27755)) (fx=? nchar -29291))
+               (cmdarg_T.count1-set! cap (if (not (eqv? n 0)) (i64* n (cmdarg_T.count1 cap)) (cmdarg_T.count1 cap)))
+               (values #t nchar)]
+              [else
+               (clearopbeep ed (cmdarg_T.oap cap))
+               (join11 nchar_arg vim_append_digit_long__o_r__ vim_append_digit_long__o_value)]))))))
 
 (define (nv_zet ed cap)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
@@ -27585,21 +28501,27 @@
       (normal_search ed cap (if (fx=? cmdchar 42) 47 63) buf buflen 0 0)
       (frame-pop! ed fr))
     (define (join20 buf p n cmdchar g_cmd aux_ptr)
-      (loop21 buf p n cmdchar g_cmd aux_ptr 0 (i32- (utfc_ptr2len ed ptr) 1)))
-    (define (loop21 buf p n cmdchar g_cmd aux_ptr i len)
-      (if (and (fx<? i len) (fx>=? n 1))
-          (let* ([t4 p]
-                 [p (fx+ p 1)]
-                 [t5 ptr])
-            (set! ptr (fx+ ptr 1))
-            (st-u8! t4 (ld-u8 t5))
-            (loop21 buf p (i32- n 1) cmdchar g_cmd aux_ptr (i32+ i 1) len))
-          (let* ([t6 p]
-                 [p (fx+ p 1)]
-                 [t7 ptr])
-            (set! ptr (fx+ ptr 1))
-            (st-u8! t6 (ld-u8 t7))
-            (loop14 buf p n cmdchar g_cmd aux_ptr))))
+      (let loop21 ([buf buf]
+                   [p p]
+                   [n n]
+                   [cmdchar cmdchar]
+                   [g_cmd g_cmd]
+                   [aux_ptr aux_ptr]
+                   [i 0]
+                   [len (i32- (utfc_ptr2len ed ptr) 1)])
+        (if (and (fx<? i len) (fx>=? n 1))
+            (let* ([t4 p]
+                   [p (fx+ p 1)]
+                   [t5 ptr])
+              (set! ptr (fx+ ptr 1))
+              (st-u8! t4 (ld-u8 t5))
+              (loop21 buf p (i32- n 1) cmdchar g_cmd aux_ptr (i32+ i 1) len))
+            (let* ([t6 p]
+                   [p (fx+ p 1)]
+                   [t7 ptr])
+              (set! ptr (fx+ ptr 1))
+              (st-u8! t6 (ld-u8 t7))
+              (loop14 buf p n cmdchar g_cmd aux_ptr)))))
     (set! ptr 0)
     (if (fx=? (cmdarg_T.cmdchar cap) 103)
         (join3 0 (cmdarg_T.nchar cap) #t)
@@ -27611,12 +28533,6 @@
 
 (define (nv_scroll ed cap)
   (let ([mem (ed-mem ed)])
-    (define (loop4 used n half)
-      (if (< (i64+ (win_T.w_topline curwin) n) (buf_T.b_ml.ml_line_count curbuf))
-          (let* ([t1 (plines ed (i64+ (win_T.w_topline curwin) n))]
-                 [used (i32+ used t1)])
-            (if (fx>=? used half) (join7 used n) (loop4 used (i64+ n 1) half)))
-          (join7 used n)))
     (define (join7 used n)
       (if (and (> n 0) (fx>? used (win_T.w_height curwin))) (join9 (i64- n 1)) (join9 n)))
     (define (join9 n)
@@ -27648,7 +28564,14 @@
             (join14))])]
       [(fx=? (cmdarg_T.cmdchar cap) 77)
        (validate_botline ed)
-       (loop4 0 0 (i32/ (i32+ (i32- (win_T.w_height curwin) (win_T.w_empty_rows curwin)) 1) 2))]
+       (let loop4 ([used 0]
+                   [n 0]
+                   [half (i32/ (i32+ (i32- (win_T.w_height curwin) (win_T.w_empty_rows curwin)) 1) 2)])
+         (if (< (i64+ (win_T.w_topline curwin) n) (buf_T.b_ml.ml_line_count curbuf))
+             (let* ([t1 (plines ed (i64+ (win_T.w_topline curwin) n))]
+                    [used (i32+ used t1)])
+               (if (fx>=? used half) (join7 used n) (loop4 used (i64+ n 1) half)))
+             (join7 used n)))]
       [else (join9 (i64- (cmdarg_T.count1 cap) 1))])))
 
 (define (nv_right ed cap)
@@ -27900,19 +28823,6 @@
 (define (nv_bracket_block ed cap old_pos)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local new_pos &new_pos agg 0)
-    (define (loop1 pos n findc)
-      (if (> n 0)
-          (let ([pos (findmatchlimit ed (cmdarg_T.oap cap) findc (if (fx=? (cmdarg_T.cmdchar cap) 91) 1 2) 0)])
-            (cond
-              [(fx=? pos 0)
-               (cond
-                 [(= (pos_T.lnum new_pos) 0) (clearopbeep ed (cmdarg_T.oap cap)) (join8 pos)]
-                 [else (join8 new_pos)])]
-              [else
-               (mem-copy! (win_T.w_cursor& curwin) pos 16)
-               (mem-copy! new_pos pos 16)
-               (loop1 pos (i64- n 1) findc)]))
-          (join8 pos)))
     (define (join8 pos)
       (mem-copy! (win_T.w_cursor& curwin) old_pos 16)
       (cond
@@ -27926,19 +28836,26 @@
       (frame-pop! ed fr))
     (mem-zero! new_pos 16)
     (let ([findc (cmdarg_T.nchar cap)])
-      (loop1 0 (cmdarg_T.count1 cap) findc))))
+      (let loop1 ([pos 0]
+                  [n (cmdarg_T.count1 cap)]
+                  [findc findc])
+        (if (> n 0)
+            (let ([pos (findmatchlimit ed (cmdarg_T.oap cap) findc (if (fx=? (cmdarg_T.cmdchar cap) 91) 1 2) 0)])
+              (cond
+                [(fx=? pos 0)
+                 (cond
+                   [(= (pos_T.lnum new_pos) 0) (clearopbeep ed (cmdarg_T.oap cap)) (join8 pos)]
+                   [else (join8 new_pos)])]
+                [else
+                 (mem-copy! (win_T.w_cursor& curwin) pos 16)
+                 (mem-copy! new_pos pos 16)
+                 (loop1 pos (i64- n 1) findc)]))
+            (join8 pos))))))
 
 (define (nv_brackets ed cap)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local prev_pos &prev_pos agg 0)
     (define-c-local old_pos &old_pos agg 16)
-    (define (loop6 pos n)
-      (cond
-        [(> n 0)
-         (mem-copy! prev_pos pos 16)
-         (let ([pos (getnextmark ed pos (if (fx=? (cmdarg_T.cmdchar cap) 91) -1 1) (fx=? (cmdarg_T.nchar cap) 39))])
-           (if (fx=? pos 0) (join9 pos) (loop6 pos (i64- n 1))))]
-        [else (join9 pos)]))
     (define (join9 pos)
       (if (fx=? pos 0) (join11 prev_pos) (join11 pos)))
     (define (join11 pos)
@@ -27959,7 +28876,14 @@
        (join14)]
       [(or (fx=? (cmdarg_T.nchar cap) 39) (fx=? (cmdarg_T.nchar cap) 96))
        (let ([pos (win_T.w_cursor& curwin)])
-         (loop6 pos (cmdarg_T.count1 cap)))]
+         (let loop6 ([pos pos]
+                     [n (cmdarg_T.count1 cap)])
+           (cond
+             [(> n 0)
+              (mem-copy! prev_pos pos 16)
+              (let ([pos (getnextmark ed pos (if (fx=? (cmdarg_T.cmdchar cap) 91) -1 1) (fx=? (cmdarg_T.nchar cap) 39))])
+                (if (fx=? pos 0) (join9 pos) (loop6 pos (i64- n 1))))]
+             [else (join9 pos)])))]
       [(and (fx>=? (cmdarg_T.nchar cap) -13565) (fx<=? (cmdarg_T.nchar cap) -11517)) (join14)]
       [else (clearopbeep ed (cmdarg_T.oap cap)) (join14)])))
 
@@ -28600,14 +29524,13 @@
           (join11 i flag)))
     (define (join11 i flag)
       (coladvance ed i)
-      (if flag (loop13) (join16)))
-    (define (loop13)
-      (let ([i (gchar_cursor ed)])
-        (if (and (or (fx=? i 32) (fx=? i 9)) (oneright ed))
-            (loop13)
-            (let ([r4 curwin])
-              (win_T.w_valid-set! r4 (fxand (win_T.w_valid r4) -3))
-              (join16)))))
+      (if flag (let loop13 ()
+                 (let ([i (gchar_cursor ed)])
+                   (if (and (or (fx=? i 32) (fx=? i 9)) (oneright ed))
+                       (loop13)
+                       (let ([r4 curwin])
+                         (win_T.w_valid-set! r4 (fxand (win_T.w_valid r4) -3))
+                         (join16))))) (join16)))
     (define (join16)
       (win_T.w_set_curswant-set! curwin #t)
       (adjust_skipcol ed))
@@ -28685,14 +29608,13 @@
               (join17 flag))
           (join17 flag)))
     (define (join17 flag)
-      (if flag (loop19) (join22)))
-    (define (loop19)
-      (let ([i (gchar_cursor ed)])
-        (if (and (or (or (fx=? i 32) (fx=? i 9)) (fx=? i 0)) (oneleft ed))
-            (loop19)
-            (let ([r3 curwin])
-              (win_T.w_valid-set! r3 (fxand (win_T.w_valid r3) -3))
-              (join22)))))
+      (if flag (let loop19 ()
+                 (let ([i (gchar_cursor ed)])
+                   (if (and (or (or (fx=? i 32) (fx=? i 9)) (fx=? i 0)) (oneleft ed))
+                       (loop19)
+                       (let ([r3 curwin])
+                         (win_T.w_valid-set! r3 (fxand (win_T.w_valid r3) -3))
+                         (join22))))) (join22)))
     (define (join22)
       (frame-pop! ed fr))
     (let* ([oap (cmdarg_T.oap cap)]
@@ -29332,14 +30254,13 @@
 
 (define (nv_at ed cap)
   (let ([mem (ed-mem ed)])
-    (define (loop2)
-      (let ([t1 (cmdarg_T.count1 cap)])
-        (cmdarg_T.count1-set! cap (i64- (cmdarg_T.count1 cap) 1))
-        (when (and (not (eqv? t1 0)) (not (not (fxzero? got_int))))
-          (cond
-            [(not (do_execreg ed (cmdarg_T.nchar cap) #f #f #f)) (clearopbeep ed (cmdarg_T.oap cap))]
-            [else (line_breakcheck ed) (loop2)]))))
-    (unless (checkclearop ed (cmdarg_T.oap cap)) (loop2))))
+    (unless (checkclearop ed (cmdarg_T.oap cap)) (let loop2 ()
+                                                   (let ([t1 (cmdarg_T.count1 cap)])
+                                                     (cmdarg_T.count1-set! cap (i64- (cmdarg_T.count1 cap) 1))
+                                                     (when (and (not (eqv? t1 0)) (not (not (fxzero? got_int))))
+                                                       (cond
+                                                         [(not (do_execreg ed (cmdarg_T.nchar cap) #f #f #f)) (clearopbeep ed (cmdarg_T.oap cap))]
+                                                         [else (line_breakcheck ed) (loop2)])))))))
 
 (define (nv_halfpage ed cap)
   (let ([mem (ed-mem ed)])
@@ -29457,12 +30378,6 @@
 
 (define (get_op_type ed char1 char2)
   (let ([mem (ed-mem ed)])
-    (define (loop6 i)
-      (cond
-        [(and (fx=? (ld-s8 (fx+ opchars (fx* i 3))) char1) (fx=? (ld-s8 (fx+ (fx+ opchars (fx* i 3)) 1)) char2))
-         (join10 i)]
-        [(fx=? i 29) (internal_error ed (c-str 164883 "get_op_type()")) (join10 i)]
-        [else (loop6 (i32+ i 1))]))
     (define (join10 i)
       i)
     (cond
@@ -29471,7 +30386,12 @@
       [(and (fx=? char1 103) (fx=? char2 1)) 28]
       [(and (fx=? char1 103) (fx=? char2 24)) 29]
       [(and (fx=? char1 122) (fx=? char2 121)) 2]
-      [else (loop6 0)])))
+      [else (let loop6 ([i 0])
+              (cond
+                [(and (fx=? (ld-s8 (fx+ opchars (fx* i 3))) char1) (fx=? (ld-s8 (fx+ (fx+ opchars (fx* i 3)) 1)) char2))
+                 (join10 i)]
+                [(fx=? i 29) (internal_error ed (c-str 164883 "get_op_type()")) (join10 i)]
+                [else (loop6 (i32+ i 1))]))])))
 
 (define (op_on_lines ed op)
   (let ([mem (ed-mem ed)])
@@ -29583,37 +30503,44 @@
     (define (join5 oldstate total oldp oldlen oldcol non_white)
       (let ([non_white_col (block_def.start_vcol bd)])
         (init_chartabsize_arg ed cts_2 curwin (win_T.w_cursor.lnum curwin) non_white_col (block_def.textstart bd) non_white)
-        (loop6 oldstate total oldp oldlen oldcol)))
-    (define (loop6 oldstate total oldp oldlen oldcol)
-      (if (or (fx=? (ld-u8 (chartabsize_T.cts_ptr cts_2)) 32) (fx=? (ld-u8 (chartabsize_T.cts_ptr cts_2)) 9))
-          (let ([incr (lbr_chartabsize_adv ed cts_2)])
-            (chartabsize_T.cts_vcol-set! cts_2 (i32+ (chartabsize_T.cts_vcol cts_2) incr))
-            (loop6 oldstate total oldp oldlen oldcol))
-          (let* ([non_white_col (chartabsize_T.cts_vcol cts_2)]
-                 [non_white (chartabsize_T.cts_ptr cts_2)]
-                 [block_space_width (->u64 (i32- non_white_col (oparg_T.start_vcol oap)))]
-                 [shift_amount (if (< block_space_width (->u64 total)) block_space_width (->u64 total))]
-                 [destination_col (->i32 (u64- (->u64 non_white_col) shift_amount))]
-                 [verbatim_copy_end (block_def.textstart bd)]
-                 [verbatim_copy_width (block_def.start_vcol bd)])
-            (if (not (fxzero? (block_def.startspaces bd)))
-                (join9 oldstate oldp oldlen oldcol destination_col verbatim_copy_end (i32- verbatim_copy_width (block_def.start_char_vcols bd)) non_white)
-                (join9 oldstate oldp oldlen oldcol destination_col verbatim_copy_end verbatim_copy_width non_white)))))
+        (let loop6 ([oldstate oldstate]
+                    [total total]
+                    [oldp oldp]
+                    [oldlen oldlen]
+                    [oldcol oldcol])
+          (if (or (fx=? (ld-u8 (chartabsize_T.cts_ptr cts_2)) 32) (fx=? (ld-u8 (chartabsize_T.cts_ptr cts_2)) 9))
+              (let ([incr (lbr_chartabsize_adv ed cts_2)])
+                (chartabsize_T.cts_vcol-set! cts_2 (i32+ (chartabsize_T.cts_vcol cts_2) incr))
+                (loop6 oldstate total oldp oldlen oldcol))
+              (let* ([non_white_col (chartabsize_T.cts_vcol cts_2)]
+                     [non_white (chartabsize_T.cts_ptr cts_2)]
+                     [block_space_width (->u64 (i32- non_white_col (oparg_T.start_vcol oap)))]
+                     [shift_amount (if (< block_space_width (->u64 total)) block_space_width (->u64 total))]
+                     [destination_col (->i32 (u64- (->u64 non_white_col) shift_amount))]
+                     [verbatim_copy_end (block_def.textstart bd)]
+                     [verbatim_copy_width (block_def.start_vcol bd)])
+                (if (not (fxzero? (block_def.startspaces bd)))
+                    (join9 oldstate oldp oldlen oldcol destination_col verbatim_copy_end (i32- verbatim_copy_width (block_def.start_char_vcols bd)) non_white)
+                    (join9 oldstate oldp oldlen oldcol destination_col verbatim_copy_end verbatim_copy_width non_white)))))))
     (define (join9 oldstate oldp oldlen oldcol destination_col verbatim_copy_end verbatim_copy_width non_white)
       (init_chartabsize_arg ed cts_2 curwin 0 verbatim_copy_width (block_def.textstart bd) verbatim_copy_end)
-      (loop10 oldstate oldp oldlen oldcol destination_col non_white))
-    (define (loop10 oldstate oldp oldlen oldcol destination_col non_white)
-      (if (fx<? (chartabsize_T.cts_vcol cts_2) destination_col)
-          (let ([incr (lbr_chartabsize ed cts_2)])
-            (cond
-              [(fx>? (i32+ (chartabsize_T.cts_vcol cts_2) incr) destination_col)
-               (join13 oldstate oldp oldlen oldcol destination_col non_white)]
-              [else
-               (chartabsize_T.cts_vcol-set! cts_2 (i32+ (chartabsize_T.cts_vcol cts_2) incr))
-               (let ([t2 (utfc_ptr2len ed (chartabsize_T.cts_ptr cts_2))])
-                 (chartabsize_T.cts_ptr-set! cts_2 (fx+ (chartabsize_T.cts_ptr cts_2) t2))
-                 (loop10 oldstate oldp oldlen oldcol destination_col non_white))]))
-          (join13 oldstate oldp oldlen oldcol destination_col non_white)))
+      (let loop10 ([oldstate oldstate]
+                   [oldp oldp]
+                   [oldlen oldlen]
+                   [oldcol oldcol]
+                   [destination_col destination_col]
+                   [non_white non_white])
+        (if (fx<? (chartabsize_T.cts_vcol cts_2) destination_col)
+            (let ([incr (lbr_chartabsize ed cts_2)])
+              (cond
+                [(fx>? (i32+ (chartabsize_T.cts_vcol cts_2) incr) destination_col)
+                 (join13 oldstate oldp oldlen oldcol destination_col non_white)]
+                [else
+                 (chartabsize_T.cts_vcol-set! cts_2 (i32+ (chartabsize_T.cts_vcol cts_2) incr))
+                 (let ([t2 (utfc_ptr2len ed (chartabsize_T.cts_ptr cts_2))])
+                   (chartabsize_T.cts_ptr-set! cts_2 (fx+ (chartabsize_T.cts_ptr cts_2) t2))
+                   (loop10 oldstate oldp oldlen oldcol destination_col non_white))]))
+            (join13 oldstate oldp oldlen oldcol destination_col non_white))))
     (define (join13 oldstate oldp oldlen oldcol destination_col non_white)
       (let* ([verbatim_copy_width (chartabsize_T.cts_vcol cts_2)]
              [verbatim_copy_end (chartabsize_T.cts_ptr cts_2)]
@@ -29627,20 +30554,26 @@
         (join27 oldstate newp oldlen oldcol new_line_len)))
     (define (join19 oldstate total oldp oldlen oldcol ts_val ws_vcol tabs)
       (init_chartabsize_arg ed cts curwin (win_T.w_cursor.lnum curwin) (block_def.start_vcol bd) (block_def.textstart bd) (block_def.textstart bd))
-      (loop20 oldstate total oldp oldlen oldcol ts_val ws_vcol tabs))
-    (define (loop20 oldstate total oldp oldlen oldcol ts_val ws_vcol tabs)
-      (cond
-        [(or (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 32) (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 9))
-         (let* ([incr (lbr_chartabsize_adv ed cts)]
-                [total (i32+ total incr)])
-           (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) incr))
-           (loop20 oldstate total oldp oldlen oldcol ts_val ws_vcol tabs))]
-        [else
-         (block_def.textstart-set! bd (chartabsize_T.cts_ptr cts))
-         (block_def.start_vcol-set! bd (chartabsize_T.cts_vcol cts))
-         (if (not (not (fxzero? (buf_T.b_p_et curbuf))))
-             (join23 oldstate total oldp oldlen oldcol ts_val ws_vcol (i32/ (i32+ (i32% ws_vcol ts_val) total) ts_val))
-             (join23 oldstate total oldp oldlen oldcol ts_val ws_vcol tabs))]))
+      (let loop20 ([oldstate oldstate]
+                   [total total]
+                   [oldp oldp]
+                   [oldlen oldlen]
+                   [oldcol oldcol]
+                   [ts_val ts_val]
+                   [ws_vcol ws_vcol]
+                   [tabs tabs])
+        (cond
+          [(or (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 32) (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 9))
+           (let* ([incr (lbr_chartabsize_adv ed cts)]
+                  [total (i32+ total incr)])
+             (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) incr))
+             (loop20 oldstate total oldp oldlen oldcol ts_val ws_vcol tabs))]
+          [else
+           (block_def.textstart-set! bd (chartabsize_T.cts_ptr cts))
+           (block_def.start_vcol-set! bd (chartabsize_T.cts_vcol cts))
+           (if (not (not (fxzero? (buf_T.b_p_et curbuf))))
+               (join23 oldstate total oldp oldlen oldcol ts_val ws_vcol (i32/ (i32+ (i32% ws_vcol ts_val) total) ts_val))
+               (join23 oldstate total oldp oldlen oldcol ts_val ws_vcol tabs))])))
     (define (join23 oldstate total oldp oldlen oldcol ts_val ws_vcol tabs)
       (if (fx>? tabs 0)
           (join26 oldstate oldp oldlen oldcol tabs (i32% (i32+ (i32% ws_vcol ts_val) total) ts_val))
@@ -30189,20 +31122,25 @@
           (musl_memset ed (fx+ newp (->i64 newlen)) 32 (->u64 (block_def.startspaces bd)))
           (let ([newlen (u64+ newlen (->u64 (block_def.startspaces bd)))])
             (if (or had_ctrl_v_cr (and (not (fx=? c 13)) (not (fx=? c 10))))
-                (loop56 c num_chars newp oldp newlen after_p had_ctrl_v_cr)
+                (let loop56 ([c c]
+                             [num_chars num_chars]
+                             [newp newp]
+                             [oldp oldp]
+                             [newlen newlen]
+                             [after_p after_p]
+                             [had_ctrl_v_cr had_ctrl_v_cr])
+                  (let ([num_chars (i32- num_chars 1)])
+                    (cond
+                      [(fx>=? num_chars 0)
+                       (loop56 c num_chars newp oldp (u64+ newlen (->u64 (utf_char2bytes ed c (fx+ newp (->i64 newlen))))) after_p had_ctrl_v_cr)]
+                      [(not (block_def.is_short bd))
+                       (musl_memset ed (fx+ newp (->i64 newlen)) 32 (->u64 (block_def.endspaces bd)))
+                       (musl_strcpy ed (fx+ (fx+ newp (->i64 newlen)) (block_def.endspaces bd)) (fx+ (fx+ oldp (block_def.textcol bd)) (block_def.textlen bd)))
+                       (join59 c newp after_p had_ctrl_v_cr)]
+                      [else (join59 c newp after_p had_ctrl_v_cr)])))
                 (let ([after_p (alloc ed (u64- (u64+ (u64+ oldlen 1) (->u64 n)) newlen))])
                   (musl_strcpy ed after_p (fx+ (fx+ oldp (block_def.textcol bd)) (block_def.textlen bd)))
                   (join59 c newp after_p had_ctrl_v_cr)))))))
-    (define (loop56 c num_chars newp oldp newlen after_p had_ctrl_v_cr)
-      (let ([num_chars (i32- num_chars 1)])
-        (cond
-          [(fx>=? num_chars 0)
-           (loop56 c num_chars newp oldp (u64+ newlen (->u64 (utf_char2bytes ed c (fx+ newp (->i64 newlen))))) after_p had_ctrl_v_cr)]
-          [(not (block_def.is_short bd))
-           (musl_memset ed (fx+ newp (->i64 newlen)) 32 (->u64 (block_def.endspaces bd)))
-           (musl_strcpy ed (fx+ (fx+ newp (->i64 newlen)) (block_def.endspaces bd)) (fx+ (fx+ oldp (block_def.textcol bd)) (block_def.textlen bd)))
-           (join59 c newp after_p had_ctrl_v_cr)]
-          [else (join59 c newp after_p had_ctrl_v_cr)])))
     (define (join59 c newp after_p had_ctrl_v_cr)
       (ml_replace ed (win_T.w_cursor.lnum curwin) newp #f)
       (if (not (fx=? after_p 0))
@@ -30233,37 +31171,23 @@
     (define (join7 did_change)
       (if (= (pos_T.lnum pos) (oparg_T.end.lnum oap))
           (join12 (swapchars ed (oparg_T.op_type oap) pos (i32+ (i32- (oparg_T.end.col oap) (pos_T.col pos)) 1)))
-          (loop9 did_change)))
-    (define (loop9 did_change)
-      (let* ([r1 (oparg_T.op_type oap)]
-             [t1 (swapchars ed r1 pos (if (= (pos_T.lnum pos) (oparg_T.end.lnum oap))
-                     (i32+ (oparg_T.end.col oap) 1)
-                     (ml_get_pos_len ed pos)))]
-             [did_change (fxior did_change t1)])
-        (if (or (or (not (fxzero? (if (not (= (oparg_T.end.lnum oap) (pos_T.lnum pos)))
-                (b->i (< (oparg_T.end.lnum oap) (pos_T.lnum pos)))
-                (if (not (fx=? (oparg_T.end.col oap) (pos_T.col pos)))
-                    (b->i (fx<? (oparg_T.end.col oap) (pos_T.col pos)))
-                    (b->i (fx<? (oparg_T.end.coladd oap) (pos_T.coladd pos))))))) (and (and (= (oparg_T.end.lnum oap) (pos_T.lnum pos)) (fx=? (oparg_T.end.col oap) (pos_T.col pos))) (fx=? (oparg_T.end.coladd oap) (pos_T.coladd pos)))) (fx=? (inc ed pos) -1))
-            (join12 did_change)
-            (loop9 did_change))))
+          (let loop9 ([did_change did_change])
+            (let* ([r1 (oparg_T.op_type oap)]
+                   [t1 (swapchars ed r1 pos (if (= (pos_T.lnum pos) (oparg_T.end.lnum oap))
+                           (i32+ (oparg_T.end.col oap) 1)
+                           (ml_get_pos_len ed pos)))]
+                   [did_change (fxior did_change t1)])
+              (if (or (or (not (fxzero? (if (not (= (oparg_T.end.lnum oap) (pos_T.lnum pos)))
+                      (b->i (< (oparg_T.end.lnum oap) (pos_T.lnum pos)))
+                      (if (not (fx=? (oparg_T.end.col oap) (pos_T.col pos)))
+                          (b->i (fx<? (oparg_T.end.col oap) (pos_T.col pos)))
+                          (b->i (fx<? (oparg_T.end.coladd oap) (pos_T.coladd pos))))))) (and (and (= (oparg_T.end.lnum oap) (pos_T.lnum pos)) (fx=? (oparg_T.end.col oap) (pos_T.col pos))) (fx=? (oparg_T.end.coladd oap) (pos_T.coladd pos)))) (fx=? (inc ed pos) -1))
+                  (join12 did_change)
+                  (loop9 did_change))))))
     (define (join12 did_change)
       (cond
         [(not (fxzero? did_change))
          (changed_lines ed (oparg_T.start.lnum oap) (oparg_T.start.col oap) (i64+ (oparg_T.end.lnum oap) 1) 0)
-         (join18 did_change)]
-        [else (join18 did_change)]))
-    (define (loop15 did_change)
-      (cond
-        [(<= (pos_T.lnum pos) (oparg_T.end.lnum oap))
-         (block_prep ed oap bd (pos_T.lnum pos) 0)
-         (pos_T.col-set! pos (block_def.textcol bd))
-         (let* ([one_change (swapchars ed (oparg_T.op_type oap) pos (block_def.textlen bd))]
-                [did_change (fxior did_change one_change)])
-           (pos_T.lnum-set! pos (i64+ (pos_T.lnum pos) 1))
-           (loop15 did_change))]
-        [(not (fxzero? did_change))
-         (changed_lines ed (oparg_T.start.lnum oap) 0 (i64+ (oparg_T.end.lnum oap) 1) 0)
          (join18 did_change)]
         [else (join18 did_change)]))
     (define (join18 did_change)
@@ -30296,7 +31220,19 @@
       [else
        (mem-copy! pos (oparg_T.start& oap) 16)
        (cond
-         [(not (fxzero? (oparg_T.block_mode oap))) (loop15 0)]
+         [(not (fxzero? (oparg_T.block_mode oap))) (let loop15 ([did_change 0])
+                                                     (cond
+                                                       [(<= (pos_T.lnum pos) (oparg_T.end.lnum oap))
+                                                        (block_prep ed oap bd (pos_T.lnum pos) 0)
+                                                        (pos_T.col-set! pos (block_def.textcol bd))
+                                                        (let* ([one_change (swapchars ed (oparg_T.op_type oap) pos (block_def.textlen bd))]
+                                                               [did_change (fxior did_change one_change)])
+                                                          (pos_T.lnum-set! pos (i64+ (pos_T.lnum pos) 1))
+                                                          (loop15 did_change))]
+                                                       [(not (fxzero? did_change))
+                                                        (changed_lines ed (oparg_T.start.lnum oap) 0 (i64+ (oparg_T.end.lnum oap) 1) 0)
+                                                        (join18 did_change)]
+                                                       [else (join18 did_change)]))]
          [(fx=? (oparg_T.motion_type oap) 1)
           (oparg_T.start.col-set! oap 0)
           (pos_T.col-set! pos 0)
@@ -30378,7 +31314,33 @@
           (cond
             [(and (not (fxzero? (oparg_T.block_mode oap))) (fx=? (win_T.w_cursor.coladd curwin) 0))
              (win_T.w_set_curswant-set! curwin #t)
-             (loop13 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)]
+             (let loop13 ([pre_textlen pre_textlen]
+                          [ind_pre_col ind_pre_col]
+                          [ind_pre_vcol ind_pre_vcol]
+                          [ind_post_vcol ind_post_vcol]
+                          [ins_len ins_len])
+               (cond
+                 [(and (not (fx=? (ld-u8 (ml_get_cursor ed)) 0)) (fx<? (win_T.w_cursor.col curwin) (i32+ (block_def.textcol bd) (block_def.textlen bd))))
+                  (let ([r2 curwin])
+                    (win_T.w_cursor.col-set! r2 (i32+ (win_T.w_cursor.col r2) 1))
+                    (loop13 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len))]
+                 [(and (block_def.is_short bd) (not (block_def.is_MAX bd)))
+                  (if (not (u_save_cursor ed))
+                      (frame-pop! ed fr)
+                      (let loop17 ([pre_textlen pre_textlen]
+                                   [ind_pre_col ind_pre_col]
+                                   [ind_pre_vcol ind_pre_vcol]
+                                   [ind_post_vcol ind_post_vcol]
+                                   [i 0]
+                                   [ins_len ins_len])
+                        (cond
+                          [(fx<? i (block_def.endspaces bd))
+                           (ins_char ed 32)
+                           (loop17 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol (i32+ i 1) ins_len)]
+                          [else
+                           (block_def.textlen-set! bd (i32+ (block_def.textlen bd) (block_def.endspaces bd)))
+                           (join19 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)])))]
+                 [else (join19 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)]))]
             [else
              (mem-copy! (win_T.w_cursor& curwin) (oparg_T.end& oap) 16)
              (check_cursor_col ed)
@@ -30388,25 +31350,6 @@
                 (join19 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)]
                [else (join19 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)])])
           (join19 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)))
-    (define (loop13 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)
-      (cond
-        [(and (not (fx=? (ld-u8 (ml_get_cursor ed)) 0)) (fx<? (win_T.w_cursor.col curwin) (i32+ (block_def.textcol bd) (block_def.textlen bd))))
-         (let ([r2 curwin])
-           (win_T.w_cursor.col-set! r2 (i32+ (win_T.w_cursor.col r2) 1))
-           (loop13 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len))]
-        [(and (block_def.is_short bd) (not (block_def.is_MAX bd)))
-         (if (not (u_save_cursor ed))
-             (frame-pop! ed fr)
-             (loop17 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol 0 ins_len))]
-        [else (join19 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)]))
-    (define (loop17 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol i ins_len)
-      (cond
-        [(fx<? i (block_def.endspaces bd))
-         (ins_char ed 32)
-         (loop17 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol (i32+ i 1) ins_len)]
-        [else
-         (block_def.textlen-set! bd (i32+ (block_def.textlen bd) (block_def.endspaces bd)))
-         (join19 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)]))
     (define (join19 pre_textlen ind_pre_col ind_pre_vcol ind_post_vcol ins_len)
       (let* ([t1_lnum (oparg_T.start.lnum oap)]
              [t1_col (oparg_T.start.col oap)]
@@ -30825,35 +31768,38 @@
               [else (join23 incr pstart pstart line prev_pstart)])])]
         [else
          (init_chartabsize_arg ed cts curwin lnum (block_def.end_vcol bdp) line pstart)
-         (loop7 incr pstart line prev_pstart pstart)]))
-    (define (loop7 incr pstart line prev_pstart prev_pend)
-      (cond
-        [(and (fx<=? (chartabsize_T.cts_vcol cts) (oparg_T.end_vcol oap)) (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)))
-         (let* ([prev_pend (chartabsize_T.cts_ptr cts)]
-                [incr (lbr_chartabsize_adv ed cts)])
-           (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) incr))
-           (loop7 incr pstart line prev_pstart prev_pend))]
-        [else
-         (block_def.end_vcol-set! bdp (chartabsize_T.cts_vcol cts))
-         (let ([pend (chartabsize_T.cts_ptr cts)])
+         (let loop7 ([incr incr]
+                     [pstart pstart]
+                     [line line]
+                     [prev_pstart prev_pstart]
+                     [prev_pend pstart])
            (cond
-             [(and (fx<=? (block_def.end_vcol bdp) (oparg_T.end_vcol oap)) (or (or (not (not (fxzero? is_del))) (fx=? (oparg_T.op_type oap) 18)) (fx=? (oparg_T.op_type oap) 16)))
-              (block_def.is_short-set! bdp #t)
-              (cond
-                [(or (fx=? (oparg_T.op_type oap) 18) (not (fxzero? virtual_op)))
-                 (block_def.endspaces-set! bdp (i32+ (i32- (oparg_T.end_vcol oap) (block_def.end_vcol bdp)) (oparg_T.inclusive oap)))
-                 (join23 incr pend pstart line prev_pstart)]
-                [else (block_def.endspaces-set! bdp 0) (join23 incr pend pstart line prev_pstart)])]
-             [(fx>? (block_def.end_vcol bdp) (oparg_T.end_vcol oap))
-              (block_def.endspaces-set! bdp (i32- (i32- (block_def.end_vcol bdp) (oparg_T.end_vcol oap)) 1))
-              (cond
-                [(and (not (not (fxzero? is_del))) (not (fxzero? (block_def.endspaces bdp))))
-                 (block_def.endspaces-set! bdp (i32- incr (block_def.endspaces bdp)))
-                 (if (not (fx=? pend pstart))
-                     (join23 incr prev_pend pstart line prev_pstart)
-                     (join23 incr pend pstart line prev_pstart))]
-                [else (join23 incr pend pstart line prev_pstart)])]
-             [else (join23 incr pend pstart line prev_pstart)]))]))
+             [(and (fx<=? (chartabsize_T.cts_vcol cts) (oparg_T.end_vcol oap)) (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)))
+              (let* ([prev_pend (chartabsize_T.cts_ptr cts)]
+                     [incr (lbr_chartabsize_adv ed cts)])
+                (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) incr))
+                (loop7 incr pstart line prev_pstart prev_pend))]
+             [else
+              (block_def.end_vcol-set! bdp (chartabsize_T.cts_vcol cts))
+              (let ([pend (chartabsize_T.cts_ptr cts)])
+                (cond
+                  [(and (fx<=? (block_def.end_vcol bdp) (oparg_T.end_vcol oap)) (or (or (not (not (fxzero? is_del))) (fx=? (oparg_T.op_type oap) 18)) (fx=? (oparg_T.op_type oap) 16)))
+                   (block_def.is_short-set! bdp #t)
+                   (cond
+                     [(or (fx=? (oparg_T.op_type oap) 18) (not (fxzero? virtual_op)))
+                      (block_def.endspaces-set! bdp (i32+ (i32- (oparg_T.end_vcol oap) (block_def.end_vcol bdp)) (oparg_T.inclusive oap)))
+                      (join23 incr pend pstart line prev_pstart)]
+                     [else (block_def.endspaces-set! bdp 0) (join23 incr pend pstart line prev_pstart)])]
+                  [(fx>? (block_def.end_vcol bdp) (oparg_T.end_vcol oap))
+                   (block_def.endspaces-set! bdp (i32- (i32- (block_def.end_vcol bdp) (oparg_T.end_vcol oap)) 1))
+                   (cond
+                     [(and (not (not (fxzero? is_del))) (not (fxzero? (block_def.endspaces bdp))))
+                      (block_def.endspaces-set! bdp (i32- incr (block_def.endspaces bdp)))
+                      (if (not (fx=? pend pstart))
+                          (join23 incr prev_pend pstart line prev_pstart)
+                          (join23 incr pend pstart line prev_pstart))]
+                     [else (join23 incr pend pstart line prev_pstart)])]
+                  [else (join23 incr pend pstart line prev_pstart)]))]))]))
     (define (join23 incr pend pstart line prev_pstart)
       (block_def.end_char_vcols-set! bdp incr)
       (if (and (not (fxzero? is_del)) (not (fxzero? (block_def.startspaces bdp))))
@@ -31069,63 +32015,189 @@
           [VIsual_active
            (join22 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)]
           [do_bin
-           (loop7 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)]
+           (let loop7 ([length_ length_]
+                       [col col]
+                       [ptr ptr]
+                       [linelen linelen]
+                       [do_hex do_hex]
+                       [do_oct do_oct]
+                       [do_bin do_bin]
+                       [do_alpha do_alpha]
+                       [do_unsigned do_unsigned]
+                       [do_blank do_blank]
+                       [blank_unsigned blank_unsigned]
+                       [negative negative]
+                       [was_positive was_positive]
+                       [visual visual]
+                       [did_change did_change]
+                       [save_cursor_lnum save_cursor_lnum]
+                       [save_cursor_col save_cursor_col]
+                       [save_cursor_coladd save_cursor_coladd]
+                       [maxlen maxlen]
+                       [startpos_lnum startpos_lnum]
+                       [startpos_col startpos_col]
+                       [startpos_coladd startpos_coladd]
+                       [save_coladd save_coladd])
+             (if (and (fx>? col 0) (vim_isbdigit ed (ld-u8 (fx+ ptr col))))
+                 (let ([col (i32- col 1)])
+                   (loop7 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
+                 (join8 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))]
           [else
            (join8 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)])))
-    (define (loop7 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-      (if (and (fx>? col 0) (vim_isbdigit ed (ld-u8 (fx+ ptr col))))
-          (let ([col (i32- col 1)])
-            (loop7 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
-          (join8 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
     (define (join8 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
       (if do_hex
-          (loop10 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-          (join11 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
-    (define (loop10 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-      (if (and (fx>? col 0) (vim_isxdigit ed (ld-u8 (fx+ ptr col))))
-          (let ([col (i32- col 1)])
-            (loop10 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
+          (let loop10 ([length_ length_]
+                       [col col]
+                       [ptr ptr]
+                       [linelen linelen]
+                       [do_hex do_hex]
+                       [do_oct do_oct]
+                       [do_bin do_bin]
+                       [do_alpha do_alpha]
+                       [do_unsigned do_unsigned]
+                       [do_blank do_blank]
+                       [blank_unsigned blank_unsigned]
+                       [negative negative]
+                       [was_positive was_positive]
+                       [visual visual]
+                       [did_change did_change]
+                       [save_cursor_lnum save_cursor_lnum]
+                       [save_cursor_col save_cursor_col]
+                       [save_cursor_coladd save_cursor_coladd]
+                       [maxlen maxlen]
+                       [startpos_lnum startpos_lnum]
+                       [startpos_col startpos_col]
+                       [startpos_coladd startpos_coladd]
+                       [save_coladd save_coladd])
+            (if (and (fx>? col 0) (vim_isxdigit ed (ld-u8 (fx+ ptr col))))
+                (let ([col (i32- col 1)])
+                  (loop10 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
+                (join11 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
           (join11 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
     (define (join11 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
       (if (and (and do_bin do_hex) (not (and (and (and (and (fx>? col 0) (or (fx=? (ld-u8 (fx+ ptr col)) 88) (fx=? (ld-u8 (fx+ ptr col)) 120))) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) 48)) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (vim_isxdigit ed (ld-u8 (fx+ ptr (i32+ col 1)))))))
-          (loop13 length_ (pos_T.col pos) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-          (join14 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
-    (define (loop13 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-      (if (and (fx>? col 0) (vim_isdigit ed (ld-u8 (fx+ ptr col))))
-          (let ([col (i32- col 1)])
-            (loop13 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
+          (let loop13 ([length_ length_]
+                       [col (pos_T.col pos)]
+                       [ptr ptr]
+                       [linelen linelen]
+                       [do_hex do_hex]
+                       [do_oct do_oct]
+                       [do_bin do_bin]
+                       [do_alpha do_alpha]
+                       [do_unsigned do_unsigned]
+                       [do_blank do_blank]
+                       [blank_unsigned blank_unsigned]
+                       [negative negative]
+                       [was_positive was_positive]
+                       [visual visual]
+                       [did_change did_change]
+                       [save_cursor_lnum save_cursor_lnum]
+                       [save_cursor_col save_cursor_col]
+                       [save_cursor_coladd save_cursor_coladd]
+                       [maxlen maxlen]
+                       [startpos_lnum startpos_lnum]
+                       [startpos_col startpos_col]
+                       [startpos_coladd startpos_coladd]
+                       [save_coladd save_coladd])
+            (if (and (fx>? col 0) (vim_isdigit ed (ld-u8 (fx+ ptr col))))
+                (let ([col (i32- col 1)])
+                  (loop13 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
+                (join14 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
           (join14 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
     (define (join14 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
       (if (or (and (and (and (and (and do_hex (fx>? col 0)) (or (fx=? (ld-u8 (fx+ ptr col)) 88) (fx=? (ld-u8 (fx+ ptr col)) 120))) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) 48)) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (vim_isxdigit ed (ld-u8 (fx+ ptr (i32+ col 1))))) (and (and (and (and (and do_bin (fx>? col 0)) (or (fx=? (ld-u8 (fx+ ptr col)) 66) (fx=? (ld-u8 (fx+ ptr col)) 98))) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) 48)) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (vim_isbdigit ed (ld-u8 (fx+ ptr (i32+ col 1))))))
           (let ([col (i32- col 1)])
             (join22 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
-          (loop16 length_ (pos_T.col pos) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
-    (define (loop16 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-      (if (and (and (not (fx=? (ld-u8 (fx+ ptr col)) 0)) (not (vim_isdigit ed (ld-u8 (fx+ ptr col))))) (not (and do_alpha (or (ascii_isupper ed (ld-u8 (fx+ ptr col))) (ascii_islower ed (ld-u8 (fx+ ptr col)))))))
-          (loop16 length_ (i32+ col (utfc_ptr2len ed (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-          (loop18 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
-    (define (loop18 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-      (if (and (and (fx>? col 0) (vim_isdigit ed (ld-u8 (fx+ ptr (i32- col 1))))) (not (and do_alpha (or (ascii_isupper ed (ld-u8 (fx+ ptr col))) (ascii_islower ed (ld-u8 (fx+ ptr col)))))))
-          (let ([col (i32- col 1)])
-            (loop18 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
-          (join22 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
+          (let loop16 ([length_ length_]
+                       [col (pos_T.col pos)]
+                       [ptr ptr]
+                       [linelen linelen]
+                       [do_hex do_hex]
+                       [do_oct do_oct]
+                       [do_bin do_bin]
+                       [do_alpha do_alpha]
+                       [do_unsigned do_unsigned]
+                       [do_blank do_blank]
+                       [blank_unsigned blank_unsigned]
+                       [negative negative]
+                       [was_positive was_positive]
+                       [visual visual]
+                       [did_change did_change]
+                       [save_cursor_lnum save_cursor_lnum]
+                       [save_cursor_col save_cursor_col]
+                       [save_cursor_coladd save_cursor_coladd]
+                       [maxlen maxlen]
+                       [startpos_lnum startpos_lnum]
+                       [startpos_col startpos_col]
+                       [startpos_coladd startpos_coladd]
+                       [save_coladd save_coladd])
+            (if (and (and (not (fx=? (ld-u8 (fx+ ptr col)) 0)) (not (vim_isdigit ed (ld-u8 (fx+ ptr col))))) (not (and do_alpha (or (ascii_isupper ed (ld-u8 (fx+ ptr col))) (ascii_islower ed (ld-u8 (fx+ ptr col)))))))
+                (loop16 length_ (i32+ col (utfc_ptr2len ed (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
+                (let loop18 ([length_ length_]
+                             [col col]
+                             [ptr ptr]
+                             [linelen linelen]
+                             [do_hex do_hex]
+                             [do_oct do_oct]
+                             [do_bin do_bin]
+                             [do_alpha do_alpha]
+                             [do_unsigned do_unsigned]
+                             [do_blank do_blank]
+                             [blank_unsigned blank_unsigned]
+                             [negative negative]
+                             [was_positive was_positive]
+                             [visual visual]
+                             [did_change did_change]
+                             [save_cursor_lnum save_cursor_lnum]
+                             [save_cursor_col save_cursor_col]
+                             [save_cursor_coladd save_cursor_coladd]
+                             [maxlen maxlen]
+                             [startpos_lnum startpos_lnum]
+                             [startpos_col startpos_col]
+                             [startpos_coladd startpos_coladd]
+                             [save_coladd save_coladd])
+                  (if (and (and (fx>? col 0) (vim_isdigit ed (ld-u8 (fx+ ptr (i32- col 1))))) (not (and do_alpha (or (ascii_isupper ed (ld-u8 (fx+ ptr col))) (ascii_islower ed (ld-u8 (fx+ ptr col)))))))
+                      (let ([col (i32- col 1)])
+                        (loop18 length_ (i32- col (utf_head_off ed ptr (fx+ ptr col))) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))
+                      (join22 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))))))
     (define (join22 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
       (if visual
-          (loop24 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
+          (let loop24 ([length_ length_]
+                       [col col]
+                       [ptr ptr]
+                       [linelen linelen]
+                       [do_hex do_hex]
+                       [do_oct do_oct]
+                       [do_bin do_bin]
+                       [do_alpha do_alpha]
+                       [do_unsigned do_unsigned]
+                       [do_blank do_blank]
+                       [blank_unsigned blank_unsigned]
+                       [negative negative]
+                       [was_positive was_positive]
+                       [visual visual]
+                       [did_change did_change]
+                       [save_cursor_lnum save_cursor_lnum]
+                       [save_cursor_col save_cursor_col]
+                       [save_cursor_coladd save_cursor_coladd]
+                       [maxlen maxlen]
+                       [startpos_lnum startpos_lnum]
+                       [startpos_col startpos_col]
+                       [startpos_coladd startpos_coladd]
+                       [save_coladd save_coladd])
+            (cond
+              [(and (and (and (not (fx=? (ld-u8 (fx+ ptr col)) 0)) (fx>? length_ 0)) (not (vim_isdigit ed (ld-u8 (fx+ ptr col))))) (not (and do_alpha (or (ascii_isupper ed (ld-u8 (fx+ ptr col))) (ascii_islower ed (ld-u8 (fx+ ptr col)))))))
+               (let ([mb_len (utfc_ptr2len ed (fx+ ptr col))])
+                 (loop24 (i32- length_ mb_len) (i32+ col mb_len) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))]
+              [(fx=? length_ 0)
+               (join133 visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd save_coladd)]
+              [(and (and (and (fx>? col (pos_T.col pos)) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) 45)) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (not do_unsigned))
+               (if (and (and do_blank (fx>=? col 2)) (not (or (fx=? (ld-u8 (fx+ ptr (i32- col 2))) 32) (fx=? (ld-u8 (fx+ ptr (i32- col 2))) 9))))
+                   (join30 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank #t negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
+                   (join30 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned 1 #f visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))]
+              [else
+               (join30 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)]))
           (join30 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)))
-    (define (loop24 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-      (cond
-        [(and (and (and (not (fx=? (ld-u8 (fx+ ptr col)) 0)) (fx>? length_ 0)) (not (vim_isdigit ed (ld-u8 (fx+ ptr col))))) (not (and do_alpha (or (ascii_isupper ed (ld-u8 (fx+ ptr col))) (ascii_islower ed (ld-u8 (fx+ ptr col)))))))
-         (let ([mb_len (utfc_ptr2len ed (fx+ ptr col))])
-           (loop24 (i32- length_ mb_len) (i32+ col mb_len) ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))]
-        [(fx=? length_ 0)
-         (join133 visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd save_coladd)]
-        [(and (and (and (fx>? col (pos_T.col pos)) (fx=? (ld-u8 (fx+ ptr (i32- col 1))) 45)) (not (not (fxzero? (utf_head_off ed ptr (fx+ (fx+ ptr col) -1)))))) (not do_unsigned))
-         (if (and (and do_blank (fx>=? col 2)) (not (or (fx=? (ld-u8 (fx+ ptr (i32- col 2))) 32) (fx=? (ld-u8 (fx+ ptr (i32- col 2))) 9))))
-             (join30 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank #t negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
-             (join30 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned 1 #f visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd))]
-        [else
-         (join30 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)]))
     (define (join30 length_ col ptr linelen do_hex do_oct do_bin do_alpha do_unsigned do_blank blank_unsigned negative was_positive visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd maxlen startpos_lnum startpos_col startpos_coladd save_coladd)
       (let ([firstdigit (ld-u8 (fx+ ptr col))])
         (cond
@@ -31272,7 +32344,27 @@
     (define (join75 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1)
       (cond
         [(or (fx=? pre 98) (fx=? pre 66))
-         (loop84 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 64)]
+         (let loop84 ([length_ length_]
+                      [ptr ptr]
+                      [todel todel]
+                      [do_oct do_oct]
+                      [firstdigit firstdigit]
+                      [visual visual]
+                      [did_change did_change]
+                      [save_cursor_lnum save_cursor_lnum]
+                      [save_cursor_col save_cursor_col]
+                      [save_cursor_coladd save_cursor_coladd]
+                      [startpos_lnum startpos_lnum]
+                      [startpos_col startpos_col]
+                      [startpos_coladd startpos_coladd]
+                      [save_coladd save_coladd]
+                      [buf1 buf1]
+                      [bit 64])
+           (if (fx>? bit 0)
+               (if (not (eqv? (bitwise-and (u64>> n (i32- bit 1)) 1) 0))
+                   (join87 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 bit)
+                   (loop84 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 (i32- bit 1)))
+               (join87 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 bit)))]
         [(fx=? pre 0)
          (join90 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 (vim_snprintf ed buf2 65 (c-str 165086 "%llu") (list n)))]
         [(fx=? pre 48)
@@ -31281,37 +32373,58 @@
          (join90 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 (vim_snprintf ed buf2 65 (c-str 165096 "%llX") (list n)))]
         [else
          (join90 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 (vim_snprintf ed buf2 65 (c-str 165101 "%llx") (list n)))]))
-    (define (loop84 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 bit)
-      (if (fx>? bit 0)
-          (if (not (eqv? (bitwise-and (u64>> n (i32- bit 1)) 1) 0))
-              (join87 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 bit)
-              (loop84 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 (i32- bit 1)))
-          (join87 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 bit)))
     (define (join87 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 bit)
-      (loop88 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 0 bit))
-    (define (loop88 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len bit)
-      (cond
-        [(and (fx>? bit 0) (fx<? buf2len 64))
-         (let* ([t10 buf2len]
-                [buf2len (i32+ buf2len 1)])
-           (st-u8! (fx+ buf2 t10) (->u8 (if (not (eqv? (bitwise-and (u64>> n (i32- bit 1)) 1) 0)) 49 48)))
-           (loop88 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len (i32- bit 1)))]
-        [else
-         (st-u8! (fx+ buf2 buf2len) 0)
-         (join90 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len)]))
+      (let loop88 ([length_ length_]
+                   [ptr ptr]
+                   [todel todel]
+                   [do_oct do_oct]
+                   [firstdigit firstdigit]
+                   [visual visual]
+                   [did_change did_change]
+                   [save_cursor_lnum save_cursor_lnum]
+                   [save_cursor_col save_cursor_col]
+                   [save_cursor_coladd save_cursor_coladd]
+                   [startpos_lnum startpos_lnum]
+                   [startpos_col startpos_col]
+                   [startpos_coladd startpos_coladd]
+                   [save_coladd save_coladd]
+                   [buf1 buf1]
+                   [buf2len 0]
+                   [bit bit])
+        (cond
+          [(and (fx>? bit 0) (fx<? buf2len 64))
+           (let* ([t10 buf2len]
+                  [buf2len (i32+ buf2len 1)])
+             (st-u8! (fx+ buf2 t10) (->u8 (if (not (eqv? (bitwise-and (u64>> n (i32- bit 1)) 1) 0)) 49 48)))
+             (loop88 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len (i32- bit 1)))]
+          [else
+           (st-u8! (fx+ buf2 buf2len) 0)
+           (join90 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len)])))
     (define (join90 length_ ptr todel do_oct firstdigit visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len)
       (let ([length_ (i32- length_ buf2len)])
         (if (and (fx=? firstdigit 48) (not (and do_oct (fx=? pre 0))))
-            (loop92 length_ ptr todel visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len)
-            (join93 ptr todel visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len))))
-    (define (loop92 length_ ptr todel visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len)
-      (let* ([t11 length_]
-             [length_ (i32- length_ 1)])
-        (if (fx>? t11 0)
-            (let* ([t12 ptr]
-                   [ptr (fx+ ptr 1)])
-              (st-u8! t12 48)
-              (loop92 length_ ptr todel visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len))
+            (let loop92 ([length_ length_]
+                         [ptr ptr]
+                         [todel todel]
+                         [visual visual]
+                         [did_change did_change]
+                         [save_cursor_lnum save_cursor_lnum]
+                         [save_cursor_col save_cursor_col]
+                         [save_cursor_coladd save_cursor_coladd]
+                         [startpos_lnum startpos_lnum]
+                         [startpos_col startpos_col]
+                         [startpos_coladd startpos_coladd]
+                         [save_coladd save_coladd]
+                         [buf1 buf1]
+                         [buf2len buf2len])
+              (let* ([t11 length_]
+                     [length_ (i32- length_ 1)])
+                (if (fx>? t11 0)
+                    (let* ([t12 ptr]
+                           [ptr (fx+ ptr 1)])
+                      (st-u8! t12 48)
+                      (loop92 length_ ptr todel visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len))
+                    (join93 ptr todel visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len))))
             (join93 ptr todel visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len))))
     (define (join93 ptr todel visual did_change save_cursor_lnum save_cursor_col save_cursor_coladd startpos_lnum startpos_col startpos_coladd save_coladd buf1 buf2len)
       (st-u8! ptr 0)
@@ -32368,10 +33481,6 @@
 
 (define (parse_option_name ed arg opt_idxp lenp keyp)
   (let ([mem (ed-mem ed)])
-    (define (loop3 key len out___r__ out___opt_idxp out___lenp out___keyp)
-      (if (or (or (or (ascii_isupper ed (ld-u8 (fx+ arg len))) (ascii_islower ed (ld-u8 (fx+ arg len)))) (ascii_isdigit ed (ld-u8 (fx+ arg len)))) (fx=? (ld-u8 (fx+ arg len)) 95))
-          (loop3 key (i32+ len 1) out___r__ out___opt_idxp out___lenp out___keyp)
-          (join6 key len out___r__ out___opt_idxp out___lenp out___keyp)))
     (define (join6 key len out___r__ out___opt_idxp out___lenp out___keyp)
       (let ([nextchar (ld-u8 (fx+ arg len))])
         (st-u8! (fx+ arg len) 0)
@@ -32380,10 +33489,6 @@
           (if (fx=? opt_idx -1)
               (join18 (find_key_option ed arg #f) len opt_idx out___r__ out___opt_idxp out___lenp out___keyp)
               (join18 key len opt_idx out___r__ out___opt_idxp out___lenp out___keyp)))))
-    (define (loop10 opt_idxp lenp keyp key len opt_idx out___r__ out___opt_idxp out___lenp out___keyp)
-      (if (and (not (fx=? (ld-u8 (fx+ arg len)) 0)) (not (fx=? (ld-u8 (fx+ arg len)) 62)))
-          (loop10 opt_idxp lenp keyp key (i32+ len 1) opt_idx out___r__ out___opt_idxp out___lenp out___keyp)
-          (join13 opt_idxp lenp keyp key len opt_idx out___r__ out___opt_idxp out___lenp out___keyp)))
     (define (join13 opt_idxp lenp keyp key len opt_idx out___r__ out___opt_idxp out___lenp out___keyp)
       (cond
         [(not (fx=? (ld-u8 (fx+ arg len)) 62)) (values #f opt_idxp lenp keyp)]
@@ -32405,10 +33510,30 @@
       [(fx=? (ld-u8 arg) 60)
        (if (and (and (and (fx=? (ld-u8 (fx+ arg 1)) 116) (fx=? (ld-u8 (fx+ arg 2)) 95)) (not (fxzero? (ld-u8 (fx+ arg 3))))) (not (fxzero? (ld-u8 (fx+ arg 4)))))
            (join13 opt_idxp lenp keyp 0 5 -1 #f 0 0 0)
-           (loop10 opt_idxp lenp keyp 0 1 -1 #f 0 0 0))]
+           (let loop10 ([opt_idxp opt_idxp]
+                        [lenp lenp]
+                        [keyp keyp]
+                        [key 0]
+                        [len 1]
+                        [opt_idx -1]
+                        [out___r__ #f]
+                        [out___opt_idxp 0]
+                        [out___lenp 0]
+                        [out___keyp 0])
+             (if (and (not (fx=? (ld-u8 (fx+ arg len)) 0)) (not (fx=? (ld-u8 (fx+ arg len)) 62)))
+                 (loop10 opt_idxp lenp keyp key (i32+ len 1) opt_idx out___r__ out___opt_idxp out___lenp out___keyp)
+                 (join13 opt_idxp lenp keyp key len opt_idx out___r__ out___opt_idxp out___lenp out___keyp))))]
       [(and (and (and (fx=? (ld-u8 arg) 116) (fx=? (ld-u8 (fx+ arg 1)) 95)) (not (fxzero? (ld-u8 (fx+ arg 2))))) (not (fxzero? (ld-u8 (fx+ arg 3)))))
        (join6 0 4 #f 0 0 0)]
-      [else (loop3 0 0 #f 0 0 0)])))
+      [else (let loop3 ([key 0]
+                        [len 0]
+                        [out___r__ #f]
+                        [out___opt_idxp 0]
+                        [out___lenp 0]
+                        [out___keyp 0])
+              (if (or (or (or (ascii_isupper ed (ld-u8 (fx+ arg len))) (ascii_islower ed (ld-u8 (fx+ arg len)))) (ascii_isdigit ed (ld-u8 (fx+ arg len)))) (fx=? (ld-u8 (fx+ arg len)) 95))
+                  (loop3 key (i32+ len 1) out___r__ out___opt_idxp out___lenp out___keyp)
+                  (join6 key len out___r__ out___opt_idxp out___lenp out___keyp)))])))
 
 (define (get_opt_op ed arg)
   (let ([mem (ed-mem ed)])
@@ -32599,7 +33724,13 @@
 
 (define (find_key_item ed src key keylen itemlenp)
   (let ([mem (ed-mem ed)])
-    (define (loop1 itemlenp p out___r__ out___itemlenp)
+    (define (join7 p end out___r__ out___itemlenp)
+      (let ([itemlenp (->i32 (fx- end p))])
+        (values p itemlenp)))
+    (let loop1 ([itemlenp itemlenp]
+                [p src]
+                [out___r__ 0]
+                [out___itemlenp 0])
       (cond
         [(fx=? (ld-u8 p) 0) (values 0 itemlenp)]
         [(and (or (fx=? p src) (fx=? (ld-u8 (fx+ p -1)) 44)) (fx=? (musl_strncmp ed p key (->u64 keylen)) 0))
@@ -32607,11 +33738,7 @@
            (if (fx=? end 0)
                (join7 p (fx+ p (->i64 (musl_strlen ed p))) out___r__ out___itemlenp)
                (join7 p end out___r__ out___itemlenp)))]
-        [else (loop1 itemlenp (fx+ p 1) out___r__ out___itemlenp)]))
-    (define (join7 p end out___r__ out___itemlenp)
-      (let ([itemlenp (->i32 (fx- end p))])
-        (values p itemlenp)))
-    (loop1 itemlenp src 0 0)))
+        [else (loop1 itemlenp (fx+ p 1) out___r__ out___itemlenp)]))))
 
 (define (remove_comma_item ed str item itemlen)
   (let ([mem (ed-mem ed)])
@@ -33013,13 +34140,6 @@
     (define-c-local varp &varp agg 0)
     (define-c-local key_name &key_name agg 32)
     (define-c-local errmsg &errmsg ptr 40)
-    (define (loop2 did_show opt_idx arg prefix afterchar key len out___r__ out___did_show do_set_option_value__o_r__ do_set_option_value__o_argp parse_option_name__o_r__ parse_option_name__o_opt_idxp parse_option_name__o_lenp parse_option_name__o_keyp)
-      (if (or (fx=? (ld-u8 (fx+ arg len)) 32) (fx=? (ld-u8 (fx+ arg len)) 9))
-          (loop2 did_show opt_idx arg prefix afterchar key (i32+ len 1) out___r__ out___did_show do_set_option_value__o_r__ do_set_option_value__o_argp parse_option_name__o_r__ parse_option_name__o_opt_idxp parse_option_name__o_lenp parse_option_name__o_keyp)
-          (let ([op (get_opt_op ed (fx+ arg len))])
-            (if (not (fx=? op 0))
-                (join5 did_show opt_idx arg prefix op afterchar key (i32+ len 1) out___r__ out___did_show do_set_option_value__o_r__ do_set_option_value__o_argp parse_option_name__o_r__ parse_option_name__o_opt_idxp parse_option_name__o_lenp parse_option_name__o_keyp)
-                (join5 did_show opt_idx arg prefix op afterchar key len out___r__ out___did_show do_set_option_value__o_r__ do_set_option_value__o_argp parse_option_name__o_r__ parse_option_name__o_opt_idxp parse_option_name__o_lenp parse_option_name__o_keyp)))))
     (define (join5 did_show opt_idx arg prefix op afterchar key len out___r__ out___did_show do_set_option_value__o_r__ do_set_option_value__o_argp parse_option_name__o_r__ parse_option_name__o_opt_idxp parse_option_name__o_lenp parse_option_name__o_keyp)
       (let ([nextchar (ld-u8 (fx+ arg len))])
         (cond
@@ -33138,7 +34258,27 @@
       (let-values ([(r11 r12 r13 r14) (parse_option_name ed arg 0 0 0)])
         (cond
           [(not r11) (frame-pop! ed fr) (values e_invalid_argument did_show)]
-          [else (loop2 did_show r12 arg prefix (ld-u8 (fx+ arg r13)) r14 r13 0 #f 0 0 r11 r12 r13 r14)])))))
+          [else (let loop2 ([did_show did_show]
+                            [opt_idx r12]
+                            [arg arg]
+                            [prefix prefix]
+                            [afterchar (ld-u8 (fx+ arg r13))]
+                            [key r14]
+                            [len r13]
+                            [out___r__ 0]
+                            [out___did_show #f]
+                            [do_set_option_value__o_r__ 0]
+                            [do_set_option_value__o_argp 0]
+                            [parse_option_name__o_r__ r11]
+                            [parse_option_name__o_opt_idxp r12]
+                            [parse_option_name__o_lenp r13]
+                            [parse_option_name__o_keyp r14])
+                  (if (or (fx=? (ld-u8 (fx+ arg len)) 32) (fx=? (ld-u8 (fx+ arg len)) 9))
+                      (loop2 did_show opt_idx arg prefix afterchar key (i32+ len 1) out___r__ out___did_show do_set_option_value__o_r__ do_set_option_value__o_argp parse_option_name__o_r__ parse_option_name__o_opt_idxp parse_option_name__o_lenp parse_option_name__o_keyp)
+                      (let ([op (get_opt_op ed (fx+ arg len))])
+                        (if (not (fx=? op 0))
+                            (join5 did_show opt_idx arg prefix op afterchar key (i32+ len 1) out___r__ out___did_show do_set_option_value__o_r__ do_set_option_value__o_argp parse_option_name__o_r__ parse_option_name__o_opt_idxp parse_option_name__o_lenp parse_option_name__o_keyp)
+                            (join5 did_show opt_idx arg prefix op afterchar key len out___r__ out___did_show do_set_option_value__o_r__ do_set_option_value__o_argp parse_option_name__o_r__ parse_option_name__o_opt_idxp parse_option_name__o_lenp parse_option_name__o_keyp)))))])))))
 
 (define (do_set ed arg_start opt_flags)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 112)])
@@ -33169,26 +34309,32 @@
          (set! stopopteval 0)
          (set! startarg arg)
          (let-values ([(r1 r2) (do_set_option ed opt_flags &arg arg_start &startarg did_show &stopopteval errbuf 80)])
-           (if (not (fxzero? stopopteval)) (join19 r1 r2) (loop7 0 did_show r1 r1 r2)))]))
-    (define (loop7 i did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)
-      (if (fx<? i 2)
-          (loop9 i did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)
-          (join12 did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)))
-    (define (loop9 i did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)
-      (cond
-        [(and (not (fx=? (ld-u8 arg) 0)) (not (or (fx=? (ld-u8 arg) 32) (fx=? (ld-u8 arg) 9))))
-         (let ([t1 arg])
-           (set! arg (fx+ arg 1))
-           (cond
-             [(and (fx=? (ld-u8 t1) 92) (not (fx=? (ld-u8 arg) 0)))
-              (set! arg (fx+ arg 1))
-              (loop9 i did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)]
-             [else (loop9 i did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)]))]
-        [else
-         (set! arg (skipwhite ed arg))
-         (if (not (fx=? (ld-u8 arg) 61))
-             (join12 did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)
-             (loop7 (i32+ i 1) did_show errmsg do_set_option__o_r__ do_set_option__o_did_show))]))
+           (if (not (fxzero? stopopteval)) (join19 r1 r2) (let loop7 ([i 0]
+                                                                      [did_show did_show]
+                                                                      [errmsg r1]
+                                                                      [do_set_option__o_r__ r1]
+                                                                      [do_set_option__o_did_show r2])
+                                                            (if (fx<? i 2)
+                                                                (let loop9 ([i i]
+                                                                            [did_show did_show]
+                                                                            [errmsg errmsg]
+                                                                            [do_set_option__o_r__ do_set_option__o_r__]
+                                                                            [do_set_option__o_did_show do_set_option__o_did_show])
+                                                                  (cond
+                                                                    [(and (not (fx=? (ld-u8 arg) 0)) (not (or (fx=? (ld-u8 arg) 32) (fx=? (ld-u8 arg) 9))))
+                                                                     (let ([t1 arg])
+                                                                       (set! arg (fx+ arg 1))
+                                                                       (cond
+                                                                         [(and (fx=? (ld-u8 t1) 92) (not (fx=? (ld-u8 arg) 0)))
+                                                                          (set! arg (fx+ arg 1))
+                                                                          (loop9 i did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)]
+                                                                         [else (loop9 i did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)]))]
+                                                                    [else
+                                                                     (set! arg (skipwhite ed arg))
+                                                                     (if (not (fx=? (ld-u8 arg) 61))
+                                                                         (join12 did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)
+                                                                         (loop7 (i32+ i 1) did_show errmsg do_set_option__o_r__ do_set_option__o_did_show))]))
+                                                                (join12 did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)))))]))
     (define (join12 did_show errmsg do_set_option__o_r__ do_set_option__o_did_show)
       (if (not (fx=? errmsg 0))
           (let ([i (i32+ (vim_snprintf ed IObuff 1025 (c-str 162260 "%s") (list errmsg)) 2)])
@@ -33280,12 +34426,11 @@
 
 (define (get_term_opt_idx ed p)
   (let ([mem (ed-mem ed)])
-    (define (loop1 opt_idx)
+    (let loop1 ([opt_idx 1])
       (cond
         [(fx=? (vimoption.fullname (fx+ options (fx* opt_idx 112))) 0) -1]
         [(fx=? (vimoption.var.ov_str (fx+ options (fx* opt_idx 112))) p) opt_idx]
-        [else (loop1 (i32+ opt_idx 1))]))
-    (loop1 1)))
+        [else (loop1 (i32+ opt_idx 1))]))))
 
 (define (set_term_option_alloced ed p)
   (let ([mem (ed-mem ed)])
@@ -33812,16 +34957,6 @@
 
 (define (findoption ed arg)
   (let ([mem (ed-mem ed)])
-    (define (loop2 last_opt_idx)
-      (if (not (fx=? (vimoption.fullname (fx+ options (fx* last_opt_idx 112))) 0))
-          (loop2 (i32+ last_opt_idx 1))
-          (loop4 last_opt_idx 1)))
-    (define (loop4 last_opt_idx tab_idx)
-      (cond
-        [(fx<? tab_idx 27)
-         (st-s16! (fx+ findoption:quick_tab (fx* tab_idx 2)) (->i16 last_opt_idx))
-         (loop4 last_opt_idx (i32+ tab_idx 1))]
-        [else (loop6 1 (vimoption.fullname options) last_opt_idx)]))
     (define (loop6 opt_idx p last_opt_idx)
       (if (fx<? opt_idx last_opt_idx)
           (let ([s (vimoption.fullname (fx+ options (fx* opt_idx 112)))])
@@ -33854,14 +34989,14 @@
           (join17 opt_idx s is_term_opt)))
     (define (join17 opt_idx s is_term_opt)
       (if (and (fx=? s 0) (not is_term_opt))
-          (loop19 (ld-s16 (fx+ findoption:quick_tab (fx* (i32- (ld-u8 arg) 97) 2))) s)
-          (join23 opt_idx s)))
-    (define (loop19 opt_idx s)
-      (if (not (fx=? (vimoption.fullname (fx+ options (fx* opt_idx 112))) 0))
-          (let ([s (vimoption.shortname (fx+ options (fx* opt_idx 112)))])
-            (if (and (not (fx=? s 0)) (fx=? (musl_strcmp ed arg s) 0))
-                (join23 opt_idx s)
-                (loop19 (i32+ opt_idx 1) 0)))
+          (let loop19 ([opt_idx (ld-s16 (fx+ findoption:quick_tab (fx* (i32- (ld-u8 arg) 97) 2)))]
+                       [s s])
+            (if (not (fx=? (vimoption.fullname (fx+ options (fx* opt_idx 112))) 0))
+                (let ([s (vimoption.shortname (fx+ options (fx* opt_idx 112)))])
+                  (if (and (not (fx=? s 0)) (fx=? (musl_strcmp ed arg s) 0))
+                      (join23 opt_idx s)
+                      (loop19 (i32+ opt_idx 1) 0)))
+                (join23 opt_idx s)))
           (join23 opt_idx s)))
     (define (join23 opt_idx s)
       (if (fx=? s 0) (join25 -1) (join25 opt_idx)))
@@ -33869,7 +35004,16 @@
       opt_idx)
     (define (join31 opt_idx s last_opt_idx)
       (loop6 (i32+ opt_idx 1) s last_opt_idx))
-    (if (fx=? (ld-s16 (fx+ findoption:quick_tab 2)) 0) (loop2 0) (join7))))
+    (if (fx=? (ld-s16 (fx+ findoption:quick_tab 2)) 0) (let loop2 ([last_opt_idx 0])
+                                                         (if (not (fx=? (vimoption.fullname (fx+ options (fx* last_opt_idx 112))) 0))
+                                                             (loop2 (i32+ last_opt_idx 1))
+                                                             (let loop4 ([last_opt_idx last_opt_idx]
+                                                                         [tab_idx 1])
+                                                               (cond
+                                                                 [(fx<? tab_idx 27)
+                                                                  (st-s16! (fx+ findoption:quick_tab (fx* tab_idx 2)) (->i16 last_opt_idx))
+                                                                  (loop4 last_opt_idx (i32+ tab_idx 1))]
+                                                                 [else (loop6 1 (vimoption.fullname options) last_opt_idx)])))) (join7))))
 
 (define (get_option_flags ed opt_idx)
   (let ([mem (ed-mem ed)])
@@ -33898,16 +35042,6 @@
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 48)])
     (define-c-local varp &varp agg 0)
     (define-c-local key_name &key_name agg 32)
-    (define (loop5 opt_idx flags idx)
-      (cond
-        [(fx=? (ld-u8 (fx+ string_ idx)) 48) (loop5 opt_idx flags (i32+ idx 1))]
-        [(or (not (fx=? (ld-u8 (fx+ string_ idx)) 0)) (fx=? idx 0))
-         (let ([r1 IObuff])
-           (vim_snprintf ed r1 (emsg_iobuff_room ed) e_number_required_after_str_equal_str (list name string_))
-           (emsg ed (iobuff_or ed e_number_required_after_str_equal_str))
-           (frame-pop! ed fr)
-           0)]
-        [else (join7 opt_idx flags)]))
     (define (join7 opt_idx flags)
       (if (not (eqv? (bitwise-and flags 2) 0))
           (let ([r2 (set_num_option ed opt_idx varp number set_option_value:errbuf 80 opt_flags)])
@@ -33959,7 +35093,18 @@
                   (optvar_T.ov_win-set! varp r9)
                   (cond
                     [(optvar_is_null ed varp) (join17)]
-                    [(and (= number 0) (not (fx=? string_ 0))) (loop5 opt_idx flags 0)]
+                    [(and (= number 0) (not (fx=? string_ 0))) (let loop5 ([opt_idx opt_idx]
+                                                                           [flags flags]
+                                                                           [idx 0])
+                                                                 (cond
+                                                                   [(fx=? (ld-u8 (fx+ string_ idx)) 48) (loop5 opt_idx flags (i32+ idx 1))]
+                                                                   [(or (not (fx=? (ld-u8 (fx+ string_ idx)) 0)) (fx=? idx 0))
+                                                                    (let ([r1 IObuff])
+                                                                      (vim_snprintf ed r1 (emsg_iobuff_room ed) e_number_required_after_str_equal_str (list name string_))
+                                                                      (emsg ed (iobuff_or ed e_number_required_after_str_equal_str))
+                                                                      (frame-pop! ed fr)
+                                                                      0)]
+                                                                   [else (join7 opt_idx flags)]))]
                     [else (join7 opt_idx flags)]))))))))
 
 (define (set_option_value_give_err ed name number string_ opt_flags)
@@ -34057,20 +35202,28 @@
     (define (join16 items item_count run cols)
       (join17 items item_count run (i32/ (i32- (i32+ item_count cols) 1) cols)))
     (define (join17 items item_count run rows)
-      (loop18 items item_count run 0 rows))
-    (define (loop18 items item_count run row rows)
-      (cond
-        [(and (fx<? row rows) (not (not (fxzero? got_int))))
-         (msg_putchar ed 10)
-         (if (not (fxzero? got_int)) (join26 items run) (loop21 0 items item_count run row rows row))]
-        [else (join26 items run)]))
-    (define (loop21 col items item_count run row rows i)
-      (cond
-        [(fx<? i item_count)
-         (set! msg_col col)
-         (showoneopt ed (ld-ptr (fx+ items (fx* i 8))) opt_flags)
-         (loop21 (i32+ col 20) items item_count run row rows (i32+ i rows))]
-        [else (out_flush ed) (ui_breakcheck ed) (loop18 items item_count run (i32+ row 1) rows)]))
+      (let loop18 ([items items]
+                   [item_count item_count]
+                   [run run]
+                   [row 0]
+                   [rows rows])
+        (cond
+          [(and (fx<? row rows) (not (not (fxzero? got_int))))
+           (msg_putchar ed 10)
+           (if (not (fxzero? got_int)) (join26 items run) (let loop21 ([col 0]
+                                                                       [items items]
+                                                                       [item_count item_count]
+                                                                       [run run]
+                                                                       [row row]
+                                                                       [rows rows]
+                                                                       [i row])
+                                                            (cond
+                                                              [(fx<? i item_count)
+                                                               (set! msg_col col)
+                                                               (showoneopt ed (ld-ptr (fx+ items (fx* i 8))) opt_flags)
+                                                               (loop21 (i32+ col 20) items item_count run row rows (i32+ i rows))]
+                                                              [else (out_flush ed) (ui_breakcheck ed) (loop18 items item_count run (i32+ row 1) rows)])))]
+          [else (join26 items run)])))
     (define (join26 items run)
       (loop8 items (i32+ run 1)))
     (define (join32 p isterm items item_count run)
@@ -34862,12 +36015,11 @@
 
 (define (did_set_option_listflag ed val flags errbuf errbuflen)
   (let ([mem (ed-mem ed)])
-    (define (loop1 s)
+    (let loop1 ([s val])
       (cond
         [(fxzero? (ld-u8 s)) 0]
         [(fx=? (vim_strchr ed flags (ld-u8 s)) 0) (illegal_char ed errbuf errbuflen (ld-u8 s))]
-        [else (loop1 (fx+ s 1))]))
-    (loop1 val)))
+        [else (loop1 (fx+ s 1))]))))
 
 (define (did_set_ambiwidth ed args)
   (let ([mem (ed-mem ed)])
@@ -35212,19 +36364,20 @@
 
 (define (opt_strings_flags ed val values_ flagp list_)
   (let ([mem (ed-mem ed)])
-    (define (loop1 val new_flags)
+    (let loop1 ([val val]
+                [new_flags 0])
       (cond
-        [(not (fxzero? (ld-u8 val))) (loop6 val 0 new_flags)]
+        [(not (fxzero? (ld-u8 val))) (let loop6 ([val val]
+                                                 [i 0]
+                                                 [new_flags new_flags])
+                                       (if (fx=? (ld-ptr (fx+ values_ (fx* i 8))) 0)
+                                           #f
+                                           (let ([len (->i32 (musl_strlen ed (ld-ptr (fx+ values_ (fx* i 8)))))])
+                                             (if (and (fx=? (musl_strncmp ed (ld-ptr (fx+ values_ (fx* i 8))) val (->u64 len)) 0) (or (and list_ (fx=? (ld-u8 (fx+ val len)) 44)) (fx=? (ld-u8 (fx+ val len)) 0)))
+                                                 (loop1 (fx+ val (i32+ len (b->i (fx=? (ld-u8 (fx+ val len)) 44)))) (fxior new_flags (->u32 (i32<< 1 i))))
+                                                 (loop6 val (i32+ i 1) new_flags)))))]
         [(not (fx=? flagp 0)) (st-u32! flagp new_flags) #t]
-        [else #t]))
-    (define (loop6 val i new_flags)
-      (if (fx=? (ld-ptr (fx+ values_ (fx* i 8))) 0)
-          #f
-          (let ([len (->i32 (musl_strlen ed (ld-ptr (fx+ values_ (fx* i 8)))))])
-            (if (and (fx=? (musl_strncmp ed (ld-ptr (fx+ values_ (fx* i 8))) val (->u64 len)) 0) (or (and list_ (fx=? (ld-u8 (fx+ val len)) 44)) (fx=? (ld-u8 (fx+ val len)) 0)))
-                (loop1 (fx+ val (i32+ len (b->i (fx=? (ld-u8 (fx+ val len)) 44)))) (fxior new_flags (->u32 (i32<< 1 i))))
-                (loop6 val (i32+ i 1) new_flags)))))
-    (loop1 val 0)))
+        [else #t]))))
 
 (define (mch_write ed s len)
   (let ([mem (ed-mem ed)])
@@ -35241,11 +36394,6 @@
 
 (define (deathtrap ed sigarg)
   (let ([mem (ed-mem ed)])
-    (define (loop2 i)
-      (cond
-        [(fx=? (signalinfo.sig (fx+ signal_info (fx* i 16))) -1) (join5 i)]
-        [(fx=? sigarg (signalinfo.sig (fx+ signal_info (fx* i 16)))) (join5 i)]
-        [else (loop2 (i32+ i 1))]))
     (define (join5 i)
       (set! full_screen 0)
       (cond
@@ -35262,7 +36410,11 @@
       (set! deathtrap:entered (i32+ deathtrap:entered 1))
       (block_autocmds ed)
       (set! v_dying deathtrap:entered)
-      (loop2 0))))
+      (let loop2 ([i 0])
+        (cond
+          [(fx=? (signalinfo.sig (fx+ signal_info (fx* i 16))) -1) (join5 i)]
+          [(fx=? sigarg (signalinfo.sig (fx+ signal_info (fx* i 16)))) (join5 i)]
+          [else (loop2 (i32+ i 1))])))))
 
 (define (mch_suspend ed)
   (out_flush ed)
@@ -35738,7 +36890,10 @@
 
 (define (gethexchrs ed maxinputlen)
   (let ([mem (ed-mem ed)])
-    (define (loop1 nr i)
+    (define (join5 nr i)
+      (if (fx=? i 0) -1 (->i64 nr)))
+    (let loop1 ([nr 0]
+                [i 0])
       (if (fx<? i maxinputlen)
           (let ([c (ld-u8 regparse)])
             (if (not (vim_isxdigit ed c))
@@ -35748,14 +36903,12 @@
                        [nr (bitwise-ior nr (->u64 t1))])
                   (set! regparse (fx+ regparse 1))
                   (loop1 nr (i32+ i 1)))))
-          (join5 nr i)))
-    (define (join5 nr i)
-      (if (fx=? i 0) -1 (->i64 nr)))
-    (loop1 0 0)))
+          (join5 nr i)))))
 
 (define (getdecchrs ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 nr i)
+    (let loop1 ([nr 0]
+                [i 0])
       (let ([c (ld-u8 regparse)])
         (if (or (fx<? c 48) (fx>? c 57))
             (if (fx=? i 0) -1 (->i64 nr))
@@ -35763,12 +36916,14 @@
                    [nr (u64+ nr (->u64 (i32- c 48)))])
               (set! regparse (fx+ regparse 1))
               (set! curchr -1)
-              (loop1 nr (i32+ i 1))))))
-    (loop1 0 0)))
+              (loop1 nr (i32+ i 1))))))))
 
 (define (getoctchrs ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 nr i)
+    (define (join5 nr i)
+      (if (fx=? i 0) -1 (->i64 nr)))
+    (let loop1 ([nr 0]
+                [i 0])
       (if (and (fx<? i 3) (< nr 32))
           (let ([c (ld-u8 regparse)])
             (if (or (fx<? c 48) (fx>? c 55))
@@ -35778,10 +36933,7 @@
                        [nr (bitwise-ior nr (->u64 t1))])
                   (set! regparse (fx+ regparse 1))
                   (loop1 nr (i32+ i 1)))))
-          (join5 nr i)))
-    (define (join5 nr i)
-      (if (fx=? i 0) -1 (->i64 nr)))
-    (loop1 0 0)))
+          (join5 nr i)))))
 
 (define (read_limits ed)
   (let ([mem (ed-mem ed)])
@@ -36087,44 +37239,32 @@
     (define-c-local str1 &str1 ptr 0)
     (define-c-local str2 &str2 ptr 8)
     (define-c-local junk &junk s32 16)
-    (define (loop2 n p n2 n1 out___r__ out___n)
-      (if (and (fx>? n1 0) (not (fx=? (ld-u8 p) 0)))
-          (let ([t1 (utfc_ptr2len ed p)])
-            (loop2 n (fx+ p (utfc_ptr2len ed p)) (i32+ n2 1) (i32- n1 t1) out___r__ out___n))
-          (loop4 n s2 n2 out___r__ out___n)))
-    (define (loop4 n p n2 out___r__ out___n)
-      (let* ([t3 n2]
-             [n2 (i32- n2 1)])
-        (if (and (fx>? t3 0) (not (fx=? (ld-u8 p) 0)))
-            (loop4 n (fx+ p (utfc_ptr2len ed p)) n2 out___r__ out___n)
-            (let* ([n2 (->i32 (fx- p s2))]
-                   [result (mb_strnicmp2 ed s1 s2 (->u64 n) (->u64 n2))])
-              (if (and (fx=? result 0) (fx<? n2 n))
-                  (join10 n2 result out___r__ out___n)
-                  (join10 n result out___r__ out___n))))))
     (define (join10 n result out___r__ out___n)
       (cond
         [(and (not (fx=? result 0)) (regengine_T.rex.reg_icombine re))
          (set! str1 s1)
          (set! str2 s2)
-         (loop12 n 0 0 out___r__ out___n)]
+         (let loop12 ([n n]
+                      [c1 0]
+                      [c2 0]
+                      [out___r__ out___r__]
+                      [out___n out___n])
+           (if (fx<? (->i32 (fx- str1 s1)) n)
+               (let* ([c1 (mb_ptr2char_adv ed &str1)]
+                      [c2 (mb_ptr2char_adv ed &str2)])
+                 (if (and (not (fx=? c1 c2)) (or (not (not (fxzero? (regengine_T.rex.reg_ic re))))
+                         (let ([r1 (utf_fold ed c1)])
+                           (not (fx=? r1 (utf_fold ed c2))))))
+                     (let* ([c11 (mb_decompose ed c1 &junk &junk)]
+                            [c12 (mb_decompose ed c2 &junk &junk)])
+                       (if (and (not (fx=? c11 c12)) (or (not (not (fxzero? (regengine_T.rex.reg_ic re))))
+                               (let ([r2 (utf_fold ed c11)])
+                                 (not (fx=? r2 (utf_fold ed c12))))))
+                           (join16 n c11 c12 out___r__ out___n)
+                           (loop12 n c11 c12 out___r__ out___n)))
+                     (loop12 n c1 c2 out___r__ out___n)))
+               (join16 n c1 c2 out___r__ out___n)))]
         [else (join18 n result out___r__ out___n)]))
-    (define (loop12 n c1 c2 out___r__ out___n)
-      (if (fx<? (->i32 (fx- str1 s1)) n)
-          (let* ([c1 (mb_ptr2char_adv ed &str1)]
-                 [c2 (mb_ptr2char_adv ed &str2)])
-            (if (and (not (fx=? c1 c2)) (or (not (not (fxzero? (regengine_T.rex.reg_ic re))))
-                    (let ([r1 (utf_fold ed c1)])
-                      (not (fx=? r1 (utf_fold ed c2))))))
-                (let* ([c11 (mb_decompose ed c1 &junk &junk)]
-                       [c12 (mb_decompose ed c2 &junk &junk)])
-                  (if (and (not (fx=? c11 c12)) (or (not (not (fxzero? (regengine_T.rex.reg_ic re))))
-                          (let ([r2 (utf_fold ed c11)])
-                            (not (fx=? r2 (utf_fold ed c12))))))
-                      (join16 n c11 c12 out___r__ out___n)
-                      (loop12 n c11 c12 out___r__ out___n)))
-                (loop12 n c1 c2 out___r__ out___n)))
-          (join16 n c1 c2 out___r__ out___n)))
     (define (join16 n c1 c2 out___r__ out___n)
       (let ([result (i32- c2 c1)])
         (if (fx=? result 0)
@@ -36135,7 +37275,29 @@
       (values result n))
     (if (not (not (fxzero? (regengine_T.rex.reg_ic re))))
         (join10 n (musl_strncmp ed s1 s2 (->u64 n)) 0 0)
-        (loop2 n s1 0 n 0 0))))
+        (let loop2 ([n n]
+                    [p s1]
+                    [n2 0]
+                    [n1 n]
+                    [out___r__ 0]
+                    [out___n 0])
+          (if (and (fx>? n1 0) (not (fx=? (ld-u8 p) 0)))
+              (let ([t1 (utfc_ptr2len ed p)])
+                (loop2 n (fx+ p (utfc_ptr2len ed p)) (i32+ n2 1) (i32- n1 t1) out___r__ out___n))
+              (let loop4 ([n n]
+                          [p s2]
+                          [n2 n2]
+                          [out___r__ out___r__]
+                          [out___n out___n])
+                (let* ([t3 n2]
+                       [n2 (i32- n2 1)])
+                  (if (and (fx>? t3 0) (not (fx=? (ld-u8 p) 0)))
+                      (loop4 n (fx+ p (utfc_ptr2len ed p)) n2 out___r__ out___n)
+                      (let* ([n2 (->i32 (fx- p s2))]
+                             [result (mb_strnicmp2 ed s1 s2 (->u64 n) (->u64 n2))])
+                        (if (and (fx=? result 0) (fx<? n2 n))
+                            (join10 n2 result out___r__ out___n)
+                            (join10 n result out___r__ out___n)))))))))))
 
 (define (cstrchr ed re s c)
   (let ([mem (ed-mem ed)])
@@ -36611,18 +37773,17 @@
 
 (define (regtail ed re p val)
   (let ([mem (ed-mem ed)])
-    (define (loop2 scan)
-      (let ([temp (regnext ed re scan)])
-        (if (fx=? temp 0)
-            (if (fx=? (ld-u8 scan) 4) (join7 scan (->i32 (fx- scan val))) (join7 scan (->i32 (fx- val scan))))
-            (loop2 temp))))
     (define (join7 scan offset)
       (cond
         [(fx>? offset 65535) (regengine_T.reg_toolong-set! re #t)]
         [else
          (st-u8! (fx+ scan 1) (->u8 (fxand (u32>> (->u32 offset) 8) 255)))
          (st-u8! (fx+ scan 2) (->u8 (fxand offset 255)))]))
-    (unless (fx=? p reg_calc_size_node) (loop2 p))))
+    (unless (fx=? p reg_calc_size_node) (let loop2 ([scan p])
+                                          (let ([temp (regnext ed re scan)])
+                                            (if (fx=? temp 0)
+                                                (if (fx=? (ld-u8 scan) 4) (join7 scan (->i32 (fx- scan val))) (join7 scan (->i32 (fx- val scan))))
+                                                (loop2 temp)))))))
 
 (define (regoptail ed re p val)
   (let ([mem (ed-mem ed)])
@@ -36631,88 +37792,87 @@
 
 (define (reginsert ed op opnd)
   (let ([mem (ed-mem ed)])
-    (define (loop2 src dst)
-      (if (fx>? src opnd)
-          (let* ([dst (fx+ dst -1)]
-                 [src (fx+ src -1)])
-            (st-u8! dst (ld-u8 src))
-            (loop2 src dst))
-          (let ([place (fx+ opnd 1)])
-            (st-u8! opnd (->u8 op))
-            (let* ([t3 place]
-                   [place (fx+ place 1)])
-              (st-u8! t3 0)
-              (st-u8! place 0)
-              (void)))))
     (if (fx=? regcode reg_calc_size_node)
         (set! regsize (i64+ regsize 3))
         (let ([src regcode])
           (set! regcode (fx+ regcode 3))
-          (loop2 src regcode)))))
+          (let loop2 ([src src]
+                      [dst regcode])
+            (if (fx>? src opnd)
+                (let* ([dst (fx+ dst -1)]
+                       [src (fx+ src -1)])
+                  (st-u8! dst (ld-u8 src))
+                  (loop2 src dst))
+                (let ([place (fx+ opnd 1)])
+                  (st-u8! opnd (->u8 op))
+                  (let* ([t3 place]
+                         [place (fx+ place 1)])
+                    (st-u8! t3 0)
+                    (st-u8! place 0)
+                    (void)))))))))
 
 (define (reginsert_nr ed op val opnd)
   (let ([mem (ed-mem ed)])
-    (define (loop2 src dst)
-      (if (fx>? src opnd)
-          (let* ([dst (fx+ dst -1)]
-                 [src (fx+ src -1)])
-            (st-u8! dst (ld-u8 src))
-            (loop2 src dst))
-          (let ([place (fx+ opnd 1)])
-            (st-u8! opnd (->u8 op))
-            (let* ([t3 place]
-                   [place (fx+ place 1)])
-              (st-u8! t3 0)
-              (let* ([t4 place]
-                     [place (fx+ place 1)])
-                (st-u8! t4 0)
-                (re_put_long ed place (->u64 val))
-                (void))))))
     (if (fx=? regcode reg_calc_size_node)
         (set! regsize (i64+ regsize 7))
         (let ([src regcode])
           (set! regcode (fx+ regcode 7))
-          (loop2 src regcode)))))
+          (let loop2 ([src src]
+                      [dst regcode])
+            (if (fx>? src opnd)
+                (let* ([dst (fx+ dst -1)]
+                       [src (fx+ src -1)])
+                  (st-u8! dst (ld-u8 src))
+                  (loop2 src dst))
+                (let ([place (fx+ opnd 1)])
+                  (st-u8! opnd (->u8 op))
+                  (let* ([t3 place]
+                         [place (fx+ place 1)])
+                    (st-u8! t3 0)
+                    (let* ([t4 place]
+                           [place (fx+ place 1)])
+                      (st-u8! t4 0)
+                      (re_put_long ed place (->u64 val))
+                      (void))))))))))
 
 (define (reginsert_limits ed re op minval maxval opnd)
   (let ([mem (ed-mem ed)])
-    (define (loop2 src dst)
-      (if (fx>? src opnd)
-          (let* ([dst (fx+ dst -1)]
-                 [src (fx+ src -1)])
-            (st-u8! dst (ld-u8 src))
-            (loop2 src dst))
-          (let ([place (fx+ opnd 1)])
-            (st-u8! opnd (->u8 op))
-            (let* ([t3 place]
-                   [place (fx+ place 1)])
-              (st-u8! t3 0)
-              (let* ([t4 place]
-                     [place (fx+ place 1)])
-                (st-u8! t4 0)
-                (let* ([place (re_put_long ed place (->u64 minval))]
-                       [place (re_put_long ed place (->u64 maxval))])
-                  (regtail ed re opnd place)
-                  (void)))))))
     (if (fx=? regcode reg_calc_size_node)
         (set! regsize (i64+ regsize 11))
         (let ([src regcode])
           (set! regcode (fx+ regcode 11))
-          (loop2 src regcode)))))
+          (let loop2 ([src src]
+                      [dst regcode])
+            (if (fx>? src opnd)
+                (let* ([dst (fx+ dst -1)]
+                       [src (fx+ src -1)])
+                  (st-u8! dst (ld-u8 src))
+                  (loop2 src dst))
+                (let ([place (fx+ opnd 1)])
+                  (st-u8! opnd (->u8 op))
+                  (let* ([t3 place]
+                         [place (fx+ place 1)])
+                    (st-u8! t3 0)
+                    (let* ([t4 place]
+                           [place (fx+ place 1)])
+                      (st-u8! t4 0)
+                      (let* ([place (re_put_long ed place (->u64 minval))]
+                             [place (re_put_long ed place (->u64 maxval))])
+                        (regtail ed re opnd place)
+                        (void)))))))))))
 
 (define (seen_endbrace ed refnum)
   (let ([mem (ed-mem ed)])
-    (define (loop2 p)
-      (cond
-        [(fx=? (ld-u8 p) 0) (join5 p)]
-        [(and (and (fx=? (ld-u8 p) 64) (fx=? (ld-u8 (fx+ p 1)) 60)) (or (fx=? (ld-u8 (fx+ p 2)) 33) (fx=? (ld-u8 (fx+ p 2)) 61)))
-         (join5 p)]
-        [else (loop2 (fx+ p 1))]))
     (define (join5 p)
       (cond
         [(fx=? (ld-u8 p) 0) (emsg ed e_illegal_back_reference) (set! rc_did_emsg #t) #f]
         [else #t]))
-    (if (not (not (fxzero? (ld-u8 (fx+ had_endbrace refnum))))) (loop2 regparse) #t)))
+    (if (not (not (fxzero? (ld-u8 (fx+ had_endbrace refnum))))) (let loop2 ([p regparse])
+                                                                  (cond
+                                                                    [(fx=? (ld-u8 p) 0) (join5 p)]
+                                                                    [(and (and (fx=? (ld-u8 p) 64) (fx=? (ld-u8 (fx+ p 1)) 60)) (or (fx=? (ld-u8 (fx+ p 2)) 33) (fx=? (ld-u8 (fx+ p 2)) 61)))
+                                                                     (join5 p)]
+                                                                    [else (loop2 (fx+ p 1))])) #t)))
 
 (define (regatom_delim ed c delim_nl flagp)
   (let ([mem (ed-mem ed)])
@@ -36749,234 +37909,40 @@
 (define (regatom ed re flagp)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local vcol &vcol s32 0)
-    (define (loop1 c sw extra delim_nl save_prev_at_start reg__o_r__ reg__o_flagp)
-      (case sw
-        [(-162) (join285 (regnode ed 1) reg__o_r__ reg__o_flagp)]
-        [(-220) (join285 (regnode ed 2) reg__o_r__ reg__o_flagp)]
-        [(-196) (join285 (regnode ed 15) reg__o_r__ reg__o_flagp)]
-        [(-194) (join285 (regnode ed 16) reg__o_r__ reg__o_flagp)]
-        [(-161)
-         (let ([c (no_Magic ed (getchr ed))])
-           (cond
-             [(fx=? c 37)
-              (let ([c (no_Magic ed (getchr ed))])
-                (if (or (or (or (or (or (fx=? c 41) (fx=? c 93)) (fx=? c 125)) (fx=? c 62)) (fx=? c 102)) (fx=? c 116))
-                    (let ([ret (regatom_delim ed c #t flagp)])
-                      (cond
-                        [(fx=? ret 0) (frame-pop! ed fr) 0]
-                        [else (join285 ret reg__o_r__ reg__o_flagp)]))
-                    (let* ([r1 IObuff]
-                           [r2 (emsg_iobuff_room ed)])
-                      (vim_snprintf ed r1 r2 e_invalid_character_after_str (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
-                      (emsg ed (iobuff_or ed e_invalid_character_after_str))
-                      (set! rc_did_emsg #t)
-                      (frame-pop! ed fr)
-                      0)))]
-             [(fx=? c 94) (join285 (regnode ed 1) reg__o_r__ reg__o_flagp)]
-             [(fx=? c 36) (join285 (regnode ed 2) reg__o_r__ reg__o_flagp)]
-             [else
-              (st-s32! flagp (fxior (ld-s32 flagp) 8))
-              (if (fx=? c 91)
-                  (loop1 c -165 30 delim_nl save_prev_at_start reg__o_r__ reg__o_flagp)
-                  (join269 c 30 reg__o_r__ reg__o_flagp))]))]
-        [(-210) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-151) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-183) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-149) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-181) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-154) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-186) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-144) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-176) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-141) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-173) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-156) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-188) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-136) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-168) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-145) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-177) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-137) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-169) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-152) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-184) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-159) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-191) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-148) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-180) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-139) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-171) (join269 c extra reg__o_r__ reg__o_flagp)]
-        [(-146)
-         (if (not (fxzero? reg_string))
-             (let ([ret (regnode ed 5)])
-               (regc ed 10)
-               (regc ed 0)
-               (st-s32! flagp (fxior (ld-s32 flagp) 3))
-               (join285 ret reg__o_r__ reg__o_flagp))
-             (let ([ret (regnode ed 18)])
-               (st-s32! flagp (fxior (ld-s32 flagp) 9))
-               (join285 ret reg__o_r__ reg__o_flagp)))]
-        [(-216)
-         (if one_exactly
-             (let* ([r3 IObuff]
-                    [r4 (emsg_iobuff_room ed)])
-               (vim_snprintf ed r3 r4 e_invalid_item_in_str_brackets (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
-               (emsg ed (iobuff_or ed e_invalid_item_in_str_brackets))
-               (set! rc_did_emsg #t)
-               (frame-pop! ed fr)
-               0)
-             (let-values ([(r5 r6) (reg ed re 1)])
-               (cond
-                 [(fx=? r5 0) (frame-pop! ed fr) 0]
-                 [else (st-s32! flagp (fxior (ld-s32 flagp) (fxand r6 29))) (join285 r5 r5 r6)])))]
-        [(0) (join254 reg__o_r__ reg__o_flagp)]
-        [(-132) (join254 reg__o_r__ reg__o_flagp)]
-        [(-218) (join254 reg__o_r__ reg__o_flagp)]
-        [(-215) (join254 reg__o_r__ reg__o_flagp)]
-        [(-195) (join253 c reg__o_r__ reg__o_flagp)]
-        [(-193) (join253 c reg__o_r__ reg__o_flagp)]
-        [(-213) (join253 c reg__o_r__ reg__o_flagp)]
-        [(-192) (join253 c reg__o_r__ reg__o_flagp)]
-        [(-133) (join253 c reg__o_r__ reg__o_flagp)]
-        [(-214) (join253 c reg__o_r__ reg__o_flagp)]
-        [(-130)
-         (cond
-           [(not (fx=? reg_prev_sub 0))
-            (let ([ret (regnode ed 5)])
-              (loop248 ret reg_prev_sub reg__o_r__ reg__o_flagp))]
-           [else
-            (emsg ed e_no_previous_substitute_regular_expression)
-            (set! rc_did_emsg #t)
-            (frame-pop! ed fr)
-            0])]
-        [(-207) (join242 c reg__o_r__ reg__o_flagp)]
-        [(-206) (join242 c reg__o_r__ reg__o_flagp)]
-        [(-205) (join242 c reg__o_r__ reg__o_flagp)]
-        [(-204) (join242 c reg__o_r__ reg__o_flagp)]
-        [(-203) (join242 c reg__o_r__ reg__o_flagp)]
-        [(-202) (join242 c reg__o_r__ reg__o_flagp)]
-        [(-201) (join242 c reg__o_r__ reg__o_flagp)]
-        [(-200) (join242 c reg__o_r__ reg__o_flagp)]
-        [(-199) (join242 c reg__o_r__ reg__o_flagp)]
-        [(-134)
-         (let ([c (no_Magic ed (getchr ed))])
-           (case c
-             [(115)
-              (let ([ret (regnode ed 80)])
-                (cond
-                  [(not (re_mult_next ed (c-str 166035 "\\zs"))) (frame-pop! ed fr) 0]
-                  [else (join285 ret reg__o_r__ reg__o_flagp)]))]
-             [(101)
-              (let ([ret (regnode ed 90)])
-                (cond
-                  [(not (re_mult_next ed (c-str 166039 "\\ze"))) (frame-pop! ed fr) 0]
-                  [else (join285 ret reg__o_r__ reg__o_flagp)]))]
-             [else (emsg ed e_invalid_character_after_bsl_z) (set! rc_did_emsg #t) (frame-pop! ed fr) 0]))]
-        [(-219)
-         (let ([c (no_Magic ed (getchr ed))])
-           (case c
-             [(40)
-              (if one_exactly
-                  (let* ([r7 IObuff]
-                         [r8 (emsg_iobuff_room ed)])
-                    (vim_snprintf ed r7 r8 e_invalid_item_in_str_brackets (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
-                    (emsg ed (iobuff_or ed e_invalid_item_in_str_brackets))
-                    (set! rc_did_emsg #t)
-                    (frame-pop! ed fr)
-                    0)
-                  (let-values ([(r9 r10) (reg ed re 3)])
-                    (cond
-                      [(fx=? r9 0) (frame-pop! ed fr) 0]
-                      [else (st-s32! flagp (fxior (ld-s32 flagp) (fxand r10 29))) (join285 r9 r9 r10)])))]
-             [(94) (join285 (regnode ed 201) reg__o_r__ reg__o_flagp)]
-             [(36) (join285 (regnode ed 202) reg__o_r__ reg__o_flagp)]
-             [(35)
-              (if (and (and (fx=? (ld-u8 regparse) 61) (fx>=? (ld-u8 (fx+ regparse 1)) 48)) (fx<=? (ld-u8 (fx+ regparse 1)) 50))
-                  (let* ([r11 IObuff]
-                         [r12 (emsg_iobuff_room ed)])
-                    (vim_snprintf ed r11 r12 e_atom_engine_must_be_at_start_of_pattern (list (ld-u8 (fx+ regparse 1))))
-                    (emsg ed (iobuff_or ed e_atom_engine_must_be_at_start_of_pattern))
-                    (frame-pop! ed fr)
-                    0)
-                  (join285 (regnode ed 203) reg__o_r__ reg__o_flagp))]
-             [(86) (join285 (regnode ed 208) reg__o_r__ reg__o_flagp)]
-             [(67) (join285 (regnode ed 209) reg__o_r__ reg__o_flagp)]
-             [(91)
-              (if one_exactly
-                  (let* ([r13 IObuff]
-                         [r14 (emsg_iobuff_room ed)])
-                    (vim_snprintf ed r13 r14 e_invalid_item_in_str_brackets (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
-                    (emsg ed (iobuff_or ed e_invalid_item_in_str_brackets))
-                    (set! rc_did_emsg #t)
-                    (frame-pop! ed fr)
-                    0)
-                  (loop201 0 0 reg__o_r__ reg__o_flagp))]
-             [(100) (join183 c reg__o_r__ reg__o_flagp)]
-             [(111) (join183 c reg__o_r__ reg__o_flagp)]
-             [(120) (join183 c reg__o_r__ reg__o_flagp)]
-             [(117) (join183 c reg__o_r__ reg__o_flagp)]
-             [(85) (join183 c reg__o_r__ reg__o_flagp)]
-             [(41) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
-             [(93) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
-             [(125) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
-             [(102) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
-             [(116) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
-             [(62)
-              (if (and (and (not (ascii_isdigit ed (ld-u8 regparse))) (not (fx=? (ld-u8 regparse) 39))) (not (fx=? (ld-u8 regparse) 46)))
-                  (let ([ret (regatom_delim ed c delim_nl flagp)])
-                    (cond
-                      [(fx=? ret 0) (frame-pop! ed fr) 0]
-                      [else (join285 ret reg__o_r__ reg__o_flagp)]))
-                  (join148 c save_prev_at_start reg__o_r__ reg__o_flagp))]
-             [else (join148 c save_prev_at_start reg__o_r__ reg__o_flagp)]))]
-        [(-165)
-         (let ([lp_2 (skip_anyof ed regparse)])
-           (cond
-             [(fx=? (ld-u8 lp_2) 93)
-              (if (fx=? (ld-u8 regparse) 94)
-                  (let ([ret (regnode ed (i32+ 22 extra))])
-                    (set! regparse (fx+ regparse 1))
-                    (join19 ret -1 reg__o_r__ reg__o_flagp))
-                  (join19 (regnode ed (i32+ 21 extra)) -1 reg__o_r__ reg__o_flagp))]
-             [(not (fxzero? reg_strict))
-              (let* ([r15 IObuff]
-                     [r16 (emsg_iobuff_room ed)])
-                (vim_snprintf ed r15 r16 e_missing_rsb_after_str_lsb (list (if (fx>? reg_magic 2) (c-str 162263 "") (c-str 165990 "\\"))))
-                (emsg ed (iobuff_or ed e_missing_rsb_after_str_lsb))
-                (set! rc_did_emsg #t)
-                (frame-pop! ed fr)
-                0)]
-             [else (join4 c reg__o_r__ reg__o_flagp)]))]
-        [else (join4 c reg__o_r__ reg__o_flagp)]))
     (define (join4 c reg__o_r__ reg__o_flagp)
       (if (use_multibytecode ed c)
           (let ([ret (regnode ed 200)])
             (regmbc ed c)
             (st-s32! flagp (fxior (ld-s32 flagp) 3))
             (join285 ret reg__o_r__ reg__o_flagp))
-          (loop6 (regnode ed 5) c 0 reg__o_r__ reg__o_flagp)))
-    (define (loop6 ret c len_2 reg__o_r__ reg__o_flagp)
-      (cond
-        [(and (not (fx=? c 0)) (or (fx=? len_2 0) (and (and (fx=? (re_multi_type ed (peekchr ed)) 0) (not one_exactly)) (not (fx<? c 0)))))
-         (let ([c (no_Magic ed c)])
-           (regmbc ed c)
-           (loop10 ret len_2 reg__o_r__ reg__o_flagp))]
-        [else
-         (ungetchr ed)
-         (regc ed 0)
-         (st-s32! flagp (fxior (ld-s32 flagp) 1))
-         (cond
-           [(fx=? len_2 1) (st-s32! flagp (fxior (ld-s32 flagp) 2)) (join285 ret reg__o_r__ reg__o_flagp)]
-           [else (join285 ret reg__o_r__ reg__o_flagp)])]))
-    (define (loop10 ret len_2 reg__o_r__ reg__o_flagp)
-      (let ([l (utf_ptr2len ed regparse)])
-        (cond
-          [(not (utf_iscomposing ed (utf_ptr2char ed (fx+ regparse l))))
-           (loop6 ret (getchr ed) (i32+ len_2 1) reg__o_r__ reg__o_flagp)]
-          [else
-           (regmbc ed (utf_ptr2char ed regparse))
-           (skipchr ed)
-           (loop10 ret len_2 reg__o_r__ reg__o_flagp)])))
+          (let loop6 ([ret (regnode ed 5)]
+                      [c c]
+                      [len_2 0]
+                      [reg__o_r__ reg__o_r__]
+                      [reg__o_flagp reg__o_flagp])
+            (cond
+              [(and (not (fx=? c 0)) (or (fx=? len_2 0) (and (and (fx=? (re_multi_type ed (peekchr ed)) 0) (not one_exactly)) (not (fx<? c 0)))))
+               (let ([c (no_Magic ed c)])
+                 (regmbc ed c)
+                 (let loop10 ([ret ret]
+                              [len_2 len_2]
+                              [reg__o_r__ reg__o_r__]
+                              [reg__o_flagp reg__o_flagp])
+                   (let ([l (utf_ptr2len ed regparse)])
+                     (cond
+                       [(not (utf_iscomposing ed (utf_ptr2char ed (fx+ regparse l))))
+                        (loop6 ret (getchr ed) (i32+ len_2 1) reg__o_r__ reg__o_flagp)]
+                       [else
+                        (regmbc ed (utf_ptr2char ed regparse))
+                        (skipchr ed)
+                        (loop10 ret len_2 reg__o_r__ reg__o_flagp)]))))]
+              [else
+               (ungetchr ed)
+               (regc ed 0)
+               (st-s32! flagp (fxior (ld-s32 flagp) 1))
+               (cond
+                 [(fx=? len_2 1) (st-s32! flagp (fxior (ld-s32 flagp) 2)) (join285 ret reg__o_r__ reg__o_flagp)]
+                 [else (join285 ret reg__o_r__ reg__o_flagp)])]))))
     (define (join19 ret startc reg__o_r__ reg__o_flagp)
       (if (or (fx=? (ld-u8 regparse) 93) (fx=? (ld-u8 regparse) 45))
           (let* ([startc (ld-u8 regparse)]
@@ -37047,7 +38013,14 @@
                 [(6) (loop80 ret -1 1 reg__o_r__ reg__o_flagp)]
                 [(7) (loop75 ret -1 1 reg__o_r__ reg__o_flagp)]
                 [(8) (loop70 ret -1 1 reg__o_r__ reg__o_flagp)]
-                [(9) (loop65 ret -1 9 reg__o_r__ reg__o_flagp)]
+                [(9) (let loop65 ([ret ret]
+                                  [startc -1]
+                                  [cu 9]
+                                  [reg__o_r__ reg__o_r__]
+                                  [reg__o_flagp reg__o_flagp])
+                       (cond
+                         [(fx<=? cu 13) (regc ed cu) (loop65 ret startc (i32+ cu 1) reg__o_r__ reg__o_flagp)]
+                         [else (regc ed 32) (loop22 ret startc reg__o_r__ reg__o_flagp)]))]
                 [(10) (loop60 ret -1 1 reg__o_r__ reg__o_flagp)]
                 [(11) (loop55 ret -1 1 reg__o_r__ reg__o_flagp)]
                 [(12) (regc ed 9) (loop22 ret -1 reg__o_r__ reg__o_flagp)]
@@ -37122,10 +38095,6 @@
           (loop22 ret startc reg__o_r__ reg__o_flagp)))
     (define (join63 ret startc cu reg__o_r__ reg__o_flagp)
       (loop60 ret startc (i32+ cu 1) reg__o_r__ reg__o_flagp))
-    (define (loop65 ret startc cu reg__o_r__ reg__o_flagp)
-      (cond
-        [(fx<=? cu 13) (regc ed cu) (loop65 ret startc (i32+ cu 1) reg__o_r__ reg__o_flagp)]
-        [else (regc ed 32) (loop22 ret startc reg__o_r__ reg__o_flagp)]))
     (define (loop70 ret startc cu reg__o_r__ reg__o_flagp)
       (if (fx<? cu 128)
           (cond
@@ -37217,18 +38186,24 @@
             (set! rc_did_emsg #t)
             (frame-pop! ed fr)
             0]
-           [else (loop139 ret startc endc reg__o_r__ reg__o_flagp)])]
-        [else (loop135 ret startc endc reg__o_r__ reg__o_flagp)]))
-    (define (loop135 ret startc endc reg__o_r__ reg__o_flagp)
-      (let ([startc (i32+ startc 1)])
-        (cond
-          [(fx<=? startc endc) (regc ed startc) (loop135 ret startc endc reg__o_r__ reg__o_flagp)]
-          [else (join140 ret reg__o_r__ reg__o_flagp)])))
-    (define (loop139 ret startc endc reg__o_r__ reg__o_flagp)
-      (let ([startc (i32+ startc 1)])
-        (cond
-          [(fx<=? startc endc) (regmbc ed startc) (loop139 ret startc endc reg__o_r__ reg__o_flagp)]
-          [else (join140 ret reg__o_r__ reg__o_flagp)])))
+           [else (let loop139 ([ret ret]
+                               [startc startc]
+                               [endc endc]
+                               [reg__o_r__ reg__o_r__]
+                               [reg__o_flagp reg__o_flagp])
+                   (let ([startc (i32+ startc 1)])
+                     (cond
+                       [(fx<=? startc endc) (regmbc ed startc) (loop139 ret startc endc reg__o_r__ reg__o_flagp)]
+                       [else (join140 ret reg__o_r__ reg__o_flagp)])))])]
+        [else (let loop135 ([ret ret]
+                            [startc startc]
+                            [endc endc]
+                            [reg__o_r__ reg__o_r__]
+                            [reg__o_flagp reg__o_flagp])
+                (let ([startc (i32+ startc 1)])
+                  (cond
+                    [(fx<=? startc endc) (regc ed startc) (loop135 ret startc endc reg__o_r__ reg__o_flagp)]
+                    [else (join140 ret reg__o_r__ reg__o_flagp)])))]))
     (define (join140 ret reg__o_r__ reg__o_flagp)
       (loop22 ret -1 reg__o_r__ reg__o_flagp))
     (define (join148 c save_prev_at_start reg__o_r__ reg__o_flagp)
@@ -37381,17 +38356,21 @@
                [(not (fx=? ret reg_calc_size_node))
                 (regtail ed re lastnode br)
                 (regtail ed re lastbranch br)
-                (loop205 ret lastbranch lastnode ret reg__o_r__ reg__o_flagp)]
+                (let loop205 ([ret ret]
+                              [lastbranch lastbranch]
+                              [lastnode lastnode]
+                              [br ret]
+                              [reg__o_r__ reg__o_r__]
+                              [reg__o_flagp reg__o_flagp])
+                  (cond
+                    [(fx=? br lastnode) (join206 ret reg__o_r__ reg__o_flagp)]
+                    [(fx=? (ld-u8 br) 3)
+                     (regtail ed re br lastbranch)
+                     (cond
+                       [(regengine_T.reg_toolong re) (frame-pop! ed fr) 0]
+                       [else (loop205 ret lastbranch lastnode (fx+ br 3) reg__o_r__ reg__o_flagp)])]
+                    [else (loop205 ret lastbranch lastnode (regnext ed re br) reg__o_r__ reg__o_flagp)]))]
                [else (join206 ret reg__o_r__ reg__o_flagp)]))])))
-    (define (loop205 ret lastbranch lastnode br reg__o_r__ reg__o_flagp)
-      (cond
-        [(fx=? br lastnode) (join206 ret reg__o_r__ reg__o_flagp)]
-        [(fx=? (ld-u8 br) 3)
-         (regtail ed re br lastbranch)
-         (cond
-           [(regengine_T.reg_toolong re) (frame-pop! ed fr) 0]
-           [else (loop205 ret lastbranch lastnode (fx+ br 3) reg__o_r__ reg__o_flagp)])]
-        [else (loop205 ret lastbranch lastnode (regnext ed re br) reg__o_r__ reg__o_flagp)]))
     (define (join206 ret reg__o_r__ reg__o_flagp)
       (st-s32! flagp (fxand (ld-s32 flagp) -4))
       (join285 ret reg__o_r__ reg__o_flagp))
@@ -37408,24 +38387,6 @@
         (cond
           [(not (seen_endbrace ed refnum)) (frame-pop! ed fr) 0]
           [else (join285 (regnode ed (i32+ 100 refnum)) reg__o_r__ reg__o_flagp)])))
-    (define (loop248 ret lp reg__o_r__ reg__o_flagp)
-      (cond
-        [(not (fx=? (ld-u8 lp) 0))
-         (let* ([t1 lp]
-                [lp (fx+ lp 1)])
-           (regc ed (ld-u8 t1))
-           (loop248 ret lp reg__o_r__ reg__o_flagp))]
-        [else
-         (regc ed 0)
-         (cond
-           [(not (fx=? (ld-u8 reg_prev_sub) 0))
-            (st-s32! flagp (fxior (ld-s32 flagp) 1))
-            (cond
-              [(= (fx- lp reg_prev_sub) 1)
-               (st-s32! flagp (fxior (ld-s32 flagp) 2))
-               (join285 ret reg__o_r__ reg__o_flagp)]
-              [else (join285 ret reg__o_r__ reg__o_flagp)])]
-           [else (join285 ret reg__o_r__ reg__o_flagp)])]))
     (define (join253 c reg__o_r__ reg__o_flagp)
       (let* ([c (no_Magic ed c)]
              [r27 IObuff]
@@ -37469,7 +38430,231 @@
     (let ([save_prev_at_start prev_at_start])
       (st-s32! flagp 0)
       (let ([c (getchr ed)])
-        (loop1 c c 0 #f save_prev_at_start 0 0)))))
+        (let loop1 ([c c]
+                    [sw c]
+                    [extra 0]
+                    [delim_nl #f]
+                    [save_prev_at_start save_prev_at_start]
+                    [reg__o_r__ 0]
+                    [reg__o_flagp 0])
+          (case sw
+            [(-162) (join285 (regnode ed 1) reg__o_r__ reg__o_flagp)]
+            [(-220) (join285 (regnode ed 2) reg__o_r__ reg__o_flagp)]
+            [(-196) (join285 (regnode ed 15) reg__o_r__ reg__o_flagp)]
+            [(-194) (join285 (regnode ed 16) reg__o_r__ reg__o_flagp)]
+            [(-161)
+             (let ([c (no_Magic ed (getchr ed))])
+               (cond
+                 [(fx=? c 37)
+                  (let ([c (no_Magic ed (getchr ed))])
+                    (if (or (or (or (or (or (fx=? c 41) (fx=? c 93)) (fx=? c 125)) (fx=? c 62)) (fx=? c 102)) (fx=? c 116))
+                        (let ([ret (regatom_delim ed c #t flagp)])
+                          (cond
+                            [(fx=? ret 0) (frame-pop! ed fr) 0]
+                            [else (join285 ret reg__o_r__ reg__o_flagp)]))
+                        (let* ([r1 IObuff]
+                               [r2 (emsg_iobuff_room ed)])
+                          (vim_snprintf ed r1 r2 e_invalid_character_after_str (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
+                          (emsg ed (iobuff_or ed e_invalid_character_after_str))
+                          (set! rc_did_emsg #t)
+                          (frame-pop! ed fr)
+                          0)))]
+                 [(fx=? c 94) (join285 (regnode ed 1) reg__o_r__ reg__o_flagp)]
+                 [(fx=? c 36) (join285 (regnode ed 2) reg__o_r__ reg__o_flagp)]
+                 [else
+                  (st-s32! flagp (fxior (ld-s32 flagp) 8))
+                  (if (fx=? c 91)
+                      (loop1 c -165 30 delim_nl save_prev_at_start reg__o_r__ reg__o_flagp)
+                      (join269 c 30 reg__o_r__ reg__o_flagp))]))]
+            [(-210) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-151) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-183) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-149) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-181) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-154) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-186) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-144) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-176) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-141) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-173) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-156) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-188) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-136) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-168) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-145) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-177) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-137) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-169) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-152) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-184) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-159) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-191) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-148) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-180) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-139) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-171) (join269 c extra reg__o_r__ reg__o_flagp)]
+            [(-146)
+             (if (not (fxzero? reg_string))
+                 (let ([ret (regnode ed 5)])
+                   (regc ed 10)
+                   (regc ed 0)
+                   (st-s32! flagp (fxior (ld-s32 flagp) 3))
+                   (join285 ret reg__o_r__ reg__o_flagp))
+                 (let ([ret (regnode ed 18)])
+                   (st-s32! flagp (fxior (ld-s32 flagp) 9))
+                   (join285 ret reg__o_r__ reg__o_flagp)))]
+            [(-216)
+             (if one_exactly
+                 (let* ([r3 IObuff]
+                        [r4 (emsg_iobuff_room ed)])
+                   (vim_snprintf ed r3 r4 e_invalid_item_in_str_brackets (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
+                   (emsg ed (iobuff_or ed e_invalid_item_in_str_brackets))
+                   (set! rc_did_emsg #t)
+                   (frame-pop! ed fr)
+                   0)
+                 (let-values ([(r5 r6) (reg ed re 1)])
+                   (cond
+                     [(fx=? r5 0) (frame-pop! ed fr) 0]
+                     [else (st-s32! flagp (fxior (ld-s32 flagp) (fxand r6 29))) (join285 r5 r5 r6)])))]
+            [(0) (join254 reg__o_r__ reg__o_flagp)]
+            [(-132) (join254 reg__o_r__ reg__o_flagp)]
+            [(-218) (join254 reg__o_r__ reg__o_flagp)]
+            [(-215) (join254 reg__o_r__ reg__o_flagp)]
+            [(-195) (join253 c reg__o_r__ reg__o_flagp)]
+            [(-193) (join253 c reg__o_r__ reg__o_flagp)]
+            [(-213) (join253 c reg__o_r__ reg__o_flagp)]
+            [(-192) (join253 c reg__o_r__ reg__o_flagp)]
+            [(-133) (join253 c reg__o_r__ reg__o_flagp)]
+            [(-214) (join253 c reg__o_r__ reg__o_flagp)]
+            [(-130)
+             (cond
+               [(not (fx=? reg_prev_sub 0))
+                (let ([ret (regnode ed 5)])
+                  (let loop248 ([ret ret]
+                                [lp reg_prev_sub]
+                                [reg__o_r__ reg__o_r__]
+                                [reg__o_flagp reg__o_flagp])
+                    (cond
+                      [(not (fx=? (ld-u8 lp) 0))
+                       (let* ([t1 lp]
+                              [lp (fx+ lp 1)])
+                         (regc ed (ld-u8 t1))
+                         (loop248 ret lp reg__o_r__ reg__o_flagp))]
+                      [else
+                       (regc ed 0)
+                       (cond
+                         [(not (fx=? (ld-u8 reg_prev_sub) 0))
+                          (st-s32! flagp (fxior (ld-s32 flagp) 1))
+                          (cond
+                            [(= (fx- lp reg_prev_sub) 1)
+                             (st-s32! flagp (fxior (ld-s32 flagp) 2))
+                             (join285 ret reg__o_r__ reg__o_flagp)]
+                            [else (join285 ret reg__o_r__ reg__o_flagp)])]
+                         [else (join285 ret reg__o_r__ reg__o_flagp)])])))]
+               [else
+                (emsg ed e_no_previous_substitute_regular_expression)
+                (set! rc_did_emsg #t)
+                (frame-pop! ed fr)
+                0])]
+            [(-207) (join242 c reg__o_r__ reg__o_flagp)]
+            [(-206) (join242 c reg__o_r__ reg__o_flagp)]
+            [(-205) (join242 c reg__o_r__ reg__o_flagp)]
+            [(-204) (join242 c reg__o_r__ reg__o_flagp)]
+            [(-203) (join242 c reg__o_r__ reg__o_flagp)]
+            [(-202) (join242 c reg__o_r__ reg__o_flagp)]
+            [(-201) (join242 c reg__o_r__ reg__o_flagp)]
+            [(-200) (join242 c reg__o_r__ reg__o_flagp)]
+            [(-199) (join242 c reg__o_r__ reg__o_flagp)]
+            [(-134)
+             (let ([c (no_Magic ed (getchr ed))])
+               (case c
+                 [(115)
+                  (let ([ret (regnode ed 80)])
+                    (cond
+                      [(not (re_mult_next ed (c-str 166035 "\\zs"))) (frame-pop! ed fr) 0]
+                      [else (join285 ret reg__o_r__ reg__o_flagp)]))]
+                 [(101)
+                  (let ([ret (regnode ed 90)])
+                    (cond
+                      [(not (re_mult_next ed (c-str 166039 "\\ze"))) (frame-pop! ed fr) 0]
+                      [else (join285 ret reg__o_r__ reg__o_flagp)]))]
+                 [else (emsg ed e_invalid_character_after_bsl_z) (set! rc_did_emsg #t) (frame-pop! ed fr) 0]))]
+            [(-219)
+             (let ([c (no_Magic ed (getchr ed))])
+               (case c
+                 [(40)
+                  (if one_exactly
+                      (let* ([r7 IObuff]
+                             [r8 (emsg_iobuff_room ed)])
+                        (vim_snprintf ed r7 r8 e_invalid_item_in_str_brackets (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
+                        (emsg ed (iobuff_or ed e_invalid_item_in_str_brackets))
+                        (set! rc_did_emsg #t)
+                        (frame-pop! ed fr)
+                        0)
+                      (let-values ([(r9 r10) (reg ed re 3)])
+                        (cond
+                          [(fx=? r9 0) (frame-pop! ed fr) 0]
+                          [else (st-s32! flagp (fxior (ld-s32 flagp) (fxand r10 29))) (join285 r9 r9 r10)])))]
+                 [(94) (join285 (regnode ed 201) reg__o_r__ reg__o_flagp)]
+                 [(36) (join285 (regnode ed 202) reg__o_r__ reg__o_flagp)]
+                 [(35)
+                  (if (and (and (fx=? (ld-u8 regparse) 61) (fx>=? (ld-u8 (fx+ regparse 1)) 48)) (fx<=? (ld-u8 (fx+ regparse 1)) 50))
+                      (let* ([r11 IObuff]
+                             [r12 (emsg_iobuff_room ed)])
+                        (vim_snprintf ed r11 r12 e_atom_engine_must_be_at_start_of_pattern (list (ld-u8 (fx+ regparse 1))))
+                        (emsg ed (iobuff_or ed e_atom_engine_must_be_at_start_of_pattern))
+                        (frame-pop! ed fr)
+                        0)
+                      (join285 (regnode ed 203) reg__o_r__ reg__o_flagp))]
+                 [(86) (join285 (regnode ed 208) reg__o_r__ reg__o_flagp)]
+                 [(67) (join285 (regnode ed 209) reg__o_r__ reg__o_flagp)]
+                 [(91)
+                  (if one_exactly
+                      (let* ([r13 IObuff]
+                             [r14 (emsg_iobuff_room ed)])
+                        (vim_snprintf ed r13 r14 e_invalid_item_in_str_brackets (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
+                        (emsg ed (iobuff_or ed e_invalid_item_in_str_brackets))
+                        (set! rc_did_emsg #t)
+                        (frame-pop! ed fr)
+                        0)
+                      (loop201 0 0 reg__o_r__ reg__o_flagp))]
+                 [(100) (join183 c reg__o_r__ reg__o_flagp)]
+                 [(111) (join183 c reg__o_r__ reg__o_flagp)]
+                 [(120) (join183 c reg__o_r__ reg__o_flagp)]
+                 [(117) (join183 c reg__o_r__ reg__o_flagp)]
+                 [(85) (join183 c reg__o_r__ reg__o_flagp)]
+                 [(41) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
+                 [(93) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
+                 [(125) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
+                 [(102) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
+                 [(116) (join181 c delim_nl reg__o_r__ reg__o_flagp)]
+                 [(62)
+                  (if (and (and (not (ascii_isdigit ed (ld-u8 regparse))) (not (fx=? (ld-u8 regparse) 39))) (not (fx=? (ld-u8 regparse) 46)))
+                      (let ([ret (regatom_delim ed c delim_nl flagp)])
+                        (cond
+                          [(fx=? ret 0) (frame-pop! ed fr) 0]
+                          [else (join285 ret reg__o_r__ reg__o_flagp)]))
+                      (join148 c save_prev_at_start reg__o_r__ reg__o_flagp))]
+                 [else (join148 c save_prev_at_start reg__o_r__ reg__o_flagp)]))]
+            [(-165)
+             (let ([lp_2 (skip_anyof ed regparse)])
+               (cond
+                 [(fx=? (ld-u8 lp_2) 93)
+                  (if (fx=? (ld-u8 regparse) 94)
+                      (let ([ret (regnode ed (i32+ 22 extra))])
+                        (set! regparse (fx+ regparse 1))
+                        (join19 ret -1 reg__o_r__ reg__o_flagp))
+                      (join19 (regnode ed (i32+ 21 extra)) -1 reg__o_r__ reg__o_flagp))]
+                 [(not (fxzero? reg_strict))
+                  (let* ([r15 IObuff]
+                         [r16 (emsg_iobuff_room ed)])
+                    (vim_snprintf ed r15 r16 e_missing_rsb_after_str_lsb (list (if (fx>? reg_magic 2) (c-str 162263 "") (c-str 165990 "\\"))))
+                    (emsg ed (iobuff_or ed e_missing_rsb_after_str_lsb))
+                    (set! rc_did_emsg #t)
+                    (frame-pop! ed fr)
+                    0)]
+                 [else (join4 c reg__o_r__ reg__o_flagp)]))]
+            [else (join4 c reg__o_r__ reg__o_flagp)]))))))
 
 (define (regpiece ed re flagp)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
@@ -37735,47 +38920,54 @@
         [else
          (let ([ender (regnode ed (if (fx=? paren 1) (i32+ 90 parno) (if (fx=? paren 3) 151 0)))])
            (regtail ed re ret ender)
-           (loop16 flagp ret ret ender parno out___r__ out___flagp regbranch__o_r__ regbranch__o_flagp))]))
-    (define (loop16 flagp ret br ender parno out___r__ out___flagp regbranch__o_r__ regbranch__o_flagp)
-      (cond
-        [(not (fx=? br 0))
-         (regoptail ed re br ender)
-         (loop16 flagp ret (regnext ed re br) ender parno out___r__ out___flagp regbranch__o_r__ regbranch__o_flagp)]
-        [(and (not (fx=? paren 0)) (not (fx=? (getchr ed) -215)))
-         (if (fx=? paren 3)
-             (let* ([r5 IObuff]
-                    [r6 (emsg_iobuff_room ed)])
-               (vim_snprintf ed r5 r6 e_unmatched_str_percent_open (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
-               (emsg ed (iobuff_or ed e_unmatched_str_percent_open))
-               (set! rc_did_emsg #t)
-               (set! bt_reg_parse_depth (i32- bt_reg_parse_depth 1))
-               (values 0 flagp))
-             (let* ([r7 IObuff]
-                    [r8 (emsg_iobuff_room ed)])
-               (vim_snprintf ed r7 r8 e_unmatched_str_open (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
-               (emsg ed (iobuff_or ed e_unmatched_str_open))
-               (set! rc_did_emsg #t)
-               (set! bt_reg_parse_depth (i32- bt_reg_parse_depth 1))
-               (values 0 flagp)))]
-        [(and (fx=? paren 0) (not (fx=? (peekchr ed) 0)))
-         (cond
-           [(fx=? curchr -215)
-            (let* ([r9 IObuff]
-                   [r10 (emsg_iobuff_room ed)])
-              (vim_snprintf ed r9 r10 e_unmatched_str_close (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
-              (emsg ed (iobuff_or ed e_unmatched_str_close))
-              (set! rc_did_emsg #t)
-              (set! bt_reg_parse_depth (i32- bt_reg_parse_depth 1))
-              (values 0 flagp))]
-           [else
-            (emsg ed e_trailing_characters)
-            (set! rc_did_emsg #t)
-            (set! bt_reg_parse_depth (i32- bt_reg_parse_depth 1))
-            (values 0 flagp)])]
-        [(fx=? paren 1)
-         (st-u8! (fx+ had_endbrace parno) 1)
-         (join21 flagp ret out___r__ out___flagp regbranch__o_r__ regbranch__o_flagp)]
-        [else (join21 flagp ret out___r__ out___flagp regbranch__o_r__ regbranch__o_flagp)]))
+           (let loop16 ([flagp flagp]
+                        [ret ret]
+                        [br ret]
+                        [ender ender]
+                        [parno parno]
+                        [out___r__ out___r__]
+                        [out___flagp out___flagp]
+                        [regbranch__o_r__ regbranch__o_r__]
+                        [regbranch__o_flagp regbranch__o_flagp])
+             (cond
+               [(not (fx=? br 0))
+                (regoptail ed re br ender)
+                (loop16 flagp ret (regnext ed re br) ender parno out___r__ out___flagp regbranch__o_r__ regbranch__o_flagp)]
+               [(and (not (fx=? paren 0)) (not (fx=? (getchr ed) -215)))
+                (if (fx=? paren 3)
+                    (let* ([r5 IObuff]
+                           [r6 (emsg_iobuff_room ed)])
+                      (vim_snprintf ed r5 r6 e_unmatched_str_percent_open (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
+                      (emsg ed (iobuff_or ed e_unmatched_str_percent_open))
+                      (set! rc_did_emsg #t)
+                      (set! bt_reg_parse_depth (i32- bt_reg_parse_depth 1))
+                      (values 0 flagp))
+                    (let* ([r7 IObuff]
+                           [r8 (emsg_iobuff_room ed)])
+                      (vim_snprintf ed r7 r8 e_unmatched_str_open (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
+                      (emsg ed (iobuff_or ed e_unmatched_str_open))
+                      (set! rc_did_emsg #t)
+                      (set! bt_reg_parse_depth (i32- bt_reg_parse_depth 1))
+                      (values 0 flagp)))]
+               [(and (fx=? paren 0) (not (fx=? (peekchr ed) 0)))
+                (cond
+                  [(fx=? curchr -215)
+                   (let* ([r9 IObuff]
+                          [r10 (emsg_iobuff_room ed)])
+                     (vim_snprintf ed r9 r10 e_unmatched_str_close (list (if (fx=? reg_magic 4) (c-str 162263 "") (c-str 165990 "\\"))))
+                     (emsg ed (iobuff_or ed e_unmatched_str_close))
+                     (set! rc_did_emsg #t)
+                     (set! bt_reg_parse_depth (i32- bt_reg_parse_depth 1))
+                     (values 0 flagp))]
+                  [else
+                   (emsg ed e_trailing_characters)
+                   (set! rc_did_emsg #t)
+                   (set! bt_reg_parse_depth (i32- bt_reg_parse_depth 1))
+                   (values 0 flagp)])]
+               [(fx=? paren 1)
+                (st-u8! (fx+ had_endbrace parno) 1)
+                (join21 flagp ret out___r__ out___flagp regbranch__o_r__ regbranch__o_flagp)]
+               [else (join21 flagp ret out___r__ out___flagp regbranch__o_r__ regbranch__o_flagp)])))]))
     (define (join21 flagp ret out___r__ out___flagp regbranch__o_r__ regbranch__o_flagp)
       (set! bt_reg_parse_depth (i32- bt_reg_parse_depth 1))
       (values ret flagp))
@@ -37989,26 +39181,22 @@
       (loop13 (i64+ count 1) scan opnd testval))
     (define (loop29 count scan opnd len cf)
       (if (and (< count maxcount) (fx>=? (utfc_ptr2len ed scan) len))
-          (loop31 count scan opnd 0 len cf)
+          (let loop31 ([count count]
+                       [scan scan]
+                       [opnd opnd]
+                       [i 0]
+                       [len len]
+                       [cf cf])
+            (if (fx<? i len)
+                (if (not (fx=? (ld-u8 (fx+ opnd i)) (ld-u8 (fx+ scan i))))
+                    (join34 count scan opnd i len cf)
+                    (loop31 count scan opnd (i32+ i 1) len cf))
+                (join34 count scan opnd i len cf)))
           (join126 count scan)))
-    (define (loop31 count scan opnd i len cf)
-      (if (fx<? i len)
-          (if (not (fx=? (ld-u8 (fx+ opnd i)) (ld-u8 (fx+ scan i))))
-              (join34 count scan opnd i len cf)
-              (loop31 count scan opnd (i32+ i 1) len cf))
-          (join34 count scan opnd i len cf)))
     (define (join34 count scan opnd i len cf)
       (if (and (fx<? i len) (or (not (not (fxzero? (regengine_T.rex.reg_ic re)))) (not (fx=? (utf_fold ed (utf_ptr2char ed scan)) cf))))
           (join126 count scan)
           (loop29 (i64+ count 1) (fx+ scan len) opnd len cf)))
-    (define (loop38 count scan cu)
-      (if (and (< count maxcount) (fx=? (ld-u8 scan) cu))
-          (loop38 (i64+ count 1) (fx+ scan 1) cu)
-          (join126 count scan)))
-    (define (loop41 count scan cu cl)
-      (if (and (< count maxcount) (or (fx=? (ld-u8 scan) cu) (fx=? (ld-u8 scan) cl)))
-          (loop41 (i64+ count 1) (fx+ scan 1) cu cl)
-          (join126 count scan)))
     (define (join43 count scan mask testval)
       (case (ld-u8 p)
         [(31) (join61 count scan)]
@@ -38191,18 +39379,18 @@
     (define (join118 count scan testval)
       (loop110 (i64+ count 1) scan testval))
     (define (loop120 count scan)
-      (if (< count maxcount) (loop122 count scan) (join126 count scan)))
-    (define (loop122 count scan)
-      (cond
-        [(and (not (fx=? (ld-u8 scan) 0)) (< count maxcount))
-         (loop122 (i64+ count 1) (fx+ scan (utfc_ptr2len ed scan)))]
-        [(or (or (or (or (not (fx=? (regengine_T.rex.reg_match re) 0)) (not (and (fx>=? (ld-u8 p) 50) (fx<=? (ld-u8 p) 78)))) (> (regengine_T.rex.lnum re) (regengine_T.rex.reg_maxline re))) (regengine_T.rex.reg_line_lbr re)) (= count maxcount))
-         (join126 count scan)]
-        [else
-         (let ([count (i64+ count 1)])
-           (reg_nextline ed re)
-           (let ([scan (regengine_T.rex.input re)])
-             (if (not (fxzero? got_int)) (join126 count scan) (loop120 count scan))))]))
+      (if (< count maxcount) (let loop122 ([count count]
+                                           [scan scan])
+                               (cond
+                                 [(and (not (fx=? (ld-u8 scan) 0)) (< count maxcount))
+                                  (loop122 (i64+ count 1) (fx+ scan (utfc_ptr2len ed scan)))]
+                                 [(or (or (or (or (not (fx=? (regengine_T.rex.reg_match re) 0)) (not (and (fx>=? (ld-u8 p) 50) (fx<=? (ld-u8 p) 78)))) (> (regengine_T.rex.lnum re) (regengine_T.rex.reg_maxline re))) (regengine_T.rex.reg_line_lbr re)) (= count maxcount))
+                                  (join126 count scan)]
+                                 [else
+                                  (let ([count (i64+ count 1)])
+                                    (reg_nextline ed re)
+                                    (let ([scan (regengine_T.rex.input re)])
+                                      (if (not (fxzero? got_int)) (join126 count scan) (loop120 count scan))))])) (join126 count scan)))
     (define (join126 count scan)
       (regengine_T.rex.input-set! re scan)
       (->i32 count))
@@ -38266,8 +39454,19 @@
         [(5)
          (if (not (fxzero? (regengine_T.rex.reg_ic re)))
              (let ([cu (vim_toupper ed (ld-u8 opnd))])
-               (loop41 0 scan cu (vim_tolower ed (ld-u8 opnd))))
-             (loop38 0 scan (ld-u8 opnd)))]
+               (let loop41 ([count 0]
+                            [scan scan]
+                            [cu cu]
+                            [cl (vim_tolower ed (ld-u8 opnd))])
+                 (if (and (< count maxcount) (or (fx=? (ld-u8 scan) cu) (fx=? (ld-u8 scan) cl)))
+                     (loop41 (i64+ count 1) (fx+ scan 1) cu cl)
+                     (join126 count scan))))
+             (let loop38 ([count 0]
+                          [scan scan]
+                          [cu (ld-u8 opnd)])
+               (if (and (< count maxcount) (fx=? (ld-u8 scan) cu))
+                   (loop38 (i64+ count 1) (fx+ scan 1) cu)
+                   (join126 count scan))))]
         [(200)
          (let ([len (utfc_ptr2len ed opnd)])
            (if (fx>? len 1)
@@ -38684,11 +39883,47 @@
                              (join315 scan next 5 len_4 r3 r4 match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
                              (join158 scan next status r4 len_4 r3 r4 match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))))))]
           [(209)
-           (loop145 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)]
+           (let loop145 ([scan scan]
+                         [next next]
+                         [status status]
+                         [len_4 len_4]
+                         [cstrncmp__o_r__ cstrncmp__o_r__]
+                         [cstrncmp__o_n cstrncmp__o_n]
+                         [match_with_backref__o_r__ match_with_backref__o_r__]
+                         [match_with_backref__o_bytelen match_with_backref__o_bytelen]
+                         [rst_nextb rst_nextb]
+                         [rst_nextb_ic rst_nextb_ic]
+                         [rst_count rst_count]
+                         [rst_minval rst_minval]
+                         [rst_maxval rst_maxval])
+             (if (utf_iscomposing ed (utf_ptr2char ed (regengine_T.rex.input re)))
+                 (let ([t32 (utf_ptr2len ed (regengine_T.rex.input re))])
+                   (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t32))
+                   (loop145 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))
+                 (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))]
           [(6)
            (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)]
           [(4)
-           (loop133 scan next status 0 (regengine_T.backpos.ga_data re) len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)]
+           (let loop133 ([scan scan]
+                         [next next]
+                         [status status]
+                         [i_3 0]
+                         [bp (regengine_T.backpos.ga_data re)]
+                         [len_4 len_4]
+                         [cstrncmp__o_r__ cstrncmp__o_r__]
+                         [cstrncmp__o_n cstrncmp__o_n]
+                         [match_with_backref__o_r__ match_with_backref__o_r__]
+                         [match_with_backref__o_bytelen match_with_backref__o_bytelen]
+                         [rst_nextb rst_nextb]
+                         [rst_nextb_ic rst_nextb_ic]
+                         [rst_count rst_count]
+                         [rst_minval rst_minval]
+                         [rst_maxval rst_maxval])
+             (if (fx<? i_3 (regengine_T.backpos.ga_len re))
+                 (if (fx=? (backpos_T.bp_scan (fx+ bp (fx* i_3 32))) scan)
+                     (join136 scan next status i_3 bp len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
+                     (loop133 scan next status (i32+ i_3 1) bp len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))
+                 (join136 scan next status i_3 bp len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))]
           [(80)
            (join127 scan next op status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)]
           [(81)
@@ -39117,12 +40352,6 @@
                [else
                 (save_se_one ed re (regitem_T.rs_un.sesave& rp) (fx+ (regengine_T.rex.reg_startp re) (fx* no 8)))
                 (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)])]))))
-    (define (loop133 scan next status i_3 bp len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
-      (if (fx<? i_3 (regengine_T.backpos.ga_len re))
-          (if (fx=? (backpos_T.bp_scan (fx+ bp (fx* i_3 32))) scan)
-              (join136 scan next status i_3 bp len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
-              (loop133 scan next status (i32+ i_3 1) bp len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))
-          (join136 scan next status i_3 bp len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))
     (define (join136 scan next status i_3 bp len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
       (cond
         [(fx=? i_3 (regengine_T.backpos.ga_len re))
@@ -39145,12 +40374,6 @@
          (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)]
         [else
          (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)]))
-    (define (loop145 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
-      (if (utf_iscomposing ed (utf_ptr2char ed (regengine_T.rex.input re)))
-          (let ([t32 (utf_ptr2len ed (regengine_T.rex.input re))])
-            (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t32))
-            (loop145 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))
-          (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))
     (define (loop152 scan next status i_2 len_3 opndc len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
       (if (not (fx=? (ld-u8 (fx+ (regengine_T.rex.input re) i_2)) 0))
           (let ([inpc (utf_ptr2char ed (fx+ (regengine_T.rex.input re) i_2))])
@@ -39185,13 +40408,27 @@
                     [q (fx+ q t30)])
                (if (fx=? len_2 0)
                    (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
-                   (loop164 scan next status q len_2 0 len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))))])))
-    (define (loop164 scan next status q len_2 i len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
-      (if (fx<? i len_2)
-          (if (not (fx=? (ld-u8 (fx+ q i)) (ld-u8 (fx+ (regengine_T.rex.input re) i))))
-              (join168 scan next 5 len_2 len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
-              (loop164 scan next status q len_2 (i32+ i 1) len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))
-          (join168 scan next status len_2 len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)))
+                   (let loop164 ([scan scan]
+                                 [next next]
+                                 [status status]
+                                 [q q]
+                                 [len_2 len_2]
+                                 [i 0]
+                                 [len_4 len_4]
+                                 [cstrncmp__o_r__ cstrncmp__o_r__]
+                                 [cstrncmp__o_n cstrncmp__o_n]
+                                 [match_with_backref__o_r__ match_with_backref__o_r__]
+                                 [match_with_backref__o_bytelen match_with_backref__o_bytelen]
+                                 [rst_nextb rst_nextb]
+                                 [rst_nextb_ic rst_nextb_ic]
+                                 [rst_count rst_count]
+                                 [rst_minval rst_minval]
+                                 [rst_maxval rst_maxval])
+                     (if (fx<? i len_2)
+                         (if (not (fx=? (ld-u8 (fx+ q i)) (ld-u8 (fx+ (regengine_T.rex.input re) i))))
+                             (join168 scan next 5 len_2 len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
+                             (loop164 scan next status q len_2 (i32+ i 1) len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))
+                         (join168 scan next status len_2 len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))))))])))
     (define (join168 scan next status len_2 len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval)
       (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) len_2))
       (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))
@@ -39621,25 +40858,39 @@
                 [c (utf_ptr2char ed (regprog_T.regmust prog))]
                 [s (fx+ line col)])
            (if (not (not (fxzero? (regengine_T.rex.reg_ic re))))
-               (loop25 line prog s col retval c regmlen cstrncmp__o_r__ cstrncmp__o_n)
-               (loop21 line prog s col retval c regmlen cstrncmp__o_r__ cstrncmp__o_n)))]
+               (let loop25 ([line line]
+                            [prog prog]
+                            [s s]
+                            [col col]
+                            [retval retval]
+                            [c c]
+                            [regmlen regmlen]
+                            [cstrncmp__o_r__ cstrncmp__o_r__]
+                            [cstrncmp__o_n cstrncmp__o_n])
+                 (let ([s (vim_strchr ed s c)])
+                   (if (not (fx=? s 0))
+                       (let-values ([(r3 r4) (cstrncmp ed re s (regprog_T.regmust prog) regmlen)])
+                         (if (fx=? r3 0)
+                             (join28 line prog s col retval r4 r3 r4)
+                             (loop25 line prog (fx+ s (utfc_ptr2len ed s)) col retval c r4 r3 r4)))
+                       (join28 line prog s col retval regmlen cstrncmp__o_r__ cstrncmp__o_n))))
+               (let loop21 ([line line]
+                            [prog prog]
+                            [s s]
+                            [col col]
+                            [retval retval]
+                            [c c]
+                            [regmlen regmlen]
+                            [cstrncmp__o_r__ cstrncmp__o_r__]
+                            [cstrncmp__o_n cstrncmp__o_n])
+                 (let ([s (cstrchr ed re s c)])
+                   (if (not (fx=? s 0))
+                       (let-values ([(r1 r2) (cstrncmp ed re s (regprog_T.regmust prog) regmlen)])
+                         (if (fx=? r1 0)
+                             (join28 line prog s col retval r2 r1 r2)
+                             (loop21 line prog (fx+ s (utfc_ptr2len ed s)) col retval c r2 r1 r2)))
+                       (join28 line prog s col retval regmlen cstrncmp__o_r__ cstrncmp__o_n))))))]
         [else (join31 line prog col retval cstrncmp__o_r__ cstrncmp__o_n)]))
-    (define (loop21 line prog s col retval c regmlen cstrncmp__o_r__ cstrncmp__o_n)
-      (let ([s (cstrchr ed re s c)])
-        (if (not (fx=? s 0))
-            (let-values ([(r1 r2) (cstrncmp ed re s (regprog_T.regmust prog) regmlen)])
-              (if (fx=? r1 0)
-                  (join28 line prog s col retval r2 r1 r2)
-                  (loop21 line prog (fx+ s (utfc_ptr2len ed s)) col retval c r2 r1 r2)))
-            (join28 line prog s col retval regmlen cstrncmp__o_r__ cstrncmp__o_n))))
-    (define (loop25 line prog s col retval c regmlen cstrncmp__o_r__ cstrncmp__o_n)
-      (let ([s (vim_strchr ed s c)])
-        (if (not (fx=? s 0))
-            (let-values ([(r3 r4) (cstrncmp ed re s (regprog_T.regmust prog) regmlen)])
-              (if (fx=? r3 0)
-                  (join28 line prog s col retval r4 r3 r4)
-                  (loop25 line prog (fx+ s (utfc_ptr2len ed s)) col retval c r4 r3 r4)))
-            (join28 line prog s col retval regmlen cstrncmp__o_r__ cstrncmp__o_n))))
     (define (join28 line prog s col retval regmlen cstrncmp__o_r__ cstrncmp__o_n)
       (cond
         [(not (not (fx=? (regengine_T.alone.string re) 0)))
@@ -39856,15 +41107,14 @@
                  [first (garray_T.ga_len searches)])
             (mem-copy! (regengine_T.alone& re) (fx+ lines (fx* i 16)) 16)
             (loop8 i line 0 0 2147483647 first))
-          (loop3 from)))
-    (define (loop3 i_2)
-      (cond
-        [(< i_2 to)
-         (linefound_T.searches-set! (fx+ found (fx* i_2 24)) (fx+ (garray_T.ga_data searches) (fx* (linefound_T.next (fx+ found (fx* i_2 24))) 32)))
-         (linefound_T.pos-set! (fx+ found (fx* i_2 24)) (garray_T.ga_data pos))
-         (linefound_T.next-set! (fx+ found (fx* i_2 24)) 0)
-         (loop3 (i64+ i_2 1))]
-        [else (frame-pop! ed fr)]))
+          (let loop3 ([i_2 from])
+            (cond
+              [(< i_2 to)
+               (linefound_T.searches-set! (fx+ found (fx* i_2 24)) (fx+ (garray_T.ga_data searches) (fx* (linefound_T.next (fx+ found (fx* i_2 24))) 32)))
+               (linefound_T.pos-set! (fx+ found (fx* i_2 24)) (garray_T.ga_data pos))
+               (linefound_T.next-set! (fx+ found (fx* i_2 24)) 0)
+               (loop3 (i64+ i_2 1))]
+              [else (frame-pop! ed fr)]))))
     (define (loop8 i line col matchcol prev_matchcol first)
       (let ([r (bt_regexec_multi ed re m curwin buf (i64+ line1 i) col 0)])
         (cond
@@ -39887,25 +41137,30 @@
              (regsearch_T.nsub-set! s (i32+ k 1))
              (join25 i line matchcol prev_matchcol first s k)]
             [else (join25 i line matchcol prev_matchcol first s k)])
-          (loop13 i line matchcol prev_matchcol first s 0)))
-    (define (loop13 i line matchcol prev_matchcol first s k_2)
-      (cond
-        [(fx<? k_2 (regsearch_T.nsub s))
-         (let ([t1 (garray_T.ga_len pos)])
-           (garray_T.ga_len-set! pos (i32+ (garray_T.ga_len pos) 1))
-           (mem-copy! (fx+ (garray_T.ga_data pos) (fx* t1 16)) (fx+ (regmmatch_T.startpos& m) (fx* k_2 16)) 16)
-           (let ([t2 (garray_T.ga_len pos)])
-             (garray_T.ga_len-set! pos (i32+ (garray_T.ga_len pos) 1))
-             (mem-copy! (fx+ (garray_T.ga_data pos) (fx* t2 16)) (fx+ (regmmatch_T.endpos& m) (fx* k_2 16)) 16)
-             (loop13 i line matchcol prev_matchcol first s (i32+ k_2 1))))]
-        [(not do_all) (join27 i first)]
-        [(and (fx=? matchcol prev_matchcol) (fx=? (lpos_T.col (regmmatch_T.endpos& m)) matchcol))
-         (if (fx=? (ld-u8 (fx+ line matchcol)) 0)
-             (join27 i first)
-             (join19 i line (i32+ matchcol (utfc_ptr2len ed (fx+ line matchcol))) prev_matchcol first))]
-        [else
-         (let ([matchcol (lpos_T.col (regmmatch_T.endpos& m))])
-           (join19 i line matchcol matchcol first))]))
+          (let loop13 ([i i]
+                       [line line]
+                       [matchcol matchcol]
+                       [prev_matchcol prev_matchcol]
+                       [first first]
+                       [s s]
+                       [k_2 0])
+            (cond
+              [(fx<? k_2 (regsearch_T.nsub s))
+               (let ([t1 (garray_T.ga_len pos)])
+                 (garray_T.ga_len-set! pos (i32+ (garray_T.ga_len pos) 1))
+                 (mem-copy! (fx+ (garray_T.ga_data pos) (fx* t1 16)) (fx+ (regmmatch_T.startpos& m) (fx* k_2 16)) 16)
+                 (let ([t2 (garray_T.ga_len pos)])
+                   (garray_T.ga_len-set! pos (i32+ (garray_T.ga_len pos) 1))
+                   (mem-copy! (fx+ (garray_T.ga_data pos) (fx* t2 16)) (fx+ (regmmatch_T.endpos& m) (fx* k_2 16)) 16)
+                   (loop13 i line matchcol prev_matchcol first s (i32+ k_2 1))))]
+              [(not do_all) (join27 i first)]
+              [(and (fx=? matchcol prev_matchcol) (fx=? (lpos_T.col (regmmatch_T.endpos& m)) matchcol))
+               (if (fx=? (ld-u8 (fx+ line matchcol)) 0)
+                   (join27 i first)
+                   (join19 i line (i32+ matchcol (utfc_ptr2len ed (fx+ line matchcol))) prev_matchcol first))]
+              [else
+               (let ([matchcol (lpos_T.col (regmmatch_T.endpos& m))])
+                 (join19 i line matchcol matchcol first))]))))
     (define (join19 i line matchcol prev_matchcol first)
       (if (fx=? (ld-u8 (fx+ line matchcol)) 0)
           (join27 i first)
@@ -40023,14 +41278,14 @@
 (define (get_register ed name copy)
   (let ([mem (ed-mem ed)])
     (define (join5 reg)
-      (if (not (fx=? (yankreg_T.y_array reg) 0)) (loop7 reg 0) (join8 reg)))
-    (define (loop7 reg i)
-      (if (< i (yankreg_T.y_size reg))
-          (let ([r1 (fx+ (yankreg_T.y_array reg) (fx* i 16))])
-            (string_T.string-set! r1 (vim_strnsave ed (string_T.string (fx+ (yankreg_T.y_array y_current) (fx* i 16))) (string_T.length (fx+ (yankreg_T.y_array y_current) (fx* i 16)))))
-            (string_T.length-set! (fx+ (yankreg_T.y_array reg) (fx* i 16)) (string_T.length (fx+ (yankreg_T.y_array y_current) (fx* i 16))))
-            (loop7 reg (i32+ i 1)))
-          (join8 reg)))
+      (if (not (fx=? (yankreg_T.y_array reg) 0)) (let loop7 ([reg reg]
+                                                             [i 0])
+                                                   (if (< i (yankreg_T.y_size reg))
+                                                       (let ([r1 (fx+ (yankreg_T.y_array reg) (fx* i 16))])
+                                                         (string_T.string-set! r1 (vim_strnsave ed (string_T.string (fx+ (yankreg_T.y_array y_current) (fx* i 16))) (string_T.length (fx+ (yankreg_T.y_array y_current) (fx* i 16)))))
+                                                         (string_T.length-set! (fx+ (yankreg_T.y_array reg) (fx* i 16)) (string_T.length (fx+ (yankreg_T.y_array y_current) (fx* i 16))))
+                                                         (loop7 reg (i32+ i 1)))
+                                                       (join8 reg))) (join8 reg)))
     (define (join8 reg)
       reg)
     (get_yank_register ed name 0)
@@ -40107,14 +41362,6 @@
 (define (execreg_line_continuation ed lines idx)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
     (define-c-local ga &ga agg 0)
-    (define (loop1 cmd_start cmd_end out___r__ out___idx)
-      (let ([cmd_start (i64- cmd_start 1)])
-        (if (> cmd_start 0)
-            (let ([p (skipwhite ed (string_T.string (fx+ lines (fx* cmd_start 16))))])
-              (if (and (not (fx=? (ld-u8 p) 92)) (or (or (not (fx=? (ld-u8 p) 34)) (not (fx=? (ld-u8 (fx+ p 1)) 92))) (not (fx=? (ld-u8 (fx+ p 2)) 32))))
-                  (join4 cmd_start cmd_end out___r__ out___idx)
-                  (loop1 cmd_start cmd_end out___r__ out___idx)))
-            (join4 cmd_start cmd_end out___r__ out___idx))))
     (define (join4 cmd_start cmd_end out___r__ out___idx)
       (let ([tmp (fx+ lines (fx* cmd_start 16))])
         (ga_concat_len ed ga (string_T.string tmp) (string_T.length tmp))
@@ -40148,7 +41395,17 @@
     (define (join13 cmd_start cmd_end j out___r__ out___idx)
       (loop5 cmd_start cmd_end (i32+ j 1) out___r__ out___idx))
     (ga_init2 ed ga 1 400)
-    (loop1 idx idx 0 0)))
+    (let loop1 ([cmd_start idx]
+                [cmd_end idx]
+                [out___r__ 0]
+                [out___idx 0])
+      (let ([cmd_start (i64- cmd_start 1)])
+        (if (> cmd_start 0)
+            (let ([p (skipwhite ed (string_T.string (fx+ lines (fx* cmd_start 16))))])
+              (if (and (not (fx=? (ld-u8 p) 92)) (or (or (not (fx=? (ld-u8 p) 34)) (not (fx=? (ld-u8 (fx+ p 1)) 92))) (not (fx=? (ld-u8 (fx+ p 2)) 32))))
+                  (join4 cmd_start cmd_end out___r__ out___idx)
+                  (loop1 cmd_start cmd_end out___r__ out___idx)))
+            (join4 cmd_start cmd_end out___r__ out___idx))))))
 
 (define (do_execreg ed regname colon addcr silent)
   (let ([mem (ed-mem ed)])
@@ -40406,7 +41663,11 @@
 
 (define (shift_delete_registers ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 n)
+    (define (join4)
+      (yankreg_T.y_array-set! (fx+ y_regs 24) 0))
+    (set! y_current (fx+ y_regs 216))
+    (free_yank_all ed)
+    (let loop1 ([n 9])
       (cond
         [(fx>? n 1)
          (mem-copy! (fx+ y_regs (fx* n 24)) (fx+ y_regs (fx* (i32- n 1) 24)) 24)
@@ -40415,30 +41676,23 @@
          (set! y_current (fx+ y_regs 24))
          (cond
            [(not y_append) (set! y_previous y_current) (join4)]
-           [else (join4)])]))
-    (define (join4)
-      (yankreg_T.y_array-set! (fx+ y_regs 24) 0))
-    (set! y_current (fx+ y_regs 216))
-    (free_yank_all ed)
-    (loop1 9)))
+           [else (join4)])]))))
 
 (define (init_yank ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
-      (when (fx<? i 37) (yankreg_T.y_array-set! (fx+ y_regs (fx* i 24)) 0) (loop1 (i32+ i 1))))
-    (loop1 0)))
+    (let loop1 ([i 0])
+      (when (fx<? i 37) (yankreg_T.y_array-set! (fx+ y_regs (fx* i 24)) 0) (loop1 (i32+ i 1))))))
 
 (define (free_yank ed n)
   (let ([mem (ed-mem ed)])
-    (define (loop2 i)
-      (let ([i (i64- i 1)])
-        (cond
-          [(>= i 0)
-           (string_T.string-set! (fx+ (yankreg_T.y_array y_current) (fx* i 16)) 0)
-           (string_T.length-set! (fx+ (yankreg_T.y_array y_current) (fx* i 16)) 0)
-           (loop2 i)]
-          [else (yankreg_T.y_array-set! y_current 0)])))
-    (unless (fx=? (yankreg_T.y_array y_current) 0) (loop2 n))))
+    (unless (fx=? (yankreg_T.y_array y_current) 0) (let loop2 ([i n])
+                                                     (let ([i (i64- i 1)])
+                                                       (cond
+                                                         [(>= i 0)
+                                                          (string_T.string-set! (fx+ (yankreg_T.y_array y_current) (fx* i 16)) 0)
+                                                          (string_T.length-set! (fx+ (yankreg_T.y_array y_current) (fx* i 16)) 0)
+                                                          (loop2 i)]
+                                                         [else (yankreg_T.y_array-set! y_current 0)]))))))
 
 (define (free_yank_all ed)
   (let ([mem (ed-mem ed)])
@@ -40507,18 +41761,21 @@
                 [else (join47 y_idx curr lnum yanktype yanklines yankendlnum)]))]
            [else (join51 y_idx curr lnum yanktype yanklines yankendlnum)])]
         [(not (fx=? curr y_current))
-         (loop16 curr yanktype yanklines (alloc ed (u64* 16 (->u64 (i64+ (yankreg_T.y_size curr) (yankreg_T.y_size y_current))))) 0)]
+         (let loop16 ([curr curr]
+                      [yanktype yanktype]
+                      [yanklines yanklines]
+                      [new_ptr (alloc ed (u64* 16 (->u64 (i64+ (yankreg_T.y_size curr) (yankreg_T.y_size y_current)))))]
+                      [j 0])
+           (cond
+             [(< j (yankreg_T.y_size curr))
+              (mem-copy! (fx+ new_ptr (fx* j 16)) (fx+ (yankreg_T.y_array curr) (fx* j 16)) 16)
+              (loop16 curr yanktype yanklines new_ptr (i64+ j 1))]
+             [else
+              (yankreg_T.y_array-set! curr new_ptr)
+              (cond
+                [(fx=? yanktype 1) (yankreg_T.y_type-set! curr 1) (join19 curr yanktype yanklines j)]
+                [else (join19 curr yanktype yanklines j)])]))]
         [else (join25 yanktype yanklines)]))
-    (define (loop16 curr yanktype yanklines new_ptr j)
-      (cond
-        [(< j (yankreg_T.y_size curr))
-         (mem-copy! (fx+ new_ptr (fx* j 16)) (fx+ (yankreg_T.y_array curr) (fx* j 16)) 16)
-         (loop16 curr yanktype yanklines new_ptr (i64+ j 1))]
-        [else
-         (yankreg_T.y_array-set! curr new_ptr)
-         (cond
-           [(fx=? yanktype 1) (yankreg_T.y_type-set! curr 1) (join19 curr yanktype yanklines j)]
-           [else (join19 curr yanktype yanklines j)])]))
     (define (join19 curr yanktype yanklines j)
       (if (and (fx=? (yankreg_T.y_type curr) 0) (fx=? (vim_strchr ed p_cpo 62) 0))
           (let* ([pnew (alloc ed (u64+ (u64+ (string_T.length (fx+ (yankreg_T.y_array curr) (fx* (i64- (yankreg_T.y_size curr) 1) 16))) (string_T.length (yankreg_T.y_array y_current))) 1))]
@@ -40626,12 +41883,12 @@
             (musl_memset ed pnew 32 (->u64 (block_def.endspaces bd)))
             (let ([pnew (fx+ pnew (block_def.endspaces bd))])
               (if (not (fxzero? exclude_trailing_space))
-                  (loop4 pnew (i32+ (block_def.textlen bd) (block_def.endspaces bd)))
+                  (let loop4 ([pnew pnew]
+                              [s (i32+ (block_def.textlen bd) (block_def.endspaces bd))])
+                    (if (and (fx>? s 0) (or (fx=? (ld-u8 (fx+ (fx+ (block_def.textstart bd) s) -1)) 32) (fx=? (ld-u8 (fx+ (fx+ (block_def.textstart bd) s) -1)) 9)))
+                        (loop4 (fx+ pnew -1) (i32- (i32- s (utf_head_off ed (block_def.textstart bd) (fx+ (fx+ (block_def.textstart bd) s) -1))) 1))
+                        (join5 pnew)))
                   (join5 pnew)))))))
-    (define (loop4 pnew s)
-      (if (and (fx>? s 0) (or (fx=? (ld-u8 (fx+ (fx+ (block_def.textstart bd) s) -1)) 32) (fx=? (ld-u8 (fx+ (fx+ (block_def.textstart bd) s) -1)) 9)))
-          (loop4 (fx+ pnew -1) (i32- (i32- s (utf_head_off ed (block_def.textstart bd) (fx+ (fx+ (block_def.textstart bd) s) -1))) 1))
-          (join5 pnew)))
     (define (join5 pnew)
       (st-u8! pnew 0)
       (string_T.length-set! (fx+ (yankreg_T.y_array y_current) (fx* y_idx 16)) (->u64 (fx- pnew (string_T.string (fx+ (yankreg_T.y_array y_current) (fx* y_idx 16))))))
@@ -41012,26 +42269,45 @@
           (join126 yanklen totlen (i64+ lnum 1) y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum first_byte_off get_spec_reg__o_r__ get_spec_reg__o_allocated)
           (let ([newp (alloc ed (->u64 (i32+ (i32+ totlen oldlen) 1)))])
             (musl_memmove ed newp oldp (->u64 col))
-            (loop118 (fx+ newp col) newp oldp yanklen totlen lnum 0 oldlen y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum get_spec_reg__o_r__ get_spec_reg__o_allocated))))
-    (define (loop118 ptr newp oldp yanklen totlen lnum i oldlen y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum get_spec_reg__o_r__ get_spec_reg__o_allocated)
-      (cond
-        [(< i count)
-         (musl_memmove ed ptr (string_T.string y_array) (->u64 yanklen))
-         (loop118 (fx+ ptr yanklen) newp oldp yanklen totlen lnum (i64+ i 1) oldlen y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum get_spec_reg__o_r__ get_spec_reg__o_allocated)]
-        [else
-         (musl_memmove ed ptr (fx+ oldp col) (u64+ (->u64 (i32- oldlen col)) 1))
-         (let ([first_byte_off (utf_head_off ed newp (fx+ ptr -1))])
-           (ml_replace ed lnum newp #f)
-           (inserted_bytes ed lnum col totlen)
-           (cond
-             [(= lnum (win_T.w_cursor.lnum curwin))
-              (changed_cline_bef_curs ed)
-              (invalidate_botline ed)
-              (let ([r10 curwin])
-                (win_T.w_cursor.col-set! r10 (i32+ (win_T.w_cursor.col r10) (i32- totlen 1)))
-                (join121 yanklen totlen lnum y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum first_byte_off get_spec_reg__o_r__ get_spec_reg__o_allocated))]
-             [else
-              (join121 yanklen totlen lnum y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum first_byte_off get_spec_reg__o_r__ get_spec_reg__o_allocated)]))]))
+            (let loop118 ([ptr (fx+ newp col)]
+                          [newp newp]
+                          [oldp oldp]
+                          [yanklen yanklen]
+                          [totlen totlen]
+                          [lnum lnum]
+                          [i 0]
+                          [oldlen oldlen]
+                          [y_array y_array]
+                          [nr_lines nr_lines]
+                          [orig_start_lnum orig_start_lnum]
+                          [orig_start_col orig_start_col]
+                          [orig_start_coladd orig_start_coladd]
+                          [orig_end_lnum orig_end_lnum]
+                          [orig_end_col orig_end_col]
+                          [orig_end_coladd orig_end_coladd]
+                          [cur_ve_flags cur_ve_flags]
+                          [end_lnum end_lnum]
+                          [start_lnum start_lnum]
+                          [get_spec_reg__o_r__ get_spec_reg__o_r__]
+                          [get_spec_reg__o_allocated get_spec_reg__o_allocated])
+              (cond
+                [(< i count)
+                 (musl_memmove ed ptr (string_T.string y_array) (->u64 yanklen))
+                 (loop118 (fx+ ptr yanklen) newp oldp yanklen totlen lnum (i64+ i 1) oldlen y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum get_spec_reg__o_r__ get_spec_reg__o_allocated)]
+                [else
+                 (musl_memmove ed ptr (fx+ oldp col) (u64+ (->u64 (i32- oldlen col)) 1))
+                 (let ([first_byte_off (utf_head_off ed newp (fx+ ptr -1))])
+                   (ml_replace ed lnum newp #f)
+                   (inserted_bytes ed lnum col totlen)
+                   (cond
+                     [(= lnum (win_T.w_cursor.lnum curwin))
+                      (changed_cline_bef_curs ed)
+                      (invalidate_botline ed)
+                      (let ([r10 curwin])
+                        (win_T.w_cursor.col-set! r10 (i32+ (win_T.w_cursor.col r10) (i32- totlen 1)))
+                        (join121 yanklen totlen lnum y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum first_byte_off get_spec_reg__o_r__ get_spec_reg__o_allocated))]
+                     [else
+                      (join121 yanklen totlen lnum y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum first_byte_off get_spec_reg__o_r__ get_spec_reg__o_allocated)]))])))))
     (define (join121 yanklen totlen lnum y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum first_byte_off get_spec_reg__o_r__ get_spec_reg__o_allocated)
       (if VIsual_active
           (join126 yanklen totlen (i64+ lnum 1) y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags end_lnum start_lnum first_byte_off get_spec_reg__o_r__ get_spec_reg__o_allocated)
@@ -41105,50 +42381,95 @@
       (let* ([oldp (ml_get_curline ed)]
              [oldlen (ml_get_curline_len ed)])
         (init_chartabsize_arg ed cts curwin (win_T.w_cursor.lnum curwin) 0 oldp oldp)
-        (loop155 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces spaces get_spec_reg__o_r__ get_spec_reg__o_allocated)))
-    (define (loop155 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces spaces get_spec_reg__o_r__ get_spec_reg__o_allocated)
-      (cond
-        [(and (fx<? (chartabsize_T.cts_vcol cts) col) (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)))
-         (let ([incr (lbr_chartabsize_adv ed cts)])
-           (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) incr))
-           (loop155 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces spaces get_spec_reg__o_r__ get_spec_reg__o_allocated))]
-        [else
-         (set! vcol (chartabsize_T.cts_vcol cts))
-         (let* ([ptr (chartabsize_T.cts_ptr cts)]
-                [bd_textcol (->i32 (fx- ptr oldp))]
-                [shortline (b->i (or (fx<? vcol col) (and (fx=? vcol col) (not (not (fxzero? (ld-u8 ptr)))))))])
-           (cond
-             [(fx<? vcol col)
-              (join161 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr (i32- col vcol) bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)]
-             [(fx>? vcol col)
-              (let* ([bd_endspaces (i32- vcol col)]
-                     [bd_startspaces (i32- incr bd_endspaces)]
-                     [bd_textcol (i32- bd_textcol 1)]
-                     [t4 (utf_head_off ed oldp (fx+ oldp bd_textcol))]
-                     [bd_textcol (i32- bd_textcol t4)])
-                (if (not (fx=? (ld-u8 (fx+ oldp bd_textcol)) 9))
-                    (join161 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags 0 incr bd_startspaces 0 bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)
-                    (join161 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags 1 incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)))]
-             [else
-              (join161 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)]))]))
+        (let loop155 ([oldp oldp]
+                      [totlen totlen]
+                      [lnum lnum]
+                      [i i]
+                      [y_size y_size]
+                      [oldlen oldlen]
+                      [y_width y_width]
+                      [y_array y_array]
+                      [nr_lines nr_lines]
+                      [orig_start_lnum orig_start_lnum]
+                      [orig_start_col orig_start_col]
+                      [orig_start_coladd orig_start_coladd]
+                      [orig_end_lnum orig_end_lnum]
+                      [orig_end_col orig_end_col]
+                      [orig_end_coladd orig_end_coladd]
+                      [cur_ve_flags cur_ve_flags]
+                      [delcount delcount]
+                      [incr incr]
+                      [bd_startspaces bd_startspaces]
+                      [bd_endspaces bd_endspaces]
+                      [spaces spaces]
+                      [get_spec_reg__o_r__ get_spec_reg__o_r__]
+                      [get_spec_reg__o_allocated get_spec_reg__o_allocated])
+          (cond
+            [(and (fx<? (chartabsize_T.cts_vcol cts) col) (not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0)))
+             (let ([incr (lbr_chartabsize_adv ed cts)])
+               (chartabsize_T.cts_vcol-set! cts (i32+ (chartabsize_T.cts_vcol cts) incr))
+               (loop155 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces spaces get_spec_reg__o_r__ get_spec_reg__o_allocated))]
+            [else
+             (set! vcol (chartabsize_T.cts_vcol cts))
+             (let* ([ptr (chartabsize_T.cts_ptr cts)]
+                    [bd_textcol (->i32 (fx- ptr oldp))]
+                    [shortline (b->i (or (fx<? vcol col) (and (fx=? vcol col) (not (not (fxzero? (ld-u8 ptr)))))))])
+               (cond
+                 [(fx<? vcol col)
+                  (join161 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr (i32- col vcol) bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)]
+                 [(fx>? vcol col)
+                  (let* ([bd_endspaces (i32- vcol col)]
+                         [bd_startspaces (i32- incr bd_endspaces)]
+                         [bd_textcol (i32- bd_textcol 1)]
+                         [t4 (utf_head_off ed oldp (fx+ oldp bd_textcol))]
+                         [bd_textcol (i32- bd_textcol t4)])
+                    (if (not (fx=? (ld-u8 (fx+ oldp bd_textcol)) 9))
+                        (join161 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags 0 incr bd_startspaces 0 bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)
+                        (join161 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags 1 incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)))]
+                 [else
+                  (join161 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)]))]))))
     (define (join161 oldp totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)
       (let ([yanklen (->i32 (string_T.length (fx+ y_array (fx* i 16))))])
         (if (fx=? (fxand flags 64) 0)
             (let ([spaces (->i32 (i64+ y_width 1))])
               (init_chartabsize_arg ed cts curwin 0 0 (string_T.string (fx+ y_array (fx* i 16))) (string_T.string (fx+ y_array (fx* i 16))))
-              (loop163 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated))
+              (let loop163 ([oldp oldp]
+                            [yanklen yanklen]
+                            [totlen totlen]
+                            [lnum lnum]
+                            [i i]
+                            [y_size y_size]
+                            [oldlen oldlen]
+                            [y_width y_width]
+                            [y_array y_array]
+                            [nr_lines nr_lines]
+                            [orig_start_lnum orig_start_lnum]
+                            [orig_start_col orig_start_col]
+                            [orig_start_coladd orig_start_coladd]
+                            [orig_end_lnum orig_end_lnum]
+                            [orig_end_col orig_end_col]
+                            [orig_end_coladd orig_end_coladd]
+                            [cur_ve_flags cur_ve_flags]
+                            [delcount delcount]
+                            [incr incr]
+                            [bd_startspaces bd_startspaces]
+                            [bd_endspaces bd_endspaces]
+                            [bd_textcol bd_textcol]
+                            [spaces spaces]
+                            [shortline shortline]
+                            [get_spec_reg__o_r__ get_spec_reg__o_r__]
+                            [get_spec_reg__o_allocated get_spec_reg__o_allocated])
+                (cond
+                  [(not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0))
+                   (let* ([t5 (lbr_chartabsize_adv ed cts)]
+                          [spaces (i32- spaces t5)])
+                     (chartabsize_T.cts_vcol-set! cts 0)
+                     (loop163 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated))]
+                  [(fx<? spaces 0)
+                   (join166 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol 0 shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)]
+                  [else
+                   (join166 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)])))
             (join166 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated))))
-    (define (loop163 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)
-      (cond
-        [(not (fx=? (ld-u8 (chartabsize_T.cts_ptr cts)) 0))
-         (let* ([t5 (lbr_chartabsize_adv ed cts)]
-                [spaces (i32- spaces t5)])
-           (chartabsize_T.cts_vcol-set! cts 0)
-           (loop163 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated))]
-        [(fx<? spaces 0)
-         (join166 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol 0 shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)]
-        [else
-         (join166 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)]))
     (define (join166 oldp yanklen totlen lnum i y_size oldlen y_width y_array nr_lines orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd cur_ve_flags delcount incr bd_startspaces bd_endspaces bd_textcol spaces shortline get_spec_reg__o_r__ get_spec_reg__o_allocated)
       (cond
         [(and (not (fx=? (i32+ yanklen spaces) 0)) (> count (i32/ (i32- 2147483647 (i32+ bd_startspaces bd_endspaces)) (i32+ yanklen spaces))))
@@ -41340,22 +42661,30 @@
         [else (join21 i (fx+ y_regs (fx* i 24)) name attr arg type insert_string insert_length)]))
     (define (join21 i yb name attr arg type insert_string insert_length)
       (if (not (fx=? (yankreg_T.y_array yb) 0))
-          (loop23 i 0 yb name attr arg type #f insert_string insert_length)
+          (let loop23 ([i i]
+                       [j 0]
+                       [yb yb]
+                       [name name]
+                       [attr attr]
+                       [arg arg]
+                       [type type]
+                       [do_show #f]
+                       [insert_string insert_string]
+                       [insert_length insert_length])
+            (cond
+              [(and (not do_show) (< j (yankreg_T.y_size yb)))
+               (loop23 i (i64+ j 1) yb name attr arg type (not (message_filtered ed (string_T.string (fx+ (yankreg_T.y_array yb) (fx* j 16))))) insert_string insert_length)]
+              [(or do_show (= (yankreg_T.y_size yb) 0))
+               (msg_putchar ed 10)
+               (msg_puts ed (c-str 165673 "  "))
+               (msg_putchar ed type)
+               (msg_puts ed (c-str 165673 "  "))
+               (msg_putchar ed 34)
+               (msg_putchar ed name)
+               (msg_puts ed (c-str 166263 "   "))
+               (loop26 i (i32- (->i32 Columns) 11) 0 yb attr arg insert_string insert_length)]
+              [else (join30 i attr arg insert_string insert_length)]))
           (join42 i attr arg insert_string insert_length)))
-    (define (loop23 i j yb name attr arg type do_show insert_string insert_length)
-      (cond
-        [(and (not do_show) (< j (yankreg_T.y_size yb)))
-         (loop23 i (i64+ j 1) yb name attr arg type (not (message_filtered ed (string_T.string (fx+ (yankreg_T.y_array yb) (fx* j 16))))) insert_string insert_length)]
-        [(or do_show (= (yankreg_T.y_size yb) 0))
-         (msg_putchar ed 10)
-         (msg_puts ed (c-str 165673 "  "))
-         (msg_putchar ed type)
-         (msg_puts ed (c-str 165673 "  "))
-         (msg_putchar ed 34)
-         (msg_putchar ed name)
-         (msg_puts ed (c-str 166263 "   "))
-         (loop26 i (i32- (->i32 Columns) 11) 0 yb attr arg insert_string insert_length)]
-        [else (join30 i attr arg insert_string insert_length)]))
     (define (loop26 i n j yb attr arg insert_string insert_length)
       (cond
         [(and (< j (yankreg_T.y_size yb)) (fx>? n 1))
@@ -41486,15 +42815,14 @@
 
 (define (comp_char_differs ed off_from off_to)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (if (fx<? i Screen_mco)
           (cond
             [(not (fx=? (ld-u32 (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_from 4))) (ld-u32 (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_to 4)))))
              #t]
             [(fx=? (ld-u32 (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_from 4))) 0) #f]
             [else (loop1 (i32+ i 1))])
-          #f))
-    (loop1 0)))
+          #f))))
 
 (define (char_needs_redraw ed off_from off_to cols)
   (let ([mem (ed-mem ed)])
@@ -41627,15 +42955,29 @@
       (st-u8! (fx+ ScreenLines off_to) (ld-u8 (fx+ ScreenLines off_from)))
       (st-u32! (fx+ ScreenLinesUC (fx* off_to 4)) (ld-u32 (fx+ ScreenLinesUC (fx* off_from 4))))
       (if (not (fx=? (ld-u32 (fx+ ScreenLinesUC (fx* off_from 4))) 0))
-          (loop50 row endcol last_vcol off_from off_to max_off_from max_off_to col force redraw_next clear_next char_cells override_success 0 fillchar_vsep__o_r__ fillchar_vsep__o_attr)
+          (let loop50 ([row row]
+                       [endcol endcol]
+                       [last_vcol last_vcol]
+                       [off_from off_from]
+                       [off_to off_to]
+                       [max_off_from max_off_from]
+                       [max_off_to max_off_to]
+                       [col col]
+                       [force force]
+                       [redraw_next redraw_next]
+                       [clear_next clear_next]
+                       [char_cells char_cells]
+                       [override_success override_success]
+                       [i 0]
+                       [fillchar_vsep__o_r__ fillchar_vsep__o_r__]
+                       [fillchar_vsep__o_attr fillchar_vsep__o_attr])
+            (cond
+              [(fx<? i Screen_mco)
+               (st-u32! (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_to 4)) (ld-u32 (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_from 4))))
+               (loop50 row endcol last_vcol off_from off_to max_off_from max_off_to col force redraw_next clear_next char_cells override_success (i32+ i 1) fillchar_vsep__o_r__ fillchar_vsep__o_attr)]
+              [else
+               (join51 row endcol last_vcol off_from off_to max_off_from max_off_to col force redraw_next clear_next char_cells override_success fillchar_vsep__o_r__ fillchar_vsep__o_attr)]))
           (join51 row endcol last_vcol off_from off_to max_off_from max_off_to col force redraw_next clear_next char_cells override_success fillchar_vsep__o_r__ fillchar_vsep__o_attr)))
-    (define (loop50 row endcol last_vcol off_from off_to max_off_from max_off_to col force redraw_next clear_next char_cells override_success i fillchar_vsep__o_r__ fillchar_vsep__o_attr)
-      (cond
-        [(fx<? i Screen_mco)
-         (st-u32! (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_to 4)) (ld-u32 (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_from 4))))
-         (loop50 row endcol last_vcol off_from off_to max_off_from max_off_to col force redraw_next clear_next char_cells override_success (i32+ i 1) fillchar_vsep__o_r__ fillchar_vsep__o_attr)]
-        [else
-         (join51 row endcol last_vcol off_from off_to max_off_from max_off_to col force redraw_next clear_next char_cells override_success fillchar_vsep__o_r__ fillchar_vsep__o_attr)]))
     (define (join51 row endcol last_vcol off_from off_to max_off_from max_off_to col force redraw_next clear_next char_cells override_success fillchar_vsep__o_r__ fillchar_vsep__o_attr)
       (cond
         [(fx=? char_cells 2)
@@ -41683,21 +43025,27 @@
 
 (define (draw_vsep_win ed wp row)
   (let ([mem (ed-mem ed)])
-    (define (loop2 content_end r fillchar_vsep__o_r__ fillchar_vsep__o_attr)
-      (if (fx<? r content_end)
-          (let-values ([(r1 r2) (fillchar_vsep ed wp r)])
-            (screen_fill ed r (i32+ r 1) (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) (i32+ (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) 1) r1 32 r2)
-            (loop2 content_end (i32+ r 1) r1 r2))
-          (when (not (fx=? (win_T.w_status_height wp) 0))
-            (let-values ([(r3 r4) (fillchar_vsep ed wp content_end)])
-              (loop5 content_end r4 r3 content_end r3 r4)))))
-    (define (loop5 content_end hl_2 c_2 r_2 fillchar_vsep__o_r__ fillchar_vsep__o_attr)
-      (when (fx<? r_2 (i32+ content_end (win_T.w_status_height wp)))
-        (screen_fill ed r_2 (i32+ r_2 1) (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) (i32+ (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) 1) c_2 32 hl_2)
-        (loop5 content_end hl_2 c_2 (i32+ r_2 1) fillchar_vsep__o_r__ fillchar_vsep__o_attr)))
     (unless (not (not (fxzero? (win_T.w_vsep_width wp))))
       (let ([content_end (i32+ (win_T.w_winrow wp) (win_T.w_height wp))])
-        (loop2 content_end (if (fx=? row 0) (win_T.w_winrow wp) (i32+ (win_T.w_winrow wp) row)) 0 0)))))
+        (let loop2 ([content_end content_end]
+                    [r (if (fx=? row 0) (win_T.w_winrow wp) (i32+ (win_T.w_winrow wp) row))]
+                    [fillchar_vsep__o_r__ 0]
+                    [fillchar_vsep__o_attr 0])
+          (if (fx<? r content_end)
+              (let-values ([(r1 r2) (fillchar_vsep ed wp r)])
+                (screen_fill ed r (i32+ r 1) (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) (i32+ (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) 1) r1 32 r2)
+                (loop2 content_end (i32+ r 1) r1 r2))
+              (when (not (fx=? (win_T.w_status_height wp) 0))
+                (let-values ([(r3 r4) (fillchar_vsep ed wp content_end)])
+                  (let loop5 ([content_end content_end]
+                              [hl_2 r4]
+                              [c_2 r3]
+                              [r_2 content_end]
+                              [fillchar_vsep__o_r__ r3]
+                              [fillchar_vsep__o_attr r4])
+                    (when (fx<? r_2 (i32+ content_end (win_T.w_status_height wp)))
+                      (screen_fill ed r_2 (i32+ r_2 1) (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) (i32+ (i32+ (win_T.w_wincol wp) (win_T.w_width wp)) 1) c_2 32 hl_2)
+                      (loop5 content_end hl_2 c_2 (i32+ r_2 1) fillchar_vsep__o_r__ fillchar_vsep__o_attr)))))))))))
 
 (define (screen_putchar ed c row col attr)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
@@ -41725,15 +43073,14 @@
 
 (define (screen_comp_differs ed off u8cc)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (if (fx<? i Screen_mco)
           (cond
             [(not (fx=? (ld-u32 (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off 4))) (->u32 (ld-s32 (fx+ u8cc (fx* i 4))))))
              #t]
             [(fx=? (ld-s32 (fx+ u8cc (fx* i 4))) 0) #f]
             [else (loop1 (i32+ i 1))])
-          #f))
-    (loop1 0)))
+          #f))))
 
 (define (screen_puts ed text row col attr)
   (screen_puts_len ed text -1 row col attr))
@@ -41798,32 +43145,52 @@
          (join28 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr)]
         [else
          (st-u32! (fx+ ScreenLinesUC (fx* off 4)) (->u32 u8c))
-         (loop24 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr 0)]))
-    (define (loop24 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr i)
-      (cond
-        [(fx<? i Screen_mco)
-         (st-u32! (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off 4)) (->u32 (ld-s32 (fx+ u8cc (fx* i 4)))))
-         (if (fx=? (ld-s32 (fx+ u8cc (fx* i 4))) 0)
-             (join28 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr)
-             (loop24 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr (i32+ i 1)))]
-        [else
-         (join28 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr)]))
+         (let loop24 ([col col]
+                      [attr attr]
+                      [off off]
+                      [ptr ptr]
+                      [len len]
+                      [max_off max_off]
+                      [mbyte_blen mbyte_blen]
+                      [mbyte_cells mbyte_cells]
+                      [clear_next_cell clear_next_cell]
+                      [force_redraw_next force_redraw_next]
+                      [cell_attr cell_attr]
+                      [i 0])
+           (cond
+             [(fx<? i Screen_mco)
+              (st-u32! (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off 4)) (->u32 (ld-s32 (fx+ u8cc (fx* i 4)))))
+              (if (fx=? (ld-s32 (fx+ u8cc (fx* i 4))) 0)
+                  (join28 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr)
+                  (loop24 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr (i32+ i 1)))]
+             [else
+              (join28 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr)]))]))
     (define (join28 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr)
       (cond
         [(fx=? mbyte_cells 2)
          (st-u8! (fx+ ScreenLines (u32+ off 1)) 0)
          (st-u32! (fx+ ScreenLinesUC (fx* (u32+ off 1) 4)) 0)
-         (loop30 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr 0)]
+         (let loop30 ([col col]
+                      [attr attr]
+                      [off off]
+                      [ptr ptr]
+                      [len len]
+                      [max_off max_off]
+                      [mbyte_blen mbyte_blen]
+                      [mbyte_cells mbyte_cells]
+                      [clear_next_cell clear_next_cell]
+                      [force_redraw_next force_redraw_next]
+                      [cell_attr cell_attr]
+                      [ci 0])
+           (cond
+             [(fx<? ci Screen_mco)
+              (st-u32! (fx+ (ld-ptr (fx+ ScreenLinesC (fx* ci 8))) (fx* (u32+ off 1) 4)) 0)
+              (loop30 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr (i32+ ci 1))]
+             [else
+              (st-u16! (fx+ ScreenAttrs (fx* (u32+ off 1) 2)) (->u16 cell_attr))
+              (st-s32! (fx+ ScreenCols (fx* (u32+ off 1) 4)) -1)
+              (join32 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next)]))]
         [else
-         (join32 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next)]))
-    (define (loop30 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr ci)
-      (cond
-        [(fx<? ci Screen_mco)
-         (st-u32! (fx+ (ld-ptr (fx+ ScreenLinesC (fx* ci 8))) (fx* (u32+ off 1) 4)) 0)
-         (loop30 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next cell_attr (i32+ ci 1))]
-        [else
-         (st-u16! (fx+ ScreenAttrs (fx* (u32+ off 1) 2)) (->u16 cell_attr))
-         (st-s32! (fx+ ScreenCols (fx* (u32+ off 1) 4)) -1)
          (join32 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next)]))
     (define (join32 col attr off ptr len max_off mbyte_blen mbyte_cells clear_next_cell force_redraw_next)
       (screen_char ed off row col)
@@ -42179,27 +43546,37 @@
           (join21 end_row end_col row #f norm_term force_next)))
     (define (join15 end_row end_col row col norm_term force_next)
       (let ([off (->i32 (u32+ (ld-u32 (fx+ LineOffset (fx* row 4))) (->u32 col)))])
-        (loop16 end_row end_col row off (->i32 (u32+ (ld-u32 (fx+ LineOffset (fx* row 4))) (->u32 end_col))) norm_term force_next)))
-    (define (loop16 end_row end_col row off end_off norm_term force_next)
-      (cond
-        [(and (and (and (fx<? off end_off) (fx=? (ld-u8 (fx+ ScreenLines off)) 32)) (fx=? (ld-u16 (fx+ ScreenAttrs (fx* off 2))) 0)) (fx=? (ld-u32 (fx+ ScreenLinesUC (fx* off 4))) 0))
-         (loop16 end_row end_col row (i32+ off 1) end_off norm_term force_next)]
-        [(fx<? off end_off)
-         (let ([col (->i32 (u32- (->u32 off) (ld-u32 (fx+ LineOffset (fx* row 4)))))])
-           (screen_stop_highlight ed)
-           (term_windgoto ed row col)
-           (out_str ed (ld-ptr (fx+ term_strings 8)))
-           (screen_start ed)
-           (loop19 end_row end_col row (i32- end_col col) off norm_term force_next))]
-        [else (join20 end_row end_col row norm_term force_next)]))
-    (define (loop19 end_row end_col row col off norm_term force_next)
-      (let* ([t1 col]
-             [col (i32- col 1)])
-        (cond
-          [(not (fxzero? t1))
-           (space_to_screenline ed off 0)
-           (loop19 end_row end_col row col (i32+ off 1) norm_term force_next)]
-          [else (join20 end_row end_col row norm_term force_next)])))
+        (let loop16 ([end_row end_row]
+                     [end_col end_col]
+                     [row row]
+                     [off off]
+                     [end_off (->i32 (u32+ (ld-u32 (fx+ LineOffset (fx* row 4))) (->u32 end_col)))]
+                     [norm_term norm_term]
+                     [force_next force_next])
+          (cond
+            [(and (and (and (fx<? off end_off) (fx=? (ld-u8 (fx+ ScreenLines off)) 32)) (fx=? (ld-u16 (fx+ ScreenAttrs (fx* off 2))) 0)) (fx=? (ld-u32 (fx+ ScreenLinesUC (fx* off 4))) 0))
+             (loop16 end_row end_col row (i32+ off 1) end_off norm_term force_next)]
+            [(fx<? off end_off)
+             (let ([col (->i32 (u32- (->u32 off) (ld-u32 (fx+ LineOffset (fx* row 4)))))])
+               (screen_stop_highlight ed)
+               (term_windgoto ed row col)
+               (out_str ed (ld-ptr (fx+ term_strings 8)))
+               (screen_start ed)
+               (let loop19 ([end_row end_row]
+                            [end_col end_col]
+                            [row row]
+                            [col (i32- end_col col)]
+                            [off off]
+                            [norm_term norm_term]
+                            [force_next force_next])
+                 (let* ([t1 col]
+                        [col (i32- col 1)])
+                   (cond
+                     [(not (fxzero? t1))
+                      (space_to_screenline ed off 0)
+                      (loop19 end_row end_col row col (i32+ off 1) norm_term force_next)]
+                     [else (join20 end_row end_col row norm_term force_next)]))))]
+            [else (join20 end_row end_col row norm_term force_next)]))))
     (define (join20 end_row end_col row norm_term force_next)
       (join21 end_row end_col row #t norm_term force_next))
     (define (join21 end_row end_col row did_delete norm_term force_next)
@@ -42328,9 +43705,8 @@
 
 (define (clear_TabPageIdxs ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 scol)
-      (when (< scol Columns) (st-s16! (fx+ TabPageIdxs (fx* scol 2)) 0) (loop1 (i32+ scol 1))))
-    (loop1 0)))
+    (let loop1 ([scol 0])
+      (when (< scol Columns) (st-s16! (fx+ TabPageIdxs (fx* scol 2)) 0) (loop1 (i32+ scol 1))))))
 
 (define (screen_valid ed doclear)
   (let ([mem (ed-mem ed)])
@@ -42354,30 +43730,44 @@
            (win_free_lsize ed wp)
            (let ([new_ScreenLines (lalloc ed (u64* 1 (->u64 (i64* (i64+ Rows 1) Columns))) #f)])
              (musl_memset ed new_ScreenLinesC 0 48)
-             (loop4 outofmem new_ScreenLines (lalloc ed (u64* 4 (->u64 (i64* (i64+ Rows 1) Columns))) #f) new_ScreenLines2 retry_count 0)))]))
-    (define (loop4 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 retry_count i)
-      (cond
-        [(< i p_mco)
-         (st-ptr! (fx+ new_ScreenLinesC (fx* i 8)) (lalloc_clear ed (u64* 4 (->u64 (i64* (i64+ Rows 1) Columns))) #f))
-         (loop4 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 retry_count (i32+ i 1))]
-        [else
-         (let* ([new_ScreenAttrs (lalloc ed (u64* 2 (->u64 (i64* (i64+ Rows 1) Columns))) #f)]
-                [new_ScreenCols (lalloc_clear ed (u64* 4 (->u64 (i64* (i64+ Rows 1) Columns))) #f)]
-                [new_LineOffset (lalloc ed (u64* 4 (->u64 Rows)) #f)]
-                [new_LineWraps (lalloc ed (u64* 1 (->u64 Rows)) #f)]
-                [new_TabPageIdxs (lalloc ed (u64* 2 (->u64 Columns)) #f)]
-                [wp curwin])
-           (if (not (win_alloc_lines ed wp))
-               (join7 #t new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)
-               (join7 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)))]))
+             (let loop4 ([outofmem outofmem]
+                         [new_ScreenLines new_ScreenLines]
+                         [new_ScreenLinesUC (lalloc ed (u64* 4 (->u64 (i64* (i64+ Rows 1) Columns))) #f)]
+                         [new_ScreenLines2 new_ScreenLines2]
+                         [retry_count retry_count]
+                         [i 0])
+               (cond
+                 [(< i p_mco)
+                  (st-ptr! (fx+ new_ScreenLinesC (fx* i 8)) (lalloc_clear ed (u64* 4 (->u64 (i64* (i64+ Rows 1) Columns))) #f))
+                  (loop4 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 retry_count (i32+ i 1))]
+                 [else
+                  (let* ([new_ScreenAttrs (lalloc ed (u64* 2 (->u64 (i64* (i64+ Rows 1) Columns))) #f)]
+                         [new_ScreenCols (lalloc_clear ed (u64* 4 (->u64 (i64* (i64+ Rows 1) Columns))) #f)]
+                         [new_LineOffset (lalloc ed (u64* 4 (->u64 Rows)) #f)]
+                         [new_LineWraps (lalloc ed (u64* 1 (->u64 Rows)) #f)]
+                         [new_TabPageIdxs (lalloc ed (u64* 2 (->u64 Columns)) #f)]
+                         [wp curwin])
+                    (if (not (win_alloc_lines ed wp))
+                        (join7 #t new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)
+                        (join7 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)))]))))]))
     (define (join7 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)
-      (loop8 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count #f 0))
-    (define (loop8 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count found_null i_2)
-      (if (< i_2 p_mco)
-          (if (fx=? (ld-ptr (fx+ new_ScreenLinesC (fx* i_2 8))) 0)
-              (join12 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count #t)
-              (loop8 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count found_null (i32+ i_2 1)))
-          (join12 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count found_null)))
+      (let loop8 ([outofmem outofmem]
+                  [new_ScreenLines new_ScreenLines]
+                  [new_ScreenLinesUC new_ScreenLinesUC]
+                  [new_ScreenLines2 new_ScreenLines2]
+                  [new_ScreenAttrs new_ScreenAttrs]
+                  [new_ScreenCols new_ScreenCols]
+                  [new_LineOffset new_LineOffset]
+                  [new_LineWraps new_LineWraps]
+                  [new_TabPageIdxs new_TabPageIdxs]
+                  [retry_count retry_count]
+                  [found_null #f]
+                  [i_2 0])
+        (if (< i_2 p_mco)
+            (if (fx=? (ld-ptr (fx+ new_ScreenLinesC (fx* i_2 8))) 0)
+                (join12 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count #t)
+                (loop8 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count found_null (i32+ i_2 1)))
+            (join12 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count found_null))))
     (define (join12 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count found_null)
       (cond
         [(or (or (or (or (or (or (or (fx=? new_ScreenLines 0) (or (fx=? new_ScreenLinesUC 0) found_null)) (fx=? new_ScreenAttrs 0)) (fx=? new_ScreenCols 0)) (fx=? new_LineOffset 0)) (fx=? new_LineWraps 0)) (fx=? new_TabPageIdxs 0)) outofmem)
@@ -42397,26 +43787,36 @@
          (st-u8! (fx+ new_LineWraps new_row) 0)
          (musl_memset ed (fx+ new_ScreenLines (i64* new_row Columns)) 32 (u64* (->u64 Columns) 1))
          (musl_memset ed (fx+ new_ScreenLinesUC (fx* (i64* new_row Columns) 4)) 0 (u64* (->u64 Columns) 4))
-         (loop17 new_row outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count 0)]
+         (let loop17 ([new_row new_row]
+                      [outofmem outofmem]
+                      [new_ScreenLines new_ScreenLines]
+                      [new_ScreenLinesUC new_ScreenLinesUC]
+                      [new_ScreenLines2 new_ScreenLines2]
+                      [new_ScreenAttrs new_ScreenAttrs]
+                      [new_ScreenCols new_ScreenCols]
+                      [new_LineOffset new_LineOffset]
+                      [new_LineWraps new_LineWraps]
+                      [new_TabPageIdxs new_TabPageIdxs]
+                      [retry_count retry_count]
+                      [i_4 0])
+           (cond
+             [(< i_4 p_mco)
+              (musl_memset ed (fx+ (ld-ptr (fx+ new_ScreenLinesC (fx* i_4 8))) (fx* (i64* new_row Columns) 4)) 0 (u64* (->u64 Columns) 4))
+              (loop17 new_row outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count (i32+ i_4 1))]
+             [else
+              (musl_memset ed (fx+ new_ScreenAttrs (fx* (i64* new_row Columns) 2)) 0 (u64* (->u64 Columns) 2))
+              (musl_memset ed (fx+ new_ScreenCols (fx* (i64* new_row Columns) 4)) 0 (u64* (->u64 Columns) 4))
+              (if (not doclear)
+                  (let ([old_row (->i32 (i64+ new_row (i64- screen_Rows Rows)))])
+                    (if (and (fx>=? old_row 0) (not (fx=? ScreenLines 0)))
+                        (if (< screen_Columns Columns)
+                            (join23 new_row old_row outofmem screen_Columns new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)
+                            (join23 new_row old_row outofmem (->i32 Columns) new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count))
+                        (join29 new_row outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)))
+                  (join29 new_row outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count))]))]
         [else
          (set! current_ScreenLine (fx+ new_ScreenLines (i64* Rows Columns)))
          (join39 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)]))
-    (define (loop17 new_row outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count i_4)
-      (cond
-        [(< i_4 p_mco)
-         (musl_memset ed (fx+ (ld-ptr (fx+ new_ScreenLinesC (fx* i_4 8))) (fx* (i64* new_row Columns) 4)) 0 (u64* (->u64 Columns) 4))
-         (loop17 new_row outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count (i32+ i_4 1))]
-        [else
-         (musl_memset ed (fx+ new_ScreenAttrs (fx* (i64* new_row Columns) 2)) 0 (u64* (->u64 Columns) 2))
-         (musl_memset ed (fx+ new_ScreenCols (fx* (i64* new_row Columns) 4)) 0 (u64* (->u64 Columns) 4))
-         (if (not doclear)
-             (let ([old_row (->i32 (i64+ new_row (i64- screen_Rows Rows)))])
-               (if (and (fx>=? old_row 0) (not (fx=? ScreenLines 0)))
-                   (if (< screen_Columns Columns)
-                       (join23 new_row old_row outofmem screen_Columns new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)
-                       (join23 new_row old_row outofmem (->i32 Columns) new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count))
-                   (join29 new_row outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)))
-             (join29 new_row outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count))]))
     (define (join23 new_row old_row outofmem len new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)
       (cond
         [(and (not (fx=? ScreenLinesUC 0)) (= p_mco Screen_mco))
@@ -42428,14 +43828,26 @@
       (cond
         [(and (not (fx=? ScreenLinesUC 0)) (= p_mco Screen_mco))
          (musl_memmove ed (fx+ new_ScreenLinesUC (fx* (ld-u32 (fx+ new_LineOffset (fx* new_row 4))) 4)) (fx+ ScreenLinesUC (fx* (ld-u32 (fx+ LineOffset (fx* old_row 4))) 4)) (u64* (->u64 len) 4))
-         (loop27 new_row old_row outofmem len new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count 0)]
-        [else
-         (join28 new_row old_row outofmem len new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)]))
-    (define (loop27 new_row old_row outofmem len new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count i_5)
-      (cond
-        [(< i_5 p_mco)
-         (musl_memmove ed (fx+ (ld-ptr (fx+ new_ScreenLinesC (fx* i_5 8))) (fx* (ld-u32 (fx+ new_LineOffset (fx* new_row 4))) 4)) (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i_5 8))) (fx* (ld-u32 (fx+ LineOffset (fx* old_row 4))) 4)) (u64* (->u64 len) 4))
-         (loop27 new_row old_row outofmem len new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count (i32+ i_5 1))]
+         (let loop27 ([new_row new_row]
+                      [old_row old_row]
+                      [outofmem outofmem]
+                      [len len]
+                      [new_ScreenLines new_ScreenLines]
+                      [new_ScreenLinesUC new_ScreenLinesUC]
+                      [new_ScreenLines2 new_ScreenLines2]
+                      [new_ScreenAttrs new_ScreenAttrs]
+                      [new_ScreenCols new_ScreenCols]
+                      [new_LineOffset new_LineOffset]
+                      [new_LineWraps new_LineWraps]
+                      [new_TabPageIdxs new_TabPageIdxs]
+                      [retry_count retry_count]
+                      [i_5 0])
+           (cond
+             [(< i_5 p_mco)
+              (musl_memmove ed (fx+ (ld-ptr (fx+ new_ScreenLinesC (fx* i_5 8))) (fx* (ld-u32 (fx+ new_LineOffset (fx* new_row 4))) 4)) (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i_5 8))) (fx* (ld-u32 (fx+ LineOffset (fx* old_row 4))) 4)) (u64* (->u64 len) 4))
+              (loop27 new_row old_row outofmem len new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count (i32+ i_5 1))]
+             [else
+              (join28 new_row old_row outofmem len new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)]))]
         [else
          (join28 new_row old_row outofmem len new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)]))
     (define (join28 new_row old_row outofmem len new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)
@@ -42445,37 +43857,47 @@
     (define (join29 new_row outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)
       (loop14 (i32+ new_row 1) outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count))
     (define (join36 outofmem retry_count)
-      (loop37 outofmem 0 0 retry_count 0))
-    (define (loop37 outofmem new_ScreenLines new_ScreenLinesUC retry_count i_3)
-      (cond
-        [(< i_3 p_mco)
-         (st-ptr! (fx+ new_ScreenLinesC (fx* i_3 8)) 0)
-         (loop37 outofmem new_ScreenLines new_ScreenLinesUC retry_count (i32+ i_3 1))]
-        [else (join39 outofmem new_ScreenLines new_ScreenLinesUC 0 0 0 0 0 0 retry_count)]))
+      (let loop37 ([outofmem outofmem]
+                   [new_ScreenLines 0]
+                   [new_ScreenLinesUC 0]
+                   [retry_count retry_count]
+                   [i_3 0])
+        (cond
+          [(< i_3 p_mco)
+           (st-ptr! (fx+ new_ScreenLinesC (fx* i_3 8)) 0)
+           (loop37 outofmem new_ScreenLines new_ScreenLinesUC retry_count (i32+ i_3 1))]
+          [else (join39 outofmem new_ScreenLines new_ScreenLinesUC 0 0 0 0 0 0 retry_count)])))
     (define (join39 outofmem new_ScreenLines new_ScreenLinesUC new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count)
       (free_screenlines ed)
       (set! ScreenLines new_ScreenLines)
       (set! ScreenLinesUC new_ScreenLinesUC)
-      (loop40 outofmem new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count 0))
-    (define (loop40 outofmem new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count i_6)
-      (cond
-        [(< i_6 p_mco)
-         (st-ptr! (fx+ ScreenLinesC (fx* i_6 8)) (ld-ptr (fx+ new_ScreenLinesC (fx* i_6 8))))
-         (loop40 outofmem new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count (i32+ i_6 1))]
-        [else
-         (set! Screen_mco (->i32 p_mco))
-         (set! ScreenLines2 new_ScreenLines2)
-         (set! ScreenAttrs new_ScreenAttrs)
-         (set! ScreenCols new_ScreenCols)
-         (set! LineOffset new_LineOffset)
-         (set! LineWraps new_LineWraps)
-         (set! TabPageIdxs new_TabPageIdxs)
-         (set! screen_Rows (->i32 Rows))
-         (set! screen_Columns (->i32 Columns))
-         (set_must_redraw ed 50)
-         (cond
-           [doclear (screenclear2 ed #t) (join43 outofmem new_ScreenLines2 retry_count)]
-           [else (join43 outofmem new_ScreenLines2 retry_count)])]))
+      (let loop40 ([outofmem outofmem]
+                   [new_ScreenLines2 new_ScreenLines2]
+                   [new_ScreenAttrs new_ScreenAttrs]
+                   [new_ScreenCols new_ScreenCols]
+                   [new_LineOffset new_LineOffset]
+                   [new_LineWraps new_LineWraps]
+                   [new_TabPageIdxs new_TabPageIdxs]
+                   [retry_count retry_count]
+                   [i_6 0])
+        (cond
+          [(< i_6 p_mco)
+           (st-ptr! (fx+ ScreenLinesC (fx* i_6 8)) (ld-ptr (fx+ new_ScreenLinesC (fx* i_6 8))))
+           (loop40 outofmem new_ScreenLines2 new_ScreenAttrs new_ScreenCols new_LineOffset new_LineWraps new_TabPageIdxs retry_count (i32+ i_6 1))]
+          [else
+           (set! Screen_mco (->i32 p_mco))
+           (set! ScreenLines2 new_ScreenLines2)
+           (set! ScreenAttrs new_ScreenAttrs)
+           (set! ScreenCols new_ScreenCols)
+           (set! LineOffset new_LineOffset)
+           (set! LineWraps new_LineWraps)
+           (set! TabPageIdxs new_TabPageIdxs)
+           (set! screen_Rows (->i32 Rows))
+           (set! screen_Columns (->i32 Columns))
+           (set_must_redraw ed 50)
+           (cond
+             [doclear (screenclear2 ed #t) (join43 outofmem new_ScreenLines2 retry_count)]
+             [else (join43 outofmem new_ScreenLines2 retry_count)])])))
     (define (join43 outofmem new_ScreenLines2 retry_count)
       (clear_TabPageIdxs ed)
       (set! screenalloc:entered #f)
@@ -42496,7 +43918,8 @@
 
 (define (free_screenlines ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (set! ScreenLinesUC 0)
+    (let loop1 ([i 0])
       (cond
         [(fx<? i Screen_mco) (st-ptr! (fx+ ScreenLinesC (fx* i 8)) 0) (loop1 (i32+ i 1))]
         [else
@@ -42506,9 +43929,7 @@
          (set! ScreenCols 0)
          (set! LineOffset 0)
          (set! LineWraps 0)
-         (set! TabPageIdxs 0)]))
-    (set! ScreenLinesUC 0)
-    (loop1 0)))
+         (set! TabPageIdxs 0)]))))
 
 (define (screenclear ed)
   (check_for_delay ed #f)
@@ -42520,24 +43941,6 @@
 
 (define (screenclear2 ed doclear)
   (let ([mem (ed-mem ed)])
-    (define (loop2 i did_clear)
-      (cond
-        [(< i Rows)
-         (lineclear ed (ld-u32 (fx+ LineOffset (fx* i 4))) (->i32 Columns) 0)
-         (st-u8! (fx+ LineWraps i) 0)
-         (loop2 (i32+ i 1) did_clear)]
-        [(and doclear (can_clear ed (ld-ptr (fx+ term_strings 56))))
-         (out_str ed (ld-ptr (fx+ term_strings 56)))
-         (set! clear_cmdline #f)
-         (set! mode_displayed #f)
-         (join10 #t)]
-        [else (loop5 0 did_clear)]))
-    (define (loop5 i did_clear)
-      (cond
-        [(< i Rows)
-         (lineinvalid ed (ld-u32 (fx+ LineOffset (fx* i 4))) (->i32 Columns))
-         (loop5 (i32+ i 1) did_clear)]
-        [else (set! clear_cmdline #t) (join10 did_clear)]))
     (define (join10 did_clear)
       (set! screen_cleared 1)
       (win_rest_invalid ed curwin)
@@ -42557,7 +43960,25 @@
       did_clear)
     (cond
       [(or (fx=? starting 2) (fx=? ScreenLines 0)) #f]
-      [else (set! screen_attr -1) (screen_stop_highlight ed) (loop2 0 #f)])))
+      [else (set! screen_attr -1) (screen_stop_highlight ed) (let loop2 ([i 0]
+                                                                         [did_clear #f])
+                                                               (cond
+                                                                 [(< i Rows)
+                                                                  (lineclear ed (ld-u32 (fx+ LineOffset (fx* i 4))) (->i32 Columns) 0)
+                                                                  (st-u8! (fx+ LineWraps i) 0)
+                                                                  (loop2 (i32+ i 1) did_clear)]
+                                                                 [(and doclear (can_clear ed (ld-ptr (fx+ term_strings 56))))
+                                                                  (out_str ed (ld-ptr (fx+ term_strings 56)))
+                                                                  (set! clear_cmdline #f)
+                                                                  (set! mode_displayed #f)
+                                                                  (join10 #t)]
+                                                                 [else (let loop5 ([i 0]
+                                                                                   [did_clear did_clear])
+                                                                         (cond
+                                                                           [(< i Rows)
+                                                                            (lineinvalid ed (ld-u32 (fx+ LineOffset (fx* i 4))) (->i32 Columns))
+                                                                            (loop5 (i32+ i 1) did_clear)]
+                                                                           [else (set! clear_cmdline #t) (join10 did_clear)]))]))])))
 
 (define (lineclear ed off width attr)
   (let ([mem (ed-mem ed)])
@@ -42573,19 +43994,20 @@
 
 (define (linecopy ed to from wp)
   (let ([mem (ed-mem ed)])
-    (define (loop1 off_to off_from i)
-      (cond
-        [(< i p_mco)
-         (musl_memmove ed (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_to 4)) (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_from 4)) (u64* (->u64 (win_T.w_width wp)) 4))
-         (loop1 off_to off_from (i32+ i 1))]
-        [else
-         (musl_memmove ed (fx+ ScreenAttrs (fx* off_to 2)) (fx+ ScreenAttrs (fx* off_from 2)) (u64* (->u64 (win_T.w_width wp)) 2))
-         (musl_memmove ed (fx+ ScreenCols (fx* off_to 4)) (fx+ ScreenCols (fx* off_from 4)) (u64* (->u64 (win_T.w_width wp)) 4))]))
     (let* ([off_to (u32+ (ld-u32 (fx+ LineOffset (fx* to 4))) (->u32 (win_T.w_wincol wp)))]
            [off_from (u32+ (ld-u32 (fx+ LineOffset (fx* from 4))) (->u32 (win_T.w_wincol wp)))])
       (musl_memmove ed (fx+ ScreenLines off_to) (fx+ ScreenLines off_from) (u64* (->u64 (win_T.w_width wp)) 1))
       (musl_memmove ed (fx+ ScreenLinesUC (fx* off_to 4)) (fx+ ScreenLinesUC (fx* off_from 4)) (u64* (->u64 (win_T.w_width wp)) 4))
-      (loop1 off_to off_from 0))))
+      (let loop1 ([off_to off_to]
+                  [off_from off_from]
+                  [i 0])
+        (cond
+          [(< i p_mco)
+           (musl_memmove ed (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_to 4)) (fx+ (ld-ptr (fx+ ScreenLinesC (fx* i 8))) (fx* off_from 4)) (u64* (->u64 (win_T.w_width wp)) 4))
+           (loop1 off_to off_from (i32+ i 1))]
+          [else
+           (musl_memmove ed (fx+ ScreenAttrs (fx* off_to 2)) (fx+ ScreenAttrs (fx* off_from 2)) (u64* (->u64 (win_T.w_width wp)) 2))
+           (musl_memmove ed (fx+ ScreenCols (fx* off_to 4)) (fx+ ScreenCols (fx* off_from 4)) (u64* (->u64 (win_T.w_width wp)) 4))])))))
 
 (define (can_clear ed p)
   (let ([mem (ed-mem ed)])
@@ -42672,13 +44094,19 @@
           (join44 row col plan 999 wouldbe_col noinvcurs bs goto_cost)
           (join44 row col plan cost wouldbe_col noinvcurs bs goto_cost)))
     (define (join44 row col plan cost wouldbe_col noinvcurs bs goto_cost)
-      (loop45 row col wouldbe_col plan cost noinvcurs bs goto_cost))
-    (define (loop45 row col i plan cost noinvcurs bs goto_cost)
-      (if (fx<? i col)
-          (if (not (fx=? (ld-u32 (fx+ ScreenLinesUC (fx* (u32+ (ld-u32 (fx+ LineOffset (fx* row 4))) (->u32 i)) 4))) 0))
-              (join49 row col plan 999 noinvcurs bs goto_cost)
-              (loop45 row col (i32+ i 1) plan cost noinvcurs bs goto_cost))
-          (join49 row col plan cost noinvcurs bs goto_cost)))
+      (let loop45 ([row row]
+                   [col col]
+                   [i wouldbe_col]
+                   [plan plan]
+                   [cost cost]
+                   [noinvcurs noinvcurs]
+                   [bs bs]
+                   [goto_cost goto_cost])
+        (if (fx<? i col)
+            (if (not (fx=? (ld-u32 (fx+ ScreenLinesUC (fx* (u32+ (ld-u32 (fx+ LineOffset (fx* row 4))) (->u32 i)) 4))) 0))
+                (join49 row col plan 999 noinvcurs bs goto_cost)
+                (loop45 row col (i32+ i 1) plan cost noinvcurs bs goto_cost))
+            (join49 row col plan cost noinvcurs bs goto_cost))))
     (define (join49 row col plan cost noinvcurs bs goto_cost)
       (if (fx<? cost goto_cost)
           (cond
@@ -42718,7 +44146,19 @@
       (let ([i (i32- col screen_cur_col)])
         (if (fx>? i 0)
             (if (and (not (fx=? (ld-u8 (ld-ptr (fx+ term_strings 472))) 0)) (fx=? (ld-u8 (fx+ (ld-ptr (fx+ term_strings 472)) 1)) 0))
-                (loop74 row col i cost noinvcurs goto_cost)
+                (let loop74 ([row row]
+                             [col col]
+                             [i i]
+                             [cost cost]
+                             [noinvcurs noinvcurs]
+                             [goto_cost goto_cost])
+                  (let* ([t5 i]
+                         [i (i32- i 1)])
+                    (cond
+                      [(fx>? t5 0)
+                       (out_char ed (ld-u8 (ld-ptr (fx+ term_strings 472))))
+                       (loop74 row col i cost noinvcurs goto_cost)]
+                      [else (join75 row col cost noinvcurs goto_cost)])))
                 (loop69 row col i cost noinvcurs goto_cost (->i32 (u32+ (ld-u32 (fx+ LineOffset (fx* row 4))) (->u32 screen_cur_col)))))
             (join75 row col cost noinvcurs goto_cost))))
     (define (loop69 row col i cost noinvcurs goto_cost off)
@@ -42734,14 +44174,6 @@
     (define (join72 row col i cost noinvcurs goto_cost off)
       (out_char ed (ld-u8 (fx+ ScreenLines off)))
       (loop69 row col i cost noinvcurs goto_cost (i32+ off 1)))
-    (define (loop74 row col i cost noinvcurs goto_cost)
-      (let* ([t5 i]
-             [i (i32- i 1)])
-        (cond
-          [(fx>? t5 0)
-           (out_char ed (ld-u8 (ld-ptr (fx+ term_strings 472))))
-           (loop74 row col i cost noinvcurs goto_cost)]
-          [else (join75 row col cost noinvcurs goto_cost)])))
     (define (join75 row col cost noinvcurs goto_cost)
       (if (fx>=? cost goto_cost)
           (cond
@@ -42896,9 +44328,50 @@
       (cond
         [(fx<? i line_count)
          (if (and (not (fx=? wp 0)) (not (fx=? (win_T.w_width wp) (frame_T.fr_width topframe))))
-             (loop58 row end i (i32- (i32- end 1) i) cursor_row cursor_col type)
+             (let loop58 ([row row]
+                          [end end]
+                          [i i]
+                          [j (i32- (i32- end 1) i)]
+                          [cursor_row cursor_row]
+                          [cursor_col cursor_col]
+                          [type type])
+               (let ([j (i32- j line_count)])
+                 (cond
+                   [(fx>=? j row)
+                    (linecopy ed (i32+ j line_count) j wp)
+                    (loop58 row end i j cursor_row cursor_col type)]
+                   [else
+                    (let ([j (i32+ j line_count)])
+                      (cond
+                        [(can_clear ed (c-str 162293 " "))
+                         (lineclear ed (u32+ (ld-u32 (fx+ LineOffset (fx* j 4))) (->u32 (win_T.w_wincol wp))) (win_T.w_width wp) clear_attr)
+                         (join62 row end i j cursor_row cursor_col type)]
+                        [else
+                         (lineinvalid ed (u32+ (ld-u32 (fx+ LineOffset (fx* j 4))) (->u32 (win_T.w_wincol wp))) (win_T.w_width wp))
+                         (join62 row end i j cursor_row cursor_col type)]))])))
              (let ([j (i32- (i32- end 1) i)])
-               (loop52 row end i j (ld-u32 (fx+ LineOffset (fx* j 4))) cursor_row cursor_col type)))]
+               (let loop52 ([row row]
+                            [end end]
+                            [i i]
+                            [j j]
+                            [temp (ld-u32 (fx+ LineOffset (fx* j 4)))]
+                            [cursor_row cursor_row]
+                            [cursor_col cursor_col]
+                            [type type])
+                 (let ([j (i32- j line_count)])
+                   (cond
+                     [(fx>=? j row)
+                      (st-u32! (fx+ LineOffset (fx* (i32+ j line_count) 4)) (ld-u32 (fx+ LineOffset (fx* j 4))))
+                      (st-u8! (fx+ LineWraps (i32+ j line_count)) (ld-u8 (fx+ LineWraps j)))
+                      (loop52 row end i j temp cursor_row cursor_col type)]
+                     [else
+                      (st-u32! (fx+ LineOffset (fx* (i32+ j line_count) 4)) temp)
+                      (st-u8! (fx+ LineWraps (i32+ j line_count)) 0)
+                      (cond
+                        [(can_clear ed (c-str 162293 " "))
+                         (lineclear ed temp (->i32 Columns) clear_attr)
+                         (join63 row end i cursor_row cursor_col type)]
+                        [else (lineinvalid ed temp (->i32 Columns)) (join63 row end i cursor_row cursor_col type)])])))))]
         [else
          (screen_stop_highlight ed)
          (windgoto ed cursor_row cursor_col)
@@ -42931,46 +44404,16 @@
       (loop34 (i32+ i 1) cursor_row cursor_col type))
     (define (join44 cursor_col type)
       (if (and (fx=? type 6) (not (fxzero? (ld-u8 (ld-ptr (fx+ term_strings 80))))))
-          (loop46 0 cursor_col)
+          (let loop46 ([i 0]
+                       [cursor_col cursor_col])
+            (cond
+              [(fx<? i line_count)
+               (windgoto ed (i32+ off i) cursor_col)
+               (out_str ed (ld-ptr (fx+ term_strings 8)))
+               (screen_start ed)
+               (loop46 (i32+ i 1) cursor_col)]
+              [else #t]))
           #t))
-    (define (loop46 i cursor_col)
-      (cond
-        [(fx<? i line_count)
-         (windgoto ed (i32+ off i) cursor_col)
-         (out_str ed (ld-ptr (fx+ term_strings 8)))
-         (screen_start ed)
-         (loop46 (i32+ i 1) cursor_col)]
-        [else #t]))
-    (define (loop52 row end i j temp cursor_row cursor_col type)
-      (let ([j (i32- j line_count)])
-        (cond
-          [(fx>=? j row)
-           (st-u32! (fx+ LineOffset (fx* (i32+ j line_count) 4)) (ld-u32 (fx+ LineOffset (fx* j 4))))
-           (st-u8! (fx+ LineWraps (i32+ j line_count)) (ld-u8 (fx+ LineWraps j)))
-           (loop52 row end i j temp cursor_row cursor_col type)]
-          [else
-           (st-u32! (fx+ LineOffset (fx* (i32+ j line_count) 4)) temp)
-           (st-u8! (fx+ LineWraps (i32+ j line_count)) 0)
-           (cond
-             [(can_clear ed (c-str 162293 " "))
-              (lineclear ed temp (->i32 Columns) clear_attr)
-              (join63 row end i cursor_row cursor_col type)]
-             [else (lineinvalid ed temp (->i32 Columns)) (join63 row end i cursor_row cursor_col type)])])))
-    (define (loop58 row end i j cursor_row cursor_col type)
-      (let ([j (i32- j line_count)])
-        (cond
-          [(fx>=? j row)
-           (linecopy ed (i32+ j line_count) j wp)
-           (loop58 row end i j cursor_row cursor_col type)]
-          [else
-           (let ([j (i32+ j line_count)])
-             (cond
-               [(can_clear ed (c-str 162293 " "))
-                (lineclear ed (u32+ (ld-u32 (fx+ LineOffset (fx* j 4))) (->u32 (win_T.w_wincol wp))) (win_T.w_width wp) clear_attr)
-                (join62 row end i j cursor_row cursor_col type)]
-               [else
-                (lineinvalid ed (u32+ (ld-u32 (fx+ LineOffset (fx* j 4))) (->u32 (win_T.w_wincol wp))) (win_T.w_width wp))
-                (join62 row end i j cursor_row cursor_col type)]))])))
     (define (join62 row end i j cursor_row cursor_col type)
       (st-u8! (fx+ LineWraps j) 0)
       (join63 row end i cursor_row cursor_col type))
@@ -43011,9 +44454,54 @@
       (cond
         [(fx<? i line_count)
          (if (and (not (fx=? wp 0)) (not (fx=? (win_T.w_width wp) (frame_T.fr_width topframe))))
-             (loop60 row end (i32+ row i) i cursor_row cursor_col cursor_end type)
+             (let loop60 ([row row]
+                          [end end]
+                          [j (i32+ row i)]
+                          [i i]
+                          [cursor_row cursor_row]
+                          [cursor_col cursor_col]
+                          [cursor_end cursor_end]
+                          [type type])
+               (let ([j (i32+ j line_count)])
+                 (cond
+                   [(fx<=? j (i32- end 1))
+                    (linecopy ed (i32- j line_count) j wp)
+                    (loop60 row end j i cursor_row cursor_col cursor_end type)]
+                   [else
+                    (let ([j (i32- j line_count)])
+                      (cond
+                        [(can_clear ed (c-str 162293 " "))
+                         (lineclear ed (u32+ (ld-u32 (fx+ LineOffset (fx* j 4))) (->u32 (win_T.w_wincol wp))) (win_T.w_width wp) clear_attr)
+                         (join64 row end j i cursor_row cursor_col cursor_end type)]
+                        [else
+                         (lineinvalid ed (u32+ (ld-u32 (fx+ LineOffset (fx* j 4))) (->u32 (win_T.w_wincol wp))) (win_T.w_width wp))
+                         (join64 row end j i cursor_row cursor_col cursor_end type)]))])))
              (let ([j (i32+ row i)])
-               (loop54 row end j i (ld-u32 (fx+ LineOffset (fx* j 4))) cursor_row cursor_col cursor_end type)))]
+               (let loop54 ([row row]
+                            [end end]
+                            [j j]
+                            [i i]
+                            [temp (ld-u32 (fx+ LineOffset (fx* j 4)))]
+                            [cursor_row cursor_row]
+                            [cursor_col cursor_col]
+                            [cursor_end cursor_end]
+                            [type type])
+                 (let ([j (i32+ j line_count)])
+                   (cond
+                     [(fx<=? j (i32- end 1))
+                      (st-u32! (fx+ LineOffset (fx* (i32- j line_count) 4)) (ld-u32 (fx+ LineOffset (fx* j 4))))
+                      (st-u8! (fx+ LineWraps (i32- j line_count)) (ld-u8 (fx+ LineWraps j)))
+                      (loop54 row end j i temp cursor_row cursor_col cursor_end type)]
+                     [else
+                      (st-u32! (fx+ LineOffset (fx* (i32- j line_count) 4)) temp)
+                      (st-u8! (fx+ LineWraps (i32- j line_count)) 0)
+                      (cond
+                        [(can_clear ed (c-str 162293 " "))
+                         (lineclear ed temp (->i32 Columns) clear_attr)
+                         (join65 row end i cursor_row cursor_col cursor_end type)]
+                        [else
+                         (lineinvalid ed temp (->i32 Columns))
+                         (join65 row end i cursor_row cursor_col cursor_end type)])])))))]
         [(not (fx=? screen_attr clear_attr))
          (screen_stop_highlight ed)
          (join26 row end cursor_row cursor_col cursor_end type)]
@@ -43039,7 +44527,14 @@
          (join46 cursor_col cursor_end type)]
         [(fx=? type 7)
          (windgoto ed (i32- cursor_end 1) cursor_col)
-         (loop40 line_count cursor_col cursor_end type)]
+         (let loop40 ([i line_count]
+                      [cursor_col cursor_col]
+                      [cursor_end cursor_end]
+                      [type type])
+           (let ([i (i32- i 1)])
+             (cond
+               [(fx>=? i 0) (out_char ed 10) (loop40 i cursor_col cursor_end type)]
+               [else (join46 cursor_col cursor_end type)])))]
         [else (loop33 line_count cursor_row cursor_col cursor_end type)]))
     (define (loop33 i cursor_row cursor_col cursor_end type)
       (let ([i (i32- i 1)])
@@ -43057,55 +44552,19 @@
     (define (join37 i cursor_row cursor_col cursor_end type)
       (screen_start ed)
       (loop33 i cursor_row cursor_col cursor_end type))
-    (define (loop40 i cursor_col cursor_end type)
-      (let ([i (i32- i 1)])
-        (cond
-          [(fx>=? i 0) (out_char ed 10) (loop40 i cursor_col cursor_end type)]
-          [else (join46 cursor_col cursor_end type)])))
     (define (join46 cursor_col cursor_end type)
       (if (and (not (fxzero? (ld-u8 (ld-ptr (fx+ term_strings 88))))) (or (fx=? type 5) (fx=? type 2)))
-          (loop48 line_count cursor_col cursor_end)
+          (let loop48 ([i line_count]
+                       [cursor_col cursor_col]
+                       [cursor_end cursor_end])
+            (cond
+              [(fx>? i 0)
+               (windgoto ed (i32- cursor_end i) cursor_col)
+               (out_str ed (ld-ptr (fx+ term_strings 8)))
+               (screen_start ed)
+               (loop48 (i32- i 1) cursor_col cursor_end)]
+              [else #t]))
           #t))
-    (define (loop48 i cursor_col cursor_end)
-      (cond
-        [(fx>? i 0)
-         (windgoto ed (i32- cursor_end i) cursor_col)
-         (out_str ed (ld-ptr (fx+ term_strings 8)))
-         (screen_start ed)
-         (loop48 (i32- i 1) cursor_col cursor_end)]
-        [else #t]))
-    (define (loop54 row end j i temp cursor_row cursor_col cursor_end type)
-      (let ([j (i32+ j line_count)])
-        (cond
-          [(fx<=? j (i32- end 1))
-           (st-u32! (fx+ LineOffset (fx* (i32- j line_count) 4)) (ld-u32 (fx+ LineOffset (fx* j 4))))
-           (st-u8! (fx+ LineWraps (i32- j line_count)) (ld-u8 (fx+ LineWraps j)))
-           (loop54 row end j i temp cursor_row cursor_col cursor_end type)]
-          [else
-           (st-u32! (fx+ LineOffset (fx* (i32- j line_count) 4)) temp)
-           (st-u8! (fx+ LineWraps (i32- j line_count)) 0)
-           (cond
-             [(can_clear ed (c-str 162293 " "))
-              (lineclear ed temp (->i32 Columns) clear_attr)
-              (join65 row end i cursor_row cursor_col cursor_end type)]
-             [else
-              (lineinvalid ed temp (->i32 Columns))
-              (join65 row end i cursor_row cursor_col cursor_end type)])])))
-    (define (loop60 row end j i cursor_row cursor_col cursor_end type)
-      (let ([j (i32+ j line_count)])
-        (cond
-          [(fx<=? j (i32- end 1))
-           (linecopy ed (i32- j line_count) j wp)
-           (loop60 row end j i cursor_row cursor_col cursor_end type)]
-          [else
-           (let ([j (i32- j line_count)])
-             (cond
-               [(can_clear ed (c-str 162293 " "))
-                (lineclear ed (u32+ (ld-u32 (fx+ LineOffset (fx* j 4))) (->u32 (win_T.w_wincol wp))) (win_T.w_width wp) clear_attr)
-                (join64 row end j i cursor_row cursor_col cursor_end type)]
-               [else
-                (lineinvalid ed (u32+ (ld-u32 (fx+ LineOffset (fx* j 4))) (->u32 (win_T.w_wincol wp))) (win_T.w_width wp))
-                (join64 row end j i cursor_row cursor_col cursor_end type)]))])))
     (define (join64 row end j i cursor_row cursor_col cursor_end type)
       (st-u8! (fx+ LineWraps j) 0)
       (join65 row end i cursor_row cursor_col cursor_end type))
@@ -43400,16 +44859,16 @@
 
 (define (get_encoded_char_adv ed p)
   (let ([mem (ed-mem ed)])
-    (define (loop3 num bytes)
-      (cond
-        [(fx>? bytes 0)
-         (st-ptr! p (fx+ (ld-ptr p) 2))
-         (let ([n (hexhex2nr ed (ld-ptr p))])
-           (if (fx<? n 0) 0 (loop3 (i64+ (i64* num 256) n) (i32- bytes 1))))]
-        [else (st-ptr! p (fx+ (ld-ptr p) 2)) (->i32 num)]))
     (let ([s (ld-ptr p)])
       (if (and (fx=? (ld-u8 s) 92) (or (or (fx=? (ld-u8 (fx+ s 1)) 120) (fx=? (ld-u8 (fx+ s 1)) 117)) (fx=? (ld-u8 (fx+ s 1)) 85)))
-          (loop3 0 (if (fx=? (ld-u8 (fx+ s 1)) 120) 1 (if (fx=? (ld-u8 (fx+ s 1)) 117) 2 4)))
+          (let loop3 ([num 0]
+                      [bytes (if (fx=? (ld-u8 (fx+ s 1)) 120) 1 (if (fx=? (ld-u8 (fx+ s 1)) 117) 2 4))])
+            (cond
+              [(fx>? bytes 0)
+               (st-ptr! p (fx+ (ld-ptr p) 2))
+               (let ([n (hexhex2nr ed (ld-ptr p))])
+                 (if (fx<? n 0) 0 (loop3 (i64+ (i64* num 256) n) (i32- bytes 1))))]
+              [else (st-ptr! p (fx+ (ld-ptr p) 2)) (->i32 num)]))
           (mb_ptr2char_adv ed p)))))
 
 (define (field_value_err ed errbuf errbuflen fmt field)
@@ -43489,60 +44948,160 @@
     (define (loop24 value round_ entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)
       (cond
         [(not (fxzero? (ld-u8 p)))
-         (loop29 value round_ 0 entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)]
+         (let loop29 ([value value]
+                      [round_ round_]
+                      [i 0]
+                      [entries entries]
+                      [p p]
+                      [last_multispace last_multispace]
+                      [last_lmultispace last_lmultispace]
+                      [multispace_len multispace_len]
+                      [lead_multispace_len lead_multispace_len]
+                      [tab tab]
+                      [has_tab has_tab]
+                      [has_leadtab has_leadtab])
+           (if (fx<? i entries)
+               (cond
+                 [(not (and (fx=? (musl_strncmp ed p (charstab.name.string (fx+ tab (fx* i 24))) (charstab.name.length (fx+ tab (fx* i 24)))) 0) (fx=? (ld-u8 (fx+ p (->i64 (charstab.name.length (fx+ tab (fx* i 24)))))) 58)))
+                  (loop29 value round_ (i32+ i 1) entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)]
+                 [else
+                  (set! s (fx+ (fx+ p (->i64 (charstab.name.length (fx+ tab (fx* i 24))))) 1))
+                  (cond
+                    [(and is_listchars (fx=? (musl_strcmp ed (charstab.name.string (fx+ tab (fx* i 24))) (c-str 166428 "multispace")) 0))
+                     (if (fx=? round_ 0)
+                         (let loop79 ([value value]
+                                      [round_ round_]
+                                      [i i]
+                                      [entries entries]
+                                      [last_multispace p]
+                                      [last_lmultispace last_lmultispace]
+                                      [multispace_len 0]
+                                      [lead_multispace_len lead_multispace_len]
+                                      [tab tab]
+                                      [has_tab has_tab]
+                                      [has_leadtab has_leadtab])
+                           (cond
+                             [(and (not (fx=? (ld-u8 s) 0)) (not (fx=? (ld-u8 s) 44)))
+                              (let ([c1 (get_encoded_char_adv ed &s)])
+                                (if (fx>? (char2cells ed c1) 1)
+                                    (let ([r9 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
+                                      (frame-pop! ed fr)
+                                      r9)
+                                    (loop79 value round_ i entries last_multispace last_lmultispace (i32+ multispace_len 1) lead_multispace_len tab has_tab has_leadtab)))]
+                             [(fx=? multispace_len 0)
+                              (let ([r10 (field_value_err ed errbuf errbuflen e_wrong_number_of_characters_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
+                                (frame-pop! ed fr)
+                                r10)]
+                             [else
+                              (join81 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)]))
+                         (let loop74 ([value value]
+                                      [round_ round_]
+                                      [i i]
+                                      [entries entries]
+                                      [p p]
+                                      [last_multispace last_multispace]
+                                      [last_lmultispace last_lmultispace]
+                                      [multispace_len multispace_len]
+                                      [lead_multispace_len lead_multispace_len]
+                                      [tab tab]
+                                      [has_tab has_tab]
+                                      [has_leadtab has_leadtab]
+                                      [multispace_pos 0])
+                           (if (and (not (fx=? (ld-u8 s) 0)) (not (fx=? (ld-u8 s) 44)))
+                               (let ([c1 (get_encoded_char_adv ed &s)])
+                                 (if (and (fx=? p last_multispace) (not (fx=? (lcs_chars_T.multispace lcs_chars) 0)))
+                                     (let* ([t1 multispace_pos]
+                                            [multispace_pos (i32+ multispace_pos 1)])
+                                       (st-s32! (fx+ (lcs_chars_T.multispace lcs_chars) (fx* t1 4)) c1)
+                                       (loop74 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos))
+                                     (loop74 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos)))
+                               (join81 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab))))]
+                    [(and is_listchars (fx=? (musl_strcmp ed (charstab.name.string (fx+ tab (fx* i 24))) (c-str 166439 "leadmultispace")) 0))
+                     (if (fx=? round_ 0)
+                         (let loop65 ([value value]
+                                      [round_ round_]
+                                      [i i]
+                                      [entries entries]
+                                      [last_multispace last_multispace]
+                                      [last_lmultispace p]
+                                      [multispace_len multispace_len]
+                                      [lead_multispace_len 0]
+                                      [tab tab]
+                                      [has_tab has_tab]
+                                      [has_leadtab has_leadtab])
+                           (cond
+                             [(and (not (fx=? (ld-u8 s) 0)) (not (fx=? (ld-u8 s) 44)))
+                              (let ([c1 (get_encoded_char_adv ed &s)])
+                                (if (fx>? (char2cells ed c1) 1)
+                                    (let ([r7 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
+                                      (frame-pop! ed fr)
+                                      r7)
+                                    (loop65 value round_ i entries last_multispace last_lmultispace multispace_len (i32+ lead_multispace_len 1) tab has_tab has_leadtab)))]
+                             [(fx=? lead_multispace_len 0)
+                              (let ([r8 (field_value_err ed errbuf errbuflen e_wrong_number_of_characters_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
+                                (frame-pop! ed fr)
+                                r8)]
+                             [else
+                              (join67 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)]))
+                         (let loop60 ([value value]
+                                      [round_ round_]
+                                      [i i]
+                                      [entries entries]
+                                      [p p]
+                                      [last_multispace last_multispace]
+                                      [last_lmultispace last_lmultispace]
+                                      [multispace_len multispace_len]
+                                      [lead_multispace_len lead_multispace_len]
+                                      [tab tab]
+                                      [has_tab has_tab]
+                                      [has_leadtab has_leadtab]
+                                      [multispace_pos_2 0])
+                           (if (and (not (fx=? (ld-u8 s) 0)) (not (fx=? (ld-u8 s) 44)))
+                               (let ([c1 (get_encoded_char_adv ed &s)])
+                                 (if (and (fx=? p last_lmultispace) (not (fx=? (lcs_chars_T.leadmultispace lcs_chars) 0)))
+                                     (let* ([t2 multispace_pos_2]
+                                            [multispace_pos_2 (i32+ multispace_pos_2 1)])
+                                       (st-s32! (fx+ (lcs_chars_T.leadmultispace lcs_chars) (fx* t2 4)) c1)
+                                       (loop60 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos_2))
+                                     (loop60 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos_2)))
+                               (join67 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab))))]
+                    [(fx=? (ld-u8 s) 0)
+                     (let ([r1 (field_value_err ed errbuf errbuflen e_wrong_number_of_characters_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
+                       (frame-pop! ed fr)
+                       r1)]
+                    [else
+                     (let ([c1 (get_encoded_char_adv ed &s)])
+                       (cond
+                         [(fx>? (char2cells ed c1) 1)
+                          (let ([r2 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
+                            (frame-pop! ed fr)
+                            r2)]
+                         [(or (fx=? (charstab.cp (fx+ tab (fx* i 24))) (lcs_chars_T.tab2& lcs_chars)) (fx=? (charstab.cp (fx+ tab (fx* i 24))) (lcs_chars_T.leadtab2& lcs_chars)))
+                          (if (fx=? (ld-u8 s) 0)
+                              (let ([r3 (field_value_err ed errbuf errbuflen e_wrong_number_of_characters_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
+                                (frame-pop! ed fr)
+                                r3)
+                              (let ([c2 (get_encoded_char_adv ed &s)])
+                                (cond
+                                  [(fx>? (char2cells ed c2) 1)
+                                   (let ([r4 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
+                                     (frame-pop! ed fr)
+                                     r4)]
+                                  [(not (or (fx=? (ld-u8 s) 44) (fx=? (ld-u8 s) 0)))
+                                   (let ([c3 (get_encoded_char_adv ed &s)])
+                                     (if (fx>? (char2cells ed c3) 1)
+                                         (let ([r5 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
+                                           (frame-pop! ed fr)
+                                           r5)
+                                         (join40 value round_ i entries c1 c2 c3 last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)))]
+                                  [else
+                                   (join40 value round_ i entries c1 c2 0 last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)])))]
+                         [else
+                          (join43 value round_ i entries c1 0 0 last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)]))])])
+               (join82 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)))]
         [(and (and is_listchars has_leadtab) (not has_tab)) (frame-pop! ed fr) e_leadtab_requires_tab]
         [else
          (loop6 value (i32+ round_ 1) entries last_multispace last_lmultispace multispace_len lead_multispace_len tab)]))
-    (define (loop29 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)
-      (if (fx<? i entries)
-          (cond
-            [(not (and (fx=? (musl_strncmp ed p (charstab.name.string (fx+ tab (fx* i 24))) (charstab.name.length (fx+ tab (fx* i 24)))) 0) (fx=? (ld-u8 (fx+ p (->i64 (charstab.name.length (fx+ tab (fx* i 24)))))) 58)))
-             (loop29 value round_ (i32+ i 1) entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)]
-            [else
-             (set! s (fx+ (fx+ p (->i64 (charstab.name.length (fx+ tab (fx* i 24))))) 1))
-             (cond
-               [(and is_listchars (fx=? (musl_strcmp ed (charstab.name.string (fx+ tab (fx* i 24))) (c-str 166428 "multispace")) 0))
-                (if (fx=? round_ 0)
-                    (loop79 value round_ i entries p last_lmultispace 0 lead_multispace_len tab has_tab has_leadtab)
-                    (loop74 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab 0))]
-               [(and is_listchars (fx=? (musl_strcmp ed (charstab.name.string (fx+ tab (fx* i 24))) (c-str 166439 "leadmultispace")) 0))
-                (if (fx=? round_ 0)
-                    (loop65 value round_ i entries last_multispace p multispace_len 0 tab has_tab has_leadtab)
-                    (loop60 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab 0))]
-               [(fx=? (ld-u8 s) 0)
-                (let ([r1 (field_value_err ed errbuf errbuflen e_wrong_number_of_characters_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
-                  (frame-pop! ed fr)
-                  r1)]
-               [else
-                (let ([c1 (get_encoded_char_adv ed &s)])
-                  (cond
-                    [(fx>? (char2cells ed c1) 1)
-                     (let ([r2 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
-                       (frame-pop! ed fr)
-                       r2)]
-                    [(or (fx=? (charstab.cp (fx+ tab (fx* i 24))) (lcs_chars_T.tab2& lcs_chars)) (fx=? (charstab.cp (fx+ tab (fx* i 24))) (lcs_chars_T.leadtab2& lcs_chars)))
-                     (if (fx=? (ld-u8 s) 0)
-                         (let ([r3 (field_value_err ed errbuf errbuflen e_wrong_number_of_characters_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
-                           (frame-pop! ed fr)
-                           r3)
-                         (let ([c2 (get_encoded_char_adv ed &s)])
-                           (cond
-                             [(fx>? (char2cells ed c2) 1)
-                              (let ([r4 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
-                                (frame-pop! ed fr)
-                                r4)]
-                             [(not (or (fx=? (ld-u8 s) 44) (fx=? (ld-u8 s) 0)))
-                              (let ([c3 (get_encoded_char_adv ed &s)])
-                                (if (fx>? (char2cells ed c3) 1)
-                                    (let ([r5 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
-                                      (frame-pop! ed fr)
-                                      r5)
-                                    (join40 value round_ i entries c1 c2 c3 last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)))]
-                             [else
-                              (join40 value round_ i entries c1 c2 0 last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)])))]
-                    [else
-                     (join43 value round_ i entries c1 0 0 last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)]))])])
-          (join82 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)))
     (define (join40 value round_ i entries c1 c2 c3 last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)
       (if (fx=? (charstab.cp (fx+ tab (fx* i 24))) (lcs_chars_T.tab2& lcs_chars))
           (join43 value round_ i entries c1 c2 c3 last_multispace last_lmultispace multispace_len lead_multispace_len tab #t has_leadtab)
@@ -43572,58 +45131,8 @@
             r6)))
     (define (join52 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)
       (join82 value round_ i entries s last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab))
-    (define (loop60 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos_2)
-      (if (and (not (fx=? (ld-u8 s) 0)) (not (fx=? (ld-u8 s) 44)))
-          (let ([c1 (get_encoded_char_adv ed &s)])
-            (if (and (fx=? p last_lmultispace) (not (fx=? (lcs_chars_T.leadmultispace lcs_chars) 0)))
-                (let* ([t2 multispace_pos_2]
-                       [multispace_pos_2 (i32+ multispace_pos_2 1)])
-                  (st-s32! (fx+ (lcs_chars_T.leadmultispace lcs_chars) (fx* t2 4)) c1)
-                  (loop60 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos_2))
-                (loop60 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos_2)))
-          (join67 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)))
-    (define (loop65 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)
-      (cond
-        [(and (not (fx=? (ld-u8 s) 0)) (not (fx=? (ld-u8 s) 44)))
-         (let ([c1 (get_encoded_char_adv ed &s)])
-           (if (fx>? (char2cells ed c1) 1)
-               (let ([r7 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
-                 (frame-pop! ed fr)
-                 r7)
-               (loop65 value round_ i entries last_multispace last_lmultispace multispace_len (i32+ lead_multispace_len 1) tab has_tab has_leadtab)))]
-        [(fx=? lead_multispace_len 0)
-         (let ([r8 (field_value_err ed errbuf errbuflen e_wrong_number_of_characters_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
-           (frame-pop! ed fr)
-           r8)]
-        [else
-         (join67 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)]))
     (define (join67 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)
       (join82 value round_ i entries s last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab))
-    (define (loop74 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos)
-      (if (and (not (fx=? (ld-u8 s) 0)) (not (fx=? (ld-u8 s) 44)))
-          (let ([c1 (get_encoded_char_adv ed &s)])
-            (if (and (fx=? p last_multispace) (not (fx=? (lcs_chars_T.multispace lcs_chars) 0)))
-                (let* ([t1 multispace_pos]
-                       [multispace_pos (i32+ multispace_pos 1)])
-                  (st-s32! (fx+ (lcs_chars_T.multispace lcs_chars) (fx* t1 4)) c1)
-                  (loop74 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos))
-                (loop74 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab multispace_pos)))
-          (join81 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)))
-    (define (loop79 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)
-      (cond
-        [(and (not (fx=? (ld-u8 s) 0)) (not (fx=? (ld-u8 s) 44)))
-         (let ([c1 (get_encoded_char_adv ed &s)])
-           (if (fx>? (char2cells ed c1) 1)
-               (let ([r9 (field_value_err ed errbuf errbuflen e_wrong_character_width_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
-                 (frame-pop! ed fr)
-                 r9)
-               (loop79 value round_ i entries last_multispace last_lmultispace (i32+ multispace_len 1) lead_multispace_len tab has_tab has_leadtab)))]
-        [(fx=? multispace_len 0)
-         (let ([r10 (field_value_err ed errbuf errbuflen e_wrong_number_of_characters_for_field_str (charstab.name.string (fx+ tab (fx* i 24))))])
-           (frame-pop! ed fr)
-           r10)]
-        [else
-         (join81 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)]))
     (define (join81 value round_ i entries last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)
       (join82 value round_ i entries s last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab))
     (define (join82 value round_ i entries p last_multispace last_lmultispace multispace_len lead_multispace_len tab has_tab has_leadtab)
@@ -43808,7 +45317,9 @@
 (define (pat_has_uppercase ed pat)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local magic_val &magic_val s32 0)
-    (define (loop1 p)
+    (set! magic_val 3)
+    (skip_regexp_ex ed pat 0 (magic_isset ed) 0 0 &magic_val)
+    (let loop1 ([p pat])
       (cond
         [(not (fx=? (ld-u8 p) 0))
          (let ([l (utfc_ptr2len ed p)])
@@ -43827,10 +45338,7 @@
               (if (not (fx=? (ld-u8 (fx+ p 1)) 0)) (loop1 (fx+ p 2)) (loop1 (fx+ p 1)))]
              [(vim_isupper ed (ld-u8 p)) (frame-pop! ed fr) #t]
              [else (loop1 (fx+ p 1))]))]
-        [else (frame-pop! ed fr) #f]))
-    (set! magic_val 3)
-    (skip_regexp_ex ed pat 0 (magic_isset ed) 0 0 &magic_val)
-    (loop1 pat)))
+        [else (frame-pop! ed fr) #f]))))
 
 (define (set_csearch_direction ed cdir)
   (let ([mem (ed-mem ed)])
@@ -44217,11 +45725,22 @@
              (join17 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)])
           (join19 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)))
     (define (join17 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)
-      (loop18 pat patlen searchstr searchstrlen dircp cmdlen (fx+ p 1) out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp))
-    (define (loop18 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)
-      (if (ascii_isdigit ed (ld-u8 p))
-          (loop18 pat patlen searchstr searchstrlen dircp cmdlen (fx+ p 1) out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)
-          (join19 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)))
+      (let loop18 ([pat pat]
+                   [patlen patlen]
+                   [searchstr searchstr]
+                   [searchstrlen searchstrlen]
+                   [dircp dircp]
+                   [cmdlen cmdlen]
+                   [p (fx+ p 1)]
+                   [out___r__ out___r__]
+                   [out___pat out___pat]
+                   [out___patlen out___patlen]
+                   [out___searchstr out___searchstr]
+                   [out___searchstrlen out___searchstrlen]
+                   [out___dircp out___dircp])
+        (if (ascii_isdigit ed (ld-u8 p))
+            (loop18 pat patlen searchstr searchstrlen dircp cmdlen (fx+ p 1) out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)
+            (join19 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp))))
     (define (join19 pat patlen searchstr searchstrlen dircp cmdlen p out___r__ out___pat out___patlen out___searchstr out___searchstrlen out___dircp)
       (let* ([cmdlen (i32+ cmdlen (->i32 (fx- p pat)))]
              [patlen (u64- patlen (->u64 (fx- p pat)))])
@@ -44377,17 +45896,73 @@
     (define (join48 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
       (if (and (and (not (not (fxzero? (spat_T.off.line spats)))) (not (eqv? (spat_T.off.off spats) 0))) (fx<? (pos_T.col pos) 2147483645))
           (if (> (spat_T.off.off spats) 0)
-              (loop57 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off (spat_T.off.off spats) dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
-              (loop51 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off (spat_T.off.off spats) dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))
+              (let loop57 ([dirc dirc]
+                           [search_delim search_delim]
+                           [pat pat]
+                           [patlen patlen]
+                           [searchstr searchstr]
+                           [searchstrlen searchstrlen]
+                           [old_off_dir old_off_dir]
+                           [old_off_line old_off_line]
+                           [old_off_end old_off_end]
+                           [old_off_off old_off_off]
+                           [c (spat_T.off.off spats)]
+                           [dircp dircp]
+                           [show_search_stats show_search_stats]
+                           [msgbuf msgbuf]
+                           [msgbuflen msgbuflen]
+                           [has_offset has_offset]
+                           [show_top_bot_msg show_top_bot_msg]
+                           [parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_r__]
+                           [parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_pat]
+                           [parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_patlen]
+                           [parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstr]
+                           [parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_searchstrlen]
+                           [parse_search_pattern_offset__o_dircp parse_search_pattern_offset__o_dircp]
+                           [org_pos_lnum org_pos_lnum]
+                           [org_pos_col org_pos_col]
+                           [org_pos_coladd org_pos_coladd])
+                (cond
+                  [(eqv? c 0)
+                   (join60 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]
+                  [(fx=? (decl ed pos) -1)
+                   (join60 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]
+                  [else
+                   (loop57 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off (i64- c 1) dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]))
+              (let loop51 ([dirc dirc]
+                           [search_delim search_delim]
+                           [pat pat]
+                           [patlen patlen]
+                           [searchstr searchstr]
+                           [searchstrlen searchstrlen]
+                           [old_off_dir old_off_dir]
+                           [old_off_line old_off_line]
+                           [old_off_end old_off_end]
+                           [old_off_off old_off_off]
+                           [c (spat_T.off.off spats)]
+                           [dircp dircp]
+                           [show_search_stats show_search_stats]
+                           [msgbuf msgbuf]
+                           [msgbuflen msgbuflen]
+                           [has_offset has_offset]
+                           [show_top_bot_msg show_top_bot_msg]
+                           [parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_r__]
+                           [parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_pat]
+                           [parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_patlen]
+                           [parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstr]
+                           [parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_searchstrlen]
+                           [parse_search_pattern_offset__o_dircp parse_search_pattern_offset__o_dircp]
+                           [org_pos_lnum org_pos_lnum]
+                           [org_pos_col org_pos_col]
+                           [org_pos_coladd org_pos_coladd])
+                (cond
+                  [(eqv? c 0)
+                   (join54 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]
+                  [(fx=? (incl ed pos) -1)
+                   (join54 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]
+                  [else
+                   (loop51 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off (i64+ c 1) dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)])))
           (join62 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)))
-    (define (loop51 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
-      (cond
-        [(eqv? c 0)
-         (join54 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]
-        [(fx=? (incl ed pos) -1)
-         (join54 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]
-        [else
-         (loop51 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off (i64+ c 1) dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]))
     (define (join54 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
       (cond
         [(not (eqv? c 0))
@@ -44396,14 +45971,6 @@
          (join62 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]
         [else
          (join62 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]))
-    (define (loop57 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
-      (cond
-        [(eqv? c 0)
-         (join60 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]
-        [(fx=? (decl ed pos) -1)
-         (join60 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]
-        [else
-         (loop57 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off (i64- c 1) dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]))
     (define (join60 dirc search_delim pat patlen searchstr searchstrlen old_off_dir old_off_line old_off_end old_off_off c dircp show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
       (cond
         [(not (eqv? c 0))
@@ -44454,27 +46021,69 @@
               [(fx<? (pos_T.col pos) 2147483645)
                (let ([c (spat_T.off.off spats)])
                  (if (> c 0)
-                     (loop78 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off 1 c show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
-                     (loop74 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off 1 c show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)))]
+                     (let loop78 ([dirc dirc]
+                                  [pat pat]
+                                  [patlen patlen]
+                                  [old_off_dir old_off_dir]
+                                  [old_off_line old_off_line]
+                                  [old_off_end old_off_end]
+                                  [old_off_off old_off_off]
+                                  [retval 1]
+                                  [c c]
+                                  [show_search_stats show_search_stats]
+                                  [msgbuf msgbuf]
+                                  [msgbuflen msgbuflen]
+                                  [has_offset has_offset]
+                                  [show_top_bot_msg show_top_bot_msg]
+                                  [parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_r__]
+                                  [parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_pat]
+                                  [parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_patlen]
+                                  [parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstr]
+                                  [parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_searchstrlen]
+                                  [parse_search_pattern_offset__o_dircp parse_search_pattern_offset__o_dircp]
+                                  [org_pos_lnum org_pos_lnum]
+                                  [org_pos_col org_pos_col]
+                                  [org_pos_coladd org_pos_coladd])
+                       (let* ([t5 c]
+                              [c (i64- c 1)])
+                         (if (> t5 0)
+                             (if (fx=? (incl ed pos) -1)
+                                 (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
+                                 (loop78 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval c show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))
+                             (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))))
+                     (let loop74 ([dirc dirc]
+                                  [pat pat]
+                                  [patlen patlen]
+                                  [old_off_dir old_off_dir]
+                                  [old_off_line old_off_line]
+                                  [old_off_end old_off_end]
+                                  [old_off_off old_off_off]
+                                  [retval 1]
+                                  [c c]
+                                  [show_search_stats show_search_stats]
+                                  [msgbuf msgbuf]
+                                  [msgbuflen msgbuflen]
+                                  [has_offset has_offset]
+                                  [show_top_bot_msg show_top_bot_msg]
+                                  [parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_r__]
+                                  [parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_pat]
+                                  [parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_patlen]
+                                  [parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstr]
+                                  [parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_searchstrlen]
+                                  [parse_search_pattern_offset__o_dircp parse_search_pattern_offset__o_dircp]
+                                  [org_pos_lnum org_pos_lnum]
+                                  [org_pos_col org_pos_col]
+                                  [org_pos_coladd org_pos_coladd])
+                       (let* ([t6 c]
+                              [c (i64+ c 1)])
+                         (if (< t6 0)
+                             (if (fx=? (decl ed pos) -1)
+                                 (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
+                                 (loop74 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval c show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))
+                             (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))))))]
               [else
                (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off 1 show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)]))
           (join89 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off 1 show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)))
-    (define (loop74 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval c show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
-      (let* ([t6 c]
-             [c (i64+ c 1)])
-        (if (< t6 0)
-            (if (fx=? (decl ed pos) -1)
-                (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
-                (loop74 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval c show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))
-            (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))))
-    (define (loop78 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval c show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
-      (let* ([t5 c]
-             [c (i64- c 1)])
-        (if (> t5 0)
-            (if (fx=? (incl ed pos) -1)
-                (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
-                (loop78 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval c show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))
-            (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off retval show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))))
     (define (join86 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd)
       (pos_T.col-set! pos 0)
       (join87 dirc pat patlen old_off_dir old_off_line old_off_end old_off_off 2 show_search_stats msgbuf msgbuflen has_offset show_top_bot_msg parse_search_pattern_offset__o_r__ parse_search_pattern_offset__o_pat parse_search_pattern_offset__o_patlen parse_search_pattern_offset__o_searchstr parse_search_pattern_offset__o_searchstrlen parse_search_pattern_offset__o_dircp org_pos_lnum org_pos_col org_pos_coladd))
@@ -44622,34 +46231,48 @@
 
 (define (find_rawstring_end ed linep startpos endpos)
   (let ([mem (ed-mem ed)])
-    (define (loop1 p found)
-      (if (and (not (fxzero? (ld-u8 p))) (not (fx=? (ld-u8 p) 40)))
-          (loop1 (fx+ p 1) found)
-          (let* ([delim_len (->u64 (i64- (i64- (fx- p linep) (pos_T.col startpos)) 1))]
-                 [delim_copy (vim_strnsave ed (fx+ (fx+ linep (pos_T.col startpos)) 1) delim_len)])
-            (loop3 delim_copy delim_len (pos_T.lnum startpos) found))))
     (define (loop3 delim_copy delim_len lnum found)
       (if (<= lnum (pos_T.lnum endpos))
           (let ([line (ml_get ed lnum)])
-            (loop5 (fx+ line (if (= lnum (pos_T.lnum startpos)) (i32+ (pos_T.col startpos) 1) 0)) delim_copy delim_len lnum found line))
+            (let loop5 ([p (fx+ line (if (= lnum (pos_T.lnum startpos)) (i32+ (pos_T.col startpos) 1) 0))]
+                        [delim_copy delim_copy]
+                        [delim_len delim_len]
+                        [lnum lnum]
+                        [found found]
+                        [line line])
+              (cond
+                [(fxzero? (ld-u8 p)) (join10 delim_copy delim_len lnum found)]
+                [(and (= lnum (pos_T.lnum endpos)) (fx>=? (->i32 (fx- p line)) (pos_T.col endpos)))
+                 (join10 delim_copy delim_len lnum found)]
+                [(and (and (fx=? (ld-u8 p) 41) (fx=? (musl_strncmp ed delim_copy (fx+ p 1) delim_len) 0)) (fx=? (ld-u8 (fx+ p (->i64 (u64+ delim_len 1)))) 34))
+                 (join10 delim_copy delim_len lnum #t)]
+                [else (loop5 (fx+ p 1) delim_copy delim_len lnum found line)])))
           (join12 found)))
-    (define (loop5 p delim_copy delim_len lnum found line)
-      (cond
-        [(fxzero? (ld-u8 p)) (join10 delim_copy delim_len lnum found)]
-        [(and (= lnum (pos_T.lnum endpos)) (fx>=? (->i32 (fx- p line)) (pos_T.col endpos)))
-         (join10 delim_copy delim_len lnum found)]
-        [(and (and (fx=? (ld-u8 p) 41) (fx=? (musl_strncmp ed delim_copy (fx+ p 1) delim_len) 0)) (fx=? (ld-u8 (fx+ p (->i64 (u64+ delim_len 1)))) 34))
-         (join10 delim_copy delim_len lnum #t)]
-        [else (loop5 (fx+ p 1) delim_copy delim_len lnum found line)]))
     (define (join10 delim_copy delim_len lnum found)
       (if found (join12 found) (loop3 delim_copy delim_len (i64+ lnum 1) found)))
     (define (join12 found)
       found)
-    (loop1 (fx+ (fx+ linep (pos_T.col startpos)) 1) #f)))
+    (let loop1 ([p (fx+ (fx+ linep (pos_T.col startpos)) 1)]
+                [found #f])
+      (if (and (not (fxzero? (ld-u8 p))) (not (fx=? (ld-u8 p) 40)))
+          (loop1 (fx+ p 1) found)
+          (let* ([delim_len (->u64 (i64- (i64- (fx- p linep) (pos_T.col startpos)) 1))]
+                 [delim_copy (vim_strnsave ed (fx+ (fx+ linep (pos_T.col startpos)) 1) delim_len)])
+            (loop3 delim_copy delim_len (pos_T.lnum startpos) found))))))
 
 (define (find_mps_values ed initc findc backwards switchit)
   (let ([mem (ed-mem ed)])
-    (define (loop1 initc findc backwards ptr out___initc out___findc out___backwards)
+    (define (join11 initc findc backwards out___initc out___findc out___backwards)
+      (values initc findc backwards))
+    (define (join15 initc findc backwards out___initc out___findc out___backwards)
+      (values initc findc backwards))
+    (let loop1 ([initc initc]
+                [findc findc]
+                [backwards backwards]
+                [ptr (buf_T.b_p_mps curbuf)]
+                [out___initc 0]
+                [out___findc 0]
+                [out___backwards #f])
       (cond
         [(fx=? (ld-u8 ptr) 0) (values initc findc backwards)]
         [(fx=? (utf_ptr2char ed ptr) initc)
@@ -44668,12 +46291,7 @@
                       [ptr (fx+ ptr t2)])
                  (if (fx=? (ld-u8 ptr) 44)
                      (loop1 initc findc backwards (fx+ ptr 1) out___initc out___findc out___backwards)
-                     (loop1 initc findc backwards ptr out___initc out___findc out___backwards)))))]))
-    (define (join11 initc findc backwards out___initc out___findc out___backwards)
-      (values initc findc backwards))
-    (define (join15 initc findc backwards out___initc out___findc out___backwards)
-      (values initc findc backwards))
-    (loop1 initc findc backwards (buf_T.b_p_mps curbuf) 0 0 #f)))
+                     (loop1 initc findc backwards ptr out___initc out___findc out___backwards)))))]))))
 
 (define (findmatchlimit ed oap initc flags maxtravel)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 32)])
@@ -44751,13 +46369,31 @@
            [else (frame-pop! ed fr) 0])]
         [(not cpo_bsl)
          (set! col (pos_T.col findmatchlimit:pos))
-         (loop32 initc findc count backwards raw_string inquote linep hash_dir comment_dir traveled ignore_cend cpo_match cpo_bsl comment_col skip_comments in_block_comment 0 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)]
+         (let loop32 ([initc initc]
+                      [findc findc]
+                      [count count]
+                      [backwards backwards]
+                      [raw_string raw_string]
+                      [inquote inquote]
+                      [linep linep]
+                      [hash_dir hash_dir]
+                      [comment_dir comment_dir]
+                      [traveled traveled]
+                      [ignore_cend ignore_cend]
+                      [cpo_match cpo_match]
+                      [cpo_bsl cpo_bsl]
+                      [comment_col comment_col]
+                      [skip_comments skip_comments]
+                      [in_block_comment in_block_comment]
+                      [bslcnt 0]
+                      [find_mps_values__o_initc find_mps_values__o_initc]
+                      [find_mps_values__o_findc find_mps_values__o_findc]
+                      [find_mps_values__o_backwards find_mps_values__o_backwards])
+           (if (check_prevcol ed linep col 92 &col)
+               (loop32 initc findc count backwards raw_string inquote linep hash_dir comment_dir traveled ignore_cend cpo_match cpo_bsl comment_col skip_comments in_block_comment (i32+ bslcnt 1) find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
+               (join40 initc findc count backwards raw_string inquote linep hash_dir comment_dir traveled ignore_cend cpo_match cpo_bsl (fxand bslcnt 1) comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)))]
         [else
          (join40 initc findc count backwards raw_string inquote linep hash_dir comment_dir traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)]))
-    (define (loop32 initc findc count backwards raw_string inquote linep hash_dir comment_dir traveled ignore_cend cpo_match cpo_bsl comment_col skip_comments in_block_comment bslcnt find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
-      (if (check_prevcol ed linep col 92 &col)
-          (loop32 initc findc count backwards raw_string inquote linep hash_dir comment_dir traveled ignore_cend cpo_match cpo_bsl comment_col skip_comments in_block_comment (i32+ bslcnt 1) find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
-          (join40 initc findc count backwards raw_string inquote linep hash_dir comment_dir traveled ignore_cend cpo_match cpo_bsl (fxand bslcnt 1) comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)))
     (define (join40 initc findc count backwards raw_string inquote linep hash_dir comment_dir traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
       (cond
         [(fxzero? hash_dir)
@@ -45052,7 +46688,33 @@
                (loop89 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards))]
           [(34)
            (if (not (fxzero? do_quotes))
-               (loop178 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment (i32- (pos_T.col findmatchlimit:pos) 1) find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
+               (let loop178 ([initc initc]
+                             [findc findc]
+                             [count count]
+                             [backwards backwards]
+                             [raw_string raw_string]
+                             [inquote inquote]
+                             [linep linep]
+                             [do_quotes do_quotes]
+                             [comment_dir comment_dir]
+                             [start_in_quotes start_in_quotes]
+                             [traveled traveled]
+                             [ignore_cend ignore_cend]
+                             [cpo_match cpo_match]
+                             [cpo_bsl cpo_bsl]
+                             [match_escaped match_escaped]
+                             [comment_col comment_col]
+                             [skip_comments skip_comments]
+                             [in_block_comment in_block_comment]
+                             [col_2 (i32- (pos_T.col findmatchlimit:pos) 1)]
+                             [find_mps_values__o_initc find_mps_values__o_initc]
+                             [find_mps_values__o_findc find_mps_values__o_findc]
+                             [find_mps_values__o_backwards find_mps_values__o_backwards])
+                 (if (fx>=? col_2 0)
+                     (if (not (fx=? (ld-u8 (fx+ linep col_2)) 92))
+                         (join181 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment col_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
+                         (loop178 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment (i32- col_2 1) find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards))
+                     (join181 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment col_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)))
                (loop89 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards))]
           [(39)
            (if (and (and (not cpo_match) (not (fx=? initc 39))) (not (fx=? findc 39)))
@@ -45090,15 +46752,36 @@
          (cond
            [(not cpo_bsl)
             (set! col_3 (pos_T.col findmatchlimit:pos))
-            (loop165 initc findc c count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment 0 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)]
+            (let loop165 ([initc initc]
+                          [findc findc]
+                          [c c]
+                          [count count]
+                          [backwards backwards]
+                          [raw_string raw_string]
+                          [inquote inquote]
+                          [linep linep]
+                          [do_quotes do_quotes]
+                          [comment_dir comment_dir]
+                          [start_in_quotes start_in_quotes]
+                          [traveled traveled]
+                          [ignore_cend ignore_cend]
+                          [cpo_match cpo_match]
+                          [cpo_bsl cpo_bsl]
+                          [match_escaped match_escaped]
+                          [comment_col comment_col]
+                          [skip_comments skip_comments]
+                          [in_block_comment in_block_comment]
+                          [bslcnt_2 0]
+                          [find_mps_values__o_initc find_mps_values__o_initc]
+                          [find_mps_values__o_findc find_mps_values__o_findc]
+                          [find_mps_values__o_backwards find_mps_values__o_backwards])
+              (if (check_prevcol ed linep col_3 92 &col_3)
+                  (loop165 initc findc c count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment (i32+ bslcnt_2 1) find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
+                  (join166 initc findc c count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment bslcnt_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)))]
            [else
             (join166 initc findc c count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment 0 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)])]
         [else
          (loop89 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)]))
-    (define (loop165 initc findc c count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment bslcnt_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
-      (if (check_prevcol ed linep col_3 92 &col_3)
-          (loop165 initc findc c count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment (i32+ bslcnt_2 1) find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
-          (join166 initc findc c count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment bslcnt_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)))
     (define (join166 initc findc c count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment bslcnt_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
       (if (or cpo_bsl (fx=? (fxand bslcnt_2 1) match_escaped))
           (cond
@@ -45108,12 +46791,6 @@
             [else
              (loop89 initc findc (i32- count 1) backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)])
           (loop89 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)))
-    (define (loop178 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment col_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
-      (if (fx>=? col_2 0)
-          (if (not (fx=? (ld-u8 (fx+ linep col_2)) 92))
-              (join181 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment col_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
-              (loop178 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment (i32- col_2 1) find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards))
-          (join181 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment col_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)))
     (define (join181 initc findc count backwards raw_string inquote linep do_quotes comment_dir start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment col_2 find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
       (if (fx=? (fxand (i32- (i32- (pos_T.col findmatchlimit:pos) 1) col_2) 1) 0)
           (loop89 initc findc count backwards raw_string (b->i (not (not (fxzero? inquote)))) linep do_quotes comment_dir 0 traveled ignore_cend cpo_match cpo_bsl match_escaped comment_col skip_comments in_block_comment find_mps_values__o_initc find_mps_values__o_findc find_mps_values__o_backwards)
@@ -45147,16 +46824,6 @@
 (define (showmatch ed c)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local vcol &vcol s32 0)
-    (define (loop1 p so siso)
-      (if (not (fx=? (ld-u8 p) 0))
-          (let* ([t1 (i32+ (utfc_ptr2len ed p) 1)]
-                 [p (fx+ p t1)])
-            (if (fx=? (utf_ptr2char ed p) c)
-                (join6 p so siso)
-                (let* ([t2 (utfc_ptr2len ed p)]
-                       [p (fx+ p t2)])
-                  (if (fx=? (ld-u8 p) 0) (frame-pop! ed fr) (loop1 (fx+ p 1) so siso)))))
-          (join6 p so siso)))
     (define (join6 p so siso)
       (if (fx=? (ld-u8 p) 0)
           (frame-pop! ed fr)
@@ -45219,7 +46886,18 @@
       (frame-pop! ed fr))
     (let* ([so (if (>= (win_T.w_onebuf_opt.wo_so curwin) 0) (win_T.w_onebuf_opt.wo_so& curwin) &p_so)]
            [siso (if (>= (win_T.w_onebuf_opt.wo_siso curwin) 0) (win_T.w_onebuf_opt.wo_siso& curwin) &p_siso)])
-      (loop1 (buf_T.b_p_mps curbuf) so siso))))
+      (let loop1 ([p (buf_T.b_p_mps curbuf)]
+                  [so so]
+                  [siso siso])
+        (if (not (fx=? (ld-u8 p) 0))
+            (let* ([t1 (i32+ (utfc_ptr2len ed p) 1)]
+                   [p (fx+ p t1)])
+              (if (fx=? (utf_ptr2char ed p) c)
+                  (join6 p so siso)
+                  (let* ([t2 (utfc_ptr2len ed p)]
+                         [p (fx+ p t2)])
+                    (if (fx=? (ld-u8 p) 0) (frame-pop! ed fr) (loop1 (fx+ p 1) so siso)))))
+            (join6 p so siso))))))
 
 (define (is_zero_width ed pattern patternlen move cur direction)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 368)])
@@ -45239,18 +46917,18 @@
            [else (mem-copy! pos cur 16) (join6 pattern patternlen result called_emsg_before 256)])]))
     (define (join6 pattern patternlen result called_emsg_before flag)
       (if (not (fx=? (searchit ed curwin curbuf pos 0 direction pattern patternlen 1 (i32+ 1024 flag) 0 0) 0))
-          (loop8 result called_emsg_before)
+          (let loop8 ([result result]
+                      [called_emsg_before called_emsg_before])
+            (lpos_T.col-set! (regmmatch_T.startpos& regmatch) (i32+ (lpos_T.col (regmmatch_T.startpos& regmatch)) 1))
+            (let ([nmatched (->i32 (vim_regexec_multi ed regmatch curwin curbuf (pos_T.lnum pos) (lpos_T.col (regmmatch_T.startpos& regmatch)) 0))])
+              (cond
+                [(not (fx=? nmatched 0)) (join10 nmatched result called_emsg_before)]
+                [(and (not (fx=? (regmmatch_T.regprog regmatch) 0)) (not (fxzero? (if (fx=? direction 1)
+                     (b->i (fx<? (lpos_T.col (regmmatch_T.startpos& regmatch)) (pos_T.col pos)))
+                     (b->i (fx>? (lpos_T.col (regmmatch_T.startpos& regmatch)) (pos_T.col pos)))))))
+                 (loop8 result called_emsg_before)]
+                [else (join10 nmatched result called_emsg_before)])))
           (join12 result)))
-    (define (loop8 result called_emsg_before)
-      (lpos_T.col-set! (regmmatch_T.startpos& regmatch) (i32+ (lpos_T.col (regmmatch_T.startpos& regmatch)) 1))
-      (let ([nmatched (->i32 (vim_regexec_multi ed regmatch curwin curbuf (pos_T.lnum pos) (lpos_T.col (regmmatch_T.startpos& regmatch)) 0))])
-        (cond
-          [(not (fx=? nmatched 0)) (join10 nmatched result called_emsg_before)]
-          [(and (not (fx=? (regmmatch_T.regprog regmatch) 0)) (not (fxzero? (if (fx=? direction 1)
-               (b->i (fx<? (lpos_T.col (regmmatch_T.startpos& regmatch)) (pos_T.col pos)))
-               (b->i (fx>? (lpos_T.col (regmmatch_T.startpos& regmatch)) (pos_T.col pos)))))))
-           (loop8 result called_emsg_before)]
-          [else (join10 nmatched result called_emsg_before)])))
     (define (join10 nmatched result called_emsg_before)
       (if (fx=? called_emsg called_emsg_before)
           (join12 (b->i (and (and (not (fx=? nmatched 0)) (= (lpos_T.lnum (regmmatch_T.startpos& regmatch)) (lpos_T.lnum (regmmatch_T.endpos& regmatch)))) (fx=? (lpos_T.col (regmmatch_T.startpos& regmatch)) (lpos_T.col (regmmatch_T.endpos& regmatch))))))
@@ -45627,23 +47305,21 @@
 
 (define (vim_strup ed p)
   (let ([mem (ed-mem ed)])
-    (define (loop2 p2)
-      (let ([c (ld-u8 p2)])
-        (when (not (fx=? c 0))
-          (let* ([t1 p2]
-                 [p2 (fx+ p2 1)])
-            (st-u8! t1 (->u8 (if (or (fx<? c 97) (fx>? c 122)) c (i32- c 32))))
-            (loop2 p2)))))
-    (unless (fx=? p 0) (loop2 p))))
+    (unless (fx=? p 0) (let loop2 ([p2 p])
+                         (let ([c (ld-u8 p2)])
+                           (when (not (fx=? c 0))
+                             (let* ([t1 p2]
+                                    [p2 (fx+ p2 1)])
+                               (st-u8! t1 (->u8 (if (or (fx<? c 97) (fx>? c 122)) c (i32- c 32))))
+                               (loop2 p2))))))))
 
 (define (del_trailing_spaces ed ptr)
   (let ([mem (ed-mem ed)])
-    (define (loop1 q)
+    (let loop1 ([q (fx+ ptr (->i64 (musl_strlen ed ptr)))])
       (let ([q (fx+ q -1)])
         (when (and (and (and (fx>? q ptr) (or (fx=? (ld-u8 q) 32) (fx=? (ld-u8 q) 9))) (not (fx=? (ld-u8 (fx+ q -1)) 92))) (not (fx=? (ld-u8 (fx+ q -1)) 22)))
           (st-u8! q 0)
-          (loop1 q))))
-    (loop1 (fx+ ptr (->i64 (musl_strlen ed ptr))))))
+          (loop1 q))))))
 
 (define (vim_strncpy ed to from len)
   (let ([mem (ed-mem ed)])
@@ -45662,50 +47338,50 @@
 
 (define (vim_strnicmp_asc ed s1 s2 len)
   (let ([mem (ed-mem ed)])
-    (define (loop1 s1 s2 len i)
+    (define (join5 i)
+      i)
+    (let loop1 ([s1 s1]
+                [s2 s2]
+                [len len]
+                [i 0])
       (if (> len 0)
           (let ([i (i32- (if (or (fx<? (ld-s8 s1) 65) (fx>? (ld-s8 s1) 90)) (ld-s8 s1) (i32+ (ld-s8 s1) 32)) (if (or (fx<? (ld-s8 s2) 65) (fx>? (ld-s8 s2) 90)) (ld-s8 s2) (i32+ (ld-s8 s2) 32)))])
             (cond
               [(not (fx=? i 0)) (join5 i)]
               [(fx=? (ld-s8 s1) 0) (join5 i)]
               [else (loop1 (fx+ s1 1) (fx+ s2 1) (u64- len 1) i)]))
-          (join5 i)))
-    (define (join5 i)
-      i)
-    (loop1 s1 s2 len 0)))
+          (join5 i)))))
 
 (define (vim_strchr ed string_ c)
   (let ([mem (ed-mem ed)])
-    (define (loop3 p)
-      (let ([b (ld-u8 p)])
-        (cond
-          [(fx=? b 0) 0]
-          [(fx=? b c) p]
-          [else (loop3 (fx+ p (utfc_ptr2len ed p)))])))
-    (define (loop9 p)
-      (if (not (fx=? (ld-u8 p) 0))
-          (let ([l (utfc_ptr2len ed p)])
-            (if (and (fx=? (utf_ptr2char ed p) c) (fx>? l 1)) p (loop9 (fx+ p l))))
-          0))
     (cond
       [(and (fx>? c 0) (fx<? c 128)) (vim_strbyte ed string_ c)]
-      [(fx>=? c 128) (loop9 string_)]
-      [else (loop3 string_)])))
+      [(fx>=? c 128) (let loop9 ([p string_])
+                       (if (not (fx=? (ld-u8 p) 0))
+                           (let ([l (utfc_ptr2len ed p)])
+                             (if (and (fx=? (utf_ptr2char ed p) c) (fx>? l 1)) p (loop9 (fx+ p l))))
+                           0))]
+      [else (let loop3 ([p string_])
+              (let ([b (ld-u8 p)])
+                (cond
+                  [(fx=? b 0) 0]
+                  [(fx=? b c) p]
+                  [else (loop3 (fx+ p (utfc_ptr2len ed p)))])))])))
 
 (define (vim_strbyte ed string_ c)
   (if (or (fx<=? c 0) (fx>? c 255)) 0 (musl_strchr ed string_ c)))
 
 (define (sort_strings ed files count)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
-      (when (fx<? i count) (loop4 i i (ld-ptr (fx+ files (fx* i 8))))))
-    (define (loop4 i j s)
-      (cond
-        [(and (fx>? j 0) (fx>? (musl_strcmp ed (ld-ptr (fx+ files (fx* (i32- j 1) 8))) s) 0))
-         (st-ptr! (fx+ files (fx* j 8)) (ld-ptr (fx+ files (fx* (i32- j 1) 8))))
-         (loop4 i (i32- j 1) s)]
-        [else (st-ptr! (fx+ files (fx* j 8)) s) (loop1 (i32+ i 1))]))
-    (loop1 1)))
+    (let loop1 ([i 1])
+      (when (fx<? i count) (let loop4 ([i i]
+                                       [j i]
+                                       [s (ld-ptr (fx+ files (fx* i 8)))])
+                             (cond
+                               [(and (fx>? j 0) (fx>? (musl_strcmp ed (ld-ptr (fx+ files (fx* (i32- j 1) 8))) s) 0))
+                                (st-ptr! (fx+ files (fx* j 8)) (ld-ptr (fx+ files (fx* (i32- j 1) 8))))
+                                (loop4 i (i32- j 1) s)]
+                               [else (st-ptr! (fx+ files (fx* j 8)) s) (loop1 (i32+ i 1))]))))))
 
 (define (concat_str ed str1 str2)
   (let ([mem (ed-mem ed)])
@@ -45755,13 +47431,12 @@
 
 (define (find_builtin_term ed term)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (let ([name (builtin_tcap_T.bitc_name (fx+ builtin_terminals (fx* i 16)))])
         (cond
           [(fx=? name 0) 0]
           [(fx=? (musl_strcmp ed term name) 0) (builtin_tcap_T.bitc_table (fx+ builtin_terminals (fx* i 16)))]
-          [else (loop1 (i32+ i 1))])))
-    (loop1 0)))
+          [else (loop1 (i32+ i 1))])))))
 
 (define (apply_builtin_tcap ed term entries overwrite)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
@@ -45979,16 +47654,17 @@
     (define (join4 term)
       (let ([termp (find_builtin_term ed term)])
         (if (not (fx=? termp 0))
-            (loop6 term (i32- 0 (i32+ (ld-u8 name) (i32<< (ld-u8 (fx+ name 1)) 8))) (fx+ termp 16))
+            (let loop6 ([term term]
+                        [key (i32- 0 (i32+ (ld-u8 name) (i32<< (ld-u8 (fx+ name 1)) 8)))]
+                        [termp (fx+ termp 16)])
+              (cond
+                [(fx=? (tcap_entry_T.bt_entry termp) 0) (join7)]
+                [(fx=? (tcap_entry_T.bt_entry termp) key)
+                 (let ([r1 (tcap_entry_T.bt_string termp)])
+                   (add_termcode ed name r1 (b->i (term_is_8bit ed term)))
+                   #t)]
+                [else (loop6 term key (fx+ termp 16))]))
             (join7))))
-    (define (loop6 term key termp)
-      (cond
-        [(fx=? (tcap_entry_T.bt_entry termp) 0) (join7)]
-        [(fx=? (tcap_entry_T.bt_entry termp) key)
-         (let ([r1 (tcap_entry_T.bt_string termp)])
-           (add_termcode ed name r1 (b->i (term_is_8bit ed term)))
-           #t)]
-        [else (loop6 term key (fx+ termp 16))]))
     (define (join7)
       (if (fx=? (estack_T.es_name (fx+ (garray_T.ga_data exestack) (fx* (i32- (garray_T.ga_len exestack) 1) 24))) 0)
           (let ([r2 IObuff])
@@ -46022,14 +47698,14 @@
 
 (define (tltoa ed i)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i p)
-      (let ([p (fx+ p -1)])
-        (st-u8! p (->u8 (u64+ (u64% i 10) 48)))
-        (let ([i (u64/ i 10)])
-          (if (and (> i 0) (fx>? p tltoa:buf)) (loop1 i p) p))))
     (let ([p (fx+ tltoa:buf 15)])
       (st-u8! p 0)
-      (loop1 i p))))
+      (let loop1 ([i i]
+                  [p p])
+        (let ([p (fx+ p -1)])
+          (st-u8! p (->u8 (u64+ (u64% i 10) 48)))
+          (let ([i (u64/ i 10)])
+            (if (and (> i 0) (fx>? p tltoa:buf)) (loop1 i p) p)))))))
 
 (define (tgoto ed cm x y)
   (let ([mem (ed-mem ed)])
@@ -46043,7 +47719,20 @@
                (join14 cm x y s e))
              (let ([cm (fx+ cm 1)])
                (case (ld-s8 cm)
-                 [(100) (loop11 cm x x (tltoa ed (->u64 y)) s e)]
+                 [(100) (let loop11 ([cm cm]
+                                     [x x]
+                                     [y x]
+                                     [p (tltoa ed (->u64 y))]
+                                     [s s]
+                                     [e e])
+                          (if (not (fxzero? (ld-s8 p)))
+                              (let* ([t2 s]
+                                     [s (fx+ s 1)]
+                                     [t3 p]
+                                     [p (fx+ p 1)])
+                                (st-s8! t2 (ld-s8 t3))
+                                (loop11 cm x y p s e))
+                              (join14 cm x y s e)))]
                  [(105) (join14 cm (i32+ x 1) (i32+ y 1) s e)]
                  [(43)
                   (let* ([t4 s]
@@ -46058,15 +47747,6 @@
                     (join14 cm x y s e))]
                  [else (c-str 166746 "OOPS")])))]
         [else (st-s8! s 0) tgoto:buf]))
-    (define (loop11 cm x y p s e)
-      (if (not (fxzero? (ld-s8 p)))
-          (let* ([t2 s]
-                 [s (fx+ s 1)]
-                 [t3 p]
-                 [p (fx+ p 1)])
-            (st-s8! t2 (ld-s8 t3))
-            (loop11 cm x y p s e))
-          (join14 cm x y s e)))
     (define (join14 cm x y s e)
       (loop2 (fx+ cm 1) x y s e))
     (if (not (not (fxzero? cm))) (c-str 166746 "OOPS") (loop2 cm x y tgoto:buf (fx+ tgoto:buf 29)))))
@@ -46116,11 +47796,10 @@
 (define (out_str_nf ed s)
   (let ([mem (ed-mem ed)])
     (define (join2)
-      (loop3 s))
-    (define (loop3 p)
-      (cond
-        [(not (fx=? (ld-u8 p) 0)) (out_char_nf ed (ld-u8 p)) (loop3 (fx+ p 1))]
-        [else (when (not (eqv? p_wd 0)) (out_flush ed))]))
+      (let loop3 ([p s])
+        (cond
+          [(not (fx=? (ld-u8 p) 0)) (out_char_nf ed (ld-u8 p)) (loop3 (fx+ p 1))]
+          [else (when (not (eqv? p_wd 0)) (out_flush ed))])))
     (cond
       [(fx>? out_pos 8111) (out_flush ed) (join2)]
       [else (join2)])))
@@ -46437,17 +48116,16 @@
 
 (define (set_shellsize ed width height mustset)
   (let ([mem (ed-mem ed)])
-    (define (loop4)
-      (when set_shellsize:do_run
-        (set! set_shellsize:do_run #f)
-        (set! set_shellsize:busy #t)
-        (set_shellsize_inner ed width height mustset)
-        (set! set_shellsize:busy #f)
-        (loop4)))
     (unless (or (fx<? width 0) (fx<? height 0))
       (cond
         [(or (fx=? State 8193) (fx=? State 16384)) (set! State 16384)]
-        [else (set! set_shellsize:do_run #t) (unless set_shellsize:busy (loop4))]))))
+        [else (set! set_shellsize:do_run #t) (unless set_shellsize:busy (let loop4 ()
+                                                                          (when set_shellsize:do_run
+                                                                            (set! set_shellsize:do_run #f)
+                                                                            (set! set_shellsize:busy #t)
+                                                                            (set_shellsize_inner ed width height mustset)
+                                                                            (set! set_shellsize:busy #f)
+                                                                            (loop4))))]))))
 
 (define (out_str_t_TE ed)
   (let ([mem (ed-mem ed)])
@@ -46620,11 +48298,10 @@
 
 (define (clear_termcodes ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1)
+    (let loop1 ()
       (cond
         [(fx>? tc_len 0) (set! tc_len (i32- tc_len 1)) (loop1)]
-        [else (set! termcodes 0) (set! tc_max_len 0) (set! need_gather #t)]))
-    (loop1)))
+        [else (set! termcodes 0) (set! tc_max_len 0) (set! need_gather #t)]))))
 
 (define (adjust_modlen ed idx)
   (let ([mem (ed-mem ed)])
@@ -46645,14 +48322,17 @@
         (cond
           [(fx=? tc_len tc_max_len)
            (set! tc_max_len (i32+ tc_max_len 20))
-           (loop5 (alloc ed (u64* 24 (->u64 tc_max_len))) 0 j s len)]
+           (let loop5 ([new_tc (alloc ed (u64* 24 (->u64 tc_max_len)))]
+                       [i 0]
+                       [j j]
+                       [s s]
+                       [len len])
+             (cond
+               [(fx<? i tc_len)
+                (mem-copy! (fx+ new_tc (fx* i 24)) (fx+ termcodes (fx* i 24)) 24)
+                (loop5 new_tc (i32+ i 1) j s len)]
+               [else (set! termcodes new_tc) (join7 j s len)]))]
           [else (join7 j s len)])))
-    (define (loop5 new_tc i j s len)
-      (cond
-        [(fx<? i tc_len)
-         (mem-copy! (fx+ new_tc (fx* i 24)) (fx+ termcodes (fx* i 24)) 24)
-         (loop5 new_tc (i32+ i 1) j s len)]
-        [else (set! termcodes new_tc) (join7 j s len)]))
     (define (join7 j s len)
       (loop8 0 j s len))
     (define (loop8 i j s len)
@@ -46679,13 +48359,15 @@
            (join18 i s len))]
         [else (set! tc_len (i32- tc_len 1)) (join20 i s len)]))
     (define (join18 i s len)
-      (loop19 i tc_len s len))
-    (define (loop19 i j s len)
-      (cond
-        [(fx>? j i)
-         (mem-copy! (fx+ termcodes (fx* j 24)) (fx+ termcodes (fx* (i32- j 1) 24)) 24)
-         (loop19 i (i32- j 1) s len)]
-        [else (join20 i s len)]))
+      (let loop19 ([i i]
+                   [j tc_len]
+                   [s s]
+                   [len len])
+        (cond
+          [(fx>? j i)
+           (mem-copy! (fx+ termcodes (fx* j 24)) (fx+ termcodes (fx* (i32- j 1) 24)) 24)
+           (loop19 i (i32- j 1) s len)]
+          [else (join20 i s len)])))
     (define (join20 i s len)
       (st-u8! (termcode.name& (fx+ termcodes (fx* i 24))) (ld-u8 name))
       (st-u8! (fx+ (termcode.name& (fx+ termcodes (fx* i 24))) 1) (ld-u8 (fx+ name 1)))
@@ -46744,31 +48426,28 @@
 
 (define (find_termcode ed name)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (if (fx<? i tc_len)
           (if (and (fx=? (ld-u8 (termcode.name& (fx+ termcodes (fx* i 24)))) (ld-u8 name)) (fx=? (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* i 24))) 1)) (ld-u8 (fx+ name 1))))
               (termcode.code (fx+ termcodes (fx* i 24)))
               (loop1 (i32+ i 1)))
-          0))
-    (loop1 0)))
+          0))))
 
 (define (del_termcode ed name)
   (let ([mem (ed-mem ed)])
-    (define (loop2 i)
-      (when (fx<? i tc_len)
-        (if (and (fx=? (ld-u8 (termcode.name& (fx+ termcodes (fx* i 24)))) (ld-u8 name)) (fx=? (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* i 24))) 1)) (ld-u8 (fx+ name 1))))
-            (del_termcode_idx ed i)
-            (loop2 (i32+ i 1)))))
-    (unless (fx=? termcodes 0) (set! need_gather #t) (loop2 0))))
+    (unless (fx=? termcodes 0) (set! need_gather #t) (let loop2 ([i 0])
+                                                       (when (fx<? i tc_len)
+                                                         (if (and (fx=? (ld-u8 (termcode.name& (fx+ termcodes (fx* i 24)))) (ld-u8 name)) (fx=? (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* i 24))) 1)) (ld-u8 (fx+ name 1))))
+                                                             (del_termcode_idx ed i)
+                                                             (loop2 (i32+ i 1))))))))
 
 (define (del_termcode_idx ed idx)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (set! tc_len (i32- tc_len 1))
+    (let loop1 ([i idx])
       (when (fx<? i tc_len)
         (mem-copy! (fx+ termcodes (fx* i 24)) (fx+ termcodes (fx* (i32+ i 1) 24)) 24)
-        (loop1 (i32+ i 1))))
-    (set! tc_len (i32- tc_len 1))
-    (loop1 idx)))
+        (loop1 (i32+ i 1))))))
 
 (define (switch_to_8bit ed)
   (let ([mem (ed-mem ed)])
@@ -47234,30 +48913,31 @@
 
 (define (check_for_color_response ed resp len)
   (let ([mem (ed-mem ed)])
-    (define (loop2 i j argp)
-      (when (fx<? i len)
-        (if (or (fx=? (ld-u8 (fx+ resp i)) 7) (not (fxzero? (if (fx=? (ld-u8 resp) 157)
-                (b->i (fx=? (ld-u8 (fx+ resp i)) 156))
-                (b->i (and (and (fx=? (ld-u8 (fx+ resp i)) 27) (fx<? (i32+ i 1) len)) (fx=? (ld-u8 (fx+ resp (i32+ i 1))) 92)))))))
-            (let* ([is_bg (fx=? (ld-u8 (fx+ argp 1)) 49)]
-                   [is_4digit (and (and (fx>=? (i32- i j) 21) (fx=? (ld-u8 (fx+ resp (i32+ j 11))) 47)) (fx=? (ld-u8 (fx+ resp (i32+ j 16))) 47))])
-              (when (and (and (fx>=? (i32- i j) 15) (fx=? (musl_strncmp ed (fx+ (fx+ resp j) 3) (c-str 166899 "rgb:") 4) 0)) (or is_4digit (and (fx=? (ld-u8 (fx+ resp (i32+ j 9))) 47) (fx=? (ld-u8 (fx+ resp (i32+ j 12))) 47))))
-                (let* ([tp_r (fx+ (fx+ resp j) 7)]
-                       [tp_g (fx+ (fx+ resp j) (if is_4digit 12 10))]
-                       [tp_b (fx+ (fx+ resp j) (if is_4digit 17 13))])
-                  (when is_bg
-                    (let ([new_bg_val (if (fx<? 162 (i32+ (i32+ (ld-u8 tp_r) (ld-u8 tp_g)) (ld-u8 tp_b)))
-                                          (c-str 163652 "light")
-                                          (c-str 163647 "dark"))])
-                      (when (and (not (option_was_set ed (c-str 163644 "bg"))) (not (fx=? (musl_strcmp ed p_bg new_bg_val) 0)))
-                        (set_option_value_give_err ed (c-str 163644 "bg") 0 new_bg_val 0)
-                        (reset_option_was_set ed (c-str 163644 "bg"))
-                        (redraw_asap ed 50)))))))
-            (loop2 (i32+ i 1) j argp))))
     (let* ([j (i32+ 1 (b->i (fx=? (ld-u8 resp) 27)))]
            [argp (fx+ resp j)])
       (unless (and (fx>=? len (i32+ j 3)) (or (or (not (fx=? (ld-u8 argp) 49)) (and (not (fx=? (ld-u8 (fx+ argp 1)) 49)) (not (fx=? (ld-u8 (fx+ argp 1)) 48)))) (not (fx=? (ld-u8 (fx+ argp 2)) 59))))
-        (loop2 j j argp)))))
+        (let loop2 ([i j]
+                    [j j]
+                    [argp argp])
+          (when (fx<? i len)
+            (if (or (fx=? (ld-u8 (fx+ resp i)) 7) (not (fxzero? (if (fx=? (ld-u8 resp) 157)
+                    (b->i (fx=? (ld-u8 (fx+ resp i)) 156))
+                    (b->i (and (and (fx=? (ld-u8 (fx+ resp i)) 27) (fx<? (i32+ i 1) len)) (fx=? (ld-u8 (fx+ resp (i32+ i 1))) 92)))))))
+                (let* ([is_bg (fx=? (ld-u8 (fx+ argp 1)) 49)]
+                       [is_4digit (and (and (fx>=? (i32- i j) 21) (fx=? (ld-u8 (fx+ resp (i32+ j 11))) 47)) (fx=? (ld-u8 (fx+ resp (i32+ j 16))) 47))])
+                  (when (and (and (fx>=? (i32- i j) 15) (fx=? (musl_strncmp ed (fx+ (fx+ resp j) 3) (c-str 166899 "rgb:") 4) 0)) (or is_4digit (and (fx=? (ld-u8 (fx+ resp (i32+ j 9))) 47) (fx=? (ld-u8 (fx+ resp (i32+ j 12))) 47))))
+                    (let* ([tp_r (fx+ (fx+ resp j) 7)]
+                           [tp_g (fx+ (fx+ resp j) (if is_4digit 12 10))]
+                           [tp_b (fx+ (fx+ resp j) (if is_4digit 17 13))])
+                      (when is_bg
+                        (let ([new_bg_val (if (fx<? 162 (i32+ (i32+ (ld-u8 tp_r) (ld-u8 tp_g)) (ld-u8 tp_b)))
+                                              (c-str 163652 "light")
+                                              (c-str 163647 "dark"))])
+                          (when (and (not (option_was_set ed (c-str 163644 "bg"))) (not (fx=? (musl_strcmp ed p_bg new_bg_val) 0)))
+                            (set_option_value_give_err ed (c-str 163644 "bg") 0 new_bg_val 0)
+                            (reset_option_was_set ed (c-str 163644 "bg"))
+                            (redraw_asap ed 50)))))))
+                (loop2 (i32+ i 1) j argp))))))))
 
 (define (in_osc_sequence ed)
   (let ([mem (ed-mem ed)])
@@ -47267,38 +48947,41 @@
   (let ([mem (ed-mem ed)])
     (define (join4 slen last_char out___r__ out___slen)
       (st-u8! key_name 253)
-      (loop5 slen last_char 0 out___r__ out___slen))
-    (define (loop5 slen last_char i out___r__ out___slen)
-      (cond
-        [(fx<? i len)
-         (cond
-           [(or (fx=? (ld-u8 (fx+ tp i)) 7) (not (fxzero? (if (fx=? (oscstate_T.start_char osc_state) 157)
-                (b->i (fx=? (ld-u8 (fx+ tp i)) 156))
-                (b->i (or (and (and (fx=? (ld-u8 (fx+ tp i)) 27) (fx<? (i32+ i 1) len)) (fx=? (ld-u8 (fx+ tp (i32+ i 1))) 92)) (and (and (fx=? i 0) (fx=? (ld-u8 (fx+ tp i)) 92)) (fx=? last_char 27))))))))
-            (oscstate_T.processing-set! osc_state #f)
-            (st-u8! (fx+ key_name 1) 109)
-            (ga_concat_len ed (oscstate_T.buf& osc_state) tp (->u64 (i32+ (i32+ i 1) (b->i (fx=? (ld-u8 (fx+ tp i)) 27)))))
-            (ga_append ed (oscstate_T.buf& osc_state) 0)
-            (let ([slen (i32+ (i32+ i 1) (b->i (fx=? (ld-u8 (fx+ tp i)) 27)))])
-              (check_for_color_response ed (oscstate_T.buf.ga_data osc_state) (i32- (oscstate_T.buf.ga_len osc_state) 1))
-              (let ([savebg (ld-u8 p_bg)])
-                (cond
-                  [(not (fx=? (ld-u8 p_bg) savebg)) (redraw_asap ed 50) (join13 slen out___r__ out___slen)]
-                  [else (join13 slen out___r__ out___slen)])))]
-           [else (loop5 slen last_char (i32+ i 1) out___r__ out___slen)])]
-        [else
-         (st-u8! (fx+ key_name 1) 53)
-         (let ([r1 (musl_now_ms ed)])
+      (let loop5 ([slen slen]
+                  [last_char last_char]
+                  [i 0]
+                  [out___r__ out___r__]
+                  [out___slen out___slen])
+        (cond
+          [(fx<? i len)
            (cond
-             [(>= (i64- r1 (oscstate_T.start_tv osc_state)) p_ost)
-              (let* ([r2 IObuff]
-                     [r3 (emsg_iobuff_room ed)])
-                (vim_snprintf ed r2 r3 e_osc_response_timed_out (list (oscstate_T.buf.ga_len osc_state) (oscstate_T.buf.ga_data osc_state)))
-                (emsg ed (iobuff_or ed e_osc_response_timed_out))
-                (ga_clear ed (oscstate_T.buf& osc_state))
-                (oscstate_T.processing-set! osc_state #f)
-                (values #f slen))]
-             [else (ga_concat ed (oscstate_T.buf& osc_state) tp) (values #t len)]))]))
+             [(or (fx=? (ld-u8 (fx+ tp i)) 7) (not (fxzero? (if (fx=? (oscstate_T.start_char osc_state) 157)
+                  (b->i (fx=? (ld-u8 (fx+ tp i)) 156))
+                  (b->i (or (and (and (fx=? (ld-u8 (fx+ tp i)) 27) (fx<? (i32+ i 1) len)) (fx=? (ld-u8 (fx+ tp (i32+ i 1))) 92)) (and (and (fx=? i 0) (fx=? (ld-u8 (fx+ tp i)) 92)) (fx=? last_char 27))))))))
+              (oscstate_T.processing-set! osc_state #f)
+              (st-u8! (fx+ key_name 1) 109)
+              (ga_concat_len ed (oscstate_T.buf& osc_state) tp (->u64 (i32+ (i32+ i 1) (b->i (fx=? (ld-u8 (fx+ tp i)) 27)))))
+              (ga_append ed (oscstate_T.buf& osc_state) 0)
+              (let ([slen (i32+ (i32+ i 1) (b->i (fx=? (ld-u8 (fx+ tp i)) 27)))])
+                (check_for_color_response ed (oscstate_T.buf.ga_data osc_state) (i32- (oscstate_T.buf.ga_len osc_state) 1))
+                (let ([savebg (ld-u8 p_bg)])
+                  (cond
+                    [(not (fx=? (ld-u8 p_bg) savebg)) (redraw_asap ed 50) (join13 slen out___r__ out___slen)]
+                    [else (join13 slen out___r__ out___slen)])))]
+             [else (loop5 slen last_char (i32+ i 1) out___r__ out___slen)])]
+          [else
+           (st-u8! (fx+ key_name 1) 53)
+           (let ([r1 (musl_now_ms ed)])
+             (cond
+               [(>= (i64- r1 (oscstate_T.start_tv osc_state)) p_ost)
+                (let* ([r2 IObuff]
+                       [r3 (emsg_iobuff_room ed)])
+                  (vim_snprintf ed r2 r3 e_osc_response_timed_out (list (oscstate_T.buf.ga_len osc_state) (oscstate_T.buf.ga_data osc_state)))
+                  (emsg ed (iobuff_or ed e_osc_response_timed_out))
+                  (ga_clear ed (oscstate_T.buf& osc_state))
+                  (oscstate_T.processing-set! osc_state #f)
+                  (values #f slen))]
+               [else (ga_concat ed (oscstate_T.buf& osc_state) tp) (values #t len)]))])))
     (define (join13 slen out___r__ out___slen)
       (values #t slen))
     (if (not (oscstate_T.processing osc_state))
@@ -47315,30 +48998,6 @@
 
 (define (handle_dcs ed tp argp len key_name slen)
   (let ([mem (ed-mem ed)])
-    (define (loop4 slen i j out___r__ out___slen)
-      (if (fx<? i len)
-          (cond
-            [(and (fx=? (i32- i j) 3) (not (musl_isdigit ed (ld-u8 (fx+ tp i)))))
-             (join19 slen i out___r__ out___slen)]
-            [(and (fx=? (i32- i j) 4) (not (fx=? (ld-u8 (fx+ tp i)) 32))) (join19 slen i out___r__ out___slen)]
-            [(and (fx=? (i32- i j) 5) (not (fx=? (ld-u8 (fx+ tp i)) 113))) (join19 slen i out___r__ out___slen)]
-            [(and (and (fx=? (i32- i j) 6) (not (fx=? (ld-u8 (fx+ tp i)) 27))) (not (fx=? (ld-u8 (fx+ tp i)) 156)))
-             (join19 slen i out___r__ out___slen)]
-            [(or (and (fx=? (i32- i j) 6) (fx=? (ld-u8 (fx+ tp i)) 156)) (and (fx=? (i32- i j) 7) (fx=? (ld-u8 (fx+ tp i)) 92)))
-             (st-u8! key_name 253)
-             (st-u8! (fx+ key_name 1) 53)
-             (join19 (i32+ i 1) i out___r__ out___slen)]
-            [else (loop4 slen (i32+ i 1) j out___r__ out___slen)])
-          (join19 slen i out___r__ out___slen)))
-    (define (loop13 slen i out___r__ out___slen)
-      (if (fx<? i len)
-          (cond
-            [(or (and (and (fx=? (ld-u8 (fx+ tp i)) 27) (fx<? (i32+ i 1) len)) (fx=? (ld-u8 (fx+ tp (i32+ i 1))) 92)) (fx=? (ld-u8 (fx+ tp i)) 156))
-             (st-u8! key_name 253)
-             (st-u8! (fx+ key_name 1) 53)
-             (join19 (i32+ (i32+ i 1) (b->i (fx=? (ld-u8 (fx+ tp i)) 27))) i out___r__ out___slen)]
-            [else (loop13 slen (i32+ i 1) out___r__ out___slen)])
-          (join19 slen i out___r__ out___slen)))
     (define (join19 slen i out___r__ out___slen)
       (if (fx=? i len) (values #f slen) (values #t slen)))
     (let ([j (i32+ 1 (b->i (fx=? (ld-u8 tp) 27)))])
@@ -47346,8 +49005,37 @@
         [(fx<? len (i32+ j 3)) (join19 slen len #f 0)]
         [(or (and (not (fx=? (ld-u8 (fx+ argp 1)) 43)) (not (fx=? (ld-u8 (fx+ argp 1)) 36))) (and (not (fx=? (ld-u8 (fx+ argp 2)) 114)) (not (fx=? (ld-u8 (fx+ argp 2)) 82))))
          (join19 slen 0 #f 0)]
-        [(fx=? (ld-u8 (fx+ argp 1)) 43) (loop13 slen j #f 0)]
-        [else (loop4 slen (i32+ j 3) j #f 0)]))))
+        [(fx=? (ld-u8 (fx+ argp 1)) 43) (let loop13 ([slen slen]
+                                                     [i j]
+                                                     [out___r__ #f]
+                                                     [out___slen 0])
+                                          (if (fx<? i len)
+                                              (cond
+                                                [(or (and (and (fx=? (ld-u8 (fx+ tp i)) 27) (fx<? (i32+ i 1) len)) (fx=? (ld-u8 (fx+ tp (i32+ i 1))) 92)) (fx=? (ld-u8 (fx+ tp i)) 156))
+                                                 (st-u8! key_name 253)
+                                                 (st-u8! (fx+ key_name 1) 53)
+                                                 (join19 (i32+ (i32+ i 1) (b->i (fx=? (ld-u8 (fx+ tp i)) 27))) i out___r__ out___slen)]
+                                                [else (loop13 slen (i32+ i 1) out___r__ out___slen)])
+                                              (join19 slen i out___r__ out___slen)))]
+        [else (let loop4 ([slen slen]
+                          [i (i32+ j 3)]
+                          [j j]
+                          [out___r__ #f]
+                          [out___slen 0])
+                (if (fx<? i len)
+                    (cond
+                      [(and (fx=? (i32- i j) 3) (not (musl_isdigit ed (ld-u8 (fx+ tp i)))))
+                       (join19 slen i out___r__ out___slen)]
+                      [(and (fx=? (i32- i j) 4) (not (fx=? (ld-u8 (fx+ tp i)) 32))) (join19 slen i out___r__ out___slen)]
+                      [(and (fx=? (i32- i j) 5) (not (fx=? (ld-u8 (fx+ tp i)) 113))) (join19 slen i out___r__ out___slen)]
+                      [(and (and (fx=? (i32- i j) 6) (not (fx=? (ld-u8 (fx+ tp i)) 27))) (not (fx=? (ld-u8 (fx+ tp i)) 156)))
+                       (join19 slen i out___r__ out___slen)]
+                      [(or (and (fx=? (i32- i j) 6) (fx=? (ld-u8 (fx+ tp i)) 156)) (and (fx=? (i32- i j) 7) (fx=? (ld-u8 (fx+ tp i)) 92)))
+                       (st-u8! key_name 253)
+                       (st-u8! (fx+ key_name 1) 53)
+                       (join19 (i32+ i 1) i out___r__ out___slen)]
+                      [else (loop4 slen (i32+ i 1) j out___r__ out___slen)])
+                    (join19 slen i out___r__ out___slen)))]))))
 
 (define (check_termcode ed max_offset buf bufsize buflen)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
@@ -47382,20 +49070,34 @@
              [else
               (join62 r2 len retval offset 0 cpo_koffset handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen r1 r2 modifiers2keycode__o_r__ modifiers2keycode__o_key)]))]
         [else
-         (loop12 tp termleader slen len retval offset (ld-u8 tp) cpo_koffset handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]))
-    (define (loop12 tp p slen len retval offset i cpo_koffset handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
-      (cond
-        [(and (not (fxzero? (ld-u8 p))) (not (fx=? (ld-u8 p) i)))
-         (loop12 tp (fx+ p 1) slen len retval offset i cpo_koffset handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]
-        [(fx=? (ld-u8 p) 0)
-         (join82 slen retval offset cpo_koffset handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]
-        [(and (and (fx=? (ld-u8 tp) 27) (not (not (fxzero? p_ek)))) (not (fxzero? (fxand State 16))))
-         (join82 slen retval offset cpo_koffset handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]
-        [else
-         (st-u8! (fx+ tp len) 0)
-         (st-u8! key_name 0)
-         (st-u8! (fx+ key_name 1) 0)
-         (loop16 tp slen len retval offset 0 0 cpo_koffset -1 0 handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]))
+         (let loop12 ([tp tp]
+                      [p termleader]
+                      [slen slen]
+                      [len len]
+                      [retval retval]
+                      [offset offset]
+                      [i (ld-u8 tp)]
+                      [cpo_koffset cpo_koffset]
+                      [handle_csi__o_r__ handle_csi__o_r__]
+                      [handle_csi__o_slen handle_csi__o_slen]
+                      [handle_dcs__o_r__ handle_dcs__o_r__]
+                      [handle_dcs__o_slen handle_dcs__o_slen]
+                      [handle_osc__o_r__ handle_osc__o_r__]
+                      [handle_osc__o_slen handle_osc__o_slen]
+                      [modifiers2keycode__o_r__ modifiers2keycode__o_r__]
+                      [modifiers2keycode__o_key modifiers2keycode__o_key])
+           (cond
+             [(and (not (fxzero? (ld-u8 p))) (not (fx=? (ld-u8 p) i)))
+              (loop12 tp (fx+ p 1) slen len retval offset i cpo_koffset handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]
+             [(fx=? (ld-u8 p) 0)
+              (join82 slen retval offset cpo_koffset handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]
+             [(and (and (fx=? (ld-u8 tp) 27) (not (not (fxzero? p_ek)))) (not (fxzero? (fxand State 16))))
+              (join82 slen retval offset cpo_koffset handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]
+             [else
+              (st-u8! (fx+ tp len) 0)
+              (st-u8! key_name 0)
+              (st-u8! (fx+ key_name 1) 0)
+              (loop16 tp slen len retval offset 0 0 cpo_koffset -1 0 handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]))]))
     (define (loop16 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
       (if (fx<? idx tc_len)
           (let ([slen (termcode.len (fx+ termcodes (fx* idx 24)))])
@@ -47438,22 +49140,40 @@
                  [(and (fx=? (ld-u8 (fx+ (termcode.code (fx+ termcodes (fx* idx 24))) modslen)) 64) (or (not (fx=? (ld-u8 (fx+ tp modslen)) 49)) (not (fx=? (ld-u8 (fx+ tp (i32+ modslen 1))) 59))))
                   (join59 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]
                  [else
-                  (loop32 tp slen len retval offset modifiers (i32- slen 2) idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)])]
+                  (let loop32 ([tp tp]
+                               [slen slen]
+                               [len len]
+                               [retval retval]
+                               [offset offset]
+                               [modifiers modifiers]
+                               [j (i32- slen 2)]
+                               [idx idx]
+                               [cpo_koffset cpo_koffset]
+                               [keypad_index_found keypad_index_found]
+                               [keypad_slen_found keypad_slen_found]
+                               [is_keypad is_keypad]
+                               [handle_csi__o_r__ handle_csi__o_r__]
+                               [handle_csi__o_slen handle_csi__o_slen]
+                               [handle_dcs__o_r__ handle_dcs__o_r__]
+                               [handle_dcs__o_slen handle_dcs__o_slen]
+                               [handle_osc__o_r__ handle_osc__o_r__]
+                               [handle_osc__o_slen handle_osc__o_slen]
+                               [modifiers2keycode__o_r__ modifiers2keycode__o_r__]
+                               [modifiers2keycode__o_key modifiers2keycode__o_key])
+                    (if (and (fx<? j len) (or (or (musl_isdigit ed (ld-u8 (fx+ tp j))) (fx=? (ld-u8 (fx+ tp j)) 45)) (fx=? (ld-u8 (fx+ tp j)) 59)))
+                        (loop32 tp slen len retval offset modifiers (i32+ j 1) idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
+                        (let ([j (i32+ j 1)])
+                          (cond
+                            [(fx<? len j) (frame-pop! ed fr) -1]
+                            [(not (fx=? (ld-u8 (fx+ tp (i32- j 1))) (ld-u8 (fx+ (termcode.code (fx+ termcodes (fx* idx 24))) (i32- slen 1)))))
+                             (join59 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]
+                            [else
+                             (let* ([modifiers_start (fx+ (fx+ tp slen) -2)]
+                                    [n (musl_atoi ed modifiers_start)])
+                               (join39 tp j len retval offset (fxior modifiers (decode_modifiers ed n)) idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key))]))))])]
               [else
                (join59 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]))
           (join59 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)))
-    (define (loop32 tp slen len retval offset modifiers j idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
-      (if (and (fx<? j len) (or (or (musl_isdigit ed (ld-u8 (fx+ tp j))) (fx=? (ld-u8 (fx+ tp j)) 45)) (fx=? (ld-u8 (fx+ tp j)) 59)))
-          (loop32 tp slen len retval offset modifiers (i32+ j 1) idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
-          (let ([j (i32+ j 1)])
-            (cond
-              [(fx<? len j) (frame-pop! ed fr) -1]
-              [(not (fx=? (ld-u8 (fx+ tp (i32- j 1))) (ld-u8 (fx+ (termcode.code (fx+ termcodes (fx* idx 24))) (i32- slen 1)))))
-               (join59 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)]
-              [else
-               (let* ([modifiers_start (fx+ (fx+ tp slen) -2)]
-                      [n (musl_atoi ed modifiers_start)])
-                 (join39 tp j len retval offset (fxior modifiers (decode_modifiers ed n)) idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key))]))))
     (define (join39 tp slen len retval offset modifiers idx cpo_koffset keypad_index_found keypad_slen_found is_keypad handle_csi__o_r__ handle_csi__o_slen handle_dcs__o_r__ handle_dcs__o_slen handle_osc__o_r__ handle_osc__o_slen modifiers2keycode__o_r__ modifiers2keycode__o_key)
       (if (and (fx=? (ld-u8 (termcode.name& (fx+ termcodes (fx* idx 24)))) 75) (or (ascii_isdigit ed (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1))) (ascii_isupper ed (ld-u8 (fx+ (termcode.name& (fx+ termcodes (fx* idx 24))) 1)))))
           (if (fx<? keypad_index_found 0)
@@ -47705,7 +49425,23 @@
                      (join24 matchlen i len found foundlen out___r__ out___matchlen)]
                     [(and (fx=? (ld-u8 (fx+ (termcode.code (fx+ termcodes (fx* i 24))) modslen)) 64) (or (not (fx=? (ld-u8 (fx+ src modslen)) 49)) (not (fx=? (ld-u8 (fx+ src (i32+ modslen 1))) 59))))
                      (join24 matchlen i len found foundlen out___r__ out___matchlen)]
-                    [else (loop16 matchlen i (i32- slen 2) len found foundlen slen out___r__ out___matchlen)])
+                    [else (let loop16 ([matchlen matchlen]
+                                       [i i]
+                                       [j (i32- slen 2)]
+                                       [len len]
+                                       [found found]
+                                       [foundlen foundlen]
+                                       [slen slen]
+                                       [out___r__ out___r__]
+                                       [out___matchlen out___matchlen])
+                            (if (and (fx<? j len) (or (or (musl_isdigit ed (ld-u8 (fx+ src j))) (fx=? (ld-u8 (fx+ src j)) 45)) (fx=? (ld-u8 (fx+ src j)) 59)))
+                                (loop16 matchlen i (i32+ j 1) len found foundlen slen out___r__ out___matchlen)
+                                (let ([j (i32+ j 1)])
+                                  (cond
+                                    [(fx<? len j) (join24 matchlen i len found foundlen out___r__ out___matchlen)]
+                                    [(not (fx=? (ld-u8 (fx+ src (i32- j 1))) (ld-u8 (fx+ (termcode.code (fx+ termcodes (fx* i 24))) (i32- slen 1)))))
+                                     (join24 matchlen i len found foundlen out___r__ out___matchlen)]
+                                    [else (join22 matchlen i len found foundlen j out___r__ out___matchlen)]))))])
                   (join24 matchlen i len found foundlen out___r__ out___matchlen))]
              [(and (and (fx>? slen foundlen) (fx>=? len slen)) (fx=? (musl_strncmp ed (termcode.code (fx+ termcodes (fx* i 24))) src (->u64 slen)) 0))
               (join24 matchlen i len i slen out___r__ out___matchlen)]
@@ -47714,15 +49450,6 @@
         [else (join7 matchlen found out___r__ out___matchlen)]))
     (define (join7 matchlen found out___r__ out___matchlen)
       (values found matchlen))
-    (define (loop16 matchlen i j len found foundlen slen out___r__ out___matchlen)
-      (if (and (fx<? j len) (or (or (musl_isdigit ed (ld-u8 (fx+ src j))) (fx=? (ld-u8 (fx+ src j)) 45)) (fx=? (ld-u8 (fx+ src j)) 59)))
-          (loop16 matchlen i (i32+ j 1) len found foundlen slen out___r__ out___matchlen)
-          (let ([j (i32+ j 1)])
-            (cond
-              [(fx<? len j) (join24 matchlen i len found foundlen out___r__ out___matchlen)]
-              [(not (fx=? (ld-u8 (fx+ src (i32- j 1))) (ld-u8 (fx+ (termcode.code (fx+ termcodes (fx* i 24))) (i32- slen 1)))))
-               (join24 matchlen i len found foundlen out___r__ out___matchlen)]
-              [else (join22 matchlen i len found foundlen j out___r__ out___matchlen)]))))
     (define (join22 matchlen i len found foundlen thislen out___r__ out___matchlen)
       (if (fx>? thislen foundlen)
           (join24 matchlen i len i thislen out___r__ out___matchlen)
@@ -47808,16 +49535,15 @@
           [(not (fx=? (ld-u8 (fx+ p 1)) 116)) (musl_strcpy ed (fx+ IObuff 5) p) (join6)]
           [else (st-u8! (fx+ IObuff 5) 0) (join6)])))
     (define (join6)
-      (loop7 (->i32 (musl_strlen ed IObuff))))
-    (define (loop7 len)
-      (let* ([t1 len]
-             [len (i32+ len 1)])
-        (st-u8! (fx+ IObuff t1) 32)
-        (cond
-          [(fx<? len 17) (loop7 len)]
-          [else
-           (st-u8! (fx+ IObuff len) 0)
-           (if (fx=? code 0) (join12 (i32+ len 4)) (join12 (i32+ len (vim_strsize ed code))))])))
+      (let loop7 ([len (->i32 (musl_strlen ed IObuff))])
+        (let* ([t1 len]
+               [len (i32+ len 1)])
+          (st-u8! (fx+ IObuff t1) 32)
+          (cond
+            [(fx<? len 17) (loop7 len)]
+            [else
+             (st-u8! (fx+ IObuff len) 0)
+             (if (fx=? code 0) (join12 (i32+ len 4)) (join12 (i32+ len (vim_strsize ed code))))]))))
     (define (join12 len)
       (cond
         [printit
@@ -47913,22 +49639,32 @@
           (join13 (gchar_cursor ed) save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text first_pass)))
     (define (join13 cc save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text first_pass)
       (if (and (or (fx=? cc 32) (fx=? cc 9)) (not (utf_iscomposing ed (utf_ptr2char ed (fx+ (ml_get_cursor ed) 1)))))
-          (loop15 cc save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text (win_T.w_cursor.col curwin) first_pass)
+          (let loop15 ([cc cc]
+                       [save_char save_char]
+                       [haveto_redraw haveto_redraw]
+                       [safe_tw safe_tw]
+                       [startcol startcol]
+                       [wantcol wantcol]
+                       [foundcol foundcol]
+                       [end_foundcol end_foundcol]
+                       [orig_col orig_col]
+                       [saved_text saved_text]
+                       [end_col (win_T.w_cursor.col curwin)]
+                       [first_pass first_pass])
+            (cond
+              [(and (fx>? (win_T.w_cursor.col curwin) 0) (and (or (fx=? cc 32) (fx=? cc 9)) (not (utf_iscomposing ed (utf_ptr2char ed (fx+ (ml_get_cursor ed) 1))))))
+               (dec_cursor ed)
+               (loop15 (gchar_cursor ed) save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text end_col first_pass)]
+              [(and (fx=? (win_T.w_cursor.col curwin) 0) (and (or (fx=? cc 32) (fx=? cc 9)) (not (utf_iscomposing ed (utf_ptr2char ed (fx+ (ml_get_cursor ed) 1))))))
+               (join20 save_char haveto_redraw safe_tw startcol foundcol end_foundcol orig_col saved_text)]
+              [else
+               (inc_cursor ed)
+               (let* ([end_foundcol (i32+ end_col 1)]
+                      [foundcol (win_T.w_cursor.col curwin)])
+                 (if (fx<=? (win_T.w_cursor.col curwin) wantcol)
+                     (join20 save_char haveto_redraw safe_tw startcol foundcol end_foundcol orig_col saved_text)
+                     (join18 save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text first_pass)))]))
           (join18 save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text first_pass)))
-    (define (loop15 cc save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text end_col first_pass)
-      (cond
-        [(and (fx>? (win_T.w_cursor.col curwin) 0) (and (or (fx=? cc 32) (fx=? cc 9)) (not (utf_iscomposing ed (utf_ptr2char ed (fx+ (ml_get_cursor ed) 1))))))
-         (dec_cursor ed)
-         (loop15 (gchar_cursor ed) save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text end_col first_pass)]
-        [(and (fx=? (win_T.w_cursor.col curwin) 0) (and (or (fx=? cc 32) (fx=? cc 9)) (not (utf_iscomposing ed (utf_ptr2char ed (fx+ (ml_get_cursor ed) 1))))))
-         (join20 save_char haveto_redraw safe_tw startcol foundcol end_foundcol orig_col saved_text)]
-        [else
-         (inc_cursor ed)
-         (let* ([end_foundcol (i32+ end_col 1)]
-                [foundcol (win_T.w_cursor.col curwin)])
-           (if (fx<=? (win_T.w_cursor.col curwin) wantcol)
-               (join20 save_char haveto_redraw safe_tw startcol foundcol end_foundcol orig_col saved_text)
-               (join18 save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text first_pass)))]))
     (define (join18 save_char haveto_redraw safe_tw startcol wantcol foundcol end_foundcol orig_col saved_text first_pass)
       (cond
         [(fx=? (win_T.w_cursor.col curwin) 0)
@@ -47949,18 +49685,23 @@
             (join24 save_char haveto_redraw safe_tw startcol foundcol orig_col saved_text)])]))
     (define (join24 save_char haveto_redraw safe_tw startcol foundcol orig_col saved_text)
       (win_T.w_cursor.col-set! curwin foundcol)
-      (loop25 save_char haveto_redraw safe_tw startcol foundcol orig_col saved_text))
-    (define (loop25 save_char haveto_redraw safe_tw startcol foundcol orig_col saved_text)
-      (let ([cc (gchar_cursor ed)])
-        (cond
-          [(and (or (fx=? cc 32) (fx=? cc 9)) (not (utf_iscomposing ed (utf_ptr2char ed (fx+ (ml_get_cursor ed) 1)))))
-           (inc_cursor ed)
-           (loop25 save_char haveto_redraw safe_tw startcol foundcol orig_col saved_text)]
-          [else
-           (let ([startcol (i32- startcol (win_T.w_cursor.col curwin))])
-             (if (fx<? startcol 0)
-                 (join28 save_char haveto_redraw safe_tw 0 foundcol orig_col saved_text)
-                 (join28 save_char haveto_redraw safe_tw startcol foundcol orig_col saved_text)))])))
+      (let loop25 ([save_char save_char]
+                   [haveto_redraw haveto_redraw]
+                   [safe_tw safe_tw]
+                   [startcol startcol]
+                   [foundcol foundcol]
+                   [orig_col orig_col]
+                   [saved_text saved_text])
+        (let ([cc (gchar_cursor ed)])
+          (cond
+            [(and (or (fx=? cc 32) (fx=? cc 9)) (not (utf_iscomposing ed (utf_ptr2char ed (fx+ (ml_get_cursor ed) 1)))))
+             (inc_cursor ed)
+             (loop25 save_char haveto_redraw safe_tw startcol foundcol orig_col saved_text)]
+            [else
+             (let ([startcol (i32- startcol (win_T.w_cursor.col curwin))])
+               (if (fx<? startcol 0)
+                   (join28 save_char haveto_redraw safe_tw 0 foundcol orig_col saved_text)
+                   (join28 save_char haveto_redraw safe_tw startcol foundcol orig_col saved_text)))]))))
     (define (join28 save_char haveto_redraw safe_tw startcol foundcol orig_col saved_text)
       (cond
         [(not (fxzero? (fxand State 512)))
@@ -48043,16 +49784,16 @@
               (cond
                 [(or (fx=? i -1) (and (fx>=? i 1) last_line)) #f]
                 [(and (and (fx>=? i 1) (not (fxzero? eol))) (= count 0)) #t]
-                [(not (fx=? sclass 0)) (loop7 count sclass)]
+                [(not (fx=? sclass 0)) (let loop7 ([count count]
+                                                   [sclass sclass])
+                                         (if (fx=? (cls ed) sclass)
+                                             (let ([i (inc_cursor ed)])
+                                               (if (or (fx=? i -1) (and (and (fx>=? i 1) (not (fxzero? eol))) (= count 0)))
+                                                   #t
+                                                   (loop7 count sclass)))
+                                             (loop9 count)))]
                 [else (loop9 count)]))
             #t)))
-    (define (loop7 count sclass)
-      (if (fx=? (cls ed) sclass)
-          (let ([i (inc_cursor ed)])
-            (if (or (fx=? i -1) (and (and (fx>=? i 1) (not (fxzero? eol))) (= count 0)))
-                #t
-                (loop7 count sclass)))
-          (loop9 count)))
     (define (loop9 count)
       (if (fx=? (cls ed) 0)
           (if (and (fx=? (win_T.w_cursor.col curwin) 0) (fx=? (ld-u8 (ml_get_curline ed)) 0))
@@ -48073,19 +49814,18 @@
            (let ([sclass (cls ed)])
              (cond
                [(fx=? (dec_cursor ed) -1) #f]
-               [(or (or (not stop) (fx=? sclass (cls ed))) (fx=? sclass 0)) (loop6 count)]
+               [(or (or (not stop) (fx=? sclass (cls ed))) (fx=? sclass 0)) (let loop6 ([count count])
+                                                                              (cond
+                                                                                [(fx=? (cls ed) 0)
+                                                                                 (cond
+                                                                                   [(and (fx=? (win_T.w_cursor.col curwin) 0) (fx=? (ld-u8 (ml_get ed (win_T.w_cursor.lnum curwin))) 0))
+                                                                                    (join14 count)]
+                                                                                   [(fx=? (dec_cursor ed) -1) #t]
+                                                                                   [else (loop6 count)])]
+                                                                                [(skip_chars ed (cls ed) -1) #t]
+                                                                                [else (join8 count)]))]
                [else (join8 count)]))]
           [else (adjust_skipcol ed) #t])))
-    (define (loop6 count)
-      (cond
-        [(fx=? (cls ed) 0)
-         (cond
-           [(and (fx=? (win_T.w_cursor.col curwin) 0) (fx=? (ld-u8 (ml_get ed (win_T.w_cursor.lnum curwin))) 0))
-            (join14 count)]
-           [(fx=? (dec_cursor ed) -1) #t]
-           [else (loop6 count)])]
-        [(skip_chars ed (cls ed) -1) #t]
-        [else (join8 count)]))
     (define (join8 count)
       (inc_cursor ed)
       (join14 count))
@@ -48104,19 +49844,18 @@
               (cond
                 [(fx=? (inc_cursor ed) -1) #f]
                 [(and (fx=? (cls ed) sclass) (not (fx=? sclass 0))) (if (skip_chars ed sclass 1) #f (join17 count))]
-                [(or (not stop) (fx=? sclass 0)) (loop9 count)]
+                [(or (not stop) (fx=? sclass 0)) (let loop9 ([count count])
+                                                   (cond
+                                                     [(fx=? (cls ed) 0)
+                                                      (cond
+                                                        [(and (and empty (fx=? (win_T.w_cursor.col curwin) 0)) (fx=? (ld-u8 (ml_get ed (win_T.w_cursor.lnum curwin))) 0))
+                                                         (join18 count)]
+                                                        [(fx=? (inc_cursor ed) -1) #f]
+                                                        [else (loop9 count)])]
+                                                     [(skip_chars ed (cls ed) 1) #f]
+                                                     [else (join17 count)]))]
                 [else (join17 count)]))
             #t)))
-    (define (loop9 count)
-      (cond
-        [(fx=? (cls ed) 0)
-         (cond
-           [(and (and empty (fx=? (win_T.w_cursor.col curwin) 0)) (fx=? (ld-u8 (ml_get ed (win_T.w_cursor.lnum curwin))) 0))
-            (join18 count)]
-           [(fx=? (inc_cursor ed) -1) #f]
-           [else (loop9 count)])]
-        [(skip_chars ed (cls ed) 1) #f]
-        [else (join17 count)]))
     (define (join17 count)
       (dec_cursor ed)
       (join18 count))
@@ -48141,14 +49880,14 @@
              (cond
                [(fx=? i -1) #f]
                [(and eol (fx=? i 1)) #t]
-               [(not (fx=? sclass 0)) (loop7 count sclass)]
+               [(not (fx=? sclass 0)) (let loop7 ([count count]
+                                                  [sclass sclass])
+                                        (if (fx=? (cls ed) sclass)
+                                            (let ([i (dec_cursor ed)])
+                                              (if (or (fx=? i -1) (and eol (fx=? i 1))) #t (loop7 count sclass)))
+                                            (loop9 count)))]
                [else (loop9 count)]))]
           [else (adjust_skipcol ed) #t])))
-    (define (loop7 count sclass)
-      (if (fx=? (cls ed) sclass)
-          (let ([i (dec_cursor ed)])
-            (if (or (fx=? i -1) (and eol (fx=? i 1))) #t (loop7 count sclass)))
-          (loop9 count)))
     (define (loop9 count)
       (if (fx=? (cls ed) 0)
           (if (and (fx=? (win_T.w_cursor.col curwin) 0) (fx=? (ld-u8 (ml_get ed (win_T.w_cursor.lnum curwin))) 0))
@@ -48161,19 +49900,17 @@
     (loop1 count)))
 
 (define (skip_chars ed cclass dir)
-  (define (loop1)
+  (let loop1 ()
     (if (fx=? (cls ed) cclass)
         (if (fx=? (if (fx=? dir 1) (inc_cursor ed) (dec_cursor ed)) -1) #t (loop1))
-        #f))
-  (loop1))
+        #f)))
 
 (define (back_in_line ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 sclass)
+    (let loop1 ([sclass (cls ed)])
       (unless (fx=? (win_T.w_cursor.col curwin) 0)
         (dec_cursor ed)
-        (if (not (fx=? (cls ed) sclass)) (inc_cursor ed) (loop1 sclass))))
-    (loop1 (cls ed))))
+        (if (not (fx=? (cls ed) sclass)) (inc_cursor ed) (loop1 sclass))))))
 
 (define (current_word ed oap count include bigword)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
@@ -48298,12 +50035,6 @@
 (define (current_block ed oap count include what other)
   (let* ([mem (ed-mem ed)] [fr (frame-push! ed 16)])
     (define-c-local start_pos &start_pos agg 0)
-    (define (loop6 count old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol)
-      (if (inindent ed 1)
-          (if (not (fx=? (inc_cursor ed) 0))
-              (join9 count old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol)
-              (loop6 count old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol))
-          (join9 count old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol)))
     (define (join9 count old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol)
       (if (fx=? (gchar_cursor ed) what)
           (let ([r1 curwin])
@@ -48315,34 +50046,58 @@
         (set! p_cpo (if (not (fx=? (vim_strchr ed p_cpo 77) 0)) (c-str 166990 "%M") (c-str 162760 "%")))
         (let ([pos (findmatch ed 0 what)])
           (if (not (fx=? pos 0))
-              (loop17 count old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)
-              (loop13 count old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)))))
-    (define (loop13 count old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)
-      (let* ([t2 count]
-             [count (i64- count 1)])
-        (if (> t2 0)
-            (let ([pos (findmatchlimit ed 0 what 2 0)])
-              (cond
-                [(fx=? pos 0)
-                 (join20 old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)]
-                [else
-                 (mem-copy! (win_T.w_cursor& curwin) pos 16)
-                 (mem-copy! start_pos pos 16)
-                 (loop13 count old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)]))
-            (join20 old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol))))
-    (define (loop17 count old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)
-      (let* ([t1 count]
-             [count (i64- count 1)])
-        (if (> t1 0)
-            (let ([pos (findmatch ed 0 what)])
-              (cond
-                [(fx=? pos 0)
-                 (join20 old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)]
-                [else
-                 (mem-copy! (win_T.w_cursor& curwin) pos 16)
-                 (mem-copy! start_pos pos 16)
-                 (loop17 count old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)]))
-            (join20 old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol))))
+              (let loop17 ([count count]
+                           [old_pos_lnum old_pos_lnum]
+                           [old_pos_col old_pos_col]
+                           [old_pos_coladd old_pos_coladd]
+                           [pos pos]
+                           [end_pos end_pos]
+                           [old_start_lnum old_start_lnum]
+                           [old_start_col old_start_col]
+                           [old_start_coladd old_start_coladd]
+                           [old_end_lnum old_end_lnum]
+                           [old_end_col old_end_col]
+                           [old_end_coladd old_end_coladd]
+                           [save_cpo save_cpo]
+                           [sol sol])
+                (let* ([t1 count]
+                       [count (i64- count 1)])
+                  (if (> t1 0)
+                      (let ([pos (findmatch ed 0 what)])
+                        (cond
+                          [(fx=? pos 0)
+                           (join20 old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)]
+                          [else
+                           (mem-copy! (win_T.w_cursor& curwin) pos 16)
+                           (mem-copy! start_pos pos 16)
+                           (loop17 count old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)]))
+                      (join20 old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol))))
+              (let loop13 ([count count]
+                           [old_pos_lnum old_pos_lnum]
+                           [old_pos_col old_pos_col]
+                           [old_pos_coladd old_pos_coladd]
+                           [pos pos]
+                           [end_pos end_pos]
+                           [old_start_lnum old_start_lnum]
+                           [old_start_col old_start_col]
+                           [old_start_coladd old_start_coladd]
+                           [old_end_lnum old_end_lnum]
+                           [old_end_col old_end_col]
+                           [old_end_coladd old_end_coladd]
+                           [save_cpo save_cpo]
+                           [sol sol])
+                (let* ([t2 count]
+                       [count (i64- count 1)])
+                  (if (> t2 0)
+                      (let ([pos (findmatchlimit ed 0 what 2 0)])
+                        (cond
+                          [(fx=? pos 0)
+                           (join20 old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)]
+                          [else
+                           (mem-copy! (win_T.w_cursor& curwin) pos 16)
+                           (mem-copy! start_pos pos 16)
+                           (loop13 count old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)]))
+                      (join20 old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol))))))))
     (define (join20 old_pos_lnum old_pos_col old_pos_coladd pos end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd save_cpo sol)
       (set! p_cpo save_cpo)
       (let ([t3 (fx=? pos 0)])
@@ -48367,14 +50122,23 @@
          (incl ed start_pos)
          (let ([sol (fx=? (win_T.w_cursor.col curwin) 0)])
            (decl ed (win_T.w_cursor& curwin))
-           (loop26 old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol))]
+           (let loop26 ([old_pos_lnum old_pos_lnum]
+                        [old_pos_col old_pos_col]
+                        [old_pos_coladd old_pos_coladd]
+                        [end_pos end_pos]
+                        [old_start_lnum old_start_lnum]
+                        [old_start_col old_start_col]
+                        [old_start_coladd old_start_coladd]
+                        [old_end_lnum old_end_lnum]
+                        [old_end_col old_end_col]
+                        [old_end_coladd old_end_coladd]
+                        [sol sol])
+             (if (inindent ed 1)
+                 (if (not (fx=? (decl ed (win_T.w_cursor& curwin)) 0))
+                     (join29 old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd #t)
+                     (loop26 old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd #t))
+                 (join29 old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol))))]
         [else (join31 sol)]))
-    (define (loop26 old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol)
-      (if (inindent ed 1)
-          (if (not (fx=? (decl ed (win_T.w_cursor& curwin)) 0))
-              (join29 old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd #t)
-              (loop26 old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd #t))
-          (join29 old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol)))
     (define (join29 old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol)
       (cond
         [(and (and (and (= (pos_T.lnum start_pos) (pos_T.lnum end_pos)) (fx=? (pos_T.col start_pos) (pos_T.col end_pos))) (fx=? (pos_T.coladd start_pos) (pos_T.coladd end_pos))) VIsual_active)
@@ -48462,7 +50226,23 @@
         [(or (not VIsual_active) (and (and (= (pos_T.lnum VIsual) (win_T.w_cursor.lnum curwin)) (fx=? (pos_T.col VIsual) (win_T.w_cursor.col curwin))) (fx=? (pos_T.coladd VIsual) (win_T.w_cursor.coladd curwin))))
          (setpcmark ed)
          (if (fx=? what 123)
-             (loop6 count old_pos_lnum old_pos_col old_pos_coladd 0 old_end_lnum old_end_col old_end_coladd old_end_lnum old_end_col old_end_coladd #f)
+             (let loop6 ([count count]
+                         [old_pos_lnum old_pos_lnum]
+                         [old_pos_col old_pos_col]
+                         [old_pos_coladd old_pos_coladd]
+                         [end_pos 0]
+                         [old_start_lnum old_end_lnum]
+                         [old_start_col old_end_col]
+                         [old_start_coladd old_end_coladd]
+                         [old_end_lnum old_end_lnum]
+                         [old_end_col old_end_col]
+                         [old_end_coladd old_end_coladd]
+                         [sol #f])
+               (if (inindent ed 1)
+                   (if (not (fx=? (inc_cursor ed) 0))
+                       (join9 count old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol)
+                       (loop6 count old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol))
+                   (join9 count old_pos_lnum old_pos_col old_pos_coladd end_pos old_start_lnum old_start_col old_start_coladd old_end_lnum old_end_col old_end_coladd sol)))
              (join9 count old_pos_lnum old_pos_col old_pos_coladd 0 old_end_lnum old_end_col old_end_coladd old_end_lnum old_end_col old_end_coladd #f))]
         [(not (fxzero? (if (not (= (pos_T.lnum VIsual) (win_T.w_cursor.lnum curwin)))
              (b->i (< (pos_T.lnum VIsual) (win_T.w_cursor.lnum curwin)))
@@ -48503,12 +50283,12 @@
           (let* ([col_start (i32- col_start 1)]
                  [t1 (utf_head_off ed line (fx+ line col_start))]
                  [col_start (i32- col_start t1)])
-            (if (not (fx=? escape 0)) (loop4 col_start 0) (join5 col_start 0)))
+            (if (not (fx=? escape 0)) (let loop4 ([col_start col_start]
+                                                  [n 0])
+                                        (if (and (fx>? (i32- col_start n) 0) (not (fx=? (vim_strchr ed escape (ld-u8 (fx+ line (i32- (i32- col_start n) 1)))) 0)))
+                                            (loop4 col_start (i32+ n 1))
+                                            (join5 col_start n))) (join5 col_start 0)))
           (join7 col_start)))
-    (define (loop4 col_start n)
-      (if (and (fx>? (i32- col_start n) 0) (not (fx=? (vim_strchr ed escape (ld-u8 (fx+ line (i32- (i32- col_start n) 1)))) 0)))
-          (loop4 col_start (i32+ n 1))
-          (join5 col_start n)))
     (define (join5 col_start n)
       (cond
         [(not (fxzero? (fxand n 1))) (loop1 (i32- col_start n))]
@@ -48594,31 +50374,51 @@
             (join67 did_exclusive_adj restore_vis_bef)
             (join40 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote))))
     (define (join28 line inclusive vis_empty vis_bef_curs did_exclusive_adj inside_quotes selected_quote restore_vis_bef first_col)
-      (loop29 line 0 inclusive vis_empty vis_bef_curs did_exclusive_adj inside_quotes selected_quote restore_vis_bef first_col))
-    (define (loop29 line col_start inclusive vis_empty vis_bef_curs did_exclusive_adj inside_quotes selected_quote restore_vis_bef first_col)
-      (let ([col_start (find_next_quote ed line col_start quotechar 0)])
-        (if (or (fx<? col_start 0) (fx>? col_start first_col))
-            (join67 did_exclusive_adj restore_vis_bef)
-            (let ([col_end (find_next_quote ed line (i32+ col_start 1) quotechar (buf_T.b_p_qe curbuf))])
-              (cond
-                [(fx<? col_end 0) (join67 did_exclusive_adj restore_vis_bef)]
-                [(and (fx<=? col_start first_col) (fx<=? first_col col_end))
-                 (join40 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)]
-                [else
-                 (loop29 line (i32+ col_end 1) inclusive vis_empty vis_bef_curs did_exclusive_adj inside_quotes selected_quote restore_vis_bef first_col)])))))
+      (let loop29 ([line line]
+                   [col_start 0]
+                   [inclusive inclusive]
+                   [vis_empty vis_empty]
+                   [vis_bef_curs vis_bef_curs]
+                   [did_exclusive_adj did_exclusive_adj]
+                   [inside_quotes inside_quotes]
+                   [selected_quote selected_quote]
+                   [restore_vis_bef restore_vis_bef]
+                   [first_col first_col])
+        (let ([col_start (find_next_quote ed line col_start quotechar 0)])
+          (if (or (fx<? col_start 0) (fx>? col_start first_col))
+              (join67 did_exclusive_adj restore_vis_bef)
+              (let ([col_end (find_next_quote ed line (i32+ col_start 1) quotechar (buf_T.b_p_qe curbuf))])
+                (cond
+                  [(fx<? col_end 0) (join67 did_exclusive_adj restore_vis_bef)]
+                  [(and (fx<=? col_start first_col) (fx<=? first_col col_end))
+                   (join40 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)]
+                  [else
+                   (loop29 line (i32+ col_end 1) inclusive vis_empty vis_bef_curs did_exclusive_adj inside_quotes selected_quote restore_vis_bef first_col)]))))))
     (define (join40 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)
       (if include
           (if (or (fx=? (ld-u8 (fx+ line (i32+ col_end 1))) 32) (fx=? (ld-u8 (fx+ line (i32+ col_end 1))) 9))
-              (loop46 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)
-              (loop43 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote))
-          (join47 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)))
-    (define (loop43 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)
-      (if (and (fx>? col_start 0) (or (fx=? (ld-u8 (fx+ line (i32- col_start 1))) 32) (fx=? (ld-u8 (fx+ line (i32- col_start 1))) 9)))
-          (loop43 line col_end (i32- col_start 1) inclusive vis_empty vis_bef_curs inside_quotes selected_quote)
-          (join47 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)))
-    (define (loop46 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)
-      (if (or (fx=? (ld-u8 (fx+ line (i32+ col_end 1))) 32) (fx=? (ld-u8 (fx+ line (i32+ col_end 1))) 9))
-          (loop46 line (i32+ col_end 1) col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)
+              (let loop46 ([line line]
+                           [col_end col_end]
+                           [col_start col_start]
+                           [inclusive inclusive]
+                           [vis_empty vis_empty]
+                           [vis_bef_curs vis_bef_curs]
+                           [inside_quotes inside_quotes]
+                           [selected_quote selected_quote])
+                (if (or (fx=? (ld-u8 (fx+ line (i32+ col_end 1))) 32) (fx=? (ld-u8 (fx+ line (i32+ col_end 1))) 9))
+                    (loop46 line (i32+ col_end 1) col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)
+                    (join47 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)))
+              (let loop43 ([line line]
+                           [col_end col_end]
+                           [col_start col_start]
+                           [inclusive inclusive]
+                           [vis_empty vis_empty]
+                           [vis_bef_curs vis_bef_curs]
+                           [inside_quotes inside_quotes]
+                           [selected_quote selected_quote])
+                (if (and (fx>? col_start 0) (or (fx=? (ld-u8 (fx+ line (i32- col_start 1))) 32) (fx=? (ld-u8 (fx+ line (i32- col_start 1))) 9)))
+                    (loop43 line col_end (i32- col_start 1) inclusive vis_empty vis_bef_curs inside_quotes selected_quote)
+                    (join47 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote))))
           (join47 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)))
     (define (join47 line col_end col_start inclusive vis_empty vis_bef_curs inside_quotes selected_quote)
       (if (and (and (not include) (< count 2)) (or vis_empty (not inside_quotes)))
@@ -48869,14 +50669,6 @@
 
 (define (fill_input_buf ed exit_on_error)
   (let ([mem (ed-mem ed)])
-    (define (loop2 len try)
-      (if (fx<? try 100)
-          (let* ([readlen (->u64 (i32- 250 inbufcount))]
-                 [len (musl_read_input ed (fx+ inbuf inbufcount) (->i32 readlen))])
-            (if (or (fx>? len 0) (not (fxzero? got_int)))
-                (join7 len)
-                (unless (not exit_on_error) (loop2 len (i32+ try 1)))))
-          (join7 len)))
     (define (join7 len)
       (cond
         [(and (fx<=? len 0) (not (not (fxzero? got_int)))) (read_error_exit ed) (join9 len)]
@@ -48898,7 +50690,15 @@
       (let ([len (i32- len 1)])
         (set! inbufcount (i32+ inbufcount 1))
         (loop11 len)))
-    (unless (vim_is_input_buf_full ed) (loop2 0 0))))
+    (unless (vim_is_input_buf_full ed) (let loop2 ([len 0]
+                                                   [try 0])
+                                         (if (fx<? try 100)
+                                             (let* ([readlen (->u64 (i32- 250 inbufcount))]
+                                                    [len (musl_read_input ed (fx+ inbuf inbufcount) (->i32 readlen))])
+                                               (if (or (fx>? len 0) (not (fxzero? got_int)))
+                                                   (join7 len)
+                                                   (unless (not exit_on_error) (loop2 len (i32+ try 1)))))
+                                             (join7 len))))))
 
 (define (read_error_exit ed)
   (let ([mem (ed-mem ed)])
@@ -48991,28 +50791,30 @@
            (buf_T.b_new_change-set! curbuf #t)
            (if (>= (get_undolevel ed) 0) (join26 (lalloc ed 568 #f) size) (join26 0 size))]
           [(< (get_undolevel ed) 0) (frame-pop! ed fr) #t]
-          [(= size 1) (loop7 0 (u_get_headentry ed) 0 size)]
+          [(= size 1) (let loop7 ([i 0]
+                                  [uep (u_get_headentry ed)]
+                                  [prev_uep 0]
+                                  [size size])
+                        (if (< i 10)
+                            (cond
+                              [(fx=? uep 0) (join21 size)]
+                              [(or (not (fxzero? (if (not (fx=? (u_header_T.uh_getbot_entry (buf_T.b_u_newhead curbuf)) uep))
+                                   (b->i (not (= (i64+ (i64+ (u_entry_T.ue_top uep) (u_entry_T.ue_size uep)) 1) (if (= (u_entry_T.ue_bot uep) 0) (i64+ (buf_T.b_ml.ml_line_count curbuf) 1) (u_entry_T.ue_bot uep)))))
+                                   (b->i (not (= (u_entry_T.ue_lcount uep) (buf_T.b_ml.ml_line_count curbuf))))))) (and (and (> (u_entry_T.ue_size uep) 1) (>= top (u_entry_T.ue_top uep))) (<= (i64+ top 2) (i64+ (i64+ (u_entry_T.ue_top uep) (u_entry_T.ue_size uep)) 1))))
+                               (join21 size)]
+                              [(and (= (u_entry_T.ue_size uep) 1) (= (u_entry_T.ue_top uep) top))
+                               (cond
+                                 [(> i 0)
+                                  (u_getbot ed)
+                                  (buf_T.b_u_synced-set! curbuf #f)
+                                  (u_entry_T.ue_next-set! prev_uep (u_entry_T.ue_next uep))
+                                  (u_entry_T.ue_next-set! uep (u_header_T.uh_entry (buf_T.b_u_newhead curbuf)))
+                                  (u_header_T.uh_entry-set! (buf_T.b_u_newhead curbuf) uep)
+                                  (join15 uep)]
+                                 [else (join15 uep)])]
+                              [else (loop7 (i64+ i 1) (u_entry_T.ue_next uep) uep size)])
+                            (join21 size)))]
           [else (join21 size)])))
-    (define (loop7 i uep prev_uep size)
-      (if (< i 10)
-          (cond
-            [(fx=? uep 0) (join21 size)]
-            [(or (not (fxzero? (if (not (fx=? (u_header_T.uh_getbot_entry (buf_T.b_u_newhead curbuf)) uep))
-                 (b->i (not (= (i64+ (i64+ (u_entry_T.ue_top uep) (u_entry_T.ue_size uep)) 1) (if (= (u_entry_T.ue_bot uep) 0) (i64+ (buf_T.b_ml.ml_line_count curbuf) 1) (u_entry_T.ue_bot uep)))))
-                 (b->i (not (= (u_entry_T.ue_lcount uep) (buf_T.b_ml.ml_line_count curbuf))))))) (and (and (> (u_entry_T.ue_size uep) 1) (>= top (u_entry_T.ue_top uep))) (<= (i64+ top 2) (i64+ (i64+ (u_entry_T.ue_top uep) (u_entry_T.ue_size uep)) 1))))
-             (join21 size)]
-            [(and (= (u_entry_T.ue_size uep) 1) (= (u_entry_T.ue_top uep) top))
-             (cond
-               [(> i 0)
-                (u_getbot ed)
-                (buf_T.b_u_synced-set! curbuf #f)
-                (u_entry_T.ue_next-set! prev_uep (u_entry_T.ue_next uep))
-                (u_entry_T.ue_next-set! uep (u_header_T.uh_entry (buf_T.b_u_newhead curbuf)))
-                (u_header_T.uh_entry-set! (buf_T.b_u_newhead curbuf) uep)
-                (join15 uep)]
-               [else (join15 uep)])]
-            [else (loop7 (i64+ i 1) (u_entry_T.ue_next uep) uep size)])
-          (join21 size)))
     (define (join15 uep)
       (cond
         [(not (= newbot 0)) (u_entry_T.ue_bot-set! uep newbot) (join20)]
@@ -49045,7 +50847,12 @@
                [(fx=? (u_header_T.uh_alt_next uhfree) 0)
                 (u_freeheader ed curbuf uhfree &old_curhead)
                 (loop29 uhp size)]
-               [else (loop69 uhp size uhfree)]))]
+               [else (let loop69 ([uhp uhp]
+                                  [size size]
+                                  [uhfree uhfree])
+                       (cond
+                         [(not (fx=? (u_header_T.uh_alt_next uhfree) 0)) (loop69 uhp size (u_header_T.uh_alt_next uhfree))]
+                         [else (u_freebranch ed curbuf uhfree &old_curhead) (loop29 uhp size)]))]))]
           [(fx=? uhp 0)
            (cond
              [(not (fx=? old_curhead 0)) (u_freebranch ed curbuf old_curhead 0) (join65)]
@@ -49121,29 +50928,31 @@
       (cond
         [(> size 0)
          (u_entry_T.ue_array-set! uep (lalloc ed (u64* 24 (->u64 size)) #f))
-         (loop53 (i64+ top 1) 0 uep size)]
-        [else (u_entry_T.ue_array-set! uep 0) (join54 uep)]))
-    (define (loop53 lnum i uep size)
-      (cond
-        [(< i size)
-         (fast_breakcheck ed)
-         (cond
-           [(not (fxzero? got_int)) (u_freeentry ed uep i) (frame-pop! ed fr) #f]
-           [else
-            (let* ([t1 lnum]
-                   [lnum (i64+ lnum 1)])
+         (let loop53 ([lnum (i64+ top 1)]
+                      [i 0]
+                      [uep uep]
+                      [size size])
+           (cond
+             [(< i size)
+              (fast_breakcheck ed)
               (cond
-                [(not (u_save_line ed (fx+ (u_entry_T.ue_array uep) (fx* i 24)) t1))
-                 (u_freeentry ed uep i)
-                 (set! msg_silent 0)
-                 (cond
-                   [(fx=? (ask_yesno ed (c-str 167114 "No undo possible; continue anyway") #t) 121)
-                    (set! undo_off #t)
-                    (frame-pop! ed fr)
-                    #t]
-                   [else (do_outofmem_msg ed 0) (frame-pop! ed fr) #f])]
-                [else (loop53 lnum (i64+ i 1) uep size)]))])]
-        [else (join54 uep)]))
+                [(not (fxzero? got_int)) (u_freeentry ed uep i) (frame-pop! ed fr) #f]
+                [else
+                 (let* ([t1 lnum]
+                        [lnum (i64+ lnum 1)])
+                   (cond
+                     [(not (u_save_line ed (fx+ (u_entry_T.ue_array uep) (fx* i 24)) t1))
+                      (u_freeentry ed uep i)
+                      (set! msg_silent 0)
+                      (cond
+                        [(fx=? (ask_yesno ed (c-str 167114 "No undo possible; continue anyway") #t) 121)
+                         (set! undo_off #t)
+                         (frame-pop! ed fr)
+                         #t]
+                        [else (do_outofmem_msg ed 0) (frame-pop! ed fr) #f])]
+                     [else (loop53 lnum (i64+ i 1) uep size)]))])]
+             [else (join54 uep)]))]
+        [else (u_entry_T.ue_array-set! uep 0) (join54 uep)]))
     (define (join54 uep)
       (u_entry_T.ue_next-set! uep (u_header_T.uh_entry (buf_T.b_u_newhead curbuf)))
       (u_header_T.uh_entry-set! (buf_T.b_u_newhead curbuf) uep)
@@ -49155,10 +50964,6 @@
       (buf_T.b_u_synced-set! curbuf #f)
       (frame-pop! ed fr)
       #t)
-    (define (loop69 uhp size uhfree)
-      (cond
-        [(not (fx=? (u_header_T.uh_alt_next uhfree) 0)) (loop69 uhp size (u_header_T.uh_alt_next uhfree))]
-        [else (u_freebranch ed curbuf uhfree &old_curhead) (loop29 uhp size)]))
     (cond
       [reload (join3)]
       [(not (undo_allowed ed)) (frame-pop! ed fr) #f]
@@ -49400,26 +51205,37 @@
     (define (loop89 target mark above did_undo)
       (if (not (not (fxzero? got_int)))
           (let ([uhp (buf_T.b_u_curhead curbuf)])
-            (if (fx=? uhp 0) (join116 did_undo) (loop92 target uhp mark above did_undo)))
+            (if (fx=? uhp 0) (join116 did_undo) (let loop92 ([target target]
+                                                             [uhp uhp]
+                                                             [mark mark]
+                                                             [above above]
+                                                             [did_undo did_undo])
+                                                  (if (and (not (fx=? (u_header_T.uh_alt_prev uhp) 0)) (fx=? (u_header_T.uh_walk (u_header_T.uh_alt_prev uhp)) mark))
+                                                      (loop92 target (u_header_T.uh_alt_prev uhp) mark above did_undo)
+                                                      (let loop94 ([target target]
+                                                                   [uhp uhp]
+                                                                   [last uhp]
+                                                                   [mark mark]
+                                                                   [above above]
+                                                                   [did_undo did_undo])
+                                                        (cond
+                                                          [(and (not (fx=? (u_header_T.uh_alt_next last) 0)) (fx=? (u_header_T.uh_walk (u_header_T.uh_alt_next last)) mark))
+                                                           (loop94 target uhp (u_header_T.uh_alt_next last) mark above did_undo)]
+                                                          [(not (fx=? last uhp)) (let loop97 ([target target]
+                                                                                              [uhp uhp]
+                                                                                              [last last]
+                                                                                              [mark mark]
+                                                                                              [above above]
+                                                                                              [did_undo did_undo])
+                                                                                   (cond
+                                                                                     [(not (fx=? (u_header_T.uh_alt_prev uhp) 0))
+                                                                                      (loop97 target (u_header_T.uh_alt_prev uhp) last mark above did_undo)]
+                                                                                     [(not (fx=? (u_header_T.uh_alt_next last) 0))
+                                                                                      (u_header_T.uh_alt_prev-set! (u_header_T.uh_alt_next last) (u_header_T.uh_alt_prev last))
+                                                                                      (join100 target uhp last mark above did_undo)]
+                                                                                     [else (join100 target uhp last mark above did_undo)]))]
+                                                          [else (join104 target uhp mark above did_undo)]))))))
           (join116 did_undo)))
-    (define (loop92 target uhp mark above did_undo)
-      (if (and (not (fx=? (u_header_T.uh_alt_prev uhp) 0)) (fx=? (u_header_T.uh_walk (u_header_T.uh_alt_prev uhp)) mark))
-          (loop92 target (u_header_T.uh_alt_prev uhp) mark above did_undo)
-          (loop94 target uhp uhp mark above did_undo)))
-    (define (loop94 target uhp last mark above did_undo)
-      (cond
-        [(and (not (fx=? (u_header_T.uh_alt_next last) 0)) (fx=? (u_header_T.uh_walk (u_header_T.uh_alt_next last)) mark))
-         (loop94 target uhp (u_header_T.uh_alt_next last) mark above did_undo)]
-        [(not (fx=? last uhp)) (loop97 target uhp last mark above did_undo)]
-        [else (join104 target uhp mark above did_undo)]))
-    (define (loop97 target uhp last mark above did_undo)
-      (cond
-        [(not (fx=? (u_header_T.uh_alt_prev uhp) 0))
-         (loop97 target (u_header_T.uh_alt_prev uhp) last mark above did_undo)]
-        [(not (fx=? (u_header_T.uh_alt_next last) 0))
-         (u_header_T.uh_alt_prev-set! (u_header_T.uh_alt_next last) (u_header_T.uh_alt_prev last))
-         (join100 target uhp last mark above did_undo)]
-        [else (join100 target uhp last mark above did_undo)]))
     (define (join100 target uhp last mark above did_undo)
       (u_header_T.uh_alt_next-set! (u_header_T.uh_alt_prev last) (u_header_T.uh_alt_next last))
       (u_header_T.uh_alt_prev-set! last 0)
@@ -49583,16 +51399,28 @@
                      [new_curpos_col (u_header_T.uh_cursor.col curhead)])
                 (join53 oldsize newsize top bot -1 new_curpos_lnum new_curpos_col (u_header_T.uh_cursor.coladd curhead) uep newlist old_flags new_flags curhead))]
              [(< top newlnum)
-              (loop45 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd 0 uep newlist old_flags new_flags curhead)]
+              (let loop45 ([oldsize oldsize]
+                           [newsize newsize]
+                           [top top]
+                           [bot bot]
+                           [newlnum newlnum]
+                           [new_curpos_lnum new_curpos_lnum]
+                           [new_curpos_col new_curpos_col]
+                           [new_curpos_coladd new_curpos_coladd]
+                           [i 0]
+                           [uep uep]
+                           [newlist newlist]
+                           [old_flags old_flags]
+                           [new_flags new_flags]
+                           [curhead curhead])
+                (if (and (< i newsize) (< i oldsize))
+                    (let ([p (ml_get ed (i64+ (i64+ top 1) i))])
+                      (if (or (not (= (buf_T.b_ml.ml_line_len curbuf) (undoline_T.ul_len (fx+ (u_entry_T.ue_array uep) (fx* i 24))))) (not (fx=? (musl_memcmp ed (undoline_T.ul_line (fx+ (u_entry_T.ue_array uep) (fx* i 24))) p (->u64 (buf_T.b_ml.ml_line_len curbuf))) 0)))
+                          (join48 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd i uep newlist old_flags new_flags curhead)
+                          (loop45 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd (i64+ i 1) uep newlist old_flags new_flags curhead)))
+                    (join48 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd i uep newlist old_flags new_flags curhead)))]
              [else
               (join53 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd uep newlist old_flags new_flags curhead)]))]))
-    (define (loop45 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd i uep newlist old_flags new_flags curhead)
-      (if (and (< i newsize) (< i oldsize))
-          (let ([p (ml_get ed (i64+ (i64+ top 1) i))])
-            (if (or (not (= (buf_T.b_ml.ml_line_len curbuf) (undoline_T.ul_len (fx+ (u_entry_T.ue_array uep) (fx* i 24))))) (not (fx=? (musl_memcmp ed (undoline_T.ul_line (fx+ (u_entry_T.ue_array uep) (fx* i 24))) p (->u64 (buf_T.b_ml.ml_line_len curbuf))) 0)))
-                (join48 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd i uep newlist old_flags new_flags curhead)
-                (loop45 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd (i64+ i 1) uep newlist old_flags new_flags curhead)))
-          (join48 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd i uep newlist old_flags new_flags curhead)))
     (define (join48 oldsize newsize top bot newlnum new_curpos_lnum new_curpos_col new_curpos_coladd i uep newlist old_flags new_flags curhead)
       (cond
         [(and (and (= i newsize) (= newlnum 9223372036854775807)) (fx=? (u_entry_T.ue_next uep) 0))
@@ -49802,15 +51630,14 @@
          (sort_strings ed (garray_T.ga_data ga) (garray_T.ga_len ga))
          (msg_start ed)
          (msg_puts_attr ed (c-str 167340 "number changes  when               saved") (ld-s32 (fx+ highlight_attr 88)))
-         (loop19 0)]))
-    (define (loop19 i)
-      (cond
-        [(and (fx<? i (garray_T.ga_len ga)) (not (not (fxzero? got_int))))
-         (msg_putchar ed 10)
-         (cond
-           [(not (fxzero? got_int)) (join23)]
-           [else (msg_puts ed (ld-ptr (fx+ (garray_T.ga_data ga) (fx* i 8)))) (loop19 (i32+ i 1))])]
-        [else (join23)]))
+         (let loop19 ([i 0])
+           (cond
+             [(and (fx<? i (garray_T.ga_len ga)) (not (not (fxzero? got_int))))
+              (msg_putchar ed 10)
+              (cond
+                [(not (fxzero? got_int)) (join23)]
+                [else (msg_puts ed (ld-ptr (fx+ (garray_T.ga_data ga) (fx* i 8)))) (loop19 (i32+ i 1))])]
+             [else (join23)]))]))
     (define (join23)
       (msg_end ed)
       (ga_clear_strings ed ga)
@@ -49876,13 +51703,12 @@
     (define (join7)
       (cond
         [(fx=? (u_header_T.uh_prev uhp) 0) (buf_T.b_u_newhead-set! buf (u_header_T.uh_next uhp)) (join13)]
-        [else (loop9 (u_header_T.uh_prev uhp))]))
-    (define (loop9 uhap)
-      (cond
-        [(not (fx=? uhap 0))
-         (u_header_T.uh_next-set! uhap (u_header_T.uh_next uhp))
-         (loop9 (u_header_T.uh_alt_next uhap))]
-        [else (join13)]))
+        [else (let loop9 ([uhap (u_header_T.uh_prev uhp)])
+                (cond
+                  [(not (fx=? uhap 0))
+                   (u_header_T.uh_next-set! uhap (u_header_T.uh_next uhp))
+                   (loop9 (u_header_T.uh_alt_next uhap))]
+                  [else (join13)]))]))
     (define (join13)
       (u_freeentries ed buf uhp uhpp))
     (cond
@@ -49906,12 +51732,11 @@
       (let ([next (u_header_T.uh_prev tofree)])
         (u_freeentries ed buf tofree uhpp)
         (loop4 next)))
-    (define (loop10)
-      (when (not (fx=? (buf_T.b_u_oldhead buf) 0))
-        (u_freeheader ed buf (buf_T.b_u_oldhead buf) uhpp)
-        (loop10)))
     (cond
-      [(fx=? uhp (buf_T.b_u_oldhead buf)) (loop10)]
+      [(fx=? uhp (buf_T.b_u_oldhead buf)) (let loop10 ()
+                                            (when (not (fx=? (buf_T.b_u_oldhead buf) 0))
+                                              (u_freeheader ed buf (buf_T.b_u_oldhead buf) uhpp)
+                                              (loop10)))]
       [(not (fx=? (u_header_T.uh_alt_prev uhp) 0))
        (u_header_T.uh_alt_next-set! (u_header_T.uh_alt_prev uhp) 0)
        (join3)]
@@ -49928,21 +51753,19 @@
         [(and (not (fx=? uhpp 0)) (fx=? uhp (ld-ptr uhpp))) (st-ptr! uhpp 0) (join6)]
         [else (join6)]))
     (define (join6)
-      (loop7 (u_header_T.uh_entry uhp)))
-    (define (loop7 uep)
-      (if (not (fx=? uep 0))
-          (let ([nuep (u_entry_T.ue_next uep)])
-            (u_freeentry ed uep (u_entry_T.ue_size uep))
-            (loop7 nuep))
-          (buf_T.b_u_numhead-set! buf (i32- (buf_T.b_u_numhead buf) 1))))
+      (let loop7 ([uep (u_header_T.uh_entry uhp)])
+        (if (not (fx=? uep 0))
+            (let ([nuep (u_entry_T.ue_next uep)])
+              (u_freeentry ed uep (u_entry_T.ue_size uep))
+              (loop7 nuep))
+            (buf_T.b_u_numhead-set! buf (i32- (buf_T.b_u_numhead buf) 1)))))
     (cond
       [(fx=? (buf_T.b_u_curhead buf) uhp) (buf_T.b_u_curhead-set! buf 0) (join2)]
       [else (join2)])))
 
 (define (u_freeentry ed uep n)
-  (define (loop1 n)
-    (when (> n 0) (loop1 (i64- n 1))))
-  (loop1 n))
+  (let loop1 ([n n])
+    (when (> n 0) (loop1 (i64- n 1)))))
 
 (define (u_clearall ed buf)
   (let ([mem (ed-mem ed)])
@@ -49958,11 +51781,10 @@
 
 (define (u_blockfree ed buf)
   (let ([mem (ed-mem ed)])
-    (define (loop1)
+    (let loop1 ()
       (when (not (fx=? (buf_T.b_u_oldhead buf) 0))
         (u_freeheader ed buf (buf_T.b_u_oldhead buf) 0)
-        (loop1)))
-    (loop1)))
+        (loop1)))))
 
 (define (u_clearallandblockfree ed buf)
   (u_blockfree ed buf)
@@ -50034,13 +51856,12 @@
 
 (define (uc_fun_cmd ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (let loop1 ([i 0])
       (cond
         [(not (fxzero? (ld-u8 (fx+ uc_fun_cmd:fcmd i))))
          (st-u8! (fx+ IObuff i) (->u8 (i32- (ld-u8 (fx+ uc_fun_cmd:fcmd i)) 64)))
          (loop1 (i32+ i 1))]
-        [else (st-u8! (fx+ IObuff i) 0) IObuff]))
-    (loop1 0)))
+        [else (st-u8! (fx+ IObuff i) 0) IObuff]))))
 
 (define (init_longVersion ed)
   (let ([mem (ed-mem ed)])
@@ -50481,32 +52302,34 @@
                (let* ([r2 (win_T.w_width wp)]
                       [skipcol (i32- r2 (win_col_off ed wp))])
                  (win_T.w_wrow-set! wp (i32- (win_T.w_wrow wp) 1))
-                 (loop17 lnum want_row skipcol))
+                 (let loop17 ([lnum lnum]
+                              [want_row want_row]
+                              [skipcol skipcol])
+                   (cond
+                     [(fx>? (win_T.w_wrow wp) want_row)
+                      (let* ([r3 (win_T.w_width wp)]
+                             [r4 (i32- r3 (win_col_off ed wp))]
+                             [t1 (i32+ r4 (win_col_off2 ed wp))]
+                             [skipcol (i32+ skipcol t1)])
+                        (win_T.w_wrow-set! wp (i32- (win_T.w_wrow wp) 1))
+                        (loop17 lnum want_row skipcol))]
+                     [else (win_T.w_skipcol-set! wp skipcol) (join19 lnum)])))
                (join19 lnum)))]
-        [(fx>? sline 0) (loop9 lnum sline line_size)]
+        [(fx>? sline 0) (let loop9 ([lnum lnum]
+                                    [sline sline]
+                                    [line_size line_size])
+                          (cond
+                            [(and (fx>? sline 0) (> lnum 1))
+                             (let* ([lnum (i64- lnum 1)]
+                                    [line_size (plines_win ed wp lnum #t)])
+                               (loop9 lnum (i32- sline line_size) line_size))]
+                            [(fx<? sline 0)
+                             (let ([lnum (i64+ lnum 1)])
+                               (win_T.w_wrow-set! wp (i32- (win_T.w_wrow wp) (i32+ line_size sline)))
+                               (join19 lnum))]
+                            [(fx>? sline 0) (win_T.w_wrow-set! wp (i32- (win_T.w_wrow wp) sline)) (join19 1)]
+                            [else (join19 lnum)]))]
         [else (join19 lnum)]))
-    (define (loop9 lnum sline line_size)
-      (cond
-        [(and (fx>? sline 0) (> lnum 1))
-         (let* ([lnum (i64- lnum 1)]
-                [line_size (plines_win ed wp lnum #t)])
-           (loop9 lnum (i32- sline line_size) line_size))]
-        [(fx<? sline 0)
-         (let ([lnum (i64+ lnum 1)])
-           (win_T.w_wrow-set! wp (i32- (win_T.w_wrow wp) (i32+ line_size sline)))
-           (join19 lnum))]
-        [(fx>? sline 0) (win_T.w_wrow-set! wp (i32- (win_T.w_wrow wp) sline)) (join19 1)]
-        [else (join19 lnum)]))
-    (define (loop17 lnum want_row skipcol)
-      (cond
-        [(fx>? (win_T.w_wrow wp) want_row)
-         (let* ([r3 (win_T.w_width wp)]
-                [r4 (i32- r3 (win_col_off ed wp))]
-                [t1 (i32+ r4 (win_col_off2 ed wp))]
-                [skipcol (i32+ skipcol t1)])
-           (win_T.w_wrow-set! wp (i32- (win_T.w_wrow wp) 1))
-           (loop17 lnum want_row skipcol))]
-        [else (win_T.w_skipcol-set! wp skipcol) (join19 lnum)]))
     (define (join19 lnum)
       (set_topline ed wp lnum)
       (join20))
@@ -50692,7 +52515,11 @@
 
 (define (common_init_1 ed)
   (let ([mem (ed-mem ed)])
-    (define (loop1 i)
+    (define (join4 t1)
+      (when t1 (mch_exit ed 0)))
+    (estack_init ed)
+    (cmdline_init ed)
+    (let loop1 ([i 0])
       (cond
         [(fx<? i 256) (st-s8! (fx+ mb_bytelen_tab i) 1) (loop1 (i32+ i 1))]
         [else
@@ -50700,12 +52527,7 @@
          (let ([t1 (fx=? IObuff 0)])
            (cond
              [t1 (join4 t1)]
-             [else (set! NameBuff (alloc ed 4096)) (join4 (fx=? NameBuff 0))]))]))
-    (define (join4 t1)
-      (when t1 (mch_exit ed 0)))
-    (estack_init ed)
-    (cmdline_init ed)
-    (loop1 0)))
+             [else (set! NameBuff (alloc ed 4096)) (join4 (fx=? NameBuff 0))]))]))))
 
 (define (common_init_2 ed paramp)
   (define (join2)
@@ -50891,17 +52713,16 @@
   (let ([mem (ed-mem ed)])
     (define (join2)
       (estack_push ed 6 (c-str 167403 "command line") 0)
-      (loop3 0))
-    (define (loop3 i)
-      (cond
-        [(fx<? i (mparm_T.n_commands parmp))
-         (do_cmdline_cmd ed (ld-ptr (fx+ (mparm_T.commands& parmp) (fx* i 8))))
-         (loop3 (i32+ i 1))]
-        [else
-         (estack_pop ed)
-         (cond
-           [(= (win_T.w_cursor.lnum curwin) 0) (win_T.w_cursor.lnum-set! curwin 1) (join6)]
-           [else (join6)])]))
+      (let loop3 ([i 0])
+        (cond
+          [(fx<? i (mparm_T.n_commands parmp))
+           (do_cmdline_cmd ed (ld-ptr (fx+ (mparm_T.commands& parmp) (fx* i 8))))
+           (loop3 (i32+ i 1))]
+          [else
+           (estack_pop ed)
+           (cond
+             [(= (win_T.w_cursor.lnum curwin) 0) (win_T.w_cursor.lnum-set! curwin 1) (join6)]
+             [else (join6)])])))
     (define (join6)
       (set! msg_scroll 0))
     (set! msg_scroll 1)

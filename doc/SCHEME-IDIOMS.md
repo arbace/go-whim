@@ -348,7 +348,7 @@ After items 1, 3 and 4:
 | 2 | objects and members by name -- **done** | 10,697 + 8,942 | M | low | high |
 | 3 | `cond`, `when`, no `begin`/`(void)` -- **done** | 509 + 2,814 + 1,608 | S | none | medium |
 | 4 | copies and values passed on -- **done** | 4,624 | S-M | low-medium | medium |
-| 5 | loops as named `let` | 464 of 906 | M | low | medium |
+| 5 | loops as named `let` -- **done** | 464 of 906 | M | low | medium |
 | 6 | named constants and characters | 8,690 + 2,327 | S-M | low | medium |
 | 7 | pure functions without the editor | 63 | S | low | low |
 | 8 | truth values | 1,714 | S | low | low |
@@ -451,3 +451,19 @@ the result is the result.
 | bindings of a name to a name (`[x y]`, a named object's read among them) | 2,241 | 776 |
 | Chez on the core | 27.3 s, 0.73 GB | 29.5 s, 0.74 GB (the load average 9-17 meanwhile) |
 | the heavy case | 0.9-1.0 times the C | 1.0 (C 432-436 ms, whimsical 413-427) |
+
+### 5. Loops as named `let`
+
+A loop's head that one place outside its body enters is written there as
+a named `let` of its body, its parameters bound to the jump's arguments,
+where it was a procedure of the function's and a call (`namedLets`, after
+the printing, until none is left: a loop entered from another loop's body
+goes in with it). A loop entered from two places, or from a join, stays a
+procedure.
+
+| | before | after |
+| --- | ---: | ---: |
+| loops as `(define (loopN ...))` / as `(let loopN (...))` | 906 / 0 | 429 / 477 |
+| lines | 51,126 | 52,947 (a named let's body indented where it is entered) |
+| Chez on the core | 29.5 s, 0.74 GB | 27.5 s, 0.74 GB |
+| the heavy case | 1.0 times the C | 0.9-1.0 (C 432-445 ms, whimsical 405-433) |
