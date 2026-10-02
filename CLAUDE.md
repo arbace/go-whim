@@ -556,8 +556,9 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 104 phases, **439 s**, 572 s of CPU, 77,634 lines (815 s and
-  1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step 9; `--cpuprofile F` writes one). A
+  before the reason. Measured: 104 phases, **430 s**, 536 s of CPU, 77,634 lines, under a
+  load of about 60 (815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
+  9, and the regexps and phase 110 made cheaper in step 11; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -575,8 +576,9 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **76-77 s**, 103 links 64 at a time, bound by
-  the machine's load and no longer by one link (the front's three closures, phases 1-3, take 30, 33 and 37 s, phases 6 and 7 14 and 10 s, and the seed 9 s; phase 1 alone was 89 s), against 439 s in
+  committed `whim-vim.c`. Measured: **95 s** under a load of about 60 (76-77 s at a
+  lighter one), 103 links 64 at a time, bound by
+  the machine's load and no longer by one link (in order, the front's three closures, phases 1-3, take 33, 25 and 31 s, phases 6 and 7 11 and 9 s, the seed 11 s and phase 110 13 s; phase 1 alone was 89 s), against 430 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
