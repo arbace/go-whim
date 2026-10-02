@@ -187,7 +187,7 @@ type w110Enum struct {
 // Whim110 is the move: the eleven `#include`s go below the core, twelve
 // header-supplied constants become enumerators asserted from below, and the
 // formatter's private island follows the four `va_list` functions down.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Edit(text []byte, w io.Writer, args []string) (out []byte, err error) {
 	nInc := edit.IncludeCount(text) // the headers it was handed (phase 169 drops the unused)
 	p := edit.Ph{Tag: "boundary", W: w}
 	if len(args) != 1 {
@@ -499,7 +499,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// `defined but not used`, `used but never defined` -- is given before
 	// that point, as are the flow warnings it does not read.  MEASURED on
 	// the eight cuts of a run, the whole of gcc's stderr byte for byte the
-	// same as a plain `-c`'s, at 1.4 s a compile instead of 3.5.
+	// same as a plain `-c`'s, at 1.4 s a compile instead of 3.5 -- and held to it
+	// on every run by the guard below.
 	// (-fsyntax-only, at 0.3 s, says nothing of what is unused: that is the
 	// call graph's.)
 	//
@@ -522,13 +523,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		answers[text] = a
 		go func() {
 			defer close(a.done)
-			cmd := exec.Command("gcc", "-c", "-O0", "-flto", "-fno-fat-lto-objects",
-				"-flto-compression-level=0", "-fno-stack-protector", "-Wall",
-				"-Wextra", "-Wno-unused-parameter", "-o", "/dev/null", path)
-			var errb strings.Builder
-			cmd.Stderr = &errb
-			_ = cmd.Run()
-			a.errs = errb.String()
+			a.errs = w110Gcc(w110LTO, path)
 		}()
 		return a
 	}
@@ -560,6 +555,65 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 
+	// THE GUARD.  That the LTO compile reads as a plain `-c` does was
+	// measured on one input; a moved upstream could part them.  So two cuts
+	// of every run are compiled the plain way too, and what the phase reads
+	// of each (w110Reads) must be the same both ways, or the phase refuses
+	// and names both answers.  The two are the move's cut, the one whose
+	// errors are read (`undeclared`, `unknown type name`), and the
+	// fixpoint's first round, which holds every warning the phase reads and
+	// the most of them (each `defined but not used` the rounds move, and the
+	// boundary's `used but never defined`).  Both are known before the
+	// fixpoint starts, so their plain compiles run beside its rounds, from
+	// copies of their own (the rounds rewrite cutr.c), and are compared as
+	// the phase ends, whatever it ended in.  The finished cut is not
+	// guarded: it is known last, and a plain compile of it would add its 3.5
+	// s to the phase's wall time, where these add none.
+	type guard struct {
+		name, text, path string
+		errs             string
+		done             chan struct{}
+	}
+	var guards []*guard
+	guardCut := func(L []string, name string) {
+		g := &guard{name: name, text: cut(L), path: filepath.Join(state, "plain-"+name),
+			done: make(chan struct{})}
+		if os.WriteFile(g.path, []byte(g.text), 0o644) != nil {
+			return
+		}
+		guards = append(guards, g)
+		go func() {
+			defer close(g.done)
+			g.errs = w110Gcc(w110Plain, g.path)
+		}()
+	}
+	defer func() {
+		for _, g := range guards {
+			<-g.done
+			a, ok := answers[g.text]
+			if !ok {
+				continue // the phase refused before it asked for this cut
+			}
+			<-a.done
+			lto := strings.ReplaceAll(a.errs, a.path, g.name)
+			plain := strings.ReplaceAll(g.errs, g.path, g.name)
+			onlyLTO, onlyPlain := w110Differ(w110Reads(lto), w110Reads(plain))
+			if len(onlyLTO) == 0 && len(onlyPlain) == 0 {
+				continue
+			}
+			ltoAt := filepath.Join(state, g.name+".lto.txt")
+			plainAt := filepath.Join(state, g.name+".plain.txt")
+			_ = os.WriteFile(ltoAt, []byte(lto), 0o644)
+			_ = os.WriteFile(plainAt, []byte(plain), 0o644)
+			out, err = nil, p.Die("THE LTO COMPILE AND A PLAIN `-c` READ DIFFERENTLY on %s, so "+
+				"this phase's answers cannot be trusted.  Only the LTO compile (%s) says:\n    %s\n"+
+				"  Only the plain one (%s) says:\n    %s\n  The LTO line was measured to read as "+
+				"the plain one does (doc/PIPELINE-REFORM.md §7, step 11); that no longer holds",
+				g.name, ltoAt, w110Shown(onlyLTO), plainAt, w110Shown(onlyPlain))
+			return
+		}
+	}()
+
 	// ---- 2. the move, and the twelve names the compiler asks for ---------
 	// THE LIST IS NOT REMEMBERED, IT IS ASKED FOR.  Move the includes and the
 	// variadic layer, compile the cut ALONE, and collect every name it says
@@ -571,8 +625,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	guardCut(l0, "cut0.c")
 	if lr, _, err := build(w110Variadic, nil, nil, true); err == nil {
 		speculate(lr, "cutr.c") // the fixpoint's first round, below
+		guardCut(lr, "cutr.c")
 	}
 	w0, err := compileCut(l0, "cut0.c")
 	if err != nil {
@@ -814,4 +870,87 @@ func sortedMinus(ms [][]string, minus map[string]bool) []string {
 		}
 	}
 	return edit.SortedKeys(set)
+}
+
+// The two compile lines.  Both are the core's warnings on the line every
+// compile of the cut has; w110LTO stops at the call graph (Edit, compileCut),
+// and w110Plain is a plain `-c`, the guard's.  A test's control adds to
+// w110Plain to make the two read differently.
+var (
+	w110LTO   = []string{"-flto", "-fno-fat-lto-objects", "-flto-compression-level=0"}
+	w110Plain []string
+)
+
+// w110Gcc compiles path with the mode's flags and returns gcc's stderr.  Its
+// status is not read: what the phase reads is the diagnostics.
+func w110Gcc(mode []string, path string) string {
+	args := append([]string{"-c", "-O0"}, mode...)
+	args = append(args, "-fno-stack-protector", "-Wall", "-Wextra", "-Wno-unused-parameter",
+		"-o", "/dev/null", path)
+	cmd := exec.Command("gcc", args...)
+	var errb strings.Builder
+	cmd.Stderr = &errb
+	_ = cmd.Run()
+	return errb.String()
+}
+
+// w110Reads is what Edit reads of a compile's stderr, one entry a
+// diagnostic, sorted: the errors as gcc writes them, and the names it says
+// are undeclared, of an unknown type, unused (as a function, as a variable,
+// at all) and used but never defined.  The flow warnings and the echoed
+// source lines it does not read are not in it.
+func w110Reads(errs string) []string {
+	var out []string
+	for _, l := range w110Err.FindAllString(errs, -1) {
+		out = append(out, "error: "+l)
+	}
+	for _, c := range []struct {
+		what string
+		re   *regexp.Regexp
+	}{
+		{"undeclared", w110Undecl}, {"unknown type name", w110Unknown},
+		{"unused function", w110DeadFn}, {"unused variable", w110DeadVar},
+		{"defined but not used", w110Dead}, {"used but never defined", w110Used},
+	} {
+		for _, m := range c.re.FindAllStringSubmatch(errs, -1) {
+			out = append(out, c.what+" "+m[1])
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+// w110Differ is what only a holds and what only b holds, as multisets.
+func w110Differ(a, b []string) (onlyA, onlyB []string) {
+	n := map[string]int{}
+	for _, s := range a {
+		n[s]++
+	}
+	for _, s := range b {
+		n[s]--
+	}
+	for _, s := range a {
+		if n[s] > 0 {
+			onlyA = append(onlyA, s)
+			n[s]--
+		}
+	}
+	for _, s := range b {
+		if n[s] < 0 {
+			onlyB = append(onlyB, s)
+			n[s]++
+		}
+	}
+	return onlyA, onlyB
+}
+
+// w110Shown is a list for a refusal: the first ten, and how many more.
+func w110Shown(l []string) string {
+	if len(l) == 0 {
+		return "(nothing)"
+	}
+	if len(l) > 10 {
+		return strings.Join(l[:10], "\n    ") + fmt.Sprintf("\n    ... and %d more", len(l)-10)
+	}
+	return strings.Join(l, "\n    ")
 }

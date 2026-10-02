@@ -1405,6 +1405,42 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        collector are most of what is left; the parser is the fork kept
        diffable against upstream (step 9).
 
+12. **What step 11 left: a guard on phase 110's compile, and the cutters.**
+   - **The guard.** Step 11's LTO compile reads as a plain `-c` does by
+     measurement, on one input; a moved upstream could part the two, and
+     the phase would then move what a plain compile would not call unused.
+     So every run compiles two of its cuts the plain way too and holds what
+     the phase reads of each (`w110Reads`: the errors as gcc writes them,
+     and the names said to be undeclared, of an unknown type, unused as a
+     function, as a variable or at all, and used but never defined; sorted,
+     as a multiset) to the LTO answer's. The two are the move's cut,
+     `cut0.c`, the one whose errors are read, and the fixpoint's first
+     round, which holds every warning the phase reads and the most of them;
+     both are known before the fixpoint starts, so their plain compiles run
+     beside its rounds, from copies of their own, and are compared as the
+     phase ends, whatever it ended in. On a difference the phase REFUSES,
+     naming what only each compile said and writing both stderrs beside the
+     cut (`cut0.c.lto.txt`, `.plain.txt`). Not a fallback to a plain `-c`
+     for the whole phase: CLAUDE.md's rule is that a phase that refuses
+     stops the pass with its own report, and there is no tier below it to
+     fall through to; a fallback would also hide that the measurement no
+     longer holds, at twice the cost on every later run. Not the finished
+     cut, which the request suggested: it is known last, so its plain
+     compile (3.5 s) would be the phase's wall time added, where these two
+     add none, and it reads no class the first round does not.
+   - **Its cost**, A/B/A/B/A/B from q109 under a load of 55-80: CPU 16.1,
+     16.3 and 15.9 s before, 21.5, 21.2 and 22.7 after (+5.4, the two plain
+     compiles); wall 14.7, 14.5 and 14.5 before, 15.4, 14.7 and 15.8 after.
+     The boundary q110 byte for byte each time, and the phase's report line
+     for line.
+   - **Its control.** `internal/phase/110`'s `TestGuardControl` runs the
+     phase on q109 as a build leaves it: as it is, which passes, then with
+     `-Wno-unused-function` added to the plain line only, which the guard
+     refuses -- on `cut0.c`, the first cut it holds, naming the seven
+     functions and the `-Wunused-function` warnings only the LTO compile
+     gave. `TestModes` does the same on a five-line cut, and `TestReads`
+     pins what is read.
+
 - **Effort.** Steps 2-5 are the bulk. They rewrite about 90 cutters and edit
   programs as about 12 packages. The cutters that pass on q000 (§3) move with
   little change; the rest have their counts restated on the seed.
