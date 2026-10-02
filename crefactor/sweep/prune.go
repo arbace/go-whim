@@ -1251,8 +1251,9 @@ func fieldsOf(t reflect.Type) []fieldAt {
 	return out
 }
 
-// walkTok calls f on every token under n, in field order.
-func walkTok(n cc.Node, f func(cc.Token)) {
+// walkTokReflect is walkTok by reflection: what the generated walkTok
+// (walk_gen.go) does for a node type it was not generated for.
+func walkTokReflect(n cc.Node, f func(cc.Token)) {
 	v := reflect.ValueOf(n)
 	if n == nil || v.Kind() != reflect.Ptr || v.IsNil() || v.Elem().Kind() != reflect.Struct {
 		return
@@ -1270,9 +1271,12 @@ func walkTok(n cc.Node, f func(cc.Token)) {
 	}
 }
 
-// walk calls f on every node under n, n included, in source order, and does
-// not descend below a node f returns false for.
-func walk(n cc.Node, f func(cc.Node) bool) {
+// walkReflect is walk by reflection: what the generated walk (walk_gen.go)
+// does for a node type it was not generated for.  It was every walk, and
+// most of a sweep's time.
+//
+//go:generate go run ./walkgen
+func walkReflect(n cc.Node, f func(cc.Node) bool) {
 	v := reflect.ValueOf(n)
 	if n == nil || (v.Kind() == reflect.Ptr && v.IsNil()) {
 		return
