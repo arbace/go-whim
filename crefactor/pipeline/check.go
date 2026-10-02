@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/sweep"
 )
 
@@ -45,20 +46,20 @@ func (c *Config) Advance(p Phase, text []byte, w io.Writer) ([]byte, error) {
 // print.  There are no stages -- no phase hands on a text the sweep has not
 // seen, and every text a phase hands on is C.
 func (c *Config) finish(text []byte, scratch string, w io.Writer) ([]byte, error) {
+	// In memory: the sweep is a function of the bytes, and the path is only
+	// the name it parses them under.  When it cuts nothing in its last round
+	// it hands on that round's parse, which is the parse the canonical
+	// print would make of the same text.
 	path := filepath.Join(scratch, c.WorkName)
-	if err := os.WriteFile(path, text, 0o644); err != nil {
-		return nil, err
-	}
-	if _, err := sweep.Sweep(path, w, c.Sweep); err != nil {
-		return nil, err
-	}
-	text, err := os.ReadFile(path)
+	start := time.Now()
+	swept, st, ast, err := sweep.PruneParsed(text, path, c.Sweep)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("sweep: %w", err)
 	}
-	canon, err := Seed(text, io.Discard)
+	fmt.Fprintf(w, "  sweep        %s; %dms\n", st, time.Since(start).Milliseconds())
+	canon, err := cemit.CanonicalParsed(path, swept, ast)
 	if err != nil {
-		return nil, fmt.Errorf("canonical print: %w", err)
+		return nil, fmt.Errorf("canonical print: cemit: %w", err)
 	}
 	return canon, nil
 }

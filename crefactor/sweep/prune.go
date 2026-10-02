@@ -73,22 +73,35 @@ type Options struct {
 }
 
 func Prune(src []byte, name string, opt Options) ([]byte, Stats, error) {
+	out, st, _, err := PruneParsed(src, name, opt)
+	return out, st, err
+}
+
+// PruneParsed is Prune, and when its last round cut nothing, that round's
+// parse: the tree of the text it returns, parsed as name, for a caller that
+// would parse that text next (the canonical print).  Nil when the last round
+// cut something, so that no tree of its text was made.  The sweep reads the
+// tree and writes nothing into it.
+func PruneParsed(src []byte, name string, opt Options) ([]byte, Stats, *cc.AST, error) {
 	var total Stats
 	for round := 1; ; round++ {
-		out, st, err := pruneOnce(src, name, opt)
+		out, st, ast, err := pruneOnce(src, name, opt)
 		if err != nil {
-			return nil, total, fmt.Errorf("round %d: %w", round, err)
+			return nil, total, nil, fmt.Errorf("round %d: %w", round, err)
 		}
 		total.add(st)
 		total.Rounds = round
 		// The closure is complete in one round: what it did not reach, it cut.
 		// Only a deleted local can orphan more -- the one use of another local,
 		// or of a file-scope thing -- so only then is there a next round.
-		if st.Locals == 0 || bytes.Equal(out, src) {
-			return out, total, nil
+		if bytes.Equal(out, src) {
+			return out, total, ast, nil
+		}
+		if st.Locals == 0 {
+			return out, total, nil, nil
 		}
 		if round >= MaxRounds {
-			return nil, total, fmt.Errorf("not converging after %d rounds", round)
+			return nil, total, nil, fmt.Errorf("not converging after %d rounds", round)
 		}
 		src = out
 	}
@@ -198,10 +211,10 @@ type analysis struct {
 
 var identRe = regexp.MustCompile(`[A-Za-z_][A-Za-z0-9_]*`)
 
-func pruneOnce(src []byte, path string, opt Options) ([]byte, Stats, error) {
+func pruneOnce(src []byte, path string, opt Options) ([]byte, Stats, *cc.AST, error) {
 	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
-		return nil, Stats{}, err
+		return nil, Stats{}, nil, err
 	}
 	ast, err := cc.Parse(cfg, []cc.Source{
 		{Name: "<predefined>", Value: cfg.Predefined},
@@ -209,7 +222,7 @@ func pruneOnce(src []byte, path string, opt Options) ([]byte, Stats, error) {
 		{Name: path, Value: src},
 	})
 	if err != nil {
-		return nil, Stats{}, fmt.Errorf("parse: %w", err)
+		return nil, Stats{}, nil, fmt.Errorf("parse: %w", err)
 	}
 	a := &analysis{
 		src: src, blank: edit.Blank(src), path: path,
@@ -223,7 +236,8 @@ func pruneOnce(src []byte, path string, opt Options) ([]byte, Stats, error) {
 	a.positional(ast)
 	a.close()
 	a.unusedLocals(ast)
-	return a.cut()
+	out, st, err := a.cut()
+	return out, st, ast, err
 }
 
 // ---- collecting ------------------------------------------------------------

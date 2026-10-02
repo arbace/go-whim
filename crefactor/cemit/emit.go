@@ -282,11 +282,8 @@ func Canonical(path string, src []byte) ([]byte, error) {
 	// directive other than #include would be lost from the output without a
 	// word.  It is refused instead.  (vim's text has only #include; a foreign
 	// file with macros is not this printer's to canonicalise.)
-	for i, line := range bytes.Split(src, []byte{'\n'}) {
-		t := bytes.TrimLeft(line, " \t")
-		if len(t) > 0 && t[0] == '#' && !bytes.HasPrefix(bytes.TrimLeft(t[1:], " \t"), []byte("include")) {
-			return nil, fmt.Errorf("%s:%d: %s -- a directive other than #include, which printing the parsed tree would drop", path, i+1, bytes.TrimSpace(line))
-		}
+	if err := onlyIncludes(path, src); err != nil {
+		return nil, err
 	}
 	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
@@ -301,4 +298,30 @@ func Canonical(path string, src []byte) ([]byte, error) {
 		return nil, err
 	}
 	return File(ast, path, src)
+}
+
+// CanonicalParsed is Canonical(path, src) for a caller that holds ast, the
+// parse of src as path (crefactor/cc's Parse, linux/amd64, the predefined
+// and builtin sources first): the parse is not made again.  When src holds a
+// comment the tree is not the one Canonical would print -- it parses the
+// text with its comments blanked -- and CanonicalParsed is Canonical.
+func CanonicalParsed(path string, src []byte, ast *cc.AST) ([]byte, error) {
+	if ast == nil || !bytes.Equal(stripComments(src), src) {
+		return Canonical(path, src)
+	}
+	if err := onlyIncludes(path, src); err != nil {
+		return nil, err
+	}
+	return File(ast, path, src)
+}
+
+// onlyIncludes refuses a directive other than #include (see Canonical).
+func onlyIncludes(path string, src []byte) error {
+	for i, line := range bytes.Split(src, []byte{'\n'}) {
+		t := bytes.TrimLeft(line, " \t")
+		if len(t) > 0 && t[0] == '#' && !bytes.HasPrefix(bytes.TrimLeft(t[1:], " \t"), []byte("include")) {
+			return fmt.Errorf("%s:%d: %s -- a directive other than #include, which printing the parsed tree would drop", path, i+1, bytes.TrimSpace(line))
+		}
+	}
+	return nil
 }
