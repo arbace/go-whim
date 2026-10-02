@@ -369,7 +369,7 @@ func scmBindings(bs *sform, col int) string {
 
 // scmTidyStats counts what the rules did, over the library.
 type scmTidyStats struct {
-	joinsInPlace, invariants, propagated int
+	joinsInPlace, invariants, propagated, flattened, zeros, nots, conds, caseMerged, voids int
 }
 
 // scmTidy is the function text, one define, read back, rewritten and
@@ -391,11 +391,15 @@ func scmTidy(text string, memNames map[string]bool, void bool, st *scmTidyStats)
 	scmLocalNames(fn, names)
 	scmJoinsInPlace(fn, names, st)
 	scmInvariants(fn, names, st)
+	fn = scmSpell(fn, st)
 	scmSplitLets(fn)
 	scmPropagate(fn, names, st)
 	scmUnlet(fn, nil)
 	scmMergeLets(fn)
 	scmInvariants(fn, names, st)
+	if void {
+		scmDropVoids(fn, nil, st)
+	}
 	return scmPrint(fn, 0, 0) + "\n", nil
 }
 
@@ -1194,4 +1198,143 @@ func scmUnlet(x *sform, parent *sform) {
 		kids = append(kids, k)
 	}
 	x.kids = kids
+}
+
+// --- spelling ----------------------------------------------------------------
+
+// scmSpell rewrites what the printer spells long: (and (and a b) c) is
+// (and a b c); (fx=? x 0) is (fxzero? x) and (= x 0) (zero? x) -- an
+// unsigned long's (eqv? x 0) stays, one comparison where zero? is a
+// generic test; (if (not x) a b) is (if x b a) and (when (not x) ...) an
+// unless; an if whose else is an if or a cond a cond; a case's clauses
+// that do the same, one clause.
+func scmSpell(x *sform, st *scmTidyStats) *sform {
+	if !x.isList() {
+		return x
+	}
+	for i, k := range x.kids {
+		x.kids[i] = scmSpell(k, st)
+	}
+	switch h := x.head(); h {
+	case "and", "or":
+		var kids []*sform
+		for _, k := range x.kids[1:] {
+			if k.head() == h {
+				kids = append(kids, k.kids[1:]...)
+				st.flattened++
+				continue
+			}
+			kids = append(kids, k)
+		}
+		x.kids = append([]*sform{x.kids[0]}, kids...)
+	case "fx=?", "=":
+		if len(x.kids) != 3 {
+			break
+		}
+		zero := "fxzero?"
+		if h != "fx=?" {
+			zero = "zero?"
+		}
+		switch {
+		case x.kids[2].is("0"):
+			st.zeros++
+			return slist(satom(zero), x.kids[1])
+		case x.kids[1].is("0"):
+			st.zeros++
+			return slist(satom(zero), x.kids[2])
+		}
+	case "when", "unless":
+		// (when (not x) ...) is (unless x ...)
+		if len(x.kids) >= 3 && x.kids[1].head() == "not" && len(x.kids[1].kids) == 2 {
+			kw := "unless"
+			if h == "unless" {
+				kw = "when"
+			}
+			st.nots++
+			x.kids[0], x.kids[1] = satom(kw), x.kids[1].kids[1]
+		}
+	case "not":
+		// (not (not x)) is x where a truth value is all that is asked;
+		// as a value it is #t or #f, which x may not be: left
+	case "if":
+		if len(x.kids) != 4 {
+			break
+		}
+		// (if (not x) a b) is (if x b a)
+		if t := x.kids[1]; t.head() == "not" && len(t.kids) == 2 {
+			st.nots++
+			x.kids[1], x.kids[2], x.kids[3] = t.kids[1], x.kids[3], x.kids[2]
+		}
+		els := x.kids[3]
+		switch els.head() {
+		case "if":
+			if len(els.kids) != 4 {
+				break
+			}
+			st.conds++
+			return slist(satom("cond"),
+				&sform{brack: true, kids: []*sform{x.kids[1], x.kids[2]}},
+				&sform{brack: true, kids: []*sform{els.kids[1], els.kids[2]}},
+				&sform{brack: true, kids: []*sform{satom("else"), els.kids[3]}})
+		case "cond":
+			st.conds++
+			return slist(append([]*sform{satom("cond"), {brack: true, kids: []*sform{x.kids[1], x.kids[2]}}}, els.kids[1:]...)...)
+		}
+	case "case":
+		scmMergeCase(x, st)
+	}
+	return x
+}
+
+// scmMergeCase makes a case's clauses whose forms are the same one clause,
+// their labels together; a clause that does what the else does goes (C's
+// labels are distinct, so no clause's order matters).
+func scmMergeCase(x *sform, st *scmTidyStats) {
+	if len(x.kids) < 3 {
+		return
+	}
+	clauses := x.kids[2:]
+	last := clauses[len(clauses)-1]
+	elseBody := ""
+	if last.brack && len(last.kids) > 0 && last.kids[0].is("else") {
+		elseBody = slist(last.kids[1:]...).flat()
+	}
+	byBody := map[string]*sform{}
+	var out []*sform
+	for _, c := range clauses {
+		if !c.brack || len(c.kids) < 2 || !c.kids[0].isList() {
+			out = append(out, c)
+			continue
+		}
+		b := slist(c.kids[1:]...).flat()
+		if b == elseBody {
+			st.caseMerged++
+			continue
+		}
+		if first, ok := byBody[b]; ok {
+			first.kids[0].kids = append(first.kids[0].kids, c.kids[0].kids...)
+			st.caseMerged++
+			continue
+		}
+		byBody[b] = c
+		out = append(out, c)
+	}
+	x.kids = append(x.kids[:2:2], out...)
+}
+
+// scmDropVoids takes out of a void function's bodies a (void) after
+// another form: what the body returns is not looked at.
+func scmDropVoids(x, parent *sform, st *scmTidyStats) {
+	if !x.isList() {
+		return
+	}
+	for _, k := range x.kids {
+		scmDropVoids(k, x, st)
+	}
+	n := len(x.kids)
+	if n >= 2 && x.kids[n-1].isList() && len(x.kids[n-1].kids) == 1 && x.kids[n-1].kids[0].is("void") &&
+		scmBodyAt(x, n-1, parent) && scmBodyAt(x, n-2, parent) {
+		x.kids = x.kids[:n-1]
+		st.voids++
+	}
 }

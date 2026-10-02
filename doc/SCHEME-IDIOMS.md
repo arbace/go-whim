@@ -601,7 +601,7 @@ were (sha256, before and after every item).
 | 2 | 11: a join one place calls written where it is called -- **done** | `scm_tidy.go` | M | low: scopes checked | 1,228 joins |
 | 3 | 12: a named let's bindings that never change taken out -- **done** | `scm_tidy.go` | S | low: scopes checked | 2,001 bindings |
 | 4 | 13: copies, constants and increments in place -- **done** | `scm_tidy.go` | M | low-medium | 470 `tN`, copies |
-| 5 | 14: spellings: `and`/`or` flat, `fxzero?`, `(if (not x))` turned, an expression's if-chain a `cond`, a case's clauses that do the same one clause, `(void)` | `scm_tidy.go` | S | none | 1,202 + 2,080 + 175 + 72 + 385 + 109 |
+| 5 | 14: spellings: `and`/`or` flat, `fxzero?`, `(if (not x))` turned, an expression's if-chain a `cond`, a case's clauses that do the same one clause, `(void)` -- **done** | `scm_tidy.go` | S | none | 1,202 + 2,080 + 175 + 72 + 385 + 109 |
 | 6 | 15: signed arithmetic as C means it, `fx+` and `+` | `scm_expr.go`, `scm_fn.go` | S | the honest one: an overflow C leaves undefined no longer wraps | 4,340 |
 | 7 | 16: the memory functions as the bytevector's own | `internal/whim/gen.go`'s runtime bodies, `rt.ss` | S | low | 228 calls, 3 bodies |
 | 8 | 17: case labels by name | `scm_fn.go`, `rt.ss` (`c-case`) | M | low | 961 labels |
@@ -732,3 +732,32 @@ where it was `(let* ([t1 d] [d (fx+ d 1)] [t2 s] [s (fx+ s 1)]) (st-u8! t1
 The instructions grew by 1.9 %: a value bound around a loop is read from
 the loop's closure where it was an argument in a register. Kept: the
 cycles did not move beyond the load's noise.
+
+### 14. Spellings
+
+The last rules spell shorter what the printer spelled long (`scmSpell`):
+`(and (and a b) c)` is `(and a b c)`; `(fx=? x 0)` is `(fxzero? x)` and
+`(= x 0)` `(zero? x)`; `(if (not x) a b)` is `(if x b a)`, `(when (not x)
+...)` an `unless`; an expression's `if` whose else is an `if` or a `cond`
+is a `cond`; a `case`'s clauses that do the same are one clause, their
+labels together, and one that does what the else does goes (C's labels are
+distinct: no clause's order matters); in a function whose value nothing
+reads, a `(void)` after another form goes (`scmDropVoids`).
+
+An unsigned long's `(eqv? n 0)` stays: rewritten as `(zero? n)` it cost
+4.8 % more instructions on the heavy case (7,235M against 6,904M) --
+`eqv?` with a fixnum is one comparison, `zero?` a generic test, and
+`musl_memmove`'s byte loop tests it each byte.
+
+| | before | after |
+| --- | ---: | ---: |
+| `(and (and ...))` / `(or (or ...))` | 803 / 400 | 0 / 1 (an `or` the tidy made) |
+| `(fx=? x 0)` / `(= x 0)` | 1,948 / 91 | 0 / 0: `fxzero?` and `zero?` (178) |
+| `(if (not x) ...)` | 175 | 0 |
+| an expression's `if` whose else is an `if` | 73 | 1 |
+| `case` clauses (labels) | 961 (961) | 576 (953): 377 joined with another, 8 the else's |
+| `(void)` | 109 | 12 (an arm with nothing else to do) |
+| `if` / `cond` / `when` / `unless` | 3,264 / 2,392 / 1,206 / 654 | 3,200 / 2,424 / 1,206 / 654 |
+| lines | 59,249 | 58,642 |
+| Chez on the core | 31.8 s, 0.70 GB | 33.1 s, 0.64 GB |
+| the heavy case: instructions / least cycles | 6,904M / 1,931M | 6,976M / 1,933M; in the suite 0.9-1.0x the C |

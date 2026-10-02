@@ -144,6 +144,33 @@ func TestScmTidyPropagate(t *testing.T) {
 	}
 }
 
+func TestScmTidySpell(t *testing.T) {
+	for _, c := range []struct{ src, want string }{
+		{`(define (f a b c) (and (and a b) (or c (or a b))))`, `(define (f a b c) (and a b (or c a b)))`},
+		{`(define (f a) (if (fx=? a 0) (eqv? 0 a) (= a 0)))`, `(define (f a) (if (fxzero? a) (eqv? 0 a) (zero? a)))`},
+		{`(define (f a) (if (not a) 1 2))`, `(define (f a) (if a 2 1))`},
+		{`(define (f ed a) (when (not a) (g ed)))`, `(define (f ed a) (unless a (g ed)))`},
+		{`(define (f a b) (if a 1 (if b 2 3)))`, `(define (f a b) (cond [a 1] [b 2] [else 3]))`},
+		{`(define (f ed c) (case c [(1) (g ed)] [(2) (h ed)] [(3) (g ed)] [(4) (k ed)] [else (k ed)]))`,
+			`(define (f ed c) (case c [(1 3) (g ed)] [(2) (h ed)] [else (k ed)]))`},
+	} {
+		if got := squash(tidyOne(t, c.src, false)); got != c.want {
+			t.Errorf("%s\ngot  %s\nwant %s", c.src, got, c.want)
+		}
+	}
+}
+
+func TestScmTidyVoid(t *testing.T) {
+	src := `(define (f ed a) (when a (g ed) (void)) (h ed) (void))`
+	if got := squash(tidyOne(t, src, true)); got != `(define (f ed a) (when a (g ed)) (h ed))` {
+		t.Errorf("got %s", got)
+	}
+	// a function that returns a value keeps it
+	if got := squash(tidyOne(t, src, false)); got != src {
+		t.Errorf("got %s", got)
+	}
+}
+
 // scmTidyC is C whose Scheme every rule of scm_tidy.go rewrites: a tail
 // two branches share, written once and then in place; loops whose
 // parameters do not change; *d++ = *s++; a switch whose cases share their
