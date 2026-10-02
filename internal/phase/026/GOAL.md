@@ -1,5 +1,10 @@
 # Phase 26 — five signals, not twenty-one
 
+**A record now.** Phase 1 runs this phase's cut (`nosignals`) at the front (the
+pipeline reform's D12, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 `signal_info[]` had twenty-one entries and five handlers. Reviewed one at a
 time, four earn their keep.
 

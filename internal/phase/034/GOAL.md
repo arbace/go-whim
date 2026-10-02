@@ -1,5 +1,10 @@
 # Phase 34 — no abbreviations
 
+**A record now.** Phase 1 runs this phase's cut (`noabbr`) at the front (the
+pipeline reform's D10, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 An abbreviation is a word the editor rewrites as you type it. Nothing reads a
 vimrc here, so the only way to have one was to type `:abbreviate` in the session
 that wanted it — and the twelve rows that did that, `:abbreviate`, `:noreabbrev`,

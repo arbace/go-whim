@@ -1,5 +1,10 @@
 # Phase 32 — insert completion, the popup menu, and the keys that reached them
 
+**Its cut is phase 1's now.** `nocompl` and `nocomplkeys` runs at the front (the pipeline reform's
+D10, `doc/PIPELINE-REFORM.md` §7); what stays here is the sweep and the
+`droplocal` of the fields. What follows is the account of the phase as it was
+made.
+
 CTRL-N, CTRL-P and the whole CTRL-X family — `CTRL-X CTRL-F` for file names,
 `CTRL-X CTRL-K` for a dictionary, `CTRL-X CTRL-L` for whole lines — plus the
 popup menu that displays the matches. This is the largest single subsystem left

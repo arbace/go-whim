@@ -140,6 +140,18 @@ still name them. `skip_win_fix_cursor` loses its writers here, and the product
 keeps it, so the closure holds it. `onebuffer` (42) stays where it is: on the
 seed, `buf_hide()` has 24 mentions, which phases 2-41 take.
 
+**Then the editing features, one regexp engine, and no process** (the
+reform's D10-D12):
+- the cuts of phases 5 (`nonfa`), 8 (`noshellout`), 10 (`notags`), 26
+  (`nosignals`), 27 (`noequiclass`) and 28 (`nocindent`);
+- of 29 (`noucmd`), 30 (`noident`), 31 (`nofnamemod`), 32 (`nocompl`,
+  `nocomplkeys`) and 34 (`noabbr`).
+
+They applied to the seed as written. 28 and 32 keep their sweep and
+`droplocal`. `nocompl` takes the writers of the popup menu's blend state and
+of the completion submode's message, which the product keeps, so the closure
+holds them.
+
 **The first ground truth: there is no runtime directory.** Nothing is installed
 beside the binary, so every path that goes looking for one is dead weight and,
 worse, a promise the editor cannot keep — `:help` that opens nothing is more

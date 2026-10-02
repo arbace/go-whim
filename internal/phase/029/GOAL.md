@@ -1,5 +1,10 @@
 # Phase 29 — `:command`, user-defined commands
 
+**A record now.** Phase 1 runs this phase's cut (`noucmd`) at the front (the
+pipeline reform's D10, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 `:command` lets a user give a name to an Ex command line and have it dispatched
 like a built-in. The machinery is **1,451 lines**: a parser for the `-nargs`,
 `-range`, `-complete` and `-bang` attributes; a per-buffer and a global growable

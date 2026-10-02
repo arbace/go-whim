@@ -58,10 +58,7 @@ var Plan = []Phase{
 			{Op: "optreaders"},
 		}},
 	// 4, the binary's name stops choosing what it does: a record (internal/phase/004/GOAL.md); its cut went to argvfront, phase 1.
-	{N: 5, Name: "one regexp engine, not two",
-		Steps: []Step{
-			{Op: "nonfa"},
-		}},
+	// 5, one regexp engine, not two: a record (internal/phase/005/GOAL.md); its cut went to phase 1 (nonfa, the reform's D11).
 	{N: 6, Name: "the editor stops writing shell scripts, and stops drawing a menu",
 		Steps: []Step{
 			{Op: "nowild"},
@@ -71,15 +68,9 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "noglob"},
 		}},
-	{N: 8, Name: "`:!` keeps its name and loses its process",
-		Steps: []Step{
-			{Op: "noshellout"},
-		}},
+	// 8, `:!` keeps its name and loses its process: a record (internal/phase/008/GOAL.md); its cut went to phase 1 (noshellout, the reform's D12).
 	// 9, the editor stops asking the environment what language it is in: a record (internal/phase/009/GOAL.md); its cut went to phase 1 (nolocale, the reform's D6).
-	{N: 10, Name: "no tag stack",
-		Steps: []Step{
-			{Op: "notags"},
-		}},
+	// 10, no tag stack: a record (internal/phase/010/GOAL.md); its cut went to phase 1 (notags, the reform's D10).
 	// 11, nothing is written that was not asked for: a record (internal/phase/011/GOAL.md); its cut went to phase 1 (noswap, the reform's D5).
 	// 12, UTF-8, and no other encoding, ever: a record (internal/phase/012/GOAL.md); its cut went to phase 1 (noenc, the reform's D7).
 	{N: 13, Name: "the editor stops re-reading a file it has already read",
@@ -126,44 +117,25 @@ var Plan = []Phase{
 			{Op: "noowner"},
 			{Op: "droplocal", Args: []string{"b_p_bkc"}},
 		}},
-	{N: 26, Name: "five signals, not twenty-one",
-		Steps: []Step{
-			{Op: "nosignals"},
-		}},
-	{N: 27, Name: "`[[=a=]]` stops meaning \"a with any accent\"",
-		Steps: []Step{
-			{Op: "noequiclass"},
-		}},
+	// 26, five signals, not twenty-one: a record (internal/phase/026/GOAL.md); its cut went to phase 1 (nosignals, the reform's D12).
+	// 27, `[[=a=]]` stops meaning \"a with any accent\": a record (internal/phase/027/GOAL.md); its cut went to phase 1 (noequiclass, the reform's D11).
 	{N: 28, Name: "C indenting",
 		Steps: []Step{
-			{Op: "nocindent"},
+			// nocindent runs at phase 1 (the reform's D10)
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_cin", "b_p_cink", "b_p_cino", "b_p_cinsd", "b_p_cinw"}},
 		}},
-	{N: 29, Name: "`:command`, user-defined commands",
-		Steps: []Step{
-			{Op: "noucmd"},
-		}},
-	{N: 30, Name: "`K` and the tag jumps, keeping `*` and `#`",
-		Steps: []Step{
-			{Op: "noident"},
-		}},
-	{N: 31, Name: "file-name modifiers",
-		Steps: []Step{
-			{Op: "nofnamemod"},
-		}},
+	// 29, `:command`, user-defined commands: a record (internal/phase/029/GOAL.md); its cut went to phase 1 (noucmd, the reform's D10).
+	// 30, `K` and the tag jumps, keeping `*` and `#`: a record (internal/phase/030/GOAL.md); its cut went to phase 1 (noident, the reform's D10).
+	// 31, file-name modifiers: a record (internal/phase/031/GOAL.md); its cut went to phase 1 (nofnamemod, the reform's D10).
 	{N: 32, Name: "insert completion, the popup menu, and the keys that reached them",
 		Steps: []Step{
-			{Op: "nocompl"},
+			// nocompl and nocomplkeys run at phase 1 (the reform's D10)
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_cpt", "b_p_cot", "b_p_dict", "b_p_tsr", "b_p_inf", "b_p_ac"}},
-			{Op: "nocomplkeys"},
 		}},
 	// 33, commands whose machinery has already gone: a record (internal/phase/033/GOAL.md); what it cut went with the Ex commands retired at phase 1 (exfront, the reform's D2).
-	{N: 34, Name: "no abbreviations",
-		Steps: []Step{
-			{Op: "noabbr"},
-		}},
+	// 34, no abbreviations: a record (internal/phase/034/GOAL.md); its cut went to phase 1 (noabbr, the reform's D10).
 	// 35, no scripts, no session, no autocommands: a record (internal/phase/035/GOAL.md); its cut went to phase 1 (nosession, the reform's D6).
 	// 36, one tab page, always: a record (internal/phase/036/GOAL.md); its cut went to phase 1 (notabs, the reform's D9).
 	// 37, no command that does nothing: a record (internal/phase/037/GOAL.md); its cut went to phase 1 (noinert, the reform's D9).

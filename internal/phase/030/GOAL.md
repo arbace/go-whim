@@ -1,5 +1,10 @@
 # Phase 30 — `K` and the tag jumps, keeping `*` and `#`
 
+**A record now.** Phase 1 runs this phase's cut (`noident`) at the front (the
+pipeline reform's D10, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 `nv_ident()` is not one command, it is five, and they have nothing in common but
 the first step — read the identifier under the cursor:
 

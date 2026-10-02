@@ -1,5 +1,10 @@
 # Phase 27 — `[[=a=]]` stops meaning "a with any accent"
 
+**A record now.** Phase 1 runs this phase's cut (`noequiclass`) at the front (the
+pipeline reform's D11, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 A POSIX bracket expression has three bracketed forms inside it, and they are
 three different features that happen to share a syntax:
 

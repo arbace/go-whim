@@ -1,5 +1,10 @@
 # Phase 28 — C indenting
 
+**Its cut is phase 1's now.** `nocindent` runs at the front (the pipeline reform's
+D10, `doc/PIPELINE-REFORM.md` §7); what stays here is the sweep and the
+`droplocal` of the fields. What follows is the account of the phase as it was
+made.
+
 `get_c_indent()` was **1,534 lines** and the largest function left: a model of C
 syntax built to answer one question, how far to indent this line. It knows about
 labels, scope declarations, `case` bodies, continuation lines, comment blocks

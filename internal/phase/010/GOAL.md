@@ -1,5 +1,10 @@
 # Phase 10 — no tag stack
 
+**A record now.** Phase 1 runs this phase's cut (`notags`) at the front (the
+pipeline reform's D10, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 A tag jump is the editor discovering, on its own, that a file it was never told
 about exists. `get_tagfname()` walks `'tags'` upward from the current file,
 opens whatever it finds and binary-searches it — filesystem-layout knowledge of

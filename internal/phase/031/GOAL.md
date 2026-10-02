@@ -1,5 +1,10 @@
 # Phase 31 — file-name modifiers
 
+**A record now.** Phase 1 runs this phase's cut (`nofnamemod`) at the front (the
+pipeline reform's D10, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 `eval_vars()` expands `%` and `#` into the current and alternate file names, and
 `<cword>`, `<afile>` and the rest. **That stays** — `:w %` and `:e #` are how a
 file name is written without typing it.

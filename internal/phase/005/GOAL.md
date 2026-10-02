@@ -1,5 +1,10 @@
 # Phase 5 — one regexp engine, not two
 
+**A record now.** Phase 1 runs this phase's cut (`nonfa`) at the front (the
+pipeline reform's D11, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 vim carries two regexp engines and an option to choose between them. **That is a
 migration path** — the NFA engine was new once, and `'regexpengine'` existed so a
 user could go back when it misbehaved — and an embedded fork inherits the

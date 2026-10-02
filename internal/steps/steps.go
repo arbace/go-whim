@@ -195,7 +195,10 @@ func front(t []byte, args []string, w io.Writer) ([]byte, error) {
 		plain(cut.NoEnc), plain(cut.NoFencs), plain(cut.NoFenc),
 		plain(cut.Utf8Only), plain(cut.NoTerm), plain(cut.NoMouse), editStep("whim61"),
 		plain(cut.NoInert), plain(cut.NoTabs), plain(cut.NoArgList), plain(cut.NoWindows), plain(cut.NoWinSizes),
-		plain(cut.NoBufList)} {
+		plain(cut.NoBufList), plain(cut.NoNfa), plain(cut.NoShellOut), plain(cut.NoTags),
+		plain(cut.NoSignals), plain(cut.NoEquiClass), plain(cut.NoCindent), plain(cut.NoUcmd),
+		plain(cut.NoIdent), plain(cut.NoFnameMod), plain(cut.NoCompl), plain(cut.NoComplKeys),
+		plain(cut.NoAbbr)} {
 		if t, err = op(t, args, w); err != nil {
 			return nil, err
 		}
@@ -207,9 +210,13 @@ func front(t []byte, args []string, w io.Writer) ([]byte, error) {
 // that fold it by hand: read_cmd_fd, sticky_cmdmod_flags,
 // aucmd_cmdline_changed_count and skip_win_fix_cursor, which the product
 // keeps unwritten (the second and third since D6 took their writers, the last
-// since D9), and the dropped options' globals of optfrontHold.
+// since D9), the popup menu's blend state and the completion submode's
+// message (since D10's nocompl took their writers), and the dropped options' globals of optfrontHold.
 var frontHold = append([]string{"read_cmd_fd", "sticky_cmdmod_flags",
-	"aucmd_cmdline_changed_count", "skip_win_fix_cursor"}, optfrontHold...)
+	"aucmd_cmdline_changed_count", "skip_win_fix_cursor",
+	"screen_pum_blend", "pum_bg_attrs", "pum_bg_lines", "pum_bg_linesUC",
+	"pum_bg_linesC", "pum_bg_top", "pum_bg_bot", "pum_bg_cols", "edit_submode",
+	"edit_submode_pre", "edit_submode_extra", "edit_submode_highl"}, optfrontHold...)
 
 // optfrontHold are the dropped options' globals the fall-out closure leaves
 // to the phase that folds them by hand: where the closure's shape and the

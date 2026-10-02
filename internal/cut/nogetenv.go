@@ -136,11 +136,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = edit.DropIf(text, edit.Head("if (*xp->xp_pattern == '$')"), 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text,
-		`(?m)[ \t]*\{\(EXPAND_ENV_VARS\), \{\(\(char_u \*\)"environment"\)[^\n]*\n`,
-		"nogetenv", "`:command -complete=environment`", 1); err != nil {
-		return nil, err
-	}
+	// `:command -complete=environment`'s table row went with `:command` at
+	// phase 1 (noucmd, the reform's D10)
 	fmt.Fprintln(w, "  nogetenv     $VAR completion, and the one mention of environ")
 
 	// No (?m) here: the Python passes flags=0 for this one.

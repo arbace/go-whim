@@ -1,5 +1,10 @@
 # Phase 8 — `:!` keeps its name and loses its process
 
+**A record now.** Phase 1 runs this phase's cut (`noshellout`) at the front (the
+pipeline reform's D12, `doc/PIPELINE-REFORM.md` §7), so what it did is done
+before it runs: it has no plan entry. What follows is the account of the cut
+as it was made here.
+
 `:!cmd`, `:[range]!cmd`, `:r !cmd`, `:w !cmd` and `:shell` keep their names,
 their ranges and their parsing. What goes is everything under them — the fork,
 the exec, the pipe, the wait — and **the temporary file with them**, because a

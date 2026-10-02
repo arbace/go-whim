@@ -946,6 +946,29 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
        byte. In order: 133 phases, 821 s. The parallel check: 132 links,
        101 s; phase 1 69 s.
 
+   - **D10-D12, done (branch `reform-d10`): editing features, the regexp
+     engine, the process.** Phase 1 runs these after D9's cuts. They
+     applied to the seed as written.
+     - **The cuts.** `nonfa` (5), `noshellout` (8), `notags` (10),
+       `nosignals` (26), `noequiclass` (27), `nocindent` (28), `noucmd`
+       (29), `noident` (30), `nofnamemod` (31), `nocompl` and
+       `nocomplkeys` (32), and `noabbr` (34).
+     - **Records.** 5, 8, 10, 26, 27, 29-31 and 34. 28 and 32 keep their
+       sweep and `droplocal`.
+     - **What stays.** The editing-feature programs of 57-59, 63-66, 74
+       and 75, the engine's 76, 135 and 136, and the shell halves of 33,
+       44 and 100. They count text that only exists late.
+     - **What it replaced.** `nogetenv`'s `-complete=environment` row,
+       which goes with `:command`.
+     - **Held.** `nocompl` takes the writers of the popup menu's blend
+       state (`screen_pum_blend`, `pum_bg_*`) and of the completion
+       submode's message (`edit_submode*`), which the product keeps.
+       Folding them would have left phase 110 an unused label,
+       `next_col:`.
+     - **Result.** The chain gives the committed `whim-vim.c` byte for
+       byte. In order: 124 phases, 785 s. The parallel check: 123 links,
+       120 s. Phase 1 is 92 s and bounds it.
+
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.
