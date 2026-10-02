@@ -349,7 +349,7 @@ After items 1, 3 and 4:
 | 3 | `cond`, `when`, no `begin`/`(void)` -- **done** | 509 + 2,814 + 1,608 | S | none | medium |
 | 4 | copies and values passed on -- **done** | 4,624 | S-M | low-medium | medium |
 | 5 | loops as named `let` -- **done** | 464 of 906 | M | low | medium |
-| 6 | named constants and characters | 8,690 + 2,327 | S-M | low | medium |
+| 6 | named constants and characters -- **done** | 8,690 + 2,327 | S-M | low | medium |
 | 7 | pure functions without the editor | 63 | S | low | low |
 | 8 | truth values | 1,714 | S | low | low |
 
@@ -467,3 +467,23 @@ procedure.
 | lines | 51,126 | 52,947 (a named let's body indented where it is entered) |
 | Chez on the core | 29.5 s, 0.74 GB | 27.5 s, 0.74 GB |
 | the heavy case | 1.0 times the C | 0.9-1.0 (C 432-445 ms, whimsical 405-433) |
+
+### 6. Named constants and characters
+
+A constant the C spells as an enumerator is that name, and the library
+defines it, `(define ESC 27)`, its value the literal of the type it is
+first used at (`SIZE_MAX`, an `unsigned long`, is 18446744073709551615 --
+a first build printed it as -1 and the suites refused every case); a
+character constant is `(ch #\a)`, the runtime's, its code at expansion. A
+name stays while the value is its value: a conversion that changes it, or
+makes it a truth value, prints the number. A `case` label keeps its number
+(`case` takes data), and so does an expression the front end folded (`A |
+B`).
+
+| | before | after |
+| --- | ---: | ---: |
+| enumerators by name | 0 | 755 defined, 4,673 uses |
+| characters by name | 0 | 1,885 |
+| lines | 52,947 | 53,890 (the definitions) |
+| Chez on the core | 27.5 s, 0.74 GB | 29.0 s, 0.73 GB (the load average 7-8) |
+| the heavy case | 0.9-1.0 times the C | 0.9-1.1 (C 427-429 ms, whimsical 398-460) |

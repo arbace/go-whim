@@ -67,6 +67,7 @@ type sgen struct {
 	members     map[string]*smember // an accessor's name -> what it reads
 	structNames map[string]string   // a struct type (its first member) -> its name
 	structTaken map[string]string   // a name -> the struct type it names
+	enums       map[string]string   // an enumerator named -> its value
 }
 
 // sobj is a file-scope object by name: at addr, of the kind its accessors
@@ -105,7 +106,7 @@ mem-ref mem-set! define-c-object define-c-local define-c-member
 ->i8 ->u8 ->i16 ->u16 ->i32 ->u32 ->i64 ->u64 b->i
 i32+ i32- i32* i32/ i32% i32<< i32>> u32+ u32- u32* u32/ u32% u32<< u32>>
 i64+ i64- i64* i64/ i64% i64<< i64>> u64+ u64- u64* u64/ u64% u64<< u64>> u32~ u64~
-fn-ptr fn-index void chunks fxquotient
+fn-ptr fn-index void chunks fxquotient ch
 mem fr sret new-editor fn-table host-names call-ptr data-end`
 
 // scmName is a C name as a Scheme identifier: one that Scheme or the
@@ -128,7 +129,8 @@ func (g *gen) writeScm(path string) error {
 	s := &sgen{g: g, library: g.p.ScmLibrary, defined: map[string]*cc.FunctionDefinition{},
 		hostFns: map[string]*cc.Declarator{}, names: map[string]string{}, fnIdx: map[string]int{},
 		fixups: map[int]string{}, lits: map[string]int{}, objects: map[string]*sobj{}, objNames: map[string]bool{},
-		members: map[string]*smember{}, structNames: map[string]string{}, structTaken: map[string]string{}}
+		members: map[string]*smember{}, structNames: map[string]string{}, structTaken: map[string]string{},
+		enums: map[string]string{}}
 	if s.library == "" {
 		s.library = "(editor)"
 	}
@@ -923,6 +925,15 @@ func (s *sgen) nameDefs() string {
 	b.WriteString("\n;; The file-scope objects the functions name: a scalar read by its name and\n;; written by set!, an array or a struct its address; &name the address.\n")
 	for _, o := range objs {
 		fmt.Fprintf(&b, "(define-c-object %s &%s %s %d)\n", o.name, o.name, o.kind, o.addr)
+	}
+	var es []string
+	for n := range s.enums {
+		es = append(es, n)
+	}
+	sort.Strings(es)
+	b.WriteString("\n;; The C's named constants the functions use.\n")
+	for _, n := range es {
+		fmt.Fprintf(&b, "(define %s %s)\n", n, s.enums[n])
 	}
 	var ms []string
 	for n := range s.members {

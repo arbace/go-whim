@@ -32,7 +32,7 @@
     u64+ u64- u64* u64/ u64% u64<< u64>>
     u32~ u64~
     ;; function pointers
-    fn-ptr fn-index
+    fn-ptr fn-index ch
     void
     ;; the parallel loop
     chunks
@@ -294,6 +294,13 @@
           (if (fx= i (bytevector-length b))
               s
               (begin (string-set! s i (integer->char (bytevector-u8-ref b i))) (loop (fx+ i 1))))))))
+
+;; A C character constant: (ch #\a) is the integer of its code, at
+  ;; expansion.
+  (define-syntax ch
+    (lambda (x)
+      (syntax-case x ()
+        [(_ c) (char? (syntax->datum #'c)) (char->integer (syntax->datum #'c))])))
 
   ;; A string literal: its address in the image, the text beside it.
   (define-syntax c-str (syntax-rules () [(_ addr text) addr]))

@@ -28,6 +28,7 @@ type sx struct {
 	lvl   int
 	konst bool     // an integer constant, kv
 	kv    int64    // its value
+	spell string   // its C name, when it has one and is it
 	lit   bool     // a string literal's address
 	rec   *lvar    // a struct that is a value: its members are its value
 	tup   []string // a struct result returned as values: its members' names
@@ -305,8 +306,11 @@ func (f *sfn) node(e cc.ExpressionNode) sx {
 	if k, ok := scalarKind(e.Type()); ok && !hasEffect(e) && !f.hasSub(e) {
 		if v, known := intValue(e.Value()); known {
 			st := scmKindType(k)
-			v = scmTrunc(v, st)
-			return sx{val: scmLit(v, st), st: st, konst: true, kv: v}
+			t := scmTrunc(v, st)
+			if sp := f.s.constSpelling(e, scmLit(t, st)); sp != "" && t == v && st != "bool" {
+				return sx{val: sp, st: st, konst: true, kv: t, spell: sp}
+			}
+			return sx{val: scmLit(t, st), st: st, konst: true, kv: t}
 		}
 	}
 	switch x := e.(type) {
@@ -657,6 +661,10 @@ func (f *sfn) conv(v sx, to string) sx {
 		case to == "ptr":
 		default:
 			k = scmTrunc(k, to)
+		}
+		if v.spell != "" && k == v.kv && to != "bool" && to != "ptr" {
+			// the C's name for it, while it is its value
+			return sx{binds: v.binds, val: v.spell, st: to, konst: true, kv: k, spell: v.spell}
 		}
 		return sx{binds: v.binds, val: scmLit(k, to), st: to, konst: true, kv: k}
 	}
@@ -1037,4 +1045,79 @@ func (f *sfn) outResult(binds []sbind, line, st string, g string, outs map[int]*
 		return sx{binds: binds, val: "(void)", st: "void"}
 	}
 	return sx{binds: binds, val: r, st: st}
+}
+
+// constSpelling is the C's name for the constant expression e of value v
+// (its literal), when it has one: an enumerator, (define NAME v) in the
+// library, or a character constant, (ch #\a); "" else.
+func (s *sgen) constSpelling(e cc.ExpressionNode, v string) string {
+	for {
+		switch x := e.(type) {
+		case *cc.ExpressionList:
+			if x.ExpressionList != nil {
+				return ""
+			}
+			e = x.AssignmentExpression
+			continue
+		case *cc.ConstantExpression:
+			e = x.ConditionalExpression
+			continue
+		case *cc.PrimaryExpression:
+			switch x.Case {
+			case cc.PrimaryExpressionExpr:
+				e = x.ExpressionList
+				continue
+			case cc.PrimaryExpressionIdent:
+				en, ok := x.ResolvedTo().(*cc.Enumerator)
+				if !ok {
+					return ""
+				}
+				n := scmName(en.Token.SrcStr())
+				if have, ok := s.enums[n]; ok && have != v {
+					return ""
+				}
+				s.enums[n] = v
+				return n
+			case cc.PrimaryExpressionChar:
+				if k, err := strconv.ParseInt(v, 10, 64); err == nil {
+					if c := scmChar(k); c != "" {
+						return "(ch " + c + ")"
+					}
+				}
+			}
+		}
+		return ""
+	}
+}
+
+// scmChar is v as a Scheme character a reader reads, when it is one: a
+// printable character but those that delimit, and the named ones.
+func scmChar(v int64) string {
+	switch v {
+	case ' ':
+		return `#\space`
+	case '\t':
+		return `#\tab`
+	case '\n':
+		return `#\newline`
+	case '\r':
+		return `#\return`
+	case 27:
+		return `#\esc`
+	case 127:
+		return `#\delete`
+	case 8:
+		return `#\backspace`
+	case 7:
+		return `#\alarm`
+	case 0:
+		return `#\nul`
+	}
+	if v > ' ' && v < 0x7f && !strings.ContainsRune("()[]{}\";'`,|#\\", rune(v)) {
+		return `#\` + string(rune(v))
+	}
+	if v > 0 && v < 0x80 {
+		return fmt.Sprintf(`#\x%x`, v)
+	}
+	return ""
 }
