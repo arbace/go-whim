@@ -1,0 +1,354 @@
+# How whimsical could be more idiomatic Scheme: a survey
+
+2026-10-02. It covers `whimsical/whimsical/editor.ss` as tracked at
+`598b500` (88,474 lines, 1,713 functions of the core and 17 of the host's
+glue, written by `crefactor/togo`'s Scheme backend from the core `go tool
+whim cut src/whim-vim.c` prints, 75,721 lines of C), and the hand-written
+runtime `whimsical/whimsical/rt.ss`, host `host.ss`, terminal `term.ss` and
+`printf.ss`. `doc/HASKELL-IDIOMS.md` and `doc/CLOJURE-IDIOMS.md` are its
+model: every item says what the pattern is, how many sites it has, what it
+would become, who would do it -- the Scheme printer (`crefactor/togo/scm.go`,
+`scm_fn.go`, `scm_expr.go`), togo's shared analyses (`hsout.go`,
+`hsstruct.go`, `hseffects.go`), the runtime -- its cost (S/M/L), its risk,
+and how it is verified. `editor.ss` is generated and stays so: every item
+done is a change to the backend, the library regenerated.
+
+## The tension, stated first
+
+whimsical was built to be C in Scheme's syntax (`doc/SCHEME.md`): every C
+object in one bytevector laid out as amd64 lays it out, a pointer a fixnum
+offset, every function a procedure of the editor, control flow as local
+procedures and tail calls. That choice is why it was the least translation,
+why it answered every case of both suites the first time it ran, and why it
+runs at the C's speed (the heavy case 0.9-1.2 times the C, the parallel
+`:%s` far faster). It is also most of what a Scheme programmer would object
+to. Idiomatic Scheme is expressions nested as they are evaluated, names for
+what values are, `cond` and `when` and named `let`, records and strings and
+lists. Measured here, the two meet as follows:
+
+- **Most of what reads as foreign is the printer's spelling, and it costs
+  nothing at run time.** 29,299 temporaries (`r1`, `r2`...) bind every
+  memory read and every call, 28,715 of them used exactly once: Scheme
+  leaves the order of an application's arguments open, so the printer
+  sequenced everything; but most expressions have one effect or only
+  reads, which may be nested as written. 4,624 bindings copy one variable
+  into another. The memory is addressed by numbers: 10,697 loads and stores
+  of a file-scope object at a constant address, 8,942 of a member at a
+  constant offset from a pointer. 8,690 uses of 1,006 named C constants
+  and 2,327 character constants are printed as numbers. There is no
+  `cond`, `when` or `unless` (509 `if`s have an `if` in their else),
+  2,814 `begin`s, 1,608 `(void)`s. Chez compiles each of these to the
+  same code either way.
+- **Moving data out of the bytevector is not on offer.** The C walks its
+  objects by pointer arithmetic (803 `p + n`, 436 `p++`, 3,343 `p[i]`,
+  9,269 `p->m`, counted for HASKELL-IDIOMS.md on the same core), puns 50
+  pointers, copies structs by bytes and allocates from an arena it never
+  frees; a record per struct and a vector per array would be the
+  Java's and the Clojure's object model (`doc/CLOJURE-PROFILE.md`), the
+  parallel `:%s` allocating on the collected heap in every thread. What can
+  change is how the bytevector is *named*: a file-scope object read and
+  written like a variable, a member like a record's field.
+- **Speed is the constraint that decides the rest**, and every item below is
+  held to the heavy case's time, before and after, besides the suites.
+
+## How it was measured
+
+Counted or run, not estimated, unless it says so; the instruments were
+throwaway, in `.tmp/scm/idioms/` (not tracked):
+
+| Instrument | What it gave |
+| --- | --- |
+| `measure.py` (reads `editor.ss`) | the library split into its top-level procedures; the loads and stores by address shape (a constant, a pointer plus a constant, the frame), the printer's temporaries and how often each is used, copy bindings, truth-value conversions, the forms by head (`let`, `if`, `case`, `cond`, `when`, `begin`), the nesting depth |
+| `shape.py` (the same) | each local loop and the places outside its body that enter it; the `if`s whose else is an `if` |
+| a throwaway `togo` test (`zz_scm_survey_test.go`, removed) | the core parsed: the enumerators and character constants the functions use |
+| `hseffects.go` (the Haskell backend's analysis, which the Scheme backend asks) | the functions that touch no memory |
+| `whim test --scheme`, `--wide --scheme` | the verification recipe, run at `598b500`: all 80 and all 240 cases as the C, the control seen by 76 and by 94 + 6; the heavy case 0.9-1.2 times the C |
+
+**Verification recipe for every item done** (the suites compare output byte
+for byte, so a change that moves one byte of one screen is seen):
+
+- `crefactor/togo`'s `TestScm*` (23 foreign C programs, each run under Chez
+  at `optimize-level 2` -- safe: a fixnum operation on what is not one is an
+  error -- and required to print what gcc's build prints; the same four with
+  every out-parameter in the frame and with the pure functions bare) and
+  `TestScmControl`;
+- `go tool whim test --scheme` (80 cases, the control seen by 76) and `--wide
+  --scheme` (240), and the heavy case's time beside the C's;
+- `make whim-editor-check` after the regenerated `editor.ss` is committed;
+- Chez's time and peak on the core, printed by every build.
+
+## The shape of the output today
+
+| | count |
+| --- | ---: |
+| lines | 88,474 |
+| top-level procedures | 1,731: the core's 1,713, the host's 17, `new-editor` |
+| loads / stores | 20,681 / 6,212 |
+| ... of a file-scope object (a constant address) | 10,697 |
+| ... of a member (a pointer plus a constant) | 8,942 |
+| ... in the call's frame | 2,303 |
+| the printer's temporaries `[rN ...]` | 29,299, 28,715 used once |
+| copy bindings `[x y]` | 4,624 |
+| local procedures: joins / loops | 3,536 / 906 |
+| `let`/`let*` forms | 19,804 |
+| `if` / `case` / `cond` / `when`+`unless` / `begin` | 8,854 / 70 / 0 / 0 / 2,814 |
+| `(void)` results | 1,608 |
+| `(not (fxzero? x))` (an int as a truth value) / `(b->i b)` / `(not (fx=? a b))` | 1,714 / 361 / 1,853 |
+| multiple values (`let-values`) | 190: 64 struct results and 2 out-parameters as values, 148 struct locals as bindings |
+| nesting depth (parentheses) | median 11, at most 36 |
+
+## What a Scheme programmer would find most jarring
+
+Three procedures, as tracked, with the C they come from.
+
+**1. Every read and call bound, every value copied** (`skipwhite`; the C is
+`while (*p == ' ' || *p == '\t') ++p; return p;`):
+
+```scheme
+(define (skipwhite ed q)
+  (let ([mem (ed-mem ed)])
+    (define (loop1 p)
+      (let* ([r1 (ld-u8 p)]
+             [r3 (or (fx=? r1 32)
+                     (let ([r2 (ld-u8 p)])
+                       (fx=? r2 9)))])
+        (if r3
+            (let ([p (fx+ p 1)])
+              (loop1 p))
+            p)))
+    (let ([p q])
+      (loop1 p))))
+```
+
+After items 1, 4, 5 and 6 -- the same reads, in the same order:
+
+```scheme
+(define (skipwhite ed q)
+  (let ([mem (ed-mem ed)])
+    (let loop ([p q])
+      (if (or (fx=? (ld-u8 p) (ch #\space)) (fx=? (ld-u8 p) (ch #\tab)))
+          (loop (fx+ p 1))
+          p))))
+```
+
+**2. Addresses for names** (`check_cursor_lnum`; the C is `if
+(curwin->w_cursor.lnum > curbuf->b_ml.ml_line_count) curwin->w_cursor.lnum =
+curbuf->b_ml.ml_line_count; if (curwin->w_cursor.lnum <= 0)
+curwin->w_cursor.lnum = 1;`):
+
+```scheme
+(define (check_cursor_lnum ed)
+  (let ([mem (ed-mem ed)])
+    (define (join2)
+      (let* ([r1 (ld-ptr 68264)]
+             [r2 (ld-s64 (fx+ r1 16))])
+        (if (<= r2 0)
+            (let ([r3 (ld-ptr 68264)])
+              (st-s64! (fx+ r3 16) 1)
+              (void))
+            (void))))
+    (let* ([r4 (ld-ptr 68264)]
+           [r5 (ld-s64 (fx+ r4 16))]
+           [r6 (ld-ptr 68304)]
+           [r7 (ld-s64 r6)])
+      (if (> r5 r7)
+          (let* ([r10 (ld-ptr 68264)]
+                 [r8 (ld-ptr 68304)]
+                 [r9 (ld-s64 r8)])
+            (st-s64! (fx+ r10 16) r9)
+            (join2))
+          (join2)))))
+```
+
+`68264` is `curwin`, `68304` `curbuf`, `16` `w_cursor.lnum`. After items 1,
+2 and 3 -- the same reads, in the same order (C reads `curwin` again after
+the store):
+
+```scheme
+(define (check_cursor_lnum ed)
+  (let ([mem (ed-mem ed)])
+    (define (join2)
+      (when (<= (win_T.w_cursor.lnum curwin) 0)
+        (win_T.w_cursor.lnum-set! curwin 1)))
+    (if (> (win_T.w_cursor.lnum curwin) (buf_T.b_ml.ml_line_count curbuf))
+        (begin
+          (win_T.w_cursor.lnum-set! curwin (buf_T.b_ml.ml_line_count curbuf))
+          (join2))
+        (join2))))
+```
+
+**3. A loop as a procedure entered once, a call's value copied twice**
+(`vim_strchr`'s first loop):
+
+```scheme
+    (define (loop3 p)
+      (let* ([r1 (ld-u8 p)]
+             [b r1])
+        (if (not (fx=? b 0))
+            (if (fx=? b c)
+                p
+                (let* ([r2 (utfc_ptr2len ed p)]
+                       [t1 r2]
+                       [p (fx+ p t1)])
+                  (loop3 p)))
+            0)))
+```
+
+After items 1, 3 and 4:
+
+```scheme
+    (define (loop3 p)
+      (let ([b (ld-u8 p)])
+        (cond
+          [(fx=? b 0) 0]
+          [(fx=? b c) p]
+          [else (loop3 (fx+ p (utfc_ptr2len ed p)))])))
+```
+
+## The findings
+
+### 1. Reads and calls where they are used
+
+- **The pattern.** Every memory read and every call is bound to a
+  temporary before the expression that uses it (`scm_expr.go`'s `readAt`
+  and `call`), since Scheme evaluates an application's arguments in an
+  order it chooses (Chez's is right to left) and C's (the Java's, which the
+  lowering keeps) is left to right. 29,299 temporaries; 28,715 (98%) used
+  once.
+- **What it would become.** A value carries what evaluating it does --
+  nothing, reads, or a call -- and stays in place, nested where it is used,
+  unless putting it there could reorder it against another: an operand
+  whose combination has another operand that calls, or reads after one that
+  calls, is bound first, in C's order; reads commute with reads. A
+  temporary is left only where two effects meet in one expression.
+- **Where:** the printer (`scm_expr.go`: a value's level, and one rule that
+  orders a combination's operands; `scm_fn.go`: the places that put a value
+  somewhere). **Cost:** M. **Risk:** medium -- an order wrongly relaxed is
+  a wrong answer; the foreign C tests' `TestScmSteps` and `TestScmIntegers`
+  and both suites are built to see one. **Speed:** none expected (Chez's
+  register allocator sees the same dataflow).
+
+### 2. The file-scope objects and the members by name
+
+- **The pattern.** 10,697 loads and stores of a file-scope object at its
+  constant address (`(ld-ptr 68264)` is `curwin`); 8,942 of a member at a
+  constant offset from a pointer (`(ld-s64 (fx+ wp 16))` is
+  `wp->w_cursor.lnum`).
+- **What it would become.** A file-scope scalar a variable of the library
+  as R6RS spells one that is not a location of Scheme's: `identifier-syntax`
+  with `set!` -- `curwin` reads it, `(set! curwin wp)` writes it, `&curwin`
+  is its address; an array or a struct its address by name. A member read
+  through an accessor of its struct's and its path's name, as a record's
+  field is: `(win_T.w_cursor.lnum wp)`, `(win_T.w_cursor.lnum-set! wp 1)`,
+  `(win_T.w_cursor& wp)` its address. Each name is defined, once, for what
+  the library uses, as a macro of the same load or store: the compiled code
+  is the same.
+- **Where:** the printer (the address it carries keeps the object or the
+  struct and the members' path it was made of, as `hsnamed.go` does for
+  the Haskell). **Cost:** M. **Risk:** low (a name for a number).
+
+### 3. `cond`, `when` and `unless`; no `begin`, no `(void)`
+
+- **The pattern.** Branches are `if` alone: 509 `if`s whose else is another
+  `if` (a `cond`); arms of several forms wrapped in `begin` (2,814); a
+  void function's result `(void)` (1,608), often an `if`'s arm.
+- **What it would become.** `cond` for a chain, its clauses taking several
+  forms; `when`/`unless` for an `if` whose other arm is `(void)`; a void
+  result's `(void)` left out after another form.
+- **Where:** the printer (`scm_fn.go`'s `scmIf` and the result). **Cost:**
+  S. **Risk:** none (the same tree).
+
+### 4. Copies and a value passed on
+
+- **The pattern.** 4,624 bindings copy one variable into another (`[b r1]`,
+  `[p q]`, `[t1 r2]`): the C's `p = q`, the lowering's temporaries; and a
+  value bound only to be passed to the next jump (`(let ([p (fx+ p 1)])
+  (loop3 p))`).
+- **What it would become.** A variable that is another's value is that
+  variable (`(loop1 q)`), until the other is bound anew; a value used once,
+  in the jump that follows, is the jump's argument.
+- **Where:** the printer's bindings (`setVar`). **Cost:** S-M. **Risk:**
+  low-medium (a name reused after its variable is rebound is a wrong value;
+  the suites see it).
+
+### 5. A loop as a named `let`
+
+- **The pattern.** A loop is a local procedure defined at the function's
+  top and called by name (`(define (loop1 p) ...)` ... `(loop1 p)`): 906
+  loops, of which 464 are entered from one place outside their body.
+- **What it would become.** For those, `(let loop1 ([p q]) ...)` where it
+  is entered.
+- **Where:** the printer's shape. **Cost:** M. **Risk:** low (scope: every
+  jump back is inside the body).
+
+### 6. Named constants and characters
+
+- **The pattern.** 8,690 uses of 1,006 enumerators (`NUL`, `ESC`, `K_DEL`,
+  `OK`, the preprocessor's constants as phase 0 left them) and 2,327
+  character constants are printed as their numbers.
+- **What it would become.** An enumerator a constant of the library by its
+  name (`(define-syntax ESC (identifier-syntax 27))`), a character
+  `(ch #\a)` (the runtime's, its code at expansion time); a `case` label
+  keeps its number -- a `case` takes data, not names -- with the name in a
+  comment.
+- **Where:** the printer. **Cost:** S-M. **Risk:** low.
+
+### 7. Pure functions without the editor
+
+- **The pattern.** Every function takes the editor; 63 touch no memory,
+  even through what they call (`hseffects.go`), e.g. `musl_isdigit`.
+- **What it would become.** Those take only their C parameters (the
+  backend's `ScmPure`, already held to the foreign C tests).
+- **Where:** the profile. **Cost:** S. **Risk:** low.
+
+### 8. Truth values
+
+- **The pattern.** 1,714 `(not (fxzero? x))`, an `int` tested as a truth
+  value; 361 `(b->i b)`, a bool made a number; 1,853 `(not (fx=? a b))`.
+- **What it would become.** Phases 166, 183 and 184 made the C's answers
+  `bool` already; what is left is the C's own ints (`got_int`, counts
+  tested for zero) and comparisons. `(fxzero? x)` with the arms swapped is
+  shorter; the rest is the C's.
+- **Where:** the printer. **Cost:** S. **Risk:** low. **Value:** small.
+
+### Done before this survey
+
+- **Multiple values** (milestone 1): a struct of scalars a function returns
+  is `values` (64 functions), an out-parameter a value in and out (2 left
+  by phase 181), a struct local of scalars bindings (148) -- `hsout.go`'s
+  and `hsstruct.go`'s decisions.
+- **The host as a record** (milestone 3): `host.ss`'s `host` record of
+  procedures, R6RS's buffer convention.
+- **Every value a binding, no `set!`**: each assignment is a new binding of
+  the variable's name (`let*`, shadowing), as the lowered form has it.
+
+### Declined, with why
+
+- **Records for the C's structs, vectors for its arrays.** The C reaches its
+  objects through pointers into their middle, walks them by arithmetic,
+  puns 50 pointers and copies structs as bytes; records would need the
+  pointer analysis the Java's and the Clojure's needed and their speed
+  (`doc/CLOJURE-PROFILE.md`), and put every object on the collected heap
+  under the parallel `:%s`. Item 2 gives the reading of records without
+  moving the data.
+- **Scheme strings for C strings.** A C string is a mutable array of bytes
+  addressed by pointer arithmetic, written in place (`STRCPY`, `IObuff`);
+  a Scheme string is neither. The literals already carry their text in the
+  library, `(c-str 81234 "text")`.
+- **The joins nested where they are used** (each local procedure defined in
+  the body of the block that dominates its uses, closing over what is in
+  scope there): fewer parameters and a deeper, more Scheme-like nesting, but
+  a different shape from the one caprice measured; not taken here.
+
+## Ranked
+
+| # | item | sites | cost | risk | value |
+| --- | --- | ---: | --- | --- | --- |
+| 1 | reads and calls in place | 29,299 temporaries | M | medium | high |
+| 2 | objects and members by name | 10,697 + 8,942 | M | low | high |
+| 3 | `cond`, `when`, no `begin`/`(void)` | 509 + 2,814 + 1,608 | S | none | medium |
+| 4 | copies and values passed on | 4,624 | S-M | low-medium | medium |
+| 5 | loops as named `let` | 464 of 906 | M | low | medium |
+| 6 | named constants and characters | 8,690 + 2,327 | S-M | low | medium |
+| 7 | pure functions without the editor | 63 | S | low | low |
+| 8 | truth values | 1,714 | S | low | low |
