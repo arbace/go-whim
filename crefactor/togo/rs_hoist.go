@@ -84,7 +84,7 @@ func (f *rfn) hoist(e cc.ExpressionNode, after, topOK bool) (pre, post []string)
 		case *cc.PostfixExpression:
 			switch x.Case {
 			case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
-				if f.hoistInc(x, x.PostfixExpression, x.Case == cc.PostfixExpressionInc, true, top, topOK, lazy, after, count, &pre, &post) {
+				if f.hoistInc(x, x.PostfixExpression, x.Case == cc.PostfixExpressionInc, true, top, topOK, lazy, leading, after, count, &pre, &post) {
 					return
 				}
 			case cc.PostfixExpressionCall:
@@ -100,7 +100,7 @@ func (f *rfn) hoist(e cc.ExpressionNode, after, topOK bool) (pre, post []string)
 		case *cc.UnaryExpression:
 			switch x.Case {
 			case cc.UnaryExpressionInc, cc.UnaryExpressionDec:
-				if f.hoistInc(x, x.UnaryExpression, x.Case == cc.UnaryExpressionInc, false, top, topOK, lazy, after, count, &pre, &post) {
+				if f.hoistInc(x, x.UnaryExpression, x.Case == cc.UnaryExpressionInc, false, top, topOK, lazy, leading, after, count, &pre, &post) {
 					return
 				}
 			case cc.UnaryExpressionAddrof, cc.UnaryExpressionSizeofExpr, cc.UnaryExpressionSizeofType:
@@ -174,22 +174,22 @@ func (f *rfn) hoist(e cc.ExpressionNode, after, topOK bool) (pre, post []string)
 }
 
 // hoistInc takes an increment out, when it can: n is it, e its operand.
-func (f *rfn) hoistInc(n cc.ExpressionNode, e cc.ExpressionNode, inc, postfix bool, top cc.ExpressionNode, topOK, lazy, after bool,
+func (f *rfn) hoistInc(n cc.ExpressionNode, e cc.ExpressionNode, inc, postfix bool, top cc.ExpressionNode, topOK, lazy, leading, after bool,
 	count map[*cc.Declarator]int, pre, post *[]string) bool {
 	if n == top && !topOK || lazy {
 		return false
 	}
 	p, ok := unparenE(e).(*cc.PrimaryExpression)
 	if !ok || p.Case != cc.PrimaryExpressionIdent {
-		return false
+		return f.hoistLeadingInc(n, e, inc, postfix, leading, pre)
 	}
 	d, ok := p.ResolvedTo().(*cc.Declarator)
 	if !ok || count[d] != 1 {
-		return false
+		return f.hoistLeadingInc(n, e, inc, postfix, leading, pre)
 	}
 	l := f.local[d]
 	if l == nil || l.addr || l.t.Kind() == cc.Array || isAggr(l.t) {
-		return false
+		return f.hoistLeadingInc(n, e, inc, postfix, leading, pre)
 	}
 	if postfix && f.deadInc[e] {
 		f.rsub[n] = rv{s: l.name, ty: f.r.constTy(declSlot(d), f.r.ty(l.t))} // the store is dead (rs_defer.go)
@@ -305,4 +305,153 @@ func (f *rfn) dryLines(fn func()) []string {
 	}
 	f.ntmp, f.order = ntmp, f.order[:norder]
 	return rsLines(b)
+}
+
+// hoistLeadingInc takes out an increment of a place that is no local of
+// the function's own -- the editor's object, a member through a pointer
+// -- where it is the first thing the expression evaluates: done before,
+// it is done before everything else as C's order has it, and the
+// expression reads the place (++x) or a temporary of its old value (x++).
+// Evaluating the place must do nothing.
+func (f *rfn) hoistLeadingInc(n, e cc.ExpressionNode, inc, postfix, leading bool, pre *[]string) bool {
+	if !leading || f.effect(e) || f.lowered_ {
+		return false
+	}
+	lv := f.lval(e)
+	ty := lv.ty
+	if postfix {
+		t := f.temp(lv.t)
+		if isConstPtr(ty) {
+			f.retype(t, ty)
+		}
+		*pre = append(*pre, f.letTemp(t, lv.place))
+		*pre = append(*pre, rsLines(f.capture(func() { f.incDecStmt(e, inc) }))...)
+		f.rsub[n] = rv{s: t, ty: ty}
+		return true
+	}
+	*pre = append(*pre, rsLines(f.capture(func() { f.incDecStmt(e, inc) }))...)
+	f.rsub[n] = lv.read()
+	return true
+}
+
+// andOperands are a condition's operands of its top-level &&, in order.
+func andOperands(e cc.ExpressionNode) []cc.ExpressionNode {
+	if x, ok := unparenE(e).(*cc.LogicalAndExpression); ok && x.Case == cc.LogicalAndExpressionLAnd {
+		return append(andOperands(x.LogicalAndExpression), x.InclusiveOrExpression)
+	}
+	return []cc.ExpressionNode{e}
+}
+
+// checkLoop says a loop's condition does something, so that the loop
+// checks it at its top instead (loopCheck): what hoist takes out of it,
+// or an operand of its && after the first that does something.
+func (f *rfn) checkLoop(cond cc.ExpressionNode) bool {
+	if f.hoists(cond) {
+		return true
+	}
+	return f.effectAfterFirst(andOperands(cond))
+}
+
+// loopCheck writes a loop's condition as its first statements: for each
+// operand of its &&, what it does, and a break when it is false -- `loop
+// { if !(*s != NUL) { break; } len -= 1; if !(len >= 0) { break; } ... }`
+// for C's `while (*s != NUL && --len >= 0)`.
+func (f *rfn) loopCheck(cond cc.ExpressionNode) {
+	ops := andOperands(cond)
+	if len(ops) > 1 && !f.effectAfterFirst(ops) {
+		ops = []cc.ExpressionNode{cond}
+	}
+	for _, op := range ops {
+		pre, _ := f.hoist(op, false, true)
+		for _, p := range pre {
+			f.line("%s", p)
+		}
+		c := f.cond(op)
+		f.done()
+		f.line("if %s {", unparenRs(rsNot(c, rv{})))
+		f.line("    break;")
+		f.line("}")
+	}
+}
+
+// effectAfterFirst says an operand of an && after the first stores --
+// assigns, increments, has a comma -- which Rust would say as a block
+// inside the condition; a call alone is no matter.
+func (f *rfn) effectAfterFirst(ops []cc.ExpressionNode) bool {
+	for _, op := range ops[1:] {
+		if rsStores(op) {
+			return true
+		}
+	}
+	return false
+}
+
+// rsStores says e assigns, increments or has a comma: what a block says.
+func rsStores(e cc.Node) bool {
+	found := false
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil || found {
+			return
+		}
+		switch x := n.(type) {
+		case *cc.PostfixExpression:
+			found = x.Case == cc.PostfixExpressionInc || x.Case == cc.PostfixExpressionDec
+		case *cc.UnaryExpression:
+			found = x.Case == cc.UnaryExpressionInc || x.Case == cc.UnaryExpressionDec
+		case *cc.AssignmentExpression:
+			found = x.Case != cc.AssignmentExpressionCond
+		case *cc.ExpressionList:
+			found = x.ExpressionList != nil
+		}
+		if !found {
+			walkChildrenFn(n, rec)
+		}
+	}
+	rec(e)
+	return found
+}
+
+// nestedIf is an if with no else whose condition's && has an operand
+// after the first that stores: an if for each operand, nested, each
+// operand's stores before its own if -- `if n_attr3 > 0 { n_attr3 -= 1;
+// if n_attr3 == 0 { ... } }` for C's `if (n_attr3 > 0 && --n_attr3 == 0)`.
+func (f *rfn) nestedIf(ops []cc.ExpressionNode, then *cc.Statement) {
+	pre, _ := f.hoist(ops[0], false, true)
+	for _, p := range pre {
+		f.line("%s", p)
+	}
+	c := f.cond(ops[0])
+	f.done()
+	var inner string
+	if len(ops) == 1 {
+		inner, _ = f.body(then)
+	} else {
+		inner = f.capture(func() { f.nestedIf(ops[1:], then) })
+	}
+	f.line("if %s {", c)
+	f.out.WriteString(inner)
+	f.line("}")
+}
+
+// rsLeadingRun are a condition's && operands as nestedIf takes them: the
+// operands before the first after the first that stores, as one -- the
+// left of the && whose right that is -- and each after on its own.
+func rsLeadingRun(e cc.ExpressionNode) []cc.ExpressionNode {
+	var spine []cc.ExpressionNode // spine[i]: the && of the operands 0..i
+	for x := e; ; {
+		spine = append([]cc.ExpressionNode{x}, spine...)
+		a, ok := unparenE(x).(*cc.LogicalAndExpression)
+		if !ok || a.Case != cc.LogicalAndExpressionLAnd {
+			break
+		}
+		x = a.LogicalAndExpression
+	}
+	ops := andOperands(e)
+	for i := 1; i < len(ops); i++ {
+		if rsStores(ops[i]) {
+			return append([]cc.ExpressionNode{spine[i-1]}, ops[i:]...)
+		}
+	}
+	return ops
 }

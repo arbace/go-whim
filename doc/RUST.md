@@ -359,6 +359,9 @@ A second pass (`RUST-IDIOMS.md`, *The second pass*):
 - every zero rustc does not need, and C's dead stores not written (item
   13): zeros 1,113 -> 932, the module allows no `unused_assignments`, 4
   functions expect it for a store through a pointer rustc does not follow.
+- stores out of conditions (item 14): a loop that checks its condition at
+  its top, nested ifs for an `&&` that stores, a negated comparison turned
+  round; blocks 154 -> 72.
 
 ## Not done
 

@@ -838,6 +838,9 @@ func (f *rfn) unary(x *cc.UnaryExpression) rv {
 
 // rsNot is !c: a comparison turned round where it is one.
 func rsNot(c string, v rv) string {
+	if n, ok := rsInvertCmp(c); ok {
+		return n // !(a < b) is a >= b: integers and pointers, no NaN
+	}
 	if x := strings.TrimSuffix(c, " != 0"); x != c && rsBalanced(x) && rsPrec(x) < pCmp {
 		// x != 0 turned round, when x is one operand of it
 		return x + " == 0"
@@ -1585,4 +1588,45 @@ func rsCStr(b []byte) string {
 		}
 	}
 	return "c" + strings.TrimPrefix(rsBytes(b[:len(b)-1]), "b")
+}
+
+// rsInvertCmp is a comparison of two operands turned round, `a >= b` for
+// `a < b`: when c is one comparison at its top level, and nothing lower.
+func rsInvertCmp(c string) (string, bool) {
+	if rsPrec(c) != pCmp {
+		return "", false
+	}
+	inv := map[string]string{"==": "!=", "!=": "==", "<": ">=", ">=": "<", ">": "<=", "<=": ">"}
+	depth, at, op := 0, -1, ""
+	for i := 0; i < len(c); i++ {
+		switch ch := c[i]; ch {
+		case '(', '[', '{':
+			depth++
+		case ')', ']', '}':
+			depth--
+		case '"':
+			for i++; i < len(c) && c[i] != '"'; i++ {
+				if c[i] == '\\' {
+					i++
+				}
+			}
+		case ' ':
+			if depth != 0 {
+				continue
+			}
+			for _, o := range []string{"==", "!=", "<=", ">=", "<", ">"} {
+				if strings.HasPrefix(c[i+1:], o+" ") {
+					if at >= 0 {
+						return "", false // two comparisons: a == b == c is no Rust anyway
+					}
+					at, op = i, o
+					break
+				}
+			}
+		}
+	}
+	if at < 0 {
+		return "", false
+	}
+	return c[:at] + " " + inv[op] + c[at+1+len(op):], true
 }

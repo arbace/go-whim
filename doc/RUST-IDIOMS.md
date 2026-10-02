@@ -573,7 +573,7 @@ function's own level, block expressions `({ ` and `= { `, labels.
 
 | | `8a186a4` | after |
 | --- | ---: | ---: |
-| `editor.rs` | 61,820 lines | 61,719 lines |
+| `editor.rs` | 61,820 lines | 61,965 lines |
 | pointer slots `*const` | 0 of 2,770 | 869 (448 parameters, 303 locals, 45 results, 58 members, 15 objects) |
 | `*const` in the text | 0 | 1,492 |
 | `pub unsafe fn` | 1,648 | 1,648 |
@@ -581,7 +581,7 @@ function's own level, block expressions `({ ` and `= { `, labels.
 | zeros at the top | 1,113 | 932, each one rustc needs (446 `0`, 242 `zeroed()`, 138 `false`, 104 null) |
 | locals declared with no value, `let x: T;` | 396 | 499 |
 | the module's `#![allow]` | the C's names, `unused_assignments` | the C's names alone; 4 functions `#[expect(unused_assignments)]` |
-| block expressions | 154 | 154 |
+| block expressions | 154 | 72 |
 | labels | 91 | 91 |
 | rustc's warnings (`--lint`, every allow and expect out) | 702: 220 `unused_assignments` | 487: 5 `unused_assignments`, 482 the C's names |
 | rustc, release | 38.0-38.3 s | 38.7-44.9 s, 0.53-0.54 GB |
@@ -625,6 +625,26 @@ function's own level, block expressions `({ ` and `= { `, labels.
   the suites'. Zeros 1,063 -> 932, `let x: T;` 396 -> 499,
   `unused_assignments` 170 -> 5 (expected), 51 lines. Found on the way: a
   do-while whose body breaks never had its condition's reads checked.
+- **Item 14, stores out of conditions** (`rs_hoist.go`, `TestRsBlocks`). Of
+  the 154 blocks left, most were C's stores in a condition: an increment
+  of the editor's object or of a member through a pointer that the
+  condition evaluates first, which item 6 took out only for a local
+  (`({ (*eap).line1 += 1; (*eap).line1 }) > (*eap).line2`); a for's or a
+  do's condition that stores, which only a while's was checked at the
+  loop's top for; the right of a condition's `&&` (`while *s != NUL &&
+  ({ len -= 1; len }) >= 0`). Now the first is done before the
+  statement, as C evaluates it first; a for, a do and a while whose
+  condition stores are a `loop` with a break for each operand of its
+  `&&`, the operand's stores before it (`len -= 1; if len < 0 { break;
+  }`); an `if` with no `else` whose `&&` stores after its first operand is
+  nested ifs, the stores between (`if wlv.draw_state > 2 && n_attr3 > 0 {
+  n_attr3 -= 1; if n_attr3 == 0 { ... } }`). And a negated comparison is
+  the comparison turned round, `c.lim < 0` for `!(c.lim >= 0)` (integers
+  and pointers: no NaN), 74 of them. Blocks 154 -> 72; 246 lines more,
+  the price of a statement a store. Left: a store in an `else if`'s
+  condition (its hoisting would nest the rest of the chain), in the right
+  of `||`, in an `if` with an `else`, in a `?:`, or in a value (`let x =
+  { ... }` of a comma): 72, each one a block that keeps C's order.
 
 ## What is not worth doing, and why
 

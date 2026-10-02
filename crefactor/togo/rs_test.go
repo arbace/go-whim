@@ -577,7 +577,7 @@ void run(void)
 
 func TestRsTemps(t *testing.T) {
 	prog := rsSame(t, rsTempsC, Profile{}, javaHarnessC)
-	for _, s := range []string{"{ let t1: i32 = (*ed).serial; (*ed).serial = t1 + 1; t1 }", "let t1: i32 = bump(ed);", "let t2: *mut i32 = ", "let t3: *mut i32 = &raw mut (*pick(ed)).n;"} {
+	for _, s := range []string{"let t1: i32 = (*ed).serial;\n    (*ed).serial += 1;\n    t1\n", "let t1: i32 = bump(ed);", "let t2: *mut i32 = ", "let t3: *mut i32 = &raw mut (*pick(ed)).n;"} {
 		if !strings.Contains(prog, s) {
 			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
 		}
@@ -625,7 +625,7 @@ void run(void)
 
 func TestRsLive(t *testing.T) {
 	prog := rsSame(t, rsLiveC, Profile{}, javaHarnessC)
-	for _, s := range []string{"let x: i32;", "let y: i32;", "let z: i32;", "let p: pt;", "let mut w: i32;", "let k: i32 = c + 1;",
+	for _, s := range []string{"let x: i32;", "let y: i32;", "if c > 0 {\n        let z: i32 = c * 2;", "let p: pt;", "let mut w: i32;", "let k: i32 = c + 1;",
 		"fn param(_n: i32, m: i32)", "let n: i32;", "#[expect(unused_assignments)]\npub unsafe fn addrdead(ed: *mut Editor", "let mut s: i32;",
 		"pub fn retinc(n: i32) -> i32 {\n    n\n}", "#![allow(non_snake_case, non_camel_case_types, non_upper_case_globals)]"} {
 		if !strings.Contains(prog, s) {
@@ -634,5 +634,46 @@ func TestRsLive(t *testing.T) {
 	}
 	if strings.Contains(prog, "q = 5") {
 		t.Errorf("a dead store written:\n%s", numbered(prog))
+	}
+}
+
+// rsBlocksC is C's stores inside conditions that are no longer Rust blocks
+// (doc/RUST-IDIOMS.md, item 14): an increment of a member or of the
+// editor's object that a condition evaluates first, done before it; a
+// for's or a do's condition that stores, checked at the loop's top or end
+// with a break; a while's && whose right operand stores, an operand a
+// break each; an if with no else whose && does, nested ifs.
+const rsBlocksC = javaHost + `
+struct ctr { int n; int lim; };
+static int hits;
+static int down(struct ctr *c) { int k = 0; while (c->n > 0 && --c->lim >= 0) { c->n--; k++; } return k; }
+static int count(int i) { int s = 0; for (; --i >= 0;) s += i; return s; }
+static int once(int n) { int s = 0; do { s += n; } while (n > 0 && --n > 2); return s; }
+static int tick(struct ctr *c) { if (++c->n > 3) return 1; if (++hits == 2) return 2; return 0; }
+static int nest(int a, int n) { if (a > 0 && --n == 0) { return 7; } return n; }
+
+void run(void)
+{
+    struct ctr c;
+    c.n = 5; c.lim = 3;
+    out(down(&c)); out(c.n); out(c.lim);
+    out(count(4)); out(once(5)); out(once(0));
+    c.n = 2;
+    out(tick(&c)); out(tick(&c)); out(tick(&c)); out(hits);
+    out(nest(1, 1)); out(nest(1, 3)); out(nest(0, 1));
+}
+`
+
+func TestRsBlocks(t *testing.T) {
+	prog := rsSame(t, rsBlocksC, Profile{}, javaHarnessC)
+	for _, s := range []string{"c.lim -= 1;\n        if c.lim < 0 {\n            break;", "i -= 1;\n        if i < 0 {\n            break;",
+		"n -= 1;\n        if n <= 2 {\n            break;", "(*c).n += 1;\n    if (*c).n > 3 {", "(*ed).hits += 1;\n    if (*ed).hits == 2 {",
+		"if a > 0 {\n        n -= 1;\n        if n == 0 {"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+	if strings.Contains(prog, "({") {
+		t.Errorf("a block inside a condition:\n%s", numbered(prog))
 	}
 }

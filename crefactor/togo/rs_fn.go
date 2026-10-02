@@ -818,6 +818,10 @@ func (f *rfn) body(s *cc.Statement) (string, bool) {
 func (f *rfn) selection(s *cc.SelectionStatement) bool {
 	switch s.Case {
 	case cc.SelectionStatementIf, cc.SelectionStatementIfElse:
+		if ops := andOperands(s.ExpressionList); s.Case == cc.SelectionStatementIf && len(ops) > 1 && f.effectAfterFirst(ops) {
+			f.nestedIf(rsLeadingRun(s.ExpressionList), s.Statement)
+			return false
+		}
 		pre, _ := f.hoist(s.ExpressionList, false, true)
 		for _, p := range pre {
 			f.line("%s", p)
@@ -953,23 +957,11 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 			f.line("}")
 			return !c.broken
 		}
-		if f.hoists(s.ExpressionList) {
+		if f.checkLoop(s.ExpressionList) {
 			// a condition that does something: a loop that does it, then
 			// leaves when the condition is false
-			var pre []string
-			var cond string
 			body, _, c := f.loopBody(s.Statement, false, nil)
-			head := f.capture(func() {
-				pre, _ = f.hoist(s.ExpressionList, false, true)
-				for _, p := range pre {
-					f.line("%s", p)
-				}
-				cond = f.cond(s.ExpressionList)
-				f.done()
-				f.line("if %s {", unparenRs(rsNot(cond, rv{})))
-				f.line("    break;")
-				f.line("}")
-			})
+			head := f.capture(func() { f.loopCheck(s.ExpressionList) })
 			c.broken = true
 			f.loopHead(c, "loop")
 			f.out.WriteString(head)
@@ -1006,9 +998,7 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 		if !bdiv {
 			f.ind++
 			if !isConstTrue(s.ExpressionList) {
-				f.line("if !(%s) {", f.cond(s.ExpressionList))
-				f.line("    break;")
-				f.line("}")
+				f.loopCheck(s.ExpressionList)
 				c.broken = true
 			}
 			f.ind--
@@ -1028,11 +1018,21 @@ func (f *rfn) iteration(s *cc.IterationStatement) bool {
 		}
 		forever := cond == nil || isConstTrue(cond) && !isConstFalse(cond)
 		head := "loop"
-		if !forever {
+		var check string
+		switch {
+		case !forever && f.checkLoop(cond):
+			// a condition that does something: a loop that does it, then
+			// leaves when the condition is false, as a while's
+			check = f.capture(func() { f.loopCheck(cond) })
+		case !forever:
 			head = "while " + f.cond(cond)
 		}
 		body, bdiv, c := f.loopBody(s.Statement, step != nil, step)
+		if check != "" {
+			c.broken = true
+		}
 		f.loopHead(c, head)
+		f.out.WriteString(check)
 		f.out.WriteString(body)
 		if step != nil && !bdiv {
 			f.ind++
