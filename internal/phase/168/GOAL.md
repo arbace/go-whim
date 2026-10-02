@@ -1,5 +1,13 @@
 # Phase 168 — a goto whose label returns is that return
 
+**A record now.** `GotoTail` (phase 170) takes every goto this phase took: a
+label marking `return x;` is a tail of no statements, and the labels left
+unreached are dropped there too. Measured in the pipeline reform's G
+(`doc/PIPELINE-REFORM.md` §7): without this phase, the chain gives the same
+`whim-vim.c` byte for byte. `crefactor/xform`'s `GotoReturn` is still there,
+with its tests; nothing in the plan runs it. What follows is the account of the
+phase as it was made.
+
 vim leaves a function early with `goto theend;`, and `theend:` marks
 `return ret;`. Where the label marks nothing but the return, the jump is the
 return: at the `goto`, `return ret;` returns what the label would, in the same

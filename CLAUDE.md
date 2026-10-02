@@ -48,18 +48,19 @@ slim-vim.c  --whim-->  whim-vim.c
     `if f()` where it said `if f() != 0`.
   - **phase 167** names the 153 constant key codes (`K_DEL`, `K_IGNORE`) the
     preprocessor's removal left as arithmetic; the binary is byte-identical.
-  - **phase 168** writes `return x;` for each of the 19 `goto`s whose label
-    marks `return x;`, and drops the 7 labels left unreached; so 7 more Go
-    functions have no `goto`, and their locals are declared where C declares them.
+  - **phase 168** is a record: it wrote `return x;` for each `goto` whose
+    label marks `return x;`, which is phase 170's rule with a tail of no
+    statements, and 170 takes them all (the reform's G, measured byte for
+    byte).
   - **phase 169** drops every system header nothing needs, in one step:
     each `#include` is tried and kept out while the file compiles silently.
     Phases 82, 99 and 104 once did it piecemeal, and the phases between them
     asserted the counts it left; now they assert only that every directive is a
     contiguous `#include` and that they add and remove none.
   - **phase 170** copies a label's tail -- at most three statements and the
-    return, or a void function's end -- over each of the 79 `goto`s that reach
-    one (`crefactor/xform`'s `GotoTail`), and drops the 14 labels left
-    unreached: 12 functions of the core and 2 of the host have no `goto` left.
+    return, or a void function's end -- over each of the 98 `goto`s that reach
+    one (`crefactor/xform`'s `GotoTail`), and drops the 21 labels left
+    unreached: 21 of the 41 functions with a `goto` have none left.
   - **phases 171-172** take the gotos a loop says: one to the statement after
     its own loop or switch is `break;`, one to where control goes next anyway
     is deleted (171, `GotoBreak`); a goto back to a label is a loop and
@@ -446,7 +447,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 124 phases, **785 s**, 77,634 lines. A
+  before the reason. Measured: 124 phases, **789 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -464,8 +465,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **120 s**, 123 links 64 at a time, bound by
-  its longest link again: phase 1, its front cuts and its one fall-out closure, 92 s (phase 54 was 44 s alone, before it was one), against 1,005 s in
+  committed `whim-vim.c`. Measured: **119 s**, 123 links 64 at a time, bound by
+  its longest link again: phase 1, its front cuts and its one fall-out closure, 94 s (phase 54 was 44 s alone, before it was one), against 1,005 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -513,7 +514,7 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 124 of them, in order, numbered 0-184: 38 phases that
+`p_N = f_N(p_{N-1})` -- 124 of them, in order, numbered 0-184: 39 phases that
 edit nothing any more are records only (a `GOAL.md`, no plan entry; 4, 43 and
 88 since phase 1 cuts the whole command line and lets what it set fall out,
 33 since it retires every Ex command the product has not, 54 since it drops
@@ -524,11 +525,11 @@ it runs their encoding cuts, 19, 24 and 61 since it runs their terminal,
 mouse and title cuts, 36-38, 40 and 41 since it runs their window, tab
 page, argument-list and buffer-list cuts, 5, 8, 10, 26, 27, 29-31 and 34
 since it runs their regexp, shell, signal, tag, command, ident, file-name and
-abbreviation cuts,
+abbreviation cuts, 168 since `GotoTail` takes its gotos,
 `doc/PIPELINE-REFORM.md` §7), and the
 14 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d -- 39-40, 44-48,
 51-53, 72-73, 100-102, 105-107, 117-119, 121-122, 143-145, 148-149, 151-152,
-153-154, 164-165, 166-168 -- each run as one phase under the group's last
+153-154, 164-165, 166-167 -- each run as one phase under the group's last
 number. A gap in the numbers is nothing to the driver,
 which pairs plan entries by position. **There is no memoize**: its key
 was the input boundary's digest and the implementation's together, so a moved

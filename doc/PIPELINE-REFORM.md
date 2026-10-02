@@ -972,9 +972,38 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
 6. **D6-D12 and R.**
    - Group the remaining drops and rewires by family.
    - Respell R to slim's spelling while `NullptrUsize` moves to G.
+   - **Done as far as the bytes allow.** D5-D12 are above. What stays of
+     the drops is written against text only the phases before it leave:
+     `onebuffer`, `lfonly`, `keepbytes`, `noconv`, 57-59, 63-68, 71-76 and
+     85. R keeps its order, because of what step 7 measured: its phases are
+     written for the generic steps between them.
 7. **G.**
    - Merge the reruns: `BoolRet` once, and possibly 168 into `GotoTail`.
    - Move each generic step to the end.
+   - **Measured, and not done: none of the moves holds the bytes.** Each was
+     tried on the chain from the step's own position to the product.
+     - **120's unions, moved to the generic tail.** Phase 137 refuses: it
+       names `b_ct_di.di_tv.v_number`, the field as 120 leaves it, 18
+       times.
+     - **134's empty blocks.** Phase 145 refuses: the labelled block it
+       takes is the one 134's fold leaves.
+     - **149's never-null calls.** The chain completes, but 34 lines
+       longer. The phases between 149 and 165 are written for its folds.
+     - **`BoolRet` once.** 166 run beside 183 and 184 leaves functions
+       `int` that the three runs make `bool`. The lines are the same, but
+       120 of them differ: 166's text is the one 167-182 were measured on.
+     - **`NullptrUsize` and the attributes (106, 107) at the end.** Not
+       tried. They would need about 280 anchors in 34 phases respelled, and
+       the steps they would have to follow (120, 134, 149) cannot move.
+   - **168 into `GotoTail`, done.** With 168's program removed, 170 takes
+     its 19 gotos as tails of no statements, and the chain gives the product
+     byte for byte. `GotoTail` now takes 98 gotos and drops 21 labels. 168
+     is a record, and `crefactor/xform`'s `GotoReturn` stays as a library
+     step with its tests. In order: 124 phases, 789 s; the parallel check:
+     123 links, 119 s.
+   - So the generic steps stay where the rewires need them. The tail
+     164-184 is generic but for 174-180, the regex engine's rewire (R10),
+     which rests on 175 and 176 as §5 foresaw.
 8. **Renumber and archive.**
    - The new phases go in a fresh directory and a fresh numbering (see
      question 1).

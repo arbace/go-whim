@@ -581,11 +581,13 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim165"}},
 		}},
 	// Phases 166-168, merged: for the Go: bool, key names, goto as return.
-	{N: 168, Name: "`bool`, key names, and `goto` as `return`",
+	// 168, `goto` as `return`: a record (internal/phase/168/GOAL.md); GotoTail
+	// (170) takes every goto it took, a `return x;` being a tail of none (the
+	// reform's G, measured byte for byte).
+	{N: 167, Name: "`bool` and key names",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim166"}},
 			{Op: "edit", Args: []string{"whim167"}},
-			{Op: "edit", Args: []string{"whim168"}},
 		}},
 	{N: 169, Name: "the system headers nothing needs",
 		Steps: []Step{
