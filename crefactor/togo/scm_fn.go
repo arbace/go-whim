@@ -1282,16 +1282,22 @@ func (f *sfn) term(b *lblock, depth int) []string {
 		v := f.flush(x)
 		cur := f.cur
 		var arms []string
+		kw := "case"
 		for i, vs := range t.cases {
 			var labels []string
 			for _, cv := range vs {
-				labels = append(labels, scmLit(scmTrunc(cv, x.st), x.st))
+				k := scmTrunc(cv, x.st)
+				l := scmLit(k, x.st)
+				if n := f.s.caseLabel(t.labels[cv], k, l); n != "" {
+					l, kw = n, "c-case"
+				}
+				labels = append(labels, l)
 			}
 			arms = append(arms, scmArm("("+strings.Join(labels, " ")+")", f.arm(f.resolve(t.to[i]), depth, cur)))
 		}
 		arms = append(arms, scmArm("else", f.arm(f.resolve(t.to[len(t.to)-1]), depth, cur)))
 		f.s.st.cases++
-		return []string{"(case " + v + "\n" + indent(strings.Join(arms, "\n"), 2) + ")"}
+		return []string{"(" + kw + " " + v + "\n" + indent(strings.Join(arms, "\n"), 2) + ")"}
 	case tRet:
 		switch {
 		case t.ret.isZero():

@@ -1028,762 +1028,872 @@
 (define-c-object uc_fun_cmd:fcmd &uc_fun_cmd:fcmd agg 162176)
 (define-c-object may_trigger_deferred_events:recursive &may_trigger_deferred_events:recursive bool 162203)
 
-;; The C's named constants the functions use.
-(define ADDR_LINES 0)
-(define ADDR_NONE 11)
-(define ADDR_OTHER 10)
-(define ADD_NL 30)
-(define ANYBUT 22)
-(define ANYOF 21)
-(define ATC_FROM_TERM 55)
-(define BACK 4)
-(define BACKPOS_INITIAL 64)
-(define BACKREF 100)
-(define BACKSPACE_CHAR 1)
-(define BACKSPACE_LINE 4)
-(define BACKSPACE_WORD 2)
-(define BACKSPACE_WORD_NOT_SPACE 3)
-(define BACKTRACKING_ENGINE 1)
-(define BCO_ALWAYS 2)
-(define BCO_ENTER 1)
-(define BCO_NOHELP 4)
-(define BEHIND 11)
-(define BELL 7)
-(define BFA_DEL 1)
-(define BFA_IGNORE_ABORT 8)
-(define BFA_KEEP_UNDO 4)
-(define BFA_WIPE 2)
-(define BF_DUMMY 128)
-(define BF_NEVERLOADED 4)
-(define BF_NEW 16)
-(define BF_NOTEDITED 8)
-(define BF_PRESERVED 256)
-(define BF_READERR 64)
-(define BHPOS 19)
-(define BLN_CURBUF 1)
-(define BLN_DUMMY 4)
-(define BLN_LISTED 2)
-(define BL_FIX 4)
-(define BL_SOL 2)
-(define BL_WHITE 1)
-(define BOL 1)
-(define BOW 15)
-(define BO_ALL 1)
-(define BO_BS 2)
-(define BO_COPY 16)
-(define BO_CRSR 4)
-(define BO_CTRLG 32)
-(define BO_ERROR 64)
-(define BO_ESC 128)
-(define BO_IM 1024)
-(define BO_MATCH 8192)
-(define BO_MESS 4096)
-(define BO_OPER 16384)
-(define BO_REG 32768)
-(define BO_SH 65536)
-(define BRACE_COMPLEX 140)
-(define BRACE_LIMITS 17)
-(define BRACE_SIMPLE 14)
-(define BRANCH 3)
-(define BREAKCHECK_SKIP 1000)
-(define BS 8)
-(define BS_EOL 108)
-(define BS_INDENT 105)
-(define BS_NOSTOP 112)
-(define BS_START 115)
-(define BT_EXTRA_KEYS 257)
-(define CAR 13)
-(define CA_COMMAND_BUSY 1)
-(define CA_NO_ADJ_OP_END 2)
-(define CLASS_NONE 99)
-(define CMDLINE_CHANGED 2)
-(define CMDLINE_NOT_CHANGED 1)
-(define CMD_Print 97)
-(define CMD_SIZE 98)
-(define CMD_append 0)
-(define CMD_change 2)
-(define CMD_earlier 13)
-(define CMD_global 16)
-(define CMD_iput 23)
-(define CMD_k 26)
-(define CMD_list 30)
-(define CMD_lshift 92)
-(define CMD_move 33)
-(define CMD_number 46)
-(define CMD_pound 89)
-(define CMD_put 53)
-(define CMD_rshift 94)
-(define CMD_smagic 62)
-(define CMD_snomagic 65)
-(define CMD_star 91)
-(define CMD_substitute 59)
-(define CMD_tilde 96)
-(define CMD_vglobal 76)
-(define CMD_yank 87)
-(define CMOD_ERRSILENT 4)
-(define CMOD_KEEPJUMPS 1024)
-(define CMOD_KEEPMARKS 512)
-(define CMOD_KEEPPATTERNS 4096)
-(define CMOD_LOCKMARKS 2048)
-(define CMOD_SILENT 2)
-(define CMOD_UNSILENT 8)
-(define CMP_INTERNAL 1)
-(define CMP_KEEPASCII 2)
-(define CPO_BACKSL 92)
-(define CPO_BACKSPACE 118)
-(define CPO_BAR 98)
-(define CPO_BSLASH 66)
-(define CPO_BUFOPT 115)
-(define CPO_BUFOPTGLOB 83)
-(define CPO_CW 119)
-(define CPO_DOLLAR 36)
-(define CPO_EMPTYREGION 69)
-(define CPO_ESC 120)
-(define CPO_EXECBUF 101)
-(define CPO_HASH 35)
-(define CPO_INDENT 73)
-(define CPO_INSEND 72)
-(define CPO_INTMOD 105)
-(define CPO_JOINCOL 113)
-(define CPO_JOINSP 106)
-(define CPO_KEYCODE 107)
-(define CPO_KOFFSET 75)
-(define CPO_LINEOFF 111)
-(define CPO_LISTWM 76)
-(define CPO_LITERAL 108)
-(define CPO_MATCH 37)
-(define CPO_MATCHBSL 77)
-(define CPO_MINUS 45)
-(define CPO_NUMCOL 110)
-(define CPO_PRESERVE 38)
-(define CPO_REDO 114)
-(define CPO_REGAPPEND 62)
-(define CPO_REPLCNT 88)
-(define CPO_SCOLON 59)
-(define CPO_SEARCH 99)
-(define CPO_SHOWMATCH 109)
-(define CPO_SPECI 60)
-(define CPO_STAR 42)
-(define CPO_SUBPERCENT 47)
-(define CPO_UNDO 117)
-(define CPO_WORD 122)
-(define CPO_YANK 121)
-(define CSI 155)
-(define CT_CELL_MASK 7)
-(define CT_FNAME_CHAR 64)
-(define CT_ID_CHAR 32)
-(define CT_PRINT_CHAR 16)
-(define CURSOR 203)
-(define Ctrl_A 1)
-(define Ctrl_B 2)
-(define Ctrl_BSL 28)
-(define Ctrl_C 3)
-(define Ctrl_D 4)
-(define Ctrl_E 5)
-(define Ctrl_F 6)
-(define Ctrl_G 7)
-(define Ctrl_H 8)
-(define Ctrl_L 12)
-(define Ctrl_N 14)
-(define Ctrl_O 15)
-(define Ctrl_P 16)
-(define Ctrl_Q 17)
-(define Ctrl_R 18)
-(define Ctrl_RSB 29)
-(define Ctrl_T 20)
-(define Ctrl_V 22)
-(define Ctrl_W 23)
-(define Ctrl_X 24)
-(define Ctrl_Y 25)
-(define DB_LINE_MAX 64)
-(define DCS 144)
-(define DEL 127)
-(define DELETION_REGISTER 36)
-(define DELIM_NL 4)
-(define DOBUF_DEL 3)
-(define DOBUF_WIPE 4)
-(define DOBUF_WIPE_REUSE 5)
-(define DOCMD_GETEXLINE 64)
-(define DOCMD_KEEPLINE 32)
-(define DOCMD_KEYTYPED 8)
-(define DOCMD_NOWAIT 2)
-(define DOCMD_REPEAT 4)
-(define DOCMD_VERBOSE 1)
-(define DY_LASTLINE 1)
-(define DY_TRUNCATE 2)
-(define DY_UHEX 4)
-(define END 0)
-(define EOL 2)
-(define EOW 16)
-(define ERR_BUFLEN 80)
-(define ESC 27)
-(define ESTACK_NONE 0)
-(define ETYPE_ARGS 6)
-(define ETYPE_INTERNAL 8)
-(define ETYPE_TOP 0)
-(define EXACTLY 5)
-(define EXFLAG_LIST 1)
-(define EXFLAG_NR 2)
-(define EXFLAG_PRINT 4)
-(define EXIT_FAILURE 1)
-(define EXPAND_NOTHING 0)
-(define EX_BANG 2)
-(define EX_CMDARG 16384)
-(define EX_COUNT 1024)
-(define EX_CTRLV 8192)
-(define EX_DFLALL 32)
-(define EX_EXTRA 4)
-(define EX_FLAGS 2097152)
-(define EX_LOCK_OK 16777216)
-(define EX_MODIFY 1048576)
-(define EX_NEEDARG 128)
-(define EX_NOTRLCOM 2048)
-(define EX_RANGE 1)
-(define EX_REGSTR 512)
-(define EX_TRLBAR 256)
-(define EX_ZEROR 4096)
-(define FAIL 0)
-(define FALSE 0)
-(define FIND_EVAL 4)
-(define FIND_IDENT 1)
-(define FIND_NOERROR 8)
-(define FIND_STRING 2)
-(define FLUSH_INPUT 2)
-(define FLUSH_MINIMAL 0)
-(define FM_BACKWARD 1)
-(define FM_BLOCKSTOP 4)
-(define FM_FORWARD 2)
-(define FM_SKIPCOMM 8)
-(define FNAME_EXP 2)
-(define FNAME_HYP 4)
-(define FNAME_MESS 1)
-(define FORWARD 1)
-(define FRACTION_MULT 16384)
-(define FR_LEAF 0)
-(define FSK_FROM_PART 16)
-(define FSK_IN_STRING 4)
-(define FSK_KEEP_X_KEY 2)
-(define FSK_KEYCODE 1)
-(define FSK_SIMPLIFY 8)
-(define F_PCLOSE 180)
-(define GAP 3)
-(define GETLINE_CONCAT_CONT 1)
-(define GETVCOL_END_EXCL_LBR 1)
-(define GOTO_COST 7)
-(define GOTO_NORMAL_MODE 3)
-(define HASLOOKBH 16)
-(define HASNL 8)
-(define HASWIDTH 1)
-(define HIGHL_COST 5)
-(define HIST_CMD 0)
-(define HIST_COUNT 5)
-(define HIST_DEBUG 4)
-(define HIST_EXPR 2)
-(define HIST_INPUT 3)
-(define HIST_SEARCH 1)
-(define HLF_AT 2)
-(define HLF_COUNT 70)
-(define HLF_EOB 1)
-(define HLF_WIN 69)
-(define HL_ALL 2047)
-(define HL_BOLD 2)
-(define HL_INVERSE 1)
-(define HL_ITALIC 4)
-(define HL_NOCOMBINE 512)
-(define HL_STANDOUT 256)
-(define HL_STRIKETHROUGH 1024)
-(define HL_UNDERCURL 16)
-(define HL_UNDERDASHED 128)
-(define HL_UNDERDOTTED 64)
-(define HL_UNDERDOUBLE 32)
-(define HL_UNDERLINE 8)
-(define INBUFLEN 250)
-(define INC 20)
-(define INC2 40)
-(define INC3 27)
-(define INDENT_DEC 3)
-(define INDENT_INC 2)
-(define INDENT_SET 1)
-(define INPUT_BUFLEN 100)
-(define INSCHAR_CTRLV 4)
-(define INT_MAX 2147483647)
-(define INT_MIN -2147483648)
-(define JUMPLISTSIZE 100)
-(define KEYLEN_REMOVED 9999)
-(define KEYPROTOCOL_FAIL 3)
-(define KEYPROTOCOL_KITTY 2)
-(define KEYPROTOCOL_MOK2 1)
-(define KEYPROTOCOL_NONE 0)
-(define KE_COMMAND 103)
-(define KE_CSI 81)
-(define KE_ESC 107)
-(define KE_FOCUSGAINED 98)
-(define KE_FOCUSLOST 99)
-(define KE_IGNORE 53)
-(define KE_PLUG 83)
-(define KE_SNR 82)
-(define KKPS_AFTER_T_TE 4)
-(define KKPS_DISABLED 3)
-(define KKPS_ENABLED 2)
-(define KKPS_INITIAL 0)
-(define KKPS_OFF 1)
-(define KS_CCO 49)
-(define KS_EXTRA 253)
-(define KS_KEY 242)
-(define KS_MODIFIER 252)
-(define KS_SPECIAL 254)
-(define KS_ZERO 255)
-(define K_BS -25195)
-(define K_CANCEL -26365)
-(define K_COMMAND -26621)
-(define K_COMPLETE_DELAY -28413)
-(define K_CURSORHOLD -24829)
-(define K_C_END -22781)
-(define K_C_HOME -22525)
-(define K_C_LEFT -22013)
-(define K_C_RIGHT -22269)
-(define K_DEL -17515)
-(define K_DOWN -25707)
-(define K_END -14144)
-(define K_ESC -27645)
-(define K_F1 -12651)
-(define K_F2 -12907)
-(define K_F3 -13163)
-(define K_F4 -13419)
-(define K_FOCUSGAINED -25341)
-(define K_FOCUSLOST -25597)
-(define K_HELP -12581)
-(define K_HOME -26731)
-(define K_IGNORE -13821)
-(define K_INS -18795)
-(define K_KDEL -20733)
-(define K_KEND -13387)
-(define K_KENTER -16715)
-(define K_KINS -20477)
-(define K_KPAGEDOWN -13643)
-(define K_KPAGEUP -13131)
-(define K_LEFT -27755)
-(define K_LEFTDRAG -11773)
-(define K_LEFTMOUSE -11517)
-(define K_LEFTRELEASE -12029)
-(define K_MIDDLEDRAG -12541)
-(define K_MIDDLEMOUSE -12285)
-(define K_MIDDLERELEASE -12797)
-(define K_MOUSEDOWN -19453)
-(define K_MOUSELEFT -19965)
-(define K_MOUSEMOVE -25853)
-(define K_MOUSERIGHT -20221)
-(define K_MOUSEUP -19709)
-(define K_NOP -25085)
-(define K_OSC -28157)
-(define K_PAGEDOWN -20075)
-(define K_PAGEUP -20587)
-(define K_PASTESTART -21328)
-(define K_RIGHT -29291)
-(define K_RIGHTDRAG -13309)
-(define K_RIGHTMOUSE -13053)
-(define K_RIGHTRELEASE -13565)
-(define K_SCRIPT_COMMAND -26877)
-(define K_SNR -21245)
-(define K_S_DOWN -1533)
-(define K_S_F1 -1789)
-(define K_S_F2 -2045)
-(define K_S_F3 -2301)
-(define K_S_F4 -2557)
-(define K_S_UP -1277)
-(define K_TAB -14077)
-(define K_TC_HASH_2 -12835)
-(define K_TC_HASH_4 -13347)
-(define K_TC_PCT_i -26917)
-(define K_TC_STAR_7 -14122)
-(define K_TC_k_B -17003)
-(define K_UP -30059)
-(define K_X1MOUSE -23037)
-(define K_X2MOUSE -23805)
-(define LIST_ATTR 1)
-(define LIST_INT 3)
-(define LIST_STRING 2)
-(define LLONG_MAX 9223372036854775807)
-(define LLONG_MIN -9223372036854775808)
-(define LONG_MAX 9223372036854775807)
-(define LONG_MIN -9223372036854775808)
-(define MAGIC_ALL 4)
-(define MAGIC_NONE 1)
-(define MAGIC_OFF 2)
-(define MAGIC_ON 3)
-(define MAPTYPE_MAP 0)
-(define MAPTYPE_NOREMAP 2)
-(define MAPTYPE_UNMAP 1)
-(define MAPTYPE_UNMAP_LHS 3)
-(define MAP_ALL_MODES 255)
-(define MATCH 9)
-(define MAUTO 255)
-(define MAXCOL 2147483647)
-(define MAXMAPLEN 50)
-(define MAX_ARG_CMDS 10)
-(define MAX_ATTR_LEN 120)
-(define MAX_HL_ID 20000)
-(define MAX_KEY_NAME_LEN 32)
-(define MAX_MCO 6)
-(define MAX_SEARCH_COUNT 9999)
-(define MAX_SYN_NAME 200)
-(define MAX_TYPENR 65535)
-(define MAYBE 2)
-(define MBLOCK 2)
-(define MB_FILLER_CHAR 60)
-(define MB_MAXBYTES 21)
-(define MCHAR 0)
-(define MCH_DELAY_IGNOREINPUT 1)
-(define MCLOSE 90)
-(define MESSAGES_HISTORY 4)
-(define MESSAGES_HIT_ENTER 1)
-(define MESSAGES_WAIT 2)
-(define ME_EXTRA_CMD 1)
-(define ME_UNKNOWN_OPTION 0)
-(define MINIMAL_SIZE 20)
-(define MIN_CMDHEIGHT 1)
-(define MIN_COLUMNS 12)
-(define MIN_LINES 2)
-(define MLINE 1)
-(define ML_APPEND_UNDO 4)
-(define ML_DELETE 17)
-(define ML_DEL_MESSAGE 1)
-(define ML_DEL_UNDO 2)
-(define ML_EMPTY 1)
-(define ML_FIND 19)
-(define ML_FLUSH 2)
-(define ML_INSERT 18)
-(define ML_LINE_DIRTY 2)
-(define MODE_ASKMORE 12288)
-(define MODE_CMDLINE 8)
-(define MODE_CONFIRM 28672)
-(define MODE_EXTERNCMD 20480)
-(define MODE_INSERT 16)
-(define MODE_NORMAL 1)
-(define MODE_OP_PENDING 4)
-(define MODE_SELECT 64)
-(define MODE_SETWSIZE 16384)
-(define MODE_VISUAL 2)
-(define MOD_KEYS_ENTRY_SIZE 5)
-(define MOD_MASK_ALT 8)
-(define MOD_MASK_CTRL 4)
-(define MOD_MASK_META 16)
-(define MOD_MASK_SHIFT 2)
-(define MOKS_AFTER_T_TE 4)
-(define MOKS_DISABLED 3)
-(define MOKS_ENABLED 2)
-(define MOKS_INITIAL 0)
-(define MOKS_OFF 1)
-(define MOPEN 80)
-(define MSG_BUF_LEN 480)
-(define MSG_HIST 4096)
-(define MULTIBYTECODE 200)
-(define MULTI_MULT 2)
-(define MULTI_ONE 1)
-(define NCLOSE 151)
-(define NEWL 18)
-(define NL 10)
-(define NOBEHIND 12)
-(define NOMATCH 10)
-(define NOPEN 150)
-(define NOTHING 6)
-(define NOT_MULTI 0)
-(define NO_BUFFERS 1)
-(define NO_SCREEN 2)
-(define NSUBEXP 10)
-(define NUL 0)
-(define NUMBUFLEN 65)
-(define NUM_REGISTERS 37)
-(define NV_KEEPREG 256)
-(define NV_LANG 8)
-(define NV_NCH 1)
-(define NV_NCW 512)
-(define NV_SS 16)
-(define NV_SSS 32)
-(define NV_STS 64)
-(define OK 1)
-(define OPENLINE_DELSPACES 1)
-(define OPENLINE_FORCE_INDENT 64)
-(define OPENLINE_MARKFIX 8)
-(define OPF_LINES 1)
-(define OPTION_MAGIC_OFF 2)
-(define OPTION_MAGIC_ON 1)
-(define OPT_FREE 1)
-(define OPT_GLOBAL 2)
-(define OPT_LOCAL 4)
-(define OPT_NOWIN 32)
-(define OPT_NO_REDRAW 128)
-(define OPT_ONECOLUMN 64)
-(define OPT_WINONLY 16)
-(define OP_ADDING 1)
-(define OP_APPEND 18)
-(define OP_CHANGE 3)
-(define OP_COLON 10)
-(define OP_DELETE 1)
-(define OP_INSERT 17)
-(define OP_JOIN 13)
-(define OP_LOWER 12)
-(define OP_LSHIFT 4)
-(define OP_NONE 0)
-(define OP_NOP 0)
-(define OP_NR_ADD 28)
-(define OP_NR_SUB 29)
-(define OP_PREPENDING 2)
-(define OP_REMOVING 3)
-(define OP_REPLACE 16)
-(define OP_RSHIFT 5)
-(define OP_TILDE 7)
-(define OP_UPPER 11)
-(define OP_YANK 2)
-(define OSC 157)
-(define OUT_SIZE 8191)
-(define PASTE_CMDLINE 1)
-(define PASTE_INSERT 0)
-(define PASTE_ONE_CHAR 3)
-(define PATH_MAX 4096)
-(define PB_COUNT_MAX 255)
-(define PC_STATUS_LEFT 2)
-(define PC_STATUS_RIGHT 1)
-(define PC_STATUS_SET 3)
-(define PC_STATUS_UNSET 0)
-(define PLAN_CR 2)
-(define PLAN_LE 1)
-(define PLAN_NL 3)
-(define PLAN_WRITE 4)
-(define PLUS 8)
-(define POUND 163)
-(define PREFIX_INV 2)
-(define PREFIX_NO 0)
-(define PREFIX_NONE 1)
-(define PROCESS_NEXT_KEY 4)
-(define PUT_BLOCK_INNER 64)
-(define PUT_CURSEND 2)
-(define PUT_CURSLINE 4)
-(define PUT_FIXINDENT 1)
-(define PUT_LINE 8)
-(define PUT_LINE_FORWARD 32)
-(define PUT_LINE_SPLIT 16)
-(define PV_BOTH 4096)
-(define PV_NONE 0)
-(define P_ALLOCED 8)
-(define P_BOOL 1)
-(define P_COLON 2147483648)
-(define P_COMMA 32768)
-(define P_DEF_ALLOCED 128)
-(define P_EXPAND 16)
-(define P_FLAGLIST 262144)
-(define P_GETTEXT 1048576)
-(define P_HLONLY 268435456)
-(define P_INSECURE 8388608)
-(define P_NDNAME 134217728)
-(define P_NFNAME 4194304)
-(define P_NODEFAULT 64)
-(define P_NODUP 131072)
-(define P_NUM 2)
-(define P_ONECOMMA 98304)
-(define P_RALL 24576)
-(define P_RBUF 16384)
-(define P_RCLR 28672)
-(define P_RSTAT 4096)
-(define P_RWIN 8192)
-(define P_SECURE 524288)
-(define P_STRING 4)
-(define P_VIM 2048)
-(define P_VI_DEF 1024)
-(define P_WAS_SET 256)
-(define RA_BREAK 3)
-(define RA_CONT 2)
-(define RA_FAIL 1)
-(define RA_MATCH 4)
-(define RA_NOMATCH 5)
-(define REGMAGIC 156)
-(define REGSUB_BACKSLASH 4)
-(define REGSUB_COPY 1)
-(define REGSUB_MAGIC 2)
-(define REG_MAX_PAREN_DEPTH 1000)
-(define REG_NOPAREN 0)
-(define REG_NPAREN 3)
-(define REG_PAREN 1)
-(define REMAP_YES 0)
-(define REPLACE_FLAG 256)
-(define REPTERM_DO_LT 2)
-(define REPTERM_FROM_PART 1)
-(define REPTERM_NO_SIMPLIFY 8)
-(define REPTERM_SPECIAL 4)
-(define RE_BOF 201)
-(define RE_BOTH 2)
-(define RE_COL 205)
-(define RE_COMPOSING 209)
-(define RE_EOF 202)
-(define RE_LAST 2)
-(define RE_LNUM 204)
-(define RE_MAGIC 1)
-(define RE_MARK 207)
-(define RE_SEARCH 0)
-(define RE_STRICT 4)
-(define RE_STRING 2)
-(define RE_SUBST 1)
-(define RE_VCOL 206)
-(define RE_VISUAL 208)
-(define RF_HASNL 4)
-(define RF_ICASE 1)
-(define RF_ICOMBINE 8)
-(define RF_LOOKBH 16)
-(define RF_NOICASE 2)
-(define RGLF_LENGTH 2)
-(define RGLF_LINE 1)
-(define RI_ALPHA 32)
-(define RI_DIGIT 1)
-(define RI_HEAD 16)
-(define RI_HEX 2)
-(define RI_LOWER 64)
-(define RI_OCTAL 4)
-(define RI_UPPER 128)
-(define RI_WHITE 256)
-(define RI_WORD 8)
-(define RM_ABBR 4)
-(define RM_NONE 1)
-(define RM_SCRIPT 2)
-(define RM_SIMPLIFIED 8)
-(define RM_YES 0)
-(define RS_BEHIND1 8)
-(define RS_BEHIND2 9)
-(define RS_BRANCH 3)
-(define RS_BRCPLX_LONG 5)
-(define RS_BRCPLX_MORE 4)
-(define RS_BRCPLX_SHORT 6)
-(define RS_MCLOSE 2)
-(define RS_MOPEN 1)
-(define RS_NOMATCH 7)
-(define RS_NOPEN 0)
-(define RS_STAR_LONG 10)
-(define RS_STAR_SHORT 11)
-(define RULER_BUF_LEN 70)
-(define SB_CLEAR_ALL 1)
-(define SB_CLEAR_CMDLINE_BUSY 2)
-(define SB_CLEAR_CMDLINE_DONE 3)
-(define SB_CLEAR_NONE 0)
-(define SEARCH_COL 4096)
-(define SEARCH_ECHO 2)
-(define SEARCH_END 64)
-(define SEARCH_HIS 32)
-(define SEARCH_HL_PRIORITY 0)
-(define SEARCH_KEEP 1024)
-(define SEARCH_MARK 512)
-(define SEARCH_MSG 12)
-(define SEARCH_NOOF 128)
-(define SEARCH_OPT 16)
-(define SEARCH_PEEK 2048)
-(define SEARCH_REV 1)
-(define SEARCH_START 256)
-(define SEARCH_STAT_BUF_LEN 16)
-(define SEARCH_STAT_DEF_TIMEOUT 40)
-(define SG_CTERM 2)
-(define SG_LINK 8)
-(define SG_TERM 1)
-(define SHM_COMPLETIONMENU 99)
-(define SHM_MOD 109)
-(define SHM_NEW 110)
-(define SHM_RECORDING 113)
-(define SHM_SEARCH 115)
-(define SHM_SEARCHCOUNT 83)
-(define SHM_TRUNC 116)
-(define SHM_TRUNCALL 84)
-(define SHM_UNDO 117)
-(define SHOWCMD_COLS 10)
-(define SIGHUP 1)
-(define SIGTERM 15)
-(define SIMPLE 2)
-(define SIN_CHANGED 1)
-(define SIN_INSERT 2)
-(define SIN_UNDO 4)
-(define SIZE_MAX 18446744073709551615)
-(define SLF_INC_VCOL 4)
-(define SPSTART 4)
-(define STACK_INCR 5)
-(define STAR 7)
-(define STATUS_GOT 2)
-(define STATUS_HEIGHT 1)
-(define STERM 156)
-(define STR2NR_BIN 1)
-(define STR2NR_FORCE 128)
-(define STR2NR_HEX 4)
-(define STR2NR_OCT 2)
-(define STR2NR_OOCT 8)
-(define STR2NR_QUOTE 16)
-(define SUBPAT 13)
-(define TAB 9)
-(define TABSTOP_MAX 9999)
-(define TERMCODE_GAP 2)
-(define TERM_SYNC_OUTPUT_DISABLE 2)
-(define TERM_SYNC_OUTPUT_ENABLE 1)
-(define TERM_SYNC_OUTPUT_FLUSH 8)
-(define TERM_SYNC_OUTPUT_OFF 4)
-(define TPR_COUNT 7)
-(define TPR_CURSOR_BLINK 1)
-(define TPR_CURSOR_STYLE 0)
-(define TPR_DECRQM 5)
-(define TPR_KITTY 4)
-(define TPR_MOUSE 3)
-(define TPR_MOUSE_SGR 115)
-(define TPR_MOUSE_XTERM 120)
-(define TPR_MOUSE_XTERM2 50)
-(define TPR_NO 110)
-(define TPR_RGB 6)
-(define TPR_UNDERLINE_RGB 2)
-(define TPR_UNKNOWN 117)
-(define TPR_YES 121)
-(define TRUE 1)
-(define T_PCLOSE 190)
-(define UH_CHANGED 1)
-(define UH_EMPTYBUF 2)
-(define ULLONG_MAX 18446744073709551615)
-(define UPD_CLEAR 50)
-(define UPD_INVERTED 20)
-(define UPD_INVERTED_ALL 25)
-(define UPD_NOT_VALID 40)
-(define UPD_REDRAW_TOP 30)
-(define UPD_SOME_VALID 35)
-(define UPD_VALID 10)
-(define UPD_VALID_NO_UPDATE 5)
-(define URL_BACKSLASH 2)
-(define URL_SLASH 1)
-(define USE_NL 7)
-(define USE_REDRAW 9)
-(define USE_T_AL 3)
-(define USE_T_CAL 1)
-(define USE_T_CD 8)
-(define USE_T_CDL 2)
-(define USE_T_CE 4)
-(define USE_T_DL 5)
-(define USE_T_SR 6)
-(define VALID_BOTLINE 32)
-(define VALID_BOTLINE_AP 64)
-(define VALID_CHEIGHT 8)
-(define VALID_CROW 16)
-(define VALID_TOPLINE 128)
-(define VALID_VIRTCOL 4)
-(define VALID_WCOL 2)
-(define VE_ALL 4)
-(define VE_BLOCK 5)
-(define VE_INSERT 6)
-(define VE_ONEMORE 8)
-(define VGR_FUZZY 4)
-(define VGR_GLOBAL 1)
-(define VGR_NOJUMP 2)
-(define VIM_DEFAULT 1)
-(define VI_DEFAULT 0)
-(define VREPLACE_FLAG 512)
-(define WILD_APPLY 10)
-(define WILD_CANCEL 9)
-(define WL_START 0)
-(define WORST 0)
-(define XP_BS_NONE 0)
-(define XP_PREFIX_NONE 0)
-(define map_result_fail 0)
-(define map_result_get 1)
-(define map_result_nomatch 3)
-(define map_result_retry 2)
+;; The C's named constants the functions use, which c-case reads too.
+(define-c-enum ADDR_LINES 0)
+(define-c-enum ADDR_NONE 11)
+(define-c-enum ADDR_OTHER 10)
+(define-c-enum ADDR_UNSIGNED 9)
+(define-c-enum ADDR_WINDOWS 1)
+(define-c-enum ADD_NL 30)
+(define-c-enum ALPHA 43)
+(define-c-enum ANY 20)
+(define-c-enum ANYBUT 22)
+(define-c-enum ANYOF 21)
+(define-c-enum ATC_FROM_TERM 55)
+(define-c-enum BACK 4)
+(define-c-enum BACKPOS_INITIAL 64)
+(define-c-enum BACKREF 100)
+(define-c-enum BACKSPACE_CHAR 1)
+(define-c-enum BACKSPACE_LINE 4)
+(define-c-enum BACKSPACE_WORD 2)
+(define-c-enum BACKSPACE_WORD_NOT_SPACE 3)
+(define-c-enum BACKTRACKING_ENGINE 1)
+(define-c-enum BCO_ALWAYS 2)
+(define-c-enum BCO_ENTER 1)
+(define-c-enum BCO_NOHELP 4)
+(define-c-enum BEHIND 11)
+(define-c-enum BELL 7)
+(define-c-enum BFA_DEL 1)
+(define-c-enum BFA_IGNORE_ABORT 8)
+(define-c-enum BFA_KEEP_UNDO 4)
+(define-c-enum BFA_WIPE 2)
+(define-c-enum BF_DUMMY 128)
+(define-c-enum BF_NEVERLOADED 4)
+(define-c-enum BF_NEW 16)
+(define-c-enum BF_NOTEDITED 8)
+(define-c-enum BF_PRESERVED 256)
+(define-c-enum BF_READERR 64)
+(define-c-enum BHPOS 19)
+(define-c-enum BLN_CURBUF 1)
+(define-c-enum BLN_DUMMY 4)
+(define-c-enum BLN_LISTED 2)
+(define-c-enum BL_FIX 4)
+(define-c-enum BL_SOL 2)
+(define-c-enum BL_WHITE 1)
+(define-c-enum BOL 1)
+(define-c-enum BOW 15)
+(define-c-enum BO_ALL 1)
+(define-c-enum BO_BS 2)
+(define-c-enum BO_COPY 16)
+(define-c-enum BO_CRSR 4)
+(define-c-enum BO_CTRLG 32)
+(define-c-enum BO_ERROR 64)
+(define-c-enum BO_ESC 128)
+(define-c-enum BO_IM 1024)
+(define-c-enum BO_MATCH 8192)
+(define-c-enum BO_MESS 4096)
+(define-c-enum BO_OPER 16384)
+(define-c-enum BO_REG 32768)
+(define-c-enum BO_SH 65536)
+(define-c-enum BRACE_COMPLEX 140)
+(define-c-enum BRACE_LIMITS 17)
+(define-c-enum BRACE_SIMPLE 14)
+(define-c-enum BRANCH 3)
+(define-c-enum BREAKCHECK_SKIP 1000)
+(define-c-enum BS 8)
+(define-c-enum BS_EOL 108)
+(define-c-enum BS_INDENT 105)
+(define-c-enum BS_NOSTOP 112)
+(define-c-enum BS_START 115)
+(define-c-enum BT_EXTRA_KEYS 257)
+(define-c-enum CAR 13)
+(define-c-enum CA_COMMAND_BUSY 1)
+(define-c-enum CA_NO_ADJ_OP_END 2)
+(define-c-enum CLASS_ALNUM 0)
+(define-c-enum CLASS_ALPHA 1)
+(define-c-enum CLASS_BACKSPACE 14)
+(define-c-enum CLASS_BLANK 2)
+(define-c-enum CLASS_CNTRL 3)
+(define-c-enum CLASS_DIGIT 4)
+(define-c-enum CLASS_ESCAPE 15)
+(define-c-enum CLASS_FNAME 18)
+(define-c-enum CLASS_GRAPH 5)
+(define-c-enum CLASS_IDENT 16)
+(define-c-enum CLASS_KEYWORD 17)
+(define-c-enum CLASS_LOWER 6)
+(define-c-enum CLASS_NONE 99)
+(define-c-enum CLASS_PRINT 7)
+(define-c-enum CLASS_PUNCT 8)
+(define-c-enum CLASS_RETURN 13)
+(define-c-enum CLASS_SPACE 9)
+(define-c-enum CLASS_TAB 12)
+(define-c-enum CLASS_UPPER 10)
+(define-c-enum CLASS_XDIGIT 11)
+(define-c-enum CMDLINE_CHANGED 2)
+(define-c-enum CMDLINE_NOT_CHANGED 1)
+(define-c-enum CMD_Print 97)
+(define-c-enum CMD_SIZE 98)
+(define-c-enum CMD_append 0)
+(define-c-enum CMD_change 2)
+(define-c-enum CMD_delete 10)
+(define-c-enum CMD_earlier 13)
+(define-c-enum CMD_global 16)
+(define-c-enum CMD_iput 23)
+(define-c-enum CMD_k 26)
+(define-c-enum CMD_list 30)
+(define-c-enum CMD_lshift 92)
+(define-c-enum CMD_move 33)
+(define-c-enum CMD_number 46)
+(define-c-enum CMD_pound 89)
+(define-c-enum CMD_put 53)
+(define-c-enum CMD_rshift 94)
+(define-c-enum CMD_smagic 62)
+(define-c-enum CMD_snomagic 65)
+(define-c-enum CMD_star 91)
+(define-c-enum CMD_substitute 59)
+(define-c-enum CMD_tilde 96)
+(define-c-enum CMD_vglobal 76)
+(define-c-enum CMD_yank 87)
+(define-c-enum CMOD_ERRSILENT 4)
+(define-c-enum CMOD_KEEPJUMPS 1024)
+(define-c-enum CMOD_KEEPMARKS 512)
+(define-c-enum CMOD_KEEPPATTERNS 4096)
+(define-c-enum CMOD_LOCKMARKS 2048)
+(define-c-enum CMOD_SILENT 2)
+(define-c-enum CMOD_UNSILENT 8)
+(define-c-enum CMP_INTERNAL 1)
+(define-c-enum CMP_KEEPASCII 2)
+(define-c-enum CPO_BACKSL 92)
+(define-c-enum CPO_BACKSPACE 118)
+(define-c-enum CPO_BAR 98)
+(define-c-enum CPO_BSLASH 66)
+(define-c-enum CPO_BUFOPT 115)
+(define-c-enum CPO_BUFOPTGLOB 83)
+(define-c-enum CPO_CW 119)
+(define-c-enum CPO_DOLLAR 36)
+(define-c-enum CPO_EMPTYREGION 69)
+(define-c-enum CPO_ESC 120)
+(define-c-enum CPO_EXECBUF 101)
+(define-c-enum CPO_HASH 35)
+(define-c-enum CPO_INDENT 73)
+(define-c-enum CPO_INSEND 72)
+(define-c-enum CPO_INTMOD 105)
+(define-c-enum CPO_JOINCOL 113)
+(define-c-enum CPO_JOINSP 106)
+(define-c-enum CPO_KEYCODE 107)
+(define-c-enum CPO_KOFFSET 75)
+(define-c-enum CPO_LINEOFF 111)
+(define-c-enum CPO_LISTWM 76)
+(define-c-enum CPO_LITERAL 108)
+(define-c-enum CPO_MATCH 37)
+(define-c-enum CPO_MATCHBSL 77)
+(define-c-enum CPO_MINUS 45)
+(define-c-enum CPO_NUMCOL 110)
+(define-c-enum CPO_PRESERVE 38)
+(define-c-enum CPO_REDO 114)
+(define-c-enum CPO_REGAPPEND 62)
+(define-c-enum CPO_REPLCNT 88)
+(define-c-enum CPO_SCOLON 59)
+(define-c-enum CPO_SEARCH 99)
+(define-c-enum CPO_SHOWMATCH 109)
+(define-c-enum CPO_SPECI 60)
+(define-c-enum CPO_STAR 42)
+(define-c-enum CPO_SUBPERCENT 47)
+(define-c-enum CPO_UNDO 117)
+(define-c-enum CPO_WORD 122)
+(define-c-enum CPO_YANK 121)
+(define-c-enum CSI 155)
+(define-c-enum CT_CELL_MASK 7)
+(define-c-enum CT_FNAME_CHAR 64)
+(define-c-enum CT_ID_CHAR 32)
+(define-c-enum CT_PRINT_CHAR 16)
+(define-c-enum CURSOR 203)
+(define-c-enum Ctrl_A 1)
+(define-c-enum Ctrl_B 2)
+(define-c-enum Ctrl_BSL 28)
+(define-c-enum Ctrl_C 3)
+(define-c-enum Ctrl_D 4)
+(define-c-enum Ctrl_E 5)
+(define-c-enum Ctrl_F 6)
+(define-c-enum Ctrl_G 7)
+(define-c-enum Ctrl_H 8)
+(define-c-enum Ctrl_HAT 30)
+(define-c-enum Ctrl_J 10)
+(define-c-enum Ctrl_K 11)
+(define-c-enum Ctrl_L 12)
+(define-c-enum Ctrl_N 14)
+(define-c-enum Ctrl_O 15)
+(define-c-enum Ctrl_P 16)
+(define-c-enum Ctrl_Q 17)
+(define-c-enum Ctrl_R 18)
+(define-c-enum Ctrl_RSB 29)
+(define-c-enum Ctrl_S 19)
+(define-c-enum Ctrl_T 20)
+(define-c-enum Ctrl_U 21)
+(define-c-enum Ctrl_V 22)
+(define-c-enum Ctrl_W 23)
+(define-c-enum Ctrl_X 24)
+(define-c-enum Ctrl_Y 25)
+(define-c-enum Ctrl_Z 26)
+(define-c-enum DB_LINE_MAX 64)
+(define-c-enum DCS 144)
+(define-c-enum DEL 127)
+(define-c-enum DELETION_REGISTER 36)
+(define-c-enum DELIM_NL 4)
+(define-c-enum DIGIT 33)
+(define-c-enum DOBUF_DEL 3)
+(define-c-enum DOBUF_WIPE 4)
+(define-c-enum DOBUF_WIPE_REUSE 5)
+(define-c-enum DOCMD_GETEXLINE 64)
+(define-c-enum DOCMD_KEEPLINE 32)
+(define-c-enum DOCMD_KEYTYPED 8)
+(define-c-enum DOCMD_NOWAIT 2)
+(define-c-enum DOCMD_REPEAT 4)
+(define-c-enum DOCMD_VERBOSE 1)
+(define-c-enum DY_LASTLINE 1)
+(define-c-enum DY_TRUNCATE 2)
+(define-c-enum DY_UHEX 4)
+(define-c-enum END 0)
+(define-c-enum EOL 2)
+(define-c-enum EOW 16)
+(define-c-enum ERR_BUFLEN 80)
+(define-c-enum ESC 27)
+(define-c-enum ESTACK_NONE 0)
+(define-c-enum ETYPE_ARGS 6)
+(define-c-enum ETYPE_INTERNAL 8)
+(define-c-enum ETYPE_TOP 0)
+(define-c-enum EXACTLY 5)
+(define-c-enum EXFLAG_LIST 1)
+(define-c-enum EXFLAG_NR 2)
+(define-c-enum EXFLAG_PRINT 4)
+(define-c-enum EXIT_FAILURE 1)
+(define-c-enum EXPAND_NOTHING 0)
+(define-c-enum EX_BANG 2)
+(define-c-enum EX_CMDARG 16384)
+(define-c-enum EX_COUNT 1024)
+(define-c-enum EX_CTRLV 8192)
+(define-c-enum EX_DFLALL 32)
+(define-c-enum EX_EXTRA 4)
+(define-c-enum EX_FLAGS 2097152)
+(define-c-enum EX_LOCK_OK 16777216)
+(define-c-enum EX_MODIFY 1048576)
+(define-c-enum EX_NEEDARG 128)
+(define-c-enum EX_NOTRLCOM 2048)
+(define-c-enum EX_RANGE 1)
+(define-c-enum EX_REGSTR 512)
+(define-c-enum EX_TRLBAR 256)
+(define-c-enum EX_ZEROR 4096)
+(define-c-enum FAIL 0)
+(define-c-enum FALSE 0)
+(define-c-enum FIND_EVAL 4)
+(define-c-enum FIND_IDENT 1)
+(define-c-enum FIND_NOERROR 8)
+(define-c-enum FIND_STRING 2)
+(define-c-enum FLUSH_INPUT 2)
+(define-c-enum FLUSH_MINIMAL 0)
+(define-c-enum FM_BACKWARD 1)
+(define-c-enum FM_BLOCKSTOP 4)
+(define-c-enum FM_FORWARD 2)
+(define-c-enum FM_SKIPCOMM 8)
+(define-c-enum FNAME 27)
+(define-c-enum FNAME_EXP 2)
+(define-c-enum FNAME_HYP 4)
+(define-c-enum FNAME_MESS 1)
+(define-c-enum FORWARD 1)
+(define-c-enum FRACTION_MULT 16384)
+(define-c-enum FR_LEAF 0)
+(define-c-enum FSK_FROM_PART 16)
+(define-c-enum FSK_IN_STRING 4)
+(define-c-enum FSK_KEEP_X_KEY 2)
+(define-c-enum FSK_KEYCODE 1)
+(define-c-enum FSK_SIMPLIFY 8)
+(define-c-enum F_ACLOSE 183)
+(define-c-enum F_ACLOSE_NL 187)
+(define-c-enum F_PCLOSE 180)
+(define-c-enum F_PCLOSE_NL 184)
+(define-c-enum F_QCLOSE 181)
+(define-c-enum F_QCLOSE_NL 185)
+(define-c-enum F_RCLOSE 182)
+(define-c-enum F_RCLOSE_NL 186)
+(define-c-enum GAP 3)
+(define-c-enum GETLINE_CONCAT_CONT 1)
+(define-c-enum GETVCOL_END_EXCL_LBR 1)
+(define-c-enum GOTO_COST 7)
+(define-c-enum GOTO_NORMAL_MODE 3)
+(define-c-enum HASLOOKBH 16)
+(define-c-enum HASNL 8)
+(define-c-enum HASWIDTH 1)
+(define-c-enum HEAD 41)
+(define-c-enum HEX 35)
+(define-c-enum HIGHL_COST 5)
+(define-c-enum HIST_CMD 0)
+(define-c-enum HIST_COUNT 5)
+(define-c-enum HIST_DEBUG 4)
+(define-c-enum HIST_EXPR 2)
+(define-c-enum HIST_INPUT 3)
+(define-c-enum HIST_SEARCH 1)
+(define-c-enum HLF_AT 2)
+(define-c-enum HLF_COUNT 70)
+(define-c-enum HLF_EOB 1)
+(define-c-enum HLF_WIN 69)
+(define-c-enum HL_ALL 2047)
+(define-c-enum HL_BOLD 2)
+(define-c-enum HL_INVERSE 1)
+(define-c-enum HL_ITALIC 4)
+(define-c-enum HL_NOCOMBINE 512)
+(define-c-enum HL_STANDOUT 256)
+(define-c-enum HL_STRIKETHROUGH 1024)
+(define-c-enum HL_UNDERCURL 16)
+(define-c-enum HL_UNDERDASHED 128)
+(define-c-enum HL_UNDERDOTTED 64)
+(define-c-enum HL_UNDERDOUBLE 32)
+(define-c-enum HL_UNDERLINE 8)
+(define-c-enum IDENT 23)
+(define-c-enum INBUFLEN 250)
+(define-c-enum INC 20)
+(define-c-enum INC2 40)
+(define-c-enum INC3 27)
+(define-c-enum INDENT_DEC 3)
+(define-c-enum INDENT_INC 2)
+(define-c-enum INDENT_SET 1)
+(define-c-enum INPUT_BUFLEN 100)
+(define-c-enum INSCHAR_CTRLV 4)
+(define-c-enum INT_MAX 2147483647)
+(define-c-enum INT_MIN -2147483648)
+(define-c-enum JUMPLISTSIZE 100)
+(define-c-enum KEYLEN_REMOVED 9999)
+(define-c-enum KEYPROTOCOL_FAIL 3)
+(define-c-enum KEYPROTOCOL_KITTY 2)
+(define-c-enum KEYPROTOCOL_MOK2 1)
+(define-c-enum KEYPROTOCOL_NONE 0)
+(define-c-enum KE_COMMAND 103)
+(define-c-enum KE_CSI 81)
+(define-c-enum KE_ESC 107)
+(define-c-enum KE_FOCUSGAINED 98)
+(define-c-enum KE_FOCUSLOST 99)
+(define-c-enum KE_IGNORE 53)
+(define-c-enum KE_PLUG 83)
+(define-c-enum KE_SNR 82)
+(define-c-enum KKPS_AFTER_T_TE 4)
+(define-c-enum KKPS_DISABLED 3)
+(define-c-enum KKPS_ENABLED 2)
+(define-c-enum KKPS_INITIAL 0)
+(define-c-enum KKPS_OFF 1)
+(define-c-enum KS_CCO 49)
+(define-c-enum KS_EXTRA 253)
+(define-c-enum KS_KEY 242)
+(define-c-enum KS_MODIFIER 252)
+(define-c-enum KS_SPECIAL 254)
+(define-c-enum KS_ZERO 255)
+(define-c-enum KWORD 25)
+(define-c-enum K_BS -25195)
+(define-c-enum K_CANCEL -26365)
+(define-c-enum K_COMMAND -26621)
+(define-c-enum K_COMPLETE_DELAY -28413)
+(define-c-enum K_CURSORHOLD -24829)
+(define-c-enum K_C_END -22781)
+(define-c-enum K_C_HOME -22525)
+(define-c-enum K_C_LEFT -22013)
+(define-c-enum K_C_RIGHT -22269)
+(define-c-enum K_DEL -17515)
+(define-c-enum K_DOWN -25707)
+(define-c-enum K_END -14144)
+(define-c-enum K_ESC -27645)
+(define-c-enum K_F1 -12651)
+(define-c-enum K_F2 -12907)
+(define-c-enum K_F3 -13163)
+(define-c-enum K_F4 -13419)
+(define-c-enum K_FOCUSGAINED -25341)
+(define-c-enum K_FOCUSLOST -25597)
+(define-c-enum K_HELP -12581)
+(define-c-enum K_HOME -26731)
+(define-c-enum K_IGNORE -13821)
+(define-c-enum K_INS -18795)
+(define-c-enum K_K0 -17227)
+(define-c-enum K_K1 -17483)
+(define-c-enum K_K2 -17739)
+(define-c-enum K_K3 -17995)
+(define-c-enum K_K4 -18251)
+(define-c-enum K_K5 -18507)
+(define-c-enum K_K6 -18763)
+(define-c-enum K_K7 -19019)
+(define-c-enum K_K8 -19275)
+(define-c-enum K_K9 -19531)
+(define-c-enum K_KDEL -20733)
+(define-c-enum K_KDIVIDE -14411)
+(define-c-enum K_KEND -13387)
+(define-c-enum K_KENTER -16715)
+(define-c-enum K_KHOME -12619)
+(define-c-enum K_KINS -20477)
+(define-c-enum K_KMINUS -14155)
+(define-c-enum K_KMULTIPLY -14667)
+(define-c-enum K_KPAGEDOWN -13643)
+(define-c-enum K_KPAGEUP -13131)
+(define-c-enum K_KPLUS -13899)
+(define-c-enum K_KPOINT -16971)
+(define-c-enum K_LEFT -27755)
+(define-c-enum K_LEFTDRAG -11773)
+(define-c-enum K_LEFTMOUSE -11517)
+(define-c-enum K_LEFTRELEASE -12029)
+(define-c-enum K_MIDDLEDRAG -12541)
+(define-c-enum K_MIDDLEMOUSE -12285)
+(define-c-enum K_MIDDLERELEASE -12797)
+(define-c-enum K_MOUSEDOWN -19453)
+(define-c-enum K_MOUSELEFT -19965)
+(define-c-enum K_MOUSEMOVE -25853)
+(define-c-enum K_MOUSERIGHT -20221)
+(define-c-enum K_MOUSEUP -19709)
+(define-c-enum K_NOP -25085)
+(define-c-enum K_OSC -28157)
+(define-c-enum K_PAGEDOWN -20075)
+(define-c-enum K_PAGEUP -20587)
+(define-c-enum K_PASTEEND -17744)
+(define-c-enum K_PASTESTART -21328)
+(define-c-enum K_RIGHT -29291)
+(define-c-enum K_RIGHTDRAG -13309)
+(define-c-enum K_RIGHTMOUSE -13053)
+(define-c-enum K_RIGHTRELEASE -13565)
+(define-c-enum K_SCRIPT_COMMAND -26877)
+(define-c-enum K_SNR -21245)
+(define-c-enum K_S_BS -27133)
+(define-c-enum K_S_DOWN -1533)
+(define-c-enum K_S_F1 -1789)
+(define-c-enum K_S_F2 -2045)
+(define-c-enum K_S_F3 -2301)
+(define-c-enum K_S_F4 -2557)
+(define-c-enum K_S_UP -1277)
+(define-c-enum K_S_XF1 -18429)
+(define-c-enum K_S_XF2 -18685)
+(define-c-enum K_S_XF3 -18941)
+(define-c-enum K_S_XF4 -19197)
+(define-c-enum K_TAB -14077)
+(define-c-enum K_TC_HASH_2 -12835)
+(define-c-enum K_TC_HASH_4 -13347)
+(define-c-enum K_TC_PCT_i -26917)
+(define-c-enum K_TC_STAR_7 -14122)
+(define-c-enum K_TC_k_B -17003)
+(define-c-enum K_UP -30059)
+(define-c-enum K_X1DRAG -23293)
+(define-c-enum K_X1MOUSE -23037)
+(define-c-enum K_X1RELEASE -23549)
+(define-c-enum K_X2DRAG -24061)
+(define-c-enum K_X2MOUSE -23805)
+(define-c-enum K_X2RELEASE -24317)
+(define-c-enum K_XDOWN -17149)
+(define-c-enum K_XEND -15869)
+(define-c-enum K_XF1 -14845)
+(define-c-enum K_XF2 -15101)
+(define-c-enum K_XF3 -15357)
+(define-c-enum K_XF4 -15613)
+(define-c-enum K_XHOME -16381)
+(define-c-enum K_XLEFT -17405)
+(define-c-enum K_XRIGHT -17661)
+(define-c-enum K_XUP -16893)
+(define-c-enum K_ZEND -16125)
+(define-c-enum K_ZHOME -16637)
+(define-c-enum LIST_ATTR 1)
+(define-c-enum LIST_INT 3)
+(define-c-enum LIST_STRING 2)
+(define-c-enum LLONG_MAX 9223372036854775807)
+(define-c-enum LLONG_MIN -9223372036854775808)
+(define-c-enum LONG_MAX 9223372036854775807)
+(define-c-enum LONG_MIN -9223372036854775808)
+(define-c-enum LOWER 45)
+(define-c-enum MAGIC_ALL 4)
+(define-c-enum MAGIC_NONE 1)
+(define-c-enum MAGIC_OFF 2)
+(define-c-enum MAGIC_ON 3)
+(define-c-enum MAPTYPE_MAP 0)
+(define-c-enum MAPTYPE_NOREMAP 2)
+(define-c-enum MAPTYPE_UNMAP 1)
+(define-c-enum MAPTYPE_UNMAP_LHS 3)
+(define-c-enum MAP_ALL_MODES 255)
+(define-c-enum MATCH 9)
+(define-c-enum MAUTO 255)
+(define-c-enum MAXCOL 2147483647)
+(define-c-enum MAXMAPLEN 50)
+(define-c-enum MAX_ARG_CMDS 10)
+(define-c-enum MAX_ATTR_LEN 120)
+(define-c-enum MAX_HL_ID 20000)
+(define-c-enum MAX_KEY_NAME_LEN 32)
+(define-c-enum MAX_MCO 6)
+(define-c-enum MAX_SEARCH_COUNT 9999)
+(define-c-enum MAX_SYN_NAME 200)
+(define-c-enum MAX_TYPENR 65535)
+(define-c-enum MAYBE 2)
+(define-c-enum MBLOCK 2)
+(define-c-enum MB_FILLER_CHAR 60)
+(define-c-enum MB_MAXBYTES 21)
+(define-c-enum MCHAR 0)
+(define-c-enum MCH_DELAY_IGNOREINPUT 1)
+(define-c-enum MCLOSE 90)
+(define-c-enum MESSAGES_HISTORY 4)
+(define-c-enum MESSAGES_HIT_ENTER 1)
+(define-c-enum MESSAGES_WAIT 2)
+(define-c-enum ME_EXTRA_CMD 1)
+(define-c-enum ME_UNKNOWN_OPTION 0)
+(define-c-enum MINIMAL_SIZE 20)
+(define-c-enum MIN_CMDHEIGHT 1)
+(define-c-enum MIN_COLUMNS 12)
+(define-c-enum MIN_LINES 2)
+(define-c-enum MLINE 1)
+(define-c-enum ML_APPEND_UNDO 4)
+(define-c-enum ML_DELETE 17)
+(define-c-enum ML_DEL_MESSAGE 1)
+(define-c-enum ML_DEL_UNDO 2)
+(define-c-enum ML_EMPTY 1)
+(define-c-enum ML_FIND 19)
+(define-c-enum ML_FLUSH 2)
+(define-c-enum ML_INSERT 18)
+(define-c-enum ML_LINE_DIRTY 2)
+(define-c-enum MODE_ASKMORE 12288)
+(define-c-enum MODE_CMDLINE 8)
+(define-c-enum MODE_CONFIRM 28672)
+(define-c-enum MODE_EXTERNCMD 20480)
+(define-c-enum MODE_INSERT 16)
+(define-c-enum MODE_NORMAL 1)
+(define-c-enum MODE_OP_PENDING 4)
+(define-c-enum MODE_SELECT 64)
+(define-c-enum MODE_SETWSIZE 16384)
+(define-c-enum MODE_VISUAL 2)
+(define-c-enum MOD_KEYS_ENTRY_SIZE 5)
+(define-c-enum MOD_MASK_ALT 8)
+(define-c-enum MOD_MASK_CTRL 4)
+(define-c-enum MOD_MASK_META 16)
+(define-c-enum MOD_MASK_SHIFT 2)
+(define-c-enum MOKS_AFTER_T_TE 4)
+(define-c-enum MOKS_DISABLED 3)
+(define-c-enum MOKS_ENABLED 2)
+(define-c-enum MOKS_INITIAL 0)
+(define-c-enum MOKS_OFF 1)
+(define-c-enum MOPEN 80)
+(define-c-enum MSG_BUF_LEN 480)
+(define-c-enum MSG_HIST 4096)
+(define-c-enum MULTIBYTECODE 200)
+(define-c-enum MULTI_MULT 2)
+(define-c-enum MULTI_ONE 1)
+(define-c-enum NALPHA 44)
+(define-c-enum NCLOSE 151)
+(define-c-enum NDIGIT 34)
+(define-c-enum NEWL 18)
+(define-c-enum NHEAD 42)
+(define-c-enum NHEX 36)
+(define-c-enum NL 10)
+(define-c-enum NLOWER 46)
+(define-c-enum NOBEHIND 12)
+(define-c-enum NOCTAL 38)
+(define-c-enum NOMATCH 10)
+(define-c-enum NOPEN 150)
+(define-c-enum NOTHING 6)
+(define-c-enum NOT_MULTI 0)
+(define-c-enum NO_BUFFERS 1)
+(define-c-enum NO_SCREEN 2)
+(define-c-enum NSUBEXP 10)
+(define-c-enum NUL 0)
+(define-c-enum NUMBUFLEN 65)
+(define-c-enum NUM_REGISTERS 37)
+(define-c-enum NUPPER 48)
+(define-c-enum NV_KEEPREG 256)
+(define-c-enum NV_LANG 8)
+(define-c-enum NV_NCH 1)
+(define-c-enum NV_NCW 512)
+(define-c-enum NV_SS 16)
+(define-c-enum NV_SSS 32)
+(define-c-enum NV_STS 64)
+(define-c-enum NWHITE 32)
+(define-c-enum NWORD 40)
+(define-c-enum OCTAL 37)
+(define-c-enum OK 1)
+(define-c-enum OPENLINE_DELSPACES 1)
+(define-c-enum OPENLINE_FORCE_INDENT 64)
+(define-c-enum OPENLINE_MARKFIX 8)
+(define-c-enum OPF_LINES 1)
+(define-c-enum OPTION_MAGIC_NOT_SET 0)
+(define-c-enum OPTION_MAGIC_OFF 2)
+(define-c-enum OPTION_MAGIC_ON 1)
+(define-c-enum OPT_FREE 1)
+(define-c-enum OPT_GLOBAL 2)
+(define-c-enum OPT_LOCAL 4)
+(define-c-enum OPT_NOWIN 32)
+(define-c-enum OPT_NO_REDRAW 128)
+(define-c-enum OPT_ONECOLUMN 64)
+(define-c-enum OPT_WINONLY 16)
+(define-c-enum OP_ADDING 1)
+(define-c-enum OP_APPEND 18)
+(define-c-enum OP_CHANGE 3)
+(define-c-enum OP_COLON 10)
+(define-c-enum OP_DELETE 1)
+(define-c-enum OP_INSERT 17)
+(define-c-enum OP_JOIN 13)
+(define-c-enum OP_JOIN_NS 14)
+(define-c-enum OP_LOWER 12)
+(define-c-enum OP_LSHIFT 4)
+(define-c-enum OP_NONE 0)
+(define-c-enum OP_NOP 0)
+(define-c-enum OP_NR_ADD 28)
+(define-c-enum OP_NR_SUB 29)
+(define-c-enum OP_PREPENDING 2)
+(define-c-enum OP_REMOVING 3)
+(define-c-enum OP_REPLACE 16)
+(define-c-enum OP_RSHIFT 5)
+(define-c-enum OP_TILDE 7)
+(define-c-enum OP_UPPER 11)
+(define-c-enum OP_YANK 2)
+(define-c-enum OSC 157)
+(define-c-enum OUT_SIZE 8191)
+(define-c-enum PASTE_CMDLINE 1)
+(define-c-enum PASTE_EX 2)
+(define-c-enum PASTE_INSERT 0)
+(define-c-enum PASTE_ONE_CHAR 3)
+(define-c-enum PATH_MAX 4096)
+(define-c-enum PB_COUNT_MAX 255)
+(define-c-enum PC_STATUS_LEFT 2)
+(define-c-enum PC_STATUS_RIGHT 1)
+(define-c-enum PC_STATUS_SET 3)
+(define-c-enum PC_STATUS_UNSET 0)
+(define-c-enum PLAN_CR 2)
+(define-c-enum PLAN_LE 1)
+(define-c-enum PLAN_NL 3)
+(define-c-enum PLAN_WRITE 4)
+(define-c-enum PLUS 8)
+(define-c-enum POUND 163)
+(define-c-enum PREFIX_INV 2)
+(define-c-enum PREFIX_NO 0)
+(define-c-enum PREFIX_NONE 1)
+(define-c-enum PRINT 29)
+(define-c-enum PROCESS_NEXT_KEY 4)
+(define-c-enum PUT_BLOCK_INNER 64)
+(define-c-enum PUT_CURSEND 2)
+(define-c-enum PUT_CURSLINE 4)
+(define-c-enum PUT_FIXINDENT 1)
+(define-c-enum PUT_LINE 8)
+(define-c-enum PUT_LINE_FORWARD 32)
+(define-c-enum PUT_LINE_SPLIT 16)
+(define-c-enum PV_BOTH 4096)
+(define-c-enum PV_NONE 0)
+(define-c-enum P_ALLOCED 8)
+(define-c-enum P_BOOL 1)
+(define-c-enum P_COLON 2147483648)
+(define-c-enum P_COMMA 32768)
+(define-c-enum P_DEF_ALLOCED 128)
+(define-c-enum P_EXPAND 16)
+(define-c-enum P_FLAGLIST 262144)
+(define-c-enum P_GETTEXT 1048576)
+(define-c-enum P_HLONLY 268435456)
+(define-c-enum P_INSECURE 8388608)
+(define-c-enum P_NDNAME 134217728)
+(define-c-enum P_NFNAME 4194304)
+(define-c-enum P_NODEFAULT 64)
+(define-c-enum P_NODUP 131072)
+(define-c-enum P_NUM 2)
+(define-c-enum P_ONECOMMA 98304)
+(define-c-enum P_RALL 24576)
+(define-c-enum P_RBUF 16384)
+(define-c-enum P_RCLR 28672)
+(define-c-enum P_RSTAT 4096)
+(define-c-enum P_RWIN 8192)
+(define-c-enum P_SECURE 524288)
+(define-c-enum P_STRING 4)
+(define-c-enum P_VIM 2048)
+(define-c-enum P_VI_DEF 1024)
+(define-c-enum P_WAS_SET 256)
+(define-c-enum RA_BREAK 3)
+(define-c-enum RA_CONT 2)
+(define-c-enum RA_FAIL 1)
+(define-c-enum RA_MATCH 4)
+(define-c-enum RA_NOMATCH 5)
+(define-c-enum REGMAGIC 156)
+(define-c-enum REGSUB_BACKSLASH 4)
+(define-c-enum REGSUB_COPY 1)
+(define-c-enum REGSUB_MAGIC 2)
+(define-c-enum REG_MAX_PAREN_DEPTH 1000)
+(define-c-enum REG_NOPAREN 0)
+(define-c-enum REG_NPAREN 3)
+(define-c-enum REG_PAREN 1)
+(define-c-enum REMAP_YES 0)
+(define-c-enum REPLACE_FLAG 256)
+(define-c-enum REPTERM_DO_LT 2)
+(define-c-enum REPTERM_FROM_PART 1)
+(define-c-enum REPTERM_NO_SIMPLIFY 8)
+(define-c-enum REPTERM_SPECIAL 4)
+(define-c-enum RE_BOF 201)
+(define-c-enum RE_BOTH 2)
+(define-c-enum RE_COL 205)
+(define-c-enum RE_COMPOSING 209)
+(define-c-enum RE_EOF 202)
+(define-c-enum RE_LAST 2)
+(define-c-enum RE_LNUM 204)
+(define-c-enum RE_MAGIC 1)
+(define-c-enum RE_MARK 207)
+(define-c-enum RE_SEARCH 0)
+(define-c-enum RE_STRICT 4)
+(define-c-enum RE_STRING 2)
+(define-c-enum RE_SUBST 1)
+(define-c-enum RE_VCOL 206)
+(define-c-enum RE_VISUAL 208)
+(define-c-enum RE_WHITE 31)
+(define-c-enum RF_HASNL 4)
+(define-c-enum RF_ICASE 1)
+(define-c-enum RF_ICOMBINE 8)
+(define-c-enum RF_LOOKBH 16)
+(define-c-enum RF_NOICASE 2)
+(define-c-enum RGLF_LENGTH 2)
+(define-c-enum RGLF_LINE 1)
+(define-c-enum RI_ALPHA 32)
+(define-c-enum RI_DIGIT 1)
+(define-c-enum RI_HEAD 16)
+(define-c-enum RI_HEX 2)
+(define-c-enum RI_LOWER 64)
+(define-c-enum RI_OCTAL 4)
+(define-c-enum RI_UPPER 128)
+(define-c-enum RI_WHITE 256)
+(define-c-enum RI_WORD 8)
+(define-c-enum RM_ABBR 4)
+(define-c-enum RM_NONE 1)
+(define-c-enum RM_SCRIPT 2)
+(define-c-enum RM_SIMPLIFIED 8)
+(define-c-enum RM_YES 0)
+(define-c-enum RS_BEHIND1 8)
+(define-c-enum RS_BEHIND2 9)
+(define-c-enum RS_BRANCH 3)
+(define-c-enum RS_BRCPLX_LONG 5)
+(define-c-enum RS_BRCPLX_MORE 4)
+(define-c-enum RS_BRCPLX_SHORT 6)
+(define-c-enum RS_MCLOSE 2)
+(define-c-enum RS_MOPEN 1)
+(define-c-enum RS_NOMATCH 7)
+(define-c-enum RS_NOPEN 0)
+(define-c-enum RS_STAR_LONG 10)
+(define-c-enum RS_STAR_SHORT 11)
+(define-c-enum RULER_BUF_LEN 70)
+(define-c-enum SB_CLEAR_ALL 1)
+(define-c-enum SB_CLEAR_CMDLINE_BUSY 2)
+(define-c-enum SB_CLEAR_CMDLINE_DONE 3)
+(define-c-enum SB_CLEAR_NONE 0)
+(define-c-enum SEARCH_COL 4096)
+(define-c-enum SEARCH_ECHO 2)
+(define-c-enum SEARCH_END 64)
+(define-c-enum SEARCH_HIS 32)
+(define-c-enum SEARCH_HL_PRIORITY 0)
+(define-c-enum SEARCH_KEEP 1024)
+(define-c-enum SEARCH_MARK 512)
+(define-c-enum SEARCH_MSG 12)
+(define-c-enum SEARCH_NOOF 128)
+(define-c-enum SEARCH_OPT 16)
+(define-c-enum SEARCH_PEEK 2048)
+(define-c-enum SEARCH_REV 1)
+(define-c-enum SEARCH_START 256)
+(define-c-enum SEARCH_STAT_BUF_LEN 16)
+(define-c-enum SEARCH_STAT_DEF_TIMEOUT 40)
+(define-c-enum SFNAME 28)
+(define-c-enum SG_CTERM 2)
+(define-c-enum SG_LINK 8)
+(define-c-enum SG_TERM 1)
+(define-c-enum SHM_COMPLETIONMENU 99)
+(define-c-enum SHM_MOD 109)
+(define-c-enum SHM_NEW 110)
+(define-c-enum SHM_RECORDING 113)
+(define-c-enum SHM_SEARCH 115)
+(define-c-enum SHM_SEARCHCOUNT 83)
+(define-c-enum SHM_TRUNC 116)
+(define-c-enum SHM_TRUNCALL 84)
+(define-c-enum SHM_UNDO 117)
+(define-c-enum SHOWCMD_COLS 10)
+(define-c-enum SIDENT 24)
+(define-c-enum SIGHUP 1)
+(define-c-enum SIGTERM 15)
+(define-c-enum SIMPLE 2)
+(define-c-enum SIN_CHANGED 1)
+(define-c-enum SIN_INSERT 2)
+(define-c-enum SIN_UNDO 4)
+(define-c-enum SIZE_MAX 18446744073709551615)
+(define-c-enum SKWORD 26)
+(define-c-enum SLF_INC_VCOL 4)
+(define-c-enum SPRINT 30)
+(define-c-enum SPSTART 4)
+(define-c-enum STACK_INCR 5)
+(define-c-enum STAR 7)
+(define-c-enum STATUS_GOT 2)
+(define-c-enum STATUS_HEIGHT 1)
+(define-c-enum STERM 156)
+(define-c-enum STR2NR_BIN 1)
+(define-c-enum STR2NR_FORCE 128)
+(define-c-enum STR2NR_HEX 4)
+(define-c-enum STR2NR_OCT 2)
+(define-c-enum STR2NR_OOCT 8)
+(define-c-enum STR2NR_QUOTE 16)
+(define-c-enum SUBPAT 13)
+(define-c-enum TAB 9)
+(define-c-enum TABSTOP_MAX 9999)
+(define-c-enum TERMCODE_GAP 2)
+(define-c-enum TERM_SYNC_OUTPUT_DISABLE 2)
+(define-c-enum TERM_SYNC_OUTPUT_ENABLE 1)
+(define-c-enum TERM_SYNC_OUTPUT_FLUSH 8)
+(define-c-enum TERM_SYNC_OUTPUT_OFF 4)
+(define-c-enum TPR_COUNT 7)
+(define-c-enum TPR_CURSOR_BLINK 1)
+(define-c-enum TPR_CURSOR_STYLE 0)
+(define-c-enum TPR_DECRQM 5)
+(define-c-enum TPR_KITTY 4)
+(define-c-enum TPR_MOUSE 3)
+(define-c-enum TPR_MOUSE_SGR 115)
+(define-c-enum TPR_MOUSE_XTERM 120)
+(define-c-enum TPR_MOUSE_XTERM2 50)
+(define-c-enum TPR_NO 110)
+(define-c-enum TPR_RGB 6)
+(define-c-enum TPR_UNDERLINE_RGB 2)
+(define-c-enum TPR_UNKNOWN 117)
+(define-c-enum TPR_YES 121)
+(define-c-enum TRUE 1)
+(define-c-enum T_ACLOSE 193)
+(define-c-enum T_ACLOSE_NL 197)
+(define-c-enum T_PCLOSE 190)
+(define-c-enum T_PCLOSE_NL 194)
+(define-c-enum T_QCLOSE 191)
+(define-c-enum T_QCLOSE_NL 195)
+(define-c-enum T_RCLOSE 192)
+(define-c-enum T_RCLOSE_NL 196)
+(define-c-enum UH_CHANGED 1)
+(define-c-enum UH_EMPTYBUF 2)
+(define-c-enum ULLONG_MAX 18446744073709551615)
+(define-c-enum UPD_CLEAR 50)
+(define-c-enum UPD_INVERTED 20)
+(define-c-enum UPD_INVERTED_ALL 25)
+(define-c-enum UPD_NOT_VALID 40)
+(define-c-enum UPD_REDRAW_TOP 30)
+(define-c-enum UPD_SOME_VALID 35)
+(define-c-enum UPD_VALID 10)
+(define-c-enum UPD_VALID_NO_UPDATE 5)
+(define-c-enum UPPER 47)
+(define-c-enum URL_BACKSLASH 2)
+(define-c-enum URL_SLASH 1)
+(define-c-enum USE_NL 7)
+(define-c-enum USE_REDRAW 9)
+(define-c-enum USE_T_AL 3)
+(define-c-enum USE_T_CAL 1)
+(define-c-enum USE_T_CD 8)
+(define-c-enum USE_T_CDL 2)
+(define-c-enum USE_T_CE 4)
+(define-c-enum USE_T_DL 5)
+(define-c-enum USE_T_SR 6)
+(define-c-enum VALID_BOTLINE 32)
+(define-c-enum VALID_BOTLINE_AP 64)
+(define-c-enum VALID_CHEIGHT 8)
+(define-c-enum VALID_CROW 16)
+(define-c-enum VALID_TOPLINE 128)
+(define-c-enum VALID_VIRTCOL 4)
+(define-c-enum VALID_WCOL 2)
+(define-c-enum VE_ALL 4)
+(define-c-enum VE_BLOCK 5)
+(define-c-enum VE_INSERT 6)
+(define-c-enum VE_ONEMORE 8)
+(define-c-enum VGR_FUZZY 4)
+(define-c-enum VGR_GLOBAL 1)
+(define-c-enum VGR_NOJUMP 2)
+(define-c-enum VIM_DEFAULT 1)
+(define-c-enum VI_DEFAULT 0)
+(define-c-enum VREPLACE_FLAG 512)
+(define-c-enum WILD_APPLY 10)
+(define-c-enum WILD_CANCEL 9)
+(define-c-enum WL_START 0)
+(define-c-enum WORD 39)
+(define-c-enum WORST 0)
+(define-c-enum XP_BS_NONE 0)
+(define-c-enum XP_PREFIX_NONE 0)
+(define-c-enum map_result_fail 0)
+(define-c-enum map_result_get 1)
+(define-c-enum map_result_nomatch 3)
+(define-c-enum map_result_retry 2)
 
 ;; The members the functions name, at their offsets from their struct's
 ;; address: (name p) reads one, (name-set! p v) writes it, (name& p) is its
@@ -9905,12 +10015,12 @@
                    ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                    inserted_length)]
           [else
-           (case c
-             [(27 3)
+           (c-case c
+             [(ESC Ctrl_C)
               (join173 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(26)
+             [(Ctrl_Z)
               (cond
                 [(fxzero? p_im)
                  (join179 c esc_now lastc did_backspace old_topline
@@ -9921,7 +10031,7 @@
                  (loop47 c esc_now lastc did_backspace old_topline inserted_space replaceState
                          nomove ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p
                          inserted_string inserted_length)])]
-             [(15)
+             [(Ctrl_O)
               (ins_ctrl_o ed)
               (cond
                 [(fxzero? (fxand (get_ve_flags ed) VE_ONEMORE))
@@ -9933,53 +10043,53 @@
                  (join168 c esc_now lastc did_backspace old_topline inserted_space replaceState #t
                           ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                           inserted_length)])]
-             [(-18795 -20477)
+             [(K_INS K_KINS)
               (join165 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-22773 30 -17744 -13821 24 16 14)
+             [(-22773 Ctrl_HAT K_PASTEEND K_IGNORE Ctrl_X Ctrl_P Ctrl_N)
               (join179 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-12581 -12651 -14845)
+             [(K_HELP K_F1 K_XF1)
               (join161 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-22783 0 1)
+             [(-22783 NUL Ctrl_A)
               (join157 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(18)
+             [(Ctrl_R)
               (ins_reg ed)
               (join179 c esc_now lastc did_backspace old_topline #f replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(7)
+             [(Ctrl_G)
               (ins_ctrl_g ed)
               (join179 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(4 20)
+             [(Ctrl_D Ctrl_T)
               (join154 c esc_now lastc did_backspace old_topline replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-17515 -20733)
+             [(K_DEL K_KDEL)
               (join153 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-25195 -27133 8)
+             [(K_BS K_S_BS Ctrl_H)
               (join152 c esc_now lastc old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(23)
+             [(Ctrl_W)
               (let-values ([(r9 r10) (ins_bs ed c BACKSPACE_WORD inserted_space)])
                 (join179 c esc_now lastc r9 old_topline r10 replaceState nomove ins_just_started r9
                          r10 inserted_string inserted_length))]
-             [(21)
+             [(Ctrl_U)
               (let-values ([(r11 r12) (ins_bs ed c BACKSPACE_LINE inserted_space)])
                 (join179 c esc_now lastc r11 old_topline #f replaceState nomove ins_just_started r11
                          r12 inserted_string inserted_length))]
-             [(-21328)
+             [(K_PASTESTART)
               (bracketed_paste ed PASTE_INSERT #f 0)
               (if (fx=? cmdchar K_PASTESTART)
                   (cond
@@ -9993,90 +10103,90 @@
                   (join179 c esc_now lastc did_backspace old_topline inserted_space replaceState
                            nomove ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p
                            inserted_string inserted_length))]
-             [(-26621 -26877)
+             [(K_COMMAND K_SCRIPT_COMMAND)
               (join145 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-24829)
+             [(K_CURSORHOLD)
               (set! did_cursorhold #t)
               (when (fx=? dont_sync_undo TRUE) (set! dont_sync_undo MAYBE))
               (join179 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-28413)
+             [(K_COMPLETE_DELAY)
               (when (fx=? dont_sync_undo TRUE) (set! dont_sync_undo MAYBE))
               (join179 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-26731 -12619 -12835 -22525)
+             [(K_HOME K_KHOME K_TC_HASH_2 K_C_HOME)
               (join140 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-14144 -13387 -14122 -22781)
+             [(K_END K_KEND K_TC_STAR_7 K_C_END)
               (join139 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-27755)
+             [(K_LEFT)
               (if (fxzero? (fxand mod_mask 6)) (ins_left ed) (ins_s_left ed))
               (join179 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-13347 -22013)
+             [(K_TC_HASH_4 K_C_LEFT)
               (join135 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-29291)
+             [(K_RIGHT)
               (if (fxzero? (fxand mod_mask 6)) (ins_right ed) (ins_s_right ed))
               (join179 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-26917 -22269)
+             [(K_TC_PCT_i K_C_RIGHT)
               (join131 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-30059)
+             [(K_UP)
               (if (fxzero? (fxand mod_mask MOD_MASK_SHIFT)) (ins_up ed #f) (ins_pageup ed))
               (join179 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-1277 -20587 -13131)
+             [(K_S_UP K_PAGEUP K_KPAGEUP)
               (join127 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-25707)
+             [(K_DOWN)
               (if (fxzero? (fxand mod_mask MOD_MASK_SHIFT)) (ins_down ed #f) (ins_pagedown ed))
               (join179 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-1533 -20075 -13643)
+             [(K_S_DOWN K_PAGEDOWN K_KPAGEDOWN)
               (join123 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-17003)
+             [(K_TC_k_B)
               (join121 TAB esc_now lastc did_backspace old_topline replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(9)
+             [(TAB)
               (join121 c esc_now lastc did_backspace old_topline replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(-16715)
+             [(K_KENTER)
               (join116 CAR esc_now lastc did_backspace old_topline inserted_space replaceState
                        nomove ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p
                        inserted_string inserted_length)]
-             [(13 10)
+             [(CAR NL)
               (join116 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(11 29 6)
+             [(Ctrl_K Ctrl_RSB Ctrl_F)
               (join179 c esc_now lastc did_backspace old_topline
                        (edit_normalchar ed c inserted_space) replaceState nomove ins_just_started
                        ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string inserted_length)]
-             [(115 19)
+             [(#\s Ctrl_S)
               (join111 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
-             [(12)
+             [(Ctrl_L)
               (cond
                 [(fxzero? p_im)
                  (join179 c esc_now lastc did_backspace old_topline
@@ -10089,7 +10199,7 @@
                  (loop47 c esc_now lastc did_backspace old_topline inserted_space replaceState
                          nomove ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p
                          inserted_string inserted_length)])]
-             [(25 5)
+             [(Ctrl_Y Ctrl_E)
               (join106 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove
                        ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string
                        inserted_length)]
@@ -10956,11 +11066,11 @@
           (loop13 count last insert_string insert_length)))
     (define (loop13 count last insert_string insert_length)
       (stuffReadbuffLen ed insert_string (->i64 insert_length))
-      (case last
-        [(48)
+      (c-case last
+        [(#\0)
          (stuffReadbuffLen ed (c-str 162565 "\x16;048") 4)
          (join16 count last insert_string insert_length)]
-        [(94)
+        [(#\^)
          (stuffReadbuffLen ed (c-str 162570 "\x16;^") 2)
          (join16 count last insert_string insert_length)]
         [else (join16 count last insert_string insert_length)]))
@@ -11201,16 +11311,16 @@
     (let ([c (plain_vgetc ed)])
       (set! no_mapping (fx- no_mapping 1))
       (set! allow_keys (fx- allow_keys 1))
-      (case c
-        [(-30059 11 107) (join5)]
-        [(-25707 10 106) (join4)]
-        [(117)
+      (c-case c
+        [(K_UP Ctrl_K #\k) (join5)]
+        [(K_DOWN Ctrl_J #\j) (join4)]
+        [(#\u)
          (u_sync ed #t)
          (set! ins_need_undo #t)
          (set! update_Insstart_orig #f)
          (mem-copy! Insstart (win_T.w_cursor& curwin) 16)]
-        [(85) (set! dont_sync_undo MAYBE)]
-        [(27) (void)]
+        [(#\U) (set! dont_sync_undo MAYBE)]
+        [(ESC) (void)]
         [else (vim_beep ed BO_CTRLG)]))))
 
 (define (ins_esc ed count cmdchar nomove)
@@ -11308,9 +11418,9 @@
         #f)
       (cond
         [km_startsel
-         (case c
-           [(-12619 -13387 -20587 -13131 -20075 -13643) (join2)]
-           [(-13347 -26917 -1277 -1533 -14122 -12835) (join3)]
+         (c-case c
+           [(K_KHOME K_KEND K_PAGEUP K_KPAGEUP K_PAGEDOWN K_KPAGEDOWN) (join2)]
+           [(K_TC_HASH_4 K_TC_PCT_i K_S_UP K_S_DOWN K_TC_STAR_7 K_TC_HASH_2) (join3)]
            [else (join6)])]
         [else (frame-pop! ed fr) #f]))))
 
@@ -11661,17 +11771,17 @@
                             (loop5 idx end ret_char save_allow_keys save_paste))]
                        [drop (join22 end ret_char save_allow_keys save_paste)]
                        [else
-                        (case mode
-                          [(1)
+                        (c-case mode
+                          [(PASTE_CMDLINE)
                            (put_on_cmdline ed buf idx #t)
                            (join22 end ret_char save_allow_keys save_paste)]
-                          [(2)
+                          [(PASTE_EX)
                            (when (and (not (fxzero? gap)) (ga_grow ed gap (fx+ idx 1)))
                              (musl_memmove ed (fx+ (garray_T.ga_data gap) (garray_T.ga_len gap)) buf
                                            (->u64 idx))
                              (garray_T.ga_len-set! gap (fx+ (garray_T.ga_len gap) idx)))
                            (join22 end ret_char save_allow_keys save_paste)]
-                          [(0)
+                          [(PASTE_INSERT)
                            (if (stop_arrow ed)
                                (let ([c (ld-u8 buf)])
                                  (cond
@@ -11683,7 +11793,7 @@
                                     (AppendToRedobuffLit ed buf idx)])
                                  (join22 end ret_char save_allow_keys save_paste))
                                (join22 end ret_char save_allow_keys save_paste))]
-                          [(3)
+                          [(PASTE_ONE_CHAR)
                            (if (fx=? ret_char -1)
                                (join22 end (utf_ptr2char ed buf) save_allow_keys save_paste)
                                (join22 end ret_char save_allow_keys save_paste))]
@@ -12454,16 +12564,16 @@
                 (join18 x bigness kind minus lnum)))
           (join18 x bigness kind minus lnum)))
     (define (join18 x bigness kind minus lnum)
-      (case (ld-u8 kind)
-        [(45)
+      (c-case (ld-u8 kind)
+        [(#\-)
          (let* ([start (+ (- lnum (* bigness (fx- x kind))) 1)]
                 [end (- (+ start bigness) 1)])
            (join28 minus start end end lnum))]
-        [(61)
+        [(#\=)
          (join28 1 (+ (- lnum (i64/ (+ bigness 1) 2)) 1) (- (+ lnum (i64/ (+ bigness 1) 2)) 1) lnum
                  lnum)]
-        [(94) (join28 minus (- lnum (* bigness 2)) (- lnum bigness) (- lnum bigness) lnum)]
-        [(46)
+        [(#\^) (join28 minus (- lnum (* bigness 2)) (- lnum bigness) (- lnum bigness) lnum)]
+        [(#\.)
          (let* ([start (+ (- lnum (i64/ (+ bigness 1) 2)) 1)]
                 [end (- (+ lnum (i64/ (+ bigness 1) 2)) 1)])
            (join28 minus start end end lnum))]
@@ -14494,8 +14604,8 @@
           [(fx=? (ld-u8 (exarg_T.cmd eap)) NUL) (frame-pop! ed fr) #f]
           [else
            (set! p (skip_range ed (exarg_T.cmd eap) #t 0))
-           (case (ld-u8 p)
-             [(107)
+           (c-case (ld-u8 p)
+             [(#\k)
               (cond
                 [(checkforcmd_noparen ed (exarg_T.cmd& eap) (c-str 163150 "keepmarks") 3)
                  (cmdmod_T.cmod_flags-set! cmod (fxior (cmdmod_T.cmod_flags cmod) CMOD_KEEPMARKS))
@@ -14508,7 +14618,7 @@
                  (cmdmod_T.cmod_flags-set! cmod (fxior (cmdmod_T.cmod_flags cmod) CMOD_KEEPJUMPS))
                  (loop4 orig_cmd cmd_start has_visual_range)]
                 [else (join36 orig_cmd cmd_start has_visual_range)])]
-             [(102)
+             [(#\f)
               (set! nulp 0)
               (set! c 0)
               (cond
@@ -14523,13 +14633,13 @@
                      (join36 orig_cmd cmd_start has_visual_range)
                      (join23 orig_cmd cmd_start has_visual_range))]
                 [else (join23 orig_cmd cmd_start has_visual_range)])]
-             [(108)
+             [(#\l)
               (cond
                 [(checkforcmd_noparen ed (exarg_T.cmd& eap) (c-str 163190 "lockmarks") 3)
                  (cmdmod_T.cmod_flags-set! cmod (fxior (cmdmod_T.cmod_flags cmod) CMOD_LOCKMARKS))
                  (loop4 orig_cmd cmd_start has_visual_range)]
                 [else (join36 orig_cmd cmd_start has_visual_range)])]
-             [(115)
+             [(#\s)
               (cond
                 [(checkforcmd_noparen ed (exarg_T.cmd& eap) (c-str 163200 "silent") 3)
                  (cmdmod_T.cmod_flags-set! cmod (fxior (cmdmod_T.cmod_flags cmod) CMOD_SILENT))
@@ -14541,13 +14651,13 @@
                                              (fxior (cmdmod_T.cmod_flags cmod) CMOD_ERRSILENT)))
                  (loop4 orig_cmd cmd_start has_visual_range)]
                 [else (join36 orig_cmd cmd_start has_visual_range)])]
-             [(117)
+             [(#\u)
               (cond
                 [(checkforcmd_noparen ed (exarg_T.cmd& eap) (c-str 163207 "unsilent") 3)
                  (cmdmod_T.cmod_flags-set! cmod (fxior (cmdmod_T.cmod_flags cmod) CMOD_UNSILENT))
                  (loop4 orig_cmd cmd_start has_visual_range)]
                 [else (join36 orig_cmd cmd_start has_visual_range)])]
-             [(118)
+             [(#\v)
               (cond
                 [(checkforcmd_noparen ed &p (c-str 163216 "verbose") 4)
                  (if (vim_isdigit (ld-u8 (exarg_T.cmd eap)))
@@ -14647,9 +14757,11 @@
            (cond
              [(fx=? (ld-u8 (exarg_T.cmd eap)) (ch #\%))
               (exarg_T.cmd-set! eap (fx+ (exarg_T.cmd eap) 1))
-              (case (exarg_T.addr_type eap)
-                [(0 10) (join14 address_count lnum need_check_cursor ret)]
-                [(1 9) (st-ptr! errormsg e_invalid_range) (join27 need_check_cursor ret)]
+              (c-case (exarg_T.addr_type eap)
+                [(ADDR_LINES ADDR_OTHER) (join14 address_count lnum need_check_cursor ret)]
+                [(ADDR_WINDOWS ADDR_UNSIGNED)
+                 (st-ptr! errormsg e_invalid_range)
+                 (join27 need_check_cursor ret)]
                 [else (join15 address_count lnum need_check_cursor ret)])]
              [(and (fx=? (ld-u8 (exarg_T.cmd eap)) (ch #\*))
                    (fxzero? (vim_strchr ed p_cpo CPO_STAR)))
@@ -14893,9 +15005,9 @@
           (join6 (win_T.w_cursor.lnum curwin))))
     (define (join6 lnum)
       lnum)
-    (case (exarg_T.addr_type eap)
-      [(0 10) (join3)]
-      [(1 9) (join6 1)]
+    (c-case (exarg_T.addr_type eap)
+      [(ADDR_LINES ADDR_OTHER) (join3)]
+      [(ADDR_WINDOWS ADDR_UNSIGNED) (join6 1)]
       [else (join6 0)])))
 
 (define (get_address ed eap ptr addr_type skip silent to_other_file address_count)
@@ -14904,22 +15016,22 @@
       (define-c-local cmd &cmd ptr 0)
       (define-c-local pos &pos agg 8)
       (define (loop1 lnum)
-        (case (ld-u8 cmd)
-          [(46)
+        (c-case (ld-u8 cmd)
+          [(#\.)
            (set! cmd (fx+ cmd 1))
-           (case addr_type
-             [(0 10) (join51)]
-             [(1) (loop52 1)]
-             [(11 9) (join49 lnum)]
+           (c-case addr_type
+             [(ADDR_LINES ADDR_OTHER) (join51)]
+             [(ADDR_WINDOWS) (loop52 1)]
+             [(ADDR_NONE ADDR_UNSIGNED) (join49 lnum)]
              [else (loop52 lnum)])]
-          [(36)
+          [(#\$)
            (set! cmd (fx+ cmd 1))
-           (case addr_type
-             [(0 10) (join47)]
-             [(1) (loop52 1)]
-             [(11 9) (join45 lnum)]
+           (c-case addr_type
+             [(ADDR_LINES ADDR_OTHER) (join47)]
+             [(ADDR_WINDOWS) (loop52 1)]
+             [(ADDR_NONE ADDR_UNSIGNED) (join45 lnum)]
              [else (loop52 lnum)])]
-          [(39)
+          [(#\x27)
            (set! cmd (fx+ cmd 1))
            (cond
              [(fx=? (ld-u8 cmd) NUL) (set! cmd 0) (st-ptr! ptr cmd) (frame-pop! ed fr) lnum]
@@ -14937,8 +15049,8 @@
                 (cond
                   [(check_mark ed fp) (loop52 (pos_T.lnum fp))]
                   [else (set! cmd 0) (st-ptr! ptr cmd) (frame-pop! ed fr) lnum]))])]
-          [(47 63) (join22 lnum)]
-          [(92)
+          [(#\/ #\?) (join22 lnum)]
+          [(#\x5c)
            (set! cmd (fx+ cmd 1))
            (cond
              [(not (fx=? addr_type ADDR_LINES))
@@ -15043,10 +15155,10 @@
              [(or (fx=? (ld-u8 cmd) (ch #\/)) (fx=? (ld-u8 cmd) (ch #\?))) (loop1 lnum)]
              [else (st-ptr! ptr cmd) (frame-pop! ed fr) lnum])]
           [(= lnum LONG_MAX)
-           (case addr_type
-             [(0 10) (join57)]
-             [(1) (join58 1)]
-             [(11 9) (join55)]
+           (c-case addr_type
+             [(ADDR_LINES ADDR_OTHER) (join57)]
+             [(ADDR_WINDOWS) (join58 1)]
+             [(ADDR_NONE ADDR_UNSIGNED) (join55)]
              [else (join58 lnum)])]
           [else (join58 lnum)]))
       (define (join55)
@@ -15091,10 +15203,10 @@
     (define (join3)
       (exarg_T.line2-set! eap (buf_T.b_ml.ml_line_count curbuf)))
     (exarg_T.line1-set! eap 1)
-    (case (exarg_T.addr_type eap)
-      [(0 10) (join3)]
-      [(1) (exarg_T.line2-set! eap 1)]
-      [(11 9) (join1)]
+    (c-case (exarg_T.addr_type eap)
+      [(ADDR_LINES ADDR_OTHER) (join3)]
+      [(ADDR_WINDOWS) (exarg_T.line2-set! eap 1)]
+      [(ADDR_NONE ADDR_UNSIGNED) (join1)]
       [else (void)])))
 
 (define (get_flags ed eap)
@@ -15120,9 +15232,10 @@
        e_invalid_range]
       [(eqv? (bitwise-and (exarg_T.argt eap) EX_RANGE) 0) 0]
       [else
-       (case (exarg_T.addr_type eap)
-         [(0) (if (> (exarg_T.line2 eap) (buf_T.b_ml.ml_line_count curbuf)) e_invalid_range 0)]
-         [(1) (if (> (exarg_T.line2 eap) 1) e_invalid_range 0)]
+       (c-case (exarg_T.addr_type eap)
+         [(ADDR_LINES)
+          (if (> (exarg_T.line2 eap) (buf_T.b_ml.ml_line_count curbuf)) e_invalid_range 0)]
+         [(ADDR_WINDOWS) (if (> (exarg_T.line2 eap) 1) e_invalid_range 0)]
          [else 0])])))
 
 (define (correct_range ed eap)
@@ -15356,15 +15469,14 @@
         (win_T.w_cursor.lnum-set! curwin (exarg_T.line1 eap))
         (beginline ed 6))
       (when VIsual_active (end_visual_mode ed))
-      (case (exarg_T.cmdidx eap)
-        [(10) (oparg_T.op_type-set! oa OP_DELETE) (op_delete ed oa) (join11)]
-        [(87) (oparg_T.op_type-set! oa OP_YANK) (op_yank ed oa #f #t) (join11)]
+      (c-case (exarg_T.cmdidx eap)
+        [(CMD_delete) (oparg_T.op_type-set! oa OP_DELETE) (op_delete ed oa) (join11)]
+        [(CMD_yank) (oparg_T.op_type-set! oa OP_YANK) (op_yank ed oa #f #t) (join11)]
         [else
          (if (fx=? (exarg_T.cmdidx eap) CMD_rshift)
              (oparg_T.op_type-set! oa OP_RSHIFT)
              (oparg_T.op_type-set! oa OP_LSHIFT))
-         (op_shift ed oa #f (exarg_T.amount eap))
-         (join11)]))))
+         (begin (op_shift ed oa #f (exarg_T.amount eap)) (join11))]))))
 
 (define (ex_put ed eap)
   (let ([mem (ed-mem ed)])
@@ -15478,12 +15590,12 @@
         [(fx=? (ld-u8 p) NUL) (join9 1 #f #f)]
         [(musl_isdigit (ld-u8 p))
          (let ([count (getdigits ed &p)])
-           (case (ld-u8 p)
-             [(115) (set! p (fx+ p 1)) (join9 count #t #f)]
-             [(109) (set! p (fx+ p 1)) (join9 (* count 60) #t #f)]
-             [(104) (set! p (fx+ p 1)) (join9 (* count 3600) #t #f)]
-             [(100) (set! p (fx+ p 1)) (join9 (* count 86400) #t #f)]
-             [(102) (set! p (fx+ p 1)) (join9 count #f #t)]
+           (c-case (ld-u8 p)
+             [(#\s) (set! p (fx+ p 1)) (join9 count #t #f)]
+             [(#\m) (set! p (fx+ p 1)) (join9 (* count 60) #t #f)]
+             [(#\h) (set! p (fx+ p 1)) (join9 (* count 3600) #t #f)]
+             [(#\d) (set! p (fx+ p 1)) (join9 (* count 86400) #t #f)]
+             [(#\f) (set! p (fx+ p 1)) (join9 count #f #t)]
              [else (join9 count #f #f)]))]
         [else (join9 0 #f #f)]))))
 
@@ -16879,26 +16991,26 @@
                    cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                    may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
           [else
-           (case c
-             [(-25195 8 -17515 -20733 23)
+           (c-case c
+             [(K_BS Ctrl_H K_DEL K_KDEL Ctrl_W)
               (join75 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(-18795 -20477)
+             [(K_INS K_KINS)
               (join74 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(30 -13821 -22773)
+             [(Ctrl_HAT K_IGNORE -22773)
               (join91 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(21)
+             [(Ctrl_U)
               (let ([j (cmdline_info_T.cmdpos ccline)])
                 (cmdline_info_T.cmdlen-set! ccline (fx- (cmdline_info_T.cmdlen ccline) j))
                 (cmdline_info_T.cmdpos-set! ccline 0)
@@ -16922,12 +17034,12 @@
                              cmdline_browse_history__o_curcmdstrlen
                              cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__
                              may_add_char_to_search__o_c)])))]
-             [(27 3)
+             [(ESC Ctrl_C)
               (join67 histype save_msg_scroll save_State some_key_typed did_save_ccline
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(18)
+             [(Ctrl_R)
               (let ([res (cmdline_insert_reg ed &gotesc)])
                 (cond
                   [(fx=? res GOTO_NORMAL_MODE)
@@ -16949,31 +17061,31 @@
                            cmdline_browse_history__o_curcmdstr
                            cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                            may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]))]
-             [(-29291 -26917 -22269)
+             [(K_RIGHT K_TC_PCT_i K_C_RIGHT)
               (loop60 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(-27755 -13347 -22013)
+             [(K_LEFT K_TC_HASH_4 K_C_LEFT)
               (join54 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(2 -26731 -12619 -12835 -22525)
+             [(Ctrl_B K_HOME K_KHOME K_TC_HASH_2 K_C_HOME)
               (join53 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(5 -14144 -13387 -14122 -22781)
+             [(Ctrl_E K_END K_KEND K_TC_STAR_7 K_C_END)
               (join52 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(12)
+             [(Ctrl_L)
               (let-values ([(r1 r2) (may_add_char_to_search ed firstc c is_state)])
                 (if r1
                     (join91 lookfor lookforlen hiscnt histype save_msg_scroll save_State
@@ -16988,25 +17100,25 @@
                             cmdline_browse_history__o_curcmdstr
                             cmdline_browse_history__o_curcmdstrlen
                             cmdline_browse_history__o_hiscnt_p r1 r2)))]
-             [(14 16 -30059 -25707 -1277 -1533 -20587 -13131 -20075 -13643)
+             [(Ctrl_N Ctrl_P K_UP K_DOWN K_S_UP K_S_DOWN K_PAGEUP K_KPAGEUP K_PAGEDOWN K_KPAGEDOWN)
               (join45 c lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(7 20)
+             [(Ctrl_G Ctrl_T)
               (join44 c #t lookfor lookforlen hiscnt histype save_msg_scroll save_State
                       some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged
                       prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(22 17)
+             [(Ctrl_V Ctrl_Q)
               (join42 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
                       cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
                       cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p
                       may_add_char_to_search__o_r__ may_add_char_to_search__o_c)]
-             [(-21328)
+             [(K_PASTESTART)
               (bracketed_paste ed PASTE_CMDLINE #f 0)
               (join96 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
                       did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
@@ -18911,29 +19023,29 @@
           [else (set! no_mapping (fx- no_mapping 1)) (join15 (utf_ptr2char ed buf))]))
       (define (join15 c)
         (when (fxzero? vgetc_char) (set! vgetc_mod_mask mod_mask) (set! vgetc_char c))
-        (case c
-          [(-13899) (join48 (ch #\+))]
-          [(-14155) (join48 (ch #\-))]
-          [(-14411) (join48 (ch #\/))]
-          [(-14667) (join48 (ch #\*))]
-          [(-16715) (join48 CAR)]
-          [(-16971) (join48 (ch #\.))]
-          [(-17227) (join48 (ch #\0))]
-          [(-17483) (join48 (ch #\1))]
-          [(-17739) (join48 (ch #\2))]
-          [(-17995) (join48 (ch #\3))]
-          [(-18251) (join48 (ch #\4))]
-          [(-18507) (join48 (ch #\5))]
-          [(-18763) (join48 (ch #\6))]
-          [(-19019) (join48 (ch #\7))]
-          [(-19275) (join48 (ch #\8))]
-          [(-19531) (join48 (ch #\9))]
-          [(-16381 -16637) (join27)]
-          [(-15869 -16125) (join22)]
-          [(-16893) (join48 K_UP)]
-          [(-17149) (join48 K_DOWN)]
-          [(-17405) (join48 K_LEFT)]
-          [(-17661) (join48 K_RIGHT)]
+        (c-case c
+          [(K_KPLUS) (join48 (ch #\+))]
+          [(K_KMINUS) (join48 (ch #\-))]
+          [(K_KDIVIDE) (join48 (ch #\/))]
+          [(K_KMULTIPLY) (join48 (ch #\*))]
+          [(K_KENTER) (join48 CAR)]
+          [(K_KPOINT) (join48 (ch #\.))]
+          [(K_K0) (join48 (ch #\0))]
+          [(K_K1) (join48 (ch #\1))]
+          [(K_K2) (join48 (ch #\2))]
+          [(K_K3) (join48 (ch #\3))]
+          [(K_K4) (join48 (ch #\4))]
+          [(K_K5) (join48 (ch #\5))]
+          [(K_K6) (join48 (ch #\6))]
+          [(K_K7) (join48 (ch #\7))]
+          [(K_K8) (join48 (ch #\8))]
+          [(K_K9) (join48 (ch #\9))]
+          [(K_XHOME K_ZHOME) (join27)]
+          [(K_XEND K_ZEND) (join22)]
+          [(K_XUP) (join48 K_UP)]
+          [(K_XDOWN) (join48 K_DOWN)]
+          [(K_XLEFT) (join48 K_LEFT)]
+          [(K_XRIGHT) (join48 K_RIGHT)]
           [else (join48 c)]))
       (define (join22)
         (cond
@@ -21373,19 +21485,19 @@
             (join44 hlf i p default_hl attr id)]
            [(fx>? attr HL_ALL) #f]
            [else
-            (case (ld-u8 p)
-              [(98) (join44 hlf i p default_hl (fxior attr HL_BOLD) id)]
-              [(105) (join44 hlf i p default_hl (fxior attr HL_ITALIC) id)]
-              [(45 110) (join44 hlf i p default_hl attr id)]
-              [(114) (join44 hlf i p default_hl (fxior attr HL_INVERSE) id)]
-              [(115) (join44 hlf i p default_hl (fxior attr HL_STANDOUT) id)]
-              [(117) (join44 hlf i p default_hl (fxior attr HL_UNDERLINE) id)]
-              [(99) (join44 hlf i p default_hl (fxior attr HL_UNDERCURL) id)]
-              [(50) (join44 hlf i p default_hl (fxior attr HL_UNDERDOUBLE) id)]
-              [(100) (join44 hlf i p default_hl (fxior attr HL_UNDERDOTTED) id)]
-              [(61) (join44 hlf i p default_hl (fxior attr HL_UNDERDASHED) id)]
-              [(116) (join44 hlf i p default_hl (fxior attr HL_STRIKETHROUGH) id)]
-              [(58)
+            (c-case (ld-u8 p)
+              [(#\b) (join44 hlf i p default_hl (fxior attr HL_BOLD) id)]
+              [(#\i) (join44 hlf i p default_hl (fxior attr HL_ITALIC) id)]
+              [(#\- #\n) (join44 hlf i p default_hl attr id)]
+              [(#\r) (join44 hlf i p default_hl (fxior attr HL_INVERSE) id)]
+              [(#\s) (join44 hlf i p default_hl (fxior attr HL_STANDOUT) id)]
+              [(#\u) (join44 hlf i p default_hl (fxior attr HL_UNDERLINE) id)]
+              [(#\c) (join44 hlf i p default_hl (fxior attr HL_UNDERCURL) id)]
+              [(#\2) (join44 hlf i p default_hl (fxior attr HL_UNDERDOUBLE) id)]
+              [(#\d) (join44 hlf i p default_hl (fxior attr HL_UNDERDOTTED) id)]
+              [(#\=) (join44 hlf i p default_hl (fxior attr HL_UNDERDASHED) id)]
+              [(#\t) (join44 hlf i p default_hl (fxior attr HL_STRIKETHROUGH) id)]
+              [(#\:)
                (let ([p (fx+ p 1)])
                  (if (or (not (fxzero? attr)) (fx=? (ld-u8 p) NUL))
                      #f
@@ -22318,11 +22430,11 @@
       (define (join10 did_local)
         (if (fx=? kitty_protocol_state KKPS_INITIAL)
             (join17 did_local)
-            (case kitty_protocol_state
-              [(1) (join16 did_local (c-str 163926 "Off"))]
-              [(2) (join16 did_local (c-str 163930 "On"))]
-              [(3) (join16 did_local (c-str 163933 "Disabled"))]
-              [(4) (join16 did_local (c-str 163942 "Cleared"))]
+            (c-case kitty_protocol_state
+              [(KKPS_OFF) (join16 did_local (c-str 163926 "Off"))]
+              [(KKPS_ENABLED) (join16 did_local (c-str 163930 "On"))]
+              [(KKPS_DISABLED) (join16 did_local (c-str 163933 "Disabled"))]
+              [(KKPS_AFTER_T_TE) (join16 did_local (c-str 163942 "Cleared"))]
               [else (join16 did_local (c-str 163918 "Unknown"))])))
       (define (join16 did_local name_2)
         (vim_snprintf ed buf_2 200 (c-str 163980 "Kitty keyboard protocol: %s\n") (list name_2))
@@ -22366,11 +22478,11 @@
          (when seenModifyOtherKeys (msg_puts ed (c-str 164009 "Seen modifyOtherKeys: true\n")))
          (if (fx=? modify_otherkeys_state MOKS_INITIAL)
              (join10 did_local)
-             (case modify_otherkeys_state
-               [(1) (join9 did_local (c-str 163926 "Off"))]
-               [(2) (join9 did_local (c-str 163930 "On"))]
-               [(3) (join9 did_local (c-str 163933 "Disabled"))]
-               [(4) (join9 did_local (c-str 163942 "Cleared"))]
+             (c-case modify_otherkeys_state
+               [(MOKS_OFF) (join9 did_local (c-str 163926 "Off"))]
+               [(MOKS_ENABLED) (join9 did_local (c-str 163930 "On"))]
+               [(MOKS_DISABLED) (join9 did_local (c-str 163933 "Disabled"))]
+               [(MOKS_AFTER_T_TE) (join9 did_local (c-str 163942 "Cleared"))]
                [else (join9 did_local (c-str 163918 "Unknown"))]))]
         [else (join17 did_local)]))))
 
@@ -23520,15 +23632,15 @@
                       (join19 (fx+ p 2) from to)))
                 (let ([to (ld-u8 p)])
                   (join19 p to to)))
-            (case (ld-u8 p)
-              [(34) (buf_T.b_last_cursor.lnum-set! curbuf 0) (join21 p)]
-              [(94) (buf_T.b_last_insert.lnum-set! curbuf 0) (join21 p)]
-              [(46) (buf_T.b_last_change.lnum-set! curbuf 0) (join21 p)]
-              [(91) (buf_T.b_op_start.lnum-set! curbuf 0) (join21 p)]
-              [(93) (buf_T.b_op_end.lnum-set! curbuf 0) (join21 p)]
-              [(60) (buf_T.b_visual.vi_start.lnum-set! curbuf 0) (join21 p)]
-              [(62) (buf_T.b_visual.vi_end.lnum-set! curbuf 0) (join21 p)]
-              [(32) (join21 p)]
+            (c-case (ld-u8 p)
+              [(#\x22) (buf_T.b_last_cursor.lnum-set! curbuf 0) (join21 p)]
+              [(#\^) (buf_T.b_last_insert.lnum-set! curbuf 0) (join21 p)]
+              [(#\.) (buf_T.b_last_change.lnum-set! curbuf 0) (join21 p)]
+              [(#\x5b) (buf_T.b_op_start.lnum-set! curbuf 0) (join21 p)]
+              [(#\x5d) (buf_T.b_op_end.lnum-set! curbuf 0) (join21 p)]
+              [(#\<) (buf_T.b_visual.vi_start.lnum-set! curbuf 0) (join21 p)]
+              [(#\>) (buf_T.b_visual.vi_end.lnum-set! curbuf 0) (join21 p)]
+              [(#\space) (join21 p)]
               [else
                (let ([r2 IObuff])
                  (vim_snprintf ed r2 (emsg_iobuff_room ed) e_invalid_argument_str (list p))
@@ -27261,22 +27373,23 @@
           (join10 used_typed_char oldState (get_keystroke ed) mp_last msg_attr)
           (join10 NUL oldState used_typed_char mp_last msg_attr)))
     (define (join10 used_typed_char oldState c mp_last msg_attr)
-      (case c
-        [(8 -25195 107 -30059) (join21 used_typed_char oldState mp_last msg_attr)]
-        [(13 10 106 -25707) (join20 used_typed_char oldState mp_last msg_attr)]
-        [(117) (join22 used_typed_char oldState (->i32 (- (i64/ Rows 2))) mp_last msg_attr)]
-        [(100) (join22 used_typed_char oldState (->i32 (i64/ Rows 2)) mp_last msg_attr)]
-        [(98 2 -20587) (join17 used_typed_char oldState mp_last msg_attr)]
-        [(32 102 6 -20075 -11517) (join16 used_typed_char oldState mp_last msg_attr)]
-        [(103) (join22 used_typed_char oldState -999999 mp_last msg_attr)]
-        [(71) (set! lines_left 999999) (join22 used_typed_char oldState 999999 mp_last msg_attr)]
-        [(58)
+      (c-case c
+        [(BS K_BS #\k K_UP) (join21 used_typed_char oldState mp_last msg_attr)]
+        [(CAR NL #\j K_DOWN) (join20 used_typed_char oldState mp_last msg_attr)]
+        [(#\u) (join22 used_typed_char oldState (->i32 (- (i64/ Rows 2))) mp_last msg_attr)]
+        [(#\d) (join22 used_typed_char oldState (->i32 (i64/ Rows 2)) mp_last msg_attr)]
+        [(#\b Ctrl_B K_PAGEUP) (join17 used_typed_char oldState mp_last msg_attr)]
+        [(#\space #\f Ctrl_F K_PAGEDOWN K_LEFTMOUSE)
+         (join16 used_typed_char oldState mp_last msg_attr)]
+        [(#\g) (join22 used_typed_char oldState -999999 mp_last msg_attr)]
+        [(#\G) (set! lines_left 999999) (join22 used_typed_char oldState 999999 mp_last msg_attr)]
+        [(#\:)
          (typeahead_noflush ed (ch #\:))
          (set! cmdline_row (->i32 (- Rows 1)))
          (set! skip_redraw #t)
          (set! need_wait_return #f)
          (join13 used_typed_char oldState 0 mp_last msg_attr)]
-        [(113 3 27) (join13 used_typed_char oldState 0 mp_last msg_attr)]
+        [(#\q Ctrl_C ESC) (join13 used_typed_char oldState 0 mp_last msg_attr)]
         [else (msg_moremsg ed #t) (loop7 used_typed_char oldState mp_last msg_attr)]))
     (define (join13 used_typed_char oldState toscroll mp_last msg_attr)
       (set! got_int TRUE)
@@ -28295,21 +28408,21 @@
              [else (loop3 (fx+ i MOD_KEYS_ENTRY_SIZE))])))])))
 
 (define (handle_x_keys key)
-  (case key
-    [(-16893) K_UP]
-    [(-17149) K_DOWN]
-    [(-17405) K_LEFT]
-    [(-17661) K_RIGHT]
-    [(-16381 -16637) K_HOME]
-    [(-15869 -16125) K_END]
-    [(-14845) K_F1]
-    [(-15101) K_F2]
-    [(-15357) K_F3]
-    [(-15613) K_F4]
-    [(-18429) K_S_F1]
-    [(-18685) K_S_F2]
-    [(-18941) K_S_F3]
-    [(-19197) K_S_F4]
+  (c-case key
+    [(K_XUP) K_UP]
+    [(K_XDOWN) K_DOWN]
+    [(K_XLEFT) K_LEFT]
+    [(K_XRIGHT) K_RIGHT]
+    [(K_XHOME K_ZHOME) K_HOME]
+    [(K_XEND K_ZEND) K_END]
+    [(K_XF1) K_F1]
+    [(K_XF2) K_F2]
+    [(K_XF3) K_F3]
+    [(K_XF4) K_F4]
+    [(K_S_XF1) K_S_F1]
+    [(K_S_XF2) K_S_F2]
+    [(K_S_XF3) K_S_F3]
+    [(K_S_XF4) K_S_F4]
     [else key]))
 
 (define (get_special_key_name ed c modifiers)
@@ -31191,13 +31304,13 @@
   (let ([mem (ed-mem ed)])
     (define (join7)
       (cmdarg_T.cmdchar-set! cap (simplify_key ed (cmdarg_T.cmdchar cap) &mod_mask)))
-    (case (cmdarg_T.cmdchar cap)
-      [(-26917) (cmdarg_T.cmdchar-set! cap K_RIGHT) (join7)]
-      [(-13347) (cmdarg_T.cmdchar-set! cap K_LEFT) (join7)]
-      [(-1277) (cmdarg_T.cmdchar-set! cap K_UP) (join7)]
-      [(-1533) (cmdarg_T.cmdchar-set! cap K_DOWN) (join7)]
-      [(-12835) (cmdarg_T.cmdchar-set! cap K_HOME) (join7)]
-      [(-14122) (cmdarg_T.cmdchar-set! cap K_END) (join7)]
+    (c-case (cmdarg_T.cmdchar cap)
+      [(K_TC_PCT_i) (cmdarg_T.cmdchar-set! cap K_RIGHT) (join7)]
+      [(K_TC_HASH_4) (cmdarg_T.cmdchar-set! cap K_LEFT) (join7)]
+      [(K_S_UP) (cmdarg_T.cmdchar-set! cap K_UP) (join7)]
+      [(K_S_DOWN) (cmdarg_T.cmdchar-set! cap K_DOWN) (join7)]
+      [(K_TC_HASH_2) (cmdarg_T.cmdchar-set! cap K_HOME) (join7)]
+      [(K_TC_STAR_7) (cmdarg_T.cmdchar-set! cap K_END) (join7)]
       [else (join7)])))
 
 (define (may_clear_cmdline ed)
@@ -31555,19 +31668,19 @@
       (define-c-local col &col s32 0)
       (define-c-local nchar &nchar s32 4)
       (define (join7 siso)
-        (case nchar
-          [(43)
+        (c-case nchar
+          [(#\+)
            (when (zero? (cmdarg_T.count0 cap))
              (validate_botline ed)
              (if (> (win_T.w_botline curwin) (buf_T.b_ml.ml_line_count curbuf))
                  (win_T.w_cursor.lnum-set! curwin (buf_T.b_ml.ml_line_count curbuf))
                  (win_T.w_cursor.lnum-set! curwin (win_T.w_botline curwin))))
            (join44)]
-          [(10 13 -16715) (join44)]
-          [(116) (join45)]
-          [(46) (beginline ed 5) (join39)]
-          [(122) (join39)]
-          [(94)
+          [(NL CAR K_KENTER) (join44)]
+          [(#\t) (join45)]
+          [(#\.) (beginline ed 5) (join39)]
+          [(#\z) (join39)]
+          [(#\^)
            (cond
              [(not (zero? (cmdarg_T.count0 cap)))
               (scroll_cursor_bot ed 0 #t)
@@ -31575,17 +31688,17 @@
              [(= (win_T.w_topline curwin) 1) (win_T.w_cursor.lnum-set! curwin 1)]
              [else (win_T.w_cursor.lnum-set! curwin (- (win_T.w_topline curwin) 1))])
            (join36)]
-          [(45) (join36)]
-          [(98) (join37)]
-          [(72)
+          [(#\-) (join36)]
+          [(#\b) (join37)]
+          [(#\H)
            (cmdarg_T.count1-set! cap (* (cmdarg_T.count1 cap) (i32/ (win_T.w_width curwin) 2)))
            (join29)]
-          [(104 -27755) (join29)]
-          [(76)
+          [(#\h K_LEFT) (join29)]
+          [(#\L)
            (cmdarg_T.count1-set! cap (* (cmdarg_T.count1 cap) (i32/ (win_T.w_width curwin) 2)))
            (join26)]
-          [(108 -29291) (join26)]
-          [(115)
+          [(#\l K_RIGHT) (join26)]
+          [(#\s)
            (cond
              [(fxzero? (win_T.w_onebuf_opt.wo_wrap curwin))
               (getvcol ed curwin (win_T.w_cursor& curwin) &col 0 0 0)
@@ -31595,7 +31708,7 @@
                 (redraw_later ed UPD_NOT_VALID))
               (join46)]
              [else (join46)])]
-          [(101)
+          [(#\e)
            (cond
              [(fxzero? (win_T.w_onebuf_opt.wo_wrap curwin))
               (getvcol ed curwin (win_T.w_cursor& curwin) 0 0 &col 0)
@@ -31610,8 +31723,8 @@
                   (redraw_later ed UPD_NOT_VALID))
                 (join46))]
              [else (join46)])]
-          [(80 112) (join10)]
-          [(121) (nv_operator ed cap) (join46)]
+          [(#\P #\p) (join10)]
+          [(#\y) (nv_operator ed cap) (join46)]
           [else (clearopbeep ed (cmdarg_T.oap cap)) (join46)]))
       (define (join10)
         (nv_put ed cap)
@@ -31738,8 +31851,8 @@
 (define (nv_Zet ed cap)
   (let ([mem (ed-mem ed)])
     (unless (checkclearopq ed (cmdarg_T.oap cap))
-      (case (cmdarg_T.nchar cap)
-        [(90 81) (do_cmdline_cmd ed (c-str 164707 "q!"))]
+      (c-case (cmdarg_T.nchar cap)
+        [(#\Z #\Q) (do_cmdline_cmd ed (c-str 164707 "q!"))]
         [else (clearopbeep ed (cmdarg_T.oap cap))]))))
 
 (define (nv_ident ed cap)
@@ -32992,21 +33105,21 @@
          (nv_addsub ed cap)]
         [else (clearopbeep ed oap)]))
     (let ([oap (cmdarg_T.oap cap)])
-      (case (cmdarg_T.nchar cap)
-        [(1 24) (join57 oap)]
-        [(82) (cmdarg_T.arg-set! cap TRUE) (nv_Replace ed cap)]
-        [(114) (nv_vreplace ed cap)]
-        [(38) (do_cmdline_cmd ed (c-str 164752 "%s//~/&"))]
-        [(118) (nv_gv_cmd ed cap)]
-        [(86) (set! VIsual_reselect #f)]
-        [(-25195) (cmdarg_T.nchar-set! cap Ctrl_H) (join51)]
-        [(104 72 8) (join51)]
-        [(78 110) (join48 oap)]
-        [(106 -25707) (join43 oap)]
-        [(107 -30059) (join38 oap)]
-        [(74) (nv_join ed cap)]
-        [(94 48 109 -26731 -12619) (join36)]
-        [(77)
+      (c-case (cmdarg_T.nchar cap)
+        [(Ctrl_A Ctrl_X) (join57 oap)]
+        [(#\R) (cmdarg_T.arg-set! cap TRUE) (nv_Replace ed cap)]
+        [(#\r) (nv_vreplace ed cap)]
+        [(#\&) (do_cmdline_cmd ed (c-str 164752 "%s//~/&"))]
+        [(#\v) (nv_gv_cmd ed cap)]
+        [(#\V) (set! VIsual_reselect #f)]
+        [(K_BS) (cmdarg_T.nchar-set! cap Ctrl_H) (join51)]
+        [(#\h #\H Ctrl_H) (join51)]
+        [(#\N #\n) (join48 oap)]
+        [(#\j K_DOWN) (join43 oap)]
+        [(#\k K_UP) (join38 oap)]
+        [(#\J) (nv_join ed cap)]
+        [(#\^ #\0 #\m K_HOME K_KHOME) (join36)]
+        [(#\M)
          (oparg_T.motion_type-set! oap MCHAR)
          (oparg_T.inclusive-set! oap FALSE)
          (let ([i (linetabsize_no_outer ed curwin (win_T.w_cursor.lnum curwin))])
@@ -33014,32 +33127,33 @@
                (coladvance ed (->i32 (i64/ (* i (cmdarg_T.count0 cap)) 100)))
                (coladvance ed (i32/ i 2)))
            (win_T.w_set_curswant-set! curwin #t))]
-        [(95) (nv_g_underscore_cmd ed cap)]
-        [(36 -14144 -13387) (join30)]
-        [(42 35 163) (join29)]
-        [(101 69) (join27 oap)]
-        [(7) (cursor_pos_info ed)]
-        [(105) (nv_gi_cmd ed cap)]
-        [(73) (beginline ed 0) (unless (checkclearopq ed oap) (invoke_edit ed cap #f (ch #\g) #f))]
-        [(39) (cmdarg_T.arg-set! cap TRUE) (join22)]
-        [(96) (join22)]
-        [(115) (do_sleep ed (* (cmdarg_T.count1 cap) 1000) #f)]
-        [(97) (do_ascii ed 0)]
-        [(56) (if (= (cmdarg_T.count0 cap) 8) (utf_find_illegal ed) (show_utf8 ed))]
-        [(60) (show_sb_text ed)]
-        [(103) (cmdarg_T.arg-set! cap FALSE) (nv_goto ed cap)]
-        [(126 117 85) (join13)]
-        [(-12285 -12541 -12797 -11517 -11773 -12029 -25853 -13053 -13309 -13565 -23037 -23293 -23549
-                 -23805 -24061 -24317)
+        [(#\_) (nv_g_underscore_cmd ed cap)]
+        [(#\$ K_END K_KEND) (join30)]
+        [(#\* #\x23 POUND) (join29)]
+        [(#\e #\E) (join27 oap)]
+        [(Ctrl_G) (cursor_pos_info ed)]
+        [(#\i) (nv_gi_cmd ed cap)]
+        [(#\I) (beginline ed 0) (unless (checkclearopq ed oap) (invoke_edit ed cap #f (ch #\g) #f))]
+        [(#\x27) (cmdarg_T.arg-set! cap TRUE) (join22)]
+        [(#\x60) (join22)]
+        [(#\s) (do_sleep ed (* (cmdarg_T.count1 cap) 1000) #f)]
+        [(#\a) (do_ascii ed 0)]
+        [(#\8) (if (= (cmdarg_T.count0 cap) 8) (utf_find_illegal ed) (show_utf8 ed))]
+        [(#\<) (show_sb_text ed)]
+        [(#\g) (cmdarg_T.arg-set! cap FALSE) (nv_goto ed cap)]
+        [(#\~ #\u #\U) (join13)]
+        [(K_MIDDLEMOUSE K_MIDDLEDRAG K_MIDDLERELEASE K_LEFTMOUSE K_LEFTDRAG K_LEFTRELEASE
+                        K_MOUSEMOVE K_RIGHTMOUSE K_RIGHTDRAG K_RIGHTRELEASE K_X1MOUSE K_X1DRAG
+                        K_X1RELEASE K_X2MOUSE K_X2DRAG K_X2RELEASE)
          (join12)]
-        [(-13821) (void)]
-        [(112 80) (join11)]
-        [(44) (nv_pcmark ed cap)]
-        [(59) (cmdarg_T.count1-set! cap (- (cmdarg_T.count1 cap))) (nv_pcmark ed cap)]
-        [(116) (when (and (not (checkclearop ed oap)) (> (cmdarg_T.count0 cap) 1)) (beep_flush ed))]
-        [(84) (checkclearop ed oap)]
-        [(9) (unless (checkclearop ed oap) (clearopbeep ed oap))]
-        [(43 45) (join2 oap)]
+        [(K_IGNORE) (void)]
+        [(#\p #\P) (join11)]
+        [(#\x2c) (nv_pcmark ed cap)]
+        [(#\x3b) (cmdarg_T.count1-set! cap (- (cmdarg_T.count1 cap))) (nv_pcmark ed cap)]
+        [(#\t) (when (and (not (checkclearop ed oap)) (> (cmdarg_T.count0 cap) 1)) (beep_flush ed))]
+        [(#\T) (checkclearop ed oap)]
+        [(TAB) (unless (checkclearop ed oap) (clearopbeep ed oap))]
+        [(#\+ #\-) (join2 oap)]
         [else (clearopbeep ed oap)]))))
 
 (define (n_opencmd ed cap)
@@ -33447,13 +33561,13 @@
       [(checkclearopq ed (cmdarg_T.oap cap))
        (when (fx=? (cmdarg_T.cmdchar cap) K_PASTESTART) (bracketed_paste ed PASTE_INSERT #t 0))]
       [else
-       (case (cmdarg_T.cmdchar cap)
-         [(65) (set_cursor_for_append_to_line ed) (join19 0 0 0)]
-         [(73)
+       (c-case (cmdarg_T.cmdchar cap)
+         [(#\A) (set_cursor_for_append_to_line ed) (join19 0 0 0)]
+         [(#\I)
           (if (fxzero? (vim_strchr ed p_cpo CPO_INSEND)) (beginline ed BL_WHITE) (beginline ed 5))
           (join19 0 0 0)]
-         [(-21328) (if (fxzero? (win_T.w_cursor.col curwin)) (join19 0 0 0) (join11 0 0 0))]
-         [(97) (join11 0 0 0)]
+         [(K_PASTESTART) (if (fxzero? (win_T.w_cursor.col curwin)) (join19 0 0 0) (join11 0 0 0))]
+         [(#\a) (join11 0 0 0)]
          [else (join19 0 0 0)])])))
 
 (define (invoke_edit ed cap repl cmd startln)
@@ -33473,16 +33587,16 @@
     (define (join3 include)
       (let ([mps_save (buf_T.b_p_mps curbuf)])
         (buf_T.b_p_mps-set! curbuf (c-str 164867 "(:),{:},[:],<:>"))
-        (case (cmdarg_T.nchar cap)
-          [(119)
+        (c-case (cmdarg_T.nchar cap)
+          [(#\w)
            (join12 (current_word ed (cmdarg_T.oap cap) (cmdarg_T.count1 cap) include #f) mps_save)]
-          [(87)
+          [(#\W)
            (join12 (current_word ed (cmdarg_T.oap cap) (cmdarg_T.count1 cap) include #t) mps_save)]
-          [(98 40 41) (join9 include mps_save)]
-          [(66 123 125) (join8 include mps_save)]
-          [(91 93) (join7 include mps_save)]
-          [(60 62) (join6 include mps_save)]
-          [(34 39 96) (join5 include mps_save)]
+          [(#\b #\x28 #\x29) (join9 include mps_save)]
+          [(#\B #\x7b #\x7d) (join8 include mps_save)]
+          [(#\x5b #\x5d) (join7 include mps_save)]
+          [(#\< #\>) (join6 include mps_save)]
+          [(#\x22 #\x27 #\x60) (join5 include mps_save)]
           [else (join12 #f mps_save)])))
     (define (join5 include mps_save)
       (join12 (current_quote ed (cmdarg_T.oap cap) (cmdarg_T.count1 cap) include
@@ -36098,8 +36212,8 @@
                       line_count_info__o_r__ line_count_info__o_wc line_count_info__o_cc)
         (cond
           [(and VIsual_active (>= lnum (pos_T.lnum min_pos)) (<= lnum (pos_T.lnum max_pos)))
-           (case VIsual_mode
-             [(22)
+           (c-case VIsual_mode
+             [(Ctrl_V)
               (set! virtual_op (virtual_active ed))
               (block_prep ed oparg bd lnum 0)
               (set! virtual_op MAYBE)
@@ -36108,11 +36222,11 @@
                         word_count_cursor eol_size last_check line_count_selected s
                         (block_def.textlen bd) line_count_info__o_r__ line_count_info__o_wc
                         line_count_info__o_cc))]
-             [(86)
+             [(#\V)
               (join37 lnum byte_count byte_count_cursor char_count char_count_cursor word_count
                       word_count_cursor eol_size last_check line_count_selected (ml_get ed lnum)
                       MAXCOL line_count_info__o_r__ line_count_info__o_wc line_count_info__o_cc)]
-             [(118)
+             [(#\v)
               (let* ([start_col (if (= lnum (pos_T.lnum min_pos)) (pos_T.col min_pos) 0)]
                      [end_col (if (= lnum (pos_T.lnum max_pos))
                                   (fx+ (fx- (pos_T.col max_pos) start_col) 1)
@@ -36577,24 +36691,25 @@
                 (oparg_T.end.col-set! oap (fx- (oparg_T.end.col oap) 1))
                 (oparg_T.inclusive-set! oap TRUE))])]
           [else (oparg_T.end_adjusted-set! oap FALSE)])
-        (case (oparg_T.op_type oap)
-          [(4 5) (join140 oap old_cursor_lnum old_cursor_col old_cursor_coladd)]
-          [(14 13) (join135 oap old_cursor_lnum old_cursor_col old_cursor_coladd)]
-          [(1)
+        (c-case (oparg_T.op_type oap)
+          [(OP_LSHIFT OP_RSHIFT) (join140 oap old_cursor_lnum old_cursor_col old_cursor_coladd)]
+          [(OP_JOIN_NS OP_JOIN) (join135 oap old_cursor_lnum old_cursor_col old_cursor_coladd)]
+          [(OP_DELETE)
            (set! VIsual_reselect #f)
            (cond
              [empty_region_error (vim_beep ed BO_OPER) (CancelRedo ed)]
              [else (op_delete ed oap)])
            (join141 oap old_cursor_lnum old_cursor_col old_cursor_coladd)]
-          [(2)
+          [(OP_YANK)
            (cond
              [empty_region_error (unless gui_yank (vim_beep ed BO_OPER) (CancelRedo ed))]
              [else
               (oparg_T.excl_tr_ws-set! oap (b->i (fx=? (cmdarg_T.cmdchar cap) (ch #\z))))
               (op_yank ed oap #f (not gui_yank))])
-           (check_cursor_col ed)
-           (join141 oap old_cursor_lnum old_cursor_col old_cursor_coladd)]
-          [(3)
+           (begin
+             (check_cursor_col ed)
+             (join141 oap old_cursor_lnum old_cursor_col old_cursor_coladd))]
+          [(OP_CHANGE)
            (set! VIsual_reselect #f)
            (cond
              [empty_region_error
@@ -36604,18 +36719,20 @@
              [(or (not (fxzero? p_im)) (not KeyTyped))
               (join122 oap old_cursor_lnum old_cursor_col old_cursor_coladd restart_edit)]
              [else (join122 oap old_cursor_lnum old_cursor_col old_cursor_coladd 0)])]
-          [(10) (op_colon ed oap) (join141 oap old_cursor_lnum old_cursor_col old_cursor_coladd)]
-          [(7 11 12)
+          [(OP_COLON)
+           (op_colon ed oap)
+           (join141 oap old_cursor_lnum old_cursor_col old_cursor_coladd)]
+          [(OP_TILDE OP_UPPER OP_LOWER)
            (join113 oap old_cursor_lnum old_cursor_col old_cursor_coladd empty_region_error)]
-          [(17 18)
+          [(OP_INSERT OP_APPEND)
            (join108 oap old_cursor_lnum old_cursor_col old_cursor_coladd empty_region_error)]
-          [(16)
+          [(OP_REPLACE)
            (set! VIsual_reselect #f)
            (cond
              [empty_region_error (vim_beep ed BO_OPER) (CancelRedo ed)]
              [else (op_replace ed oap (cmdarg_T.nchar cap))])
            (join141 oap old_cursor_lnum old_cursor_col old_cursor_coladd)]
-          [(28 29)
+          [(OP_NR_ADD OP_NR_SUB)
            (join101 oap old_cursor_lnum old_cursor_col old_cursor_coladd empty_region_error)]
           [else
            (clearopbeep ed oap)
@@ -39059,8 +39176,8 @@
           (let-values ([(r1 r2 r3 r4) (optvar_none)])
             (frame-pop! ed fr)
             (values r1 r2 r3 r4))
-          (case (vimoption.indir p)
-            [(0)
+          (c-case (vimoption.indir p)
+            [(PV_NONE)
              (let* ([r5 (optvar_T.ov_int (vimoption.var& p))]
                     [r6 (optvar_T.ov_long (vimoption.var& p))]
                     [r7 (optvar_T.ov_str (vimoption.var& p))]
@@ -39448,11 +39565,11 @@
 
 (define (can_bs ed what)
   (let ([mem (ed-mem ed)])
-    (case (ld-u8 p_bs)
-      [(51) #t]
-      [(50) (not (fx=? what BS_NOSTOP))]
-      [(49) (not (fx=? what BS_START))]
-      [(48) #f]
+    (c-case (ld-u8 p_bs)
+      [(#\3) #t]
+      [(#\2) (not (fx=? what BS_NOSTOP))]
+      [(#\1) (not (fx=? what BS_START))]
+      [(#\0) #f]
       [else (not (fxzero? (vim_strchr ed p_bs what)))])))
 
 (define (get_scrolloff_value ed)
@@ -39477,9 +39594,9 @@
   (let ([mem (ed-mem ed)])
     (define (join1)
       p_magic)
-    (case magic_overruled
-      [(1) TRUE]
-      [(2) FALSE]
+    (c-case magic_overruled
+      [(OPTION_MAGIC_ON) TRUE]
+      [(OPTION_MAGIC_OFF) FALSE]
       [else (join1)])))
 
 (define (didset_string_options ed)
@@ -40169,11 +40286,11 @@
     [else NOT_MULTI]))
 
 (define (backslash_trans c)
-  (case c
-    [(114) CAR]
-    [(116) TAB]
-    [(101) ESC]
-    [(98) BS]
+  (c-case c
+    [(#\r) CAR]
+    [(#\t) TAB]
+    [(#\e) ESC]
+    [(#\b) BS]
     [else c]))
 
 (define (get_char_class ed pp)
@@ -40399,10 +40516,12 @@
     (cond
       [(fx=? curchr -1)
        (set! curchr (ld-u8 regparse))
-       (case curchr
-         [(46 91 126) (join31)]
-         [(40 41 123 37 43 61 63 64 33 38 124 60 62 35 34 39 44 45 58 59 96 47) (join29)]
-         [(42)
+       (c-case curchr
+         [(#\. #\x5b #\~) (join31)]
+         [(#\x28 #\x29 #\x7b #\% #\+ #\= #\? #\@ #\! #\& #\x7c #\< #\> #\x23 #\x22 #\x27 #\x2c #\-
+                 #\: #\x3b #\x60 #\/)
+          (join29)]
+         [(#\*)
           (when (and (fx>=? reg_magic MAGIC_ON)
                      (fxzero? at_start)
                      (not (and (not (fxzero? prev_at_start)) (fx=? prevchr -162)))
@@ -40412,7 +40531,7 @@
                               (not (fx=? prevchr -132)))))
             (set! curchr -214))
           (join33)]
-         [(94)
+         [(#\^)
           (when (and (fx>=? reg_magic MAGIC_OFF)
                      (or (not (fxzero? at_start))
                          (fx=? reg_magic MAGIC_ALL)
@@ -40425,12 +40544,12 @@
             (set! at_start TRUE)
             (set! prev_at_start FALSE))
           (join33)]
-         [(36)
+         [(#\$)
           (if (fx>=? reg_magic MAGIC_OFF)
               (let ([p (fx+ regparse 1)])
                 (loop17 p (fx=? reg_magic MAGIC_ALL)))
               (join33))]
-         [(92)
+         [(#\x5c)
           (let ([c (ld-u8 (fx+ regparse 1))])
             (cond
               [(fx=? c NUL) (set! curchr (ch #\x5c))]
@@ -41068,12 +41187,12 @@
                 (join19 src dst c no func_all func_one clnum len copy)]
                [else
                 (let* ([t3 src] [src (fx+ src 1)])
-                  (case (ld-u8 t3)
-                    [(117) (loop4 src dst no func_all (fn-ptr 163) clnum len copy)]
-                    [(85) (loop4 src dst no (fn-ptr 163) func_one clnum len copy)]
-                    [(108) (loop4 src dst no func_all (fn-ptr 164) clnum len copy)]
-                    [(76) (loop4 src dst no (fn-ptr 164) func_one clnum len copy)]
-                    [(101 69) (join11 src dst no clnum len copy)]
+                  (c-case (ld-u8 t3)
+                    [(#\u) (loop4 src dst no func_all (fn-ptr 163) clnum len copy)]
+                    [(#\U) (loop4 src dst no (fn-ptr 163) func_one clnum len copy)]
+                    [(#\l) (loop4 src dst no func_all (fn-ptr 164) clnum len copy)]
+                    [(#\L) (loop4 src dst no (fn-ptr 164) func_one clnum len copy)]
+                    [(#\e #\E) (join11 src dst no clnum len copy)]
                     [else (join19 src dst c no func_all func_one clnum len copy)]))])]
             [else (join19 src dst c no func_all func_one clnum len copy)])))
       (define (join11 src dst no clnum len copy)
@@ -41100,11 +41219,11 @@
                      (st-u8! dst (ld-u8 src))
                      (loop4 (fx+ src 1) (fx+ dst 1) no func_all func_one clnum len copy)))])]
              [(and (fx=? c (ch #\x5c)) (not (fx=? (ld-u8 src) NUL)))
-              (case (ld-u8 src)
-                [(114) (join78 (fx+ src 1) dst CAR no func_all func_one clnum len copy)]
-                [(110) (join78 (fx+ src 1) dst NL no func_all func_one clnum len copy)]
-                [(116) (join78 (fx+ src 1) dst TAB no func_all func_one clnum len copy)]
-                [(98) (join78 (fx+ src 1) dst Ctrl_H no func_all func_one clnum len copy)]
+              (c-case (ld-u8 src)
+                [(#\r) (join78 (fx+ src 1) dst CAR no func_all func_one clnum len copy)]
+                [(#\n) (join78 (fx+ src 1) dst NL no func_all func_one clnum len copy)]
+                [(#\t) (join78 (fx+ src 1) dst TAB no func_all func_one clnum len copy)]
+                [(#\b) (join78 (fx+ src 1) dst Ctrl_H no func_all func_one clnum len copy)]
                 [else
                  (cond
                    [(fxzero? (fxand flags REGSUB_BACKSLASH))
@@ -41469,11 +41588,11 @@
     (define (join3 base)
       (join4 (no_Magic (getchr ed)) base))
     (define (join4 c base)
-      (case c
-        [(41) (join10 base 0)]
-        [(93) (join10 base 1)]
-        [(125) (join10 base 2)]
-        [(62) (join10 base 3)]
+      (c-case c
+        [(#\x29) (join10 base 0)]
+        [(#\x5d) (join10 base 1)]
+        [(#\x7d) (join10 base 2)]
+        [(#\>) (join10 base 3)]
         [else
          (let* ([r1 IObuff] [r2 (emsg_iobuff_room ed)])
            (vim_snprintf ed r1 r2 e_invalid_character_after_str
@@ -41589,8 +41708,8 @@
                      (loop22 ret startc reg__o_r__ reg__o_flagp)))])]
              [(fx=? (ld-u8 regparse) (ch #\x5b))
               (let ([c_class (get_char_class ed &regparse)])
-                (case c_class
-                  [(99)
+                (c-case c_class
+                  [(CLASS_NONE)
                    (let ([c_class (get_coll_element ed &regparse)])
                      (cond
                        [(fxzero? c_class)
@@ -41600,32 +41719,34 @@
                             (regc ed startc)
                             (loop22 ret startc reg__o_r__ reg__o_flagp)))]
                        [else (regmbc ed c_class) (loop22 ret -1 reg__o_r__ reg__o_flagp)]))]
-                  [(0) (loop106 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(1) (loop101 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(2)
+                  [(CLASS_ALNUM) (loop106 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_ALPHA) (loop101 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_BLANK)
                    (regc ed (ch #\space))
                    (regc ed (ch #\tab))
                    (loop22 ret -1 reg__o_r__ reg__o_flagp)]
-                  [(3) (loop95 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(4) (loop90 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(5) (loop85 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(6) (loop80 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(7) (loop75 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(8) (loop70 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(9)
+                  [(CLASS_CNTRL) (loop95 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_DIGIT) (loop90 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_GRAPH) (loop85 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_LOWER) (loop80 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_PRINT) (loop75 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_PUNCT) (loop70 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_SPACE)
                    (let loop65 ([cu 9])
                      (cond
                        [(fx<=? cu 13) (regc ed cu) (loop65 (fx+ cu 1))]
                        [else (regc ed (ch #\space)) (loop22 ret -1 reg__o_r__ reg__o_flagp)]))]
-                  [(10) (loop60 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(11) (loop55 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(12) (regc ed (ch #\tab)) (loop22 ret -1 reg__o_r__ reg__o_flagp)]
-                  [(13) (regc ed (ch #\return)) (loop22 ret -1 reg__o_r__ reg__o_flagp)]
-                  [(14) (regc ed (ch #\backspace)) (loop22 ret -1 reg__o_r__ reg__o_flagp)]
-                  [(15) (regc ed (ch #\esc)) (loop22 ret -1 reg__o_r__ reg__o_flagp)]
-                  [(16) (loop46 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(17) (loop41 ret -1 1 reg__o_r__ reg__o_flagp)]
-                  [(18) (loop36 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_UPPER) (loop60 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_XDIGIT) (loop55 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_TAB) (regc ed (ch #\tab)) (loop22 ret -1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_RETURN) (regc ed (ch #\return)) (loop22 ret -1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_BACKSPACE)
+                   (regc ed (ch #\backspace))
+                   (loop22 ret -1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_ESCAPE) (regc ed (ch #\esc)) (loop22 ret -1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_IDENT) (loop46 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_KEYWORD) (loop41 ret -1 1 reg__o_r__ reg__o_flagp)]
+                  [(CLASS_FNAME) (loop36 ret -1 1 reg__o_r__ reg__o_flagp)]
                   [else (loop22 ret -1 reg__o_r__ reg__o_flagp)]))]
              [else
               (let* ([startc (utf_ptr2char ed regparse)]
@@ -41858,12 +41979,12 @@
             [(fxzero? ret) (frame-pop! ed fr) 0]
             [else (join285 ret reg__o_r__ reg__o_flagp)])))
       (define (join183 c reg__o_r__ reg__o_flagp)
-        (case c
-          [(100) (join190 (getdecchrs ed) reg__o_r__ reg__o_flagp)]
-          [(111) (join190 (getoctchrs ed) reg__o_r__ reg__o_flagp)]
-          [(120) (join190 (gethexchrs ed 2) reg__o_r__ reg__o_flagp)]
-          [(117) (join190 (gethexchrs ed 4) reg__o_r__ reg__o_flagp)]
-          [(85) (join190 (gethexchrs ed 8) reg__o_r__ reg__o_flagp)]
+        (c-case c
+          [(#\d) (join190 (getdecchrs ed) reg__o_r__ reg__o_flagp)]
+          [(#\o) (join190 (getoctchrs ed) reg__o_r__ reg__o_flagp)]
+          [(#\x) (join190 (gethexchrs ed 2) reg__o_r__ reg__o_flagp)]
+          [(#\u) (join190 (gethexchrs ed 4) reg__o_r__ reg__o_flagp)]
+          [(#\U) (join190 (gethexchrs ed 8) reg__o_r__ reg__o_flagp)]
           [else (join190 -1 reg__o_r__ reg__o_flagp)]))
       (define (join190 i reg__o_r__ reg__o_flagp)
         (cond
@@ -42004,7 +42125,7 @@
         (st-s32! flagp WORST)
         (let ([c (getchr ed)])
           (let loop1 ([c c] [sw c] [extra 0])
-            (case sw
+            (c-case sw
               [(-162) (join285 (regnode ed BOL) 0 0)]
               [(-220) (join285 (regnode ed EOL) 0 0)]
               [(-196) (join285 (regnode ed BOW) 0 0)]
@@ -42068,7 +42189,7 @@
                        [else
                         (st-s32! flagp (fxior (ld-s32 flagp) (fxand r6 29)))
                         (join285 r5 r5 r6)])))]
-              [(0 -132 -218 -215) (join254 0 0)]
+              [(NUL -132 -218 -215) (join254 0 0)]
               [(-195 -193 -213 -192 -133 -214) (join253 c 0 0)]
               [(-130)
                (cond
@@ -42092,13 +42213,13 @@
               [(-207 -206 -205 -204 -203 -202 -201 -200 -199) (join242 c 0 0)]
               [(-134)
                (let ([c (no_Magic (getchr ed))])
-                 (case c
-                   [(115)
+                 (c-case c
+                   [(#\s)
                     (let ([ret (regnode ed 80)])
                       (cond
                         [(re_mult_next ed (c-str 166035 "\\zs")) (join285 ret 0 0)]
                         [else (frame-pop! ed fr) 0]))]
-                   [(101)
+                   [(#\e)
                     (let ([ret (regnode ed 90)])
                       (cond
                         [(re_mult_next ed (c-str 166039 "\\ze")) (join285 ret 0 0)]
@@ -42110,8 +42231,8 @@
                     0]))]
               [(-219)
                (let ([c (no_Magic (getchr ed))])
-                 (case c
-                   [(40)
+                 (c-case c
+                   [(#\x28)
                     (if one_exactly
                         (let* ([r7 IObuff] [r8 (emsg_iobuff_room ed)])
                           (vim_snprintf ed r7 r8 e_invalid_item_in_str_brackets
@@ -42128,9 +42249,9 @@
                             [else
                              (st-s32! flagp (fxior (ld-s32 flagp) (fxand r10 29)))
                              (join285 r9 r9 r10)])))]
-                   [(94) (join285 (regnode ed RE_BOF) 0 0)]
-                   [(36) (join285 (regnode ed RE_EOF) 0 0)]
-                   [(35)
+                   [(#\^) (join285 (regnode ed RE_BOF) 0 0)]
+                   [(#\$) (join285 (regnode ed RE_EOF) 0 0)]
+                   [(#\x23)
                     (if (and (fx=? (ld-u8 regparse) (ch #\=))
                              (fx>=? (ld-u8 (fx+ regparse 1)) 48)
                              (fx<=? (ld-u8 (fx+ regparse 1)) 50))
@@ -42141,9 +42262,9 @@
                           (frame-pop! ed fr)
                           0)
                         (join285 (regnode ed CURSOR) 0 0))]
-                   [(86) (join285 (regnode ed RE_VISUAL) 0 0)]
-                   [(67) (join285 (regnode ed RE_COMPOSING) 0 0)]
-                   [(91)
+                   [(#\V) (join285 (regnode ed RE_VISUAL) 0 0)]
+                   [(#\C) (join285 (regnode ed RE_COMPOSING) 0 0)]
+                   [(#\x5b)
                     (if one_exactly
                         (let* ([r13 IObuff] [r14 (emsg_iobuff_room ed)])
                           (vim_snprintf ed r13 r14 e_invalid_item_in_str_brackets
@@ -42155,9 +42276,9 @@
                           (frame-pop! ed fr)
                           0)
                         (loop201 0 0 0 0))]
-                   [(100 111 120 117 85) (join183 c 0 0)]
-                   [(41 93 125 102 116) (join181 c #f 0 0)]
-                   [(62)
+                   [(#\d #\o #\x #\u #\U) (join183 c 0 0)]
+                   [(#\x29 #\x5d #\x7d #\f #\t) (join181 c #f 0 0)]
+                   [(#\>)
                     (if (and (not (ascii_isdigit (ld-u8 regparse)))
                              (not (fx=? (ld-u8 regparse) (ch #\x27)))
                              (not (fx=? (ld-u8 regparse) (ch #\.))))
@@ -42309,14 +42430,14 @@
                         [else (reginsert ed PLUS ret) (join32 ret 0 0 0 0 0)])]
                      [(-192)
                       (let ([nr (getdecchrs ed)])
-                        (case (no_Magic (getchr ed))
-                          [(61) (join20 flagp ret MATCH nr 0 0 0 0 0)]
-                          [(33) (join20 flagp ret NOMATCH nr 0 0 0 0 0)]
-                          [(62) (join20 flagp ret SUBPAT nr 0 0 0 0 0)]
-                          [(60)
-                           (case (no_Magic (getchr ed))
-                             [(61) (join20 flagp ret BEHIND nr 0 0 0 0 0)]
-                             [(33) (join20 flagp ret NOBEHIND nr 0 0 0 0 0)]
+                        (c-case (no_Magic (getchr ed))
+                          [(#\=) (join20 flagp ret MATCH nr 0 0 0 0 0)]
+                          [(#\!) (join20 flagp ret NOMATCH nr 0 0 0 0 0)]
+                          [(#\>) (join20 flagp ret SUBPAT nr 0 0 0 0 0)]
+                          [(#\<)
+                           (c-case (no_Magic (getchr ed))
+                             [(#\=) (join20 flagp ret BEHIND nr 0 0 0 0 0)]
+                             [(#\!) (join20 flagp ret NOBEHIND nr 0 0 0 0 0)]
                              [else (join20 flagp ret END nr 0 0 0 0 0)])]
                           [else (join20 flagp ret END nr 0 0 0 0 0)]))]
                      [(-193 -195) (join12 flagp ret 0 0 0 0 0)]
@@ -42353,8 +42474,8 @@
                    regpiece__o_flagp)
       (cond
         [cont
-         (case (peekchr ed)
-           [(0 -132 -218 -215)
+         (c-case (peekchr ed)
+           [(NUL -132 -218 -215)
             (join20 flagp first chain flags out___r__ out___flagp regpiece__o_r__
                     regpiece__o_flagp)]
            [(-166)
@@ -42645,12 +42766,12 @@
       (->i32 nr))
     (let ([t1 regparse])
       (set! regparse (fx+ regparse 1))
-      (case (ld-u8 t1)
-        [(100) (join6 (getdecchrs ed))]
-        [(111) (join6 (getoctchrs ed))]
-        [(120) (join6 (gethexchrs ed 2))]
-        [(117) (join6 (gethexchrs ed 4))]
-        [(85) (join6 (gethexchrs ed 8))]
+      (c-case (ld-u8 t1)
+        [(#\d) (join6 (getdecchrs ed))]
+        [(#\o) (join6 (getoctchrs ed))]
+        [(#\x) (join6 (gethexchrs ed 2))]
+        [(#\u) (join6 (gethexchrs ed 4))]
+        [(#\U) (join6 (gethexchrs ed 8))]
         [else (join6 -1)]))))
 
 (define (bt_regfree prog)
@@ -42769,25 +42890,25 @@
           (join126 count scan)
           (loop29 (+ count 1) (fx+ scan len) opnd len cf)))
     (define (join43 count scan mask testval)
-      (case (ld-u8 p)
-        [(31 61) (join61 count scan)]
-        [(32 62) (join60 count scan testval)]
-        [(33 63) (join59 count scan)]
-        [(34 64) (join58 count scan testval)]
-        [(35 65) (join57 count scan)]
-        [(36 66) (join56 count scan testval)]
-        [(37 67) (join55 count scan)]
-        [(38 68) (join54 count scan testval)]
-        [(39 69) (join53 count scan)]
-        [(40 70) (join52 count scan testval)]
-        [(41 71) (join51 count scan)]
-        [(42 72) (join50 count scan testval)]
-        [(43 73) (join49 count scan)]
-        [(44 74) (join48 count scan testval)]
-        [(45 75) (join47 count scan)]
-        [(46 76) (join46 count scan testval)]
-        [(47 77) (join45 count scan)]
-        [(48 78) (join44 count scan testval)]
+      (c-case (ld-u8 p)
+        [(RE_WHITE 61) (join61 count scan)]
+        [(NWHITE 62) (join60 count scan testval)]
+        [(DIGIT 63) (join59 count scan)]
+        [(NDIGIT 64) (join58 count scan testval)]
+        [(HEX 65) (join57 count scan)]
+        [(NHEX 66) (join56 count scan testval)]
+        [(OCTAL 67) (join55 count scan)]
+        [(NOCTAL 68) (join54 count scan testval)]
+        [(WORD 69) (join53 count scan)]
+        [(NWORD 70) (join52 count scan testval)]
+        [(HEAD 71) (join51 count scan)]
+        [(NHEAD 72) (join50 count scan testval)]
+        [(ALPHA 73) (join49 count scan)]
+        [(NALPHA 74) (join48 count scan testval)]
+        [(LOWER 75) (join47 count scan)]
+        [(NLOWER 76) (join46 count scan testval)]
+        [(UPPER 77) (join45 count scan)]
+        [(NUPPER 78) (join44 count scan testval)]
         [else (loop63 count scan mask testval)]))
     (define (join44 count scan testval)
       (loop63 count scan RI_UPPER testval))
@@ -42990,20 +43111,20 @@
       (->i32 count))
     (let* ([scan (regengine_T.rex.input re)]
            [opnd (fx+ p 3)])
-      (case (ld-u8 p)
-        [(20 50) (loop120 0 scan)]
-        [(23 53) (join108 0 scan)]
-        [(24 54) (loop110 0 scan 0)]
-        [(25 55) (join97 0 scan)]
-        [(26 56) (loop99 0 scan 0)]
-        [(27 57) (join86 0 scan)]
-        [(28 58) (loop88 0 scan 0)]
-        [(29 59) (join75 0 scan)]
-        [(30 60) (loop77 0 scan 0)]
-        [(31 61 32 62 33 63 34 64 35 65 36 66 37 67 38 68 39 69 40 70 41 71 42 72 43 73 44 74 45 75
-             46 76 47 77 48 78)
+      (c-case (ld-u8 p)
+        [(ANY 50) (loop120 0 scan)]
+        [(IDENT 53) (join108 0 scan)]
+        [(SIDENT 54) (loop110 0 scan 0)]
+        [(KWORD 55) (join97 0 scan)]
+        [(SKWORD 56) (loop99 0 scan 0)]
+        [(FNAME 57) (join86 0 scan)]
+        [(SFNAME 58) (loop88 0 scan 0)]
+        [(PRINT 59) (join75 0 scan)]
+        [(SPRINT 60) (loop77 0 scan 0)]
+        [(RE_WHITE 61 NWHITE 62 DIGIT 63 NDIGIT 64 HEX 65 NHEX 66 OCTAL 67 NOCTAL 68 WORD 69 NWORD
+                   70 HEAD 71 NHEAD 72 ALPHA 73 NALPHA 74 LOWER 75 NLOWER 76 UPPER 77 NUPPER 78)
          (join43 0 scan 0 0)]
-        [(5)
+        [(EXACTLY)
          (if (fxzero? (regengine_T.rex.reg_ic re))
              (let loop38 ([count 0] [scan scan] [cu (ld-u8 opnd)])
                (if (and (< count maxcount) (fx=? (ld-u8 scan) cu))
@@ -43016,16 +43137,16 @@
                  (if (and (< count maxcount) (or (fx=? (ld-u8 scan) cu) (fx=? (ld-u8 scan) cl)))
                      (loop41 (+ count 1) (fx+ scan 1) cl)
                      (join126 count scan)))))]
-        [(200)
+        [(MULTIBYTECODE)
          (let ([len (utfc_ptr2len ed opnd)])
            (if (fx>? len 1)
                (if (fxzero? (regengine_T.rex.reg_ic re))
                    (loop29 0 scan opnd len 0)
                    (loop29 0 scan opnd len (utf_fold ed (utf_ptr2char ed opnd))))
                (join126 0 scan)))]
-        [(21 51) (join11 0 scan opnd)]
-        [(22 52) (loop13 0 scan opnd 0)]
-        [(18) (loop5 0 scan)]
+        [(ANYOF 51) (join11 0 scan opnd)]
+        [(ANYBUT 52) (loop13 0 scan opnd 0)]
+        [(NEWL) (loop5 0 scan)]
         [else
          (if (fxzero? (regengine_T.alone.string re))
              (iemsg ed e_corrupted_regexp_program)
@@ -43155,8 +43276,8 @@
                    match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                    rst_maxval)
       (let ([c (utf_ptr2char ed (regengine_T.rex.input re))])
-        (case op
-          [(1)
+        (c-case op
+          [(BOL)
            (if (fx=? (regengine_T.rex.input re) (regengine_T.rex.line re))
                (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
@@ -43164,7 +43285,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(2)
+          [(EOL)
            (if (fx=? c NUL)
                (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
@@ -43172,7 +43293,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(201)
+          [(RE_BOF)
            (cond
              [(not (fxzero? (regengine_T.alone.string re)))
               (regengine_T.failed-set! re #t)
@@ -43190,7 +43311,7 @@
               (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                        match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                        rst_nextb_ic rst_count rst_minval rst_maxval)])]
-          [(202)
+          [(RE_EOF)
            (cond
              [(not (fxzero? (regengine_T.alone.string re)))
               (regengine_T.failed-set! re #t)
@@ -43206,7 +43327,7 @@
               (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                        match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                        rst_nextb_ic rst_count rst_minval rst_maxval)])]
-          [(203)
+          [(CURSOR)
            (cond
              [(not (fxzero? (regengine_T.alone.string re)))
               (regengine_T.failed-set! re #t)
@@ -43225,7 +43346,7 @@
               (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                        match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                        rst_nextb_ic rst_count rst_minval rst_maxval)])]
-          [(207)
+          [(RE_MARK)
            (cond
              [(fxzero? (regengine_T.alone.string re))
               (let* ([mark (ld-u8 (fx+ scan 3))]
@@ -43279,7 +43400,7 @@
               (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                        match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                        rst_nextb_ic rst_count rst_minval rst_maxval)])]
-          [(208)
+          [(RE_VISUAL)
            (cond
              [(not (fxzero? (regengine_T.alone.string re)))
               (regengine_T.failed-set! re #t)
@@ -43294,7 +43415,7 @@
               (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                        match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                        rst_nextb_ic rst_count rst_minval rst_maxval)])]
-          [(204)
+          [(RE_LNUM)
            (cond
              [(not (fxzero? (regengine_T.alone.string re)))
               (regengine_T.failed-set! re #t)
@@ -43312,7 +43433,7 @@
               (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                        match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                        rst_nextb_ic rst_count rst_minval rst_maxval)])]
-          [(205)
+          [(RE_COL)
            (if (re_num_cmp ed
                            (u64+ (->u64 (fx- (regengine_T.rex.input re) (regengine_T.rex.line re)))
                                  1) scan)
@@ -43322,7 +43443,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(206)
+          [(RE_VCOL)
            (cond
              [(fxzero? (regengine_T.alone.string re))
               (let* ([wp (if (fxzero? (regengine_T.rex.reg_win re))
@@ -43344,7 +43465,7 @@
               (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                        match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                        rst_nextb_ic rst_count rst_minval rst_maxval)])]
-          [(15)
+          [(BOW)
            (if (fx=? c NUL)
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
@@ -43364,7 +43485,7 @@
                     (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                              match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                              rst_nextb_ic rst_count rst_minval rst_maxval)])))]
-          [(16)
+          [(EOW)
            (if (fx=? (regengine_T.rex.input re) (regengine_T.rex.line re))
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
@@ -43379,7 +43500,7 @@
                      (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                               match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                               rst_nextb_ic rst_count rst_minval rst_maxval))))]
-          [(20)
+          [(ANY)
            (if (fx=? c NUL)
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
@@ -43389,7 +43510,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(23)
+          [(IDENT)
            (if (vim_isIDc ed c)
                (let ([t3 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t3))
@@ -43399,7 +43520,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(24)
+          [(SIDENT)
            (if (or (ascii_isdigit (ld-u8 (regengine_T.rex.input re))) (not (vim_isIDc ed c)))
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
@@ -43409,7 +43530,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(25)
+          [(KWORD)
            (if (vim_iswordp_buf ed (regengine_T.rex.input re) (regengine_T.rex.reg_buf re))
                (let ([t5 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t5))
@@ -43419,7 +43540,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(26)
+          [(SKWORD)
            (if (or (ascii_isdigit (ld-u8 (regengine_T.rex.input re)))
                    (not (vim_iswordp_buf ed (regengine_T.rex.input re)
                                          (regengine_T.rex.reg_buf re))))
@@ -43431,7 +43552,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(27)
+          [(FNAME)
            (if (vim_isfilec ed c)
                (let ([t7 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t7))
@@ -43441,7 +43562,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(28)
+          [(SFNAME)
            (if (or (ascii_isdigit (ld-u8 (regengine_T.rex.input re))) (not (vim_isfilec ed c)))
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
@@ -43451,7 +43572,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(29)
+          [(PRINT)
            (if (vim_isprintc ed (utf_ptr2char ed (regengine_T.rex.input re)))
                (let ([t9 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t9))
@@ -43461,7 +43582,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(30)
+          [(SPRINT)
            (if (or (ascii_isdigit (ld-u8 (regengine_T.rex.input re)))
                    (not (vim_isprintc ed (utf_ptr2char ed (regengine_T.rex.input re)))))
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
@@ -43472,7 +43593,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(31)
+          [(RE_WHITE)
            (if (or (fx=? c (ch #\space)) (fx=? c (ch #\tab)))
                (let ([t11 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t11))
@@ -43482,7 +43603,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(32)
+          [(NWHITE)
            (if (or (fx=? c NUL) (fx=? c (ch #\space)) (fx=? c (ch #\tab)))
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
@@ -43492,7 +43613,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(33)
+          [(DIGIT)
            (if (and (fx<? c 256)
                     (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_DIGIT))))
                (let ([t13 (utfc_ptr2len ed (regengine_T.rex.input re))])
@@ -43503,7 +43624,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(34)
+          [(NDIGIT)
            (if (or (fx=? c NUL)
                    (and (fx<? c 256)
                         (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_DIGIT)))))
@@ -43515,7 +43636,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(35)
+          [(HEX)
            (if (and (fx<? c 256) (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_HEX))))
                (let ([t15 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t15))
@@ -43525,7 +43646,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(36)
+          [(NHEX)
            (if (or (fx=? c NUL)
                    (and (fx<? c 256)
                         (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_HEX)))))
@@ -43537,7 +43658,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(37)
+          [(OCTAL)
            (if (and (fx<? c 256)
                     (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_OCTAL))))
                (let ([t17 (utfc_ptr2len ed (regengine_T.rex.input re))])
@@ -43548,7 +43669,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(38)
+          [(NOCTAL)
            (if (or (fx=? c NUL)
                    (and (fx<? c 256)
                         (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_OCTAL)))))
@@ -43560,7 +43681,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(39)
+          [(WORD)
            (if (and (fx<? c 256) (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_WORD))))
                (let ([t19 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t19))
@@ -43570,7 +43691,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(40)
+          [(NWORD)
            (if (or (fx=? c NUL)
                    (and (fx<? c 256)
                         (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_WORD)))))
@@ -43582,7 +43703,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(41)
+          [(HEAD)
            (if (and (fx<? c 256) (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_HEAD))))
                (let ([t21 (utfc_ptr2len ed (regengine_T.rex.input re))])
                  (regengine_T.rex.input-set! re (fx+ (regengine_T.rex.input re) t21))
@@ -43592,7 +43713,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(42)
+          [(NHEAD)
            (if (or (fx=? c NUL)
                    (and (fx<? c 256)
                         (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_HEAD)))))
@@ -43604,7 +43725,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(43)
+          [(ALPHA)
            (if (and (fx<? c 256)
                     (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_ALPHA))))
                (let ([t23 (utfc_ptr2len ed (regengine_T.rex.input re))])
@@ -43615,7 +43736,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(44)
+          [(NALPHA)
            (if (or (fx=? c NUL)
                    (and (fx<? c 256)
                         (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_ALPHA)))))
@@ -43627,7 +43748,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(45)
+          [(LOWER)
            (if (and (fx<? c 256)
                     (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_LOWER))))
                (let ([t25 (utfc_ptr2len ed (regengine_T.rex.input re))])
@@ -43638,7 +43759,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(46)
+          [(NLOWER)
            (if (or (fx=? c NUL)
                    (and (fx<? c 256)
                         (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_LOWER)))))
@@ -43650,7 +43771,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(47)
+          [(UPPER)
            (if (and (fx<? c 256)
                     (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_UPPER))))
                (let ([t27 (utfc_ptr2len ed (regengine_T.rex.input re))])
@@ -43661,7 +43782,7 @@
                (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(48)
+          [(NUPPER)
            (if (or (fx=? c NUL)
                    (and (fx<? c 256)
                         (not (fxzero? (fxand (ld-s16 (fx+ class_tab (fx* c 2))) RI_UPPER)))))
@@ -43673,7 +43794,7 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(5)
+          [(EXACTLY)
            (let ([opnd (fx+ scan 3)])
              (cond
                [(and (not (fx=? (ld-u8 opnd) (ld-u8 (regengine_T.rex.input re))))
@@ -43699,11 +43820,11 @@
                         (join177 scan next RA_NOMATCH r2 len_4 r1 r2 match_with_backref__o_r__
                                  match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count
                                  rst_minval rst_maxval))))]))]
-          [(21 22)
+          [(ANYOF ANYBUT)
            (join160 scan next op c status len_4 cstrncmp__o_r__ cstrncmp__o_n
                     match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic
                     rst_count rst_minval rst_maxval)]
-          [(200)
+          [(MULTIBYTECODE)
            (let* ([opnd_2 (fx+ scan 3)]
                   [len_3 (utfc_ptr2len ed opnd_2)])
              (if (fx<? len_3 2)
@@ -43725,7 +43846,7 @@
                              (join315 scan next RA_NOMATCH len_4 r3 r4 match_with_backref__o_r__
                                       match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count
                                       rst_minval rst_maxval)))))))]
-          [(209)
+          [(RE_COMPOSING)
            (let loop145 ()
              (if (utf_iscomposing ed (utf_ptr2char ed (regengine_T.rex.input re)))
                  (let ([t32 (utf_ptr2len ed (regengine_T.rex.input re))])
@@ -43734,11 +43855,11 @@
                  (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                           match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                           rst_nextb_ic rst_count rst_minval rst_maxval)))]
-          [(6)
+          [(NOTHING)
            (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                     match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                     rst_maxval)]
-          [(4)
+          [(BACK)
            (let loop133 ([i_3 0] [bp (regengine_T.backpos.ga_data re)])
              (if (fx<? i_3 (regengine_T.backpos.ga_len re))
                  (if (fx=? (backpos_T.bp_scan (fx+ bp (fx* i_3 32))) scan)
@@ -43753,7 +43874,7 @@
            (join127 scan next op status len_4 cstrncmp__o_r__ cstrncmp__o_n
                     match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic
                     rst_count rst_minval rst_maxval)]
-          [(150 151)
+          [(NOPEN NCLOSE)
            (join125 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                     match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                     rst_maxval)]
@@ -43765,7 +43886,7 @@
            (join107 scan next op status len_4 cstrncmp__o_r__ cstrncmp__o_n
                     match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb rst_nextb_ic
                     rst_count rst_minval rst_maxval)]
-          [(3)
+          [(BRANCH)
            (if (fx=? (ld-u8 next) BRANCH)
                (let ([rp (regstack_push ed re RS_BRANCH scan)])
                  (if (fxzero? rp)
@@ -43778,7 +43899,7 @@
                (join315 scan (fx+ scan 3) status len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval))]
-          [(17)
+          [(BRACE_LIMITS)
            (cond
              [(fx=? (ld-u8 next) BRACE_SIMPLE)
               (regengine_T.bl_minval-set! re
@@ -43819,19 +43940,19 @@
            (join81 scan next op status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                    match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                    rst_maxval)]
-          [(14 7 8)
+          [(BRACE_SIMPLE STAR PLUS)
            (join57 scan next op len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                    match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                    rst_maxval)]
-          [(10 9 13)
+          [(NOMATCH MATCH SUBPAT)
            (join54 scan next op status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                    match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                    rst_maxval)]
-          [(11 12)
+          [(BEHIND NOBEHIND)
            (join44 scan next op status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                    match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                    rst_maxval)]
-          [(19)
+          [(BHPOS)
            (cond
              [(fxzero? (regengine_T.rex.reg_match re))
               (if (or (not (fx=? (regengine_T.behind_pos.rs_u.pos.col re)
@@ -43852,7 +43973,7 @@
               (join315 scan next RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
                        match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                        rst_nextb_ic rst_count rst_minval rst_maxval)])]
-          [(18)
+          [(NEWL)
            (cond
              [(and (or (not (fx=? c NUL))
                        (not (fxzero? (regengine_T.rex.reg_match re)))
@@ -43873,11 +43994,13 @@
               (join315 scan next status len_4 cstrncmp__o_r__ cstrncmp__o_n
                        match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                        rst_nextb_ic rst_count rst_minval rst_maxval)])]
-          [(0)
+          [(END)
            (join315 scan next RA_MATCH len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                     match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                     rst_maxval)]
-          [(180 181 182 183 184 185 186 187 190 191 192 193 194 195 196 197)
+          [(F_PCLOSE F_QCLOSE F_RCLOSE F_ACLOSE F_PCLOSE_NL F_QCLOSE_NL F_RCLOSE_NL F_ACLOSE_NL
+                     T_PCLOSE T_QCLOSE T_RCLOSE T_ACLOSE T_PCLOSE_NL T_QCLOSE_NL T_RCLOSE_NL
+                     T_ACLOSE_NL)
            (join14 scan next op status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                    match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                    rst_maxval)]
@@ -44471,12 +44594,12 @@
       (if (and (fx>? (regengine_T.regstack.ga_len re) 0) (not (fx=? status RA_FAIL)))
           (let ([rp (fx+ (regengine_T.regstack.ga_data re)
                          (fx* (fx- (regengine_T.regstack.ga_len re) 1) 40))])
-            (case (regitem_T.rs_state rp)
-              [(0)
+            (c-case (regitem_T.rs_state rp)
+              [(RS_NOPEN)
                (join409 (regstack_pop ed re) rp status len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval)]
-              [(1)
+              [(RS_MOPEN)
                (when (fx=? status RA_NOMATCH)
                  (if (fxzero? (regengine_T.rex.reg_match re))
                      (mem-copy! (fx+ (regengine_T.rex.reg_startpos re)
@@ -44487,7 +44610,7 @@
                (join409 (regstack_pop ed re) rp status len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval)]
-              [(2)
+              [(RS_MCLOSE)
                (when (fx=? status RA_NOMATCH)
                  (if (fxzero? (regengine_T.rex.reg_match re))
                      (mem-copy! (fx+ (regengine_T.rex.reg_endpos re) (fx* (regitem_T.rs_no rp) 16))
@@ -44497,7 +44620,7 @@
                (join409 (regstack_pop ed re) rp status len_4 cstrncmp__o_r__ cstrncmp__o_n
                         match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                         rst_nextb_ic rst_count rst_minval rst_maxval)]
-              [(3)
+              [(RS_BRANCH)
                (cond
                  [(fx=? status RA_MATCH)
                   (join409 (regstack_pop ed re) rp status len_4 cstrncmp__o_r__ cstrncmp__o_n
@@ -44512,7 +44635,7 @@
                   (join394 (regitem_T.rs_scan rp) rp status len_4 cstrncmp__o_r__ cstrncmp__o_n
                            match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                            rst_nextb_ic rst_count rst_minval rst_maxval)])]
-              [(4)
+              [(RS_BRCPLX_MORE)
                (cond
                  [(fx=? status RA_NOMATCH)
                   (reg_restore ed re (regitem_T.rs_un.regsave& rp) (regengine_T.backpos& re))
@@ -44525,7 +44648,7 @@
                   (join390 rp status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                            match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                            rst_maxval)])]
-              [(5)
+              [(RS_BRCPLX_LONG)
                (cond
                  [(fx=? status RA_NOMATCH)
                   (reg_restore ed re (regitem_T.rs_un.regsave& rp) (regengine_T.backpos& re))
@@ -44538,7 +44661,7 @@
                   (join386 rp status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                            match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                            rst_maxval)])]
-              [(6)
+              [(RS_BRCPLX_SHORT)
                (when (fx=? status RA_NOMATCH)
                  (reg_restore ed re (regitem_T.rs_un.regsave& rp) (regengine_T.backpos& re)))
                (let ([scan (regstack_pop ed re)])
@@ -44549,7 +44672,7 @@
                      (join409 scan rp status len_4 cstrncmp__o_r__ cstrncmp__o_n
                               match_with_backref__o_r__ match_with_backref__o_bytelen rst_nextb
                               rst_nextb_ic rst_count rst_minval rst_maxval)))]
-              [(7)
+              [(RS_NOMATCH)
                (cond
                  [(fx=? status (if (fx=? (regitem_T.rs_no rp) NOMATCH) RA_MATCH RA_NOMATCH))
                   (join378 rp RA_NOMATCH len_4 cstrncmp__o_r__ cstrncmp__o_n
@@ -44561,7 +44684,7 @@
                   (join378 rp RA_CONT len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                            match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                            rst_maxval)])]
-              [(8)
+              [(RS_BEHIND1)
                (cond
                  [(fx=? status RA_NOMATCH)
                   (let ([scan (regstack_pop ed re)])
@@ -44585,7 +44708,7 @@
                     (join409 (fx+ (fx+ (regitem_T.rs_scan rp) 3) 4) rp status len_4 cstrncmp__o_r__
                              cstrncmp__o_n match_with_backref__o_r__ match_with_backref__o_bytelen
                              rst_nextb rst_nextb_ic rst_count rst_minval rst_maxval))])]
-              [(9)
+              [(RS_BEHIND2)
                (cond
                  [(and (fx=? status RA_MATCH) (reg_save_equal ed re (regengine_T.behind_pos& re)))
                   (mem-copy! (regengine_T.behind_pos& re)
@@ -44671,7 +44794,7 @@
                                       match_with_backref__o_r__ match_with_backref__o_bytelen
                                       rst_nextb rst_nextb_ic rst_count rst_minval
                                       rst_maxval)))]))])]
-              [(10 11)
+              [(RS_STAR_LONG RS_STAR_SHORT)
                (join321 scan rp status len_4 cstrncmp__o_r__ cstrncmp__o_n match_with_backref__o_r__
                         match_with_backref__o_bytelen rst_nextb rst_nextb_ic rst_count rst_minval
                         rst_maxval)]
@@ -45783,30 +45906,36 @@
          (values #t #t)]
         [else (values #f allocated)]))
     (st-ptr! argp 0)
-    (case regname
-      [(37) (when errmsg (check_fname ed)) (st-ptr! argp 0) (values #t #f)]
-      [(35) (st-ptr! argp (getaltfname ed errmsg)) (values #t #f)]
-      [(58)
+    (c-case regname
+      [(#\%)
+       (when errmsg (check_fname ed))
+       (let ()
+         (st-ptr! argp 0)
+         (values #t #f))]
+      [(#\x23) (st-ptr! argp (getaltfname ed errmsg)) (values #t #f)]
+      [(#\:)
        (when (and (fxzero? last_cmdline) errmsg) (emsg ed e_no_previous_command_line))
-       (st-ptr! argp last_cmdline)
-       (values #t #f)]
-      [(47)
+       (let ()
+         (st-ptr! argp last_cmdline)
+         (values #t #f))]
+      [(#\/)
        (when (and (fxzero? (last_search_pat ed)) errmsg) (emsg ed e_no_previous_regular_expression))
-       (st-ptr! argp (last_search_pat ed))
-       (values #t #f)]
-      [(46)
+       (let ()
+         (st-ptr! argp (last_search_pat ed))
+         (values #t #f))]
+      [(#\.)
        (st-ptr! argp (get_last_insert_save ed))
        (when (and (fxzero? (ld-ptr argp)) errmsg) (emsg ed e_no_inserted_text_yet))
        (values #t #t)]
-      [(6 16) (join9 #f #f #f)]
-      [(23 1) (join6 #f #f #f)]
-      [(12)
+      [(Ctrl_F Ctrl_P) (join9 #f #f #f)]
+      [(Ctrl_W Ctrl_A) (join6 #f #f #f)]
+      [(Ctrl_L)
        (cond
          [errmsg
           (st-ptr! argp (ml_get_buf ed (win_T.w_buffer curwin) (win_T.w_cursor.lnum curwin) #f))
           (values #t #f)]
          [else (values #f #f)])]
-      [(95) (st-ptr! argp (c-str 162263 "")) (values #t #f)]
+      [(#\_) (st-ptr! argp (c-str 162263 "")) (values #t #f)]
       [else (values #f #f)])))
 
 (define (cmdline_paste_reg ed regname literally_arg remcr)
@@ -45893,14 +46022,14 @@
       (define (loop13 y_idx curr lnum yanktype yanklines yankendlnum)
         (cond
           [(<= lnum yankendlnum)
-           (case (yankreg_T.y_type y_current)
-             [(2)
+           (c-case (yankreg_T.y_type y_current)
+             [(MBLOCK)
               (block_prep ed oap bd lnum FALSE)
               (cond
                 [(yank_copy_line ed bd y_idx (oparg_T.excl_tr_ws oap))
                  (join51 y_idx curr lnum yanktype yanklines yankendlnum)]
                 [else (free_yank ed (+ y_idx 1)) (set! y_current curr) (frame-pop! ed fr) #f])]
-             [(1)
+             [(MLINE)
               (let ([r3 (fx+ (yankreg_T.y_array y_current) (fx* y_idx 16))])
                 (string_T.length-set! r3 (->u64 (ml_get_len ed lnum)))
                 (let* ([r5 (fx+ (yankreg_T.y_array y_current) (fx* y_idx 16))]
@@ -45910,7 +46039,7 @@
                                                       (string_T.length (fx+ (yankreg_T.y_array y_current)
                                                                             (fx* y_idx 16)))))
                   (join51 y_idx curr lnum yanktype yanklines yankendlnum)))]
-             [(0)
+             [(MCHAR)
               (charwise_block_prep ed (oparg_T.start& oap) (oparg_T.end& oap) bd lnum
                                    (oparg_T.inclusive oap))
               (let ([tmp (->i32 (musl_strlen ed (block_def.textstart bd)))])
@@ -47168,9 +47297,9 @@
     (define (loop3 i attr arg insert_string insert_length)
       (if (and (fx<? i NUM_REGISTERS) (fxzero? got_int))
           (let ([name (get_register_name i)])
-            (case (get_reg_type ed name 0)
-              [(1) (join15 i name attr arg (ch #\l) insert_string insert_length)]
-              [(0) (join15 i name attr arg (ch #\c) insert_string insert_length)]
+            (c-case (get_reg_type ed name 0)
+              [(MLINE) (join15 i name attr arg (ch #\l) insert_string insert_length)]
+              [(MCHAR) (join15 i name attr arg (ch #\c) insert_string insert_length)]
               [else (join15 i name attr arg (ch #\b) insert_string insert_length)]))
           (let-values ([(r1 r2) (get_last_insert ed)])
             (when (and (not (fxzero? r1))
@@ -47278,8 +47407,8 @@
 
 (define (get_reg_type ed regname reglen)
   (let ([mem (ed-mem ed)])
-    (case regname
-      [(37 35 61 58 47 46 6 16 23 1 95) MCHAR]
+    (c-case regname
+      [(#\% #\x23 #\= #\: #\/ #\. Ctrl_F Ctrl_P Ctrl_W Ctrl_A #\_) MCHAR]
       [else
        (cond
          [(and (not (fx=? regname NUL)) (not (valid_yank_reg ed regname #f))) MAUTO]
@@ -52087,8 +52216,8 @@
                        comment_col skip_comments in_block_comment find_mps_values__o_initc
                        find_mps_values__o_findc find_mps_values__o_backwards)
         (let ([c (utf_ptr2char ed (fx+ linep (pos_T.col findmatchlimit:pos)))])
-          (case c
-            [(0)
+          (c-case c
+            [(NUL)
              (if (or (fxzero? (pos_T.col findmatchlimit:pos))
                      (not (fx=? (ld-u8 (fx+ linep (fx- (pos_T.col findmatchlimit:pos) 1)))
                                 (ch #\x5c))))
@@ -52100,7 +52229,7 @@
                          start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped
                          comment_col skip_comments in_block_comment find_mps_values__o_initc
                          find_mps_values__o_findc find_mps_values__o_backwards))]
-            [(34)
+            [(#\x22)
              (if (fxzero? do_quotes)
                  (loop89 initc findc count backwards raw_string inquote linep do_quotes comment_dir
                          start_in_quotes traveled ignore_cend cpo_match cpo_bsl match_escaped
@@ -52120,7 +52249,7 @@
                                 match_escaped comment_col skip_comments in_block_comment col_2
                                 find_mps_values__o_initc find_mps_values__o_findc
                                 find_mps_values__o_backwards))))]
-            [(39)
+            [(#\x27)
              (if (and (not cpo_match) (not (fx=? initc (ch #\x27))) (not (fx=? findc (ch #\x27))))
                  (cond
                    [backwards
@@ -53240,18 +53369,21 @@
          (cond
            [(fx=? (ld-s8 cm) (ch #\%))
             (let ([cm (fx+ cm 1)])
-              (case (ld-s8 cm)
-                [(100)
+              (c-case (ld-s8 cm)
+                [(#\d)
                  (let loop11 ([y x] [p (tltoa ed (->u64 y))] [s s])
                    (cond
                      [(fxzero? (ld-s8 p)) (join14 cm x y s e)]
                      [else (st-s8! s (ld-s8 p)) (loop11 y (fx+ p 1) (fx+ s 1))]))]
-                [(105) (join14 cm (fx+ x 1) (fx+ y 1) s e)]
-                [(43)
+                [(#\i) (join14 cm (fx+ x 1) (fx+ y 1) s e)]
+                [(#\+)
                  (let ([cm (fx+ cm 1)])
                    (st-s8! s (->i8 (fx+ (ld-s8 cm) y)))
                    (join14 cm x x (fx+ s 1) e))]
-                [(37) (st-s8! s (ld-s8 cm)) (join14 cm x y (fx+ s 1) e)]
+                [(#\%)
+                 (let ()
+                   (st-s8! s (ld-s8 cm))
+                   (join14 cm x y (fx+ s 1) e))]
                 [else (c-str 166746 "OOPS")]))]
            [else (st-s8! s (ld-s8 cm)) (join14 cm x y (fx+ s 1) e)])]
         [else (st-s8! s (ch #\nul)) tgoto:buf]))
@@ -54169,17 +54301,17 @@
         (put_key_modifiers_in_typebuf ed key modifiers csi_len offset buf bufsize buflen)
         csi_len))
     (st-u8! key_name (ch #\k))
-    (case trail
-      [(65) (st-u8! (fx+ key_name 1) (ch #\u)) (join12)]
-      [(66) (st-u8! (fx+ key_name 1) (ch #\d)) (join12)]
-      [(67) (st-u8! (fx+ key_name 1) (ch #\r)) (join12)]
-      [(68) (st-u8! (fx+ key_name 1) (ch #\l)) (join12)]
-      [(70) (st-u8! key_name (ch #\@)) (st-u8! (fx+ key_name 1) (ch #\7)) (join12)]
-      [(72) (st-u8! (fx+ key_name 1) (ch #\h)) (join12)]
-      [(80) (st-u8! (fx+ key_name 1) (ch #\1)) (join12)]
-      [(81) (st-u8! (fx+ key_name 1) (ch #\2)) (join12)]
-      [(82) (st-u8! (fx+ key_name 1) (ch #\3)) (join12)]
-      [(83) (st-u8! (fx+ key_name 1) (ch #\4)) (join12)]
+    (c-case trail
+      [(#\A) (st-u8! (fx+ key_name 1) (ch #\u)) (join12)]
+      [(#\B) (st-u8! (fx+ key_name 1) (ch #\d)) (join12)]
+      [(#\C) (st-u8! (fx+ key_name 1) (ch #\r)) (join12)]
+      [(#\D) (st-u8! (fx+ key_name 1) (ch #\l)) (join12)]
+      [(#\F) (st-u8! key_name (ch #\@)) (st-u8! (fx+ key_name 1) (ch #\7)) (join12)]
+      [(#\H) (st-u8! (fx+ key_name 1) (ch #\h)) (join12)]
+      [(#\P) (st-u8! (fx+ key_name 1) (ch #\1)) (join12)]
+      [(#\Q) (st-u8! (fx+ key_name 1) (ch #\2)) (join12)]
+      [(#\R) (st-u8! (fx+ key_name 1) (ch #\3)) (join12)]
+      [(#\S) (st-u8! (fx+ key_name 1) (ch #\4)) (join12)]
       [else 0])))
 
 (define (handle_csi ed tp len argp offset buf bufsize buflen key_name slen)

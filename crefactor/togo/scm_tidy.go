@@ -181,7 +181,7 @@ func (x *sform) flatTo(b *strings.Builder) {
 // scmBlockForms are the forms always printed on several lines: what binds
 // or defines, and a dispatch.
 var scmBlockForms = map[string]bool{"define": true, "let": true, "let*": true, "letrec": true, "letrec*": true,
-	"let-values": true, "let*-values": true, "cond": true, "case": true, "lambda": true}
+	"let-values": true, "let*-values": true, "cond": true, "case": true, "c-case": true, "lambda": true}
 
 // canFlat says x may be printed on one line.
 func (x *sform) canFlat() bool {
@@ -246,8 +246,8 @@ func scmPrint(x *sform, col, trail int) string {
 		return lead + scmBindings(binds, col+len(lead)) + body(rest, col+2) + ")"
 	case h == "cond" && len(x.kids) > 1:
 		return "(cond" + body(x.kids[1:], col+2) + ")"
-	case h == "case" && len(x.kids) > 2:
-		return "(case " + scmPrint(x.kids[1], col+6, 0) + body(x.kids[2:], col+2) + ")"
+	case (h == "case" || h == "c-case") && len(x.kids) > 2:
+		return "(" + h + " " + scmPrint(x.kids[1], col+len(h)+2, 0) + body(x.kids[2:], col+2) + ")"
 	case h == "if" && len(x.kids) == 4:
 		return "(if " + scmPrint(x.kids[1], col+4, 0) + pad(col+4) + scmPrint(x.kids[2], col+4, 0) +
 			pad(col+4) + scmPrint(x.kids[3], col+4, trail+1) + ")"
@@ -1280,7 +1280,7 @@ func scmSpell(x *sform, st *scmTidyStats) *sform {
 			st.conds++
 			return slist(append([]*sform{satom("cond"), {brack: true, kids: []*sform{x.kids[1], x.kids[2]}}}, els.kids[1:]...)...)
 		}
-	case "case":
+	case "case", "c-case":
 		scmMergeCase(x, st)
 	}
 	return x

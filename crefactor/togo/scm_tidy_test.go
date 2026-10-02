@@ -221,7 +221,7 @@ void run(void) {
 func TestScmTidy(t *testing.T) {
 	prog := scmSame(t, scmTidyC, Profile{}, javaHarnessC)
 	// sumk's k, which the loop never changes, is not the loop's
-	for _, want := range []string{"(case ", "(let loop1 ([s 0] [i 0])"} {
+	for _, want := range []string{"(c-case c", "[(#\\a #\\e) 1]", "(let loop1 ([s 0] [i 0])"} {
 		if !strings.Contains(prog, want) {
 			t.Errorf("no %q in the Scheme", want)
 		}

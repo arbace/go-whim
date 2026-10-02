@@ -22,7 +22,7 @@
     ld-s8 ld-u8 ld-s16 ld-u16 ld-s32 ld-u32 ld-s64 ld-u64 ld-ptr ld-bool
     st-s8! st-u8! st-s16! st-u16! st-s32! st-u32! st-s64! st-u64! st-ptr! st-bool!
     mem-copy! mem-zero! mem-fill! mem-image! mem-bytes mem-string
-    mem-ref mem-set! define-c-object define-c-local define-c-member
+    mem-ref mem-set! define-c-object define-c-local define-c-member define-c-enum c-case c-enum
     frame-push! frame-pop! c-str
     ;; C's integers
     ->i8 ->u8 ->i16 ->u16 ->i32 ->u32 ->i64 ->u64 b->i
@@ -38,7 +38,7 @@
     chunks
     ;; Chez's own, for the core
     fxquotient)
-  (import (rnrs) (rnrs mutable-strings) (only (chezscheme) fxsll/wraparound fx*/wraparound fxquotient fxremainder fx= fx< fx> fx<= fx>=
+  (import (rnrs) (rnrs mutable-strings) (only (chezscheme) define-property fxsll/wraparound fx*/wraparound fxquotient fxremainder fx= fx< fx> fx<= fx>=
                         fxsra fxsrl fx1+
                         quotient remainder void make-immobile-bytevector
                         fork-thread thread-join make-mutex with-mutex mutex-acquire mutex-release
@@ -298,6 +298,34 @@
           (if (fx= i (bytevector-length b))
               s
               (begin (string-set! s i (integer->char (bytevector-u8-ref b i))) (loop (fx+ i 1))))))))
+
+;; (define-c-enum name value): a named constant of the C's, whose value
+  ;; c-case reads when it expands.
+  (define c-enum)
+  (define-syntax define-c-enum
+    (syntax-rules ()
+      [(_ name v) (begin (define name v) (define-property name c-enum 'v))]))
+
+  ;; (c-case e [(label ...) body ...] ... [else body ...]): a case whose
+  ;; labels are as the C spells them -- a constant's name, a character
+  ;; (its code), a number -- each its value at expansion: the case it
+  ;; expands to is one of numbers.
+  (define-syntax c-case
+    (lambda (x)
+      (lambda (lookup)
+        (define (value l)
+          (let ([d (syntax->datum l)])
+            (cond
+              [(identifier? l)
+               (or (lookup l #'c-enum) (syntax-violation 'c-case "not a constant of the C's" x l))]
+              [(char? d) (char->integer d)]
+              [else d])))
+        (define (clause c)
+          (syntax-case c (else)
+            [(else b ...) c]
+            [((l ...) b ...) (with-syntax ([(v ...) (map value #'(l ...))]) #'((v ...) b ...))]))
+        (syntax-case x ()
+          [(_ e c ...) (with-syntax ([(c2 ...) (map clause #'(c ...))]) #'(case e c2 ...))]))))
 
 ;; A C character constant: (ch #\a) is the integer of its code, at
   ;; expansion.

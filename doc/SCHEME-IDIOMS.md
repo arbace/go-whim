@@ -604,7 +604,7 @@ were (sha256, before and after every item).
 | 5 | 14: spellings: `and`/`or` flat, `fxzero?`, `(if (not x))` turned, an expression's if-chain a `cond`, a case's clauses that do the same one clause, `(void)` -- **done** | `scm_tidy.go` | S | none | 1,202 + 2,080 + 175 + 72 + 385 + 109 |
 | 6 | 15: signed arithmetic as C means it, `fx+` and `+` -- **done** | `scm_expr.go`, `scm_fn.go` | S | the honest one: an overflow C leaves undefined no longer wraps | 4,340 |
 | 7 | 16: the memory functions as the bytevector's own -- **done** | `internal/whim/gen.go`'s runtime bodies, `rt.ss` | S | low | 228 calls, 3 bodies |
-| 8 | 17: case labels by name | `scm_fn.go`, `rt.ss` (`c-case`) | M | low | 961 labels |
+| 8 | 17: case labels by name -- **done** | `scm_fn.go`, `rt.ss` (`c-case`) | M | low | 961 labels |
 | -- | an array's element by index, `(ld-ptr@ a i)` | -- | S | low | 464: declined, below |
 | -- | raw byte loads named | -- | -- | -- | declined, below |
 | -- | records for struct locals, Scheme strings, joins by dominance, the host's glue a record | -- | -- | -- | declined, below |
@@ -822,3 +822,35 @@ hold the same loops.
 
 `TestScmMemBodies` holds the bodies to gcc's loops on regions overlapping
 both ways, a fill of a byte past 255 and of zeros, and counts of 0.
+
+### 17. Case labels by name
+
+A `case` takes data, not names, so item 6 left every label a number. The
+runtime has `c-case` now (`rt.ss`): a `case` whose labels are as the C
+spells them -- a named constant, a character (its code), a number -- each
+read at expansion, the named constant's value through a property its
+definition attaches (`define-c-enum`, Chez's `define-property`), so that
+what it expands to is the `case` of numbers it was. The printer writes a
+label by its name where the C does and the name's value is the switch's
+(`scm_expr.go`'s `caseLabel`: an enumerator, `#\a` for a character), and a
+switch with one such label a `c-case`:
+
+```scheme
+           (c-case c
+             [(ESC Ctrl_C)
+              (join173 c esc_now lastc ...)]
+```
+
+where it was `[(27) (join173 ...)] [(3) (join173 ...)]`.
+
+| | before | after |
+| --- | ---: | ---: |
+| case labels: by name / a character / a number | 0 / 0 / 953 | 464 / 256 / 233 (the C's own numbers, and labels folded from two names, `A \| B`) |
+| switches a `c-case` / a `case` | 0 / 70 | 61 / 9 |
+| lines | 58,485 | 58,617 |
+| Chez on the core | 30.1 s, 0.66 GB | 26.2 s, 0.65 GB |
+| the heavy case: instructions / least cycles | 4,826M / 1,591M | 4,826M / 1,764M (the same code; the cycles the load's); in the suite 0.8-1.0x the C |
+
+`TestScmCaseLabels` switches on enumerators (one negative), characters
+(`#\x28` for `(`), a number and a folded label, and on an `unsigned
+char`, against gcc.

@@ -296,3 +296,34 @@ func TestScmMemBodies(t *testing.T) {
 		t.Errorf("the runtime's bodies not written:\n%s", numbered(prog))
 	}
 }
+
+// scmCaseC switches on constants as C names them -- enumerators, one
+// negative, characters, a number, a label folded from two -- and on a
+// char, whose labels are its values.
+const scmCaseC = javaHost + `
+enum { K_ESC = 27, K_UP = -30059, K_FLAG = 4, K_BIG = 300 };
+static int kind(int c) {
+    switch (c) {
+    case K_ESC: case 'q': return 1;
+    case K_UP: return 2;
+    case K_FLAG | 1: return 3;
+    case 7: return 4;
+    case '(': case ')': return 5;
+    default: return 0;
+    }
+}
+static int byte(unsigned char b) { switch (b) { case 'a': return 1; case 255: return 2; default: return 0; } }
+void run(void) {
+    out(kind(27)); out(kind('q')); out(kind(-30059)); out(kind(5)); out(kind(7)); out(kind('(')); out(kind(')')); out(kind(1));
+    out(byte('a')); out(byte(255)); out(byte(0));
+}
+`
+
+func TestScmCaseLabels(t *testing.T) {
+	prog := scmSame(t, scmCaseC, Profile{}, javaHarnessC)
+	for _, want := range []string{"(c-case c", "[(K_ESC #\\q) 1]", "[(K_UP) 2]", "[(5) 3]", "[(#\\x28 #\\x29) 5]", "(define-c-enum K_UP -30059)"} {
+		if !strings.Contains(prog, want) {
+			t.Errorf("no %q in the Scheme:\n%s", want, numbered(prog))
+		}
+	}
+}

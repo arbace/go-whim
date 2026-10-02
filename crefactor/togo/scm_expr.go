@@ -1133,6 +1133,24 @@ func (s *sgen) constSpelling(e cc.ExpressionNode, v string) string {
 	}
 }
 
+// caseLabel is a case label's spelling where the C names it -- an
+// enumerator, which c-case reads the value of, or a character, #\a --
+// and its value is k, the switch's (rt.ss's c-case, doc/SCHEME-IDIOMS.md
+// item 17); "" else, the literal lit.
+func (s *sgen) caseLabel(e cc.ExpressionNode, k int64, lit string) string {
+	if e == nil {
+		return ""
+	}
+	if v, ok := intValue(e.Value()); !ok || v != k {
+		return ""
+	}
+	sp := s.constSpelling(e, lit)
+	if strings.HasPrefix(sp, "(ch ") {
+		return strings.TrimSuffix(strings.TrimPrefix(sp, "(ch "), ")")
+	}
+	return sp
+}
+
 // scmChar is v as a Scheme character a reader reads, when it is one: a
 // printable character but those that delimit, and the named ones.
 func scmChar(v int64) string {
