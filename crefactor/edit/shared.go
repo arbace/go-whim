@@ -269,7 +269,43 @@ func IncludeCount(text []byte) int {
 // there -- `ioctl` was "the #include and the host's one call" -- and changed
 // with every header a phase took.)
 func MentionCount(text []byte, name string) int {
-	return len(wordRe(name).FindAll(WithoutIncludes(text), -1))
+	if !isIdentWord(name) {
+		return len(wordRe(name).FindAll(WithoutIncludes(text), -1))
+	}
+	// A name of word characters, counted as the regexp `\bname\b` counts
+	// it, without the regexp: an occurrence with no word character on either
+	// side, on a line that does not open with `#include `.  Two such
+	// occurrences cannot overlap -- the second would start after a word
+	// character of the first -- so these are FindAll's matches.
+	nm := []byte(name)
+	n := 0
+	for pos := 0; ; {
+		rel := bytes.Index(text[pos:], nm)
+		if rel < 0 {
+			return n
+		}
+		i := pos + rel
+		j := i + len(nm)
+		pos = i + 1
+		if (i > 0 && identChar(text[i-1])) || (j < len(text) && identChar(text[j])) {
+			continue
+		}
+		ls := bytes.LastIndexByte(text[:i], '\n') + 1
+		if bytes.HasPrefix(text[ls:], []byte("#include ")) {
+			continue
+		}
+		n++
+	}
+}
+
+// isIdentWord says s is non-empty and all word characters, [0-9A-Za-z_].
+func isIdentWord(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if !identChar(s[i]) {
+			return false
+		}
+	}
+	return s != ""
 }
 
 // WithoutIncludes is text with every `#include` line blanked to an empty

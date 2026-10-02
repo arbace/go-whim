@@ -20,7 +20,21 @@ func identChar(c byte) bool { return isAlnum(c) || c == '_' }
 // s is the original text and b is Blank(s): the search runs over the blanked
 // copy, so a name inside a string literal is not a definition.
 func FindDefinition(s, b []byte, name string) (start, end int, ok bool) {
-	d := Depths(b)
+	// The depth at each candidate, counted forward from the last: the
+	// candidates come in order, so this is Depths(b)[i] without an int for
+	// every byte of a multi-megabyte text on every call.
+	dAt, depth := 0, 0
+	depthAt := func(i int) int {
+		for ; dAt < i; dAt++ {
+			switch b[dAt] {
+			case '(', '[', '{':
+				depth++
+			case ')', ']', '}':
+				depth--
+			}
+		}
+		return depth
+	}
 	n := len(s)
 	nm := []byte(name)
 	pos := 0
@@ -31,7 +45,7 @@ func FindDefinition(s, b []byte, name string) (start, end int, ok bool) {
 		}
 		i := pos + rel
 		pos = i + 1
-		if d[i] != 0 {
+		if depthAt(i) != 0 {
 			continue
 		}
 		if (i > 0 && identChar(s[i-1])) || (i+len(nm) < n && identChar(s[i+len(nm)])) {
