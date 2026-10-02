@@ -597,9 +597,9 @@ were (sha256, before and after every item).
 
 | Rank | Item | Who | Cost | Risk | Sites |
 | --- | --- | --- | --- | --- | ---: |
-| 1 | 10: a layout of the forms' own: lines within 100 columns, a named let under its line | `scm_tidy.go` (reader, printer) | M | none: the same forms | 6,674 lines, 124 lets |
-| 2 | 11: a join one place calls written where it is called | `scm_tidy.go` | M | low: scopes checked | 1,228 joins |
-| 3 | 12: a named let's bindings that never change taken out | `scm_tidy.go` | S | low: scopes checked | 2,001 bindings |
+| 1 | 10: a layout of the forms' own: lines within 100 columns, a named let under its line -- **done** | `scm_tidy.go` (reader, printer) | M | none: the same forms | 6,674 lines, 124 lets |
+| 2 | 11: a join one place calls written where it is called -- **done** | `scm_tidy.go` | M | low: scopes checked | 1,228 joins |
+| 3 | 12: a named let's bindings that never change taken out -- **done** | `scm_tidy.go` | S | low: scopes checked | 2,001 bindings |
 | 4 | 13: copies, constants and increments in place | `scm_tidy.go` | M | low-medium | 470 `tN`, copies |
 | 5 | 14: spellings: `and`/`or` flat, `fxzero?`, `(if (not x))` turned, an expression's if-chain a `cond`, a case's clauses that do the same one clause, `(void)` | `scm_tidy.go` | S | none | 1,202 + 2,080 + 175 + 72 + 385 + 109 |
 | 6 | 15: signed arithmetic as C means it, `fx+` and `+` | `scm_expr.go`, `scm_fn.go` | S | the honest one: an overflow C leaves undefined no longer wraps | 4,340 |
@@ -633,3 +633,62 @@ put it after an `if`'s test, its body indented under the line's end
 | the heavy case, nine runs interleaved, the load average 52-54 | C 471-621 ms, whimsical 494-665 | whimsical 490-677 |
 
 The forms are the same, so the compiled code is: what moved is lines.
+
+From here on the heavy case's wall time is the machine's load as much as
+the editor's (the load average was 50-55 through this pass, other agents
+building): nine runs interleaved moved by 20 % between two builds of the
+same forms. So each item is also measured by `perf stat` on the heavy case
+with one worker (`WHIMSICAL_WORKERS=1`): the instructions the editor
+executes, which the load does not move, and the least cycles of seven runs.
+For item 10: 6,782M instructions before and after, at least 1,902M and
+1,905M cycles.
+
+### 11. A join one place calls, where it is called
+
+A join -- a block several jumps reach, a local procedure of the function's
+-- that the printing left called from one place (most of them because item
+9 wrote the two arms' jumps to it as one, after the branch) is written
+there (`scmJoinsInPlace`): its body in place of the call, its parameters
+bound to the call's arguments by a `let` but where the argument is the
+parameter's own name, which is already that value there. It refuses where
+a binding around the call would capture a name its body reads, and where a
+parameter is a name that reads memory. Several forms where one goes -- an
+`if`'s arm -- make the `if` a `cond`.
+
+`lalloc`, before and after:
+
+```scheme
+(define (lalloc ed size message)
+  (let ([mem (ed-mem ed)])
+    (define (join2)
+      (host_alloc ed size))
+    (when (= size 0) (set! emsg_silent 0) (iemsg ed e_internal_error_lalloc_zero))
+    (join2)))
+
+(define (lalloc ed size message)
+  (let ([mem (ed-mem ed)])
+    (when (= size 0) (set! emsg_silent 0) (iemsg ed e_internal_error_lalloc_zero))
+    (host_alloc ed size)))
+```
+
+### 12. A named let's bindings that never change
+
+A named let's binding of a name to itself (`[col col]`) that every jump
+back passes on unchanged -- the name not bound again on the way -- goes,
+from the binding and from every jump (`scmInvariants`): the loop's body
+sees the binding outside it, which is the same value. In `del_bytes`, `(let
+loop6 ([oldp oldp] [oldlen oldlen] [lnum lnum] [n col]) ... (loop6 oldp
+oldlen lnum n))` is `(let loop6 ([n col]) ... (loop6 n))`.
+
+| | before | after 11 and 12 |
+| --- | ---: | ---: |
+| lines | 64,591 | 59,265 |
+| joins as local procedures | 3,538 | 2,310 (1,228 written where they are called; none refused) |
+| named lets' bindings / of a name to itself | 2,797 / 2,228 | 771 / 202 (2,026 taken out) |
+| Chez on the core | 29.2 s, 0.63 GB | 31.5 s, 0.69 GB (the load average 51-54) |
+| the heavy case: instructions / least cycles | 6,782M / 1,905M | 6,777M / 1,907M; in the suite 0.8-0.9x the C |
+
+A loop's invariants read from outside it are free variables of the loop's
+procedure where they were its arguments; Chez compiles the two alike here
+(the instructions above), though the wall time of nine runs under the
+load suggested otherwise until it was measured so.

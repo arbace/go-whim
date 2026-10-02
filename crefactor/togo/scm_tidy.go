@@ -368,7 +368,9 @@ func scmBindings(bs *sform, col int) string {
 }
 
 // scmTidyStats counts what the rules did, over the library.
-type scmTidyStats struct{}
+type scmTidyStats struct {
+	joinsInPlace, invariants int
+}
 
 // scmTidy is the function text, one define, read back, rewritten and
 // printed again; memNames are the file-scope objects' names, which read
@@ -382,5 +384,465 @@ func scmTidy(text string, memNames map[string]bool, void bool, st *scmTidyStats)
 		return text, fmt.Errorf("not one define")
 	}
 	fn := forms[0]
+	names := map[string]bool{}
+	for n := range memNames {
+		names[n] = true
+	}
+	scmLocalNames(fn, names)
+	scmJoinsInPlace(fn, names, st)
+	scmInvariants(fn, names, st)
 	return scmPrint(fn, 0, 0) + "\n", nil
+}
+
+// --- scopes ----------------------------------------------------------------
+
+func slist(kids ...*sform) *sform { return &sform{kids: kids} }
+
+// scmIdentAtom says an atom is an identifier, which a binding may name.
+func scmIdentAtom(s string) bool {
+	if s == "" || s[0] == '"' || s[0] == '#' || s[0] == '\'' {
+		return false
+	}
+	c := s[0]
+	if c >= '0' && c <= '9' {
+		return false
+	}
+	if (c == '-' || c == '+') && len(s) > 1 && s[1] >= '0' && s[1] <= '9' {
+		return false
+	}
+	return true
+}
+
+// scmBinds are the names a binding form binds for its body, and where its
+// body starts; ok false when x binds nothing.
+func scmBinds(x *sform) (names []string, from int, ok bool) {
+	add := func(f *sform) {
+		if !f.isList() {
+			names = append(names, f.atom)
+			return
+		}
+		for _, k := range f.kids {
+			if !k.isList() {
+				names = append(names, k.atom)
+			}
+		}
+	}
+	switch h := x.head(); h {
+	case "let", "let*", "letrec", "letrec*", "let-values", "let*-values":
+		if len(x.kids) < 3 {
+			return nil, 0, false
+		}
+		bs, from := x.kids[1], 2
+		if h == "let" && !bs.isList() {
+			names = append(names, bs.atom)
+			bs, from = x.kids[2], 3
+		}
+		for _, b := range bs.kids {
+			if b.isList() && len(b.kids) >= 1 {
+				add(b.kids[0])
+			}
+		}
+		return names, from, true
+	case "define", "lambda":
+		if len(x.kids) < 3 {
+			return nil, 0, false
+		}
+		sig := x.kids[1]
+		if sig.isList() {
+			ks := sig.kids
+			if h == "define" && len(ks) > 0 {
+				ks = ks[1:]
+			}
+			for _, k := range ks {
+				if !k.isList() {
+					names = append(names, k.atom)
+				}
+			}
+		}
+		return names, 2, true
+	}
+	return nil, 0, false
+}
+
+// scmFree adds the identifiers x names that it does not bind itself to
+// out.
+func scmFree(x *sform, bound map[string]int, out map[string]bool) {
+	if !x.isList() {
+		if scmIdentAtom(x.atom) && bound[x.atom] == 0 {
+			out[x.atom] = true
+		}
+		return
+	}
+	names, from, ok := scmBinds(x)
+	if !ok {
+		for _, k := range x.kids {
+			scmFree(k, bound, out)
+		}
+		return
+	}
+	h := x.head()
+	// the bindings' values: a let's in the scope outside, a let*'s each
+	// after the ones before it
+	if h != "define" && h != "lambda" {
+		bs := x.kids[from-1]
+		seq := h == "let*" || h == "let*-values" || h == "letrec" || h == "letrec*"
+		var pushed []string
+		if h == "letrec" || h == "letrec*" {
+			for _, b := range bs.kids {
+				if b.isList() && len(b.kids) == 2 && !b.kids[0].isList() {
+					bound[b.kids[0].atom]++
+					pushed = append(pushed, b.kids[0].atom)
+				}
+			}
+		}
+		for _, b := range bs.kids {
+			if !b.isList() || len(b.kids) != 2 {
+				continue
+			}
+			scmFree(b.kids[1], bound, out)
+			if seq && h != "letrec" && h != "letrec*" {
+				var ns []string
+				if b.kids[0].isList() {
+					for _, k := range b.kids[0].kids {
+						ns = append(ns, k.atom)
+					}
+				} else {
+					ns = []string{b.kids[0].atom}
+				}
+				for _, n := range ns {
+					bound[n]++
+					pushed = append(pushed, n)
+				}
+			}
+		}
+		for _, n := range pushed {
+			bound[n]--
+		}
+	}
+	for _, n := range names {
+		bound[n]++
+	}
+	for _, k := range x.kids[from:] {
+		scmFree(k, bound, out)
+	}
+	for _, n := range names {
+		bound[n]--
+	}
+}
+
+// sref is a place a name is used: the list it is in, at kids[at], the
+// names bound between the search's root and it, and the lists from the
+// root to it (the root first, in last).
+type sref struct {
+	in    *sform
+	at    int
+	bound map[string]bool
+	path  []*sform
+}
+
+// scmRefs are the uses of name in root's kids from from on, with the names
+// bound around each below root.
+func scmRefs(root *sform, from int, name string) []sref {
+	var out []sref
+	var walk func(x *sform, i0 int, bound []string, path []*sform, binds bool)
+	walk = func(x *sform, i0 int, bound []string, path []*sform, binds bool) {
+		path = append(path, x)
+		names, bfrom, ok := scmBinds(x)
+		if !binds {
+			ok = false
+		}
+		h := x.head()
+		inner := bound
+		if ok {
+			inner = append(append([]string{}, bound...), names...)
+		}
+		for i := i0; i < len(x.kids); i++ {
+			k := x.kids[i]
+			if !k.isList() {
+				if k.atom == name {
+					b := bound
+					if ok && i >= bfrom {
+						b = inner
+					}
+					set := map[string]bool{}
+					for _, n := range b {
+						set[n] = true
+					}
+					out = append(out, sref{in: x, at: i, bound: set, path: append([]*sform{}, path...)})
+				}
+				continue
+			}
+			switch {
+			case ok && i >= bfrom:
+				walk(k, 0, inner, path, true)
+			case ok && i == bfrom-1 && h != "define" && h != "lambda":
+				// the bindings: a let's values in the scope outside, a
+				// let*'s each after the bindings before it, a letrec's
+				// inside
+				seen := bound
+				if h == "letrec" || h == "letrec*" {
+					seen = inner
+				}
+				bpath := append(path, k)
+				for _, b := range k.kids {
+					if b.isList() && len(b.kids) == 2 {
+						walk(b, 1, seen, bpath, false)
+						if h == "let*" || h == "let*-values" {
+							var ns []string
+							if b.kids[0].isList() {
+								for _, a := range b.kids[0].kids {
+									ns = append(ns, a.atom)
+								}
+							} else {
+								ns = []string{b.kids[0].atom}
+							}
+							seen = append(append([]string{}, seen...), ns...)
+						}
+					} else {
+						walk(b, 0, seen, bpath, true)
+					}
+				}
+			default:
+				walk(k, 0, bound, path, true)
+			}
+		}
+	}
+	walk(root, from, nil, nil, false)
+	return out
+}
+
+// scmLocalNames adds the names of the C's locals in the call's frame
+// (define-c-local), which read memory, to names.
+func scmLocalNames(x *sform, names map[string]bool) {
+	if !x.isList() {
+		return
+	}
+	if x.head() == "define-c-local" && len(x.kids) >= 3 {
+		names[x.kids[1].atom] = true
+		names[x.kids[2].atom] = true
+		return
+	}
+	for _, k := range x.kids {
+		scmLocalNames(k, names)
+	}
+}
+
+// --- joins and loops ---------------------------------------------------------
+
+// scmProcs is the body that holds a function's local procedures: the
+// define's, or that of the let that binds mem and fr.
+func scmProcs(fn *sform) (*sform, int) {
+	body, from := fn, 2
+	for {
+		hasDefs := false
+		for _, k := range body.kids[from:] {
+			if k.head() == "define" || k.head() == "define-c-local" {
+				hasDefs = true
+			}
+		}
+		if hasDefs || len(body.kids) != from+1 {
+			return body, from
+		}
+		inner := body.kids[from]
+		if inner.head() != "let" && inner.head() != "let*" {
+			return body, from
+		}
+		_, f, _ := scmBinds(inner)
+		body, from = inner, f
+	}
+}
+
+// scmJoinsInPlace writes each join that one place calls where it is
+// called: its body there, its parameters bound to the call's arguments
+// but where the argument is the parameter's own name.  A join whose body
+// names what a binding around the call would capture stays, and so does
+// one with a parameter of a name that reads memory.
+func scmJoinsInPlace(fn *sform, memNames map[string]bool, st *scmTidyStats) {
+	procs, from := scmProcs(fn)
+	for changed := true; changed; {
+		changed = false
+		for i := from; i < len(procs.kids); i++ {
+			d := procs.kids[i]
+			if d.head() != "define" || len(d.kids) < 3 || !d.kids[1].isList() || len(d.kids[1].kids) == 0 {
+				continue
+			}
+			name := d.kids[1].kids[0].atom
+			if !strings.HasPrefix(name, "join") || len(scmRefs(d, 2, name)) != 0 {
+				continue
+			}
+			// the calls, the join taken out of the body while they are
+			// looked for
+			procs.kids = append(procs.kids[:i:i], procs.kids[i+1:]...)
+			restore := func() {
+				procs.kids = append(procs.kids[:i:i], append([]*sform{d}, procs.kids[i:]...)...)
+			}
+			refs := scmRefs(procs, from, name)
+			if len(refs) != 1 || refs[0].at != 0 || !scmInline(d, refs[0], memNames) {
+				restore()
+				continue
+			}
+			st.joinsInPlace++
+			changed = true
+			break
+		}
+	}
+}
+
+// scmInline writes the join d where r calls it, or says why not.
+func scmInline(d *sform, r sref, memNames map[string]bool) bool {
+	params := d.kids[1].kids[1:]
+	args := r.in.kids[1:]
+	if len(args) != len(params) {
+		return false
+	}
+	free := map[string]bool{}
+	bound := map[string]int{}
+	for _, p := range params {
+		if p.isList() || memNames[p.atom] {
+			return false
+		}
+		bound[p.atom]++
+	}
+	for _, k := range d.kids[2:] {
+		scmFree(k, bound, free)
+	}
+	for n := range free {
+		if r.bound[n] {
+			return false // a binding around the call would capture it
+		}
+	}
+	var binds []*sform
+	for k, p := range params {
+		if args[k].isList() || args[k].atom != p.atom {
+			binds = append(binds, &sform{brack: true, kids: []*sform{p, args[k]}})
+		}
+	}
+	forms := d.kids[2:]
+	if len(binds) > 0 {
+		forms = []*sform{slist(append([]*sform{satom("let"), slist(binds...)}, forms...)...)}
+	}
+	return scmSplice(r, forms)
+}
+
+// scmBodyAt says the form at kids[at] of x, which is in parent, is in a
+// body: one of several forms evaluated in turn, the last its value.
+func scmBodyAt(x *sform, at int, parent *sform) bool {
+	if x.brack {
+		h := ""
+		if parent != nil {
+			h = parent.head()
+		}
+		return at >= 1 && (h == "cond" || h == "case")
+	}
+	switch h := x.head(); h {
+	case "when", "unless", "define", "lambda":
+		return at >= 2
+	case "begin":
+		return at >= 1
+	}
+	if _, from, ok := scmBinds(x); ok {
+		return at >= from
+	}
+	return false
+}
+
+// scmSplice puts forms where r's call is: in a body, as they are; one
+// form anywhere; several as an if's arm, the if a cond; else a begin.
+func scmSplice(r sref, forms []*sform) bool {
+	call := r.in
+	if len(r.path) < 2 {
+		return false
+	}
+	parent := r.path[len(r.path)-2]
+	var grand *sform
+	if len(r.path) >= 3 {
+		grand = r.path[len(r.path)-3]
+	}
+	pos := -1
+	for i, k := range parent.kids {
+		if k == call {
+			pos = i
+		}
+	}
+	if pos < 0 {
+		return false
+	}
+	replace := func(with []*sform) {
+		kids := append([]*sform{}, parent.kids[:pos]...)
+		kids = append(kids, with...)
+		parent.kids = append(kids, parent.kids[pos+1:]...)
+	}
+	switch {
+	case len(forms) == 1 || scmBodyAt(parent, pos, grand) || len(r.path) == 2:
+		// the root's own kids are a body too
+		replace(forms)
+	case parent.head() == "if" && len(parent.kids) == 4 && pos >= 2:
+		then, els := []*sform{parent.kids[2]}, []*sform{parent.kids[3]}
+		if pos == 2 {
+			then = forms
+		} else {
+			els = forms
+		}
+		parent.kids = []*sform{satom("cond"),
+			{brack: true, kids: append([]*sform{parent.kids[1]}, then...)},
+			{brack: true, kids: append([]*sform{satom("else")}, els...)}}
+	default:
+		replace([]*sform{slist(append([]*sform{satom("begin")}, forms...)...)})
+	}
+	return true
+}
+
+// scmInvariants takes out of each named let the bindings of a name to
+// itself that every jump back passes on unchanged: the loop's body sees
+// the binding outside, which is the same value.
+func scmInvariants(x *sform, memNames map[string]bool, st *scmTidyStats) {
+	if !x.isList() {
+		return
+	}
+	for _, k := range x.kids {
+		scmInvariants(k, memNames, st)
+	}
+	if x.head() != "let" || len(x.kids) < 4 || x.kids[1].isList() {
+		return
+	}
+	name, bs := x.kids[1].atom, x.kids[2]
+	refs := scmRefs(x, 3, name)
+	for _, r := range refs {
+		if r.at != 0 || r.bound[name] {
+			return // a value, or another binding of the name
+		}
+	}
+	var keep []int
+	for k, b := range bs.kids {
+		if !b.isList() || len(b.kids) != 2 || b.kids[1].isList() || b.kids[0].atom != b.kids[1].atom || memNames[b.kids[0].atom] {
+			keep = append(keep, k)
+			continue
+		}
+		p := b.kids[0].atom
+		same := true
+		for _, r := range refs {
+			args := r.in.kids[1:]
+			if len(args) != len(bs.kids) || args[k].isList() || args[k].atom != p || r.bound[p] {
+				same = false
+			}
+		}
+		if !same {
+			keep = append(keep, k)
+		}
+	}
+	if len(keep) == len(bs.kids) {
+		return
+	}
+	st.invariants += len(bs.kids) - len(keep)
+	pick := func(xs []*sform) []*sform {
+		var out []*sform
+		for _, k := range keep {
+			out = append(out, xs[k])
+		}
+		return out
+	}
+	for _, r := range refs {
+		r.in.kids = append([]*sform{r.in.kids[0]}, pick(r.in.kids[1:])...)
+	}
+	bs.kids = pick(bs.kids)
 }
