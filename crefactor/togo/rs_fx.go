@@ -142,7 +142,7 @@ func (r *rgen) directFx(fd *cc.FunctionDefinition) *rsFx {
 				}
 			}
 		case *cc.UnaryExpression:
-			if x.Case == cc.UnaryExpressionDeref {
+			if x.Case == cc.UnaryExpressionDeref && !r.isRefParam(x.CastExpression) {
 				fx.unsafe = true
 			}
 		case *cc.CastExpression:
@@ -151,7 +151,11 @@ func (r *rgen) directFx(fd *cc.FunctionDefinition) *rsFx {
 			}
 		case *cc.PostfixExpression:
 			switch x.Case {
-			case cc.PostfixExpressionIndex, cc.PostfixExpressionPSelect, cc.PostfixExpressionComplit:
+			case cc.PostfixExpressionPSelect:
+				if !r.isRefParam(x.PostfixExpression) {
+					fx.unsafe = true // a reference's member is safe (rs_refs.go)
+				}
+			case cc.PostfixExpressionIndex, cc.PostfixExpressionComplit:
 				fx.unsafe = true
 			case cc.PostfixExpressionCall:
 				d := fnDesignator(x.PostfixExpression)

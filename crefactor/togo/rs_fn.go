@@ -244,7 +244,7 @@ func (f *rfn) sinkDecls(body string) string {
 				continue
 			}
 		}
-		write := regexp.MustCompile(`(^|[^.\w*])` + regexp.QuoteMeta(l.name) + `(\.\w+|\[[^\]]*\])*\s(\+|-|\*|/|%|&|\||\^|<<|>>)?=[^=]|&raw mut ` + regexp.QuoteMeta(l.name) + `\b`)
+		write := regexp.MustCompile(`(^|[^.\w*])` + regexp.QuoteMeta(l.name) + `(\.\w+|\[[^\]]*\])*\s(\+|-|\*|/|%|&|\||\^|<<|>>)?=[^=]|&(raw )?mut ` + regexp.QuoteMeta(l.name) + `\b`)
 		mut := ""
 		for _, c := range code[first+1:] {
 			if write.MatchString(c) {
@@ -323,7 +323,11 @@ func (r *rgen) signature(d *cc.Declarator, f *rfn, usesEd *bool) string {
 				}
 			}
 		}
-		ps = append(ps, name+": "+r.declType(t))
+		ty := r.declType(t)
+		if ref := r.refParams[p.Declarator]; ref != nil && p.Declarator != nil {
+			ty = ref.rsType(ty) // a reference (rs_refs.go)
+		}
+		ps = append(ps, name+": "+ty)
 		i++
 	}
 	res := ""

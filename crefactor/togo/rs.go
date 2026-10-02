@@ -65,6 +65,11 @@ type rgen struct {
 
 	// what each function does, as its signature says it (rs_fx.go)
 	fx map[string]*rsFx
+	// the reference parameters (rs_refs.go): by function and index, by
+	// declarator, and what each call passes to one
+	refs      map[string]map[int]*rsRef
+	refParams map[*cc.Declarator]*rsRef
+	refArgs   map[cc.ExpressionNode]*rsRef
 
 	// what the functions were written with, for the coverage line
 	nMatch, nLadder, nGoto, nLowered int
@@ -151,6 +156,8 @@ func (g *gen) writeRs(path string) error {
 	r.objectFields()
 	r.typedefAliases()
 	r.effects()
+	r.references()
+	r.effects() // again: a reference's dereference is safe
 
 	var report strings.Builder
 	var funcs []string

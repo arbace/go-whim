@@ -14409,30 +14409,30 @@ pub unsafe fn vim_memsave(ed: *mut Editor, p: *mut char_u, len: usize_) -> *mut 
     ret
 }
 
-pub unsafe fn ga_clear(gap: *mut garray_T) {
+pub fn ga_clear(gap: &mut garray_T) {
     ga_init(gap);
 }
 
-pub unsafe fn ga_clear_strings(gap: *mut garray_T) {
-    if !(*gap).ga_data.is_null() {
+pub fn ga_clear_strings(gap: &mut garray_T) {
+    if !gap.ga_data.is_null() {
         let mut i: i32 = 0;
-        while i < (*gap).ga_len {
+        while i < gap.ga_len {
             i += 1;
         }
     }
     ga_clear(gap);
 }
 
-pub unsafe fn ga_init(gap: *mut garray_T) {
-    (*gap).ga_data = null_mut();
-    (*gap).ga_maxlen = 0;
-    (*gap).ga_len = 0;
+pub fn ga_init(gap: &mut garray_T) {
+    gap.ga_data = null_mut();
+    gap.ga_maxlen = 0;
+    gap.ga_len = 0;
 }
 
-pub unsafe fn ga_init2(gap: *mut garray_T, itemsize: usize_, growsize: i32) {
+pub fn ga_init2(gap: &mut garray_T, itemsize: usize_, growsize: i32) {
     ga_init(gap);
-    (*gap).ga_itemsize = itemsize as i32;
-    (*gap).ga_growsize = growsize;
+    gap.ga_itemsize = itemsize as i32;
+    gap.ga_growsize = growsize;
 }
 
 pub unsafe fn ga_grow(ed: *mut Editor, gap: *mut garray_T, n: i32) -> bool {
@@ -16585,22 +16585,22 @@ pub unsafe fn check_linecomment(ed: *mut Editor, line: *mut char_u) -> i32 {
     pdiff(p, line) as i32
 }
 
-pub unsafe fn free_xp_files_extra(xp: *mut expand_T, numfiles: i32) {
-    if !(*xp).xp_files_abbr.is_null() {
-        FreeWild(numfiles, (*xp).xp_files_abbr);
-        (*xp).xp_files_abbr = null_mut();
+pub fn free_xp_files_extra(xp: &mut expand_T, numfiles: i32) {
+    if !xp.xp_files_abbr.is_null() {
+        FreeWild(numfiles, xp.xp_files_abbr);
+        xp.xp_files_abbr = null_mut();
     }
-    if !(*xp).xp_files_kind.is_null() {
-        FreeWild(numfiles, (*xp).xp_files_kind);
-        (*xp).xp_files_kind = null_mut();
+    if !xp.xp_files_kind.is_null() {
+        FreeWild(numfiles, xp.xp_files_kind);
+        xp.xp_files_kind = null_mut();
     }
-    if !(*xp).xp_files_menu.is_null() {
-        FreeWild(numfiles, (*xp).xp_files_menu);
-        (*xp).xp_files_menu = null_mut();
+    if !xp.xp_files_menu.is_null() {
+        FreeWild(numfiles, xp.xp_files_menu);
+        xp.xp_files_menu = null_mut();
     }
-    if !(*xp).xp_files_info.is_null() {
-        FreeWild(numfiles, (*xp).xp_files_info);
-        (*xp).xp_files_info = null_mut();
+    if !xp.xp_files_info.is_null() {
+        FreeWild(numfiles, xp.xp_files_info);
+        xp.xp_files_info = null_mut();
     }
 }
 
@@ -16611,13 +16611,13 @@ pub unsafe fn ExpandInit(xp: *mut expand_T) {
     (*xp).xp_numfiles = -1;
 }
 
-pub unsafe fn ExpandCleanup(xp: *mut expand_T) {
-    if (*xp).xp_numfiles >= 0 {
-        free_xp_files_extra(xp, (*xp).xp_numfiles);
-        FreeWild((*xp).xp_numfiles, (*xp).xp_files);
-        (*xp).xp_numfiles = -1;
+pub fn ExpandCleanup(xp: &mut expand_T) {
+    if xp.xp_numfiles >= 0 {
+        free_xp_files_extra(xp, xp.xp_numfiles);
+        FreeWild(xp.xp_numfiles, xp.xp_files);
+        xp.xp_numfiles = -1;
     }
-    (*xp).xp_orig = null_mut();
+    xp.xp_orig = null_mut();
 }
 
 pub unsafe fn clear_cmdline_orig(ed: *mut Editor) {
@@ -17021,21 +17021,21 @@ pub unsafe fn win_line_start(ed: *mut Editor, _wp: *mut win_T, wlv: *mut winline
     }
 }
 
-pub unsafe fn win_line_continue(wlv: *mut winlinevars_T) {
-    if (*wlv).saved_n_extra > 0 {
-        (*wlv).n_extra = (*wlv).saved_n_extra;
-        (*wlv).saved_n_extra = 0;
-        (*wlv).c_extra = (*wlv).saved_c_extra;
-        (*wlv).c_final = (*wlv).saved_c_final;
-        (*wlv).p_extra = (*wlv).saved_p_extra;
-        (*wlv).p_extra_free = (*wlv).saved_p_extra_free;
-        (*wlv).saved_p_extra_free = null_mut();
-        (*wlv).extra_attr = (*wlv).saved_extra_attr;
-        (*wlv).n_attr_skip = (*wlv).saved_n_attr_skip;
-        (*wlv).extra_for_textprop = (*wlv).saved_extra_for_textprop;
-        (*wlv).char_attr = (*wlv).saved_char_attr;
+pub fn win_line_continue(wlv: &mut winlinevars_T) {
+    if wlv.saved_n_extra > 0 {
+        wlv.n_extra = wlv.saved_n_extra;
+        wlv.saved_n_extra = 0;
+        wlv.c_extra = wlv.saved_c_extra;
+        wlv.c_final = wlv.saved_c_final;
+        wlv.p_extra = wlv.saved_p_extra;
+        wlv.p_extra_free = wlv.saved_p_extra_free;
+        wlv.saved_p_extra_free = null_mut();
+        wlv.extra_attr = wlv.saved_extra_attr;
+        wlv.n_attr_skip = wlv.saved_n_attr_skip;
+        wlv.extra_for_textprop = wlv.saved_extra_for_textprop;
+        wlv.char_attr = wlv.saved_char_attr;
     } else {
-        (*wlv).char_attr = (*wlv).win_attr;
+        wlv.char_attr = wlv.win_attr;
     }
 }
 
@@ -17295,7 +17295,7 @@ pub unsafe fn win_line(ed: *mut Editor, wp: *mut win_T, lnum: linenr_T, startrow
             }
             if wlv.draw_state == 2 && wlv.n_extra == 0 {
                 wlv.draw_state = 3;
-                win_line_continue(&raw mut wlv);
+                win_line_continue(&mut wlv);
             }
         }
         if (*ed).dollar_vcol >= 0 && in_curline && wlv.vcol >= (*wp).w_virtcol as i64 {
@@ -19449,7 +19449,7 @@ pub unsafe fn decodeModifyOtherKeys(ed: *mut Editor, mut c: i32) -> i32 {
             (*ed).typebuf.tb_off += idx + 1;
             (*ed).typebuf.tb_len -= idx + 1;
             (*ed).mod_mask = if kitty_no_mods { 0 } else { decode_modifiers(*decay(&raw mut arg).wrapping_add((form == 0) as usize)) };
-            c = merge_modifyOtherKeys(*decay(&raw mut arg).wrapping_offset(form as isize), &raw mut (*ed).mod_mask);
+            c = merge_modifyOtherKeys(*decay(&raw mut arg).wrapping_offset(form as isize), &mut (*ed).mod_mask);
         }
     }
     c
@@ -22681,7 +22681,7 @@ pub unsafe fn do_one_cmd(ed: *mut Editor, cmdlinep: *mut *mut char_u, flags: i32
         if ea.addr_type == ADDR_OTHER && ea.addr_count == 0 {
             ea.line2 = 1;
         }
-        correct_range(&raw mut ea);
+        correct_range(&mut ea);
         ea.arg = skipwhite(p);
         if ea.cmdidx == CMD_lshift || ea.cmdidx == CMD_rshift {
             ea.amount = 1;
@@ -23541,13 +23541,13 @@ pub unsafe fn invalid_range(ed: *mut Editor, eap: *mut exarg_T) -> *mut i8 {
     null_mut()
 }
 
-pub unsafe fn correct_range(eap: *mut exarg_T) {
-    if (*eap).argt & EX_ZEROR as i64 == 0 {
-        if (*eap).line1 == 0 {
-            (*eap).line1 = 1;
+pub fn correct_range(eap: &mut exarg_T) {
+    if eap.argt & EX_ZEROR as i64 == 0 {
+        if eap.line1 == 0 {
+            eap.line1 = 1;
         }
-        if (*eap).line2 == 0 {
-            (*eap).line2 = 1;
+        if eap.line2 == 0 {
+            eap.line2 = 1;
         }
     }
 }
@@ -25257,7 +25257,7 @@ pub unsafe fn getcmdline_int(ed: *mut Editor, firstc: i32, count: i64, indent: i
                 }
             }
         }
-        ExpandCleanup(&raw mut xpc);
+        ExpandCleanup(&mut xpc);
         (*ed).ccline.xpc = null_mut();
         clear_cmdline_orig(ed);
         finish_incsearch_highlighting(ed, gotesc, &raw mut is_state, false);
@@ -26734,7 +26734,7 @@ pub unsafe fn restore_typeahead(ed: *mut Editor, tp: *mut tasave_T, overwrite: b
     set_input_buf(ed, (*tp).save_inputbuf, overwrite);
 }
 
-pub unsafe fn merge_modifyOtherKeys(c_arg: i32, modifiers: *mut i32) -> i32 {
+pub fn merge_modifyOtherKeys(c_arg: i32, modifiers: &mut i32) -> i32 {
     let mut c: i32 = c_arg;
     if *modifiers & MOD_MASK_CTRL != 0 {
         if c >= b'`' as i32 && c <= 127 || c >= b'@' as i32 && c <= b'_' as i32 {
@@ -26783,7 +26783,7 @@ pub unsafe fn add_byte_to_showcmd(ed: *mut Editor, byte: char_u) {
         c = if !mb_ptr.is_null() { utf_ptr2char(ed, mb_ptr) } else { *({ t1 = ptr; ptr = t1.wrapping_add(1); t1 }) as i32 };
         if c <= 127 {
             let mut modifiers_after: i32 = modifiers;
-            let mod_c: i32 = merge_modifyOtherKeys(c, &raw mut modifiers_after);
+            let mod_c: i32 = merge_modifyOtherKeys(c, &mut modifiers_after);
             if modifiers_after == 0 {
                 modifiers = 0;
                 c = mod_c;
@@ -27014,7 +27014,7 @@ pub unsafe fn check_simplify_modifier(ed: *mut Editor, max_offset: i32) -> i32 {
         if (*tp == 128 || *tp == CSI as u8) && *tp.wrapping_add(1) == KS_MODIFIER as u8 {
             let mut modifier: i32 = *tp.wrapping_add(2) as i32;
             let c: i32 = *tp.wrapping_add(3) as i32;
-            let new_c: i32 = merge_modifyOtherKeys(c, &raw mut modifier);
+            let new_c: i32 = merge_modifyOtherKeys(c, &mut modifier);
             if new_c != c {
                 let mut key_offset: i32 = offset;
                 if offset == 0 {
@@ -27656,7 +27656,7 @@ pub unsafe fn getcmdkeycmd(ed: *mut Editor, _promptc: i32, _indent: i32, _do_con
     let mut c1: i32 = -1;
     let mut cmod: i32 = 0;
     let mut aborted: bool = false;
-    ga_init2(&raw mut line_ga, 1, 32);
+    ga_init2(&mut line_ga, 1, 32);
     (*ed).no_mapping += 1;
     (*ed).got_int = FALSE;
     while c1 != NUL && !aborted {
@@ -27711,7 +27711,7 @@ pub unsafe fn getcmdkeycmd(ed: *mut Editor, _promptc: i32, _indent: i32, _do_con
     }
     (*ed).no_mapping -= 1;
     if aborted {
-        ga_clear(&raw mut line_ga);
+        ga_clear(&mut line_ga);
     }
     line_ga.ga_data as *mut u8
 }
@@ -28372,8 +28372,8 @@ pub unsafe fn clear_hl_tables(ed: *mut Editor) {
     while i < (*ed).term_attr_table.ga_len {
         i += 1;
     }
-    ga_clear(&raw mut (*ed).term_attr_table);
-    ga_clear(&raw mut (*ed).cterm_attr_table);
+    ga_clear(&mut (*ed).term_attr_table);
+    ga_clear(&mut (*ed).cterm_attr_table);
 }
 
 pub unsafe fn hl_combine_attr(ed: *mut Editor, char_attr: i32, prim_attr: i32) -> i32 {
@@ -29860,7 +29860,7 @@ pub unsafe fn map_free(mpp: *mut *mut mapblock_T) {
 
 pub unsafe fn map_mode_to_chars(ed: *mut Editor, mode: i32) -> *mut char_u {
     let mut mapmode: garray_T = core::mem::zeroed();
-    ga_init2(&raw mut mapmode, 1, 7);
+    ga_init2(&mut mapmode, 1, 7);
     if mode & 24 == 24 {
         ga_append(ed, &raw mut mapmode, b'!' as i32);
     } else if mode & MODE_INSERT != 0 {
@@ -35324,7 +35324,7 @@ pub unsafe fn get_keystroke(ed: *mut Editor) -> i32 {
         break;
     }
     (*ed).mapped_ctrl_c = save_mapped_ctrl_c;
-    merge_modifyOtherKeys(n, &raw mut (*ed).mod_mask)
+    merge_modifyOtherKeys(n, &mut (*ed).mod_mask)
 }
 
 pub unsafe fn msgmore(ed: *mut Editor, n: i64) {
@@ -50805,14 +50805,14 @@ pub unsafe fn bt_regexec_both(ed: *mut Editor, re: *mut regengine_T, mut line: *
     let mut col: colnr_T = startcol;
     let mut retval: i64 = 0;
     if (*re).regstack.ga_data.is_null() {
-        ga_init2(&raw mut (*re).regstack, 40, 51);
+        ga_init2(&mut (*re).regstack, 40, 51);
         ga_grow(ed, &raw mut (*re).regstack, 51);
         (*re).regstack.ga_growsize = 409;
-        ga_init2(&raw mut (*re).regstack_star, 32, 16);
-        ga_init2(&raw mut (*re).regstack_behind, 376, 4);
+        ga_init2(&mut (*re).regstack_star, 32, 16);
+        ga_init2(&mut (*re).regstack_behind, 376, 4);
     }
     if (*re).backpos.ga_data.is_null() {
-        ga_init2(&raw mut (*re).backpos, 32, BACKPOS_INITIAL);
+        ga_init2(&mut (*re).backpos, 32, BACKPOS_INITIAL);
         ga_grow(ed, &raw mut (*re).backpos, BACKPOS_INITIAL);
         (*re).backpos.ga_growsize = 512;
     }
@@ -50934,10 +50934,10 @@ pub unsafe fn bt_regexec_both(ed: *mut Editor, re: *mut regengine_T, mut line: *
         (*re).reg_tofree = null_mut();
     }
     if (*re).regstack.ga_maxlen > 51 {
-        ga_clear(&raw mut (*re).regstack);
+        ga_clear(&mut (*re).regstack);
     }
     if (*re).backpos.ga_maxlen > BACKPOS_INITIAL {
-        ga_clear(&raw mut (*re).backpos);
+        ga_clear(&mut (*re).backpos);
     }
     if retval > 0 {
         if (*re).rex.reg_match.is_null() {
@@ -51092,8 +51092,8 @@ pub unsafe fn match_chunk(ed: *mut Editor, re: *mut regengine_T, rmp: *mut regmm
     let mut t1: i32 = 0;
     let mut t3: i32 = 0;
     let mut m: regmmatch_T = *rmp;
-    ga_init2(&raw mut searches, 32, 64);
-    ga_init2(&raw mut pos, 16, 64);
+    ga_init2(&mut searches, 32, 64);
+    ga_init2(&mut pos, 16, 64);
     let mut i: linenr_T = from;
     while i < to && !(*re).failed {
         let line: *mut char_u = (*lines.wrapping_offset(i as isize)).string;
@@ -51378,7 +51378,7 @@ pub unsafe fn execreg_line_continuation(ed: *mut Editor, lines: *mut string_T, m
     let mut ga: garray_T = core::mem::zeroed();
     let mut cmd_start: i64 = idx;
     let cmd_end: i64 = idx;
-    ga_init2(&raw mut ga, 1, 400);
+    ga_init2(&mut ga, 1, 400);
     loop {
         cmd_start -= 1;
         if !(cmd_start > 0) {
@@ -51410,7 +51410,7 @@ pub unsafe fn execreg_line_continuation(ed: *mut Editor, lines: *mut string_T, m
     }
     ga_append(ed, &raw mut ga, NUL);
     let str_: *mut char_u = vim_strnsave(ed, ga.ga_data as *mut u8, ga.ga_len as u64);
-    ga_clear(&raw mut ga);
+    ga_clear(&mut ga);
     idx = cmd_start;
     out__.r__ = str_;
     out__.idx = idx;
@@ -58170,7 +58170,7 @@ pub unsafe fn handle_osc(ed: *mut Editor, tp: *mut char_u, len: i32, key_name: *
             out__.slen = slen;
             return out__;
         }
-        ga_init2(&raw mut (*ed).osc_state.buf, 1, 1024);
+        ga_init2(&mut (*ed).osc_state.buf, 1, 1024);
         (*ed).osc_state.start_tv = crate::host::musl_now_ms(ed);
         (*ed).osc_state.processing = true;
         (*ed).osc_state.start_char = *tp;
@@ -58202,7 +58202,7 @@ pub unsafe fn handle_osc(ed: *mut Editor, tp: *mut char_u, len: i32, key_name: *
     if crate::host::musl_now_ms(ed) - (*ed).osc_state.start_tv >= (*ed).p_ost {
         crate::host::vim_snprintf(ed, (*ed).IObuff as *mut i8, emsg_iobuff_room(ed), decay(&raw mut (*ed).e_osc_response_timed_out), &[VArg::I((*ed).osc_state.buf.ga_len as i64), VArg::P((*ed).osc_state.buf.ga_data)]);
         emsg(ed, iobuff_or(ed, decay(&raw mut (*ed).e_osc_response_timed_out)));
-        ga_clear(&raw mut (*ed).osc_state.buf);
+        ga_clear(&mut (*ed).osc_state.buf);
         (*ed).osc_state.processing = false;
         out__.r__ = false;
         out__.slen = slen;
@@ -58498,7 +58498,7 @@ pub unsafe fn replace_termcodes(ed: *mut Editor, mut from: *mut char_u, _sid_arg
     let do_special: bool = vim_strchr(ed, (*ed).p_cpo, CPO_SPECI).is_null() || flags & REPTERM_SPECIAL != 0;
     let do_key_code: bool = vim_strchr(ed, (*ed).p_cpo, CPO_KEYCODE).is_null();
     let mut src: *mut char_u = from;
-    ga_init2(&raw mut ga, 1, 100);
+    ga_init2(&mut ga, 1, 100);
     if !ga_grow(ed, &raw mut ga, musl_strlen(src as *mut i8).wrapping_mul(6).wrapping_add(1) as i32) {
         bufp = null_mut();
         out__.r__ = from;
@@ -60664,7 +60664,7 @@ pub unsafe fn ex_undolist(ed: *mut Editor, _eap: *mut exarg_T) {
     let mut changes: i32 = 1;
     let mark: i32 = { (*ed).lastmark += 1; (*ed).lastmark };
     let nomark: i32 = { (*ed).lastmark += 1; (*ed).lastmark };
-    ga_init2(&raw mut ga, 8, 20);
+    ga_init2(&mut ga, 8, 20);
     let mut uhp: *mut u_header_T = (*(*ed).curbuf).b_u_oldhead;
     while !uhp.is_null() {
         if (*uhp).uh_prev.is_null() && (*uhp).uh_walk != nomark && (*uhp).uh_walk != mark {
@@ -60716,7 +60716,7 @@ pub unsafe fn ex_undolist(ed: *mut Editor, _eap: *mut exarg_T) {
             i += 1;
         }
         msg_end(ed);
-        ga_clear_strings(&raw mut ga);
+        ga_clear_strings(&mut ga);
     }
 }
 

@@ -562,6 +562,9 @@ func (f *rfn) place(e cc.ExpressionNode) string {
 			return f.placeOf(x.PostfixExpression) + "." + rsName(x.Token2.SrcStr())
 		case cc.PostfixExpressionPSelect:
 			p := f.expr(x.PostfixExpression)
+			if f.r.isRefParam(x.PostfixExpression) {
+				return p.s + "." + rsName(x.Token2.SrcStr()) // a reference's member
+			}
 			return "(*" + wrap(p, pPrim) + ")." + rsName(x.Token2.SrcStr())
 		case cc.PostfixExpressionComplit:
 			a := f.complit(x)
@@ -1193,6 +1196,10 @@ func (f *rfn) call(x *cc.PostfixExpression) rv {
 			pt := params[i].Type()
 			if pt.Kind() == cc.Array {
 				pt = pt.Decay()
+			}
+			if ref := f.r.refArgs[a]; ref != nil {
+				vals = append(vals, f.refArg(a, ref))
+				continue
 			}
 			v := f.conv(f.expr(a), f.r.ty(pt))
 			vals = append(vals, unparenRs(v.s))

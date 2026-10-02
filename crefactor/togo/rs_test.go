@@ -397,3 +397,51 @@ func TestRsHoist(t *testing.T) {
 		}
 	}
 }
+
+// rsRefsC is pointer parameters that are Rust references (rs_refs.go): a
+// function that touches memory only through its parameters, `&mut` where
+// it writes through one, `&` where it only reads -- beside what stays raw:
+// a parameter compared, a function that names a global, two parameters
+// where one is written.
+const rsRefsC = javaHost + `
+struct pt { int x; int y; struct { int a; } in; };
+static int g;
+static void clear(struct pt *p) { p->x = 0; p->y = 0; p->in.a = 0; }
+static void init(struct pt *p, int v) { clear(p); p->x = v; p->y = v * 2; }
+static int sum(const struct pt *a, const struct pt *b) { return a->x + b->y; }
+static void bumpa(int *a) { *a += 1; }
+static int same(struct pt *a, struct pt *b) { return a == b; }
+static void touch(struct pt *p) { p->x = g; }
+static void swapxy(struct pt *a, struct pt *b) { int t = a->x; a->x = b->y; b->y = t; }
+
+void run(void)
+{
+    struct pt p, q;
+    init(&p, 3);
+    init(&q, 5);
+    out(sum(&p, &q));
+    bumpa(&p.in.a);
+    out(p.in.a);
+    out(same(&p, &p));
+    g = 9;
+    touch(&q);
+    out(q.x);
+    swapxy(&p, &q);
+    out(p.x); out(q.y);
+}
+`
+
+func TestRsRefs(t *testing.T) {
+	prog := rsSame(t, rsRefsC, Profile{}, javaHarnessC)
+	for _, s := range []string{"fn clear(p: &mut pt)", "fn init(p: &mut pt, v: i32)", "fn sum(a: &pt, b: &pt)", "fn bumpa(a: &mut i32)",
+		"init(&mut p, 3)", "bumpa(&mut p.in_.a)", "p.x = v;"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+	for _, s := range []string{"fn same(a: *mut pt", "fn touch(ed: *mut Editor, p: *mut pt)", "fn swapxy(a: *mut pt, b: *mut pt)"} {
+		if !strings.Contains(prog, s) {
+			t.Errorf("no %q in the Rust:\n%s", s, numbered(prog))
+		}
+	}
+}
