@@ -22,16 +22,17 @@ type GotoTailKnobs struct {
 // after the label's own, and then `return x;` -- or, in a function that
 // returns void, the end of its body, which is `return;`.  At the goto the copy
 // does what the jump leads to, in the same state, and returns; so it does not
-// matter which loops or switches lie between the goto and the label.  It is
-// GotoReturn's rule widened from no statement to a few.  Empty statements
-// are not counted and not copied.
+// matter which loops or switches lie between the goto and the label.  A tail
+// of no statements is the label's `return x;` alone: GotoReturn's rule, which
+// this subsumed (phase 168, a record now).  Empty statements are not counted
+// and not copied.
 //
 // A goto is held, and so is its label, when the copy could mean something
 // else or could not be written twice:
 //
 //   - a name the tail reads is declared in an inner block of the function
 //     (it might shadow at the goto or at the label), or at the function's top
-//     after the goto or after the label (GotoReturn's rule; a typedef name
+//     after the goto or after the label (a typedef name
 //     counts as a name);
 //   - the tail holds a label, a case or a default (another way in, or a
 //     second copy of one), a declaration (the copy would declare it twice,

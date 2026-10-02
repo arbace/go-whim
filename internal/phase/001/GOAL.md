@@ -1,5 +1,12 @@
 # Phase 1 — no `$VIMRUNTIME`
 
+**The front is three phases.** This phase runs D1-D5 (the command line to the
+swap file) and its fall-out closure. Phase 2 runs D6-D8 (startup, the encoding,
+the terminal) and phase 3 D9-D12 (one of each, the editing features, the
+regexp engine, the process), each with its own closure. Each part is under 50 s,
+so the parallel check runs them side by side. The paragraphs below describe all
+twelve where they were first written.
+
 **Its first step is the command line** (`argvfront`, the pipeline reform's
 first drop package, `doc/PIPELINE-REFORM.md` §7): `command_line_scan()` is cut
 on the seed to what the product accepts, `+{command}` and nothing else. So are

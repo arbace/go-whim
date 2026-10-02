@@ -62,6 +62,8 @@ var ops = map[string]Step{
 	// and phase 1's one step: the five in order, and ONE fall-out closure
 	// over what they leave unwritten together
 	"front":       Step(xform.FallOutOf(xform.Step(front), frontHold...)),
+	"front2":      Step(xform.FallOutOf(xform.Step(front2), frontHold...)),
+	"front3":      Step(xform.FallOutOf(xform.Step(front3), frontHold...)),
 	"nobackup":    plain(cut.NoBackup),
 	"nobuflist":   plain(cut.NoBufList),
 	"nochdir":     plain(cut.NoChdir),
@@ -184,21 +186,38 @@ func dropLocal(t []byte, args []string, w io.Writer) ([]byte, error) {
 	return t, nil
 }
 
-// front runs the eight front cuts in order.
+// front runs phase 1's front cuts in order, D1-D5: the command line, the Ex
+// commands, the files, `:q`, reading, the command syntax, the options and the
+// swap file.
 func front(t []byte, args []string, w io.Writer) ([]byte, error) {
-	var err error
-	for _, op := range []Step{plain(cut.ArgvFront), exFront, plain(cut.ExTable),
+	return runCuts(t, args, w, []Step{plain(cut.ArgvFront), exFront, plain(cut.ExTable),
 		plain(cut.FileFront), plain(cut.QuitFront), plain(cut.ReadFront), plain(cut.OneCmdFront),
-		plain(cut.OptFront), plain(cut.NoSwap), plain(cut.NoRecover),
-		plain(cut.NoMemfile), plain(cut.NoLocale), plain(cut.NoStartup),
+		plain(cut.OptFront), plain(cut.NoSwap), plain(cut.NoRecover), plain(cut.NoMemfile)})
+}
+
+// front2 runs phase 2's, D6-D8: startup, the encoding, the terminal.  The
+// front is three phases so that the parallel check runs them side by side.
+func front2(t []byte, args []string, w io.Writer) ([]byte, error) {
+	return runCuts(t, args, w, []Step{plain(cut.NoLocale), plain(cut.NoStartup),
 		plain(cut.NoCmdOpts), plain(cut.NoSession), editStep("whim56"),
 		plain(cut.NoEnc), plain(cut.NoFencs), plain(cut.NoFenc),
-		plain(cut.Utf8Only), plain(cut.NoTerm), plain(cut.NoMouse), editStep("whim61"),
-		plain(cut.NoInert), plain(cut.NoTabs), plain(cut.NoArgList), plain(cut.NoWindows), plain(cut.NoWinSizes),
+		plain(cut.Utf8Only), plain(cut.NoTerm), plain(cut.NoMouse), editStep("whim61")})
+}
+
+// front3 runs phase 3's, D9-D12: one of each, the editing features, one
+// regexp engine, the process.
+func front3(t []byte, args []string, w io.Writer) ([]byte, error) {
+	return runCuts(t, args, w, []Step{plain(cut.NoInert), plain(cut.NoTabs),
+		plain(cut.NoArgList), plain(cut.NoWindows), plain(cut.NoWinSizes),
 		plain(cut.NoBufList), plain(cut.NoNfa), plain(cut.NoShellOut), plain(cut.NoTags),
 		plain(cut.NoSignals), plain(cut.NoEquiClass), plain(cut.NoCindent), plain(cut.NoUcmd),
 		plain(cut.NoIdent), plain(cut.NoFnameMod), plain(cut.NoCompl), plain(cut.NoComplKeys),
-		plain(cut.NoAbbr)} {
+		plain(cut.NoAbbr)})
+}
+
+func runCuts(t []byte, args []string, w io.Writer, cuts []Step) ([]byte, error) {
+	var err error
+	for _, op := range cuts {
 		if t, err = op(t, args, w); err != nil {
 			return nil, err
 		}

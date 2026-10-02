@@ -76,11 +76,12 @@ again:
 	refuses(t, DeadStmt(), src, "unexpected argument", "--at-least", "3")
 }
 
-// A goto to a label that returns is that return; one whose value could be
+// GotoTail with a tail of no statements, GotoReturn's rule before this took
+// it: a goto to a label that returns is that return; one whose value could be
 // shadowed at the goto is held, and so is its label.  A label's return that
 // only the gotos reached goes with it; one after a labeled statement stays,
 // for DeadStmt to take.
-func TestGotoReturn(t *testing.T) {
+func TestGotoTailNoStatements(t *testing.T) {
 	src := `int scan(const char *s)
 {
     int n = 0;
@@ -141,7 +142,7 @@ out:
     return r;
 }
 `
-	got := run(t, GotoReturn(), src)
+	got := run(t, GotoTail(GotoTailKnobs{}), src)
 	same(t, got, want)
 	compiles(t, got)
 }

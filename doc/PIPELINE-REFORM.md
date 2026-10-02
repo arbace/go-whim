@@ -998,8 +998,8 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
    - **168 into `GotoTail`, done.** With 168's program removed, 170 takes
      its 19 gotos as tails of no statements, and the chain gives the product
      byte for byte. `GotoTail` now takes 98 gotos and drops 21 labels. 168
-     is a record, and `crefactor/xform`'s `GotoReturn` stays as a library
-     step with its tests. In order: 124 phases, 789 s; the parallel check:
+     is a record. `crefactor/xform`'s `GotoReturn` is gone too: its test runs
+     `GotoTail` with a tail of no statements and gives the same text. In order: 124 phases, 789 s; the parallel check:
      123 links, 119 s.
    - So the generic steps stay where the rewires need them. The tail
      164-184 is generic but for 174-180, the regex engine's rewire (R10),
@@ -1022,6 +1022,22 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      `internal/phase/archive/NNN/`, with their old numbers, and the 122
      citations of their paths point there. A program the front calls (56,
      61) keeps its directory.
+   - **The front in three phases (after the reform, to speed the check).**
+     Phase 1 had grown to 89 s and bound the parallel check. Profiled, the
+     cuts took 48 s, spread across them as regexp scans of a 4 MB text not
+     yet swept, and the closure 31 s, with GC 28% of all CPU. No single
+     cut dominates, and `GOGC=800` saves 10% at 3 GB a phase.
+     - **The split.** Phase 1 runs D1-D5 and its closure, phase 2 D6-D8
+       and phase 3 D9-D12, each part with its own closure, ahead of the
+       steps those phases had. They take 40, 43 and 45 s.
+     - **Re-counted.** Each part sees the text the previous phase swept, so
+       the counts restated for the unswept front move again: `setmouse()`
+       32, `need_maketitle` 6, `'scrollbind'` 14 again. `notabs` folds the
+       test the closure left.
+     - **The same product.** The chain gives it byte for byte. In order:
+       124 phases, 815 s (36 more, for two more closures). The parallel
+       check: 123 links, 75 s (122 before), bound by the machine's load
+       again; the parts take 40, 43 and 47 s.
    - **Result.** The chain gives the committed `whim-vim.c` byte for byte,
      under its 39 block headings. In order: 124 phases, 779 s. The parallel
      check: 123 links, 122 s; phase 1 89 s.

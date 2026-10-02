@@ -9,7 +9,16 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-Nothing queued.
+- **The drops that stayed, brought to the front** (the pipeline reform,
+  `PIPELINE-REFORM.md` §7).
+  - `onebuffer` (42), `lfonly` (50), `keepbytes` and `noconv` (53), the
+    programs of 57-59, 63-68, 71-76 and 85.
+  - Each counts text that only the phases before it leave. So each needs
+    the edits it depends on brought to the front with it: for `lfonly`,
+    every readfile edit, since readfile is live at the front until phase 13.
+- **A fresh numbering of the phases**, beyond the block labels: some 4,200
+  citations, the snapshots and `--from`/`--to` name the numbers (§7, step
+  8).
 
 ## Known stale, not yet scoped
 
@@ -17,6 +26,19 @@ Nothing known.
 
 
 ## Declined, with the reason recorded
+
+- **The generic steps moved to the end, and `BoolRet` run once** (2026-10-02;
+  the pipeline reform's G, `PIPELINE-REFORM.md` §7). Each move was run from
+  the step's position to the product.
+  - 120's unions: phase 137 names the field as 120 leaves it.
+  - 134's empty blocks: phase 145 takes the block 134 leaves.
+  - 149's never-null folds: the product is 34 lines longer.
+  - `BoolRet` once: 120 lines differ.
+  - `NullptrUsize` and the attributes (106-107): they would need about 280
+    anchors in 34 phases respelled, and must precede 120, 134 and 149,
+    which cannot move.
+
+  Declined: the rewires are written for these steps' text.
 
 - **The messages as data the Clojure editors share** (2026-09-29;
   `CLOJURE-IDIOMS.md` item 4). A sound proof that nothing writes vim's 185

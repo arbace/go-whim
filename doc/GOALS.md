@@ -50,15 +50,17 @@ the plan (`internal/build`), named by kind and number:
 A block is a label on the phase that opens it, which the build's log prints as
 a heading; the phases keep their numbers, which the snapshots (`qNNN.c`),
 `--from` and `--to` use. The kinds interleave where the measurements put them.
-D1-D12 are all phase 1's front, before its one fall-out closure. A generic step
+D1-D12 are the front of phases 1-3 (D1-D5, D6-D8, D9-D12), each part followed by
+its own fall-out closure, so that the parallel check runs the three side by
+side. A generic step
 stays in the middle where the rewires after it were written for its text (§7
 of the reform: 120, 134 and 149).
 
 | block | phases |
 |---|---|
 | `s00-seed` | 0 |
-| `d01-front` | 1 |
-| `d02-outside` | 2-25 (12 phases) |
+| `d01-front` | 1, 2, 3 |
+| `d02-outside` | 6-25 (10 phases) |
 | `d03-editing` | 28, 32 |
 | `d04-one-buffer` | 42 |
 | `d05-commands-and-options` | 48, 49 |

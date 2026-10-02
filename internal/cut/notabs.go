@@ -93,10 +93,11 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		":tabnew and :tabedit with no file in do_exedit", 1); err != nil {
 		return nil, err
 	}
-	// at phase 1 (the reform's D9) this runs before the closure, which would
-	// otherwise take close_disallowed's term
+	// close_disallowed falls out in phase 2's closure (window_layout_lock()'s
+	// callers, autocommand triggers, went with the front's cuts), and its
+	// term with it
 	if text, err = e.foldNever(text,
-		`^[ \t]*if \(close_disallowed == 0 && cmd == CMD_tabnew\)$`,
+		`^[ \t]*if \(cmd == CMD_tabnew\)$`,
 		"window_layout_locked naming :tabnew"); err != nil {
 		return nil, err
 	}

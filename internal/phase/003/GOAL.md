@@ -1,5 +1,9 @@
 # Phase 3 — no introduction, and the command line says only what the editor still decides
 
+**It runs the front's third part first** (`front3`: D9-D12, `noinert` to
+`noabbr`, and its closure; `internal/phase/001/GOAL.md` describes them), then
+the cuts this phase was.
+
 **An embedded editor starts in a buffer, not on a title card, and is started by
 something that knows what it wants.** This was two phases with a third's worth
 of work left undone between them. They were one question — *what may an

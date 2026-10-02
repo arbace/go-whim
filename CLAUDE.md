@@ -26,7 +26,8 @@ slim-vim.c  --whim-->  whim-vim.c
   sake, the headers, the gotos, the parallel `:%s`, the out-parameters
   and struct locals as values, the C spelled plainly, and its flags bool:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
-    install, 84,025 lines at q82;
+    install, 80,926 lines at q80, the last of them that edits (81 and 82 are
+    records);
   - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
     no filesystem, the host behind a line in the file, no libc the core names, the
     text a tree. `GOALS.md` Part II, *Phases 83 to 128 as they
@@ -149,12 +150,15 @@ slim-vim.c  --whim-->  whim-vim.c
 
   **The pipeline reform** (`doc/PIPELINE-REFORM.md`) reordered what the bytes
   allow.
-  - **Phase 1 is the front.** It cuts every interface and feature the product
-    has not, as twelve packages (D1-D12): the command line, the Ex commands,
+  - **Phases 1-3 are the front.** They cut every interface and feature the
+    product has not, as twelve packages (D1-D12; phase 1 runs D1-D5, phase 2
+    D6-D8, phase 3 D9-D12, each part followed by its own closure, so that the
+    parallel check runs the three side by side): the command line, the Ex commands,
     the files, `:q`'s refusal, reading, the command syntax, the options, the
     swap file, startup, the encoding, the terminal, one window and buffer,
-    the editing features, one regexp engine, the process. Then one fall-out
-    closure (`crefactor/xform`'s `FallOut`) folds what that left unwritten.
+    the editing features, one regexp engine, the process. The fall-out
+    closure (`crefactor/xform`'s `FallOut`) folds what each part left
+    unwritten.
   - **The rest are named in blocks.** `d02`-`d13` are the drops that count
     text only their predecessors leave, `r01`-`r14` the rewires, and
     `g01`-`g11` the generic steps (`doc/GOALS.md`, *The pipeline as it runs*).
@@ -462,7 +466,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 124 phases, **779 s**, 77,634 lines. A
+  before the reason. Measured: 124 phases, **815 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -480,8 +484,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **122 s**, 123 links 64 at a time, bound by
-  its longest link again: phase 1, its front cuts and its one fall-out closure, 89 s (phase 54 was 44 s alone, before it was one), against 1,005 s in
+  committed `whim-vim.c`. Measured: **75 s**, 123 links 64 at a time, bound by
+  the machine's load and no longer by one link (the front's three parts, phases 1-3, take 40, 43 and 47 s; phase 1 alone was 89 s), against 1,005 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose

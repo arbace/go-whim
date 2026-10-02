@@ -253,9 +253,8 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 
 	if text, err = e.subCount(text,
 		`^[ \t]*\((?:curwin|wp)\)->w_onebuf_opt\.wo_(?:scb|crb) = FALSE;\n`,
-		// 18 at phase 1 (the reform's D9): four are in the handlers of the
-		// commands retired there (D2), which the sweep has not taken yet
-		"every assignment of 'scrollbind' and 'cursorbind'", 18); err != nil {
+		// 14: four more died with the commands retired at phase 1 (D2)
+		"every assignment of 'scrollbind' and 'cursorbind'", 14); err != nil {
 		return nil, err
 	}
 	for _, v := range []struct{ wv, fld string }{

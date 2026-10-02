@@ -1,5 +1,9 @@
 # Phase 2 — the options for features that are not here
 
+**It runs the front's second part first** (`front2`: D6-D8, `nolocale` to
+`whim61`, and its closure; `internal/phase/001/GOAL.md` describes them), then
+the query this phase was.
+
 **There are no commands to cut, and checking that first is the point.** All
 fourteen `:menu` commands and all eight `:spell` ones are *already* `ex_ni`:
 upstream's `tiny` configuration never compiled them, and the slim pipeline's

@@ -48,18 +48,20 @@ var Plan = []Phase{
 			{Op: "front", Declared: true},
 			{Op: "noruntime"},
 		}},
-	{N: 2, Block: "d02-outside", Name: "the options for features that are not here",
+	{N: 2, Name: "the front, continued; and the options for features that are not here",
 		Steps: []Step{
+			{Op: "front2"},
 			{Op: "query-empty", Args: []string{"whim2"}},
 		}},
-	{N: 3, Name: "no introduction, and the command line says only what the editor still decides",
+	{N: 3, Name: "the front, ended; and no introduction, and the command line says only what the editor still decides",
 		Steps: []Step{
+			{Op: "front3"},
 			{Op: "nointro"},
 			{Op: "optreaders"},
 		}},
 	// 4, the binary's name stops choosing what it does: a record (internal/phase/archive/004/GOAL.md); its cut went to argvfront, phase 1.
 	// 5, one regexp engine, not two: a record (internal/phase/archive/005/GOAL.md); its cut went to phase 1 (nonfa, the reform's D11).
-	{N: 6, Name: "the editor stops writing shell scripts, and stops drawing a menu",
+	{N: 6, Block: "d02-outside", Name: "the editor stops writing shell scripts, and stops drawing a menu",
 		Steps: []Step{
 			{Op: "nowild"},
 			{Op: "nowildmenu"},

@@ -170,11 +170,11 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	text = append(buf, text[end:]...)
 	fmt.Fprintln(w, "  nomouse      the escape sequences that carried a click")
 
-	// 33 at phase 1 (the reform's D8), where the text is not swept and
-	// what phases 2-23 took is still there; 'mouse''s handler's went with
-	// its row (optfront, the reform's D3)
-	if n = len(setmouseCall.FindAll(text, -1)); n != 33 {
-		return nil, fmt.Errorf("nomouse: expected 33 setmouse() calls, matched %d", n)
+	// 32 at phase 2's front (the reform's D8), where what phases 3-23 took is
+	// still there; 'mouse''s handler's went with its row (optfront, the
+	// reform's D3)
+	if n = len(setmouseCall.FindAll(text, -1)); n != 32 {
+		return nil, fmt.Errorf("nomouse: expected 32 setmouse() calls, matched %d", n)
 	}
 	text = setmouseCall.ReplaceAll(text, nil)
 	// Every mch_setmouse() call is a bare statement too.  The count is NOT
@@ -185,7 +185,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nomouse: mch_setmouse has %d mentions left, expected the "+
 			"definition and its declaration", left)
 	}
-	fmt.Fprintf(w, "  nomouse      %d setmouse() calls, every one a bare statement\n", 33)
+	fmt.Fprintf(w, "  nomouse      %d setmouse() calls, every one a bare statement\n", 32)
 
 	if text, err = cutCounted(text,
 		`(?m)[ \t]*if \(tabcount > 1 && mouse_has_any\(\)\)\n[ \t]*\{\n`+
