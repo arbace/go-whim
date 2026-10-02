@@ -9,7 +9,7 @@ it was made here.
 A row of `options[]` whose variable is `(char_u *)NULL` is an option `:set` accepts,
 reports and ignores: its feature was never compiled in — folding, syntax, the GUI,
 printing, cscope, the interpreter DLLs — or went in an earlier phase. **174 of
-them.** `internal/phase/054/edit.go`'s `noVarRow` computes the set from the table rather than
+them.** `internal/phase/archive/054/edit.go`'s `noVarRow` computes the set from the table rather than
 listing it, so a row upstream adds later without a variable goes too, and hands it to
 `dropoptions`. None is buffer- or window-local, and no code outside the table
 names one by string.
@@ -48,6 +48,6 @@ The phase checks `:set sw` still works and that `'foldmethod'`, `'cursorline'`,
 was. No behaviour case sets an option without a variable, and the Ex sweep runs command
 NAMES: `set` is one of its 600 rows and its result does not move, because the sweep
 never names an option. So `'statusline'` and `'statuslineopt'` becoming unknown to
-`:set` is a change the corpus cannot see, and `internal/phase/054/delta` declares nothing —
+`:set` is a change the corpus cannot see, and `internal/phase/archive/054/delta` declares nothing —
 stated here rather than widened to fit, which is what would have happened if the
 declaration grammar had been given an option name it does not take.

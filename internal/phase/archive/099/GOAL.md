@@ -7,7 +7,7 @@ plan and its edit program is gone: removing it leaves every boundary
 byte-identical (the redundant-steps survey, in git history at `6f8c1e9`). What
 follows is the record of when it did both.
 
-`internal/phase/099/edit.go` and `internal/phase/099/check.go`, `stage 99`, `package includes`.
+`internal/phase/archive/099/edit.go` and `internal/phase/archive/099/check.go`, `stage 99`, `package includes`.
 `whim-vim.c` inherited **eighteen** preprocessor directives from `whim-vim.c`, every
 one an `#include` of a system header, and fifteen phases removed none of them. Six are
 now needed by nothing, and this phase takes them — **the first Part II phase to change
@@ -74,7 +74,7 @@ includes, the typedef and one blank is **eight lines**.
 ## The argument is a computation and not a list
 
 A phase that deleted six named headers would prove only that six named headers were
-deletable. `internal/phase/099/check.go` proves something else, and it is the whole phase:
+deletable. `internal/phase/archive/099/check.go` proves something else, and it is the whole phase:
 
 * **on the output**, each of the twelve surviving `#include`s is removed in turn and
   the compile **must fail**. A dead include that survived this phase would be a compile

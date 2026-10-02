@@ -1005,6 +1005,26 @@ by `whim-build` and `whim-build-check`, with the four editors untouched.
      164-184 is generic but for 174-180, the regex engine's rewire (R10),
      which rests on 175 and 176 as §5 foresaw.
 8. **Renumber and archive.**
+   - **Done, in the shape the measurements left.** The phases kept their
+     numbers: the snapshots (`qNNN.c`), `--from`, `--to` and some 4,200
+     citations name them. The numbering the review asked for is a label on
+     each block instead:
+     - `crefactor/pipeline`'s `Phase` has a `Block`, the block a phase
+       opens, which the log prints as a heading;
+     - the plan names 39 blocks, from `s00-seed` and `d01-front` to
+       `g11-bool`;
+     - `doc/GOALS.md`, *The pipeline as it runs*, indexes them.
+   - **Why the kinds interleave.** D1-D12 are phase 1's front. The drops
+     that stay (`d02`-`d13`) count text only their predecessors leave, and
+     the generic steps that stay in the middle (`g01`-`g04`) are what the
+     rewires after them were written for.
+   - **The archive.** The 39 phases that edit nothing are records, in
+     `internal/phase/archive/NNN/`, with their old numbers, and the 122
+     citations of their paths point there. A program the front calls (56,
+     61) keeps its directory.
+   - **Result.** The chain gives the committed `whim-vim.c` byte for byte,
+     under its 39 block headings. In order: 124 phases, 779 s. The parallel
+     check: 123 links, 122 s; phase 1 89 s.
    - The new phases go in a fresh directory and a fresh numbering (see
      question 1).
    - The old `internal/phase/NNN/` records go to an archive.

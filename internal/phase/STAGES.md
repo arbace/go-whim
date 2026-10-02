@@ -1093,12 +1093,12 @@ apart       118 119
                  has is read off the text rather than written down, which is also why
                  phase 117 adding two of them cost this phase nothing but a re-run.
 38 CANNOT SHARE A STAGE WITH 33, for the reason written against 34 above:
-internal/phase/116/check.go is ONE file and a stage of more than one phase is made of split
+internal/phase/archive/116/check.go is ONE file and a stage of more than one phase is made of split
 programs, so tools/stages.sh refuses any stage containing 33 before a check runs.  BUT
 PHASE 33'S CHECK REALLY DOES BREAK ON THIS PHASE'S OUTPUT, AND NOT THROUGH A STAGE,
 which no `apart` line can say: its section 4 extracts ./zero-vim from EVERY
 .build/r*.tar it can find and requires one terminal table across all of them.
-MEASURED, by putting this phase's own tar in .build and running internal/phase/116/check.go
+MEASURED, by putting this phase's own tar in .build and running internal/phase/archive/116/check.go
 on q116: it gets as far as `same` and then stops with `boundaries   q121 records a
 different table:` and the eight rows, exit 1.  So once an q121 tar exists,
 `make whim-phase-116` in the repository root fails -- a scratch root has no .build
@@ -1204,7 +1204,7 @@ cannot run at all -- `need 128 swept` below forbids it before any check is reach
 apart       127 128
 ```
   NO `apart 122 123` AND NO `need 123`, AND NEITHER IS AN OMISSION.  Phase 123 is a
-                 WHOLE-PHASE program, internal/phase/123/check.go -- phase 86's shape and
+                 WHOLE-PHASE program, internal/phase/archive/123/check.go -- phase 86's shape and
                  phase 116's -- so it cannot share a stage with anything at all,
                  and that is enforced rather than agreed: `tools/stages.sh zero` with
                  `stage 122-123` in this file refuses before any check runs, with
@@ -1247,7 +1247,7 @@ RATHER THAN THINGS NOBODY LOOKED AT.
                  a `cmp` against the input's, so it cannot share one with any phase
                  that changes a core line at all, which is most of them.
                  AND WITH ITS ACTUAL PREDECESSOR IT COULD NOT SHARE ONE ANYWAY, for
-                 phase 117's reason rather than for any of its own: internal/phase/123/check.go is
+                 phase 117's reason rather than for any of its own: internal/phase/archive/123/check.go is
                  ONE file, so a stage holding 123 and 124 is refused by tools/stages.sh
                  before a check runs -- `phase 123 is in stage 123-124 but is not an edit
                  and a check`.  An `apart 123 124` would be unreachable as well as

@@ -147,6 +147,19 @@ slim-vim.c  --whim-->  whim-vim.c
 
   Phase 83 is the line between the two arcs.
 
+  **The pipeline reform** (`doc/PIPELINE-REFORM.md`) reordered what the bytes
+  allow.
+  - **Phase 1 is the front.** It cuts every interface and feature the product
+    has not, as twelve packages (D1-D12): the command line, the Ex commands,
+    the files, `:q`'s refusal, reading, the command syntax, the options, the
+    swap file, startup, the encoding, the terminal, one window and buffer,
+    the editing features, one regexp engine, the process. Then one fall-out
+    closure (`crefactor/xform`'s `FallOut`) folds what that left unwritten.
+  - **The rest are named in blocks.** `d02`-`d13` are the drops that count
+    text only their predecessors leave, `r01`-`r14` the rewires, and
+    `g01`-`g11` the generic steps (`doc/GOALS.md`, *The pipeline as it runs*).
+  - **The phases that edit nothing are records** in `internal/phase/archive/`.
+
   **The test suite is minimal.** Each phase was verified, while it was written, by a
   check program of its own and a delta declared in advance against recorded
   baselines; that whole suite (`internal/check`, `internal/verify`,
@@ -202,7 +215,7 @@ slim-vim.c  --whim-->  whim-vim.c
 ## What a file is called
 
 **Code is `.go`, data is `lowercase.md`, prose is `UPPERCASE.md`**, and the three
-mix freely in one directory: `internal/phase/099/` holds `edit.go` and `GOAL.md`. A
+mix freely in one directory: `internal/phase/097/` holds `edit.go` and `GOAL.md`. A
 data file in Markdown puts its data in a FENCED BLOCK and its notes around it,
 and the reader takes the fence and ignores the rest -- `internal/build`'s
 `declared()` reads `internal/phase/001/delta.md` that way (the command rows phase 1
@@ -213,7 +226,7 @@ digest each, read by `make`.
 
 **A phase is a directory, `internal/phase/NNN/`**, its number in three digits so that they
 sort: `GOAL.md`, which opens `# Phase N — …` and says what the phase removes,
-why and what was measured, and -- for the 111 phases whose cut is a program of
+why and what was measured, and -- for the 112 phases whose cut is a program of
 its own -- `edit.go`, which makes that directory **a Go package**, `pNNN`
 (`editlit.go` beside it where the literals are long). The other phases are plan
 steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
@@ -297,7 +310,9 @@ internal/whim/     what the generic side is told about vim: profile.go (the
                    is in that phase's shapes.go)
 internal/phase/    the registry the phases' programs join (registry.go, query.go),
                    and the phases: NNN/ (GOAL.md, and edit.go where its cut is a
-                   program; cmd/whim/phases.go imports each blank), STAGES.md (the record of
+                   program; cmd/whim/phases.go imports each blank), archive/NNN/
+                   (the records: a GOAL.md each, for a phase that edits nothing
+                   now), STAGES.md (the record of
                    the stages there were, and of the measurement that retired them --
                    prose, not a manifest a program reads) and boundaries.md
                    (every boundary's lines, entity counts, binary and nm -u, as
@@ -446,8 +461,8 @@ make help            # every target, with a line each
   so every boundary that is C is in the one spelling phase 0 seeds with -- applied
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
-  time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 124 phases, **789 s**, 77,634 lines. A
+  time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
+  before the reason. Measured: 124 phases, **779 s**, 77,634 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -465,8 +480,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **119 s**, 123 links 64 at a time, bound by
-  its longest link again: phase 1, its front cuts and its one fall-out closure, 94 s (phase 54 was 44 s alone, before it was one), against 1,005 s in
+  committed `whim-vim.c`. Measured: **122 s**, 123 links 64 at a time, bound by
+  its longest link again: phase 1, its front cuts and its one fall-out closure, 89 s (phase 54 was 44 s alone, before it was one), against 1,005 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -514,20 +529,13 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 124 of them, in order, numbered 0-184: 39 phases that
-edit nothing any more are records only (a `GOAL.md`, no plan entry; 4, 43 and
-88 since phase 1 cuts the whole command line and lets what it set fall out,
-33 since it retires every Ex command the product has not, 54 since it drops
-every option the product has not, 81 since it makes a command line one
-command, 11 and 21 since it runs their swap and recovery cuts, 9, 18 and
-35 since it runs their startup, locale and session cuts, 12 and 15 since
-it runs their encoding cuts, 19, 24 and 61 since it runs their terminal,
-mouse and title cuts, 36-38, 40 and 41 since it runs their window, tab
-page, argument-list and buffer-list cuts, 5, 8, 10, 26, 27, 29-31 and 34
-since it runs their regexp, shell, signal, tag, command, ident, file-name and
-abbreviation cuts, 168 since `GotoTail` takes its gotos,
-`doc/PIPELINE-REFORM.md` §7), and the
-14 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d -- 39-40, 44-48,
+`p_N = f_N(p_{N-1})` -- 124 of them, in order, numbered 0-184. 39 phases that
+edit nothing any more are records only, a `GOAL.md` each in
+`internal/phase/archive/` (`doc/GOALS.md` lists them): most because phase 1's
+front runs their cut now, 168 because `GotoTail` takes its gotos
+(`doc/PIPELINE-REFORM.md` §7). 61's program is called by the front too, so it
+has no plan entry but keeps its directory. And the
+13 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d still running -- 44-48,
 51-53, 72-73, 100-102, 105-107, 117-119, 121-122, 143-145, 148-149, 151-152,
 153-154, 164-165, 166-167 -- each run as one phase under the group's last
 number. A gap in the numbers is nothing to the driver,

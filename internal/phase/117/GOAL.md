@@ -122,7 +122,7 @@ mirror image, *"a difference of −82 where 10 was expected"*.
 
 **The pair that would normally need measuring — 116 and 117 — cannot have an `apart` at
 all, and that is itself a measurement.** A stage of more than one phase is made of split
-programs and `internal/phase/116/check.go` is ONE file, so the schedule is refused before any check
+programs and `internal/phase/archive/116/check.go` is ONE file, so the schedule is refused before any check
 runs: `stage 116-117` gives `phase 116 is in stage 116-117 but is not an edit and a check`
 from `tools/stages.sh`, and `tools/phaserun.sh` refuses the same unit with `phase 116
 has no edit and check to run`. **`need 117` is measured not to be required** — the edit was

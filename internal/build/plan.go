@@ -42,13 +42,13 @@ type (
 
 // Plan is the pipeline, phase by phase.
 var Plan = []Phase{
-	{N: 0, Name: "seed, in the one spelling every later phase reads", Seed: true, NoSource: true},
-	{N: 1, Name: "no `$VIMRUNTIME`",
+	{N: 0, Block: "s00-seed", Name: "seed, in the one spelling every later phase reads", Seed: true, NoSource: true},
+	{N: 1, Block: "d01-front", Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
 			{Op: "front", Declared: true},
 			{Op: "noruntime"},
 		}},
-	{N: 2, Name: "the options for features that are not here",
+	{N: 2, Block: "d02-outside", Name: "the options for features that are not here",
 		Steps: []Step{
 			{Op: "query-empty", Args: []string{"whim2"}},
 		}},
@@ -57,8 +57,8 @@ var Plan = []Phase{
 			{Op: "nointro"},
 			{Op: "optreaders"},
 		}},
-	// 4, the binary's name stops choosing what it does: a record (internal/phase/004/GOAL.md); its cut went to argvfront, phase 1.
-	// 5, one regexp engine, not two: a record (internal/phase/005/GOAL.md); its cut went to phase 1 (nonfa, the reform's D11).
+	// 4, the binary's name stops choosing what it does: a record (internal/phase/archive/004/GOAL.md); its cut went to argvfront, phase 1.
+	// 5, one regexp engine, not two: a record (internal/phase/archive/005/GOAL.md); its cut went to phase 1 (nonfa, the reform's D11).
 	{N: 6, Name: "the editor stops writing shell scripts, and stops drawing a menu",
 		Steps: []Step{
 			{Op: "nowild"},
@@ -68,11 +68,11 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "noglob"},
 		}},
-	// 8, `:!` keeps its name and loses its process: a record (internal/phase/008/GOAL.md); its cut went to phase 1 (noshellout, the reform's D12).
-	// 9, the editor stops asking the environment what language it is in: a record (internal/phase/009/GOAL.md); its cut went to phase 1 (nolocale, the reform's D6).
-	// 10, no tag stack: a record (internal/phase/010/GOAL.md); its cut went to phase 1 (notags, the reform's D10).
-	// 11, nothing is written that was not asked for: a record (internal/phase/011/GOAL.md); its cut went to phase 1 (noswap, the reform's D5).
-	// 12, UTF-8, and no other encoding, ever: a record (internal/phase/012/GOAL.md); its cut went to phase 1 (noenc, the reform's D7).
+	// 8, `:!` keeps its name and loses its process: a record (internal/phase/archive/008/GOAL.md); its cut went to phase 1 (noshellout, the reform's D12).
+	// 9, the editor stops asking the environment what language it is in: a record (internal/phase/archive/009/GOAL.md); its cut went to phase 1 (nolocale, the reform's D6).
+	// 10, no tag stack: a record (internal/phase/archive/010/GOAL.md); its cut went to phase 1 (notags, the reform's D10).
+	// 11, nothing is written that was not asked for: a record (internal/phase/archive/011/GOAL.md); its cut went to phase 1 (noswap, the reform's D5).
+	// 12, UTF-8, and no other encoding, ever: a record (internal/phase/archive/012/GOAL.md); its cut went to phase 1 (noenc, the reform's D7).
 	{N: 13, Name: "the editor stops re-reading a file it has already read",
 		Steps: []Step{
 			{Op: "nostat"},
@@ -81,7 +81,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "nofind"},
 		}},
-	// 15, the last two encoding options: a record (internal/phase/015/GOAL.md); its cut went to phase 1 (nofencs, the reform's D7).
+	// 15, the last two encoding options: a record (internal/phase/archive/015/GOAL.md); its cut went to phase 1 (nofencs, the reform's D7).
 	{N: 16, Name: "six options that no longer decide anything",
 		Steps: []Step{
 			{Op: "noinertopts"},
@@ -94,14 +94,14 @@ var Plan = []Phase{
 			// readers there
 			{Op: "droplocal", Args: []string{"b_p_fenc", "b_p_bomb"}},
 		}},
-	// 18, nothing is read at startup, and nothing on the command line decides anything: a record (internal/phase/018/GOAL.md); its cut went to phase 1 (nostartup and nocmdopts, the reform's D6).
-	// 19, the terminal is what the build says: a record (internal/phase/019/GOAL.md); its cut went to phase 1 (noterm, the reform's D8).
+	// 18, nothing is read at startup, and nothing on the command line decides anything: a record (internal/phase/archive/018/GOAL.md); its cut went to phase 1 (nostartup and nocmdopts, the reform's D6).
+	// 19, the terminal is what the build says: a record (internal/phase/archive/019/GOAL.md); its cut went to phase 1 (noterm, the reform's D8).
 	{N: 20, Name: "nothing outside the process is consulted",
 		Steps: []Step{
 			{Op: "nohome"},
 			{Op: "nogetenv"},
 		}},
-	// 21, there is nothing to recover, and the memfile is memory: a record (internal/phase/021/GOAL.md); its cuts went to phase 1 (norecover and nomemfile, the reform's D5).
+	// 21, there is nothing to recover, and the memfile is memory: a record (internal/phase/archive/021/GOAL.md); its cuts went to phase 1 (norecover and nomemfile, the reform's D5).
 	{N: 22, Name: "the working directory is where it started",
 		Steps: []Step{
 			{Op: "nochdir"},
@@ -110,48 +110,48 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "nofloat"},
 		}},
-	// 24, there is no mouse: a record (internal/phase/024/GOAL.md); its cut went to phase 1 (nomouse, the reform's D8).
+	// 24, there is no mouse: a record (internal/phase/archive/024/GOAL.md); its cut went to phase 1 (nomouse, the reform's D8).
 	{N: 25, Name: "a write is a write, and nobody owns it",
 		Steps: []Step{
 			{Op: "nobackup"},
 			{Op: "noowner"},
 			{Op: "droplocal", Args: []string{"b_p_bkc"}},
 		}},
-	// 26, five signals, not twenty-one: a record (internal/phase/026/GOAL.md); its cut went to phase 1 (nosignals, the reform's D12).
-	// 27, `[[=a=]]` stops meaning \"a with any accent\": a record (internal/phase/027/GOAL.md); its cut went to phase 1 (noequiclass, the reform's D11).
-	{N: 28, Name: "C indenting",
+	// 26, five signals, not twenty-one: a record (internal/phase/archive/026/GOAL.md); its cut went to phase 1 (nosignals, the reform's D12).
+	// 27, `[[=a=]]` stops meaning \"a with any accent\": a record (internal/phase/archive/027/GOAL.md); its cut went to phase 1 (noequiclass, the reform's D11).
+	{N: 28, Block: "d03-editing", Name: "C indenting",
 		Steps: []Step{
 			// nocindent runs at phase 1 (the reform's D10)
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_cin", "b_p_cink", "b_p_cino", "b_p_cinsd", "b_p_cinw"}},
 		}},
-	// 29, `:command`, user-defined commands: a record (internal/phase/029/GOAL.md); its cut went to phase 1 (noucmd, the reform's D10).
-	// 30, `K` and the tag jumps, keeping `*` and `#`: a record (internal/phase/030/GOAL.md); its cut went to phase 1 (noident, the reform's D10).
-	// 31, file-name modifiers: a record (internal/phase/031/GOAL.md); its cut went to phase 1 (nofnamemod, the reform's D10).
+	// 29, `:command`, user-defined commands: a record (internal/phase/archive/029/GOAL.md); its cut went to phase 1 (noucmd, the reform's D10).
+	// 30, `K` and the tag jumps, keeping `*` and `#`: a record (internal/phase/archive/030/GOAL.md); its cut went to phase 1 (noident, the reform's D10).
+	// 31, file-name modifiers: a record (internal/phase/archive/031/GOAL.md); its cut went to phase 1 (nofnamemod, the reform's D10).
 	{N: 32, Name: "insert completion, the popup menu, and the keys that reached them",
 		Steps: []Step{
 			// nocompl and nocomplkeys run at phase 1 (the reform's D10)
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_cpt", "b_p_cot", "b_p_dict", "b_p_tsr", "b_p_inf", "b_p_ac"}},
 		}},
-	// 33, commands whose machinery has already gone: a record (internal/phase/033/GOAL.md); what it cut went with the Ex commands retired at phase 1 (exfront, the reform's D2).
-	// 34, no abbreviations: a record (internal/phase/034/GOAL.md); its cut went to phase 1 (noabbr, the reform's D10).
-	// 35, no scripts, no session, no autocommands: a record (internal/phase/035/GOAL.md); its cut went to phase 1 (nosession, the reform's D6).
-	// 36, one tab page, always: a record (internal/phase/036/GOAL.md); its cut went to phase 1 (notabs, the reform's D9).
-	// 37, no command that does nothing: a record (internal/phase/037/GOAL.md); its cut went to phase 1 (noinert, the reform's D9).
-	// 38, the argument list is walked by `:next` and `:previous` alone: a record (internal/phase/038/GOAL.md); its cut went to phase 1 (noarglist, the reform's D9).
+	// 33, commands whose machinery has already gone: a record (internal/phase/archive/033/GOAL.md); what it cut went with the Ex commands retired at phase 1 (exfront, the reform's D2).
+	// 34, no abbreviations: a record (internal/phase/archive/034/GOAL.md); its cut went to phase 1 (noabbr, the reform's D10).
+	// 35, no scripts, no session, no autocommands: a record (internal/phase/archive/035/GOAL.md); its cut went to phase 1 (nosession, the reform's D6).
+	// 36, one tab page, always: a record (internal/phase/archive/036/GOAL.md); its cut went to phase 1 (notabs, the reform's D9).
+	// 37, no command that does nothing: a record (internal/phase/archive/037/GOAL.md); its cut went to phase 1 (noinert, the reform's D9).
+	// 38, the argument list is walked by `:next` and `:previous` alone: a record (internal/phase/archive/038/GOAL.md); its cut went to phase 1 (noarglist, the reform's D9).
 	// Phases 39-40, merged: one window, then no window sizes.
-	// 40, one window, and no window sizes: a record (internal/phase/040/GOAL.md); its cut went to phase 1 (nowindows and nowinsizes, the reform's D9).
-	// 41, the buffer list is walked by `:bnext` and `:bprevious` alone: a record (internal/phase/041/GOAL.md); its cut went to phase 1 (nobuflist, the reform's D9).
-	{N: 42, Name: "one buffer, always",
+	// 40, one window, and no window sizes: a record (internal/phase/archive/040/GOAL.md); its cut went to phase 1 (nowindows and nowinsizes, the reform's D9).
+	// 41, the buffer list is walked by `:bnext` and `:bprevious` alone: a record (internal/phase/archive/041/GOAL.md); its cut went to phase 1 (nobuflist, the reform's D9).
+	{N: 42, Block: "d04-one-buffer", Name: "one buffer, always",
 		Steps: []Step{
 			{Op: "onebuffer"},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_bh"}},
 		}},
-	// 43, no -c, --cmd, -R, -m, -M or -w: a record (internal/phase/043/GOAL.md); its cut went to argvfront and the fall-out closure, phase 1.
+	// 43, no -c, --cmd, -R, -m, -M or -w: a record (internal/phase/archive/043/GOAL.md); its cut went to argvfront and the fall-out closure, phase 1.
 	// Phases 44-48, merged: Ex commands retired one by one, one idea split for history's sake.
-	{N: 48, Name: "no filters, sorting, alignment, `:drop`, `:wall` and the `:…all` commands, `:startinsert` and its kin, or `:noswapfile`",
+	{N: 48, Block: "d05-commands-and-options", Name: "no filters, sorting, alignment, `:drop`, `:wall` and the `:…all` commands, `:startinsert` and its kin, or `:noswapfile`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim44"}},
 			{Op: "edit", Args: []string{"whim48"}},
@@ -162,7 +162,7 @@ var Plan = []Phase{
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_ml"}},
 		}},
-	{N: 50, Name: "only LF text files",
+	{N: 50, Block: "d06-encoding", Name: "only LF text files",
 		Steps: []Step{
 			{Op: "lfonly"},
 			{Op: "sweep"},
@@ -178,8 +178,8 @@ var Plan = []Phase{
 			{Op: "noconv"},
 			{Op: "droplocal", Args: []string{"b_p_menc"}},
 		}},
-	// 54, no option without a variable: a record (internal/phase/054/GOAL.md); every row it dropped is dropped at phase 1 with every option the product has not (optfront, the reform's D3).
-	{N: 55, Name: "no option nothing reads",
+	// 54, no option without a variable: a record (internal/phase/archive/054/GOAL.md); every row it dropped is dropped at phase 1 with every option the product has not (optfront, the reform's D3).
+	{N: 55, Block: "d07-options", Name: "no option nothing reads",
 		Steps: []Step{
 			// its edit, 'cdpath''s completion term, went with the whole test at
 			// phase 1 (whim56, the reform's D6)
@@ -223,7 +223,7 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim62bl"}},
 			{Op: "droplocal", Args: []string{"b_p_bt", "b_p_ft"}},
 		}},
-	{N: 63, Name: "no jump list",
+	{N: 63, Block: "d08-editing", Name: "no jump list",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim63"}},
 		}},
@@ -241,7 +241,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim66"}},
 		}},
-	{N: 67, Name: "no mouse, no spell plumbing, no write-only flags",
+	{N: 67, Block: "d09-one-of-each", Name: "no mouse, no spell plumbing, no write-only flags",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim67"}},
 		}},
@@ -267,7 +267,7 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim72"}},
 			{Op: "edit", Args: []string{"whim73"}},
 		}},
-	{N: 74, Name: "no file marks",
+	{N: 74, Block: "d10-editing", Name: "no file marks",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim74"}},
 		}},
@@ -279,7 +279,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim76"}},
 		}},
-	{N: 77, Name: "no buffer-name argument matching",
+	{N: 77, Block: "d11-commands", Name: "no buffer-name argument matching",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim77"}},
 		}},
@@ -295,21 +295,21 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim80"}},
 		}},
-	// 81, one line, one command: a record (internal/phase/081/GOAL.md); its edits went to onecmdfront, phase 1.
-	// 82, every comment: a record (internal/phase/082/GOAL.md); it edits nothing now.
-	// 83, the core's compile line, and the baselines it is measured against: a record (internal/phase/083/GOAL.md); it edits nothing now.
-	// 84, the stack protector goes: a record (internal/phase/084/GOAL.md); it edits nothing now.
-	{N: 85, Name: "the core stops diagnosing its own terminal",
+	// 81, one line, one command: a record (internal/phase/archive/081/GOAL.md); its edits went to onecmdfront, phase 1.
+	// 82, every comment: a record (internal/phase/archive/082/GOAL.md); it edits nothing now.
+	// 83, the core's compile line, and the baselines it is measured against: a record (internal/phase/archive/083/GOAL.md); it edits nothing now.
+	// 84, the stack protector goes: a record (internal/phase/archive/084/GOAL.md); it edits nothing now.
+	{N: 85, Block: "d12-terminal-and-ex", Name: "the core stops diagnosing its own terminal",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim85"}},
 		}},
-	// 86, the instrument becomes the screen: a record (internal/phase/086/GOAL.md); it edits nothing now.
+	// 86, the instrument becomes the screen: a record (internal/phase/archive/086/GOAL.md); it edits nothing now.
 	{N: 87, Name: "no streaming Ex",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim87"}},
 		}},
-	// 88, argv is `+{command}` and `-T {term}`: a record (internal/phase/088/GOAL.md); its cut went to argvfront and the fall-out closure, phase 1.
-	{N: 89, Name: "no write",
+	// 88, argv is `+{command}` and `-T {term}`: a record (internal/phase/archive/088/GOAL.md); its cut went to argvfront and the fall-out closure, phase 1.
+	{N: 89, Block: "d13-files", Name: "no write",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim89"}},
 		}},
@@ -344,7 +344,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim96"}},
 		}},
-	{N: 97, Name: "the strings are the editor's own",
+	{N: 97, Block: "r01-libc", Name: "the strings are the editor's own",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim97"}},
 		}},
@@ -352,9 +352,9 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim98"}},
 		}},
-	// 99, the includes nothing names: a record (internal/phase/099/GOAL.md); it edits nothing now.
+	// 99, the includes nothing names: a record (internal/phase/archive/099/GOAL.md); it edits nothing now.
 	// Phases 100-102, merged: the core's way out: the deadly ladder, vim_main, no stopping the process.
-	{N: 102, Name: "the deadly ladder, `vim_main`, and a core that cannot stop the process",
+	{N: 102, Block: "r02-host-chain", Name: "the deadly ladder, `vim_main`, and a core that cannot stop the process",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim100"}},
 			{Op: "edit", Args: []string{"whim101"}},
@@ -369,13 +369,13 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim104"}},
 		}},
 	// Phases 105-107, merged: C23 spelling, in three steps.
-	{N: 107, Name: "C23 spelling: the variadic collapse, `nullptr` and `usize`, the attributes",
+	{N: 107, Block: "g01-c23-spelling", Name: "C23 spelling: the variadic collapse, `nullptr` and `usize`, the attributes",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim105"}},
 			{Op: "edit", Args: []string{"whim106", "--casts", "1"}},
 			{Op: "edit", Args: []string{"whim107"}},
 		}},
-	{N: 108, Name: "the plain host calls",
+	{N: 108, Block: "r03-boundary", Name: "the plain host calls",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim108"}},
 		}},
@@ -407,7 +407,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim115"}},
 		}},
-	// 116, the terminal table is asked with `+set term=`, not `$TERM`: a record (internal/phase/116/GOAL.md); it edits nothing now.
+	// 116, the terminal table is asked with `+set term=`, not `$TERM`: a record (internal/phase/archive/116/GOAL.md); it edits nothing now.
 	// Phases 117-119, merged: the core calls nothing but the host.
 	{N: 119, Name: "the core calls nothing but the host",
 		Steps: []Step{
@@ -415,22 +415,22 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim118", "@state"}},
 			{Op: "edit", Args: []string{"whim119", "@state"}},
 		}},
-	{N: 120, Name: "the degenerate unions go",
+	{N: 120, Block: "g02-unions", Name: "the degenerate unions go",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim120", "--degenerate", "1", "--genuine", "1"}},
 		}},
 	// Phases 121-122, merged: the terminal names, then -T.
-	{N: 122, Name: "the terminal names, and `-T`",
+	{N: 122, Block: "r04-terminal", Name: "the terminal names, and `-T`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim121"}},
 			{Op: "edit", Args: []string{"whim122"}},
 		}},
-	// 123, the instrument could not see the text layer: a record (internal/phase/123/GOAL.md); it edits nothing now.
-	{N: 124, Name: "freeing is free, and the arena is measured",
+	// 123, the instrument could not see the text layer: a record (internal/phase/archive/123/GOAL.md); it edits nothing now.
+	{N: 124, Block: "r05-memory", Name: "freeing is free, and the arena is measured",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim124", "@state"}},
 		}},
-	{N: 125, Name: "the swap file's residue, and what no sweep could find",
+	{N: 125, Block: "r06-memline", Name: "the swap file's residue, and what no sweep could find",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim125", "@state"}},
 		}},
@@ -446,7 +446,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim128", "@state"}},
 		}},
-	{N: 129, Name: "`p_emoji` is an `int`",
+	{N: 129, Block: "r07-types", Name: "`p_emoji` is an `int`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim129"}},
 		}},
@@ -458,7 +458,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim131"}},
 		}},
-	{N: 132, Name: "nothing frees",
+	{N: 132, Block: "r08-memory", Name: "nothing frees",
 		Steps: []Step{
 			// 272: exe_commands' free of what cmds_tofree marked went at phase 1,
 			// nothing writing it once the command line was cut (argvfront, D1)
@@ -468,11 +468,11 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim133"}},
 		}},
-	{N: 134, Name: "the empty blocks fold",
+	{N: 134, Block: "g03-empty-blocks", Name: "the empty blocks fold",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim134", "--at-least", "20"}},
 		}},
-	{N: 135, Name: "one regexp program type",
+	{N: 135, Block: "r09-regex", Name: "one regexp program type",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim135"}},
 		}},
@@ -480,7 +480,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim136"}},
 		}},
-	{N: 137, Name: "the changedtick is a number",
+	{N: 137, Block: "r10-types", Name: "the changedtick is a number",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim137"}},
 		}},
@@ -496,7 +496,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim140"}},
 		}},
-	{N: 141, Name: "`regrepeat()` does not jump into a case",
+	{N: 141, Block: "r11-gotos", Name: "`regrepeat()` does not jump into a case",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim141"}},
 		}},
@@ -511,7 +511,7 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim144"}},
 			{Op: "edit", Args: []string{"whim145"}},
 		}},
-	{N: 146, Name: "a memline node names its block",
+	{N: 146, Block: "r12-memline-and-host", Name: "a memline node names its block",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim146"}},
 		}},
@@ -520,12 +520,12 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim147"}},
 		}},
 	// Phases 148-149, merged: allocation cannot fail, then its branches fold.
-	{N: 149, Name: "allocation cannot fail, and its branches fold",
+	{N: 149, Block: "g04-never-null", Name: "allocation cannot fail, and its branches fold",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim148"}},
 			{Op: "edit", Args: []string{"whim149", "--at-least", "80"}},
 		}},
-	{N: 150, Name: "the regexp stack is three typed stacks",
+	{N: 150, Block: "r13-translation", Name: "the regexp stack is three typed stacks",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim150"}},
 		}},
@@ -573,27 +573,27 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim162"}},
 		}},
-	// 163, the product is in the one canonical spelling: a record (internal/phase/163/GOAL.md); it edits nothing now.
+	// 163, the product is in the one canonical spelling: a record (internal/phase/archive/163/GOAL.md); it edits nothing now.
 	// Phases 164-165, merged: what the Go's linters found dead, in two steps.
-	{N: 165, Name: "what the Go's linters found dead",
+	{N: 165, Block: "g05-dead", Name: "what the Go's linters found dead",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim164"}},
 			{Op: "edit", Args: []string{"whim165"}},
 		}},
 	// Phases 166-168, merged: for the Go: bool, key names, goto as return.
-	// 168, `goto` as `return`: a record (internal/phase/168/GOAL.md); GotoTail
+	// 168, `goto` as `return`: a record (internal/phase/archive/168/GOAL.md); GotoTail
 	// (170) takes every goto it took, a `return x;` being a tail of none (the
 	// reform's G, measured byte for byte).
-	{N: 167, Name: "`bool` and key names",
+	{N: 167, Block: "g06-bool-and-keys", Name: "`bool` and key names",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim166"}},
 			{Op: "edit", Args: []string{"whim167"}},
 		}},
-	{N: 169, Name: "the system headers nothing needs",
+	{N: 169, Block: "g07-includes", Name: "the system headers nothing needs",
 		Steps: []Step{
 			{Op: "includes"},
 		}},
-	{N: 170, Name: "a goto whose label marks a short tail is that tail",
+	{N: 170, Block: "g08-gotos", Name: "a goto whose label marks a short tail is that tail",
 		Steps: []Step{
 			{Op: "gototail", Args: []string{"--at-least", "52"}},
 		}},
@@ -609,7 +609,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "gotoblock", Args: []string{"--at-least", "50"}},
 		}},
-	{N: 174, Name: "no address of a position's line or column",
+	{N: 174, Block: "r14-parallel-substitute", Name: "no address of a position's line or column",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim174"}},
 		}},
@@ -637,18 +637,18 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim180"}},
 		}},
-	{N: 181, Name: "an out-parameter a value, a struct local its members",
+	{N: 181, Block: "g09-values", Name: "an out-parameter a value, a struct local its members",
 		Steps: []Step{
 			{Op: "localout"},
 			{Op: "structscalar"},
 		}},
-	{N: 182, Name: "gettext's identity not called, the ASCII tests named, constant ifs their branch",
+	{N: 182, Block: "g10-plain-c", Name: "gettext's identity not called, the ASCII tests named, constant ifs their branch",
 		Steps: []Step{
 			{Op: "identity"},
 			{Op: "asciiclass"},
 			{Op: "constbranch"},
 		}},
-	{N: 183, Name: "a file-scope flag is bool",
+	{N: 183, Block: "g11-bool", Name: "a file-scope flag is bool",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim183"}},
 		}}, {N: 184, Name: "more flags are bool",

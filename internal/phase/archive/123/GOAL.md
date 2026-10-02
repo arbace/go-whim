@@ -1,6 +1,6 @@
 # Phase 123 — the instrument could not see the text layer
 
-`internal/phase/123/check.go` — one file, like phases 83, 84, 86 and 116 — `stage 123`, `package harness
+`internal/phase/archive/123/check.go` — one file, like phases 83, 84, 86 and 116 — `stage 123`, `package harness
 3 33 40`. It changes no source at all: q123's `whim-vim.c` is q122's byte for byte and its
 boundary digest is its input's, `68e450fd6912` either side. What it adds is the **sixth
 part of a recording**, `tools/zmemline.py`, and it is here for the reason phase 86 and
@@ -135,7 +135,7 @@ is the measurement rather than the claim, so core rule 9's gate does not apply.
 
 `stage 123`, `package harness 86 116 123`, which is *the phase changed no source and moved
 the instrument instead*. **There is no `apart 122 123` and no `need 123`**, and both are
-refusals rather than omissions: `internal/phase/123/check.go` is a whole-phase program, so
+refusals rather than omissions: `internal/phase/archive/123/check.go` is a whole-phase program, so
 `stage 122-123` is answered by `tools/stages.sh` with *phase 123 is in stage 122-123 but is
 not an edit and a check* and by `tools/phaserun.sh` with *phase 123 has no edit and
 check to run in stage 122-123*, both measured — and `need` is a statement about an edit

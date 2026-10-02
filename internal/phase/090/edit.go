@@ -67,7 +67,7 @@ package p090
 // on a position.
 //
 // THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
-// flags, exactly as internal/phase/085/edit.go, internal/phase/087/edit.go, internal/phase/088/edit.go and
+// flags, exactly as internal/phase/085/edit.go, internal/phase/087/edit.go, internal/phase/archive/088/edit.go and
 // `zcases`'s 102 cases types its own text and names no file, so `cmd_read`
 // types `:read` with no file name and has only ever recorded `E32: No file name`.
 // The only evidence that this phase removed reading rather than one error message is

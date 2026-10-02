@@ -1,6 +1,6 @@
 # Phase 84 — the stack protector goes
 
-`internal/phase/084/check.go`, one whole program: there is no source edit, so there is nothing
+`internal/phase/archive/084/check.go`, one whole program: there is no source edit, so there is nothing
 for a sweep to do and a split phase would pay for one. `whim-vim.c` comes out of it
 byte for byte as it went in, and what changes is one line of `zero/Makefile`:
 
@@ -37,7 +37,7 @@ objects of the same source, so the check is one that can fail, and a compiler wh
 default changed is reported rather than silently passing; `whim-vim.c` is unchanged;
 the binary is still absolutely static (`EXEC`, no `INTERP`, no dynamic section, no
 relocation); and `tools/coredelta.sh --phase 84` sees no behaviour case, no Ex command
-and no terminal-table row move against whim-vim's baselines. `internal/phase/084/delta.md`
+and no terminal-table row move against whim-vim's baselines. `internal/phase/archive/084/delta.md`
 declares nothing for it, because a canary is code around the locals and not
 behaviour.
 

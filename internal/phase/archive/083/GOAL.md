@@ -9,11 +9,11 @@ the makefile and builds again (step 2). The baselines are therefore recorded fro
 pipeline's own output at q82 — the one place it does so, and legitimate for the
 reason recording from an input is: nothing from 83 on can reach q82. What it costs is
 that a change to what phases 0-82 produce moves the recording, and this phase refuses
-rather than overwrite it. `internal/phase/083/check.go` carries the argument. What follows is the
+rather than overwrite it. `internal/phase/archive/083/check.go` carries the argument. What follows is the
 phase as it was written.
 
 `whim-vim.c` starts as a byte-for-byte copy of the committed `whim-vim.c`, and the
-phase is `internal/phase/083/check.go`, one whole program. Four things, each depending on the one
+phase is `internal/phase/archive/083/check.go`, one whole program. Four things, each depending on the one
 before:
 
 1. **The seed is the input.** `cmp` against `whim-vim.c`; the boundary digest is the
@@ -31,7 +31,7 @@ before:
    means a harness or the input changed, and has to be named. If it does not exist,
    it is written.
 4. **whim-vim does exactly what whim-vim does.** `tools/coredelta.sh zero/whim-vim
-   zero/whim-vim.c --phase 83`, with `internal/phase/083/delta.md` empty, requires no behaviour
+   zero/whim-vim.c --phase 83`, with `internal/phase/archive/083/delta.md` empty, requires no behaviour
    case, no Ex command and not the terminal table to move — so `-no-pie` changed
    nothing a harness sees. And `tools/whimdelta.sh --phase 82` on the same binary,
    against slim-vim's baselines, shows whim's whole declared delta still holds: the

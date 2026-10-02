@@ -24,7 +24,8 @@ is handed, memoized in three tiers — and differ only in what they remove.
 the editor can do. **This one removes capability, on purpose**, and every phase
 has to say which and prove it removed nothing else.
 
-**A phase is a directory, `internal/phase/NNN/`**, its number in three digits, and a Go
+**A phase is a directory, `internal/phase/NNN/`** (or, a record now,
+`internal/phase/archive/NNN/`), its number in three digits, and a Go
 package of its own: `edit.go` and `check.go`, its `GOAL.md` — what it removes and why,
 and what was measured — and its declared `delta.md`. This document is what holds for
 all of them: the charters, the rules, what is measured, and an index of the
@@ -35,6 +36,70 @@ at phase 83 is what a phase is measured against: Part I's phases declare their
 deltas against slim-vim's behaviour, Part II's against q82's, with an instrument
 an editor with no file to write can still be measured by. `CoreFrom` in
 `internal/build` is that line, stated once.
+
+## The pipeline as it runs: blocks, and the archive
+
+The pipeline reform (`doc/PIPELINE-REFORM.md`) left the phases where the bytes
+allow and named them in **blocks**. A block is a run of consecutive phases in
+the plan (`internal/build`), named by kind and number:
+- `d` is a drop;
+- `r` a vim-specific rewire that keeps capability;
+- `g` a generic C step;
+- `s00` the seed.
+
+A block is a label on the phase that opens it, which the build's log prints as
+a heading; the phases keep their numbers, which the snapshots (`qNNN.c`),
+`--from` and `--to` use. The kinds interleave where the measurements put them.
+D1-D12 are all phase 1's front, before its one fall-out closure. A generic step
+stays in the middle where the rewires after it were written for its text (§7
+of the reform: 120, 134 and 149).
+
+| block | phases |
+|---|---|
+| `s00-seed` | 0 |
+| `d01-front` | 1 |
+| `d02-outside` | 2-25 (12 phases) |
+| `d03-editing` | 28, 32 |
+| `d04-one-buffer` | 42 |
+| `d05-commands-and-options` | 48, 49 |
+| `d06-encoding` | 50, 53 |
+| `d07-options` | 55-62 (7 phases) |
+| `d08-editing` | 63-66 (4 phases) |
+| `d09-one-of-each` | 67-73 (6 phases) |
+| `d10-editing` | 74, 75, 76 |
+| `d11-commands` | 77-80 (4 phases) |
+| `d12-terminal-and-ex` | 85, 87 |
+| `d13-files` | 89-96 (8 phases) |
+| `r01-libc` | 97, 98 |
+| `r02-host-chain` | 102, 103, 104 |
+| `g01-c23-spelling` | 107 |
+| `r03-boundary` | 108-119 (9 phases) |
+| `g02-unions` | 120 |
+| `r04-terminal` | 122 |
+| `r05-memory` | 124 |
+| `r06-memline` | 125-128 (4 phases) |
+| `r07-types` | 129, 130, 131 |
+| `r08-memory` | 132, 133 |
+| `g03-empty-blocks` | 134 |
+| `r09-regex` | 135, 136 |
+| `r10-types` | 137-140 (4 phases) |
+| `r11-gotos` | 141, 142, 145 |
+| `r12-memline-and-host` | 146, 147 |
+| `g04-never-null` | 149 |
+| `r13-translation` | 150-162 (11 phases) |
+| `g05-dead` | 165 |
+| `g06-bool-and-keys` | 167 |
+| `g07-includes` | 169 |
+| `g08-gotos` | 170-173 (4 phases) |
+| `r14-parallel-substitute` | 174-180 (7 phases) |
+| `g09-values` | 181 |
+| `g10-plain-c` | 182 |
+| `g11-bool` | 183, 184 |
+
+**The archive.** A phase that edits nothing any more is a record: its
+`GOAL.md` alone, in `internal/phase/archive/NNN/`, with its old number. There
+are 39: 4, 5, 8, 9, 10, 11, 12, 15, 18, 19, 21, 24, 26, 27, 29, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40, 41, 43, 54, 81, 82, 83, 84, 86, 88, 99, 116, 123, 163, 168. A phase whose program runs at phase 1's front (56, 61) keeps its
+directory and program where they were.
 
 # Part I — phases 0 to 82: an editor with no runtime
 
@@ -696,46 +761,46 @@ make it a worse record and no truer.
 - [Phase 1 — no `$VIMRUNTIME`](../internal/phase/001/GOAL.md)
 - [Phase 2 — the options for features that are not here](../internal/phase/002/GOAL.md)
 - [Phase 3 — no introduction, and the command line says only what the editor still decides](../internal/phase/003/GOAL.md)
-- [Phase 4 — the binary's name stops choosing what it does](../internal/phase/004/GOAL.md)
-- [Phase 5 — one regexp engine, not two](../internal/phase/005/GOAL.md)
+- [Phase 4 — the binary's name stops choosing what it does](../internal/phase/archive/004/GOAL.md)
+- [Phase 5 — one regexp engine, not two](../internal/phase/archive/005/GOAL.md)
 - [Phase 6 — the editor stops writing shell scripts, and stops drawing a menu](../internal/phase/006/GOAL.md)
 - [Phase 7 — the editor stops looking for files it was not given](../internal/phase/007/GOAL.md)
-- [Phase 8 — `:!` keeps its name and loses its process](../internal/phase/008/GOAL.md)
-- [Phase 9 — the editor stops asking the environment what language it is in](../internal/phase/009/GOAL.md)
-- [Phase 10 — no tag stack](../internal/phase/010/GOAL.md)
-- [Phase 11 — nothing is written that was not asked for](../internal/phase/011/GOAL.md)
-- [Phase 12 — UTF-8, and no other encoding, ever](../internal/phase/012/GOAL.md)
+- [Phase 8 — `:!` keeps its name and loses its process](../internal/phase/archive/008/GOAL.md)
+- [Phase 9 — the editor stops asking the environment what language it is in](../internal/phase/archive/009/GOAL.md)
+- [Phase 10 — no tag stack](../internal/phase/archive/010/GOAL.md)
+- [Phase 11 — nothing is written that was not asked for](../internal/phase/archive/011/GOAL.md)
+- [Phase 12 — UTF-8, and no other encoding, ever](../internal/phase/archive/012/GOAL.md)
 - [Phase 13 — the editor stops re-reading a file it has already read](../internal/phase/013/GOAL.md)
 - [Phase 14 — a file name means the file of that name](../internal/phase/014/GOAL.md)
-- [Phase 15 — the last two encoding options](../internal/phase/015/GOAL.md)
+- [Phase 15 — the last two encoding options](../internal/phase/archive/015/GOAL.md)
 - [Phase 16 — six options that no longer decide anything](../internal/phase/016/GOAL.md)
 - [Phase 17 — the last two per-buffer encoding options](../internal/phase/017/GOAL.md)
-- [Phase 18 — nothing is read at startup, and nothing on the command line decides anything](../internal/phase/018/GOAL.md)
-- [Phase 19 — the terminal is what the build says](../internal/phase/019/GOAL.md)
+- [Phase 18 — nothing is read at startup, and nothing on the command line decides anything](../internal/phase/archive/018/GOAL.md)
+- [Phase 19 — the terminal is what the build says](../internal/phase/archive/019/GOAL.md)
 - [Phase 20 — nothing outside the process is consulted](../internal/phase/020/GOAL.md)
-- [Phase 21 — there is nothing to recover, and the memfile is memory](../internal/phase/021/GOAL.md)
+- [Phase 21 — there is nothing to recover, and the memfile is memory](../internal/phase/archive/021/GOAL.md)
 - [Phase 22 — the working directory is where it started](../internal/phase/022/GOAL.md)
 - [Phase 23 — no floating-point library](../internal/phase/023/GOAL.md)
-- [Phase 24 — there is no mouse](../internal/phase/024/GOAL.md)
+- [Phase 24 — there is no mouse](../internal/phase/archive/024/GOAL.md)
 - [Phase 25 — a write is a write, and nobody owns it](../internal/phase/025/GOAL.md)
-- [Phase 26 — five signals, not twenty-one](../internal/phase/026/GOAL.md)
-- [Phase 27 — `[[=a=]]` stops meaning "a with any accent"](../internal/phase/027/GOAL.md)
+- [Phase 26 — five signals, not twenty-one](../internal/phase/archive/026/GOAL.md)
+- [Phase 27 — `[[=a=]]` stops meaning "a with any accent"](../internal/phase/archive/027/GOAL.md)
 - [Phase 28 — C indenting](../internal/phase/028/GOAL.md)
-- [Phase 29 — `:command`, user-defined commands](../internal/phase/029/GOAL.md)
-- [Phase 30 — `K` and the tag jumps, keeping `*` and `#`](../internal/phase/030/GOAL.md)
-- [Phase 31 — file-name modifiers](../internal/phase/031/GOAL.md)
+- [Phase 29 — `:command`, user-defined commands](../internal/phase/archive/029/GOAL.md)
+- [Phase 30 — `K` and the tag jumps, keeping `*` and `#`](../internal/phase/archive/030/GOAL.md)
+- [Phase 31 — file-name modifiers](../internal/phase/archive/031/GOAL.md)
 - [Phase 32 — insert completion, the popup menu, and the keys that reached them](../internal/phase/032/GOAL.md)
-- [Phase 33 — commands whose machinery has already gone](../internal/phase/033/GOAL.md)
-- [Phase 34 — no abbreviations](../internal/phase/034/GOAL.md)
-- [Phase 35 — no scripts, no session, no autocommands](../internal/phase/035/GOAL.md)
-- [Phase 36 — one tab page, always](../internal/phase/036/GOAL.md)
-- [Phase 37 — no command that does nothing](../internal/phase/037/GOAL.md)
-- [Phase 38 — the argument list is walked by `:next` and `:previous` alone](../internal/phase/038/GOAL.md)
-- [Phase 39 — one window, always](../internal/phase/039/GOAL.md)
-- [Phase 40 — no window sizes to set](../internal/phase/040/GOAL.md)
-- [Phase 41 — the buffer list is walked by `:bnext` and `:bprevious` alone](../internal/phase/041/GOAL.md)
+- [Phase 33 — commands whose machinery has already gone](../internal/phase/archive/033/GOAL.md)
+- [Phase 34 — no abbreviations](../internal/phase/archive/034/GOAL.md)
+- [Phase 35 — no scripts, no session, no autocommands](../internal/phase/archive/035/GOAL.md)
+- [Phase 36 — one tab page, always](../internal/phase/archive/036/GOAL.md)
+- [Phase 37 — no command that does nothing](../internal/phase/archive/037/GOAL.md)
+- [Phase 38 — the argument list is walked by `:next` and `:previous` alone](../internal/phase/archive/038/GOAL.md)
+- [Phase 39 — one window, always](../internal/phase/archive/039/GOAL.md)
+- [Phase 40 — no window sizes to set](../internal/phase/archive/040/GOAL.md)
+- [Phase 41 — the buffer list is walked by `:bnext` and `:bprevious` alone](../internal/phase/archive/041/GOAL.md)
 - [Phase 42 — one buffer, always](../internal/phase/042/GOAL.md)
-- [Phase 43 — no -c, --cmd, -R, -m, -M or -w](../internal/phase/043/GOAL.md)
+- [Phase 43 — no -c, --cmd, -R, -m, -M or -w](../internal/phase/archive/043/GOAL.md)
 - [Phase 44 — no filters, sorting or alignment](../internal/phase/044/GOAL.md)
 - [Phase 45 — no `:drop`](../internal/phase/045/GOAL.md)
 - [Phase 46 — no `:wall`, `:qall`, `:quitall`, `:wqall` or `:xall`](../internal/phase/046/GOAL.md)
@@ -746,7 +811,7 @@ make it a worse record and no truer.
 - [Phase 51 — a byte that is not UTF-8 is kept as it is](../internal/phase/051/GOAL.md)
 - [Phase 52 — UTF-8 is not a question](../internal/phase/052/GOAL.md)
 - [Phase 53 — no conversion layer, no 'encoding'](../internal/phase/053/GOAL.md)
-- [Phase 54 — no option without a variable](../internal/phase/054/GOAL.md)
+- [Phase 54 — no option without a variable](../internal/phase/archive/054/GOAL.md)
 - [Phase 55 — no option nothing reads](../internal/phase/055/GOAL.md)
 - [Phase 56 — no shell, runtime or keyword-program options](../internal/phase/056/GOAL.md)
 - [Phase 57 — no lisp](../internal/phase/057/GOAL.md)
@@ -773,8 +838,8 @@ make it a worse record and no truer.
 - [Phase 78 — empty functions, write-only counters, and the window id](../internal/phase/078/GOAL.md)
 - [Phase 79 — the constant-return predicates](../internal/phase/079/GOAL.md)
 - [Phase 80 — the Ex command table, cut to the commands that exist](../internal/phase/080/GOAL.md)
-- [Phase 81 — one line, one command](../internal/phase/081/GOAL.md)
-- [Phase 82 — every comment](../internal/phase/082/GOAL.md)
+- [Phase 81 — one line, one command](../internal/phase/archive/081/GOAL.md)
+- [Phase 82 — every comment](../internal/phase/archive/082/GOAL.md)
 
 ## Three phases moved to SLIM-GOAL.md
 
@@ -1231,13 +1296,13 @@ boundary in the same file.
 `GOALS.md` states what it is for — an embeddable editor core that keeps the
 screen and all visual editing and loses the filesystem, with `main()` demoted to a
 host launcher and the text later held as a tree — and has forty-six phases:
-`internal/phase/083/check.go`, the seed; `internal/phase/084/check.go`, which adds `-fno-stack-protector`;
+`internal/phase/archive/083/check.go`, the seed; `internal/phase/archive/084/check.go`, which adds `-fno-stack-protector`;
 `internal/phase/085/edit.go` with `internal/phase/085/check.go`, the first source cut — the two
 "not to a terminal" warnings, the two-second pause after them and `--ttyfail`;
-`internal/phase/086/check.go`, which changes no source at all and replaces the instrument
+`internal/phase/archive/086/check.go`, which changes no source at all and replaces the instrument
 (below), so q86's tree and q85's have the same digest; `internal/phase/087/edit.go` with
 `internal/phase/087/check.go`, which removes Ex mode, silent mode and the `-e -E -s -v`
-options; `internal/phase/088/edit.go` with `internal/phase/088/check.go`, which leaves the
+options; `internal/phase/archive/088/edit.go` with `internal/phase/archive/088/check.go`, which leaves the
 command line as `+{command}` and `-T {term}` — the file argument, the bare `-` and
 `--` all become `mainerr(ME_UNKNOWN_OPTION)`; and `internal/phase/089/edit.go` with
 `internal/phase/089/check.go`, which takes every way to write a file — the six Ex commands
@@ -1275,8 +1340,8 @@ five functions the sweep finds under them; `internal/phase/097/edit.go` with
 libc that is pure computation**, defined in the file as local `static musl_*`
 functions — the sixteen `mem*`/`str*` of `<string.h>`, with `sprintf` moved onto the
 editor's own `vim_snprintf` instead, then the character classes, the two `ato*`,
-`qsort` and `bsearch`; and `internal/phase/099/edit.go` with
-`internal/phase/099/check.go`, **the includes nothing names** — six of eighteen,
+`qsort` and `bsearch`; and `internal/phase/archive/099/edit.go` with
+`internal/phase/archive/099/check.go`, **the includes nothing names** — six of eighteen,
 `<sys/stat.h>` `<fcntl.h>` `<iconv.h>` dead since before the pipeline and `<string.h>`
 `<ctype.h>` `<wctype.h>` dead since phase 98, with the `stat_T` typedef no sweep could
 take; and `internal/phase/100/edit.go` with `internal/phase/100/check.go`, **the deadly ladder
@@ -1333,7 +1398,7 @@ because gcc lowers both to inline arithmetic, and vendored so that the core stop
 depending on behaviour nothing states; and `internal/phase/115/edit.go` with
 `internal/phase/115/check.go`, **the wall clock crosses too** — `vim_time()` becomes
 `host_time()` below the boundary, `long time(long *tp);` leaves the core's prototype
-block and a `static_assert` stronger than it replaces it; and `internal/phase/116/check.go`,
+block and a `static_assert` stronger than it replaces it; and `internal/phase/archive/116/check.go`,
 **the terminal table is asked a question it can answer** — the second phase that changes
 no source at all, replacing `$TERM`, which phase 19 stopped the editor reading, with
 `+set term={name}`, so nineteen rows that carried one answer between them carried ten
@@ -1366,7 +1431,7 @@ with `internal/phase/122/check.go`, **`-T {term}` goes** — `command_line_scan(
 `if (argv[0][0] == '+')` and one `else` answering `mainerr(ME_UNKNOWN_OPTION)`, with two
 `main_errors[]` rows and their enumerators, `mparm_T.term`, and the no-screen arm of
 `set_termname()` that only `-T` could reach; and then the **memline arc**, which is one
-arc and not six phases — `internal/phase/123/check.go`, **the instrument could not see the text
+arc and not six phases — `internal/phase/archive/123/check.go`, **the instrument could not see the text
 layer**, a whole-phase program that changes no source and adds the sixth part of a
 recording, because a `whim-vim` with `pp->pb_pointer[idx].pe_line_count--` deleted from
 `ml_find_line()`'s descent recorded **all 102 screen cases byte for byte** and forty
@@ -1882,7 +1947,7 @@ real shared stage, where phase 117's check stops four ways and two of them are
 the code it wrote **verbatim**, `pp = malloc(new_len);` and `free(gap->ga_data);`, and 118
 renames exactly those calls. **There cannot be an `apart 116 117` at all, and that is a
 measurement and not an omission**: a stage of more than one phase is made of split
-programs and `internal/phase/116/check.go` is ONE file, so `stage 116-117` is refused before any check
+programs and `internal/phase/archive/116/check.go` is ONE file, so `stage 116-117` is refused before any check
 runs — `phase 116 is in stage 116-117 but is not an edit and a check` from
 `tools/stages.sh`, and `phase 116 has no edit and check to run` from
 `tools/phaserun.sh`. **No `need 116`, `need 117`, `need 118` or `need 119`** — 118's measured
@@ -1922,7 +1987,7 @@ phase 120's sweep removing nothing at all.
 
 **The memline arc adds three `apart` lines and two `need`s, and one `apart` is forbidden
 rather than declared.** There is **no `apart 122 123` and no `need 123`**, for the reason
-there is no `apart 116 117`: `internal/phase/123/check.go` is one file, so `stage 122-123` is refused
+there is no `apart 116 117`: `internal/phase/archive/123/check.go` is one file, so `stage 122-123` is refused
 before any check runs — *phase 123 is in stage 122-123 but is not an edit and a check* from
 `tools/stages.sh` and *phase 123 has no edit and check to run* from
 `tools/phaserun.sh`, both measured — and `need` is a statement about an **edit part**,
@@ -2006,12 +2071,12 @@ fail and the old one proven not to be**, in one measurement: with one row delete
 t_Co=256` and one `E529`**, the empty string, which `'term'` refuses before any table is
 consulted.
 **The re-record was safe because the baseline and every phase's recording move
-together**, and `internal/phase/116/check.go` measures that rather than citing it: `./whim-vim` out
+together**, and `internal/phase/archive/116/check.go` measures that rather than citing it: `./whim-vim` out
 of every recorded boundary tar **up to its own number** plus `whim-vim.c` built with
 whim's own line gives one digest across every one of them, so `term-moved` stays
 undeclared at every phase before it. The incantation, and **both halves are needed** —
 measured, with only
-`.cache/r0` removed `internal/phase/083/check.go` refuses and names `ref-term.txt`, which is right —
+`.cache/r0` removed `internal/phase/archive/083/check.go` refuses and names `ref-term.txt`, which is right —
 is `rm -rf .reference/core-baselines .cache/r0 && make whim-phase-83`.
 
 **That bound is a repair, and the rule behind it is general.** The loop globbed
@@ -2141,12 +2206,12 @@ requires the committed bytes back from the committed input.
 Each phase is a directory, `internal/phase/NNN/`: its program, its `GOAL.md` and its
 declared `delta.md`.
 
-- [Phase 83 — the core's compile line, and the baselines it is measured against](../internal/phase/083/GOAL.md)
-- [Phase 84 — the stack protector goes](../internal/phase/084/GOAL.md)
+- [Phase 83 — the core's compile line, and the baselines it is measured against](../internal/phase/archive/083/GOAL.md)
+- [Phase 84 — the stack protector goes](../internal/phase/archive/084/GOAL.md)
 - [Phase 85 — the core stops diagnosing its own terminal](../internal/phase/085/GOAL.md)
-- [Phase 86 — the instrument becomes the screen](../internal/phase/086/GOAL.md)
+- [Phase 86 — the instrument becomes the screen](../internal/phase/archive/086/GOAL.md)
 - [Phase 87 — no streaming Ex](../internal/phase/087/GOAL.md)
-- [Phase 88 — argv is `+{command}` and `-T {term}`](../internal/phase/088/GOAL.md)
+- [Phase 88 — argv is `+{command}` and `-T {term}`](../internal/phase/archive/088/GOAL.md)
 - [Phase 89 — no write](../internal/phase/089/GOAL.md)
 - [Phase 90 — no read](../internal/phase/090/GOAL.md)
 - [Phase 91 — no `:edit`, and no `gf`](../internal/phase/091/GOAL.md)
@@ -2157,7 +2222,7 @@ declared `delta.md`.
 - [Phase 96 — no `FILE *` that is never opened](../internal/phase/096/GOAL.md)
 - [Phase 97 — the strings are the editor's own](../internal/phase/097/GOAL.md)
 - [Phase 98 — the character classes, the numbers and the sort](../internal/phase/098/GOAL.md)
-- [Phase 99 — the includes nothing names](../internal/phase/099/GOAL.md)
+- [Phase 99 — the includes nothing names](../internal/phase/archive/099/GOAL.md)
 - [Phase 100 — the deadly ladder that cannot run](../internal/phase/100/GOAL.md)
 - [Phase 101 — `main()` is demoted to `vim_main()`](../internal/phase/101/GOAL.md)
 - [Phase 102 — the core can no longer stop the process](../internal/phase/102/GOAL.md)
@@ -2174,14 +2239,14 @@ declared `delta.md`.
 - [Phase 113 — the message fold: `msg_puts_printf()` and the branch that reaches it](../internal/phase/113/GOAL.md)
 - [Phase 114 — `abs` and `labs`, the two the core took on trust](../internal/phase/114/GOAL.md)
 - [Phase 115 — the clock crosses the boundary](../internal/phase/115/GOAL.md)
-- [Phase 116 — the terminal table is asked with `+set term=`, not `$TERM`](../internal/phase/116/GOAL.md)
+- [Phase 116 — the terminal table is asked with `+set term=`, not `$TERM`](../internal/phase/archive/116/GOAL.md)
 - [Phase 117 — the core stops reallocating](../internal/phase/117/GOAL.md)
 - [Phase 118 — the core calls nothing but the host](../internal/phase/118/GOAL.md)
 - [Phase 119 — the core names no libc function at all](../internal/phase/119/GOAL.md)
 - [Phase 120 — the degenerate unions go](../internal/phase/120/GOAL.md)
 - [Phase 121 — the eight terminal names go, leaving two](../internal/phase/121/GOAL.md)
 - [Phase 122 — `-T {term}` goes, and the command line is `+{command}`](../internal/phase/122/GOAL.md)
-- [Phase 123 — the instrument could not see the text layer](../internal/phase/123/GOAL.md)
+- [Phase 123 — the instrument could not see the text layer](../internal/phase/archive/123/GOAL.md)
 - [Phase 124 — freeing is free, and the arena is measured](../internal/phase/124/GOAL.md)
 - [Phase 125 — the swap file's residue, and what no sweep could find](../internal/phase/125/GOAL.md)
 - [Phase 126 — a block number becomes a reference](../internal/phase/126/GOAL.md)
@@ -2221,12 +2286,12 @@ declared `delta.md`.
 - [Phase 160 — no line getter takes a cookie](../internal/phase/160/GOAL.md)
 - [Phase 161 — no goto jumps into a block](../internal/phase/161/GOAL.md)
 - [Phase 162 — no two function pointers are compared](../internal/phase/162/GOAL.md)
-- [Phase 163 — the product is in the one canonical spelling](../internal/phase/163/GOAL.md)
+- [Phase 163 — the product is in the one canonical spelling](../internal/phase/archive/163/GOAL.md)
 - [Phase 164 — no statement follows a jump](../internal/phase/164/GOAL.md)
 - [Phase 165 — no store nothing reads](../internal/phase/165/GOAL.md)
 - [Phase 166 — a question returns bool](../internal/phase/166/GOAL.md)
 - [Phase 167 — a key code has a name](../internal/phase/167/GOAL.md)
-- [Phase 168 — a goto whose label returns is that return](../internal/phase/168/GOAL.md)
+- [Phase 168 — a goto whose label returns is that return](../internal/phase/archive/168/GOAL.md)
 - [Phase 169 — the system headers nothing needs](../internal/phase/169/GOAL.md)
 - [Phase 170 — a goto whose label marks a short tail is that tail](../internal/phase/170/GOAL.md)
 - [Phase 171 — a goto that is a break is break](../internal/phase/171/GOAL.md)
@@ -2674,7 +2739,7 @@ compile line, three times, requiring the three runs to be identical — `GOALS.m
 core rule 3, unchanged. Recording them from the pipeline's input is legitimate where
 recording them from its current output would not be.
 
-The programs are zero-only files, named by `internal/phase/083/check.go` and
+The programs are zero-only files, named by `internal/phase/archive/083/check.go` and
 `tools/coredelta.sh` and by nothing whim or slim runs — `tools/zscreen.py` (the
 emulator), `tools/zstream.py` (the driver), `tools/zcases.py` (the corpus),
 `tools/zexcmds.py` (the command sweep) and `tools/zargv.py` (the invocations) —
@@ -2684,7 +2749,7 @@ whim or slim key moves. (`termcheck.py` is still untouched, and from phase 88 it
 no longer *run*: zero records the terminal table with `tools/ztermcheck.py`, which
 imports it and replaces the one call that passes a file argument.)
 
-**This is a change to phase 83's program**, not a new phase: `internal/phase/083/check.go` is
+**This is a change to phase 83's program**, not a new phase: `internal/phase/archive/083/check.go` is
 what records the baselines and what refuses when they differ. It moves phase 83's
 implementation digest, so phases 83 and 84 re-run (9 s and a build), and
 `.reference/core-baselines` is rewritten once, with the difference named — which is

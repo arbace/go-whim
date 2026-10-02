@@ -162,7 +162,7 @@ declaration says. Phase 116 needed a re-record because the **harness** changed s
 phase changes the **editor**.
 
 **And it broke another phase's program, which it measured and declined to repair.**
-`internal/phase/116/check.go`'s section 4 extracted `./whim-vim` from **every** `.build/r*.tar`
+`internal/phase/archive/116/check.go`'s section 4 extracted `./whim-vim` from **every** `.build/r*.tar`
 and required one terminal table across all of them — a glob that reaches boundaries which
 did not exist when the phase ran, so the first later phase to move the table on purpose
 makes phase 116's check fail. Measured, with this phase's tar present: *q121 records a

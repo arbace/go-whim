@@ -67,7 +67,7 @@ package p089
 // still means something here.
 //
 // THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
-// flags, exactly as internal/phase/085/edit.go, internal/phase/087/edit.go and internal/phase/088/edit.go do it.  It
+// flags, exactly as internal/phase/085/edit.go, internal/phase/087/edit.go and internal/phase/archive/088/edit.go do it.  It
 // is not decoration: THE CORPUS CANNOT SEE WRITING.  ``zcases``'s `cmd_write`
 // types `:write` with no file name and has only ever recorded `E32: No file name`,
 // so every screen the baselines hold is of an editor that failed to write.  The only

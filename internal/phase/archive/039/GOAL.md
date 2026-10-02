@@ -1,5 +1,10 @@
 # Phase 39 — one window, always
 
+**A record now.** This phase ran with phase 40 as one, and its cut,
+`nowindows`, runs at phase 1 (the pipeline reform's D9,
+`doc/PIPELINE-REFORM.md` §7). What follows is the account of the cut as it was
+made here.
+
 The window list is the container the editor draws into, and `aucmd_prepbuf()`
 still slots its hidden autocommand window into the frame tree beside the user's
 with `win_split_ins()`. So **the list stays, with one user window in it**, and

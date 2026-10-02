@@ -100,7 +100,7 @@ package p091
 // measurement of what the sweep did.
 //
 // THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
-// flags, exactly as internal/phase/085/edit.go, internal/phase/087/edit.go, internal/phase/088/edit.go, internal/phase/089/edit.go
+// flags, exactly as internal/phase/085/edit.go, internal/phase/087/edit.go, internal/phase/archive/088/edit.go, internal/phase/089/edit.go
 // and internal/phase/090/edit.go do it.  THE CORPUS SEES TWO CASES OF THIS PHASE and neither of
 // them opens a file: `cmd_edit` types `:edit` with no file name and `key_gf` presses
 // `gf` on a word that names nothing.  The only evidence that this phase removed

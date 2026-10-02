@@ -62,6 +62,9 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 		if p.N < o.From {
 			continue
 		}
+		if p.Block != "" {
+			fmt.Fprintf(o.W, "  block  %s\n", p.Block)
+		}
 		start := time.Now()
 		// rep is the phase's own report: o.W itself when verbose, and
 		// otherwise held back, and written only if the phase refuses.

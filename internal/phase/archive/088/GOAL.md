@@ -6,7 +6,7 @@ the seed. The fall-out closure then folds what the options set, since nothing
 writes it after the cut. So this phase has no plan entry and no program. What
 follows is the account of the cut as it was made here.
 
-`internal/phase/088/edit.go` and `internal/phase/088/check.go`, `stage 88`, `package streams`. A
+`internal/phase/archive/088/edit.go` and `internal/phase/archive/088/check.go`, `stage 88`, `package streams`. A
 core is handed its buffer by a host, not by a shell. What phases 85 and 87 left of
 `command_line_scan()` is five things — `+cmd`, `-T`, a bare `-`, `--` and a file
 argument — and this phase takes the last three, which are exactly the three that

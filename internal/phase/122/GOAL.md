@@ -151,7 +151,7 @@ there**, which is the sharpest form of `apart 105 106`'s lesson: phase 121's rep
 on that stage's tree, which is byte-identical to the sequential one. No `need 122`, measured
 in the same run on phase 121's unswept output.
 
-And `internal/phase/116/check.go`, the one phase program that reads other boundaries, was run in the
+And `internal/phase/archive/116/check.go`, the one phase program that reads other boundaries, was run in the
 repository root with this phase's tar present: *all 34 recorded boundary binaries up to q116
 record the SAME table*, because its scan has been bounded by its own number since the fix
 phase 121 asked for, and this phase changes no terminal row at all.

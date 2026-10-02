@@ -33,8 +33,11 @@ type Step struct {
 
 // A Phase is what one phase of the pipeline does to the source.
 type Phase struct {
-	N        int
-	Name     string
+	N    int
+	Name string
+	// Block names the block of the plan this phase opens, printed as a
+	// heading before it; empty, the phase is in the block before it.
+	Block    string
 	Seed     bool // the tree is the input, printed canonically
 	NoSource bool // the phase changes no source at all
 	Steps    []Step
