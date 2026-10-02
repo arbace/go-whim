@@ -136,7 +136,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 // cutCounted deletes a pattern `count` times, refusing on any other number.
 func cutCounted(text []byte, pattern, tool, what string, count int) ([]byte, error) {
 	re := regexp.MustCompile(pattern)
-	locs := re.FindAllIndex(text, count)
+	locs := edit.AllIndexN(re, text, count)
 	if len(locs) != count {
 		return nil, fmt.Errorf("%s: %s -- expected %d, matched %d", tool, what, count, len(locs))
 	}

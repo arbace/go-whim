@@ -48,7 +48,7 @@ func DropIf(s []byte, pattern string, count int) ([]byte, error) {
 	}
 	for i := 0; i < count; i++ {
 		b := Blank(s)
-		m := re.FindIndex(s)
+		m := FirstIndex(re, s)
 		if m == nil {
 			return nil, fmt.Errorf("drop_if: no match for %s", pyPattern(pattern))
 		}
@@ -72,7 +72,7 @@ func DropIf(s []byte, pattern string, count int) ([]byte, error) {
 		if len(tail) > 40 {
 			tail = tail[:40]
 		}
-		if regexp.MustCompile(`^[ \t]*\n[ \t]*else\b`).Match(tail) {
+		if elseAfterBlock.Match(tail) {
 			return nil, fmt.Errorf("drop_if: block has an else; deleting the if alone " +
 				"would orphan it")
 		}
@@ -124,14 +124,14 @@ func fold(s []byte, pattern string, count int, what string,
 	if err != nil {
 		return nil, err
 	}
-	n := len(re.FindAllIndex(s, -1))
+	n := len(AllIndex(re, s))
 	if n != count {
 		return nil, fmt.Errorf("%s: %s matches %d times, expected %d -- a fold that is "+
 			"not counted is a guess", what, pyPattern(pattern), n, count)
 	}
 	for i := 0; i < count; i++ {
 		b := Blank(s)
-		m := re.FindIndex(s)
+		m := FirstIndex(re, s)
 		if m == nil {
 			return nil, fmt.Errorf("%s: the match vanished between passes", what)
 		}
@@ -157,7 +157,7 @@ func FoldAlways(s []byte, pattern string, count int) ([]byte, error) {
 				return nil, fmt.Errorf("fold_always: only a plain if, not %s", PyRepr(head))
 			}
 			end := c + bytes.IndexByte(s[c:], '\n') + 1
-			if regexp.MustCompile(`^[ \t]*else\b`).Match(s[end:]) {
+			if ElseLine.Match(s[end:]) {
 				return nil, fmt.Errorf("fold_always: the block has an else")
 			}
 			bodyStart := o + bytes.IndexByte(s[o:], '\n') + 1
@@ -170,6 +170,8 @@ func FoldAlways(s []byte, pattern string, count int) ([]byte, error) {
 			return out, nil
 		})
 }
+
+var elseAfterBlock = regexp.MustCompile(`^[ \t]*\n[ \t]*else\b`)
 
 var elseHead = regexp.MustCompile(`^([ \t]*)else\b([ \t]+if\b)?`)
 

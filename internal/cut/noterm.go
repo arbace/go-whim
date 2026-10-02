@@ -16,7 +16,7 @@ import (
 // between a cut and a guess -- so this is the shape to reach for whenever the
 // Python passed a count.
 func replaceFirst(re *regexp.Regexp, text []byte, repl string) ([]byte, bool) {
-	loc := re.FindSubmatchIndex(text)
+	loc := edit.FirstSubmatchIndex(re, text)
 	if loc == nil {
 		return text, false
 	}

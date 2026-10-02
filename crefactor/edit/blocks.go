@@ -35,7 +35,7 @@ func (e *E) FoldWalk(fn, v, to, head string, n int, what string) {
 			return
 		}
 		pat := regexp.MustCompile(`(?m)^([ \t]*)` + regexp.QuoteMeta(head) + `[ \t]*\n([ \t]*)\{\n`)
-		if k := len(pat.FindAll(e.buf, -1)); k != n {
+		if k := CountMatches(pat, e.buf); k != n {
 			e.Die("%s -- the walk matches %d times, expected %d", what, k, n)
 			return
 		}
@@ -73,12 +73,12 @@ func (e *E) DropWalk(fn, head, repl string, n int, what string) {
 			return
 		}
 		pat := regexp.MustCompile(`(?m)^[ \t]*` + regexp.QuoteMeta(head) + `[ \t]*\n[ \t]*\{\n`)
-		if k := len(pat.FindAll(e.buf, -1)); k != n {
+		if k := CountMatches(pat, e.buf); k != n {
 			e.Die("%s -- the walk matches %d times, expected %d", what, k, n)
 			return
 		}
 		for i := 0; i < n; i++ {
-			m := pat.FindIndex(e.buf)
+			m := FirstIndex(pat, e.buf)
 			b := Blank(e.buf)
 			o := IndexFrom(e.buf, []byte("{"), m[0])
 			c := Match(b, o)
@@ -102,7 +102,7 @@ func (e *E) FoldWalks(headRe string, ok func([]string) bool, subst func([]string
 	}
 	pat := regexp.MustCompile(`(?m)^([ \t]*)` + headRe + `[ \t]*\n[ \t]*\{\n`)
 	var ms [][]int
-	for _, m := range pat.FindAllSubmatchIndex(e.buf, -1) {
+	for _, m := range AllSubmatchIndex(pat, e.buf) {
 		g := make([]string, len(m)/2)
 		for i := range g {
 			if m[2*i] >= 0 {
@@ -161,7 +161,7 @@ func (e *E) ReplaceBlock(fn, anchorRe, repl, what string) {
 		if e.Failed() {
 			return
 		}
-		ms := regexp.MustCompile(anchorRe).FindAllIndex(e.buf, -1)
+		ms := AllIndex(regexp.MustCompile(anchorRe), e.buf)
 		if len(ms) != 1 {
 			e.Die("%s -- %d lines match %s, expected 1", what, len(ms), PyRepr(anchorRe))
 			return

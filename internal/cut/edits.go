@@ -74,7 +74,7 @@ func (e ed) foldAlways(seg []byte, pattern, what string) ([]byte, error) {
 // dropIf deletes an `if` and the block it guards, after COUNTING it, in the
 // tool's own words before the fold's.
 func (e ed) dropIf(seg []byte, pattern, what string) ([]byte, error) {
-	n := len(regexp.MustCompile("(?m)"+pattern).FindAll(seg, -1))
+	n := edit.CountMatches(regexp.MustCompile("(?m)"+pattern), seg)
 	if n != 1 {
 		return nil, fmt.Errorf("%s: %s -- the condition occurs %d times, expected 1",
 			e.tool, what, n)

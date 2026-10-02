@@ -27,7 +27,7 @@ func IsWordByte(c byte) bool {
 func CallsNotAfterWord(text []byte, name string) [][]int {
 	re := regexp.MustCompile(regexp.QuoteMeta(name) + `\(`)
 	var Out [][]int
-	for _, loc := range re.FindAllIndex(text, -1) {
+	for _, loc := range AllIndex(re, text) {
 		if loc[0] > 0 && IsWordByte(text[loc[0]-1]) {
 			continue
 		}

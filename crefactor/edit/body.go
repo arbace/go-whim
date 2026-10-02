@@ -22,7 +22,7 @@ import (
 func ReplaceBody(s []byte, name, body string) ([]byte, int, error) {
 	blanked := Blank(s)
 	head := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(name) + `\([^\n]*\n`)
-	m := head.FindIndex(s)
+	m := FirstIndex(head, s)
 	if m == nil {
 		return nil, 0, fmt.Errorf("%s is not defined at file scope any more", name)
 	}
@@ -50,7 +50,7 @@ func ReplaceBody(s []byte, name, body string) ([]byte, int, error) {
 func FindBody(s []byte, name string) (opening, closing int, err error) {
 	blanked := Blank(s)
 	head := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(name) + `\([^\n]*\n`)
-	m := head.FindIndex(s)
+	m := FirstIndex(head, s)
 	if m == nil {
 		return 0, 0, fmt.Errorf("%s is not defined at file scope any more", name)
 	}
@@ -78,7 +78,7 @@ func FindBody(s []byte, name string) (opening, closing int, err error) {
 func Body(s []byte, name string) (opening, closing int, found, balanced bool) {
 	blanked := Blank(s)
 	head := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(name) + `\([^\n]*\n`)
-	m := head.FindIndex(s)
+	m := FirstIndex(head, s)
 	if m == nil {
 		return 0, 0, false, false
 	}

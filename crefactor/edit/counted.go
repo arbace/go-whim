@@ -35,10 +35,11 @@ func ReplacePattern(t []byte, pattern, repl string, n int) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if k := len(re.FindAll(t, -1)); k != n {
+	out, k := ReplaceAllCounted(re, t, []byte(repl))
+	if k != n {
 		return nil, fmt.Errorf("matched %d times, expected %d", k, n)
 	}
-	return re.ReplaceAll(t, []byte(repl)), nil
+	return out, nil
 }
 
 // InDefinition applies f to ONE file-scope definition's text and splices the

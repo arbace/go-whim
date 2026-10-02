@@ -132,7 +132,7 @@ func (e *E) CountIs(pattern string, n int, what string) {
 		e.Die("%s -- %v", what, err)
 		return
 	}
-	if k := len(re.FindAll(e.buf, -1)); k != n {
+	if k := CountMatches(re, e.buf); k != n {
 		e.Die("%s -- matched %d times, expected %d", what, k, n)
 	}
 }
@@ -145,8 +145,12 @@ func (e *E) Mentions(name string) int { return MentionCount(e.buf, name) }
 // reports as it cuts them.
 func (e *E) Query(pattern string, group int) []string {
 	var out []string
-	for _, m := range regexp.MustCompile(pattern).FindAllSubmatch(e.buf, -1) {
-		out = append(out, string(m[group]))
+	for _, m := range AllSubmatchIndex(regexp.MustCompile(pattern), e.buf) {
+		if m[2*group] >= 0 {
+			out = append(out, string(e.buf[m[2*group]:m[2*group+1]]))
+		} else {
+			out = append(out, "")
+		}
 	}
 	return out
 }
@@ -255,14 +259,14 @@ func (e *E) FoldAlwaysElse(pattern string, n int, what string) {
 		e.Die("%s -- %v", what, err)
 		return
 	}
-	if ms := re.FindAllIndex(e.buf, -1); len(ms) != n {
+	if ms := AllIndex(re, e.buf); len(ms) != n {
 		e.Die("%s -- %d matches, expected %d", what, len(ms), n)
 		return
 	}
 	for i := 0; i < n; i++ {
 		t := e.buf
 		b := Blank(t)
-		k, o, c, head, err := Guarded(t, b, re.FindIndex(t))
+		k, o, c, head, err := Guarded(t, b, FirstIndex(re, t))
 		if err != nil {
 			e.Die("%s -- %v", what, err)
 			return
@@ -454,12 +458,12 @@ func (e *E) DropBlocks(fn, anchorRe string, n int, what string) {
 			return
 		}
 		rx := regexp.MustCompile(anchorRe)
-		if k := len(rx.FindAll(e.buf, -1)); k != n {
+		if k := CountMatches(rx, e.buf); k != n {
 			e.Die("%s -- the anchor matches %d times, expected %d", what, k, n)
 			return
 		}
 		for i := 0; i < n; i++ {
-			m := rx.FindIndex(e.buf)
+			m := FirstIndex(rx, e.buf)
 			b := Blank(e.buf)
 			k0 := LastNewlineBefore(e.buf, m[0]) + 1
 			o := IndexFrom(e.buf, []byte("{"), m[0])
