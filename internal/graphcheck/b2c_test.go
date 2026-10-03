@@ -70,7 +70,7 @@ func b2cPhase(t *testing.T, n int, text func([]byte, io.Writer) ([]byte, error),
 		t.Fatal(err)
 	}
 	if !bytes.Equal(got, pre) {
-		t.Fatalf("before the sweep: the graph's C view is not the text program's (%d bytes against %d)\n%s", len(got), len(pre), diffAt(got, pre))
+		t.Fatalf("before the sweep: the graph's C view is not the text program's (%d bytes against %d)\n%s", len(got), len(pre), diffAtB2c(got, pre))
 	}
 	// read back, the same graph
 	r, err := graph.Read(h.Lisp())
@@ -88,12 +88,12 @@ func b2cPhase(t *testing.T, n int, text func([]byte, io.Writer) ([]byte, error),
 		t.Fatal(err)
 	}
 	if !bytes.Equal(got, want) {
-		t.Fatalf("collected: %d bytes, q%03d.c %d\n%s", len(got), n, len(want), diffAt(got, want))
+		t.Fatalf("collected: %d bytes, q%03d.c %d\n%s", len(got), n, len(want), diffAtB2c(got, want))
 	}
 }
 
-// diffAt is the first differing line of a and b, with a line around it.
-func diffAt(a, b []byte) string {
+// diffAtB2c is the first differing line of a and b, with a line around it.
+func diffAtB2c(a, b []byte) string {
 	al, bl := strings.Split(string(a), "\n"), strings.Split(string(b), "\n")
 	for i := 0; i < len(al) && i < len(bl); i++ {
 		if al[i] != bl[i] {
@@ -307,7 +307,7 @@ func TestB2cParamToLocal(t *testing.T) {
 	}
 	got, _ := h.C()
 	if !bytes.Equal(got, want) {
-		t.Fatalf("%s", diffAt(got, want))
+		t.Fatalf("%s", diffAtB2c(got, want))
 	}
 	if c.ID != id || !e.Live(c) || st.Calls != 1 || len(e.Untyped) != 0 {
 		t.Errorf("c #%d (was #%d), %s, %d untyped", c.ID, id, st, len(e.Untyped))
@@ -530,7 +530,7 @@ func TestB2cMoveFunction(t *testing.T) {
 		}
 		got := text()
 		if want := cutPaste(before, name, ua); !bytes.Equal(got, want) {
-			t.Fatalf("A, %s: %s", name, diffAt(got, want))
+			t.Fatalf("A, %s: %s", name, diffAtB2c(got, want))
 		}
 		syntax(t, got)
 		moved = name
@@ -578,7 +578,7 @@ func TestB2cMoveFunction(t *testing.T) {
 		}
 		got := text()
 		if want := cutPaste(before, name, at); !bytes.Equal(got, want) {
-			t.Fatalf("B, %s: %s", name, diffAt(got, want))
+			t.Fatalf("B, %s: %s", name, diffAtB2c(got, want))
 		}
 		syntax(t, got)
 		if n := len(e.Uses(form)); n != uses {

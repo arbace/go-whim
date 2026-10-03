@@ -34,9 +34,9 @@ type typeTx struct {
 
 func (e *Editor) typeTx() *typeTx { return &typeTx{e: e} }
 
-// typeKey is a type node's structure: its words, and its operands by
+// internKey is a type node's structure: its words, and its operands by
 // identity (a struct's or union's type is its form: identity too).
-func typeKey(n *Node) string {
+func internKey(n *Node) string {
 	var b strings.Builder
 	for _, k := range n.Kids {
 		switch {
@@ -66,14 +66,14 @@ func (tx *typeTx) intern(n *Node) *Node {
 		tx.keys = map[string]*Node{}
 		for _, t := range tx.e.g.Types {
 			if t.list && t.Head() != "struct" && t.Head() != "union" && t.Head() != "enum" {
-				k := typeKey(t)
+				k := internKey(t)
 				if _, ok := tx.keys[k]; !ok {
 					tx.keys[k] = t
 				}
 			}
 		}
 	}
-	k := typeKey(n)
+	k := internKey(n)
 	if t, ok := tx.keys[k]; ok {
 		return t
 	}
