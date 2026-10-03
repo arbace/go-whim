@@ -1,9 +1,10 @@
 # GRAPH.md -- the program as a graph, its views as trees, printed as Lisp
 
-2026-10-03. A design, not a plan of record; its steps 1-3 are built
-(`crefactor/graph`) and measured, in *Steps 1-3 as built*, near the end, and so
-is a first, read-only taste of its views (`crefactor/graph/view`, `whim view`:
-*Views, read-only*); the rest is not. It asks
+2026-10-03. A design, not a plan of record; its steps 1-4 are built
+(`crefactor/graph`, `internal/graphcut`) and measured, in *Steps 1-3 as
+built* and *Step 4 as built*, near the end, and so is a first, read-only
+taste of its views (`crefactor/graph/view`, `whim view`: *Views,
+read-only*); the rest is not. It asks
 what representation the pipeline, and later an editor, would hold a C program
 in, if the C text were no longer the thing edited. It rests on two measured
 pieces: C-lisp (`doc/C-LISP.md`: C23 as s-expressions, byte for byte against
@@ -189,7 +190,7 @@ analyses, or cached under the graph's digest.
    print C: byte for byte, and the read under a tenth of `cc.Parse`.
 3. **The sweep as collection** (built). *Gate:* on every phase's output before its
    sweep, the collected graph's C view is the swept text byte for byte.
-4. **One cut as deletion plus closure**, a drop phase the pilot measured
+4. **One cut as deletion plus closure** (built), a drop phase the pilot measured
    (24, or the `DropLocal` phases). *Gate:* qN byte for byte from
    q(N-1), with its counts.
 5. **The pipeline on the graph**, phase by phase, the graph handed from one
@@ -461,7 +462,8 @@ invocations that name `fds_bits`, and the dangling-edge check found it).
 
 ### Steps 4-6, given what was measured
 
-- **Step 4 (one cut as deletion and closure)** is ready to start: the graph
+- **Step 4 (one cut as deletion and closure)** was ready to start, and is
+  built (*Step 4 as built*, below): the graph
   has the edges a cut asks about (phase 24's "every mention is a bare call"
   is an incoming-edge count, members included), and the collection is the
   closure's last half already. What is missing is the edit surface: a
@@ -712,6 +714,233 @@ entity's shows 0 of `ml_get`'s 72 -- each refers to the prototype.
 - **The graph as the source**: once edits land in the graph, the cache is
   no longer a cache of the C text but the program itself, written after
   each edit.
+## Step 4 as built (2026-10-03)
+
+`crefactor/graph`'s `edit.go` (the editor), `fallout.go` (the closure) and
+`pattern.go` (clisp's patterns matched on nodes), naming nothing in vim;
+`internal/whim/graph.go`, what the closure is told about vim; and
+`internal/graphcut`, whim's, which writes `DropLocal` and phase 24 as
+deletions on the graph and holds them to the snapshots
+(`GRAPHCUT_SNAPS=.cache/boundaries go test ./internal/graphcut/`;
+`GRAPHCUT_RUNS=5 ... -run Measure -v` the tables below). The plan does not
+run it. Against go-whim `a329f9b` and its snapshots, on the 64-core machine.
+
+### The edit API and its invariants
+
+`graph.NewEditor(g)` indexes a graph -- each node's container (a pointer
+in the node, set by the index; one editor per graph at a time) and the
+refers edges by target id, two walks and no map, 17 ms on q023 -- and makes
+four operations, each checked where it is made, refused with the place or
+the edge named:
+
+- **`Delete(n)`, `Replace(old, with...)`, `InsertBefore/After(at, ns...)`**,
+  one splice underneath. **Places**: a node goes, or is replaced by other
+  than one node, only where its container's grammar lets it: an item of a
+  block, a statement expression, a function's body or the file; a struct's
+  member; an enumerator (not one whose successor's value is implicit:
+  deleting it would move that value -- *the value of #8 (B), after it, is
+  implicit and would move*); an if's else. A body is replaced by one block;
+  any other place -- a condition, an operand, a callee, a function's
+  parameters, which are its type -- by exactly one node, an expression by an
+  expression (*an expression's place in #63 (call) cannot hold a return*).
+  The type and external sections are the collection's. **Containment**: a
+  node is contained once -- a replacement may move nodes out of what it
+  replaces, and holds no other node the graph has. **References**: a new
+  node's edges go to nodes the graph holds. An edge INTO a node an edit
+  removes is not refused: it becomes a **dangling record** (`Dangling()`),
+  which the closure must discharge or refuse, naming it.
+- **`Retarget(use, i, to)`**: a use that spells a name must spell its new
+  target's (*retarget #83 `ready` to #14: it declares `counter`*): the C
+  view prints the name, not the edge.
+- **`Check()`**, for tests: the whole graph against the invariants -- every
+  node contained once and indexed where it is, every edge to a node held or
+  recorded dangling. The gate runs it after every graph cut.
+
+**The id rule.** A node keeps its id while it is in the graph, wherever an
+edit moves it (the items an if's taken branch splices into its block keep
+theirs). A node an edit removes takes its id with it: superseded, never given
+again, and a removed node brought back is refused. A node an edit brings in
+gets a fresh id from the graph's `IDs` (a list, or an atom an edge starts
+from). Every edit is logged (`Log`: what it superseded, moved and gave), the
+record a view or a cache keyed by id needs. Phase 24 on the graph is 86 acts.
+
+**Types.** A deletion leaves every remaining typed edge right: an item or a
+member gone changes no other node's type (a struct's type is its form, which
+loses the member); a parameter cannot be deleted (it is the function's type).
+A replacement re-derives one thing: an expression replaced by one of the same
+type node, or a decimal literal in an `int`'s place, leaves the expressions
+above it typed. Otherwise it CLEARS the typed edges above it, up to the
+statement, and lists them (`Untyped`): unknown, never wrong; a new expression
+without a typed edge is listed too. The re-check that would type them again
+is step 6's. On every gate phase: 0 untyped.
+
+### The fall-out rules
+
+`Editor.FallOut(opt)` closes over the dangling records, round after round,
+and refuses with the first it cannot discharge (`*Unhandled`: *#15554
+`b_p_ro` in fileinfo refers to #2646 (b_p_ro), which an edit deleted, and no
+rule takes it (8 such edges)*). At a dangling use, the item holding it, the
+cut's own rules first (`opt.Rules`), then:
+
+- **call**: `f(args);` -- a statement, or cast to void -- of a deleted
+  function goes, its arguments free of side effects. In an expression
+  context, its value used, nothing is taken: the cut must say what the
+  value is (`Replace`), and the closure refuses -- which is phase 24's "every
+  mention is a bare call" asked of the edges.
+- **store**: an expression statement whose only effect is on deleted
+  locations goes: `x = E;`, `p->m += E;`, `++x;`, `a[i] = E;`, E free of
+  side effects or itself such a store (`new_wp->w_id = ++last_win_id;`,
+  both deleted). A call of a function the options call **Pure** -- one that
+  only allocates -- is free of them.
+- **through**: a call of a function the options say acts only on what its
+  arguments point at (**Through**), every argument a deleted location's
+  address, goes.
+- **value**: a read of a deleted object nothing writes, of a constant value
+  (its initialiser; zero at file scope) is that value -- `xform.FallOut`'s
+  seed rule; a pointer's is `((void *)V)`.
+
+Then what became constant, starting only from what an edit wrote (as
+`xform.FallOut` fires only on its own marks): an `int` expression of
+constants is its value, `c ? a : b` of a constant c its branch, an `if` of a
+constant condition the branch it takes (a block's items spliced, the block
+kept whole when it declares anything), `while (0)` goes; and unless
+`KeepEmpty`, a block an edit emptied goes when it is an item or an else, and
+an `if` whose only branch it was, its condition free of side effects. Then
+the caller collects (step 3). Not written, since no gate exercises them:
+`xform.FallOut`'s later rules -- `a && K` losing its K, a function whose body
+is `return K;` made K at its calls, a parameter every call passes alike.
+Unit tests (`edit_test.go`, every one on a graph read back from its Lisp, no
+cc node behind it) hold each rule, and the collection after it, to the sweep
+and print of the C written by hand, and each refusal to its message.
+
+**What vim tells it** (`internal/whim/graph.go`, as the sweep is told its
+roots): `vim_strsave` is Pure; `check_string_option` and
+`clear_string_option` are Through; and `KeepEmpty`, because the text cutters
+leave the blocks they empty -- `if (ready) {}` is in q024.
+
+**Where the text cutters do what the generic rules do not**, each said
+where it is:
+
+- **DropLocal's get_varp case** -- `case X: return (char_u *)&(curbuf->F);`,
+  and the `? ... : p->var` form -- goes with its case label: a cut's own
+  `Rule` (`getVarp`), not a generic one, since dropping a case changes where
+  the switch goes, which only this cut decides.
+- **The text's shapes are narrower than the rules**: DropLocal's regexps
+  take `buf->F = ...;` and `curbuf->F = -1;`, the store rule any store to
+  the field. On every gate phase the two take the same statements, since
+  the text refuses any other (*still has N mentions*); off the gate, the
+  graph's would take more, and is the more general by construction.
+- **Phase 24's statements cut in named functions** are not statements on the
+  graph: the cut DELETES the seven locations they were the last writes of
+  (`incsearch_state_T.winid`, `win_T.w_id`, `last_win_id`,
+  `autocmd_blocked`, `autocmd_no_enter`, `autocmd_no_leave`,
+  `redrawing_for_callback`), the store rule takes exactly the ten
+  statements the text cuts -- asserted, function by function and shape by
+  shape, none more -- and the collection takes `LOWEST_WIN_ID`.
+- **Phase 24's two guards**: the cut says what the text's `FoldNever` says,
+  that `is_state.winid != curwin->w_id` is never true with one window, as
+  `Replace(condition, 0)`, and the generic fold takes the ifs.
+- **The twelve empty functions** are deleted, each checked empty first, and
+  the call rule takes their 46 calls.
+
+### Composition
+
+`RunGraph(phase, q(N-1))`: the text steps run as the plan runs them; before
+the first of a run of graph steps the text is imported -- or, when it is the
+phase's first step, q(N-1)'s graph is handed in, read from its Lisp; the run
+edits one graph; a text step after it gets the graph's C view. A phase that
+ends on the graph is collected and printed -- no sweep, no canonical print;
+one that ends on text (4, 5, 34) is finished as the plan finishes it. An
+in-phase `sweep` step stays a text step.
+
+### The gate
+
+| check | on | result |
+| --- | --- | --- |
+| qN byte for byte from q(N-1), the graph steps on the graph | the 13 DropLocal phases (4, 5, 7, 8, 12-14, 16-20, 34) and 24 | **14 of 14** (`TestGraphBytes`) |
+| the same, q(N-1)'s graph handed in, read from its Lisp | 8, 17, 24 (those whose first step is a graph step) | **3 of 3** |
+| field by field, on the text the steps before leave: the text's sites and the graph's, the text's result printed canonically and the graph's C view | 64 fields | **64 of 64**, the same counts (3-6 sites each) and the same C (`TestDropLocalSteps`), the invariants checked after each |
+| phase 24's report | q023 | **the text's, line for line**: 12 call counts (46 calls), the fold, the ten acts, `prechar` (`TestP24Report`) |
+| a reader left | `b_p_ro` on q016 | **both refuse**, both say 8 mentions (`TestDropLocalRefuses`) |
+
+**Controls** (`TestGraphControl`), each moving the bytes: the get_varp
+rule leaving the case label (phase 17, `BV_CMS` kept: 2,237,003 bytes
+against 2,236,832); the guards taken as always true instead of never (phase
+24: the guarded call stays); and the closure's own empty-block rule turned
+on (phase 24: `if (ready) {}` goes, 2,163,912 against 2,164,016) -- the one
+generic rule the text cutters do not have, measured.
+
+### Measured
+
+A/B, each phase as the plan runs it (text), with its graph steps on a graph
+imported from q(N-1) (graph), and on q(N-1)'s graph read from its Lisp
+(handed: the read, 51-53 ms, timed apart), alternately, 5 runs each, one at
+a time, load 2-3; medians, ms (`TestMeasurePhases`):
+
+| phase | text: the cut | text: total (wall / CPU) | graph: import | graph: index | graph: cut and closure | graph: collection | graph: C view | graph: total | handed: total |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 8 (2 fields) | 11 | 2,362 / 4,673 | 2,055 | 27 | 13 | 141 | 80 | 2,318 / 4,296 | **250** / 351 |
+| 17 (3 fields) | 18 | 2,387 / 4,581 | 1,943 | 25 | 19 | 137 | 75 | 2,202 / 4,249 | **235** / 317 |
+| 18 (1 field, after a text step) | 8 | 2,301 / 4,645 | 1,888 | 26 | 6 | 136 | 77 | 2,140 / 4,311 | -- |
+| 24 | 781 | 3,072 / 5,197 | 1,877 | 23 | 13 | 124 | 69 | 2,103 / 4,021 | **216** / 306 |
+
+- **The graph's own work** -- index, cut, closure, collection, C view -- is
+  216-262 ms against the text's 2.3-3.1 s: **10-14 times** when the graph is
+  handed in. The cut with its closure is 6-19 ms: phase 24's 781 ms of
+  regexps is 13 ms (the pilot's tree, 172), DropLocal's 8-18 ms 6-19 (the
+  pilot's tree, 73-77: its atom index was most of it). The collection is
+  most of what is left.
+- **The index** was 160-200 ms in a first version, maps of every node's
+  container and every edge's target, more than the cut, the closure and the
+  C view together; a container pointer in the node and the edges grouped by
+  target id in two walks made it 17-32 ms.
+- **With the import, a phase that ends on the graph is no slower than the
+  text phase** (2.1-2.3 s against 2.3-3.1 s): the import, 1.9-2.1 s, costs
+  what the sweep's parse and the canonical print cost together. The pilot's
+  tree, which kept the sweep and the print, was 3.9-4.0 s; so converting a
+  phase that ends on the graph no longer costs time on today's pipeline. One
+  that ends on text (4, 5, 34) pays the import and the C view on top.
+
+Lines of code, non-blank and non-comment:
+
+| | text | the pilot's tree | the graph |
+| --- | ---: | ---: | ---: |
+| DropLocal | 87, and its step's wrapper 16 | 114 | 98 (the get_varp rule and the declaration's shapes in it) |
+| phase 24 | 69 | 139 | 189 (the ten acts asserted against the closure's removals, the locations found by typedef) |
+| the machinery | `crefactor/edit`, about 1,700 of its 2,241 | `tree.go`, `pattern.go`, `scope.go`: 1,136 | `edit.go` 681, `fallout.go` 424, `pattern.go` 77: 1,182, and the importer and collection beside |
+| composing it with the plan | -- | `pilot.go` | `run.go`, 166 |
+| what vim tells it | -- | -- | 10 |
+
+The graph versions are not shorter either; phase 24 is the longest of the
+three, because it asserts that the closure took exactly what the text took --
+a cost of proving it equal, which a phase written for the graph first would
+not pay. What is shorter is what each cut says it removes: three lists
+(twelve functions, seven locations, a member) and two conditions, the rest
+the closure's.
+
+### What step 5 now needs
+
+- **Every phase's cut on the graph**, or a bridge: a text step costs an
+  import (1.9 s) unless the phase ends on the graph, where the import pays
+  for itself; a graph handed from phase to phase pays it never. The 79 phase
+  programs and 57 cutters are the work (about 22,000 lines, the pilot's
+  count); the closure's rules grow with them -- `xform.FallOut`'s later
+  rules for the front, phases 1-3.
+- **The collection through the editor.** `Collect` cuts the forms directly
+  and leaves an editor's index stale; a pipeline either rebuilds the index
+  after each collection (17-32 ms) or makes the collection's cut a client of
+  `splice`, which would also log its ids as superseded.
+- **In-phase `sweep` steps as collections**, and the C view only for a
+  snapshot.
+- **The parallel check on the graph**: each phase reads q(N-1)'s graph
+  (50 ms) instead of parsing it, so the snapshots would be kept as Lisp
+  beside the C, or the C imported once per link (1.9 s).
+- **The typed transforms** (step 6) for the 15 or so phases that ask
+  `cc.Translate`; until then they import, and the editor's `Untyped` says
+  what a replacement left for the re-check.
+- **Ids across phases**: the `Log` is the record of what each phase
+  superseded; content-addressed ids (*Decided*, later) would make an
+  unchanged function the same node in every snapshot.
 
 ## Open questions
 

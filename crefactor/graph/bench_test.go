@@ -31,3 +31,15 @@ func BenchmarkRead(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkEditor(b *testing.B) {
+	text := benchGraph(b)
+	g, err := Read(text)
+	if err != nil {
+		b.Fatal(err)
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		NewEditor(g)
+	}
+}

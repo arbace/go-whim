@@ -310,7 +310,11 @@ cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand
 internal/          whim's Go: cut (the cutters), steps (every transformation a phase names, as
                    one table), treepilot (doc/C-LISP-TREE.md's pilot,
                    outside the plan), graphcheck (crefactor/graph's sweep
-                   held to the pipeline's on every phase, GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
+                   held to the pipeline's on every phase, GRAPH_SNAPS), graphcut
+                   (doc/GRAPH.md's step 4: DropLocal and phase 24 as
+                   deletions on the graph and its fall-out closure, byte
+                   for byte on their 14 phases, GRAPHCUT_SNAPS; outside the
+                   plan), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
@@ -341,14 +345,22 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    edges, types.go the type and external nodes, cview.go the
                    C view, byte for byte, lisp.go the graph as Lisp and its
                    reader, collect.go, keys.go and cut.go the sweep as
-                   garbage collection, Prune's rules on the nodes, names.go
-                   what the forms say of a declaration, exported; its corpus
-                   tests run on GRAPH_CORPUS. graph/view/: its views,
-                   read-only (`go tool whim view`): index.go the edges the
-                   other way round and the roots by name, view.go the steps,
-                   the specs and the tree built with links for revisits,
-                   named.go callers, callees, uses, member, type and def,
-                   print.go the tree as C-lisp, ids on demand. sweep/: the closure.
+                   garbage collection, Prune's rules on the nodes, edit.go
+                   the editor (Delete, Replace, Insert, Retarget, checked
+                   where made: places, containment, dangling records, the
+                   id rule, types kept or cleared), fallout.go the fall-out
+                   closure over dangling edges (call, store, through,
+                   value, constant folds, empties; a program's specifics
+                   through FallOutOptions, which internal/whim/graph.go
+                   gives vim's), pattern.go clisp's patterns on nodes,
+                   names.go what the forms say of a declaration, exported;
+                   its corpus tests run on GRAPH_CORPUS. graph/view/: its
+                   views, read-only (`go tool whim view`): index.go the
+                   edges the other way round and the roots by name, view.go
+                   the steps, the specs and the tree built with links for
+                   revisits, named.go callers, callees, uses, member, type
+                   and def, print.go the tree as C-lisp, ids on demand.
+                   sweep/: the closure.
                    reach/: what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing. ccx/: a core's pointer casts and evaluation order,
@@ -415,7 +427,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
-                   names), gen.go (togo's profile, whim.Gen),
+                   names), gen.go (togo's profile, whim.Gen), graph.go
+                   (crefactor/graph's collection and fall-out closure),
                    and vimtext/ (what more than one phase uses that knows vim: the
                    buffer walks, Key, the command table's residue check, the
                    prototype and #include shapes part 49b and phase 49 share, and the
@@ -573,10 +586,11 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    that tree instead of the text -- DropLocal and phase 24
                    rewritten in internal/treepilot, byte for byte on their
                    14 phases, measured; not to migrate) and GRAPH.md (a
-                   design, its steps 1-3 built and its views read-only:
-                   the program as one resolved, typed graph, cuts as
-                   deletions whose fall-out is the constraints' closure,
-                   its views trees printed as Lisp, and an editor over them)
+                   design, steps 1-4 built and measured and its views
+                   read-only: the program as one resolved, typed graph,
+                   cuts as deletions whose fall-out is the constraints'
+                   closure, its views trees printed as Lisp, and an editor
+                   over them)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go

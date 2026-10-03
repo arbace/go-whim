@@ -72,6 +72,7 @@ type Node struct {
 	Refs []*Node // refers edges
 	Type *Node   // the typed edge
 	list bool
+	up   *Node // the container, while an Editor holds the graph (edit.go)
 }
 
 // NewList is a list of kids.
