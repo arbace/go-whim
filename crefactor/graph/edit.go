@@ -811,13 +811,6 @@ func (e *Editor) Defn(name string) *Node {
 // Body is a function definition's items.
 func Body(f *Node) []*Node { return f.Kids[defnItemsAt(f):] }
 
-// DeclName is the name a def, defn, typedef, parameter, member, enumerator
-// or label form declares, or "".
-func DeclName(n *Node) string { return declName(n) }
-
-// Members are a struct or union definition's members.
-func Members(n *Node) []*Node { return members(n) }
-
 // insertPlace is what p allows a new element at i, before its element i:
 // an item where its items are.
 func (e *Editor) insertPlace(p *Node, i int) int {
