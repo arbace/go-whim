@@ -110,17 +110,27 @@ package p030
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3b).  The same acts on the
+// program's graph, the report the text version's (history keeps it, with
+// editlit.go's literals): the anchors, the rows and the residue are the
+// text's own questions on the C view (TEXTQ); the enumerators are RENUM's;
+// `:edit`'s exemption is an operand dropped; `gf`/`gF` are their two case
+// labels and the run they head; `[f`/`]f` is the if whose then is the call
+// of nv_gotofile, folded never, its else the rest of the function; `++opt`
+// is the if asking for EX_ARGOPT, cut.
+
 import (
 	"io"
-	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { phase.Register("whim30", Edit) }
+func init() { phase.RegisterGraph("whim30", Edit) }
 
 // w30Going are the five Ex commands that name another file to edit.  They are
 // ONE handler; `gf gF [f ]f` are arms inside two surviving handlers and not
@@ -137,130 +147,71 @@ var w30Before = map[string]int{
 }
 
 // Whim30 takes every way to name another file to edit.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "noedit", W: w}
-	var err error
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noedit", e, w)
 
-	mentions := edit.MentionCount
-	inFunction := func(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
-		if !ok {
-			return nil, p.Die("%s is not defined", name)
-		}
-		Body, err := fn(t[a:z])
-		if err != nil {
-			return nil, err
-		}
-		return []byte(string(t[:a]) + string(Body) + string(t[z:])), nil
-	}
-	within := func(t []byte, fn, old, new, what string, n int) ([]byte, error) {
-		Out, err := inFunction(t, fn, func(s []byte) ([]byte, error) {
-			k := strings.Count(string(s), old)
-			if k != n {
-				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					what, edit.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
-			}
-			return []byte(strings.ReplaceAll(string(s), old, new)), nil
-		})
-		if err != nil {
-			return nil, err
-		}
-		p.Say(what)
-		return Out, nil
-	}
-
-	// ---- 0. the shape the anchors below were counted on -----------------------
-	// The five commands' rows went at phase 1 (filefront, the reform's D4).
+	t := v.Text()
 	for _, name := range edit.SortedKeys(w30Before) {
-		if k := mentions(text, name); k != w30Before[name] {
-			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
+		if k := edit.MentionCount(t, name); k != w30Before[name] {
+			v.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
 				"against a different file", name, k, w30Before[name])
+			return v.Done()
 		}
 	}
-	// EX_ARGOPT is what anchor 6 rests on: no row carries it, so the ++opt
-	// parse has no way in.
-	for _, r := range vimtext.CoreRows(text) {
+	for _, r := range vimtext.CoreRows(t) {
 		if strings.Contains(string(r), "EX_ARGOPT") {
-			return nil, p.Die("a cmdnames[] row still carries EX_ARGOPT")
+			v.Die("a cmdnames[] row still carries EX_ARGOPT")
+			return v.Done()
 		}
 	}
-	p.Say("no cmdnames[] row carries EX_ARGOPT; readfile 5 and open_buffer 6 -- the " +
+	v.Say("no cmdnames[] row carries EX_ARGOPT; readfile 5 and open_buffer 6 -- the " +
 		"line against the byte-reader phase")
 
-	// ---- 1. the enumerators still named, after CMD_SIZE since phase 1 --------
-	for _, e := range w30Going {
-		if mentions(text, e) == 0 {
-			continue
+	var named []string
+	for _, n := range w30Going {
+		if edit.MentionCount(t, n) > 0 {
+			named = append(named, n)
 		}
-		re := regexp.MustCompile(`(?m)^    ` + e + `(?: = \d+)?,\n`)
-		if k := len(re.FindAllIndex(text, -1)); k != 1 {
-			return nil, p.Die("the %s enumerator occurs %d times, expected 1", e, k)
-		}
-		text = re.ReplaceAll(text, nil)
 	}
-	p.Sayf("the enumerators of %s that are still named", strings.Join(w30Going, " "))
+	v.DeleteEnumerators(named, graph.Renumber,
+		"the enumerators of "+strings.Join(w30Going, " ")+" that are still named")
 
-	// ---- 3. do_one_cmd's curbuf_locked() exemption ----------------------------
-	if text, err = within(text, "do_one_cmd", "ea.cmdidx != CMD_edit && ", "",
-		"do_one_cmd no longer exempts :edit from the curbuf_locked() refusal, "+
-			"and :file still is", 1); err != nil {
-		return nil, err
-	}
-	// ---- 4. nv_g_cmd's gf and gF ----------------------------------------------
-	if text, err = within(text, "nv_g_cmd", w30lit1, "", "nv_g_cmd's `gf` and `gF` arm", 1); err != nil {
-		return nil, err
-	}
-	// ---- 5. nv_brackets's [f and ]f -------------------------------------------
-	// Deleted as counted text and not folded, because the else Body is already
-	// at the function's own indentation.  The closer is found by brace matching
-	// and required to be a line of its own, so a differently shaped else refuses
-	// instead of eating the wrong block.
-	if text, err = inFunction(text, "nv_brackets", func(s []byte) ([]byte, error) {
-		str := string(s)
-		k := strings.Count(str, w30Head)
-		if k != 1 {
-			return nil, p.Die("nv_brackets: the `[f` head occurs %d times, expected 1", k)
-		}
-		i := strings.Index(str, w30Head)
-		o := i + len(w30Head) - 2 // the else's `{`
-		if str[o] != '{' {
-			return nil, p.Die("nv_brackets: the else does not open where this phase expects it")
-		}
-		c := edit.Match(edit.Blank(s), o)
-		if c < 0 {
-			return nil, p.Die("nv_brackets: the else's block does not close")
-		}
-		a := strings.LastIndex(str[:c], "\n") + 1
-		z := strings.Index(str[c:], "\n") + c + 1
-		if str[a:z] != w30lit4 {
-			return nil, p.Die("nv_brackets: the else closes with %s, not a line of its own",
-				edit.PyRepr(str[a:z]))
-		}
-		return []byte(str[:i] + str[i+len(w30Head):a] + str[z:]), nil
-	}); err != nil {
-		return nil, err
-	}
-	p.Say("nv_brackets's `[f` and `]f` arm, keeping the else that is the rest of the " +
-		"function at the indentation it already had")
-
-	// ---- 6. do_one_cmd's ++opt parse ------------------------------------------
-	if text, err = within(text, "do_one_cmd", w30lit2, "",
-		"do_one_cmd no longer parses `++opt`: EX_ARGOPT is on no row, so "+
-			"getargopt() is unreachable and read_edit is written by nothing", 1); err != nil {
-		return nil, err
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.DropOperand("(!= (. ea cmdidx) CMD_edit)", 1,
+			"do_one_cmd no longer exempts :edit from the curbuf_locked() refusal, and :file still is")
+	})
+	v.InFunction("nv_g_cmd", func(v *graph.Verbs) {
+		v.Muted(func(v *graph.Verbs) {
+			v.DropCase("(case 'f')", 1, "nv_g_cmd's `gf` and `gF` arm")
+			v.DropCase("(case 'F')", 1, "nv_g_cmd's `gf` and `gF` arm")
+		})
+		v.Say("nv_g_cmd's `gf` and `gF` arm")
+	})
+	v.InFunction("nv_brackets", func(v *graph.Verbs) {
+		v.One("(if (== (-> cap nchar) 'f') (block (call nv_gotofile cap)) (block _*))", "nv_brackets: the `[f` head")
+		v.FoldNeverAt(graph.IfNotArm, "(== (-> cap nchar) 'f')", 1,
+			"nv_brackets's `[f` and `]f` arm, keeping the else that is the rest of the "+
+				"function at the indentation it already had")
+	})
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.Cut("(if (& (. ea argt) EX_ARGOPT) _*)", 1,
+			"do_one_cmd no longer parses `++opt`: EX_ARGOPT is on no row, so "+
+				"getargopt() is unreachable and read_edit is written by nothing")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
 
-	// ---- 7. what is left, and why it does not compile yet ---------------------
-	left, holders, found, err := vimtext.CoreResidue(p, text, w30Going)
+	left, holders, found, err := vimtext.CoreResidue(edit.Ph{Tag: "noedit", W: w}, v.Text(), w30Going)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	s := "s"
 	if left == 1 {
 		s = ""
 	}
-	p.Sayf("%d mention%s of %s left, inside %s, and no surviving row names it: the text "+
-		"does not compile until the sweep has run, and phasecheck is where "+
+	v.Sayf("%d mention%s of %s left, inside %s, and no surviving row names it: the text "+
+		"does not compile until the collection has run, and phasecheck is where "+
 		"that is asserted", left, s, strings.Join(found, " and "), strings.Join(holders, ", "))
-	return text, nil
+	return v.Done()
 }

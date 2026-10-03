@@ -249,27 +249,27 @@ var Plan = []Phase{
 		}},
 	{N: 27, Block: "d12-terminal-and-ex", Name: "no streaming Ex",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim27"}},
+			{Op: "edit", Graph: true, Args: []string{"whim27"}},
 		}},
 	{N: 28, Block: "d13-files", Name: "no write",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim28"}},
+			{Op: "edit", Graph: true, Args: []string{"whim28"}},
 		}},
 	{N: 29, Name: "no read",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim29"}},
+			{Op: "edit", Graph: true, Args: []string{"whim29"}},
 		}},
 	{N: 30, Name: "no `:edit`, and no `gf`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim30"}},
+			{Op: "edit", Graph: true, Args: []string{"whim30"}},
 		}},
 	{N: 31, Name: "nothing reads a byte",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim31"}},
+			{Op: "edit", Graph: true, Args: []string{"whim31"}},
 		}},
 	{N: 32, Name: "the buffer has no name",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim32"}},
+			{Op: "edit", Graph: true, Args: []string{"whim32"}},
 		}},
 	{N: 33, Name: "`:q` quits, and `ZZ` is `ZQ`",
 		Steps: []Step{
@@ -277,14 +277,14 @@ var Plan = []Phase{
 		}},
 	{N: 34, Name: "the options nothing reads",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim34"}},
+			{Op: "edit", Graph: true, Args: []string{"whim34"}},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_fs"}},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_ro"}},
-			{Op: "edit", Args: []string{"whim34rows"}},
+			{Op: "edit", Graph: true, Args: []string{"whim34rows"}},
 		}},
 	{N: 35, Name: "no `FILE *` that is never opened",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim35"}},
+			{Op: "edit", Graph: true, Args: []string{"whim35"}},
 		}},
 	{N: 36, Block: "r01-libc", Name: "the strings are the editor's own",
 		Steps: []Step{

@@ -77,18 +77,30 @@ package p028
 // the check takes.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3b).  The same four acts on the
+// program's graph, the report the text version's (history keeps it, with
+// editlit.go's literal):
+//
+//   - the enumerators still named are deleted by RENUM, the values after
+//     them moving as the text's deleted lines moved them (Renumber; on
+//     today's input the two left are explicit and last, and nothing moves);
+//   - ZZ's string is the one literal "x" in nv_Zet's call, respelled;
+//   - do_one_cmd's `:w>>`/`:w!` parse is the one if whose condition asks
+//     for CMD_write or CMD_update, cut;
+//   - the residue is the text's own computation on the C view (TEXTQ).
 
 import (
 	"io"
-	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { phase.Register("whim28", Edit) }
+func init() { phase.RegisterGraph("whim28", Edit) }
 
 // w28Six are the six commands that put bytes on a disk, and nothing else.
 var w28Six = []string{"CMD_exit", "CMD_saveas", "CMD_update", "CMD_write", "CMD_wq", "CMD_xit"}
@@ -100,72 +112,57 @@ var w28Six = []string{"CMD_exit", "CMD_saveas", "CMD_update", "CMD_write", "CMD_
 // handler has, so taking the row is what makes the handler unreachable and the
 // sweep is what removes it.  The text this edit leaves DOES NOT COMPILE --
 // step 5 is the honest form of that claim, computed rather than listed.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "nowrite", W: w}
-
-	// within replaces exact text inside ONE function, counted there and not
-	// file-wide -- `q!` is already in nv_Zet's neighbour as ZQ's.
-	within := func(t []byte, fn, old, new, what string, n int) ([]byte, error) {
-		a, z, ok := edit.FindDefinition(t, edit.Blank(t), fn)
-		if !ok {
-			return nil, p.Die("%s is not defined", fn)
-		}
-		Body := string(t[a:z])
-		k := strings.Count(Body, old)
-		if k != n {
-			return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-				what, edit.PyRepr(edit.CoreHead(old, 50)), k, fn, n)
-		}
-		return []byte(string(t[:a]) + strings.ReplaceAll(Body, old, new) + string(t[z:])), nil
-	}
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nowrite", e, w)
 
 	// ---- 0. the six commands' rows went at phase 1 (filefront, the reform's
 	// D4): their enumerators stay, after CMD_SIZE, until this phase takes the
 	// last uses, and the table is the product's 98 rows.
-	var err error
 
 	// ---- 1. the six enumerators of enum CMD_index -----------------------------
-	for _, e := range w28Six {
+	t := v.Text()
+	var named []string
+	for _, n := range w28Six {
 		// one nothing names any more went with its row (phase 26)
-		if edit.MentionCount(text, e) == 0 {
-			continue
+		if edit.MentionCount(t, n) > 0 {
+			named = append(named, n)
 		}
-		// after CMD_SIZE the sweep may have pinned it to its value
-		re := regexp.MustCompile(`(?m)^    ` + e + `(?: = \d+)?,\n`)
-		if k := len(re.FindAllIndex(text, -1)); k != 1 {
-			return nil, p.Die("the %s enumerator occurs %d times, expected 1", e, k)
-		}
-		text = re.ReplaceAll(text, nil)
 	}
 	short := make([]string, len(w28Six))
-	for i, e := range w28Six {
-		short[i] = e[4:]
+	for i, n := range w28Six {
+		short[i] = n[4:]
 	}
-	p.Sayf("six enumerators of enum CMD_index: %s", strings.Join(short, " "))
+	v.DeleteEnumerators(named, graph.Renumber, "six enumerators of enum CMD_index: "+strings.Join(short, " "))
 
-	// ---- 3. ZZ ----------------------------------------------------------------
-	if text, err = within(text, "nv_Zet", `do_cmdline_cmd((char_u *)"x");`,
-		`do_cmdline_cmd((char_u *)"q!");`, `ZZ is ZQ: nv_Zet runs "q!" where it ran "x"`, 1); err != nil {
-		return nil, err
-	}
-	p.Say(`ZZ is ZQ: nv_Zet runs the string "q!" where it ran "x", which is this ` +
+	// ---- 3. ZZ: the one "x" nv_Zet runs is "q!" -------------------------------
+	v.InFunction("nv_Zet", func(v *graph.Verbs) {
+		x := v.One(`(call do_cmdline_cmd (cast (ptr char_u) "x"))`, `ZZ is ZQ: nv_Zet runs "q!" where it ran "x"`)
+		if x != nil {
+			if err := e.RespellString(x.Kids[2].Kids[2], `"q!"`); err != nil {
+				v.Die(`ZZ is ZQ -- %v`, err)
+			}
+		}
+	})
+	v.Say(`ZZ is ZQ: nv_Zet runs the string "q!" where it ran "x", which is this ` +
 		`phase's decision and moves case:zz_key`)
 
 	// ---- 4. do_one_cmd's :w>> and :w! parse -----------------------------------
-	if text, err = within(text, "do_one_cmd", w28lit1, "",
-		"do_one_cmd no longer parses `:w >>file` or `:w !cmd`", 1); err != nil {
-		return nil, err
-	}
-	p.Say("do_one_cmd's `:w>>` and `:w!` parse, deleted as text: its condition named " +
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.CutWhere("(if (|| (== (. ea cmdidx) CMD_write) (== (. ea cmdidx) CMD_update)) _*)", nil, 1, "")
+	})
+	v.Say("do_one_cmd's `:w>>` and `:w!` parse, deleted as text: its condition named " +
 		"two of the enumerators above")
 
 	// ---- 5. what is left, and why it does not compile yet ---------------------
-	left, holders, _, err := vimtext.CoreResidue(p, text, w28Six)
-	if err != nil {
-		return nil, err
+	if v.Failed() {
+		return v.Done()
 	}
-	p.Sayf("%d mentions of the six are left, all inside %s, and no surviving row names "+
-		"any of them: the text does not compile until the sweep has run, and "+
+	left, holders, _, err := vimtext.CoreResidue(edit.Ph{Tag: "nowrite", W: w}, v.Text(), w28Six)
+	if err != nil {
+		return err
+	}
+	v.Sayf("%d mentions of the six are left, all inside %s, and no surviving row names "+
+		"any of them: the text does not compile until the collection has run, and "+
 		"phasecheck is where that is asserted", left, strings.Join(holders, ", "))
-	return text, nil
+	return v.Done()
 }

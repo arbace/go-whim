@@ -3,6 +3,8 @@
 *Formerly phase 87. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B3b): the same acts, each found by its C-lisp form and counted -- a fold by where its if stands (`FoldNeverAt`, `FoldAlwaysAt`), main_loop's parameter PARAM's -- its report the text program's line for line. It costs 0.63 s handed the graph (2.8 s imported, as a run in order takes it while phase 26 ends on text), against main's text 3.2 s (`TestMeasureGraphPhases`, 5 runs, medians, at a load of 10-60).*
+
 `internal/phase/087/edit.go` and `internal/phase/087/check.go`, `stage 87`, `package streams`. The
 second cut, and the first that removes a *mode*. Ex mode is the arrangement a core
 does not have: the editor takes stdin over, prints its own prompt, reads a line at a

@@ -14,7 +14,6 @@ import (
 	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
-	p031 "github.com/arbace/go-whim/internal/phase/031"
 	p057 "github.com/arbace/go-whim/internal/phase/057"
 	p066 "github.com/arbace/go-whim/internal/phase/066"
 	p078 "github.com/arbace/go-whim/internal/phase/078"
@@ -124,23 +123,6 @@ func drop(t *testing.T, e *graph.Editor, fn string, names ...string) graph.Param
 		t.Fatal(err)
 	}
 	return st
-}
-
-// Phase 31: open_buffer takes nothing -- its three parameters, which every
-// call passes FALSE, nullptr and 0, dropped at once.
-func TestB2cPhase31(t *testing.T) {
-	b2cPhase(t, 31, p031.Edit, func(t *testing.T, e *graph.Editor, v *graph.Verbs) {
-		v.InFunction("open_buffer", func(v *graph.Verbs) {
-			v.Rewrite("(&& ?ok (! read_stdin) (! read_fifo))", "?ok", 1, "the unchanged() arm")
-		})
-		if v.Failed() {
-			return
-		}
-		st := drop(t, e, "open_buffer", "read_stdin", "eap", "flags_arg")
-		if st.Params != 3 || st.Calls != 3 || st.Args != 9 || len(e.Untyped) != 0 {
-			t.Errorf("%s; %d untyped", st, len(e.Untyped))
-		}
-	})
 }
 
 // Phase 66: five functions lose the parameters that carry an eval value,

@@ -104,29 +104,44 @@ package p034
 // rather than about readers.  droplocal.py is the other half and goes first.
 // ---- C5. 'readonly': the row, then the field -------------------------------------------
 
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3b).  Both programs run on the
+// program's graph, with the two droplocal steps between them, so the phase
+// is graph from end to end; the reports are the text versions' (history
+// keeps them, with editlit.go's literal):
+//
+//   - the anchors and options[]'s rows are the text's own questions on the
+//     C view (TEXTQ), the file's and the table's;
+//   - the six calls of change_warning are the six statements calling it,
+//     and its definition goes by DeleteDefinition, which refuses while
+//     anything still refers to it;
+//   - the CTRL-G format is its one string literal respelled, and the
+//     [RO]/[readonly] argument the one it fed dropped through `...`
+//     (DropArgPure: its `shortmess()` and `_()` named as free of side
+//     effects, as the text's deletion of them said);
+//   - the two `|| b_p_ro` disjuncts are DropOperand, the [RO] block a Cut.
+
 import (
 	"io"
 	"regexp"
-	"strings"
 
+	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
 func init() {
-	phase.Register("whim34", Edit)
+	phase.RegisterGraph("whim34", Edit)
 	// THE SECOND HEREDOC IS A SECOND REGISTRATION, not a tail of the first, and
 	// the position is the reason: two `tools/st.sh droplocal` and two
 	// `tools/st.sh dropoptions` calls run BETWEEN them, and the counts this one
 	// asserts are the counts after those four have run.  Folding the two into
 	// one call would move the assertion to before its subject.
-	phase.Register("whim34rows", Whim34Rows)
+	phase.RegisterGraph("whim34rows", Whim34Rows)
 }
 
-var (
-	w34OptRow = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
-	w34Call   = regexp.MustCompile(`(?m)^[ \t]*change_warning\([^;]*\);\n`)
-)
+var w34OptRow = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
 
 var w34Before = map[string]int{
 	"change_warning": 7, "did_set_readonly": 0,
@@ -155,136 +170,151 @@ func init() {
 	}
 }
 
+// w34Rows are the names of options[]'s rows, as the text read them off the
+// table's C view.
+func w34Rows(v *graph.Verbs) []string {
+	var rows []string
+	v.InTable("options", func(v *graph.Verbs) {
+		for _, m := range w34OptRow.FindAllStringSubmatch(string(v.Text()), -1) {
+			rows = append(rows, m[1])
+		}
+	})
+	return rows
+}
+
 // Whim34 removes the options nothing reads.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "noopts", W: w}
-	var err error
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noopts", e, w)
 
-	mentions := edit.MentionCount
-	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
-		k := strings.Count(string(t), old)
-		if k != n {
-			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
-		}
-		p.Say(what)
-		return []byte(strings.ReplaceAll(string(t), old, new)), nil
-	}
-
-	// ---- 0. the shape every anchor below was counted against ------------------
+	t := v.Text()
 	for _, name := range edit.SortedKeys(w34Before) {
-		if k := mentions(text, name); k != w34Before[name] {
-			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
+		if k := edit.MentionCount(t, name); k != w34Before[name] {
+			v.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
 				"against a different file", name, k, w34Before[name])
+			return v.Done()
 		}
 	}
-	p.Say("change_warning 7 (a definition and six calls, and no prototype), " +
+	v.Say("change_warning 7 (a definition and six calls, and no prototype), " +
 		"did_set_readonly 3, b_p_ro 10, b_p_fs 7 -- the file the five edits of part C " +
 		"were counted against")
 
-	// ---- 1. the six rows nothing read, gone ----------------------------------
-	// fsync, prompt, readonly, undoreload, write and writeany had no reader of
-	// their own global: a computed set, 'modified' the one of it that stays.
-	// Their rows, with every option the product has not, are dropped at phase
-	// 1 (optfront, the reform's D3); what is left here is their readers'
-	// code.  'modified' and 'paste' keep their rows, and paste is exempt for
-	// ever (GOALS.md II.2d).
-	t := string(text)
-	i := strings.Index(t, "static struct vimoption options[]")
-	if i < 0 {
-		return nil, p.Die("options[] is not in this file")
-	}
-	j := strings.Index(t[i:], "\n};") + i
-	var rows []string
-	for _, m := range w34OptRow.FindAllStringSubmatch(t[i:j], -1) {
-		rows = append(rows, m[1])
+	rows := w34Rows(v)
+	if v.Failed() {
+		return v.Done()
 	}
 	for _, gone := range []string{"fsync", "prompt", "readonly", "undoreload", "write", "writeany"} {
 		if edit.Contains(rows, gone) {
-			return nil, p.Die("the row for '%s' is still there, and phase 1 drops it", gone)
+			v.Die("the row for '%s' is still there, and phase 1 drops it", gone)
+			return v.Done()
 		}
 	}
 	if !edit.Contains(rows, "modified") || !edit.Contains(rows, "paste") {
-		return nil, p.Die("'modified' or 'paste' lost its row, and neither may")
+		v.Die("'modified' or 'paste' lost its row, and neither may")
+		return v.Done()
 	}
-	p.Say("the six rows nothing read are gone since phase 1; 'modified' and 'paste' keep theirs")
+	v.Say("the six rows nothing read are gone since phase 1; 'modified' and 'paste' keep theirs")
 
-	// ---- C1. the W10 warning --------------------------------------------------
-	if k := len(w34Call.FindAllString(t, -1)); k != 6 {
-		return nil, p.Die("change_warning has %d call sites, expected 6", k)
-	}
-	text = w34Call.ReplaceAll([]byte(t), nil)
-	var removed bool
-	if text, removed = edit.DeleteDefinition(text, "change_warning"); !removed {
-		return nil, p.Die("change_warning has no definition to remove")
-	}
-	if k := mentions(text, "change_warning"); k != 0 {
-		return nil, p.Die("change_warning still has %d mentions; it has no prototype, so six calls "+
-			"and a definition is all of it", k)
-	}
-	p.Say("the W10 warning: six calls to change_warning() and the definition, which takes " +
+	// ---- C1. the W10 warning
+	const w10 = "the W10 warning: six calls to change_warning() and the definition, which takes " +
 		"the static string w_readonly and the ui_delay(1002L, TRUE) with it -- GOALS.md " +
 		"phase 4e named that as one of the eight other pauses.  It has NO prototype, so a " +
-		"program that removed one would fail here")
-
-	// ---- C2. the [RO] in fileinfo() -------------------------------------------
-	for _, e := range []struct{ Old, New, What string }{
-		{`"\"%s%s%s%s%s%s", curbufIsChanged()`, `"\"%s%s%s%s%s", curbufIsChanged()`,
-			"fileinfo's CTRL-G line loses one %s, and the argument below goes with " +
-				"it in the same step -- nothing in the build checks the count"},
-		{`curbuf->b_p_ro ? (shortmess(SHM_RO) ? _("[RO]") : _("[readonly]")) : "", `, "",
-			"the [RO]/[readonly] argument itself, which is SHM_RO's only reader"},
-		{` || curbuf->b_p_ro) ? " " : ""));`, `) ? " " : ""));`,
-			"and the trailing-space test's `|| curbuf->b_p_ro` disjunct"},
-		// ---- C3. the [RO] on the status line
-		{` || wp->w_buffer->b_p_ro) && plen < PATH_MAX - 1)`, `) && plen < PATH_MAX - 1)`,
-			"win_redr_status: the name-padding test's `|| b_p_ro` disjunct"},
-		{w34lit2, "", "and the block that appended [RO] to it -- nothing else reaches that " +
-			"indicator"},
-	} {
-		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
-			return nil, err
+		"program that removed one would fail here"
+	if k := v.Count("(call change_warning _*)"); k != 6 {
+		v.Die("change_warning has %d call sites, expected 6", k)
+		return v.Done()
+	}
+	v.Muted(func(v *graph.Verbs) {
+		v.CutWhere("(call change_warning _*)", func(x *graph.Node) bool { return e.Item(x) == x }, 6, w10)
+		v.DeleteDefinition("change_warning", w10)
+	})
+	if !v.Failed() {
+		if k := edit.MentionCount(v.Text(), "change_warning"); k != 0 {
+			v.Die("change_warning still has %d mentions; it has no prototype, so six calls "+
+				"and a definition is all of it", k)
 		}
 	}
-	// ---- C4. did_set_readonly went with 'readonly''s row at phase 1 (D3).
-	if k := mentions(text, "b_p_ro"); k != 3 {
-		return nil, p.Die("b_p_ro has %d mentions, expected 3 -- the field, buf_copy_options' write, "+
-			"and get_varp's case", k)
+	v.Say(w10)
+
+	// ---- C2. fileinfo's [RO], and C3. the [RO] on the status line
+	v.InFunction("fileinfo", func(v *graph.Verbs) {
+		const what = "fileinfo's CTRL-G line loses one %s, and the argument below goes with " +
+			"it in the same step -- nothing in the build checks the count"
+		c := v.One(`(call vim_snprintf _ _ "\"%s%s%s%s%s%s" (? (call curbufIsChanged) _ _) _*)`, what)
+		if c == nil {
+			return
+		}
+		if err := e.RespellString(c.Kids[4], `"\"%s%s%s%s%s"`); err != nil {
+			v.Die("%s -- %v", what, err)
+			return
+		}
+		v.Say(what)
+		const ro = "the [RO]/[readonly] argument itself, which is SHM_RO's only reader"
+		arg := -1
+		p := clisp.MustPattern(`(? (-> curbuf b_p_ro) (paren (? (call shortmess SHM_RO) (call _ "[RO]") (call _ "[readonly]"))) "")`)
+		for i, a := range c.Kids[2:] {
+			if graph.Matches(p, a) {
+				arg = i
+			}
+		}
+		if arg < 0 {
+			v.Die("%s -- not an argument of the call", ro)
+			return
+		}
+		if err := e.DropArgPure(c, arg, "shortmess", "_"); err != nil {
+			v.Die("%s -- %v", ro, err)
+			return
+		}
+		v.Say(ro)
+		v.DropOperand("(-> curbuf b_p_ro)", 1, "and the trailing-space test's `|| curbuf->b_p_ro` disjunct")
+	})
+	v.InFunction("win_redr_status", func(v *graph.Verbs) {
+		v.DropOperand("(-> wp w_buffer b_p_ro)", 1, "win_redr_status: the name-padding test's `|| b_p_ro` disjunct")
+		v.Cut("(if (-> wp w_buffer b_p_ro) (block (+= plen (call vim_snprintf (+ (cast (ptr char) p) plen) (- PATH_MAX plen) \"%s\" (call _ \"[RO]\")))))", 1,
+			"and the block that appended [RO] to it -- nothing else reaches that indicator")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	p.Say("b_p_ro 10 -> 3, and the three that are left are plumbing: the field, " +
+	if k := edit.MentionCount(v.Text(), "b_p_ro"); k != 3 {
+		v.Die("b_p_ro has %d mentions, expected 3 -- the field, buf_copy_options' write, "+
+			"and get_varp's case", k)
+		return v.Done()
+	}
+	v.Say("b_p_ro 10 -> 3, and the three that are left are plumbing: the field, " +
 		"buf_copy_options' write and get_varp's case.  droplocal.py is what takes those")
-	return text, nil
+	return v.Done()
 }
 
-// Whim34Rows is the second heredoc: what the sweep is handed, as a count rather
-// than as trust, taken AFTER the four droplocal/dropoptions calls between them.
-func Whim34Rows(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "noopts", W: w}
-	mentions := func(name string) int { return edit.MentionCount(text, name) }
+// Whim34Rows is the second heredoc: what the collection is handed, as a count
+// rather than as trust, taken AFTER the droplocal calls between them.
+func Whim34Rows(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noopts", e, w)
+	t := v.Text()
 	for _, name := range edit.SortedKeys(w34After) {
-		if k := mentions(name); k != w34After[name] {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w34After[name])
+		if k := edit.MentionCount(t, name); k != w34After[name] {
+			v.Die("%s has %d mentions after the cut, expected %d", name, k, w34After[name])
+			return v.Done()
 		}
 	}
-	t := string(text)
-	i := strings.Index(t, "static struct vimoption options[]")
-	j := strings.Index(t[i:], "\n};") + i
-	var rows []string
-	for _, m := range w34OptRow.FindAllStringSubmatch(t[i:j], -1) {
-		rows = append(rows, m[1])
+	rows := w34Rows(v)
+	if v.Failed() {
+		return v.Done()
 	}
 	if len(rows) != 107 {
-		return nil, p.Die("options[] has %d rows, expected 107", len(rows))
+		v.Die("options[] has %d rows, expected 107", len(rows))
+		return v.Done()
 	}
 	for _, gone := range []string{"fsync", "prompt", "readonly", "undoreload", "write", "writeany"} {
 		if edit.Contains(rows, gone) {
-			return nil, p.Die("the row for '%s' is still there", gone)
+			v.Die("the row for '%s' is still there", gone)
+			return v.Done()
 		}
 	}
 	if !edit.Contains(rows, "modified") || !edit.Contains(rows, "paste") {
-		return nil, p.Die("'modified' or 'paste' lost its row, and neither may")
+		v.Die("'modified' or 'paste' lost its row, and neither may")
+		return v.Done()
 	}
-	p.Say("the cut is done: options[] has its 107 rows, 'modified' and 'paste' " +
-		"among them; b_did_warn is a field nothing names, the sweep's now")
-	return text, nil
+	v.Say("the cut is done: options[] has its 107 rows, 'modified' and 'paste' " +
+		"among them; b_did_warn is a field nothing names, the collection's now")
+	return v.Done()
 }

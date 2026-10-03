@@ -87,6 +87,27 @@ package p032
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3b).  The same acts, in the same
+// order, on the program's graph, and the text version's report (history
+// keeps it, with editlit.go's literals):
+//
+//   - the anchors, the writes of the three fields and the functions they
+//     stand in, the rows and the last counts are the text's own questions
+//     on the C view (TEXTQ), its regular expressions and its definitions'
+//     spans;
+//   - a literal of whole statements is the run of items it was (Run,
+//     CutRun), found once in its function; a literal that took an operand
+//     is DropOperand, or the operand the parentheses held moved into place;
+//   - a `return K;` body behind an if of a constant is that if folded and
+//     the return after it cut;
+//   - buflist_new's and shorten_fnames' parameters are PARAM's, each one
+//     edit for its prototype, definition and call, reported as the text's
+//     three literals were, where the text made the last of them.  The text
+//     left `char_u *ffname = ffname_arg;` naming a parameter that was gone,
+//     for the sweep; the graph leaves that use dangling (ParamOptions'
+//     Dangle) for the collection, which takes the local with it.
+
 import (
 	"io"
 	"regexp"
@@ -94,10 +115,11 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim32", Edit) }
+func init() { phase.RegisterGraph("whim32", Edit) }
 
 // w32Fields are the three the whole phase is about, and they are NULL for ever
 // once part B has run.
@@ -130,135 +152,28 @@ var w32After = map[string]int{
 var w32Writers = []string{"buflist_new", "shorten_buf_fname"}
 var w32Readers = []string{"otherfile_buf", "buf_setino", "eval_vars", "buflist_name_nr"}
 
-var (
-	w32AnyRow  = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
-	w32ElseTop = regexp.MustCompile(`^[ \t]*else[ \t]*\n[ \t]*\{`)
-)
+var w32AnyRow = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 
-// Whim32 takes the buffer's NAME: `:file`, buflist_new()'s two name parameters,
-// sixteen folds of b_ffname/b_sfname/b_fname and three further folds that free
-// the last three questions the core asked the filesystem.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "noname", W: w}
-	var err error
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noname", e, w)
 
-	mentions := edit.MentionCount
-	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
-		k := strings.Count(string(t), old)
-		if k != n {
-			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
-		}
-		p.Say(what)
-		return []byte(strings.ReplaceAll(string(t), old, new)), nil
-	}
-	inFunction := func(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
-		if !ok {
-			return nil, p.Die("%s is not defined", name)
-		}
-		Body, err := fn(t[a:z])
-		if err != nil {
-			return nil, err
-		}
-		return []byte(string(t[:a]) + string(Body) + string(t[z:])), nil
-	}
-	within := func(t []byte, fn, old, new, what string, n int) ([]byte, error) {
-		Out, err := inFunction(t, fn, func(s []byte) ([]byte, error) {
-			k := strings.Count(string(s), old)
-			if k != n {
-				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					what, edit.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
-			}
-			return []byte(strings.ReplaceAll(string(s), old, new)), nil
-		})
-		if err != nil {
-			return nil, err
-		}
-		p.Say(what)
-		return Out, nil
-	}
-	// fold is SCOPED TO ONE DEFINITION, and file-wide would be wrong here rather
-	// than merely loose: `if (buf->b_ffname == NULL)` is the whole of
-	// close_buffer's fold and the head of set_b0_fname's, written identically at
-	// the same indent, so a file-wide count of 1 fails and a count of 2 would
-	// fold two different shapes with one rule.
-	fold := func(t []byte, fn, how, pattern, what string, n int) ([]byte, error) {
-		Out, err := inFunction(t, fn, func(s []byte) ([]byte, error) {
-			var f func([]byte, string, int) ([]byte, error)
-			switch how {
-			case "always":
-				f = edit.FoldAlways
-			case "never":
-				f = edit.FoldNever
-			default:
-				f = edit.DropIf
-			}
-			o, err := f(s, pattern, n)
-			if err != nil {
-				return nil, p.Die("%s -- %v", what, err)
-			}
-			return o, nil
-		})
-		if err != nil {
-			return nil, err
-		}
-		p.Say(what)
-		return Out, nil
-	}
-	// foldAlwaysElse keeps A of `if (TRUE) { A } else { B }` inside fn.
-	// edit.FoldAlways refuses a block with an else, deliberately, and this is
-	// the shape three sites here have.  The Body is kept as it is written; the
-	// canonical print re-indents it.
-	foldAlwaysElse := func(t []byte, fn, ifline, what string) ([]byte, error) {
-		Out, err := inFunction(t, fn, func(sb []byte) ([]byte, error) {
-			s := string(sb)
-			if k := strings.Count(s, ifline); k != 1 {
-				return nil, p.Die("%s -- the if line occurs %d times in %s, expected 1", what, k, fn)
-			}
-			b := edit.Blank(sb)
-			i := strings.Index(s, ifline)
-			o := strings.Index(string(b[i+len(ifline)-1:]), "{") + i + len(ifline) - 1
-			c := edit.Match(b, o)
-			if c < 0 {
-				return nil, p.Die("%s -- unbalanced block", what)
-			}
-			endIf := strings.Index(s[c:], "\n") + c + 1
-			m := w32ElseTop.FindStringIndex(s[endIf:])
-			if m == nil {
-				return nil, p.Die("%s -- the block has no else, so cutil.fold_always is the tool", what)
-			}
-			o2 := endIf + m[1] - 1
-			c2 := edit.Match(b, o2)
-			if c2 < 0 {
-				return nil, p.Die("%s -- unbalanced else block", what)
-			}
-			Body := s[strings.Index(s[o:], "\n")+o+1 : strings.LastIndex(s[:c], "\n")+1]
-			return []byte(s[:i] + Body + s[strings.Index(s[c2:], "\n")+c2+1:]), nil
-		})
-		if err != nil {
-			return nil, err
-		}
-		p.Say(what)
-		return Out, nil
-	}
-	// assignments is every write to a field: `x->name =`, and `(x->name) =` as
-	// slim spells it.  uses is every mention through `->`, so not its declaration.
 	assignments := func(t []byte, name string) []int {
-		var Out []int
+		var out []int
 		for _, m := range regexp.MustCompile(`\b`+name+`\b\s*\)?\s*=[^=]`).FindAllIndex(t, -1) {
-			Out = append(Out, m[0])
+			out = append(out, m[0])
 		}
-		return Out
+		return out
 	}
 	uses := func(t []byte, name string) []int {
-		var Out []int
+		var out []int
 		for _, m := range regexp.MustCompile(`->\s*`+name+`\b`).FindAllIndex(t, -1) {
-			Out = append(Out, m[0])
+			out = append(out, m[0])
 		}
-		return Out
+		return out
 	}
-	functionsHolding := func(t []byte, offsets []int, names []string) ([]string, error) {
+	// functionsHolding is the text's: the functions whose definitions'
+	// spans in t hold the offsets, refused where one is in none of names
+	functionsHolding := func(t []byte, offsets []int, names []string) []string {
 		type sp struct {
 			a, z int
 			Name string
@@ -283,295 +198,349 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			if !hit {
 				sorted := append([]string{}, names...)
 				sort.Strings(sorted)
-				return nil, p.Die("a mention at line %d is in none of %s -- this phase was counted "+
+				v.Die("a mention at line %d is in none of %s -- this phase was counted "+
 					"against a different file",
 					strings.Count(string(t[:off]), "\n")+1, strings.Join(sorted, " "))
+				return nil
 			}
 		}
-		Out := make([]string, 0, len(seen))
+		out := make([]string, 0, len(seen))
 		for n := range seen {
-			Out = append(Out, n)
+			out = append(out, n)
 		}
-		sort.Strings(Out)
-		return Out, nil
+		sort.Strings(out)
+		return out
+	}
+	mentionsAre := func(t []byte, name string, n int, format string) {
+		if k := edit.MentionCount(t, name); k != n {
+			v.Die(format, k)
+		}
+	}
+	// the then arm of an if of a constant, and the return after it cut:
+	// `if (K) { A } return R;` is A
+	keepThenReturn := func(fn, cond, ret, what string) {
+		v.InFunction(fn, func(v *graph.Verbs) {
+			v.Muted(func(v *graph.Verbs) {
+				v.FoldAlwaysAt(cond, 1, false, what)
+				v.Cut(ret, 1, what)
+			})
+		})
+		v.Say(what)
 	}
 
-	// ---- 0. the shape every anchor below was counted against ------------------
+	t := v.Text()
 	for _, name := range edit.SortedKeys(w32Before) {
-		if k := mentions(text, name); k != w32Before[name] {
-			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
+		if k := edit.MentionCount(t, name); k != w32Before[name] {
+			v.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
 				"against a different file", name, k, w32Before[name])
+			return v.Done()
 		}
 	}
-	p.Say("b_ffname 22, b_sfname 15, b_fname 27, CMD_file 3, EX_XFILE 3 -- the file the " +
+	v.Say("b_ffname 22, b_sfname 15, b_fname 27, CMD_file 3, EX_XFILE 3 -- the file the " +
 		"seven parts were counted against")
 
 	var offs []int
 	for _, fld := range w32Fields {
-		offs = append(offs, assignments(text, fld)...)
+		offs = append(offs, assignments(t, fld)...)
 	}
-	got, err := functionsHolding(text, offs, w32Writers)
-	if err != nil {
-		return nil, err
+	got := functionsHolding(t, offs, w32Writers)
+	if v.Failed() {
+		return v.Done()
 	}
 	want := append([]string{}, w32Writers...)
 	sort.Strings(want)
 	if strings.Join(got, " ") != strings.Join(want, " ") {
-		return nil, p.Die("the writes to %s live in %s, expected exactly %s",
+		v.Die("the writes to %s live in %s, expected exactly %s",
 			strings.Join(w32Fields, "/"), strings.Join(got, " "), strings.Join(want, " "))
+		return v.Done()
 	}
-	p.Sayf("%d writes to b_ffname, b_sfname and b_fname, and every one is in buflist_new "+
+	v.Sayf("%d writes to b_ffname, b_sfname and b_fname, and every one is in buflist_new "+
 		"or shorten_buf_fname -- the two this phase accounts for.  That, and nothing "+
 		"weaker, is why every fold below may take a constant", len(offs))
 
-	// ---- A. :file goes --------------------------------------------------------
-	// the row went at phase 1 (filefront, D4); the enumerator stayed after
-	// CMD_SIZE, where the sweep may have pinned it
-	enumLine := regexp.MustCompile(`(?m)^    CMD_file(?: = \d+)?,\n`)
-	if k := len(enumLine.FindAllIndex(text, -1)); k != 1 {
-		return nil, p.Die("the CMD_file enumerator occurs %d times, expected 1", k)
+	v.DeleteEnumerators([]string{"CMD_file"}, graph.Renumber, "the CMD_file enumerator of enum CMD_index")
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.DropOperand("(!= (. ea cmdidx) CMD_file)", 1,
+			"do_one_cmd's curbuf_locked() exemption: `ea.cmdidx != CMD_file` is "+
+				"TRUE for ever, and phase 30 kept it saying this phase would take it")
+		v.Cut("(if (&& (== (. ea cmdidx) CMD_file) (!= (deref (. ea arg)) NUL) (call curbuf_locked)) (block (goto doend)))", 1,
+			"do_one_cmd's second CMD_file test, deleted as text rather than "+
+				"folded: its condition names the enumerator that is going")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	text = enumLine.ReplaceAll(text, nil)
-	p.Say("the CMD_file enumerator of enum CMD_index")
-	if text, err = textEdit(text, w32lit4, w32lit5,
-		"do_one_cmd's curbuf_locked() exemption: `ea.cmdidx != CMD_file` is "+
-			"TRUE for ever, and phase 30 kept it saying this phase would take it", 1); err != nil {
-		return nil, err
-	}
-	if text, err = textEdit(text, w32lit6, "",
-		"do_one_cmd's second CMD_file test, deleted as text rather than "+
-			"folded: its condition names the enumerator that is going", 1); err != nil {
-		return nil, err
-	}
-	if k := mentions(text, "CMD_file"); k != 0 {
-		return nil, p.Die("CMD_file still has %d mentions", k)
-	}
+	mentionsAre(v.Text(), "CMD_file", 0, "CMD_file still has %d mentions")
 
-	// ---- B. buflist_new never names -------------------------------------------
-	for _, e := range []struct{ Old, New, What string }{
-		{w32lit7, w32lit8, "buflist_new's prototype loses both name parameters"},
-		{w32lit9, w32lit10, "and so does its definition"},
-	} {
-		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
-			return nil, err
+	// buflist_new's two name parameters: one edit, made where the text made
+	// its call site's literal
+	v.Say("buflist_new's prototype loses both name parameters")
+	v.Say("and so does its definition")
+	v.InFunction("buflist_new", func(v *graph.Verbs) {
+		v.CutRun("the prologue and the lookup: fname_expand() on two NULLs, a stat() the "+
+			"`sfname == nullptr` disjunct already short-circuited, and the search for "+
+			"an existing buffer of the same name, whose guard `ffname != nullptr` is "+
+			"FALSE -- no buffer can be found by a name that is not given",
+			"(call fname_expand curbuf (addr ffname) (addr sfname))",
+			"(if (|| (== sfname nullptr) (< (call stat (paren (cast (ptr char) sfname)) (paren (addr st))) 0)) (block (= (. st st_dev) (cast dev_t (- 1)))))",
+			"(if (&& (!= ffname nullptr) (! (& flags (| BLN_DUMMY BLN_NEW))) (!= (= buf (call buflist_findname_stat ffname (addr st))) nullptr)) _*)")
+		if x := v.One("(if (== buf nullptr) (block (call vim_free ffname) (return nullptr)))",
+			"the alloc failure arm's vim_free(ffname): there is no ffname to free"); x != nil {
+			v.In(x, func(v *graph.Verbs) {
+				v.Cut("(call vim_free ffname)", 1, "the alloc failure arm's vim_free(ffname): there is no ffname to free")
+			})
 		}
-	}
-	for _, e := range []struct{ Old, New, What string }{
-		{w32lit13, "", "the prologue and the lookup: fname_expand() on two NULLs, a stat() the " +
-			"`sfname == nullptr` disjunct already short-circuited, and the search for " +
-			"an existing buffer of the same name, whose guard `ffname != nullptr` is " +
-			"FALSE -- no buffer can be found by a name that is not given"},
-		{w32lit14, w32lit15, "the alloc failure arm's vim_free(ffname): there is no ffname to free"},
-		{w32lit16, "", "the assignment that named the buffer -- `ffname != nullptr` is FALSE, and " +
-			"this is the statement the whole phase is about"},
-		{w32lit17, w32lit18, "the failure arm: its first disjunct is FALSE, so only the wininfo " +
-			"allocation can fail, and the two names it freed are not there to free"},
-		{w32lit19, "", "b_fname = b_sfname, which is nullptr = nullptr"},
-		{w32lit20, w32lit21, "the device block: `st.st_dev` was set to -1 by the prologue that has " +
-			"gone, so the TRUE arm is the one that ran and b_dev_valid is false"},
-	} {
-		if text, err = within(text, "buflist_new", e.Old, e.New, e.What, 1); err != nil {
-			return nil, err
+		v.Cut("(if (!= ffname nullptr) (block (= (-> buf b_ffname) ffname) (= (-> buf b_sfname) (call vim_strsave sfname))))", 1,
+			"the assignment that named the buffer -- `ffname != nullptr` is FALSE, and "+
+				"this is the statement the whole phase is about")
+		const fail = "the failure arm: its first disjunct is FALSE, so only the wininfo " +
+			"allocation can fail, and the two names it freed are not there to free"
+		if x := v.One("(if (|| (paren (&& (!= ffname nullptr) (|| (== (-> buf b_ffname) nullptr) (== (-> buf b_sfname) nullptr)))) (== (-> buf b_wininfo) nullptr)) _*)", fail); x != nil {
+			v.Muted(func(v *graph.Verbs) {
+				v.In(x, func(v *graph.Verbs) {
+					v.DropOperand("(paren (&& (!= ffname nullptr) _*))", 1, fail)
+					v.CutRun(fail,
+						"(if (!= (-> buf b_sfname) (-> buf b_ffname)) _*)",
+						"(call vim_free (-> buf b_ffname))",
+						"(= (paren (-> buf b_ffname)) nullptr)")
+				})
+			})
 		}
-	}
-	if text, err = textEdit(text, w32lit22, w32lit23,
-		"the one call site, create_windows', which already passed nullptr, nullptr", 1); err != nil {
-		return nil, err
-	}
-	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "buflist_new")
-	if !ok {
-		return nil, p.Die("buflist_new is not defined")
-	}
-	// The ffname, sfname and st locals are still declared, and nothing else
-	// in buflist_new names them; the sweep takes the three.
-	for _, gone := range []string{"ffname", "sfname", "st"} {
-		if mentions(text[a:z], gone) != 1 {
-			return nil, p.Die("%s is named inside buflist_new other than by its declaration", gone)
-		}
-	}
-	p.Say("buflist_new names nothing: ffname, sfname and st are left as unused locals")
+		v.Say(fail)
+		v.Cut("(= (-> buf b_fname) (-> buf b_sfname))", 1, "b_fname = b_sfname, which is nullptr = nullptr")
+		v.FoldAlwaysElse("(== (. st st_dev) (cast dev_t (- 1)))", 1,
+			"the device block: `st.st_dev` was set to -1 by the prologue that has "+
+				"gone, so the TRUE arm is the one that ran and b_dev_valid is false")
+	})
 
-	// ---- C. the folds (fifteen now, sixteen before the reform's D9) --------
-	// open_buffer's `readonlymode && b_ffname != NULL` test falls out at
-	// phase 3 with readonlymode since the reform's D9
-	if text, err = textEdit(text, w32lit24, w32lit25,
-		"can_unload_buffer: `fname` is nullptr either way, so E937 names the "+
-			"buffer \"[No Name]\" -- which is what it printed before", 1); err != nil {
-		return nil, err
-	}
-	if text, err = fold(text, "close_buffer", "always", `(?m)^    if \(buf->b_ffname == nullptr\)$`,
-		"close_buffer: `b_ffname == nullptr` is TRUE, so an unloaded buffer is always "+
-			"deleted rather than kept for its name", 1); err != nil {
-		return nil, err
-	}
-	if text, err = textEdit(text, "curbuf != nullptr && curbuf->b_ffname == nullptr && curbuf->b_nwindows <= 1",
-		"curbuf != nullptr && curbuf->b_nwindows <= 1",
-		"curbuf_reusable: `b_ffname == nullptr` is TRUE, so the conjunct goes "+
-			"rather than being kept with a fixed answer", 1); err != nil {
-		return nil, err
-	}
-	if text, err = textEdit(text, w32lit26, w32lit27,
-		"getaltfname: buflist_name_nr() is FAIL ALWAYS, so the alternate file "+
-			"is E23 and nullptr -- which is what the `#` register already answered", 1); err != nil {
-		return nil, err
-	}
-	if text, err = foldAlwaysElse(text, "fileinfo", w32lit28,
-		"fileinfo: buf_spname() never returns nullptr now, so CTRL-G "+
-			"prints the special name and never a path -- the else arm, "+
-			"which read b_fname and b_ffname, cannot be entered"); err != nil {
-		return nil, err
-	}
-	for _, e := range []struct{ Old, New, What string }{
-		{w32lit29, w32lit30, "buf_spname: `b_fname == nullptr` is TRUE, so it answers for every " +
-			"buffer and can no longer return nullptr"},
-		{w32lit31, w32lit32, "buf_get_fname: the same, and \"[No Name]\" is now the only name the " +
-			"editor has for a buffer"},
-		// check_changed_any's E162 went with :q's refusal at phase 1 (quitfront)
-		{w32lit35, w32lit36, "check_fname: E32 for every buffer, and it stays because the `%` " +
-			"register still asks it"},
-	} {
-		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
-			return nil, err
+	// the one call site, and the two parameters with it
+	// (create_windows, the text's report says; it is in win_alloc_firstwin)
+	v.InFunction("win_alloc_firstwin", func(v *graph.Verbs) {
+		v.One("(= curbuf (call buflist_new nullptr nullptr 1L BLN_LISTED))",
+			"the one call site, create_windows', which already passed nullptr, nullptr")
+	})
+	if !v.Failed() {
+		var drops []graph.ParamDrop
+		for _, p := range []string{"ffname_arg", "sfname_arg"} {
+			drops = append(drops, graph.ParamDrop{Decl: e.Defn("buflist_new"), I: e.ParamIndex("buflist_new", p)})
+		}
+		if _, err := e.DropParams(drops, graph.ParamOptions{Dangle: true}); err != nil {
+			v.Die("the one call site, create_windows' -- %v", err)
 		}
 	}
-	if text, err = fold(text, "shorten_buf_fname", "never",
-		`(?m)^    if \(buf->b_fname != nullptr && !path_with_url\(buf->b_fname\) && \(force \|\| buf->b_sfname == nullptr \|\| mch_isFullName\(buf->b_sfname\)\)\)$`,
-		"shorten_buf_fname: `b_fname != nullptr` is FALSE, so there is no path to "+
-			"shorten and the function has nothing left to do", 1); err != nil {
-		return nil, err
+	v.Say("the one call site, create_windows', which already passed nullptr, nullptr")
+	v.InFunction("buflist_new", func(v *graph.Verbs) {
+		body := v.Text()
+		for _, gone := range []string{"ffname", "sfname", "st"} {
+			if edit.MentionCount(body, gone) != 1 {
+				v.Die("%s is named inside buflist_new other than by its declaration", gone)
+				return
+			}
+		}
+	})
+	v.Say("buflist_new names nothing: ffname, sfname and st are left as unused locals")
+
+	const unload = "can_unload_buffer: `fname` is nullptr either way, so E937 names the " +
+		"buffer \"[No Name]\" -- which is what it printed before"
+	v.InFunction("can_unload_buffer", func(v *graph.Verbs) {
+		v.Muted(func(v *graph.Verbs) {
+			v.Rewrite("(? (!= fname nullptr) fname ?n)", "?n", 1, unload)
+			v.Cut("(def fname (ptr char_u) (? (!= (-> buf b_fname) nullptr) (-> buf b_fname) (-> buf b_ffname)))", 1, unload)
+		})
+	})
+	v.Say(unload)
+	v.InFunction("close_buffer", func(v *graph.Verbs) {
+		v.FoldAlwaysAt("(== (-> buf b_ffname) nullptr)", 1, false,
+			"close_buffer: `b_ffname == nullptr` is TRUE, so an unloaded buffer is always "+
+				"deleted rather than kept for its name")
+	})
+	v.InFunction("curbuf_reusable", func(v *graph.Verbs) {
+		v.DropOperand("(== (-> curbuf b_ffname) nullptr)", 1,
+			"curbuf_reusable: `b_ffname == nullptr` is TRUE, so the conjunct goes "+
+				"rather than being kept with a fixed answer")
+	})
+	const alt = "getaltfname: buflist_name_nr() is FAIL ALWAYS, so the alternate file " +
+		"is E23 and nullptr -- which is what the `#` register already answered"
+	v.InFunction("getaltfname", func(v *graph.Verbs) {
+		v.Muted(func(v *graph.Verbs) {
+			v.FoldAlwaysAt("(== (call buflist_name_nr 0 (addr fname) (addr dummy)) FAIL)", 1, false, alt)
+			v.Cut("(return fname)", 1, alt)
+			v.Cut("(def fname (ptr char_u))", 1, alt)
+			v.Cut("(def dummy linenr_T)", 1, alt)
+		})
+	})
+	v.Say(alt)
+	v.InFunction("fileinfo", func(v *graph.Verbs) {
+		v.FoldAlwaysElse("(!= name nullptr)", 1,
+			"fileinfo: buf_spname() never returns nullptr now, so CTRL-G "+
+				"prints the special name and never a path -- the else arm, "+
+				"which read b_fname and b_ffname, cannot be entered")
+	})
+	keepThenReturn("buf_spname", "(== (-> buf b_fname) nullptr)", "(return nullptr)",
+		"buf_spname: `b_fname == nullptr` is TRUE, so it answers for every "+
+			"buffer and can no longer return nullptr")
+	keepThenReturn("buf_get_fname", "(== (-> buf b_fname) nullptr)", "(return (-> buf b_fname))",
+		"buf_get_fname: the same, and \"[No Name]\" is now the only name the "+
+			"editor has for a buffer")
+	keepThenReturn("check_fname", "(== (-> curbuf b_ffname) nullptr)", "(return OK)",
+		"check_fname: E32 for every buffer, and it stays because the `%` "+
+			"register still asks it")
+	v.InFunction("shorten_buf_fname", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm,
+			"(&& (!= (-> buf b_fname) nullptr) (! (call path_with_url (-> buf b_fname))) (|| force (== (-> buf b_sfname) nullptr) (call mch_isFullName (-> buf b_sfname))))", 1,
+			"shorten_buf_fname: `b_fname != nullptr` is FALSE, so there is no path to "+
+				"shorten and the function has nothing left to do")
+	})
+	// in the one statement pat finds in fn, the node sub matches is nullptr
+	nullOf := func(fn, pat, sub, what string) {
+		v.InFunction(fn, func(v *graph.Verbs) {
+			if x := v.One(pat, what); x != nil {
+				v.Muted(func(v *graph.Verbs) {
+					v.In(x, func(v *graph.Verbs) {
+						v.RewriteFunc(sub, 1, func(*graph.Node, graph.Bindings) ([]*graph.Node, error) {
+							return []*graph.Node{graph.NewAtom("nullptr")}, nil
+						}, what)
+					})
+				})
+			}
+		})
+		v.Say(what)
 	}
-	if text, err = textEdit(text, w32lit37, w32lit38,
-		"file_name_at_cursor: `curbuf->b_ffname` is the nullptr it passes now", 1); err != nil {
-		return nil, err
-	}
-	if text, err = foldAlwaysElse(text, "set_b0_fname", w32lit39,
-		"set_b0_fname: `b_ffname == nullptr` is TRUE, so block zero's "+
-			"file name is empty -- and the stat() in the arm that goes is "+
-			"one of the two this phase takes"); err != nil {
-		return nil, err
-	}
-	if text, err = textEdit(text, w32lit40, w32lit41,
+	nullOf("file_name_at_cursor",
+		"(return (call file_name_in_line (call ml_get_curline) (. (-> curwin w_cursor) col) options count (-> curbuf b_ffname) file_lnum))",
+		"(-> curbuf b_ffname)",
+		"file_name_at_cursor: `curbuf->b_ffname` is the nullptr it passes now")
+	v.InFunction("set_b0_fname", func(v *graph.Verbs) {
+		v.FoldAlwaysElse("(== (-> buf b_ffname) nullptr)", 1,
+			"set_b0_fname: `b_ffname == nullptr` is TRUE, so block zero's "+
+				"file name is empty -- and the stat() in the arm that goes is "+
+				"one of the two this phase takes")
+	})
+	nullOf("get_spec_reg", "(= (deref argp) (-> curbuf b_fname))", "(-> curbuf b_fname)",
 		"get_spec_reg: the `%` register is `b_fname`, which is nullptr -- the "+
 			"register already yielded nothing, and check_fname() above it still "+
-			"says E32", 1); err != nil {
-		return nil, err
+			"says E32")
+	v.InFunction("ex_display", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm,
+			"(&& (!= (-> curbuf b_fname) nullptr) (|| (== arg nullptr) (!= (call vim_strchr arg '%') nullptr)) (! got_int) (! (call message_filtered (-> curbuf b_fname))))", 1,
+			"ex_display: the `\"%` line of :registers needs a buffer name and there is "+
+				"none -- it was already never printed")
+		v.DropIf("(&& (|| (== arg nullptr) (!= (call vim_strchr arg '#') nullptr)) (! got_int))", 1,
+			"ex_display: and the `\"#` block goes whole, because buflist_name_nr() "+
+				"inside it is FAIL ALWAYS and the block holds nothing else -- which is "+
+				"what makes that function uncalled and the collection's")
+	})
+	v.InFunction("get_trans_bufname", func(v *graph.Verbs) {
+		v.FoldAlwaysElse("(!= (call buf_spname buf) nullptr)", 1,
+			"get_trans_bufname: buf_spname() is non-nullptr, so every window "+
+				"and every :ls row reads \"[No Name]\" -- as they already did")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	if text, err = fold(text, "ex_display", "never",
-		`(?m)^    if \(curbuf->b_fname != nullptr && \(arg == nullptr \|\| vim_strchr\(arg, '%'\) != nullptr\) && !got_int && !message_filtered\(curbuf->b_fname\)\)$`,
-		"ex_display: the `\"%` line of :registers needs a buffer name and there is "+
-			"none -- it was already never printed", 1); err != nil {
-		return nil, err
-	}
-	if text, err = fold(text, "ex_display", "drop",
-		`(?m)^    if \(\(arg == nullptr \|\| vim_strchr\(arg, '#'\) != nullptr\) && !got_int\)$`,
-		"ex_display: and the `\"#` block goes whole, because buflist_name_nr() "+
-			"inside it is FAIL ALWAYS and the block holds nothing else -- which is "+
-			"what makes that function uncalled and the sweep's", 1); err != nil {
-		return nil, err
-	}
-	if text, err = foldAlwaysElse(text, "get_trans_bufname", w32lit42,
-		"get_trans_bufname: buf_spname() is non-nullptr, so every window "+
-			"and every :ls row reads \"[No Name]\" -- as they already did"); err != nil {
-		return nil, err
-	}
-	if k := mentions(text, "buflist_name_nr"); k != 1 {
-		return nil, p.Die("buflist_name_nr has %d mentions after both callers were folded, expected "+
-			"1 -- its definition, for the sweep", k)
-	}
+	t = v.Text()
+	mentionsAre(t, "buflist_name_nr", 1, "buflist_name_nr has %d mentions after both callers were folded, expected "+
+		"1 -- its definition, for the collection")
 
-	// ---- D. EX_XFILE reaches zero rows ----------------------------------------
 	var left []string
-	for _, r := range w32AnyRow.FindAllString(string(text), -1) {
+	for _, r := range w32AnyRow.FindAllString(string(t), -1) {
 		if strings.Contains(r, "EX_XFILE") {
 			left = append(left, r)
 		}
 	}
 	if len(left) > 0 {
-		return nil, p.Die("%d cmdnames[] rows still carry EX_XFILE, so the fold below would be a "+
+		v.Die("%d cmdnames[] rows still carry EX_XFILE, so the fold below would be a "+
 			"guess: %s", len(left), edit.CoreHead(left[0], 60))
+		return v.Done()
 	}
-	p.Say("no cmdnames[] row carries EX_XFILE any more -- :file was the last, as :read " +
+	v.Say("no cmdnames[] row carries EX_XFILE any more -- :file was the last, as :read " +
 		"was EX_ARGOPT's in phase 29 and the :edit family in phase 30")
-	if text, err = fold(text, "do_one_cmd", "never",
-		`(?m)^    if \(\(ea\.argt & EX_XFILE\) && expand_filename\(&ea, cmdlinep, &errormsg\) == FAIL\)$`,
-		"do_one_cmd's expand_filename() call: `ea.argt & EX_XFILE` is 0 for every "+
-			"command, so this is the anchor the sweep reads the whole "+
-			"filename-expansion layer from", 1); err != nil {
-		return nil, err
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm,
+			"(&& (paren (& (. ea argt) EX_XFILE)) (== (call expand_filename (addr ea) cmdlinep (addr errormsg)) FAIL))", 1,
+			"do_one_cmd's expand_filename() call: `ea.argt & EX_XFILE` is 0 for every "+
+				"command, so this is the anchor the collection reads the whole "+
+				"filename-expansion layer from")
+	})
+	v.InFunction("separate_nextcmd", func(v *graph.Verbs) {
+		v.RewriteFunc("(| EX_CTRLV EX_XFILE)", 1,
+			func(m *graph.Node, _ graph.Bindings) ([]*graph.Node, error) {
+				return []*graph.Node{m.Kids[1]}, nil
+			},
+			"separate_nextcmd's CTRL-V test: the EX_XFILE disjunct is 0 for every "+
+				"row, and dropping it is what takes the enumerator to zero mentions")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	if text, err = textEdit(text, w32lit43, w32lit44,
-		"separate_nextcmd's CTRL-V test: the EX_XFILE disjunct is 0 for every "+
-			"row, and dropping it is what takes the enumerator to zero mentions", 1); err != nil {
-		return nil, err
-	}
-	if k := mentions(text, "EX_XFILE"); k != 1 {
-		return nil, p.Die("EX_XFILE has %d mentions, expected 1 -- its own definition, for the sweep", k)
-	}
+	mentionsAre(v.Text(), "EX_XFILE", 1, "EX_XFILE has %d mentions, expected 1 -- its own definition, for the collection")
 
-	// ---- E. the two write-only leftovers --------------------------------------
-	// did_set_readonly's readonlymode write went with 'readonly''s row,
-	// dropped at phase 1 (optfront, the reform's D3).
-	if text, err = within(text, "buflist_new", w32lit21, "",
-		"b_dev_valid's one surviving assignment, which part B left: every reader "+
-			"is inside a function the sweep takes, and deadfields.py cannot remove a "+
-			"field that is still written", 1); err != nil {
-		return nil, err
-	}
-
-	// ---- F. shorten_fnames stops asking where it is ---------------------------
-	if text, err = within(text, "shorten_fnames", w32lit46, "",
-		"shorten_fnames: the cwd, and the call to a function with an empty body", 1); err != nil {
-		return nil, err
-	}
-	for _, e := range []struct{ Old, New, What string }{
-		{w32lit47, w32lit48, "and its prototype takes void, because an unused PARAMETER is what " +
-			"tools/sweep.sh's -Wno-unused-parameter cannot see -- phase 31's " +
-			"anchor 4 measured that"},
-		{w32lit49, w32lit50, "the definition with it"},
-		{w32lit51, w32lit52, "and its one call site"},
-	} {
-		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
-			return nil, err
+	v.InFunction("buflist_new", func(v *graph.Verbs) {
+		v.Cut("(= (-> buf b_dev_valid) false)", 1,
+			"b_dev_valid's one surviving assignment, which part B left: every reader "+
+				"is inside a function the collection takes, and deadfields.py cannot remove a "+
+				"field that is still written")
+	})
+	v.InFunction("shorten_fnames", func(v *graph.Verbs) {
+		v.CutRun("shorten_fnames: the cwd, and the call to a function with an empty body",
+			"(def dirname (array PATH_MAX char_u))",
+			"(def buf (ptr buf_T))",
+			"(call mch_dirname dirname PATH_MAX)",
+			"(= buf curbuf)",
+			"(call shorten_buf_fname buf dirname force)")
+	})
+	v.Say("and its prototype takes void, because an unused PARAMETER is what " +
+		"tools/sweep.sh's -Wno-unused-parameter cannot see -- phase 31's " +
+		"anchor 4 measured that")
+	v.Say("the definition with it")
+	if !v.Failed() {
+		if _, err := e.DropParam("shorten_fnames", "force", graph.ParamOptions{}); err != nil {
+			v.Die("and its one call site -- %v", err)
 		}
 	}
+	v.Say("and its one call site")
 
-	// ---- G. nothing looks a name up on a disk ---------------------------------
-	if text, err = fold(text, "find_file_name_in_path", "never", `(?m)^    if \(options & FNAME_EXP\)$`,
-		"find_file_name_in_path: the `path` search arm goes, so CTRL-F and CTRL-P "+
-			"both extract the word under the cursor and neither consults a disk -- "+
-			"this is the fold that frees stat()", 1); err != nil {
-		return nil, err
+	v.InFunction("find_file_name_in_path", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "(& options FNAME_EXP)", 1,
+			"find_file_name_in_path: the `path` search arm goes, so CTRL-F and CTRL-P "+
+				"both extract the word under the cursor and neither consults a disk -- "+
+				"this is the fold that frees stat()")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
 
-	// ---- what the sweep is handed, as a count rather than as trust ------------
+	t = v.Text()
 	offs = nil
 	writes := 0
 	for _, fld := range w32Fields {
-		offs = append(offs, uses(text, fld)...)
-		writes += len(assignments(text, fld))
+		offs = append(offs, uses(t, fld)...)
+		writes += len(assignments(t, fld))
 	}
-	got, err = functionsHolding(text, offs, w32Readers)
-	if err != nil {
-		return nil, err
+	got = functionsHolding(t, offs, w32Readers)
+	if v.Failed() {
+		return v.Done()
 	}
 	want = append([]string{}, w32Readers...)
 	sort.Strings(want)
 	if strings.Join(got, " ") != strings.Join(want, " ") {
-		return nil, p.Die("the surviving mentions of the three fields are in %s, expected exactly %s",
+		v.Die("the surviving mentions of the three fields are in %s, expected exactly %s",
 			strings.Join(got, " "), strings.Join(want, " "))
+		return v.Done()
 	}
-	p.Sayf("%d mentions of b_ffname, b_sfname and b_fname are left, %d of them writes, and "+
+	v.Sayf("%d mentions of b_ffname, b_sfname and b_fname are left, %d of them writes, and "+
 		"every one is inside setfname, rename_buffer, otherfile_buf, buf_setino, "+
-		"eval_vars or buflist_name_nr -- none of which has a caller the sweep can "+
+		"eval_vars or buflist_name_nr -- none of which has a caller the collection can "+
 		"reach", len(offs), writes)
 
 	for _, name := range edit.SortedKeys(w32After) {
-		if k := mentions(text, name); k != w32After[name] {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w32After[name])
+		if k := edit.MentionCount(t, name); k != w32After[name] {
+			v.Die("%s has %d mentions after the cut, expected %d", name, k, w32After[name])
+			return v.Done()
 		}
 	}
-	p.Say("the cut is done: CMD_file 0, EX_XFILE 1 (its own definition), buflist_name_nr " +
+	v.Say("the cut is done: CMD_file 0, EX_XFILE 1 (its own definition), buflist_name_nr " +
 		"1, readonlymode 0 -- and read_cmd_fd 12, vim_fsync 3 and scriptin 8 " +
 		"untouched, each of them a later phase's")
-	return text, nil
+	return v.Done()
 }

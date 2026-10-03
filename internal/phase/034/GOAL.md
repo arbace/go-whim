@@ -3,6 +3,8 @@
 *Formerly phase 95. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B3b): both programs, with the two droplocal steps between them, so the phase is graph from end to end: change_warning's calls and definition cut, the CTRL-G format respelled and its [RO] argument dropped through `...` (`DropArgPure`); the reports the text programs' line for line. It costs 0.59 s handed the graph, against main's text 4.4 s (`TestMeasureGraphPhases`, 5 runs, medians, at a load of 10-60).*
+
 `internal/phase/095/edit.go` and `internal/phase/095/check.go`, `stage 95`, `package options`.
 Phases 89 to 94 took every way to reach a file and then the refusal that guarded the
 text. What they left behind is a set of **settings**: `options[]` rows whose global

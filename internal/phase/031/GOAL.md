@@ -3,6 +3,8 @@
 *Formerly phase 92. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B3b): the `&&` rewritten, open_buffer's three parameters PARAM's in one edit; its report the text program's line for line. It costs 1.25 s handed the graph (three views of the file for the text's counts), against main's text 3.3 s (`TestMeasureGraphPhases`, 5 runs, medians, at a load of 10-60).*
+
 **The cut is phase 1's now.** `open_buffer()`'s two read arms fold never at
 the front (`readfront`, the pipeline reform's move of this phase,
 `doc/PIPELINE-REFORM.md` §7), so `readfile()`, `read_buffer()` and what only

@@ -77,17 +77,27 @@ package p029
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3b).  The same acts on the
+// program's graph, the report the text version's (history keeps it, with
+// editlit.go's literal): the anchors and the writes of usefilter are the
+// text's own counts on the C view (TEXTQ); the enumerator is RENUM's; the
+// `:r!` parse is the one if asking for CMD_read, cut; each operand the text
+// took out of a condition is DropOperand, or, where the parentheses went
+// with it, the expression they held moved into the `&&`'s place.
+
 import (
 	"io"
 	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { phase.Register("whim29", Edit) }
+func init() { phase.RegisterGraph("whim29", Edit) }
 
 // w29Dying are the names whose survivors are the reason the text does not
 // compile yet.  `usefilter` is not among them: its member declaration is still
@@ -104,120 +114,73 @@ var w29Assign = regexp.MustCompile(`\busefilter\s*=`)
 // have found: a struct member that is READ and never written draws no warning,
 // and deadfields.py removes only a member nothing names.  do_one_cmd memsets
 // `ea`, so every test folded there is constantly FALSE.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "noread", W: w}
-	var err error
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noread", e, w)
 
-	mentions := edit.MentionCount
-	inFunction := func(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
-		if !ok {
-			return nil, p.Die("%s is not defined", name)
-		}
-		Body, err := fn(t[a:z])
-		if err != nil {
-			return nil, err
-		}
-		return []byte(string(t[:a]) + string(Body) + string(t[z:])), nil
-	}
-	// within replaces exact text inside one function, counted THERE and not
-	// file-wide, and reports -- whim28's namesake does not report, which is the
-	// phase's own spelling and not a shared helper's.
-	within := func(t []byte, fn, old, new, what string, n int) ([]byte, error) {
-		Out, err := inFunction(t, fn, func(s []byte) ([]byte, error) {
-			k := strings.Count(string(s), old)
-			if k != n {
-				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					what, edit.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
-			}
-			return []byte(strings.ReplaceAll(string(s), old, new)), nil
-		})
-		if err != nil {
-			return nil, err
-		}
-		p.Say(what)
-		return Out, nil
-	}
-
-	// ---- 0. the field, at the shape the anchors were counted on -------------
-	// :read's row went at phase 1 (filefront, the reform's D4), and ex_read
-	// with it; its enumerator stays after CMD_SIZE until this phase takes the
-	// last use.
+	t := v.Text()
 	for _, b := range []struct {
 		Name string
 		want int
 	}{{"CMD_read", 2}, {"ex_read", 0}, {"open_buffer", 5}, // enter_buffer's went at phase 1 (quitfront)
-		// readfile and read_buffer went at phase 1 (readfront, phase 31's move)
 		{"read_buffer", 0}, {"readfile", 0}, {"usefilter", 9}} {
-		if k := mentions(text, b.Name); k != b.want {
-			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
+		if k := edit.MentionCount(t, b.Name); k != b.want {
+			v.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
 				"against a different file", b.Name, k, b.want)
+			return v.Done()
 		}
 	}
-	if writes := len(w29Assign.FindAll(text, -1)); writes != 2 {
-		return nil, p.Die("usefilter is assigned %d times, expected the 2 that anchor 3 removes -- "+
+	if writes := len(w29Assign.FindAll(t, -1)); writes != 2 {
+		v.Die("usefilter is assigned %d times, expected the 2 that anchor 3 removes -- "+
 			"phase 28 took the other two with `:w >>` and `:w !cmd`", writes)
+		return v.Done()
 	}
-	p.Say("CMD_read 2 mentions, usefilter 9 -- the field, the two writes anchor 3 " +
+	v.Say("CMD_read 2 mentions, usefilter 9 -- the field, the two writes anchor 3 " +
 		"removes and six reads")
 
-	// ---- 1. the CMD_read enumerator, after CMD_SIZE since phase 1 ------------
-	enumLine := regexp.MustCompile(`(?m)^    CMD_read(?: = \d+)?,\n`)
-	if k := len(enumLine.FindAllIndex(text, -1)); k != 1 {
-		return nil, p.Die("the CMD_read enumerator occurs %d times, expected 1", k)
-	}
-	text = enumLine.ReplaceAll(text, nil)
-	p.Say("the CMD_read enumerator of enum CMD_index")
+	v.DeleteEnumerators(w29Dying, graph.Renumber, "the CMD_read enumerator of enum CMD_index")
 
-	// ---- 3. do_one_cmd's `:r!` and `:r !cmd` parse -----------------------------
-	if text, err = within(text, "do_one_cmd", w29lit2, "",
-		"do_one_cmd no longer parses `:r!` or `:r !cmd`: usefilter loses its last "+
-			"two writes", 1); err != nil {
-		return nil, err
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.Cut("(if (== (. ea cmdidx) CMD_read) _*)", 1,
+			"do_one_cmd no longer parses `:r!` or `:r !cmd`: usefilter loses its last two writes")
+	})
+	if !v.Failed() && w29Assign.Match(v.Text()) {
+		v.Die("usefilter is still assigned after anchor 3, so the fold below would be wrong")
 	}
-
-	// ---- 4. the field nothing writes any more, and its seven readers -----------
-	if w29Assign.Match(text) {
-		return nil, p.Die("usefilter is still assigned after anchor 3, so the fold below would be wrong")
+	// `(X) && !ea.usefilter` is X, its parentheses gone with the operand
+	unparen := func(m *graph.Node, _ graph.Bindings) ([]*graph.Node, error) {
+		return []*graph.Node{m.Kids[1].Kids[1]}, nil
 	}
-	for _, a := range []struct{ Old, New, What string }{
-		{"(ea.argt & EX_CMDARG) && !ea.usefilter", "ea.argt & EX_CMDARG",
-			"EX_CMDARG takes its argument command whatever the (dead) filter flag said"},
-		{"(ea.argt & EX_TRLBAR) && !ea.usefilter", "ea.argt & EX_TRLBAR",
-			"and EX_TRLBAR separates a trailing command"},
-		{" || ea.usefilter)", ")",
-			"and only :global and :vglobal keep a backslash-newline in their argument"},
-	} {
-		if text, err = within(text, "do_one_cmd", a.Old, a.New, a.What, 1); err != nil {
-			return nil, err
-		}
-	}
-	if text, err = within(text, "expand_filename", "if (!eap->usefilter && !escaped)", "if (!escaped)",
-		"expand_filename escapes a replacement unless it was escaped already", 1); err != nil {
-		return nil, err
-	}
-	if text, err = inFunction(text, "expand_filename", func(s []byte) ([]byte, error) {
-		return edit.FoldNever(s, `(?m)^[ \t]*if \(eap->usefilter &&.*\)$`, 1)
-	}); err != nil {
-		return nil, err
-	}
-	p.Say("and no longer escapes `!` for a shell, which only a filter needed")
-	if text, err = within(text, "expand_filename", "(eap->argt & EX_NOSPC) && !eap->usefilter",
-		"eap->argt & EX_NOSPC", "and EX_NOSPC refuses a second file name whatever it said", 1); err != nil {
-		return nil, err
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.RewriteFunc("(&& (paren (& (. ea argt) EX_CMDARG)) (! (. ea usefilter)))", 1, unparen,
+			"EX_CMDARG takes its argument command whatever the (dead) filter flag said")
+		v.RewriteFunc("(&& (paren (& (. ea argt) EX_TRLBAR)) (! (. ea usefilter)))", 1, unparen,
+			"and EX_TRLBAR separates a trailing command")
+		v.DropOperand("(. ea usefilter)", 1,
+			"and only :global and :vglobal keep a backslash-newline in their argument")
+	})
+	v.InFunction("expand_filename", func(v *graph.Verbs) {
+		v.RewriteFunc("(&& (! (-> eap usefilter)) (! escaped))", 1,
+			func(m *graph.Node, _ graph.Bindings) ([]*graph.Node, error) { return []*graph.Node{m.Kids[2]}, nil },
+			"expand_filename escapes a replacement unless it was escaped already")
+		v.FoldNeverAt(graph.IfNotArm, "(&& (-> eap usefilter) _*)", 1,
+			"and no longer escapes `!` for a shell, which only a filter needed")
+		v.RewriteFunc("(&& (paren (& (-> eap argt) EX_NOSPC)) (! (-> eap usefilter)))", 1, unparen,
+			"and EX_NOSPC refuses a second file name whatever it said")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
 
-	// ---- 5. what is left, and why it does not compile yet ----------------------
-	left, holders, _, err := vimtext.CoreResidue(p, text, w29Dying)
+	left, holders, _, err := vimtext.CoreResidue(edit.Ph{Tag: "noread", W: w}, v.Text(), w29Dying)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	s := "s"
 	if left == 1 {
 		s = ""
 	}
-	p.Sayf("%d mention%s of %s left, inside %s, and no surviving row names it: the text "+
-		"does not compile until the sweep has run, and phasecheck is where "+
+	v.Sayf("%d mention%s of %s left, inside %s, and no surviving row names it: the text "+
+		"does not compile until the collection has run, and phasecheck is where "+
 		"that is asserted", left, s, strings.Join(w29Dying, " and "), strings.Join(holders, ", "))
-	return text, nil
+	return v.Done()
 }

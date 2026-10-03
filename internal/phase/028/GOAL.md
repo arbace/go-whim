@@ -3,6 +3,8 @@
 *Formerly phase 89. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B3b): the enumerators RENUM's, ZZ's string respelled, the `:w>>` parse a Cut, the residue the text's own computation on the C view; its report the text program's line for line. It costs 0.89 s handed the graph, against main's text 2.9 s (`TestMeasureGraphPhases`, 5 runs, medians, at a load of 10-60).*
+
 `internal/phase/089/edit.go` and `internal/phase/089/check.go`, `stage 89`, `package files`. A
 core does not own a disk: reading and writing files is the host's business, and
 this is the first half of taking the filesystem away. The six Ex commands that

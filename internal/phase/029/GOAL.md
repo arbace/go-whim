@@ -3,6 +3,8 @@
 *Formerly phase 90. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B3b): the enumerator RENUM's, the `:r!` parse a Cut, the operands DropOperand, the anchors the text's counts on the C view; its report the text program's line for line. It costs 0.76 s handed the graph, against main's text 2.7 s (`TestMeasureGraphPhases`, 5 runs, medians, at a load of 10-60).*
+
 `internal/phase/090/edit.go` and `internal/phase/090/check.go`, `stage 90`, `package files`. The
 other half of taking the filesystem away. Phase 89 removed the six commands that put
 bytes on a disk; this one removes the command that takes them off it on request —

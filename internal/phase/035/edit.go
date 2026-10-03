@@ -78,16 +78,28 @@ package p035
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3b).  The same acts on the
+// program's graph, the report the text version's (history keeps it, with
+// editlit.go's literals): the anchors and the invariant -- the one write of
+// scriptin[], redirecting()'s body, the one ui_write() call -- are the
+// text's own questions on the C view (TEXTQ); the conjuncts and disjuncts
+// are DropOperand; the script reader is the run of its two items; the
+// folds are by condition; the writes and calls are Cuts of their forms;
+// and ui_write's console parameter is PARAM's, one edit for the prototype,
+// the definition (its guarded vim_fsync() cut first) and the call.
+
 import (
 	"io"
 	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim35", Edit) }
+func init() { phase.RegisterGraph("whim35", Edit) }
 
 var w35Before = map[string]int{
 	"scriptin": 8, "curscript": 11, "NSCRIPT": 3, "saved_typebuf": 2,
@@ -110,220 +122,170 @@ var w35After = map[string]int{
 var (
 	w35ScriptWrite = regexp.MustCompile(`\bscriptin\s*\[[^\]]*\]\s*=[^=][^;\n]*;`)
 	w35UiCall      = regexp.MustCompile(`(?m)^[ \t]*ui_write\([^;\n]*\);$`)
-	w35RedirOff    = regexp.MustCompile(`(?m)^[ \t]*redir_off = (?:TRUE|FALSE);\n`)
 )
 
-// Whim35 removes the two `static FILE *` that nothing has ever opened in any
-// build of whim-vim, ui_write()'s console parameter, and the five functions the
-// sweep finds under them.
-//
-// ITS ARGUMENT IS TEXTUAL AND THE INVARIANT IS COMPUTED: scriptin[] is assigned
-// ONCE in the whole file, to NULL, inside the function this phase removes, and
-// redir_fd only by its own declaration -- so the phase removes the POSSIBILITY
-// and not a behaviour.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "nofile", W: w}
-	var err error
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nofile", e, w)
 
-	mentions := func(t []byte, name string) int {
-		return edit.WordPatternCount(t, name)
-	}
-	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
-		k := strings.Count(string(t), old)
-		if k != n {
-			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
-		}
-		p.Say(what)
-		return []byte(strings.ReplaceAll(string(t), old, new)), nil
-	}
-	fold := func(t []byte, fn, how, pattern, what string, n int) ([]byte, error) {
-		a, z, ok := edit.FindDefinition(t, edit.Blank(t), fn)
-		if !ok {
-			return nil, p.Die("%s is not defined", fn)
-		}
-		f := edit.FoldNever
-		switch how {
-		case "always":
-			f = edit.FoldAlways
-		case "drop":
-			f = edit.DropIf
-		}
-		Body, err := f(t[a:z], pattern, n)
-		if err != nil {
-			return nil, p.Die("%s -- %v", what, err)
-		}
-		p.Say(what)
-		return []byte(string(t[:a]) + string(Body) + string(t[z:])), nil
-	}
 	joined := func(ms []string, n int) string {
-		Out := make([]string, len(ms))
+		out := make([]string, len(ms))
 		for i, m := range ms {
-			Out[i] = edit.CoreHead(strings.TrimSpace(m), n)
+			out[i] = edit.CoreHead(strings.TrimSpace(m), n)
 		}
-		return strings.Join(Out, " | ")
+		return strings.Join(out, " | ")
 	}
 
-	// ---- 0. the shape every anchor below was counted against ------------------
+	t := v.Text()
 	for _, name := range edit.SortedKeys(w35Before) {
-		if k := mentions(text, name); k != w35Before[name] {
-			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
+		if k := edit.WordPatternCount(t, name); k != w35Before[name] {
+			v.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
 				"against a different file", name, k, w35Before[name])
+			return v.Done()
 		}
 	}
-	p.Say("scriptin 8, redirecting 4, ui_write 3, FILE 1 -- the file the six " +
+	v.Say("scriptin 8, redirecting 4, ui_write 3, FILE 1 -- the file the six " +
 		"anchors were counted against")
 
-	// ---- THE INVARIANT, COMPUTED BEFORE ANYTHING IS FOLDED --------------------
-	sw := w35ScriptWrite.FindAllString(string(text), -1)
+	sw := w35ScriptWrite.FindAllString(string(t), -1)
 	if len(sw) != 1 || sw[0] != "scriptin[curscript] = nullptr;" {
-		Out := make([]string, len(sw))
+		out := make([]string, len(sw))
 		for i, m := range sw {
-			Out[i] = edit.CoreHead(m, 60)
+			out[i] = edit.CoreHead(m, 60)
 		}
-		return nil, p.Die("scriptin[] is assigned %d times and not once to nullptr alone: %s",
-			len(sw), strings.Join(Out, " | "))
+		v.Die("scriptin[] is assigned %d times and not once to nullptr alone: %s",
+			len(sw), strings.Join(out, " | "))
+		return v.Done()
 	}
-	// redir_fd is gone, declaration and all: only :redir wrote it, and the
-	// fall-out closure folded its reads at phase 1, redirecting()'s to FALSE
-	// at phase 19 (exfront, the reform's D2)
-	if strings.Contains(string(text), "redir_fd") {
-		return nil, p.Die("redir_fd survives, and part B's folds assume it went at phase 1")
+	if strings.Contains(string(t), "redir_fd") {
+		v.Die("redir_fd survives, and part B's folds assume it went at phase 1")
+		return v.Done()
 	}
-	if !regexp.MustCompile(`(?m)^redirecting\(void\)\n\{\n    return FALSE;\n\}`).Match(text) {
-		return nil, p.Die("redirecting() does not answer FALSE, and part B folds it so")
+	if !regexp.MustCompile(`(?m)^redirecting\(void\)\n\{\n    return FALSE;\n\}`).Match(t) {
+		v.Die("redirecting() does not answer FALSE, and part B folds it so")
+		return v.Done()
 	}
-	calls := w35UiCall.FindAllString(string(text), -1)
+	calls := w35UiCall.FindAllString(string(t), -1)
 	if len(calls) != 1 || calls[0] != "    ui_write(out_buf, len, FALSE);" {
-		return nil, p.Die("ui_write has %d call sites and not the one that passes FALSE: %s",
+		v.Die("ui_write has %d call sites and not the one that passes FALSE: %s",
 			len(calls), joined(calls, 60))
+		return v.Done()
 	}
-	p.Say("scriptin[] is assigned ONCE in the whole file, to nullptr, inside closescript(); " +
+	v.Say("scriptin[] is assigned ONCE in the whole file, to nullptr, inside closescript(); " +
 		"redirecting() answers FALSE; ui_write() has ONE call and it passes " +
 		"FALSE.  That, and nothing weaker, is why every fold below may take a constant -- " +
 		"and it is also the whole claim of the phase: neither FILE* has ever been opened " +
 		"in any build of whim-vim")
 
-	// ---- A. scriptin[] is NULL for ever ---------------------------------------
-	for _, e := range []struct {
-		Old, New, What string
-		n              int
-	}{
-		{w35lit1, w35lit2, "may_sync_undo: `scriptin[curscript] == nullptr` is TRUE, so the conjunct " +
-			"goes -- the function SURVIVES and u_sync() still runs on the rest", 1},
-		{w35lit3, "", "is_safe_now: the same conjunct, and the same survival -- " +
-			"stuff_empty() && typebuf.tb_len == 0 && !global_busy is what is left", 1},
-		{" && !using_script()", "", "nv_visual: `!using_script()` is TRUE, so the conjunct goes", 1},
-		{" || using_script()", "", "skip_showmode: `using_script()` is FALSE, so the disjunct goes -- and " +
-			"that was its last caller", 1},
-		{w35lit4, "", "inchar()'s script reader: the loop needs `scriptin[curscript] != nullptr`, " +
-			"which is FALSE, so it never ran -- and it was closescript()'s only " +
-			"caller and getc()'s", 1},
-	} {
-		if text, err = textEdit(text, e.Old, e.New, e.What, e.n); err != nil {
-			return nil, err
-		}
+	null := "(== (index scriptin curscript) nullptr)"
+	v.InFunction("may_sync_undo", func(v *graph.Verbs) {
+		v.DropOperand(null, 1, "may_sync_undo: `scriptin[curscript] == nullptr` is TRUE, so the conjunct "+
+			"goes -- the function SURVIVES and u_sync() still runs on the rest")
+	})
+	v.InFunction("is_safe_now", func(v *graph.Verbs) {
+		v.DropOperand(null, 1, "is_safe_now: the same conjunct, and the same survival -- "+
+			"stuff_empty() && typebuf.tb_len == 0 && !global_busy is what is left")
+	})
+	// (nv_visual, the text's report says; the conjunct is clear_showcmd's)
+	v.InFunction("clear_showcmd", func(v *graph.Verbs) {
+		v.DropOperand("(! (call using_script))", 1, "nv_visual: `!using_script()` is TRUE, so the conjunct goes")
+	})
+	v.InFunction("skip_showmode", func(v *graph.Verbs) {
+		v.DropOperand("(call using_script)", 1, "skip_showmode: `using_script()` is FALSE, so the disjunct goes -- and "+
+			"that was its last caller")
+	})
+	v.InFunction("inchar", func(v *graph.Verbs) {
+		v.CutRun("inchar()'s script reader: the loop needs `scriptin[curscript] != nullptr`, "+
+			"which is FALSE, so it never ran -- and it was closescript()'s only "+
+			"caller and getc()'s",
+			"(= script_char (- 1))",
+			"(while (&& (!= (index scriptin curscript) nullptr) (< script_char 0)) _*)")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	// `retesc` IS READ AND NEVER WRITTEN AFTER A4, which draws no warning and
-	// which deadsweep.py does not act on.
-	if k := mentions(text, "retesc"); k != 2 {
-		return nil, p.Die("retesc has %d mentions after the loop went, expected 2 -- its declaration "+
+	if k := edit.WordPatternCount(v.Text(), "retesc"); k != 2 {
+		v.Die("retesc has %d mentions after the loop went, expected 2 -- its declaration "+
 			"and its one read", k)
+		return v.Done()
 	}
-	for _, e := range []struct{ Old, New, What string }{
-		{w35lit5, w35lit6, "inchar: `retesc` is read and never written now -- no warning covers " +
-			"that, and the value it would return is uninitialised, so the read " +
-			"becomes the FALSE it was initialised to"},
-	} {
-		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
-			return nil, err
-		}
+	v.InFunction("inchar", func(v *graph.Verbs) {
+		v.Rewrite("(return retesc)", "(return FALSE)", 1,
+			"inchar: `retesc` is read and never written now -- no warning covers "+
+				"that, and the value it would return is uninitialised, so the read "+
+				"becomes the FALSE it was initialised to")
+		v.FoldAlwaysAt("(< script_char 0)", 1, false,
+			"inchar: `script_char < 0` is TRUE for ever now, so the whole rest of the "+
+				"function is what runs -- the body is dedented one level")
+	})
+	v.InFunction("undo_cmdmod", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "(call redirecting)", 1,
+			"undo_cmdmod: `redirecting()` is FALSE, so unwinding :silent never resets "+
+				"msg_col for a redirection that is not happening")
+	})
+	v.DropIf("(! did_return)", 1,
+		"msg_end's `if (!did_return)` block, which held one of the five calls: dropping "+
+			"the call alone would leave an `if` with an empty body, which is not something "+
+			"any tool here removes")
+	v.Cut("(call redir_write p (- 1))", 2, "emsg_core's two calls that echoed the error's source line")
+	v.Cut("(call redir_write (cast (ptr char_u) s) (- 1))", 1, "emsg_core's call that echoed the message itself")
+	v.Cut("(call redir_write (cast (ptr char_u) str) maxlen)", 1,
+		"msg_puts_attr_len's call, which was every message the editor prints")
+	if v.Failed() {
+		return v.Done()
 	}
-	// IT IS FOLDED LAST, after the two locals above: fold_always dedents the Body
-	// it keeps, and `return retesc;` sits inside it -- a rewrite counted against
-	// the original indentation would refuse afterwards.
-	if text, err = fold(text, "inchar", "always", `(?m)^    if \(script_char < 0\)$`,
-		"inchar: `script_char < 0` is TRUE for ever now, so the whole rest of the "+
-			"function is what runs -- the body is dedented one level", 1); err != nil {
-		return nil, err
-	}
-
-	// ---- B. redir_fd is NULL for ever -----------------------------------------
-	// redir_write's own `if (redirecting())` is not folded: its five calls go
-	// below, and the sweep takes the function whole.
-	if text, err = fold(text, "undo_cmdmod", "never", `(?m)^        if \(redirecting\(\)\)$`,
-		"undo_cmdmod: `redirecting()` is FALSE, so unwinding :silent never resets "+
-			"msg_col for a redirection that is not happening", 1); err != nil {
-		return nil, err
-	}
-
-	// ---- the recommended extra: the no-op that is left ------------------------
-	Out, err := edit.DropIf(text, `(?m)^    if \(!did_return\)$`, 1)
-	if err != nil {
-		return nil, p.Die("msg_end's `if (!did_return)` block -- %v", err)
-	}
-	text = Out
-	p.Say("msg_end's `if (!did_return)` block, which held one of the five calls: dropping " +
-		"the call alone would leave an `if` with an empty body, which is not something " +
-		"any tool here removes")
-	for _, e := range []struct {
-		Old, What string
-		n         int
-	}{
-		{w35lit9, "emsg_core's two calls that echoed the error's source line", 2},
-		{w35lit10, "emsg_core's call that echoed the message itself", 1},
-		{w35lit11, "msg_puts_attr_len's call, which was every message the editor prints", 1},
-	} {
-		if text, err = textEdit(text, e.Old, "", e.What, e.n); err != nil {
-			return nil, err
-		}
-	}
-	if k := mentions(text, "redir_write"); k != 2 {
-		return nil, p.Die("redir_write has %d mentions, expected 2 -- its prototype and its "+
-			"definition, uncalled now and the sweep's", k)
+	if k := edit.WordPatternCount(v.Text(), "redir_write"); k != 2 {
+		v.Die("redir_write has %d mentions, expected 2 -- its prototype and its "+
+			"definition, uncalled now and the collection's", k)
+		return v.Done()
 	}
 
-	// The sweep deletes declarations, never statements: the writes go here, and
-	// the two declarations, unused then, are the sweep's.
-	if text, err = textEdit(text, w35lit14, "",
-		"msg_end's `did_return`'s one write: it is read never now", 1); err != nil {
-		return nil, err
+	v.Cut("(= did_return TRUE)", 1, "msg_end's `did_return`'s one write: it is read never now")
+	v.CutWhere("(= redir_off _)", func(x *graph.Node) bool {
+		val := x.Kids[2]
+		return e.Item(x) == x && !val.IsList() && (val.Atom == "TRUE" || val.Atom == "FALSE")
+	}, 5, "and redir_off's FIVE writes, not four: it has no reader at all")
+	if v.Failed() {
+		return v.Done()
 	}
-	if k := len(w35RedirOff.FindAll(text, -1)); k != 5 {
-		return nil, p.Die("redir_off has %d writes, expected 5 -- a phase written from a description "+
-			"of four would leave one behind", k)
-	}
-	text = w35RedirOff.ReplaceAll(text, nil)
-	p.Say("and redir_off's FIVE writes, not four: it has no reader at all")
-	if mentions(text, "redir_off") != 2 || mentions(text, "did_return") != 1 {
-		return nil, p.Die("redir_off or did_return is named other than by its declaration " +
+	t = v.Text()
+	if edit.WordPatternCount(t, "redir_off") != 2 || edit.WordPatternCount(t, "did_return") != 1 {
+		v.Die("redir_off or did_return is named other than by its declaration " +
 			"(and, for redir_off, uncalled redir_write's read)")
+		return v.Done()
 	}
 
-	// ---- C. ui_write's console ------------------------------------------------
-	for _, e := range []struct{ Old, New, What string }{
-		{w35lit16, w35lit17, "ui_write's prototype loses the console parameter"},
-		{w35lit18, w35lit19, "and the definition: `console` is FALSE at the one call site, so the " +
-			"vim_fsync(1) it guarded can never be entered, and ui_write is " +
-			"mch_write now -- which is what takes vim_fsync() and fsync()"},
-		{w35lit20, w35lit21, "and its one call site, which already passed FALSE"},
-	} {
-		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
-			return nil, err
+	// ui_write's console: the guarded vim_fsync() and the parameter, one
+	// edit for the prototype, the definition and the one call
+	v.Say("ui_write's prototype loses the console parameter")
+	v.InFunction("ui_write", func(v *graph.Verbs) {
+		v.CutWhere("(if (&& console (== (index s (- len 1)) '\\n')) (block (call vim_fsync 1)))", nil, 1, "")
+	})
+	v.Say("and the definition: `console` is FALSE at the one call site, so the " +
+		"vim_fsync(1) it guarded can never be entered, and ui_write is " +
+		"mch_write now -- which is what takes vim_fsync() and fsync()")
+	v.CountIs("(call ui_write out_buf len FALSE)", 1, "and its one call site, which already passed FALSE")
+	if !v.Failed() {
+		if _, err := e.DropParam("ui_write", "console", graph.ParamOptions{}); err != nil {
+			v.Die("and its one call site, which already passed FALSE -- %v", err)
 		}
 	}
+	v.Say("and its one call site, which already passed FALSE")
+	if v.Failed() {
+		return v.Done()
+	}
 
-	// ---- what the sweep is handed, as a count rather than as trust ------------
+	t = v.Text()
 	for _, name := range edit.SortedKeys(w35After) {
-		if k := mentions(text, name); k != w35After[name] {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w35After[name])
+		if k := edit.WordPatternCount(t, name); k != w35After[name] {
+			v.Die("%s has %d mentions after the cut, expected %d", name, k, w35After[name])
+			return v.Done()
 		}
 	}
-	p.Say("the cut is done: closescript and vim_fsync at two mentions each " +
+	v.Say("the cut is done: closescript and vim_fsync at two mentions each " +
 		"-- a prototype and a definition -- redirecting at three, uncalled redir_write's " +
 		"call the third, and using_script at ONE, its definition " +
 		"alone, having never had a prototype; scriptin 4 and curscript 7, every one of " +
-		"them inside a function the sweep now reads as unreachable; may_sync_undo and " +
+		"them inside a function the collection now reads as unreachable; may_sync_undo and " +
 		"is_safe_now SURVIVING at three; and read_cmd_fd 12, still the terminal's")
-	return text, nil
+	return v.Done()
 }

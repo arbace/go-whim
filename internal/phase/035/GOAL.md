@@ -3,6 +3,8 @@
 *Formerly phase 96. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B3b): the conjuncts DropOperand, the script reader a run of items, the writes Cuts, ui_write's parameter PARAM's; its report the text program's line for line. It costs 1.0 s handed the graph, against main's text 3.6 s (`TestMeasureGraphPhases`, 5 runs, medians, at a load of 10-60).*
+
 `internal/phase/096/edit.go` and `internal/phase/096/check.go`, `stage 96`, `package tidy`. Two
 `static FILE *` survive in this editor and **nothing has ever opened either of them in
 any build of `whim-vim`**: `scriptin[NSCRIPT]`, which `-s {scriptfile}` filled and for

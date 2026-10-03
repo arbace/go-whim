@@ -3,6 +3,8 @@
 *Formerly phase 91. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B3b): the enumerators RENUM's, `gf`/`gF` their case labels, `[f`/`]f` a fold by condition, `++opt` a Cut; its report the text program's line for line. It costs 0.84 s handed the graph, against main's text 2.9 s (`TestMeasureGraphPhases`, 5 runs, medians, at a load of 10-60).*
+
 `internal/phase/091/edit.go` and `internal/phase/091/check.go`, `stage 91`, `package files`. Phases
 89 and 90 took the commands that put bytes on a disk and the one that takes them off
 it. This one takes the commands that point the editor **at** a file — `:edit :enew

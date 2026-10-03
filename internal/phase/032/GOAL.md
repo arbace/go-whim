@@ -3,6 +3,8 @@
 *Formerly phase 93. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B3b): the literals runs of items (`CutRun`) and operands, buflist_new's and shorten_fnames' parameters PARAM's, the writes and holders the text's own computation on the C view; its report the text program's line for line. It costs 1.0 s handed the graph, against main's text 4.1 s (`TestMeasureGraphPhases`, 5 runs, medians, at a load of 10-60).*
+
 `internal/phase/093/edit.go` and `internal/phase/093/check.go`, `stage 93`, `package files`.
 Phases 89, 90 and 91 took every way to *ask* for a file and phase 92 took the machinery
 that read one. What was left of the filesystem in this editor is a **name**: three

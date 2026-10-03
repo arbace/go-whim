@@ -284,7 +284,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 15, 19, 20, 23-25, 33, 58, 64 and 77 and parts 4a, 15a, 38a and 86a so far, `doc/GRAPH-MIGRATION.md`),
+phase converted to the graph (phases 15, 19, 20, 23-25, 27-35, 58, 64 and 77 and parts 4a, 15a, 38a and 86a so far, `doc/GRAPH-MIGRATION.md`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -321,7 +321,7 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    and 99 and the line on every snapshot, B2b's rows,
                    enumerators and renames held to argvfront, filefront and
                    phase 51a, eight phases' literal C spliced by FRAG, PARAM,
-                   RETYPE and MOVE on phases 31, 57, 66, 78, 80, 83 and
+                   RETYPE and MOVE on phases 57, 66, 78, 80, 83 and
                    86's parameter and on whim-vim.c's functions, and FOLDX held to the text's
                    closures (the front's three, every seed, phase 62's
                    empties, notags' conditions): GRAPH_SNAPS), steps'
@@ -439,6 +439,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    types derived, Rederive), b2cverbs.go their verbs;
                    deadstmt.go the statements after a jump (StmtTerminates
                    on nodes, part 86a's rule);
+                   b3bverbs.go the verbs phases 27-35's conversions
+                   wanted (a fold by where its if stands, CutWhere,
+                   Run and CutRun, Muted, DropArgPure);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -757,7 +760,7 @@ make help            # every target, with a line each
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
   the boundary before each phase that begins on the graph the graph it
-  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: twenty-one now), and seals the
+  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: twenty-nine now), and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
@@ -882,7 +885,7 @@ was the input boundary's digest and the implementation's together, so a moved
   collected and printed by the C view, cemit's text byte for byte. The graph
   goes on to the next phase only when that phase begins on the graph, with a
   fresh editor, so a phase takes one path in order and in the check. On the
-  graph now: every `droplocal`, phases 24, 33, 58 and 64, phase 77's own
+  graph now: every `droplocal`, phases 24, 27-35, 58 and 64, phase 77's own
   step, parts 38a and 86a, and B1a's -- the cutters nointro, optreaders,
   nostat, nobackup, lfonly, keepbytes, noinertopts, nofloat and noowner,
   part 4a and the programs of phases 15, 19, 20, 23 and 25. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the

@@ -73,16 +73,27 @@ package p031
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3b).  The same acts on the
+// program's graph, the report the text version's (history keeps it, with
+// editlit.go's literals): the counts are the text's own regular expressions
+// on the C view (TEXTQ), the file's or open_buffer's; the unchanged() arm
+// is the `&&` rewritten to its first operand; and the three parameters are
+// PARAM's, one edit -- the definition and the three calls, every one of
+// which must pass FALSE, nullptr and 0 as the text required -- reported as
+// the text's two literals.
+
 import (
 	"io"
 	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim31", Edit) }
+func init() { phase.RegisterGraph("whim31", Edit) }
 
 // w31Before is the file the three anchors were counted against.  The two
 // read arms went at phase 1 (readfront, this phase's move), and readfile(),
@@ -104,96 +115,90 @@ var w31Assign = regexp.MustCompile(`\bretval\b\s*=[^=]`)
 // IT IS THE ONE PART II PHASE NO RECORDING CAN SEE, and its declared delta is
 // nothing at all: readfile() was already unreachable when it ran, record 88 and phases 28 to 30
 // having taken every way to name a file.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "nobyte", W: w}
-	var err error
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nobyte", e, w)
 
 	mentions := func(t []byte, name string) int {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
 	}
-	within := func(t []byte, fn, old, new, what string, n int) ([]byte, error) {
-		a, z, ok := edit.FindDefinition(t, edit.Blank(t), fn)
-		if !ok {
-			return nil, p.Die("%s is not defined", fn)
-		}
-		Body := string(t[a:z])
-		k := strings.Count(Body, old)
-		if k != n {
-			return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-				what, edit.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
-		}
-		p.Say(what)
-		return []byte(string(t[:a]) + strings.ReplaceAll(Body, old, new) + string(t[z:])), nil
-	}
 
-	// ---- 0. the shape the anchors below were counted on -----------------------
-	// open_buffer AT EXACTLY 4 IS WHY THIS PHASE NEEDS SWEPT TEXT.  (Four: the
-	// fifth, enter_buffer, went with :q's refusal at phase 1 -- quitfront.)
-	if k := mentions(text, "open_buffer"); k != 4 {
-		return nil, p.Die("open_buffer has %d mentions, expected 4 -- the definition and three callers, "+
+	t := v.Text()
+	if k := mentions(t, "open_buffer"); k != 4 {
+		v.Die("open_buffer has %d mentions, expected 4 -- the definition and three callers, "+
 			"every one of them `open_buffer(FALSE, nullptr, 0)`.  On the text phase 30's "+
 			"EDIT leaves there are six: do_ecmd is still there to make "+
 			"`(void)open_buffer(FALSE, eap, readfile_flags);`, which anchor 4 would not "+
 			"rewrite.  This phase needs swept text", k)
+		return v.Done()
 	}
 	for _, name := range edit.SortedKeys(w31Before) {
-		if k := mentions(text, name); k != w31Before[name] {
-			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
+		if k := mentions(t, name); k != w31Before[name] {
+			v.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
 				"against a different file", name, k, w31Before[name])
+			return v.Done()
 		}
 	}
-	p.Say("open_buffer 4, read_stdin 2, read_fifo 2, and readfile and read_buffer gone " +
+	v.Say("open_buffer 4, read_stdin 2, read_fifo 2, and readfile and read_buffer gone " +
 		"at phase 1 -- the file the three anchors were counted against")
 
-	// ---- 3. the unchanged() test, where its second reader was -----------------
-	if text, err = within(text, "open_buffer", w31lit2, w31lit3,
-		"the unchanged() arm: !read_stdin and !read_fifo were both constantly true", 1); err != nil {
-		return nil, err
+	v.InFunction("open_buffer", func(v *graph.Verbs) {
+		v.Rewrite("(&& ?ok (! read_stdin) (! read_fifo))", "?ok", 1,
+			"the unchanged() arm: !read_stdin and !read_fifo were both constantly true")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	// ---- 4. the signature, and the three callers ------------------------------
-	if text, err = within(text, "open_buffer", w31lit4, w31lit5,
-		"open_buffer(void): read_stdin, eap and flags_arg are read by nothing "+
-			"now, and there is no prototype to follow", 1); err != nil {
-		return nil, err
-	}
-	if k := strings.Count(string(text), "open_buffer(FALSE, nullptr, 0)"); k != 3 {
-		return nil, p.Die("open_buffer is called %d times as `open_buffer(FALSE, nullptr, 0)`, expected "+
+	calls := v.Find("(call open_buffer _*)")
+	if k := v.Count("(call open_buffer FALSE nullptr 0)"); k != 3 || len(calls) != 3 {
+		v.Die("open_buffer is called %d times as `open_buffer(FALSE, nullptr, 0)`, expected "+
 			"%d -- every caller already passes FALSE, nullptr and 0, and a caller that "+
 			"does not is one this fold would change", k, 3)
+		return v.Done()
 	}
-	text = []byte(strings.ReplaceAll(string(text), "open_buffer(FALSE, nullptr, 0)", "open_buffer()"))
-	p.Say("the three call sites -- ml_append_flags, ml_replace_len and create_windows " +
+	var drops []graph.ParamDrop
+	for _, p := range []string{"read_stdin", "eap", "flags_arg"} {
+		drops = append(drops, graph.ParamDrop{Decl: e.Defn("open_buffer"), I: e.ParamIndex("open_buffer", p)})
+	}
+	if _, err := e.DropParams(drops, graph.ParamOptions{}); err != nil {
+		v.Die("open_buffer(void) -- %v", err)
+		return v.Done()
+	}
+	v.Say("open_buffer(void): read_stdin, eap and flags_arg are read by nothing " +
+		"now, and there is no prototype to follow")
+	v.Say("the three call sites -- ml_append_flags, ml_replace_len and create_windows " +
 		"-- every one of which passed FALSE, nullptr, 0")
 
-	// ---- 5. what is left, and what is deliberately left -----------------------
-	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "open_buffer")
-	if !ok {
-		return nil, p.Die("open_buffer no longer parses as a definition")
-	}
-	Body := text[a:z]
-	// The read_fifo and flags locals are still declared here; the sweep takes
-	// both, unused.
-	for _, gone := range []string{"read_stdin", "eap", "readfile", "read_buffer"} {
-		if mentions(Body, gone) > 0 {
-			return nil, p.Die("%s is still named inside open_buffer", gone)
+	v.InFunction("open_buffer", func(v *graph.Verbs) {
+		body := v.Text()
+		for _, gone := range []string{"read_stdin", "eap", "readfile", "read_buffer"} {
+			if mentions(body, gone) > 0 {
+				v.Die("%s is still named inside open_buffer", gone)
+				return
+			}
 		}
+		assigns := len(w31Assign.FindAll(body, -1))
+		if assigns != 1 || mentions(body, "retval") != 5 {
+			v.Die("retval is assigned %d times in open_buffer and mentioned %d: this phase "+
+				"leaves exactly one assignment, the initialiser, and 5 mentions",
+				assigns, mentions(body, "retval"))
+			return
+		}
+		v.Sayf("open_buffer is %d lines and calls nothing that reads: retval is OK from its "+
+			"initialiser to its return, so `if (retval != OK) return retval;` is dead and "+
+			"the two ml_ guards can never hold -- left for a later tidy, not folded here",
+			strings.Count(string(body), "\n"))
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	assigns := len(w31Assign.FindAll(Body, -1))
-	if assigns != 1 || mentions(Body, "retval") != 5 {
-		return nil, p.Die("retval is assigned %d times in open_buffer and mentioned %d: this phase "+
-			"leaves exactly one assignment, the initialiser, and 5 mentions",
-			assigns, mentions(Body, "retval"))
-	}
-	p.Sayf("open_buffer is %d lines and calls nothing that reads: retval is OK from its "+
-		"initialiser to its return, so `if (retval != OK) return retval;` is dead and "+
-		"the two ml_ guards can never hold -- left for a later tidy, not folded here",
-		strings.Count(string(Body), "\n"))
 
+	t = v.Text()
 	for _, name := range edit.SortedKeys(w31After) {
-		if k := mentions(text, name); k != w31After[name] {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w31After[name])
+		if k := mentions(t, name); k != w31After[name] {
+			v.Die("%s has %d mentions after the cut, expected %d", name, k, w31After[name])
+			return v.Done()
 		}
 	}
-	p.Say("read_stdin 2 -> 0, and read_fifo 2 -> 1: its declaration, which the sweep takes")
-	return text, nil
+	v.Say("read_stdin 2 -> 0, and read_fifo 2 -> 1: its declaration, which the collection takes")
+	return v.Done()
 }

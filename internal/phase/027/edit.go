@@ -85,17 +85,37 @@ package p027
 // to find -- it raises rather than reporting nothing (internal/phase/004/e/edit.go says the
 // same).  Nothing here touches the command table.
 //
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3b).  The cut is the text program's
+// acts, one for one and in its order, on the program's graph through the
+// verbs; its report is the text version's, line for line (history keeps
+// the text program and its editlit.go):
+//
+//   - the anchors -- the mentions of w27Before and w27After, and the five
+//     `isatty(` calls -- are asked of the C view, as the text counted them;
+//   - a `line("if (X)")` fold is a fold of the ifs whose condition is X
+//     that are not an else's `if`, and an `else if (X)` one of those that
+//     are (FoldNeverAt's places; FoldAlwaysAt refusing a kept
+//     break or continue, as the text's fold did); a `head(...)` fold names the condition's first
+//     operands and `_*`;
+//   - a literal that took an operand out of a condition is DropOperand, or
+//     a Rewrite where the text's literal took the parentheses with it;
+//   - the literals that deleted statements are Cuts of their forms, the
+//     text's indentation (a function's own items, or one level in) said
+//     by where the item stands;
+//   - main_loop's `noexmode` is PARAM's: its prototype, its definition and
+//     its one call, one edit, reported as the text's three literals.
 
 import (
 	"io"
 	"regexp"
-	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim27", Edit) }
+func init() { phase.RegisterGraph("whim27", Edit) }
 
 var w27Before = map[string]int{
 	// do_exedit's exmode handling went with :edit, :ex and :visual at phase 1
@@ -128,346 +148,198 @@ var w27After = map[string]int{
 	"mch_input_isatty": 2,
 }
 
-var (
-	w27Isatty   = regexp.MustCompile(`\bisatty\(`)
-	w27BreakCon = regexp.MustCompile(`\b(break|continue)\b`)
-)
+var w27Isatty = regexp.MustCompile(`\bisatty\(`)
 
-// Whim27 removes Ex mode, silent mode and the `-e -E -s -v` options.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "noexmode", W: w}
-	var err error
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noexmode", e, w)
 
-	mentions := edit.MentionCount
-	// line is a whole line by its trimmed text; head is a line that STARTS with
-	// this and runs on -- the 200-column conditions.
-	line := func(Body string) string { return `(?m)^[ \t]*` + regexp.QuoteMeta(Body) + `$` }
-	head := func(Body string) string { return `(?m)^[ \t]*` + regexp.QuoteMeta(Body) + `.*$` }
-
-	inFunction := func(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
-		if !ok {
-			return nil, p.Die("%s is not defined", name)
-		}
-		Body, err := fn(t[a:z])
-		if err != nil {
-			return nil, err
-		}
-		return []byte(string(t[:a]) + string(Body) + string(t[z:])), nil
-	}
-	// guardedBody is the block an `if` guards, for the break/continue audit:
-	// fold_always leaves the Body where it was, so neither changes which loop it
-	// binds to, but a Body that carries one is a Body whose condition was doing
-	// more than choosing, and that is worth failing on rather than assuming.
-	guardedBody := func(s []byte, at int) []byte {
-		b := edit.Blank(s)
-		lp := strings.Index(string(s[at:]), "(") + at
-		rp := edit.Match(b, lp)
-		o := rp + 1
-		for o < len(s) && (s[o] == ' ' || s[o] == '\t' || s[o] == '\n') {
-			o++
-		}
-		c := edit.Match(b, o)
-		if c < 0 {
-			return nil
-		}
-		return s[o:c]
-	}
-	fold := func(t []byte, kind, fn, pattern, what string, n int) ([]byte, error) {
-		Out, err := inFunction(t, fn, func(s []byte) ([]byte, error) {
-			if kind == "always" {
-				for _, m := range regexp.MustCompile(pattern).FindAllIndex(s, -1) {
-					if w27BreakCon.Match(guardedBody(s, m[0])) {
-						return nil, p.Die("%s -- the body kept by this fold carries a break or continue", what)
-					}
-				}
-			}
-			f := edit.FoldNever
-			if kind == "always" {
-				f = edit.FoldAlways
-			}
-			o, err := f(s, pattern, n)
-			if err != nil {
-				return nil, p.Die("%s -- %v", what, err)
-			}
-			return o, nil
-		})
-		if err != nil {
-			return nil, err
-		}
-		p.Say(what)
-		return Out, nil
-	}
-	// within reports only when the caller gives it a `what`: a second or third
-	// edit that finishes the one above it has nothing of its own to say.
-	within := func(t []byte, fn, old, new, what string, n int) ([]byte, error) {
-		Out, err := inFunction(t, fn, func(s []byte) ([]byte, error) {
-			k := strings.Count(string(s), old)
-			if k != n {
-				wh := what
-				if wh == "" {
-					wh = "in " + fn
-				}
-				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					wh, edit.PyRepr(old), k, fn, n)
-			}
-			return []byte(strings.ReplaceAll(string(s), old, new)), nil
-		})
-		if err != nil {
-			return nil, err
-		}
-		if what != "" {
-			p.Say(what)
-		}
-		return Out, nil
-	}
-	literal := func(t []byte, old, new, what string, n int) ([]byte, error) {
-		k := strings.Count(string(t), old)
-		if k != n {
-			return nil, p.Die("%s -- %s occurs %d times, expected %d", what, edit.PyRepr(old), k, n)
-		}
-		p.Say(what)
-		return []byte(strings.ReplaceAll(string(t), old, new)), nil
-	}
-
-	// ---- 0. the invariants the cut rests on -----------------------------------
+	t := v.Text()
 	for _, name := range edit.SortedKeys(w27Before) {
-		if k := mentions(text, name); k != w27Before[name] {
-			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
+		if k := edit.MentionCount(t, name); k != w27Before[name] {
+			v.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
 				"against a different file", name, k, w27Before[name])
+			return v.Done()
 		}
 	}
-	if k := len(w27Isatty.FindAll(text, -1)); k != 5 {
-		return nil, p.Die("isatty is called %d times, expected 5", k)
+	if k := len(w27Isatty.FindAll(t, -1)); k != 5 {
+		v.Die("isatty is called %d times, expected 5", k)
+		return v.Done()
 	}
-	p.Say("21 identifiers at their counted mentions: exmode_active 49, silent_mode 23, isatty 5 calls")
+	v.Say("21 identifiers at their counted mentions: exmode_active 49, silent_mode 23, isatty 5 calls")
 
-	// ---- 1. the two keys, and the three functions they reach ------------------
-	// The row is REPOINTED, never deleted (CLAUDE.md, `nvidx`).
-	if text, err = literal(text, w27lit3, w27lit4,
-		"the 'Q' row points at nv_error, so Q beeps like any unused key", 1); err != nil {
-		return nil, err
-	}
-	if text, err = literal(text, w27lit5, "", "gQ's arm of nv_g_cmd, which falls to default: clearopbeep", 1); err != nil {
-		return nil, err
-	}
-	if text, err = literal(text,
-		"(getline_equal(fgetline, cookie, getexmodeline) || getline_equal(fgetline, cookie, getexline))",
-		"getline_equal(fgetline, cookie, getexline)",
-		"do_cmdline stops asking whether it is reading Ex-mode lines", 1); err != nil {
-		return nil, err
-	}
+	v.InTable("nv_cmds", func(v *graph.Verbs) {
+		v.RewriteAt("(init 'Q' ?f NV_NCW 0)", "f", "nv_error", 1,
+			"the 'Q' row points at nv_error, so Q beeps like any unused key")
+	})
+	v.InFunction("nv_g_cmd", func(v *graph.Verbs) {
+		v.DropCase("(case 'Q')", 1, "gQ's arm of nv_g_cmd, which falls to default: clearopbeep")
+	})
+	v.Rewrite("(|| (call getline_equal fgetline cookie getexmodeline) ?b)", "?b", 1,
+		"do_cmdline stops asking whether it is reading Ex-mode lines")
 
-	// ---- 2. the four command-line options -------------------------------------
-	// They go BEFORE the `case NUL` fold below, because until they do there are
-	// two `if (exmode_active)` in command_line_scan and a counted fold refuses --
-	// loudly, which is the point.
-	// -e -E -s -v went with the command line (argvfront, the reform's D1).
+	in := func(fn string, acts func(v *graph.Verbs)) { v.InFunction(fn, acts) }
+	in("do_ecmd", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "exmode_active", 1, "do_ecmd no longer puts the cursor on the last line")
+	})
+	in("ex_substitute", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "exmode_active", 1, "ex_substitute keeps its 85-line interactive else")
+	})
+	in("do_one_cmd", func(v *graph.Verbs) {
+		v.DropOperand("exmode_active", 1, "do_one_cmd asks only whether it is sourcing")
+	})
+	in("ex_range_without_command", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "(&& exmode_active (!= (-> eap cmd) (+ (cast (ptr char_u) exmode_plus) 1)))", 1,
+			"a bare range is no longer an implicit :print")
+	})
+	in("parse_command_modifiers", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "(&& (== (deref (-> eap cmd)) NUL) exmode_active _*)", 1,
+			"an empty Ex-mode line is no longer the + command")
+	})
+	in("cmdline_erase_chars", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "exmode_active", 1, "backspacing off the start of a command line leaves Normal mode again")
+	})
+	in("getcmdline_int", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "(&& exmode_active (!= c ESC) _*)", 1, "a trailing backslash no longer continues a command line")
+		v.FoldNeverAt(graph.IfNotArm, "(&& exmode_active (|| (== ex_normal_busy 0) (> (. typebuf tb_len) 0)))", 1,
+			"and ESC on a command line is an abort again")
+	})
+	in("compute_cmdrow", func(v *graph.Verbs) {
+		v.Rewrite("(|| exmode_active (paren ?r))", "?r", 1, "compute_cmdrow asks only about the scroll")
+	})
+	in("vgetorpeek", func(v *graph.Verbs) {
+		v.DropOperand("(! exmode_active)", 1, "and the partial command is shown whenever there is one")
+	})
+	in("msg_strtrunc", func(v *graph.Verbs) {
+		v.DropOperand("(! exmode_active)", 1, "msg_strtrunc truncates as it does on a screen")
+	})
+	in("msg_may_trunc", func(v *graph.Verbs) {
+		v.Rewrite("(paren (&& (call shortmess SHM_TRUNC) (! exmode_active)))", "(call shortmess SHM_TRUNC)", 1,
+			"and so does msg_may_trunc")
+	})
+	in("wait_return", func(v *graph.Verbs) {
+		v.FoldAlwaysAt("(! exmode_active)", 2, true, "wait_return moves the command row, both times")
+		v.FoldNeverAt(graph.IfArm, "exmode_active", 1, "and no longer answers its own prompt with a space")
+	})
+	in("msg_start", func(v *graph.Verbs) {
+		v.FoldAlwaysAt("(!= exmode_active EXMODE_NORMAL)", 1, true,
+			"msg_start keeps the cmdline_row it set after a newline (0 != 1 is TRUE)")
+	})
+	in("msg_puts_display", func(v *graph.Verbs) {
+		v.Rewrite("(&& (> cmdline_row 0) (! exmode_active))", "(> cmdline_row 0)", 1, "msg_puts_display scrolls the command row")
+		v.DropOperand("(! exmode_active)", 1, "and the more-prompt is offered whenever the screen is full")
+	})
+	in("screen_puts_len", func(v *graph.Verbs) {
+		v.DropOperand("exmode_active", 1, "a character is redrawn when it changed, and not otherwise")
+	})
+	in("set_shellsize_inner", func(v *graph.Verbs) {
+		v.DropOperand("exmode_active", 1, "a resize repeats the message only at a prompt")
+	})
+	in("vim_main2", func(v *graph.Verbs) {
+		v.FoldAlwaysAt("(! exmode_active)", 1, true, "vim_main2 stops scrolling messages at startup")
+		v.FoldNeverAt(graph.IfNotArm, "exmode_active", 2, "and clears the screen, and leaves the cursor where the file put it")
+	})
+	in("main_loop", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "(&& noexmode global_busy (! exmode_active) previous_got_int)", 1,
+			"CTRL-C in a :global no longer drops into Ex mode")
+		v.FoldAlwaysAt("(|| (! global_busy) (! exmode_active))", 1, true,
+			"and swallows the interrupt as it always did outside :global")
+		v.FoldAlwaysAt("(! exmode_active)", 1, true, "the main loop stops scrolling messages")
+		v.DropOperand("exmode_active", 1, "and redraws unless the last command asked it not to")
+		v.FoldNeverAt(graph.IfNotArm, "exmode_active", 1, "and runs normal_cmd, which is now the only thing it can run")
+	})
+	in("getout", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "exmode_active", 1, "the exit status is the one getout was given")
+	})
+	in("main", func(v *graph.Verbs) { v.Cut("(call check_tty)", 1, "and its call in main") })
+	in("exe_commands", func(v *graph.Verbs) {
+		v.FoldAlwaysAt("(! exmode_active)", 1, true, "exe_commands stops scrolling messages, and keeps running +cmd")
+	})
 
-	// ---- 3. every reader of exmode_active, in file order ----------------------
-	type act struct {
-		kind, fn, Pat, Old, New, What string
-		n                             int
-	}
-	for _, a := range []act{
-		{kind: "never", fn: "do_ecmd", Pat: line("if (exmode_active)"), n: 1,
-			What: "do_ecmd no longer puts the cursor on the last line"},
-		{kind: "never", fn: "ex_substitute", Pat: line("if (exmode_active)"), n: 1,
-			What: "ex_substitute keeps its 85-line interactive else"},
-		{fn: "do_one_cmd", Old: "if (sourcing || exmode_active)", New: "if (sourcing)", n: 1,
-			What: "do_one_cmd asks only whether it is sourcing"},
-		{kind: "never", fn: "ex_range_without_command",
-			Pat: line("if (exmode_active && eap->cmd != (char_u *)exmode_plus + 1)"), n: 1,
-			What: "a bare range is no longer an implicit :print"},
-		{kind: "never", fn: "parse_command_modifiers",
-			Pat: head("if (*eap->cmd == NUL && exmode_active && "), n: 1,
-			What: "an empty Ex-mode line is no longer the + command"},
-		// do_exedit's and ex_read's went with :edit, :visual and :read at
-		// phase 1 (filefront, the reform's D4)
-		{kind: "never", fn: "cmdline_erase_chars", Pat: line("if (exmode_active)"), n: 1,
-			What: "backspacing off the start of a command line leaves Normal mode again"},
-		{kind: "never", fn: "getcmdline_int", Pat: head("if (exmode_active && c != ESC && "), n: 1,
-			What: "a trailing backslash no longer continues a command line"},
-		{kind: "never", fn: "getcmdline_int",
-			Pat: line("if (exmode_active && (ex_normal_busy == 0 || typebuf.tb_len > 0))"), n: 1,
-			What: "and ESC on a command line is an abort again"},
-		{fn: "compute_cmdrow", Old: "if (exmode_active || (msg_scrolled != 0 && !updating_screen))",
-			New: "if (msg_scrolled != 0 && !updating_screen)", n: 1,
-			What: "compute_cmdrow asks only about the scroll"},
-		// readfile went at phase 1 (readfront, phase 31's move)
-		// vgetorpeek's pending_exmode_active falls out at phase 1 since the
-		// reform's D9 (its only writes were do_exedit's)
-		{fn: "vgetorpeek", Old: "if (typebuf.tb_len > 0 && advance && !exmode_active)",
-			New: "if (typebuf.tb_len > 0 && advance)", n: 1,
-			What: "and the partial command is shown whenever there is one"},
-		{fn: "msg_strtrunc", Old: " && !exmode_active && msg_silent == 0)", New: " && msg_silent == 0)", n: 1,
-			What: "msg_strtrunc truncates as it does on a screen"},
-		{fn: "msg_may_trunc", Old: "(shortmess(SHM_TRUNC) && !exmode_active)", New: "shortmess(SHM_TRUNC)", n: 1,
-			What: "and so does msg_may_trunc"},
-		{kind: "always", fn: "wait_return", Pat: line("if (!exmode_active)"), n: 2,
-			What: "wait_return moves the command row, both times"},
-		{kind: "never", fn: "wait_return", Pat: line("else if (exmode_active)"), n: 1,
-			What: "and no longer answers its own prompt with a space"},
-		// THE POLARITY TRAP.  0 != EXMODE_NORMAL is TRUE, so this one folds
-		// ALWAYS while both of its neighbours fold never.
-		{kind: "always", fn: "msg_start", Pat: line("if (exmode_active != EXMODE_NORMAL)"), n: 1,
-			What: "msg_start keeps the cmdline_row it set after a newline (0 != 1 is TRUE)"},
-		{fn: "msg_puts_display", Old: "if (cmdline_row > 0 && !exmode_active)", New: "if (cmdline_row > 0)", n: 1,
-			What: "msg_puts_display scrolls the command row"},
-		{fn: "msg_puts_display", Old: " && !msg_no_more && !exmode_active)", New: " && !msg_no_more)", n: 1,
-			What: "and the more-prompt is offered whenever the screen is full"},
-		{fn: "screen_puts_len", Old: w27lit12, New: "", n: 1,
-			What: "a character is redrawn when it changed, and not otherwise"},
-		{fn: "set_shellsize_inner", Old: " || State == MODE_CONFIRM || exmode_active)",
-			New: " || State == MODE_CONFIRM)", n: 1,
-			What: "a resize repeats the message only at a prompt"},
-		{kind: "always", fn: "vim_main2", Pat: line("if (!exmode_active)"), n: 1,
-			What: "vim_main2 stops scrolling messages at startup"},
-		{kind: "never", fn: "vim_main2", Pat: line("if (exmode_active)"), n: 2,
-			What: "and clears the screen, and leaves the cursor where the file put it"},
-		{kind: "never", fn: "main_loop",
-			Pat: line("if (noexmode && global_busy && !exmode_active && previous_got_int)"), n: 1,
-			What: "CTRL-C in a :global no longer drops into Ex mode"},
-		// fold_never rewrote the `else if` that followed into an `if`, so this
-		// one is written without the `else` it had a moment ago.
-		{kind: "always", fn: "main_loop", Pat: line("if (!global_busy || !exmode_active)"), n: 1,
-			What: "and swallows the interrupt as it always did outside :global"},
-		{kind: "always", fn: "main_loop", Pat: line("if (!exmode_active)"), n: 1,
-			What: "the main loop stops scrolling messages"},
-		{fn: "main_loop", Old: "if (skip_redraw || exmode_active)", New: "if (skip_redraw)", n: 1,
-			What: "and redraws unless the last command asked it not to"},
-		{kind: "never", fn: "main_loop", Pat: line("if (exmode_active)"), n: 1,
-			What: "and runs normal_cmd, which is now the only thing it can run"},
-		{kind: "never", fn: "getout", Pat: line("if (exmode_active)"), n: 1,
-			What: "the exit status is the one getout was given"},
-	} {
-		if a.kind != "" {
-			text, err = fold(text, a.kind, a.fn, a.Pat, a.What, a.n)
-		} else {
-			text, err = within(text, a.fn, a.Old, a.New, a.What, a.n)
-		}
-		if err != nil {
-			return nil, err
-		}
-	}
-	// check_tty() loses its one call rather than being folded: folding its one
-	// branch would leave a local that is written and never read.  Uncalled, the
-	// sweep deletes it.
-	if text, err = within(text, "main", w27lit13, "\n", "and its call in main", 1); err != nil {
-		return nil, err
-	}
-	// exe_commands MUST SURVIVE: it is what runs `+{command}`, and every harness
-	// here drives the editor with one.  Only its last statement folds.
-	if text, err = fold(text, "always", "exe_commands", line("if (!exmode_active)"),
-		"exe_commands stops scrolling messages, and keeps running +cmd", 1); err != nil {
-		return nil, err
-	}
+	in("change_warning", func(v *graph.Verbs) {
+		v.DropOperand("(! silent_mode)", 1, "the 'readonly' warning pauses whenever it is shown")
+	})
+	in("print_line", func(v *graph.Verbs) {
+		v.Cut("(def save_silent int silent_mode)", 1, "print_line prints on the screen, once")
+		v.CutWhere("(= silent_mode FALSE)", nil, 1, "")
+		v.FoldNeverAt(graph.IfNotArm, "save_silent", 1, "and no longer flushes a line it never buffered")
+	})
+	quiet := "(! (&& silent_mode (== p_verbose 0)))"
+	in("msg_puts_printf", func(v *graph.Verbs) {
+		v.FoldAlwaysAt(quiet, 1, true, "msg_puts_printf writes what it is given")
+		v.DropOperand(quiet, 1, "including the last piece")
+	})
+	in("do_set", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "(&& silent_mode did_show)", 1, ":set prints its listing on the screen")
+	})
+	in("showoneopt", func(v *graph.Verbs) {
+		v.Cut("(def save_silent int silent_mode)", 1, "and so does one option")
+		v.CutWhere("(= silent_mode FALSE)", nil, 1, "")
+		v.CutWhere("(= silent_mode save_silent)", nil, 1, "")
+	})
+	in("exit_scroll", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "silent_mode", 1, "exiting scrolls the screen as it does from Normal mode")
+	})
+	in("typed_ahead", func(v *graph.Verbs) {
+		v.Rewrite("(paren (&& (! silent_mode) ?c))", "?c", 1,
+			"typed_ahead is char_avail() again -- slim's 'lazyredraw' fix had only one caller")
+	})
+	in("set_termname", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "silent_mode", 1, "a terminal is set up whenever one is named")
+	})
+	in("ui_write", func(v *graph.Verbs) { v.FoldAlwaysAt(quiet, 1, true, "ui_write writes") })
+	in("read_error_exit", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "silent_mode", 1, "a read error is reported before the exit, not instead of it")
+	})
+	in("main", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "silent_mode", 1, "main stops buffering stdout: setvbuf and stdout leave the binary")
+		v.DropOperand("(! silent_mode)", 1, "and sets up the terminal when it is asked to")
+	})
 
-	// ---- 4. every reader of silent_mode, in file order ------------------------
-	for _, a := range []act{
-		{fn: "change_warning", Old: "if (msg_silent == 0 && !silent_mode)", New: "if (msg_silent == 0)", n: 1,
-			What: "the 'readonly' warning pauses whenever it is shown"},
-		{fn: "print_line", Old: w27lit14, New: "\n", n: 1, What: "print_line prints on the screen, once"},
-		{fn: "print_line", Old: w27lit15, New: "\n", n: 1},
-		{kind: "never", fn: "print_line", Pat: line("if (save_silent)"), n: 1,
-			What: "and no longer flushes a line it never buffered"},
-		{kind: "always", fn: "msg_puts_printf", Pat: line("if (!(silent_mode && p_verbose == 0))"), n: 1,
-			What: "msg_puts_printf writes what it is given"},
-		{fn: "msg_puts_printf", Old: "if (*p != NUL && !(silent_mode && p_verbose == 0))",
-			New: "if (*p != NUL)", n: 1, What: "including the last piece"},
-		{kind: "never", fn: "do_set", Pat: line("if (silent_mode && did_show)"), n: 1,
-			What: ":set prints its listing on the screen"},
-		{fn: "showoneopt", Old: w27lit14, New: "\n", n: 1, What: "and so does one option"},
-		{fn: "showoneopt", Old: w27lit15, New: "\n", n: 1},
-		{fn: "showoneopt", Old: w27lit16, New: "\n", n: 1},
-		{kind: "never", fn: "exit_scroll", Pat: line("if (silent_mode)"), n: 1,
-			What: "exiting scrolls the screen as it does from Normal mode"},
-		{fn: "typed_ahead", Old: "return (!silent_mode && char_avail());", New: "return char_avail();", n: 1,
-			What: "typed_ahead is char_avail() again -- slim's 'lazyredraw' fix had only one caller"},
-		{kind: "never", fn: "set_termname", Pat: line("if (silent_mode)"), n: 1,
-			What: "a terminal is set up whenever one is named"},
-		{kind: "always", fn: "ui_write", Pat: line("if (!(silent_mode && p_verbose == 0))"), n: 1,
-			What: "ui_write writes"},
-		{kind: "never", fn: "read_error_exit", Pat: line("if (silent_mode)"), n: 1,
-			What: "a read error is reported before the exit, not instead of it"},
-		// This is the whole of setvbuf, and the file's only mention of stdout.
-		{kind: "never", fn: "main", Pat: line("if (silent_mode)"), n: 1,
-			What: "main stops buffering stdout: setvbuf and stdout leave the binary"},
-		{fn: "main", Old: "if (params.want_full_screen && !silent_mode)",
-			New: "if (params.want_full_screen)", n: 1, What: "and sets up the terminal when it is asked to"},
-	} {
-		if a.kind != "" {
-			text, err = fold(text, a.kind, a.fn, a.Pat, a.What, a.n)
-		} else {
-			text, err = within(text, a.fn, a.Old, a.New, a.What, a.n)
-		}
-		if err != nil {
-			return nil, err
+	in("parse_command_modifiers", func(v *graph.Verbs) {
+		v.Cut("(= ex_pressedreturn TRUE)", 1, "and its one remaining write")
+	})
+	// the text's two literals told the writes by their indentation: a
+	// function's own item, or one level in
+	v.CutWhere("(= ex_no_reprint TRUE)", func(x *graph.Node) bool { return e.Parent(x).Is("defn") }, 3, "and its five writes")
+	v.CutWhere("(= ex_no_reprint TRUE)", nil, 1, "and the fifth")
+	in("emsg_core", func(v *graph.Verbs) { v.Cut("(= ex_exitval 1)", 1, "and its one write") })
+	in("main_loop", func(v *graph.Verbs) {
+		v.Cut("(= previous_got_int TRUE)", 1, "previous_got_int's writes: only the Ex-mode arm read it")
+		v.CutWhere("(block (= previous_got_int FALSE))", nil, 1, "")
+	})
+	in("parse_command_modifiers", func(v *graph.Verbs) {
+		v.FoldNeverAt(graph.IfNotArm, "use_plus_cmd", 2, "use_plus_cmd: the two arms of the :visual range rewrite")
+		v.FoldNeverAt(graph.IfArm, "use_plus_cmd", 1, "and the + command it stood for")
+	})
+
+	if !v.Failed() {
+		if _, err := e.DropParam("main_loop", "noexmode", graph.ParamOptions{}); err != nil {
+			v.Die("main_loop's parameter -- %v", err)
 		}
 	}
-
-	// ---- 5. what nothing reads any more, and no warning names -----------------
-	// A file-scope static that is written and never read draws no warning at all,
-	// and a local one draws -Wunused-but-set-variable, which deadsweep.py does not
-	// act on.  Six of them, and they are invisible to every tool here.
-	if text, err = within(text, "parse_command_modifiers", w27lit18, "\n", "and its one remaining write", 1); err != nil {
-		return nil, err
-	}
-	// three of six: two were in :write and :read, gone at phase 1 (D4), and
-	// one in readfile (readfront, phase 31's move)
-	if text, err = literal(text, w27lit20, "\n", "and its five writes", 3); err != nil {
-		return nil, err
-	}
-	if text, err = literal(text, w27lit21, "\n", "and the fifth", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "emsg_core", w27lit23, "\n", "and its one write", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "main_loop", w27lit25, "\n",
-		"previous_got_int's writes: only the Ex-mode arm read it", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "main_loop", w27lit26, "", "", 1); err != nil {
-		return nil, err
-	}
-	if text, err = fold(text, "never", "parse_command_modifiers", line("if (use_plus_cmd)"),
-		"use_plus_cmd: the two arms of the :visual range rewrite", 2); err != nil {
-		return nil, err
-	}
-	if text, err = fold(text, "never", "parse_command_modifiers", line("else if (use_plus_cmd)"),
-		"and the + command it stood for", 1); err != nil {
-		return nil, err
+	v.Say("main_loop's prototype")
+	v.Say("its definition")
+	v.Say("and its one caller")
+	in("main_loop", func(v *graph.Verbs) {
+		v.Cut("(label theend)", 1, "the theend: label, which nothing jumps to now")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
 
-	// ---- 6. main_loop's second parameter, and the label it jumped to ----------
-	if text, err = literal(text, w27lit28, w27lit29, "main_loop's prototype", 1); err != nil {
-		return nil, err
-	}
-	if text, err = literal(text, w27lit30, w27lit31, "its definition", 1); err != nil {
-		return nil, err
-	}
-	if text, err = literal(text, w27lit32, w27lit33, "and its one caller", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "main_loop", w27lit34, w27lit35,
-		"the theend: label, which nothing jumps to now", 1); err != nil {
-		return nil, err
-	}
-
-	// ---- 7. what is left is exactly what the sweep can take -------------------
+	t = v.Text()
 	for _, name := range edit.SortedKeys(w27After) {
-		k := mentions(text, name)
+		k := edit.MentionCount(t, name)
 		if k != w27After[name] {
 			why := "more went than was meant to"
 			if k > w27After[name] {
 				why = "a use survived"
 			}
-			return nil, p.Die("%s has %d mentions after the cut, expected %d -- %s",
-				name, k, w27After[name], why)
+			v.Die("%s has %d mentions after the cut, expected %d -- %s", name, k, w27After[name], why)
+			return v.Done()
 		}
 	}
-	p.Say("every use of all 21 is gone; the lone definitions, the four unreachable " +
-		"functions and mch_input_isatty are what the sweep takes")
-	return text, nil
+	v.Say("every use of all 21 is gone; the lone definitions, the four unreachable " +
+		"functions and mch_input_isatty are what the collection takes")
+	return v.Done()
 }
