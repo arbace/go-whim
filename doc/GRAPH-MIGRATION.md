@@ -106,7 +106,7 @@ The new ones, each a batch's job (B0 and B2 below):
 | RETYPE | **done (B2c)**: `Editor.Retype` (an object in every declaration, a local, a member, a typedef to a fixed point, a function's parameter in every declaration) and `RetypeResult`; the typed edges above every use typed again where plain, else cleared into `Untyped`; `Editor.Rederive` (*B2c as built*) | ~20 |
 | MOVE | **done (B2c)**: `Editor.MoveBefore`/`MoveAfter`/`MoveRun` (items beside an item, ids and edges kept) and `MoveTo` (a node into a placeholder's place, a fill in its own), refused where a use would not resolve, a declaration would hide or repeat one, or a jump would bind elsewhere (*B2c as built*) | ~15 |
 | INCLUDE | `#include` forms added, deleted or moved, and the first one as the core/host boundary: "is X above it", "the host region" | ~15 |
-| FOLDX | the fall-out rules the closure lacks, each a rule in `fallout.go` (generic) or a cut's own `Rule`: a walk folded to `v = cur; body` (refusing a break that binds to the loop); `a && K`, `a \|\| K`, `!K`, `K == 0`; a function whose body is `return K;` made K at its calls; a parameter every call passes alike made its value; statements after a jump or `return` go; a label no goto reaches goes; empty blocks taken everywhere (and an empty else, a trailing empty else-if), not only those an edit emptied; an if whose only effect is a store to a deleted location; the value a cut gives a deleted object (not its initialiser); `if (!f()) {}` becomes `(void)f();` (a declaring block spliced where no name clashes: B0's, `SpliceDeclaring`) | ~30 |
+| FOLDX | **done (B2d)**: `Editor.FoldX` -- xform.FallOut's closure on the graph: the UNWRITTEN seed over write edges (`Editor.Unwritten`, `FoldX.Before`/`Hold`), the reads of objects and members nothing writes, `a && K`/`a \|\| K` and the constants (cc's evaluation: `!K`, `K == 0`, sizeof, offsetof), the branches, the statements after a revealed jump, a function whose body is `return K;` K at its calls, a parameter every call passes alike, a function left empty uncalled; a cut's own literals as marks (`Marks`, `NoSeeds`); and beside the closure, opted into (`FallOutOptions`): the empty blocks everywhere with the locals only given values (`EmptyBlocks`, phase 62's), a label no goto reaches, `if (!f()) {}` made `(void)f();` (`KeepCondition`), an if whose only effect was a store to a deleted location (`StoreIfs`), the value a cut gives a deleted object (`Values`). The walk fold and the declaring splice are B0's: *B2d as built* | ~30 |
 
 ## B0 as built (2026-10-03)
 
@@ -535,6 +535,139 @@ unit was pared (bodies only), it was 419 KB on q021 and FRAG 400-460 ms.
 - **The unit is printed, parsed and imported each call** (0.25-0.4 s here,
   a fifth of the file or less, the system headers' parse about 50 ms of
   it); `Together` and `SpliceC(fs...)` are how a phase pays it once.
+## B2d as built (2026-10-03)
+
+`crefactor/graph`'s `foldx.go` (`Editor.FoldX`, the closure), `foldx_eval.go`
+(cc's constant evaluation on the forms, type layout, the parentheses C
+needs), `unwritten.go` (`Editor.Unwritten`, the seed) and `foldmore.go`
+(`EmptyBlocks` and the closure's opt-in rules), and `FallOutOptions`' second
+half in `fallout.go` -- ADDITIVE: every new field is off by default, so the
+closure of the phases already on the graph is what it was (the build check
+holds them). 1,304, 858, 620 and 276 lines of Go, comments and blank lines
+aside. Beside them `internal/steps/frontcut.go` (`FrontCut`: a front
+phase's cuts without the closure their step wraps them in) and the tests.
+Generic: what a program must say -- its roots, the names a phase folds by
+hand, a caller's own test of a condition's text -- is an option.
+
+### The rules
+
+| rule | does | option | the text's |
+| --- | --- | --- | --- |
+| the unwritten seed | what nothing writes, by write edges -- a use in a store's left side, `++`, `--`, counted by the name it spells in the code the roots reach and the file's initialisers: a file-scope scalar, defined, address never taken, a constant initialiser at most; a member no live code stores, steps, takes the address of or designates, of a struct every instance of which is a static object without an initialiser reached through pointers from it, a null constant or a zeroing memset (the conversions asked of the typed edges) | `Editor.Unwritten(roots)`; `FoldX{Before, Hold}`: the seeds are what is unwritten now and was not before the cut, to a fixed point over what the folds leave unwritten in turn | `FallOutOf`'s `unwrittenNames`, `unwrittenObjects`, `unwrittenMembers`, `unsafeOwners` |
+| reads of objects / members nothing writes | each read its value (a member's 0); a pointer's `((void *)0)`, only where tested | (the seed) | `seeds` |
+| reads of locals so initialised | a local initialised with a value the closure wrote, written never again, is that value | `Off: locals` | `locals` |
+| constant expressions | an integer expression holding a written value and constant with it is its value: cc's evaluation (each operand converted, unsigned wrapping, `0 && f()` false, a store's value, `sizeof`/`_Alignof` by the layout, `offsetof` by the member its invocation refers to, the standard headers' limits), so `!K` and `K == 0` too | -- | `constExprs` |
+| `a && K`, `a \|\| K` | K the identity goes where only the truth is read (or the other operand is a truth); K absorbing is the result, the other operand pure | `Off: logic` | `logic` |
+| ifs, whiles, `?:` of a constant | the branch taken: a braced branch alone in a block spliced (whole where it declares), none taken gone, an else-if taking none gone from its chain, `?:` its branch in parentheses; not where a branch holds a label or a case | -- | `branches` |
+| statements after a revealed jump | up to the next label, but a run holding a declaration | `Off: jumps` | `deadAfterJump` |
+| calls of functions left empty | a static void function only called, left with nothing to do, is called no more | `Off: empty` | `emptyFunctions` |
+| calls of functions returning a constant | a static function only called whose body is `return K;`, K written, is K at each call whose arguments are pure | `Off: returns` | `constReturns` |
+| a parameter every call passes alike | that value in the body, gone from the definition, its prototypes and every call; one a round | `Off: params` | `constParams` |
+| a cut's own writes | the literals a cut wrote count as the closure's: `return 0;` made by a cut is 0 at the calls, with no seed | `FoldX{Marks, NoSeeds}` | -- |
+| empty blocks everywhere, and dead locals | in the forms named, an if with an empty block, no else, a pure condition goes; an empty else goes; an empty else-if ending its chain goes; alternating to a fixed point with: a local only ever given a value (every use `x = E;` alone, E and its initialiser pure, no other mention of its name after it) goes with its stores | `Editor.EmptyBlocks(EmptyOptions{In, Cond})`, or `FallOutOptions.Empties` | `EmptyBlocks` (phase 62), `edit.DeadStores` |
+| labels | a label an edit took the last goto of goes | `Labels` | the gotos' steps (89, 90) |
+| a condition kept | an if whose only branch an edit emptied, its condition doing something, is `(void)E;`, a `!` taken off | `KeepCondition` | notags' two literals |
+| store ifs | an if whose only branch held only stores the store rule took, its condition pure, goes, KeepEmpty or not | `StoreIfs` | -- |
+| values | a read of an object a cut deleted is the value the cut gives it, not its initialiser's | `Values` | utf8only's flags |
+| the walk fold, the declaring splice | B0's: `Verbs.FoldWalk`/`FoldWalks`, `Unwrap` and `SpliceDeclaring` | | |
+| statements after ANY jump | 86a's, B1c's (`Terminates` on nodes); FoldX's is the revealed one | | `DeadStmt` |
+
+`FallOutOptions.X` runs FoldX after the closure's own rules, and `Empties`
+EmptyBlocks last; the stats say what each did (`X`, `Empty`, `Kept`).
+
+### How it is the text's, byte for byte
+
+- **Marks.** The text marks what it wrote with enumerators (`fallout_N`)
+  and the branches it took with comments, and its rules after the seeds
+  fire only in the functions holding one. FoldX keeps the values' nodes and
+  puts MARK items where the comments stood (one before a spliced branch, one
+  in place of an if taking nothing, an `(empty)` after it where a label held
+  the if, the mark of an else arm gone at its chain's end), asks "marked" by
+  containment and "a mark right before" by the item before, and takes the
+  marks out when done. A round finds every rewrite, outermost first, none
+  inside another -- the text's overlap of spans as the graph's containment,
+  a run's prefix (`(&& a b c)` is cc's `(a && b) && c`) a virtual node --
+  and then makes them.
+- **The parentheses C needs** are not in the forms; the C view writes them.
+  The text rewrites the expression inside them and keeps them, and moves an
+  operand with the ones it stood in: so a replacement of what the printer
+  parenthesises is `(paren ...)`, and so is a moved operand that needed
+  them -- but for the constant rule, which takes cc's node for the
+  parenthesised expression whole (`(a && 1)`, not `(a && (1))`).
+- **cc's tree is flattened**: an operand is the node that says something,
+  so `isTruth` of a parenthesised operand is false, whatever is inside.
+- **cc's evaluation**, not the forms' arithmetic: the operand types by C's
+  conversions (a literal's by its suffix and size, an enumerator int, a
+  cast its form's, through typedefs to their typed edges), `nullptr` a
+  pointer, `true`/`false`, the header limits (`SIZE_MAX`, `INT_MAX`, `EOF`:
+  atoms with no edge, LP64 values), a store's value as its left side's
+  type, the comma's last, `sizeof` and `offsetof` from the layout.
+- **The text's parameter order is Go's map order.** It drops one parameter
+  a round, the first its map yields: on phase 3 its report says 19 to 23
+  parameters, run after run, with the same bytes. FoldX takes the file's
+  order. The texts before the sweep then differ, in functions the sweep
+  takes (a parameter dropped from a function whose last call went the same
+  round); after it they are the same. Where the text would drop a parameter
+  and refuse its own next round (a use of it left, a call still passing
+  it: "does not type-check"), FoldX refuses that round, naming it.
+- **EmptyBlocks' condition test** is the closure's "free of side effects";
+  the text's is a regexp on the condition's text (`edit.PureCond`), which
+  refuses `regname == '='` for its `=`. `EmptyOptions.Cond` is a caller's
+  own test of the C text (`ExprText`): phase 62 on the graph passes
+  `edit.PureCond` and is q062 byte for byte; without it, it is not.
+
+### What the tests prove
+
+`crefactor/graph`'s `foldx_test.go`, on graphs read back from Lisp: 13
+samples through `xform.FallOut` (every seed) and through FoldX, the same C
+byte for byte -- seeds in ifs and in `&&` chains, a predicate, a parameter,
+a revealed jump, locals, pointers, members, unsigned arithmetic, labels and
+cases, the parentheses, the truths, sizes, `offsetof` and `SIZE_MAX`; a
+seed taken from a cut (`Before`); `EmptyBlocks` against
+`xform.EmptyBlocksRule`, the C and its numbers; the opt-in rules with and
+without their options; a cut's marks with no seed.
+
+`internal/graphcheck`'s `foldx_test.go`, on the snapshots (GRAPH_SNAPS):
+
+| test | holds | result |
+| --- | --- | --- |
+| `TestFoldXFront` | each front phase's cuts run as text on q(N-1), then the text's `FallOutOf` and FoldX (seeded with q(N-1)'s graph's Unwritten, the step's Hold) on the cut's graph read back, each swept | **phases 1, 2 and 3 byte for byte**, the report line for line but the parameter count and the rounds; phase 2 is q002.c; the control (`Off: logic`) moves phase 2 |
+| `TestFoldXEverySeed` | `xform.FallOut` on q040, q070, q103 and FoldX{}, each swept (before q040 the text refuses itself: "undefined: fd") | **3 of 3 byte for byte** |
+| `TestEmptyBlocksPhase62` | EmptyBlocks on q061's core (the forms above the first include) with `edit.PureCond`, collected | **q062.c byte for byte**, 49 blocks and the 5 locals in the text's order; the control (no `Cond`) moves it |
+| `TestKeepConditionNoTags` | notags' two calls cut from their ifs on q002's graph, the closure with `KeepCondition` | `nv_help` and `nv_tagpop` are the text cutter's; without it, the emptied ifs stay |
+
+**Measured** (the 64-core machine, load 5-15): the front's closures, the
+text's 18.3, 9.8 and 16.7 s (two analyses' parses and a type check every
+round) against FoldX's 2.2, 1.2 and 1.6 s on the graph; `xform.FallOut`
+with every seed 7.7-9.0 s against 0.67-0.77 s.
+
+### What B4 and step 6 still need
+
+B4 can end a front phase on the graph with `FoldX{Before: e.Unwritten(nil)
+asked before the cuts, Hold: frontHold}` once its cutters are on the graph:
+the closure is the text's on all three. What it does not have:
+
+- **The cutters** (47, `internal/cut` and the parts): FRAG, INITROW, MOVE,
+  RENAME, RETYPE, PARAM (B2a-c) and the verbs.
+- **Typed edges on what the cutters build.** FoldX reads types: every
+  declaration's (an object's to be a seed, a pointer seed only where
+  tested), a member's, a typedef's (a cast's integer type), and the
+  expressions' a conversion asks (`=`, casts, a call's result and the
+  callee's parameter types, a return, an initialiser) for a member's
+  struct to stay safe. Where an edit cleared them it derives what a form
+  says (a parenthesis, `?:`, a comma, a store, a call, `*`, `[]`, a
+  member) and nothing else: a new arithmetic or cast expression from FRAG
+  or BUILD without its typed edge counts as no conversion. Step 6's checker
+  re-deriving `Untyped` makes that exact; until then FRAG must type what it
+  makes, as the importer does.
+- **The text's refusal.** `FallOutOf` type-checks its text every round and
+  dies on what does not check; the graph has no checker (step 6): FoldX
+  refuses only a dangling edge or a call passing a parameter it dropped.
+- **Ids.** The parameter rule rebuilds a function type's parameter list and
+  each call (new ids for the list and the call, the rest moved): B2c's
+  PARAM, deleting a parameter in place, would keep them.
+- **Phase 1's rows**: the test sets `REMOVED` from `internal/phase/001/
+  delta.md` as the build's `Declared` does; B4's graph step needs the same.
 
 ## The classes
 
@@ -814,8 +947,9 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
     synthesized unit; 8 literal splices of real phases byte for byte.
   - **B2b INITROW, RENUM, RENAME** (string literals included).
   - **B2c PARAM, RETYPE (clearing types, no checker), MOVE.**
-  - **B2d FOLDX**: the rules listed above, each with the units that want
-    it (B0 took the declaring-block splice).
+  - **B2d FOLDX** -- **done**, *B2d as built* above: the rules listed
+    above, each with the units that want it (B0 took the declaring-block
+    splice).
   - **B2e INCLUDE** and the boundary queries (the first include form,
     "above/below", the host region).
 - **B3, the b-class conversions** (each after the capabilities its rows
@@ -842,11 +976,11 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
     on the graph: CLONE, MOVE, FOLDX.
 - **B4, the front** (phases 1-3: 47 cutters and parts, ~5,100 lines): last.
   Its cutters run inside one step each, wrapped by `xform.FallOutOf`,
-  which types the text before and after the cuts. Until the closure has
-  an UNWRITTEN seed over write edges and `xform.FallOut`'s later rules
-  (B2d), or step 6 has ported FallOut, a front phase cannot end on the
-  graph; its cutters can be converted inside it only if the wrapper is
-  given the text before them. Most cutters are (a) or need BUILD/INITROW.
+  which types the text before and after the cuts. The closure is on the
+  graph (B2d: `FoldX` with `Before` and `Hold`, the text's on all three
+  phases byte for byte, *B2d as built*); a front phase ends on the graph
+  once its cutters are, and FoldX then needs their new expressions typed
+  (FRAG/BUILD, or step 6). Most cutters are (a) or need BUILD/INITROW.
 - **Step 6**: phases 94, 95, 100 and 101, and FallOutOf -- the typed
   transforms on typed edges; the graph's `Untyped` lists are where its
   checker starts.

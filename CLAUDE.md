@@ -322,8 +322,11 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    enumerators and renames held to argvfront, filefront and
                    phase 51a, eight phases' literal C spliced by FRAG, PARAM,
                    RETYPE and MOVE on phases 31, 57, 66, 78, 80, 83 and
-                   86's parameter and on whim-vim.c's functions:
-                   GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
+                   86's parameter and on whim-vim.c's functions, and FOLDX held to the text's
+                   closures (the front's three, every seed, phase 62's
+                   empties, notags' conditions): GRAPH_SNAPS), steps'
+                   FrontCut (a front phase's cuts without their closure),
+                   build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
@@ -362,7 +365,20 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    closure over dangling edges (call, store, through,
                    value, constant folds, empties; a program's specifics
                    through FallOutOptions, which internal/whim/graph.go
-                   gives vim's), pattern.go clisp's patterns on nodes,
+                   gives vim's, and FOLDX's rules opted into there:
+                   the values a cut gives, store ifs, a condition kept,
+                   labels, FoldX, the empties everywhere), FOLDX
+                   (doc/GRAPH-MIGRATION.md, B2d): foldx.go
+                   xform.FallOut's closure on the graph (Editor.FoldX:
+                   the seeds, the constants, && and ||, the branches, the
+                   revealed jumps, the calls and parameters, marked as the
+                   text marks, the text's rounds -- the front's three
+                   closures byte for byte), unwritten.go the unwritten
+                   seed over write edges (Editor.Unwritten), foldx_eval.go
+                   cc's constant evaluation on the forms (types, layout,
+                   offsetof, the header limits, the parentheses C needs),
+                   foldmore.go EmptyBlocks (phase 62's, byte for byte) and
+                   the closure's opt-in rules, pattern.go clisp's patterns on nodes,
                    names.go what the forms say of a declaration, exported;
                    editcollect.go the collection through the editor (its
                    index kept, the act logged); and the library the phases

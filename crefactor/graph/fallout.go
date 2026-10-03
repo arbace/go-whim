@@ -45,10 +45,13 @@ import (
 // branch it was goes, its condition free of side effects.  Then the caller
 // collects (Collect): what nothing names is the sweep's.
 //
-// Not generic, and so not here: `a && K` losing its K where only the
-// truth is read, a function whose body is `return K;` made K at its calls,
-// a parameter every call passes the same constant (xform.FallOut's later
-// rules; no gate here exercises them).
+// FOLDX's rules are opted into (FallOutOptions' second half): the values
+// a cut gives what it deletes, an if a store's removal leaves with nothing
+// to do, a condition kept for its effect, a label no goto reaches; and
+// xform.FallOut's later rules -- the unwritten seed, `a && K` losing its K,
+// a function whose body is `return K;` made K at its calls, a parameter
+// every call passes alike -- as FoldX (foldx.go), and the empty blocks
+// everywhere as EmptyBlocks (foldmore.go).
 
 // FallOutOptions are what the closure must be told about the program.
 type FallOutOptions struct {
@@ -68,6 +71,28 @@ type FallOutOptions struct {
 	// text's unwrap does, where no name clashes (Unwrap); a clash keeps the
 	// block whole, as without it.
 	SpliceDeclaring bool
+
+	// FOLDX's rules (foldmore.go, foldx.go), each opted into:
+
+	// Values are what a cut says the objects it deletes are worth, by
+	// name: a read of one is that value, not its initialiser's.
+	Values map[string]int64
+	// StoreIfs takes an if whose only branch held only the stores the
+	// store rule took, its condition free of side effects, KeepEmpty or
+	// not.
+	StoreIfs bool
+	// KeepCondition makes an if whose only branch an edit emptied, its
+	// condition doing something, that condition alone, cast to void, a `!`
+	// in front taken off.
+	KeepCondition bool
+	// Labels takes a label an edit took the last goto of.
+	Labels bool
+	// X runs FoldX when the rules above are done: what the cut left
+	// unwritten, and what that makes constant, as xform.FallOut does.
+	X *FoldX
+	// Empties, when set, takes the empty blocks everywhere in the forms it
+	// names, and the locals then only given values (EmptyBlocks), last.
+	Empties *EmptyOptions
 }
 
 // A Rule is a cut's own fall-out: given a dangling edge, the items that go
@@ -92,6 +117,9 @@ type FallOutStats struct {
 	Folded   int // expressions made their value
 	Branches int // ifs, ?:s and while(0)s taken as the branch they take
 	Rounds   int
+	Kept     int         // ifs made their condition alone (KeepCondition)
+	X        *FoldXStats // FoldX's, when it ran
+	Empty    *EmptyStats // EmptyBlocks', when it ran
 }
 
 // Unhandled is the closure's refusal: a dangling edge no rule discharges.
@@ -120,6 +148,7 @@ type closure struct {
 	pureFn  map[string]bool
 	through map[string]bool
 	st      *FallOutStats
+	cond    func(string) bool // EmptyOptions.Cond
 }
 
 // FallOut closes over the dangling edges the edits so far left.
@@ -142,8 +171,22 @@ func (e *Editor) FallOut(opt FallOutOptions) (FallOutStats, error) {
 		if c.fold() {
 			progress = true
 		}
+		if opt.KeepCondition {
+			ok, err := c.keepConditions()
+			if err != nil {
+				return st, err
+			}
+			progress = progress || ok
+		}
 		if !opt.KeepEmpty && c.empties() {
 			progress = true
+		}
+		if opt.Labels {
+			ok, err := c.labels()
+			if err != nil {
+				return st, err
+			}
+			progress = progress || ok
 		}
 		if !progress {
 			break
@@ -151,6 +194,20 @@ func (e *Editor) FallOut(opt FallOutOptions) (FallOutStats, error) {
 	}
 	if left := e.Dangling(); len(left) > 0 {
 		return st, &Unhandled{D: left[0], Fn: declName(e.Function(left[0].Use)), Left: len(left)}
+	}
+	if opt.X != nil {
+		xs, err := e.FoldX(*opt.X)
+		st.X = &xs
+		if err != nil {
+			return st, err
+		}
+	}
+	if opt.Empties != nil {
+		es, err := e.EmptyBlocks(*opt.Empties)
+		st.Empty = &es
+		if err != nil {
+			return st, err
+		}
 	}
 	return st, nil
 }
@@ -197,7 +254,14 @@ func (c *closure) discharge(d Dangling) (bool, error) {
 	}
 	if it := c.e.Item(d.Use); it != nil && !IsStatement(it) {
 		if kind := c.discardable(it); kind != "" {
-			return true, c.remove(it, kind, d.Target)
+			block := c.e.Parent(it)
+			if err := c.remove(it, kind, d.Target); err != nil {
+				return false, err
+			}
+			if kind == "store" && c.opt.StoreIfs {
+				return true, c.storeIf(block)
+			}
+			return true, nil
 		}
 	}
 	return c.value(d)
@@ -333,7 +397,9 @@ func (c *closure) value(d Dangling) (bool, error) {
 		}
 	}
 	var v int64
-	if val := defValue(t); val != nil {
+	if given, ok := c.opt.Values[declName(t)]; ok {
+		v = given
+	} else if val := defValue(t); val != nil {
 		var ok bool
 		if v, ok = evalForm(val, nil); !ok {
 			return false, nil
