@@ -220,10 +220,29 @@ Unison (code stored by identity, text only a rendering), Hazel (structure
 editing that keeps every state well-formed). None puts a modal editor over
 Lisp projections of a C program's graph.
 
+## Decided for steps 1-3 (2026-10-03)
+
+Starting easy, each choice the simpler of two, the other kept as the
+direction:
+
+- **Ids are sequential at import and preserved through edits**; a new node
+  gets a fresh id. *Later:* content-addressed ids, Unison's choice --
+  identical subtrees one node, edits copy-on-write -- are the direction
+  preferred once the graph stands.
+- **The serialisation has its own reader**, C's tokens as atoms as in
+  C-lisp, `#id` and `@id` as written above. *Later:* a Clojure-readable
+  (EDN) form is preferred, so that Clojure tools and an editor read the
+  graph for nothing; the C tokens would then be strings or tagged literals.
+- **Step 1 takes cc's types at import**, so members resolve by type (the
+  pilot's 3,843 ambiguous uses) and the typed edges exist from the start.
+
+Defaults, not decisions: Go, a generic crefactor package naming nothing in
+vim; the headers' declarations external nodes typed from cc; the serialised
+graph not tracked; the lowered layer after steps 1-3; the sweep's guards
+reproduced exactly in step 3.
+
 ## Open questions
 
-- Ids: sequential at import and preserved, or content-addressed (Unison's
-  choice, which makes identical subtrees one node and edits copy-on-write)?
 - Is the derived layer cached by the graph's digest, or kept incrementally
   under edits -- and which analyses are cheap enough to recompute per view?
 - Does the lowered layer of `doc/IR.md` live in the same store from the
