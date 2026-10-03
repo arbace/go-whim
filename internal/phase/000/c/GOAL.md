@@ -10,14 +10,32 @@ numbering, as it was written: `doc/PHASES.md` maps them.*
 > on the parameters of 265 definitions, 3 on locals of `buf_write`), 37
 > `fallthrough`, 3 `format`, 3 `format_arg` -- deletes the 306, respells
 > the 37, and keeps 6; `[[` occurs twice, both inside one shell-command
-> literal. The canonical print writes `[[fallthrough]];` as `;`, as it did
-> after this phase before. To run there the step learned three things:
+> literal. To run there the step learned three things:
 > `[[` is counted outside the literals, `unused` on a local's own
 > declaration goes too, and `cold` is kept with `format` (three, on 105's
 > wrappers' prototypes, while 105 ran after it). Phases 64, 67, 96, 100
 > and 103 and three of `internal/cut`'s cutters were respelled to match
 > (`doc/PIPELINE-REFORM.md` §7, G), and the build gives the product byte
 > for byte. What follows is the phase as it stood after 106.
+
+> **The 37 are kept (2026-10-03).** Until then the canonical print wrote
+> each `[[fallthrough]];` as `;` -- crefactor/cc discarded the attributes
+> of an attribute statement, and from 27b8e77 the print did it by name, as
+> `cemit.Options.NullAttributeStatements` -- so every boundary from q000 on
+> had a bare `;` in those places, and the phases were written against it.
+> Now the print keeps them (the option is deleted) and every boundary
+> holds them: 37 at q000, and 20 in the product, the 17 others gone with
+> the code around them (phase 1: `command_line_scan`'s 3; phase 2:
+> `getcmdline_int`'s click and drag; phase 3: the NFA engine's 5 in
+> `addstate` and `nfa_regatom`, `quote_meta`'s 3, `set_ctrl_x_mode`'s,
+> `set_context_by_cmdname`'s and one of `edit`'s; phase 5: one each of
+> `do_pending_operator` and `nv_g_cmd`). Four cutters that matched the `;`
+> match the attribute (`nomouse`, `nobuflist`, `nocomplkeys`, part 5a), and
+> a fallthrough a cut leaves before no case label would go in the sweep
+> (`crefactor/sweep`, `fallthrough.go`); none does. `-Wimplicit-fallthrough`
+> on the product: 18 warnings before, 0 after; the binary is byte-identical,
+> and so is every boundary's (`internal/phase/boundaries.md`), and so is every
+> generated editor. `doc/C23.md` has the account.
 
 `internal/phase/107/edit.go` and `internal/phase/107/check.go`, `stage 107`, `package dialect`.
 `__attribute__` is a GNU extension, and a core on its way to another runtime was

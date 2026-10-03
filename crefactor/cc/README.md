@@ -49,9 +49,9 @@ them, and a field or a case where a node must hold what it did not:
   it, it still parses GNU's alone (`gnuAttributeSpecifierListOpt`), so a
   `[[` there is a syntax error and never a silent drop. Until this, `[[...]]`
   parsed only in a statement's place, and was discarded there: whim's
-  boundaries were printed without phase 0c's 37 `[[fallthrough]];`, which
-  is why its pipeline asks `crefactor/cemit` for that form by name
-  (`Options.NullAttributeStatements`).
+  boundaries were printed without phase 0c's 37 `[[fallthrough]];`, a bare
+  `;` in their place, until the pipeline was changed to carry them
+  (`doc/C23.md`).
 - **`constexpr`** (6.7.2), a storage-class specifier (`CONSTEXPR`,
   `StorageClassSpecifierConstexpr`).
 - **`_BitInt(N)`** (6.7.3.1), a type specifier (`BITINT`,

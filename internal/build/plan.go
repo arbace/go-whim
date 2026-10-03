@@ -53,7 +53,7 @@ var Plan = []Phase{
 	// whim0a's `nullptr` and `usize` (internal/phase/000/a), whim0b's
 	// variadic collapse (internal/phase/000/b: one function walks a va_list)
 	// and whim0c's attributes (internal/phase/000/c: `unused` gone,
-	// `fallthrough` an empty statement once printed), so that every phase
+	// `fallthrough` C23's `[[fallthrough]];`), so that every phase
 	// after it is written in the spelling the product has.
 	{N: 0, Block: "s00-seed", Name: "seed, in the one spelling every later phase reads", Seed: true,
 		Steps: []Step{

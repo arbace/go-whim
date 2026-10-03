@@ -58,6 +58,10 @@ import (
 // one, and deleting it is what makes those functions dead -- and Stats counts
 // how many such initialisers went, so that one that mattered would be seen.
 //
+// And a `fallthrough` attribute statement that precedes no case label, which
+// attaches to nothing (fallthrough.go): a cut that takes the cases after one
+// leaves it saying nothing, and gcc says so.
+//
 // It loops, because deleting a local can orphan what only its initialiser
 // named; a second round finding nothing is the fixpoint.
 // Options is what the sweep must be told about the program it sweeps, rather
@@ -112,6 +116,7 @@ type Stats struct {
 	Rounds                                 int
 	Funcs, Objects, Protos, Typedefs, Tags int
 	Members, Enumerators, Locals           int
+	Fallthroughs                           int // fallthrough attributes that preceded no case label
 	Pinned                                 int // survivors written with the value they had
 	ActingLocals                           int // of Locals, those whose initialiser called or assigned something
 	KeptRuns                               int // enumerators kept because a survivor's value is not computable
@@ -128,6 +133,7 @@ func (s *Stats) add(o Stats) {
 	s.Members += o.Members
 	s.Enumerators += o.Enumerators
 	s.Locals += o.Locals
+	s.Fallthroughs += o.Fallthroughs
 	s.Pinned += o.Pinned
 	s.ActingLocals += o.ActingLocals
 	s.KeptRuns += o.KeptRuns
@@ -139,10 +145,10 @@ func (s *Stats) add(o Stats) {
 
 func (s Stats) String() string {
 	return fmt.Sprintf("functions %d, objects %d, prototypes %d, typedefs %d, tags %d, members %d, "+
-		"enumerators %d (%d survivors pinned), locals %d (%d whose initialiser called or assigned) -- "+
+		"enumerators %d (%d survivors pinned), locals %d (%d whose initialiser called or assigned), fallthroughs %d -- "+
 		"%d lines, %d rounds; kept: %d enumerators before a survivor with no computable value, the members "+
 		"of %d structs initialised by position",
-		s.Funcs, s.Objects, s.Protos, s.Typedefs, s.Tags, s.Members, s.Enumerators, s.Pinned, s.Locals, s.ActingLocals,
+		s.Funcs, s.Objects, s.Protos, s.Typedefs, s.Tags, s.Members, s.Enumerators, s.Pinned, s.Locals, s.ActingLocals, s.Fallthroughs,
 		s.Lines, s.Rounds, s.KeptRuns, s.Positional)
 }
 
@@ -204,6 +210,7 @@ type analysis struct {
 	structs map[string][]*ent // tag or typedef name -> the struct definitions it names
 	typedef map[string]string // typedef name -> the tag or anonymous key its specifier names
 	locals  []*local
+	orphans [][2]int     // fallthrough attributes that precede no case label
 	local   map[int]bool // offsets of identifiers that name a local or a parameter, not a file-scope thing
 	st      Stats
 	queue   []string
@@ -928,6 +935,9 @@ func (a *analysis) unusedLocals(ast *cc.AST) {
 			continue
 		}
 		a.localsIn(ast, d)
+		if d.fd != nil {
+			a.orphanedFallthroughs(d.fd)
+		}
 	}
 }
 
@@ -1163,6 +1173,11 @@ func (a *analysis) cut() ([]byte, Stats, error) {
 			items[i] = &ent{span: s, live: !l.dead[i]}
 		}
 		edits = append(edits, listCut(items, func(e *ent) bool { return !e.live })...)
+	}
+
+	for _, o := range a.orphans {
+		del(o[0], o[1])
+		a.st.Fallthroughs++
 	}
 
 	sort.Slice(edits, func(i, j int) bool {

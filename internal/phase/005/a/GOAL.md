@@ -11,6 +11,13 @@ Phase 60, which folded `'formatprg'`'s and `'equalprg'`'s tests in
 matched with those tests still in them, and 60 no longer folds them. What
 follows is the account of the cut as it was made here.
 
+The two cases it cuts each end in one of phase 0c's fallthroughs --
+`do_pending_operator()`'s `OP_FILTER` before `OP_INDENT`, and `nv_g_cmd()`'s
+`q`/`w` before `~` -- which the program matched as the bare `;` the
+canonical print left in their place until 2026-10-03; it matches
+`[[fallthrough]];` now, and the attribute goes with its case
+(`doc/C23.md`).
+
 Five options, each dropped with the machinery that only it gave a meaning to.
 
 - **`'comments'`** — no comment leader is recognised. `get_leader_len()` and

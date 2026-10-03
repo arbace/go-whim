@@ -41,9 +41,6 @@ func (e *emitter) stmt(n *cc.Statement) {
 		// deliberate fallthroughs into ones the compiler warns about.
 		x := n.ExpressionStatement
 		a := join(e.declSpecs(x.Specifiers()), e.attrs(x.AttributeSpecifierList))
-		if e.opt.NullAttributeStatements && x.ExpressionList == nil && onlyStd(x.AttributeSpecifierList) && x.Specifiers() == nil {
-			a = ""
-		}
 		if x.ExpressionList == nil {
 			e.line(a + ";")
 			return
@@ -95,7 +92,7 @@ func (e *emitter) compound(n *cc.CompoundStatement) {
 // compoundInline is a statement expression's block, ({ ... }), printed where an
 // expression is expected.
 func (e *emitter) compoundInline(n *cc.CompoundStatement) string {
-	sub := &emitter{indent: e.indent, opt: e.opt}
+	sub := &emitter{indent: e.indent}
 	sub.compound(n)
 	if sub.err != nil && e.err == nil {
 		e.err = sub.err
@@ -388,17 +385,4 @@ func funcName(n *cc.Declaration) bool {
 		dd = dd.DirectDeclarator
 	}
 	return dd.Case == cc.DirectDeclaratorIdent && dd.Token.SrcStr() == "__func__"
-}
-
-// onlyStd reports whether an attribute list is C23's `[[...]]` alone.
-func onlyStd(n *cc.AttributeSpecifierList) bool {
-	if n == nil {
-		return false
-	}
-	for l := n; l != nil; l = l.AttributeSpecifierList {
-		if !l.AttributeSpecifier.IsStd() {
-			return false
-		}
-	}
-	return true
 }

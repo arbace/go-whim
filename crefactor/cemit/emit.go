@@ -40,47 +40,6 @@ type emitter struct {
 	// emitted is the expansions already printed in this declaration, so that a
 	// macro whose replacement list spans more than one node is printed once.
 	emitted map[int]bool
-
-	opt Options
-}
-
-// Options are what a caller may choose of the canonical form.  The zero value
-// is the form Canonical prints.
-type Options struct {
-	// NullAttributeStatements prints a C23 attribute statement -- C23
-	// attributes and nothing else before the `;`, `[[fallthrough]];` -- as the
-	// null statement `;`.  It is the form whim's pipeline was written in:
-	// crefactor/cc parsed such a statement and discarded its attributes until
-	// it held them (crefactor/c23conf), and every boundary from the seed on
-	// was printed without them, phase 0c's 37 `[[fallthrough]];` as `;`
-	// (internal/phase/000/c/GOAL.md).  A pipeline that wants its texts as
-	// they were asks for it by name; nothing else drops an attribute.
-	NullAttributeStatements bool
-}
-
-// Canonical is the package's Canonical with the options o.
-func (o Options) Canonical(path string, src []byte) ([]byte, error) {
-	ast, src, err := Parse(path, src)
-	if err != nil {
-		return nil, err
-	}
-	return o.File(ast, path, src)
-}
-
-// CanonicalParsed is the package's CanonicalParsed with the options o.
-func (o Options) CanonicalParsed(path string, src []byte, ast *cc.AST) ([]byte, error) {
-	if ast == nil || !bytes.Equal(stripComments(src), src) {
-		return o.Canonical(path, src)
-	}
-	if err := onlyIncludes(path, src); err != nil {
-		return nil, err
-	}
-	return o.File(ast, path, src)
-}
-
-// File is the package's File with the options o.
-func (o Options) File(ast *cc.AST, mainFile string, src []byte) ([]byte, error) {
-	return file(ast, mainFile, src, o)
 }
 
 // Indent is the canonical indent: four spaces per level, which is what the
@@ -129,11 +88,7 @@ func tok(t cc.Token) string { return t.SrcStr() }
 // holds one: whole-line, trailing, block, inside a brace or inside a macro
 // invocation, they all go.
 func File(ast *cc.AST, mainFile string, src []byte) ([]byte, error) {
-	return file(ast, mainFile, src, Options{})
-}
-
-func file(ast *cc.AST, mainFile string, src []byte, o Options) ([]byte, error) {
-	e := &emitter{src: src, lineAt: lineIndex(src), opt: o}
+	e := &emitter{src: src, lineAt: lineIndex(src)}
 	incl, inclAt := includes(src)
 	written := false
 	first := true

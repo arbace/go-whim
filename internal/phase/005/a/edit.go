@@ -84,7 +84,7 @@ const oldDispatch = `        case OP_FILTER:
             {
                 bangredo = TRUE;
             }
-            ;
+            [[fallthrough]];
         case OP_INDENT:
         case OP_COLON:
             if (oap->op_type == OP_INDENT && *get_equalprg() == NUL)
@@ -225,7 +225,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// the format operator: gq, gw, and gqq/gwgw
 	e.InFunction("nv_g_cmd", func(e *edit.E) {
-		e.Cut(edit.Line("case 'q':", "case 'w':", "oap->cursor_start = curwin->w_cursor;", ";"), 1,
+		e.Cut(edit.Line("case 'q':", "case 'w':", "oap->cursor_start = curwin->w_cursor;", "[[fallthrough]];"), 1,
 			"gq and gw as operators")
 	})
 	e.InFunction("nv_record", func(e *edit.E) {

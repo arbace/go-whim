@@ -27,6 +27,13 @@ tagged enum definitions, `M` members, `N` enumerators. `binary` is bytes and
 `SOURCE_DATE_EPOCH=0` -- the same line for every row, so rows whose text is one
 text -- 101, 102 and 103 -- are one binary.
 
+**Measured again after the 37 `[[fallthrough]];` were carried through**
+(2026-10-03, `doc/C23.md`): every boundary from q000 on now holds the
+attribute statements phase 0c writes, where it held a bare `;` -- 37 at q000,
+34, 33, 22, 22, then 20 from q005 to the product -- and every row below came
+back the same, the binaries included: an attribute is one line for one line
+and emits no code.
+
 The phases' `GOAL.md` `Measured` tables that predate canonical seeding
 (`d8365fb`) are records of the pipeline as it then ran, and keep their numbers;
 this file is what the pipeline measures now. Re-measure it with the two

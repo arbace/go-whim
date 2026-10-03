@@ -12,6 +12,16 @@ first, on the text the phase before swept, with the drops that count or
 anchor on swept text. The paragraphs below describe them all where they were
 first written.
 
+**The fallthroughs are matched as written (2026-10-03).** Three of the
+front's cutters match text around one of phase 0c's fallthroughs, and were
+written against the bare `;` the canonical print once left in its place:
+`nomouse` (getcmdline_int()'s click and drag), `nobuflist` (completion for
+`:bdelete`, `:bwipeout` and `:bunload`) and `nocomplkeys` (edit()'s
+`docomplete` label, rewritten with the case before it). They match `[[fallthrough]];` now, which the
+print keeps (`doc/C23.md`); what they cut is what it was, the attribute with
+it. Of the 37 at the seed, phase 1 takes 3 (`command_line_scan`), phase 2 1
+and phase 3 11, with the code around them.
+
 **Its first step is the command line** (`argvfront`, the pipeline reform's
 first drop package, `doc/PIPELINE-REFORM.md` §7): `command_line_scan()` is cut
 on the seed to what the product accepts, `+{command}` and nothing else. So are

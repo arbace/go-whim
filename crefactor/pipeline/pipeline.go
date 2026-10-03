@@ -15,7 +15,6 @@ package pipeline
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/sweep"
 )
 
@@ -69,10 +68,6 @@ type Config struct {
 
 	// Sweep is what every sweep is told: the roots, and what freezes layout.
 	Sweep sweep.Options
-
-	// Print is what the canonical print after every phase is told
-	// (cemit.Options); the zero value is cemit's own form.
-	Print cemit.Options
 
 	// Resolve turns a step's arguments into the ones its op is called with,
 	// given the phase's scratch directory.  Nil: every argument is literal.

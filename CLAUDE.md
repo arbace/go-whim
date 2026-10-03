@@ -325,7 +325,7 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    through the parser, cemit and C-lisp (doc/C23.md).
                    cemit/: the canonical printer (recover.go: its
                    parse, include lines and macro recovery, exported for
-                   clisp; Options: the form a caller may ask for). clisp/: C-lisp, C as s-expressions and back, byte
+                   clisp). clisp/: C-lisp, C as s-expressions and back, byte
                    for byte on canonical text (`whim c2lisp`, `whim lisp2c`;
                    SPEC.md, every form; doc/C-LISP.md), and a tree API on
                    its forms (tree.go: cursors, edits, an atom index;
@@ -621,9 +621,9 @@ make help            # every target, with a line each
   so every boundary that is C is in the one spelling phase 0 seeds with -- C23's,
   `nullptr` and `usize` and the attributes included, since phase 0 runs its
   parts 0a's rename, 0b's variadic collapse and 0c's attributes on the canonical
-  input and every later phase is written for them; the print writes 0c's 37
-  `[[fallthrough]];` as `;`, by name (`cemit.Options.NullAttributeStatements`,
-  as the front end did unasked before it held them: `doc/C23.md`) -- applied
+  input and every later phase is written for them, 0c's 37 `[[fallthrough]];`
+  among them (20 reach the product; the print wrote them `;` until the front
+  end held them, `doc/C23.md`) -- applied
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
@@ -635,8 +635,10 @@ make help            # every target, with a line each
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
   the static_asserts found by name in C's three name spaces, and everything else
-  cut -- functions, objects, prototypes, typedefs, tags, members, enumerators, and
-  the locals nothing reads (resolved by the parser's scopes). Its guards: no
+  cut -- functions, objects, prototypes, typedefs, tags, members, enumerators,
+  the locals nothing reads (resolved by the parser's scopes), and a
+  `fallthrough` attribute statement that precedes no case label, gcc's test
+  (`fallthrough.go`; on whim's pipeline it finds none). Its guards: no
   member goes while `ml_recover` is defined; a struct filled by position keeps
   every member; nothing is emptied; an enumerator's deletion pins the survivor
   after it to its value. About 1.1 s of CPU a phase (135 s over a run in order, profiled). It replaced six deleters looped around

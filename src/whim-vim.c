@@ -12378,7 +12378,7 @@ edit(int cmdchar, bool startln, long count)
         switch (c)
         {
         case ESC:
-            ;
+            [[fallthrough]];
         case Ctrl_C:
             if (goto_im())
             {
@@ -12594,7 +12594,7 @@ edit(int cmdchar, bool startln, long count)
             break;
         case K_TC_k_B:
             c = TAB;
-            ;
+            [[fallthrough]];
         case TAB:
             inserted_space = FALSE;
             if (ins_tab())
@@ -12605,7 +12605,7 @@ edit(int cmdchar, bool startln, long count)
             break;
         case K_KENTER:
             c = CAR;
-            ;
+            [[fallthrough]];
         case CAR:
         case NL:
             if (!ins_eol(c) && !p_im)
@@ -14021,7 +14021,7 @@ ins_start_select(int c)
         {
             break;
         }
-        ;
+        [[fallthrough]];
     case K_TC_HASH_4:
     case K_TC_PCT_i:
     case K_S_UP:
@@ -20468,7 +20468,7 @@ getcmdline_int(int firstc, long count, int indent, bool clear_ccline)
                 break;
             case Ctrl_N:
             case Ctrl_P:
-                ;
+                [[fallthrough]];
             case K_UP:
             case K_DOWN:
             case K_S_UP:
@@ -36459,7 +36459,7 @@ do_more_prompt(int typed_char)
                 skip_redraw = TRUE;
                 need_wait_return = FALSE;
             }
-            ;
+            [[fallthrough]];
         case 'q':
         case Ctrl_C:
         case ESC:
@@ -43194,12 +43194,12 @@ nv_zet(cmdarg_T *cap)
                 curwin->w_cursor.lnum = curwin->w_botline;
             }
         }
-        ;
+        [[fallthrough]];
     case NL:
     case CAR:
     case K_KENTER:
         beginline(BL_WHITE | BL_FIX);
-        ;
+        [[fallthrough]];
     case 't':
         scroll_cursor_top(0, TRUE);
         redraw_later(UPD_VALID);
@@ -43207,7 +43207,7 @@ nv_zet(cmdarg_T *cap)
         break;
     case '.':
         beginline(BL_WHITE | BL_FIX);
-        ;
+        [[fallthrough]];
     case 'z':
         scroll_cursor_halfway(TRUE, FALSE);
         redraw_later(UPD_VALID);
@@ -43227,10 +43227,10 @@ nv_zet(cmdarg_T *cap)
         {
             curwin->w_cursor.lnum = curwin->w_topline - 1;
         }
-        ;
+        [[fallthrough]];
     case '-':
         beginline(BL_WHITE | BL_FIX);
-        ;
+        [[fallthrough]];
     case 'b':
         scroll_cursor_bot(0, TRUE);
         redraw_later(UPD_VALID);
@@ -43238,7 +43238,7 @@ nv_zet(cmdarg_T *cap)
         break;
     case 'H':
         cap->count1 *= curwin->w_width / 2;
-        ;
+        [[fallthrough]];
     case 'h':
     case K_LEFT:
         if (!curwin->w_onebuf_opt.wo_wrap)
@@ -43248,7 +43248,7 @@ nv_zet(cmdarg_T *cap)
         break;
     case 'L':
         cap->count1 *= curwin->w_width / 2;
-        ;
+        [[fallthrough]];
     case 'l':
     case K_RIGHT:
         if (!curwin->w_onebuf_opt.wo_wrap)
@@ -45032,7 +45032,7 @@ nv_g_cmd(cmdarg_T *cap)
         break;
     case K_BS:
         cap->nchar = Ctrl_H;
-        ;
+        [[fallthrough]];
     case 'h':
     case 'H':
     case Ctrl_H:
@@ -45143,7 +45143,7 @@ nv_g_cmd(cmdarg_T *cap)
         break;
     case '\'':
         cap->arg = TRUE;
-        ;
+        [[fallthrough]];
     case '`':
         nv_gomark(cap);
         break;
@@ -45763,7 +45763,7 @@ nv_edit(cmdarg_T *cap)
             {
                 break;
             }
-            ;
+            [[fallthrough]];
         case 'a':
             if (virtual_active() && (curwin->w_cursor.coladd > 0 || *ml_get_cursor() == NUL || *ml_get_cursor() == TAB))
             {
@@ -56630,7 +56630,7 @@ regatom(regengine_T *re, int *flagp)
                 sw = ((int)('[') - 256);
                 continue;
             }
-            ;
+            [[fallthrough]];
         case ((int)('.') - 256):
         case ((int)('i') - 256):
         case ((int)('I') - 256):
@@ -56964,7 +56964,7 @@ regatom(regengine_T *re, int *flagp)
                         }
                         break;
                     }
-                    ;
+                    [[fallthrough]];
                 default:
                     if ((ascii_isdigit((c))) || c == '<' || c == '>' || c == '\'' || c == '.')
                     {
@@ -57361,7 +57361,7 @@ regatom(regengine_T *re, int *flagp)
                     return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(e_missing_rsb_after_str_lsb), (reg_magic > MAGIC_OFF) ? "" : "\\"), emsg(iobuff_or((const char *)(e_missing_rsb_after_str_lsb)))), rc_did_emsg = TRUE, nullptr);
                 }
             }
-            ;
+            [[fallthrough]];
         default:
             {
                 int len;
@@ -67327,7 +67327,7 @@ findmatchlimit(oparg_T *oap, int initc, int flags, int maxtravel)
                     }
                 }
             }
-            ;
+            [[fallthrough]];
         default:
             if (skip_comments && (in_block_comment || (comment_col != MAXCOL && (int)pos.col >= comment_col)))
             {

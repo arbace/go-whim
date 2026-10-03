@@ -91,7 +91,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 			ke("KE_RIGHTDRAG") + ke("KE_RIGHTRELEASE") +
 			`[ \t]*if \(ignore_drag_release\)\n[ \t]*\{\n` +
 			`[ \t]*goto cmdline_not_changed;\n[ \t]*\}\n` +
-			`[ \t]*;\n` +
+			`[ \t]*\[\[fallthrough\]\];\n` +
 			ke("KE_LEFTMOUSE") + ke("KE_RIGHTMOUSE") +
 			`[ \t]*cmdline_left_right_mouse\(c, &ignore_drag_release\);\n` +
 			`[ \t]*goto cmdline_not_changed;\n`,
