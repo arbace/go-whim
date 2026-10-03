@@ -76,6 +76,13 @@ type Config struct {
 	// Declared prepares what a step marked Declared reads, for phase n, and
 	// returns what undoes it.  Nil: a Declared step is refused.
 	Declared func(n int) (undo func(), err error)
+
+	// Compile judges one boundary on disk: nil when the C at path compiles,
+	// and otherwise an error carrying the compiler's report.  Check runs it
+	// on every snapshot it answers for, so that a boundary is not only the
+	// bytes it was but a program; scratch is a directory of the call's own
+	// for what the compiler writes.  Nil: Check compiles nothing.
+	Compile func(path, scratch string) error
 }
 
 // Options is what one run needs: where the input is, how far to go, and where

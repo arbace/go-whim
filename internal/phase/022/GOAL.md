@@ -11,8 +11,9 @@ it. Measured on q69: `:e h2.txt` then `+wq h1.txt` writes **h2**.
 
 So `do_ecmd()` is made to reuse the one buffer:
 
-- the `other_file` branch renames `curbuf` with `setfname()` instead of calling
-  `buflist_new()`, sets `oldbuf = FALSE`, and falls through;
+- the `other_file` branch renames `curbuf` instead of calling
+  `buflist_new()` -- `setfname()`'s rename, written out (below) -- sets
+  `oldbuf = FALSE`, and falls through;
 - the reload path below it — `u_sync()`, `u_savecommon()`,
   `buf_freeall(curbuf, BFA_KEEP_UNDO)`, then `open_buffer(… READ_KEEP_UNDO)` —
   **already is** "wipe and re-read in place". Its gate widens from
@@ -33,6 +34,31 @@ first version demanded zero mentions and failed on its own terms.
 
 **What is lost:** the state of the file you leave — its undo history and its marks.
 `:e`, `:e!` and `:wq` keep working, on one buffer.
+
+## The rename is written out (2026-10-03)
+
+The phase was written to call `setfname()`, and in the plan as it runs
+`setfname()` is gone by then: phase 20 takes `set_rw_fname()`, its last
+caller, and its sweep the function. So q022-q029 called a function nothing
+declared, which gcc 15's defaults refuse -- an error nothing saw until `whim
+build --check` compiled the boundaries; phase 30 takes `do_ecmd()`, and the
+call with it, so the product never had it.
+
+What the branch writes now is what `setfname(curbuf, ffname, sfname, FALSE)`
+did on the text phase 20 left, with one buffer: `fname_expand()` into locals
+of its own (`do_ecmd()`'s `ffname` and `sfname` are read after it), `stat()`
+for the device and inode, `vim_strsave()` of the short name, the old names
+freed and the new ones set, `b_dev_valid`, `b_dev`, `b_ino` and
+`b_shortname`, and `status_redraw_all()`, which is all `buf_name_changed()`
+had left. `setfname()`'s other buffer of the same name, to be wiped, was
+`buflist_findname_stat()`'s answer, which with one buffer is `curbuf` or
+none, so that arm goes.
+
+Measured, on a build in order that gave `whim-vim.c` byte for byte: q022
+82,159 -> **82,197 lines** (q021 82,426 -> 82,427, part 4d's fix), and it
+compiles and links with the one line; q030 onwards are what they were, byte
+for byte. On q022's binary, `gf` on a line `h2.txt` names the buffer
+`"h2.txt"`, as `setfname()` did (nothing reads a file by then).
 
 ## No swap file, ever — not even one left from another age
 

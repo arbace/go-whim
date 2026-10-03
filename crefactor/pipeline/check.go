@@ -115,12 +115,19 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !c.snapshotsFor(src) {
-		fmt.Fprintf(o.W, "  check        no snapshots of this input in %s -- running the pipeline in order, which writes them\n", c.SnapDir)
-		return c.Run(o)
-	}
 	if jobs <= 0 {
 		jobs = runtime.NumCPU()
+	}
+	if !c.snapshotsFor(src) {
+		fmt.Fprintf(o.W, "  check        no snapshots of this input in %s -- running the pipeline in order, which writes them\n", c.SnapDir)
+		text, err := c.Run(o)
+		if err != nil {
+			return nil, err
+		}
+		if err := c.compileAll(o.W, jobs); err != nil {
+			return nil, err
+		}
+		return text, nil
 	}
 	start := time.Now()
 	// Phase 0 as Run does it: the seed, and then -- unless the phase is only
@@ -196,5 +203,63 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 	}
 	fmt.Fprintf(o.W, "  check        %d phases, each from its snapshot, %d at a time: every one reproduces the next, %ds\n",
 		len(c.Plan)-1, jobs, int(time.Since(start).Seconds()))
+	if err := c.compileAll(o.W, jobs); err != nil {
+		return nil, err
+	}
 	return last, nil
+}
+
+// compileAll holds EVERY BOUNDARY TO BEING C THAT COMPILES, and not only to
+// being the bytes it was: each snapshot, q000 to the last, is handed to
+// Config.Compile, jobs at a time.  Reproducing the snapshots proves that the
+// plan is what it was; it says nothing of whether what it was is a program,
+// and snapshots q004-q029 were not one for as long as nobody compiled them
+// (a literal calling a function the sweep had taken, a walk over a member a
+// cut had deleted).  The product compiled throughout, which is why only this
+// sees it.  A boundary that does not compile is named with the compiler's
+// first errors, every one of them in phase order.
+func (c *Config) compileAll(w io.Writer, jobs int) error {
+	if c.Compile == nil {
+		return nil
+	}
+	start := time.Now()
+	type failure struct {
+		n   int
+		err error
+	}
+	var (
+		mu    sync.Mutex
+		fails []failure
+		wg    sync.WaitGroup
+		sem   = make(chan struct{}, jobs)
+	)
+	for _, p := range c.Plan {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			scratch, err := os.MkdirTemp("", fmt.Sprintf("%scc%03d.", c.Name, p.N))
+			if err == nil {
+				err = c.Compile(c.snapPath(p.N), scratch)
+				os.RemoveAll(scratch)
+			}
+			if err != nil {
+				mu.Lock()
+				fails = append(fails, failure{p.N, err})
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+	if len(fails) > 0 {
+		sort.Slice(fails, func(i, j int) bool { return fails[i].n < fails[j].n })
+		for _, f := range fails {
+			fmt.Fprintf(w, "  compile %-4d %v\n", f.n, f.err)
+		}
+		return fmt.Errorf("check: %d of %d boundaries do not compile", len(fails), len(c.Plan))
+	}
+	fmt.Fprintf(w, "  check        %d boundaries, %d at a time: every one compiles, %ds\n",
+		len(c.Plan), jobs, int(time.Since(start).Seconds()))
+	return nil
 }

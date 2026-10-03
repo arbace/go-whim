@@ -57,6 +57,30 @@ brace depth and would have passed `getout()`; depth is the wrong question.
 With one buffer `buflist_findpat()` has nothing to retry — one candidate, so the
 "more than one match" (`-2`) arm is unreachable by construction.
 
+## The boundary compiles (2026-10-03)
+
+Nothing compiled the boundaries until `whim build --check` was made to, and
+q004-q019 had **two errors** of this part's making, which gcc 15's defaults
+make errors and not warnings (C23 has no implicit declaration):
+
+- the body written for `buflist_findpat()` reported a failed match with
+  `semsg()`, which the front had already taken: by phase 4 every `semsg` call
+  in the text is `vim_snprintf()` into `IObuff` and `emsg(iobuff_or(...))`.
+  The body now says it that way, as the text around it does. The error lasted
+  to q022: phase 23 takes `buflist_findpat()` whole;
+- `autowrite_all()` kept its walk over the list, `for ((buf) = firstbuf; ...;
+  (buf) = (buf)->b_next)`, while this part deleted `b_next` -- the walk was
+  missed, not kept. Its body is now the walk folded: `curbuf` written when it
+  is changed. The walk's restart at `firstbuf` when a write wiped the buffer
+  it was on ends it with one buffer, so the restart and its `bufref` go, and
+  `firstbuf` goes with its last reader. Phase 20 takes `autowrite_all()`'s
+  callers, and the sweep it.
+
+Measured, on a build in order that gave `whim-vim.c` byte for byte: q004
+96,340 -> **96,329 lines**, and it compiles and links with the one line, as
+every boundary after it does; q030 onwards are what they were, byte for byte
+(`internal/phase/boundaries.md`).
+
 ## What stays
 
 `buf_hashtab` and `buflist_findnr()`, because five live callers still look a buffer

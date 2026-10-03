@@ -29,7 +29,7 @@ slim-vim.c  --whim-->  whim-vim.c
   the out-parameters and struct locals as values, the C spelled plainly, and
   its flags bool:
   - **phases 0-26** (`GOALS.md` Part I, where they are 0-82) leave an editor
-    with no runtime to install, 80,772 lines at q026;
+    with no runtime to install, 80,809 lines at q026;
   - **phases 27-56** (`GOALS.md` Part II, 83-128 there) turn it into an
     embeddable core: no filesystem, the host behind a line in the file, no
     libc the core names, the text a tree. `GOALS.md` Part II, *Phases 83 to
@@ -179,7 +179,8 @@ slim-vim.c  --whim-->  whim-vim.c
   `internal/harness`, every `check.go`, every `delta.md` but the one phase 1 now holds, the
   baselines and `make whim-verify`) was removed after `448e9a8`, the last commit
   that has it. What proves a change now is two things: `make whim-build-check`,
-  the committed product back byte for byte, which sees the text; and `make
+  the committed product back byte for byte and every boundary compiled, which
+  sees the text; and `make
   whim-test` (`internal/suite`), which sees the editor -- 80 key sessions
   (`internal/suite/cases.md`) fed from a file on stdin, so that a run's output
   never depends on timing, to a build of the working tree's
@@ -574,7 +575,7 @@ make                 # all: through whim-vim.c (produced only when slim-vim.c mo
                      # braaam.jar, bin/vijure and vijure.jar (packed from its build),
                      # bin/caprice, bin/whimsy, bin/whimsical
 make whim-build      # the 104 phases in one process: slim-vim.c -> whim-vim.c
-make whim-build-check  # the same, required to give the committed bytes back
+make whim-build-check  # the same, required to give the committed bytes back, every boundary compiled
 make whim-editor-check # refuse a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs or editor.ss that is not what the generator writes
 make whim-test        # the quick suite: 80 key sessions, required to behave as HEAD's does
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
@@ -640,7 +641,17 @@ make help            # every target, with a line each
   or phase 96's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
   program changed breaks its own link and is named. With no snapshots of this
-  input it runs the pipeline in order, which writes them. It proves the text,
+  input it runs the pipeline in order, which writes them. **Either way it then
+  compiles and links every boundary**, q000-q103, with the one compile line
+  (`internal/build`'s `compileBoundary`, the driver's `Config.Compile`), 64 at
+  a time, an error failing the check and naming the boundary -- warnings
+  allowed, as for the product, and none printed now. Snapshots q004-q029 did
+  not compile until part 4d and phase 22 were fixed (their `GOAL.md`s): a
+  boundary reproduced is not yet a program. Measured: 8-10 s of a parallel
+  check of 71-73 s at a load of 7, 6.6 min of CPU; `-fsyntax-only` would be
+  under a second but cannot see a function declared and defined nowhere, which
+  only the link does; the control, the unfixed phases on their old snapshots,
+  names all 26. It proves the text,
   not the editor; `make whim-test` is what sees the editor (see *What this is*).
 
 - **`editor/editor.go` is generated** (`go tool whim gen`, `internal/gen` on the

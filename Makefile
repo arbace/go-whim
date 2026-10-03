@@ -19,7 +19,7 @@
 # applies them in one process, in memory (internal/build).  There is no test
 # suite and no memoize; what answers for the product is that it is TRACKED, and
 # whim-build-check requires the committed whim-vim.c back, byte for byte, from
-# the committed slim-vim.c.  448e9a8 is the last commit with the old suite.
+# the committed slim-vim.c, and every boundary to compile.  448e9a8 is the last commit with the old suite.
 #
 #   make                 fetch if the upstream moved, then every editor: bin/whim
 #                        (the core in Go), bin/whim-vim and bin/slim-vim, bin/braaam
@@ -28,6 +28,7 @@
 #   make whim-build      the 104 phases in one process: slim-vim.c -> whim-vim.c,
 #                        about eight minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
+#                        and every boundary to compile and link
 #   make bin/whim-vim    the C product's binary
 #   make bin/slim-vim    the input's binary
 #   make editor/editor.go  the translations, generated from whim-vim.c's core
@@ -159,7 +160,8 @@ src/whim-vim.c: src/slim-vim.c force
 # .cache/boundaries/.  It proves the text, not the behaviour.  Measured:
 # 104 phases, 451 s, 77,634 lines.
 # whim-build-check, given those snapshots, proves every phase from its own
-# snapshot at once: 105 s at --jobs 64.
+# snapshot at once: 105 s at --jobs 64; then it compiles and links every
+# boundary with the one line, 8-10 s more.
 .PHONY: whim-build whim-build-check
 whim-build:  ## the 104 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
@@ -167,7 +169,7 @@ whim-build:  ## the 104 phases in one process: slim-vim.c -> whim-vim.c
 	@$(call drop-stale,bin/whim-vim,src/whim-vim.c)
 	@$(if $(filter no,$(WHIM_BUILD_EDITOR)),,$(MAKE) --no-print-directory whim-editor)
 
-whim-build-check:  ## the same build, required to give the committed bytes back
+whim-build-check:  ## the same build, required to give the committed bytes back, every boundary compiled
 	@go tool whim build --check
 
 bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one line

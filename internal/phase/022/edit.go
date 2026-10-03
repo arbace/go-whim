@@ -10,8 +10,13 @@ package p022
 //
 // So do_ecmd() is made to reuse the one buffer:
 //
-// * the other_file branch renames curbuf with setfname() instead of calling
-// buflist_new(), sets oldbuf = FALSE, and falls through;
+// * the other_file branch renames curbuf instead of calling buflist_new(),
+// sets oldbuf = FALSE, and falls through.  The rename is setfname()'s, WRITTEN
+// OUT: phase 20's sweep took setfname() with set_rw_fname(), its last caller,
+// so a call of it here was a call of nothing, and q022-q029 did not compile.
+// What is written is what setfname() did with one buffer -- the other buffer
+// of that name it could find is curbuf or none -- and buf_name_changed() as it
+// stood by then, which was status_redraw_all();
 // * the reload path below it -- u_sync(), u_savecommon(), buf_freeall(curbuf,
 // BFA_KEEP_UNDO), then open_buffer(... READ_KEEP_UNDO) -- ALREADY IS "wipe and
 // re-read in place".  Its gate widens from `!other_file && !oldbuf` to `!oldbuf`;

@@ -317,8 +317,11 @@ literal body for `buflist_findpat()` calls it after the front took it) and
 20's sweep had taken). The product is not affected -- later phases take both
 calls -- and `whim-build-check` proves bytes, not that a boundary compiles. A
 text edit can write a name that no longer exists and nothing says so; a
-resolver, or a `-fsyntax-only` of each boundary, would. Not fixed here: the
-fix moves the snapshots of 4-29, which is a change to the plan.
+resolver, or a `-fsyntax-only` of each boundary, would. Fixed since, which
+moved the snapshots of 4-29: gcc found a third error the resolver could not
+(a walk over `b_next`, a member part 4d deleted, in `autowrite_all()`,
+q004-q019); part 4d and phase 22 write C that compiles (their `GOAL.md`s),
+and `whim build --check` compiles and links every boundary.
 
 ## Recommendation
 

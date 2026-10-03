@@ -44,6 +44,7 @@ var config = &pipeline.Config{
 		}
 		return func() { os.Unsetenv("REMOVED") }, nil
 	},
+	Compile: compileBoundary,
 }
 
 // Seed is what phase 0 hands the pipeline: the input in canonical form

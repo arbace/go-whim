@@ -16,7 +16,8 @@ import (
 //	whim build                 write whim-vim.c
 //	whim build --check         require the committed product back: phase by phase from
 //	                           .cache/boundaries in parallel (--jobs N), or in order
-//	                           when there are no snapshots of this input
+//	                           when there are no snapshots of this input; then
+//	                           every boundary compiled and linked, --jobs at a time
 //	whim build --to N          stop after phase N
 //	whim build --from N --src B   start at phase N, from boundary B
 //	whim build --src F --out F the input and the output

@@ -646,3 +646,64 @@ func TestCheckReportsFailuresInPhaseOrder(t *testing.T) {
 		}
 	}
 }
+
+// gccCompile is a Config.Compile for the toy: the boundary compiled and
+// linked, judged by gcc's status.  Nil when there is no gcc to ask.
+func gccCompile() func(path, scratch string) error {
+	if _, err := exec.LookPath("gcc"); err != nil {
+		return nil
+	}
+	return func(path, scratch string) error {
+		b, err := exec.Command("gcc", "-std=gnu23", "-o", filepath.Join(scratch, "a.out"), path).CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("%v: %s", err, b)
+		}
+		return nil
+	}
+}
+
+// Check compiles every boundary, and says so.
+func TestCheckCompilesEveryBoundary(t *testing.T) {
+	c, dir := config(t)
+	if c.Compile = gccCompile(); c.Compile == nil {
+		t.Skip("no gcc")
+	}
+	o := options(dir)
+	if _, err := c.Run(o); err != nil {
+		t.Fatal(err)
+	}
+	var log bytes.Buffer
+	if _, err := c.Check(&Options{Src: o.Src, W: &log}, 2); err != nil {
+		t.Fatalf("check: %v\n%s", err, log.String())
+	}
+	if !strings.Contains(log.String(), "5 boundaries, 2 at a time: every one compiles") {
+		t.Errorf("the report is\n%s", log.String())
+	}
+}
+
+// THE CONTROL: a phase that writes a call of a function nothing defines --
+// what phase 22 did with setfname() -- reproduces its snapshot every time, so
+// only the compile sees it, and it names every boundary from that phase on,
+// both on the check from the snapshots and on the run in order that makes
+// them.
+func TestCheckNamesABoundaryThatDoesNotCompile(t *testing.T) {
+	c, dir := config(t)
+	if c.Compile = gccCompile(); c.Compile == nil {
+		t.Skip("no gcc")
+	}
+	c.Plan[2].Steps[0].Args = []string{"cube(2)", "cubed(2)"}
+	o := options(dir)
+	for _, from := range []string{"in order", "from the snapshots"} {
+		var log bytes.Buffer
+		oo := *o
+		oo.W = &log
+		_, err := c.Check(&oo, 0)
+		if err == nil || !strings.Contains(err.Error(), "3 of 5 boundaries do not compile") {
+			t.Fatalf("%s: check says %v:\n%s", from, err, log.String())
+		}
+		named := regexp.MustCompile(`(?m)^  compile (\d+) `).FindAllStringSubmatch(log.String(), -1)
+		if len(named) != 3 || named[0][1] != "2" || named[1][1] != "3" || named[2][1] != "4" {
+			t.Errorf("%s: check names %q, want 2, 3 and 4", from, named)
+		}
+	}
+}

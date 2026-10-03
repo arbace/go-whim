@@ -77,6 +77,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldWalk("set_termname", "buf", "curbuf", vimtext.FwdWalk, 1, "a new terminal notifying every buffer")
 	e.DropWalk("getout", vimtext.FwdWalk, w4dlit6, 1, "quitting unloading every buffer, whose break bound to the walk")
 	e.Body("buflist_findpat", w4dlit7, "buflist_findpat matching against every buffer")
+	e.Body("autowrite_all", w4dAutowriteAll, "autowrite_all writing every changed buffer")
 	// check_changed_any's walks went with :q's refusal at phase 1 (quitfront,
 	// phase 33's move)
 	e.DropWalk("open_buffer", strings.ReplaceAll(vimtext.FwdWalk, "(buf)", "(curbuf)"), "", 1, "open_buffer looking for another loaded buffer")
