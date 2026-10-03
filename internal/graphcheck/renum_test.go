@@ -33,7 +33,7 @@ func lispOf(t *testing.T, text []byte) []byte {
 }
 
 // readBack is the graph the Lisp holds, in an editor.
-func readBack(t *testing.T, lisp []byte) *graph.Editor {
+func readBackOne(t *testing.T, lisp []byte) *graph.Editor {
 	t.Helper()
 	h, err := graph.Read(lisp)
 	if err != nil {
@@ -127,7 +127,7 @@ func TestRowsArgvFront(t *testing.T) {
 	}
 	lisp := lispOf(t, in)
 	run := func(said bool) (*graph.Editor, *graph.RowsDone, string) {
-		e := readBack(t, lisp)
+		e := readBackOne(t, lisp)
 		var log bytes.Buffer
 		v := graph.NewVerbs("argvfront", e, &log)
 		v.Body("command_line_scan", argvScan, "command_line_scan is +{command} alone")
@@ -187,7 +187,7 @@ func TestRows51a(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	e := readBack(t, lispOf(t, in))
+	e := readBackOne(t, lispOf(t, in))
 	v := graph.NewVerbs("terms", e, io.Discard)
 	v.InTable("builtin_terminals", func(v *graph.Verbs) {
 		var gone []string
@@ -262,7 +262,7 @@ func TestRenumFileFront(t *testing.T) {
 		names = append(names, "CMD_"+c)
 		pats = append(pats, "(at (idx CMD_"+c+") _)")
 	}
-	e := readBack(t, lispOf(t, text))
+	e := readBackOne(t, lispOf(t, text))
 	var log bytes.Buffer
 	v := graph.NewVerbs("filefront", e, &log)
 	v.InTable("cmdnames", func(v *graph.Verbs) {
@@ -304,7 +304,7 @@ func TestRenameOnSnapshot(t *testing.T) {
 		}
 		want = bytes.Replace(want, []byte(r[0]), []byte(r[1]), 1)
 	}
-	e := readBack(t, lispOf(t, in))
+	e := readBackOne(t, lispOf(t, in))
 	fn, err := e.Rename(e.Defn("find_builtin_term"), "builtin_term_of")
 	if err != nil {
 		t.Fatal(err)
