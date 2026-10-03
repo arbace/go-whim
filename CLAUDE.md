@@ -317,7 +317,8 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    with a graph step held to their snapshots, timed, the
                    graph snapshots read back, and the graph's verbs on the
                    snapshots -- an initialiser element replaced, phase 15
-                   written on them: GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
+                   written on them, the include edits of phases 43, 73, 88
+                   and 99 and the line on every snapshot: GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
@@ -369,7 +370,14 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    the scope's C view, and the edges' answers), unwrap.go a
                    branch's items spliced where no name clashes, and a run
                    of items replaced; its tests hold each verb to its text
-                   verb's C, on graphs read back from Lisp;
+                   verb's C, on graphs read back from Lisp; include.go
+                   (B2e) the include forms added, deleted and moved under
+                   the extern rule -- every name the file takes from the
+                   headers provided by an include above its first use, no
+                   header's macro over the file's own names below it -- and
+                   the first include form as the line (Core, Host, InCore,
+                   top-level forms moved across it), headers.go what one
+                   header provides, parsed by cc alone;
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -844,7 +852,9 @@ between the editor core and its host**, marked by nothing else. `internal/whim`'
 `-fsyntax-only`, and an interface of exactly the names the host defines --
 computed, never listed. The core names no libc function at all, holds no file
 descriptor of its own, and uses no floating point. `GOALS.md` §II.4 is the
-design.
+design. On the graph the line is `crefactor/graph`'s first include form
+(`Editor.Core`, `Host`, `InCore`; doc/GRAPH-MIGRATION.md, *B2e as built*),
+whose core prints as `Cut`'s text on every snapshot from q043.
 
 ## Adding a phase
 

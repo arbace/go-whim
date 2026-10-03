@@ -95,7 +95,7 @@ The new ones, each a batch's job (B0 and B2 below):
 | PARAM | a parameter deleted with the argument at every call, in function-pointer types too; one argument of a variadic call deleted (with its format string) | ~20 |
 | RETYPE | a declaration's type changed (`int` to `bool`, `void *` to `T *`, a union member to its one member), the typed edges above it cleared and listed (`Untyped`) until step 6's checker re-derives them | ~20 |
 | MOVE | a node or a run of items moved elsewhere keeping their ids (an outlined block, a body inlined, a range wrapped in a loop, a definition moved below the boundary) | ~15 |
-| INCLUDE | `#include` forms added, deleted or moved, and the first one as the core/host boundary: "is X above it", "the host region" | ~15 |
+| INCLUDE | **done (B2e)**: `#include` forms added, deleted or moved under the extern rule (each name the file takes from the headers provided by an include above its first use; no header macro over the file's own names below it), and the first one as the core/host boundary: `FirstInclude`, `Core`/`Host`, `InCore`/`InHost`, `MoveToHost`/`MoveToCore` (*B2e as built*) | ~15 |
 | FOLDX | the fall-out rules the closure lacks, each a rule in `fallout.go` (generic) or a cut's own `Rule`: a walk folded to `v = cur; body` (refusing a break that binds to the loop); `a && K`, `a \|\| K`, `!K`, `K == 0`; a function whose body is `return K;` made K at its calls; a parameter every call passes alike made its value; statements after a jump or `return` go; a label no goto reaches goes; empty blocks taken everywhere (and an empty else, a trailing empty else-if), not only those an edit emptied; an if whose only effect is a store to a deleted location; the value a cut gives a deleted object (not its initialiser); `if (!f()) {}` becomes `(void)f();` (a declaring block spliced where no name clashes: B0's, `SpliceDeclaring`) | ~30 |
 
 ## B0 as built (2026-10-03)
@@ -569,3 +569,143 @@ graph but 88 (and 0), the in-order build would pay two imports (after 0
 and after 88) and about 100 phases at ~0.3 s plus their cuts: the
 estimate of GRAPH.md (some 230 s of today's ~350 s) stands, and stage A's
 numbers are its first measurements.
+
+## B2e as built: INCLUDE and the line (2026-10-03)
+
+`crefactor/graph`'s `include.go` (the include edits, the line, the rule,
+top-level moves) and `headers.go` (what a header provides); generic,
+naming nothing in vim. 893 and 116 lines of Go, comments and blank lines
+aside. Nothing else in the package changed. The snapshot tests are
+`internal/graphcheck`'s `include_test.go`.
+
+### The API
+
+**The line.** The first include form is the line between the core above it
+and the host from it on; a graph with no include form has no line, and is
+all core. `IsInclude(n)`, `IncludeSpec(n)` (`<stdio.h>`), `NewInclude(spec)`;
+`Editor.Includes()`, `FirstInclude()`, `Core()`, `Host()` (the forms on
+either side, the includes the host's), `InCore(n)`/`InHost(n)` (by n's
+top-level form; an external or a type is in neither), `TopForm(n)`, and
+`FormsC(forms)`, the C view of some forms alone (the core's is `whim.Cut`'s
+text, below).
+
+**What the headers provide.** `HeaderOf(spec)` is what one include line
+provides, parsed by cc on its own with the importer's configuration and
+cached for the process (5-37 ms a header, 0.34 s for whim's 41): `Names`, the
+ordinary names declared at file scope and the tags (`struct NAME`);
+`Macros`; `Bare`, the object-like macros whose replacement names nothing; a
+unit with no include subtracted (the compiler's own names need no header).
+`Editor.HeaderUses()` is every name the file takes from the headers, each
+with its first using form and the include above it that provides it (0.26 s
+on whim-vim.c); `Missing(incs...)`, what deleting those includes would leave
+unprovided; `Collisions()`; `SpareIncludes()`, the includes the rule says the
+file can do without, chosen in crefactor/xform's `Includes` order (each alone,
+then together, else a fold from the bottom).
+
+**The edits**, each refused as the rule says and leaving the graph as it was
+when refused: `InsertIncludeBefore/After(at, spec)` (a fresh id, an
+`insert` act); `DeleteInclude(inc)`; `MoveFormsBefore/After(at, ns...)`,
+top-level forms moved keeping their ids (one `move` act, every id in
+`Moved`), includes or declarations; `MoveToHost(ns...)` (after the include
+run the line begins) and `MoveToCore(ns...)` (before the first include) --
+moving a declaration across the line. And two that go further on purpose:
+`DeleteIncludeRebind(inc)` and `InsertIncludeRebind(at, spec, after)`,
+below. A refusal by collision is a `*CollisionError` (`Names()`).
+
+### The extern rule
+
+What the file takes from the headers is a DECLARATION -- an external node
+with a live use that spells it (`(extern getenv)`, `(extern-typedef
+time_t)`, the `(struct termios)` that names a tag; its uses through a macro
+are the macro's) -- or a MACRO -- a token some include's header defines: an
+identifier atom with no edge that the file does not declare, an atom whose
+edge goes to an external spelled otherwise (`errno`), or an identifier in a
+`(macro "...")` text; C23's keywords are the language's (`bool`, which
+<stdbool.h> defines for an older C). A name is provided where an include
+above its first use has a header that declares it (defines it, for a macro).
+A COLLISION is an include's macro over a name the file has as its own below
+it: one it declares (a syntax error: phase 43's reason) or one it uses with
+an edge to its own declaration (which would silently become the macro).
+
+An edit is refused where it would leave a provided name unprovided, or make
+a new collision; the rule is RELATIVE to the graph before the edit, so a name
+nothing provides already is never the edit's fault. So a removed header's
+names still used must come from another include above their first use (the
+external nodes stay, as cc typed them at import: that two headers declare a
+name alike is not checked), an added header must not take the file's names,
+and a form moved above the line must not take a header's name with it. A
+move also keeps C's declare-before-use: a refers edge whose declaration was
+above its use stays so (a top-level MOVE; B2c's is the general one).
+
+`DeleteIncludeRebind` is a deletion where a removed header's macro is a name
+the file declares itself: its tokens become uses of that declaration (a new
+atom with its edge, by `Resolve`), as an import of the text after makes them.
+`InsertIncludeRebind` is its inverse: the file's uses below the new include
+become the macro's tokens (no edge, which is the importer's for a `Bare`
+macro; one whose replacement names something is refused). Each is where
+the program still compiles and a token now says something else: what a
+compiler's silence accepts and the rule does not.
+
+### What the snapshot tests prove
+
+On the graphs read back from Lisp (no cc behind them), with GRAPH_SNAPS:
+
+- **Phase 88** (`TestIncludesPhase88`): on q087 the rule finds 29 of the 31
+  headers gcc removed spare. The two it keeps, `<stdlib.h>` and `<stdint.h>`,
+  provide `EXIT_FAILURE` and `SIZE_MAX` to two of phase 43's static_asserts
+  in the host, which assert the core's own enumerators against the headers;
+  with them gone both still compile, silently, and compare each enumerator
+  with itself. **That is a finding**: since phase 88 the `SIZE_MAX` assert
+  in whim-vim.c is a tautology (gcc -E confirms no remaining header defines
+  it), and the `EXIT_FAILURE` one was until phase 99 brought `<stdlib.h>`
+  back. Deleting gcc's 31 on the graph -- `DeleteInclude` where the rule
+  allows, `DeleteIncludeRebind` for those two, whose tokens become the core's
+  enumerators -- gives **q088.c byte for byte**. The control: `<termios.h>`
+  is not spare on q088.
+- **Phase 73** (`TestIncludesPhase73`): `<fcntl.h>` moved after
+  `<termios.h>` by one `MoveFormsAfter`, its id kept: **the text program's
+  two literals byte for byte**; `<termios.h>` moved to the end of the file is
+  refused.
+- **Phase 99** (`TestIncludesPhase99`): `<stdlib.h>` after `<stddef.h>`: the
+  strict insertion is refused as a collision of use (the assert's
+  `EXIT_FAILURE`, which phase 88 had made the core's); `InsertIncludeRebind`
+  makes it, the token the macro again as q099.c's import has it: **the text
+  program's literal byte for byte**, read back the same graph.
+- **Phase 43** (`TestIncludesPhase43`): on q043, the includes moved back
+  above the core are refused, naming **exactly the twelve** names phase 43
+  found by compiling (its GOAL.md: INT_MAX, INT_MIN, LONG_MAX, LONG_MIN,
+  LLONG_MAX, LLONG_MIN, ULLONG_MAX, SIZE_MAX, PATH_MAX, EXIT_FAILURE, SIGHUP,
+  SIGTERM); the graph unchanged.
+- **The line on every snapshot** (`TestTheLine`, q000-q103): the core's C
+  view is `whim.Cut`'s text byte for byte from q043 on, and before it the
+  first form is an include and Cut finds no core; and nothing above the line
+  takes a name from the headers.
+
+`crefactor/graph`'s `include_test.go` covers each piece on samples read back
+from Lisp: the line, the uses and their providers, a deletion refused and
+made, both rebinds against an import of the text after, insertions (a fresh
+id, a duplicate, a collision of declaration, a collision of use), moves
+across the line both ways (a header's name refused into the core, a
+declaration refused below its use, the two together allowed), an include
+moved and refused below its names' use.
+
+### Limits
+
+- A header's set is the header parsed alone. A header whose declarations
+  depend on what an earlier one defined (feature macros) is read as it is
+  alone; whim's never do (88 matches gcc on all 31 but the two above, for
+  the reason given).
+- Types are not re-checked: a name another header provides keeps its
+  external node and cc's type from the import.
+- A macro token is any identifier-shaped token a header defines; a member
+  or local spelled like a header's function-like macro counts too. A
+  declaring atom of a parameter in a nested function type is found by the
+  form's shape (`(fn ((NAME TYPE) ...) R)`).
+- A rebind into a macro's own invocation text is refused (the text is not
+  nodes). `InsertIncludeRebind` makes tokens without edges, right for a
+  `Bare` macro only.
+- `MoveForms*` moves top-level forms only; items, runs and bodies are B2c's
+  MOVE. Its order rule looks at refers edges, not typed edges.
+- Each include edit computes the headers' state twice (about 0.5 s on
+  whim-vim.c); a phase making many should batch them (`MoveForms*` takes
+  many forms at once, `Missing` many includes).
