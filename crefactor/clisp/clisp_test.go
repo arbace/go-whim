@@ -102,6 +102,29 @@ func TestForms(t *testing.T) {
 		{"attribute spaced", "int g(int x __attribute__ ((unused))) { return 0; }", ""},
 		{"computed goto", "void f(void) { void *p = &&L; goto *p; L: return; }", ""},
 		{"macro recovery", "#include <errno.h>\n#include <limits.h>\nint f(void) { errno = 0; return INT_MAX + EINTR; }", ""},
+		// cemit's test header: Canonical refuses a #define in the text.
+		{"macro-decl", "#include \"../cemit/testdata/macros.h\"\nDECLARE(x)\nvoid f(void) { DECLARE(y) y = x; }",
+			"(include \"\\\"../cemit/testdata/macros.h\\\"\")\n\n(macro-decl \"DECLARE(x)\")\n\n(defn f (fn (void) void)\n  (macro-decl \"DECLARE(y)\")\n  (= y x))\n"},
+		{"member macro at file scope", "#include \"../cemit/testdata/macros.h\"\nstruct st s;\nlong t = sizeof(s.st_mtime);",
+			"(include \"\\\"../cemit/testdata/macros.h\\\"\")\n\n(def s (struct st))\n\n(def t long (sizeof (. s st_mtime)))\n"},
+		{"alignof-bare", "int a[2]; int b = alignof(a)[0] + alignof(a);", "(def a (array 2 int))\n\n(def b int (+ (alignof-bare (index (paren a) 0)) (alignof a)))\n"},
+		{"struct attributes", "struct __attribute__((packed)) s { int a; } __attribute__((aligned(8))); struct s2 { int a; } __attribute__((packed)); struct __attribute__((packed)) s3; union __attribute__((aligned(4))) { int i; } u; struct __attribute__((packed)) s4 { } v;",
+			"(struct s (@ (attr packed)) (a int) (@ (attr (aligned 8))))\n\n(struct s2 (a int) (@ (attr packed)))\n\n(struct s3 (@ (attr packed)))\n\n(def u (union (@ (attr (aligned 4))) (i int)))\n\n(def v (struct s4 (@ (attr packed)) {}))\n"},
+		{"member attributes", "struct s { int a __attribute__((aligned(8))); char b, c __attribute__((aligned(4))); unsigned f : 3 __attribute__((packed)); int : 2 __attribute__((packed)); struct { int z; } __attribute__((aligned(16))); };",
+			"(struct s\n  (a int (attr (aligned 8)))\n  (b char)\n  (c char (attr (aligned 4)))\n  (f unsigned (bits 3) (attr packed))\n  (int (bits 2) (attr packed))\n  ((struct (z int) (@ (attr (aligned 16))))))\n"},
+		{"array declarators", "void f(int a[static 3], int b[const 4], int c[static const 5], int d[const static 6], int e[restrict], int n, int g[const *], int h[restrict volatile n]);",
+			"(def f\n  (fn\n    ((a (array static 3 int))\n     (b (array const 4 int))\n     (c (array static const 5 int))\n     (d (array const static 6 int))\n     (e (array restrict int))\n     (n int)\n     (g (array const * int))\n     (h (array restrict volatile n int)))\n    void))\n"},
+		{"abstract array declarators", "void g(int[*], int[const 4], int[const static 5], int[static const 6], int (*)[]);",
+			"(def g\n  (fn\n    (((array * int))\n     ((array const 4 int))\n     ((array const static 5 int))\n     ((array static const 6 int))\n     ((ptr (array int))))\n    void))\n"},
+		{"pointer qualifiers in order", "char *const volatile p; char *restrict const *volatile q; char * __attribute__((aligned(8))) r;",
+			"(def p (ptr char const volatile))\n\n(def q (ptr (ptr char restrict const) volatile))\n\n(def r (ptr char (attr (aligned 8))))\n"},
+		{"old-style definition", "int f(a, b, p) int a; register char b, *p; { return a + b; } static int (*g(x))(int) long x; { return 0; }",
+			"(defn f (fn-ids (a b p) int)\n  (kr-params (def a int) (def register b char) (def register p (ptr char)))\n  (return (+ a b)))\n\n(defn static g (fn-ids (x) (ptr (fn (int) int)))\n  (kr-params (def x long))\n  (return 0))\n"},
+		{"identifier list in a declaration", "int f(a, b);", "(def f (fn-ids (a b) int))\n"},
+		{"inferred types", "static x = 1; void f(void) { __auto_type a = 1; auto b = 2; const auto c = 3; a = b + c; }",
+			"(def static x () 1)\n\n(defn f (fn (void) void)\n  (def __auto_type a () 1)\n  (def auto b () 2)\n  (def c (const auto) 3)\n  (= a (+ b c)))\n"},
+		{"typeof spellings", "__typeof__(1) a; __typeof(1) b; __typeof__(int *) c; typeof(int) d;",
+			"(def a (__typeof__ 1))\n\n(def b (__typeof 1))\n\n(def c (__typeof__-type (ptr int)))\n\n(def d (typeof-type int))\n"},
 	} {
 		lc := roundTrip(t, c.name+".c", c.src)
 		if c.forms != "" && string(lc) != c.forms {
@@ -140,6 +163,8 @@ func TestRefusals(t *testing.T) {
 		"(defn f)",
 		"(def x (ptr))",
 		"(defn f (fn () int) (return (bogus 1)))",
+		"(def f (fn-ids a int))",
+		"(def a (array static 1 2 int))",
 	} {
 		if _, err := ToC([]byte(src)); err == nil {
 			t.Errorf("%s printed without an error", src)

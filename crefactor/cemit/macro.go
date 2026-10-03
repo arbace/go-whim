@@ -149,9 +149,16 @@ func (e *emitter) scan(n cc.Node) *expansions {
 	}
 	sort.Ints(offs)
 	for i, off := range offs {
-		end := len(x.src)
+		// THE LAST POSITION HAS NO NEXT ONE to end it: the source's text is
+		// read to the invocation's own end -- the name, and its balanced
+		// arguments when a `(` follows.  Ended at the end of the file, a
+		// file-scope declaration that is wholly a macro's, `DECLARE(x)`,
+		// printed as itself and every line after it.
+		var end int
 		if i+1 < len(offs) {
 			end = offs[i+1]
+		} else {
+			end = invocationEnd(x.src, off)
 		}
 		// One token at a position that says what the source says is ordinary
 		// text, not an expansion.
@@ -302,6 +309,41 @@ func (e *emitter) stmtMacro(n cc.Node) (string, bool) {
 		return "", false
 	}
 	return text + ";", true
+}
+
+// invocationEnd is the offset just past the macro invocation at off: its
+// name, and the balanced parentheses that follow it, if any do -- a string or
+// character literal inside them held whole.
+func invocationEnd(src []byte, off int) int {
+	i := off
+	for i < len(src) && (identStart(src, i) || src[i] >= '0' && src[i] <= '9') {
+		i++
+	}
+	name := i
+	for i < len(src) && (src[i] == ' ' || src[i] == '\t' || src[i] == '\n' || src[i] == '\r') {
+		i++
+	}
+	if i >= len(src) || src[i] != '(' {
+		return name
+	}
+	depth := 0
+	for ; i < len(src); i++ {
+		switch c := src[i]; c {
+		case '(':
+			depth++
+		case ')':
+			if depth--; depth == 0 {
+				return i + 1
+			}
+		case '"', '\'':
+			for i++; i < len(src) && src[i] != c && src[i] != '\n'; i++ {
+				if src[i] == '\\' {
+					i++
+				}
+			}
+		}
+	}
+	return len(src)
 }
 
 // identStart reports whether the source at off begins an identifier.

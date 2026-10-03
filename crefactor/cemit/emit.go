@@ -127,11 +127,22 @@ func File(ast *cc.AST, mainFile string, src []byte) ([]byte, error) {
 		// A DECLARATION THAT PRINTS NOTHING GETS NO SEPARATOR.  The front end
 		// follows a file-scope `static_assert(...);` with a second declaration
 		// of its own, empty, which wrote a second blank line after every one.
-		if d.Case == cc.ExternalDeclarationDecl && len(e.declLines(d.Declaration)) == 0 {
-			continue
+		// ITS LINES ARE MADE ONCE, and those are what is written: printing is
+		// not a pure function of the node -- a member-designator macro is
+		// printed by the first selection that reaches it and recorded
+		// (`emitted`) -- so a second print of the same declaration lost the
+		// member the first had claimed.
+		if d.Case == cc.ExternalDeclarationDecl {
+			lines := e.declLines(d.Declaration)
+			if len(lines) == 0 {
+				continue
+			}
+			sep()
+			e.declaration(lines)
+		} else {
+			sep()
+			e.external(d)
 		}
-		sep()
-		e.external(d)
 		if e.err != nil {
 			return nil, e.err
 		}
@@ -198,23 +209,9 @@ func stripComments(src []byte) []byte {
 func (e *emitter) external(n *cc.ExternalDeclaration) {
 	switch n.Case {
 	case cc.ExternalDeclarationDecl:
-		// ONE DECLARATION PER DECLARATOR, AND A BLANK LINE BETWEEN THEM, as
-		// between any two file-scope declarations: `int a, *b;` prints as the
-		// two it is, and printed again each one is its own external
-		// declaration, which File separates.  Adjacent, the second print moved
-		// the first's text.
-		for i, s := range e.declLines(n.Declaration) {
-			if i > 0 {
-				e.w("\n")
-			}
-			e.line(s)
-		}
+		e.declaration(e.declLines(n.Declaration))
 	case cc.ExternalDeclarationFuncDef:
 		f := n.FunctionDefinition
-		if f.DeclarationList != nil {
-			e.fail(n, "an old-style parameter declaration list")
-			return
-		}
 		// THE NAME GOES AT COLUMN 0, under its specifiers, which is vim's own
 		// style and the only thing that makes a definition findable by text:
 		// every tool that locates one looks for `^name(`.  Measured, when this
@@ -231,6 +228,17 @@ func (e *emitter) external(n *cc.ExternalDeclaration) {
 			e.w(Indent + head + "\n")
 		}
 		e.w(e.directDeclarator(f.Declarator.DirectDeclarator) + "\n")
+		// AN OLD-STYLE DEFINITION'S PARAMETER DECLARATIONS go between its
+		// declarator and its body, one declarator a line, one indent in --
+		// `kr(a, b)`, `    int a;`, `    char b;` -- as the K&R style laid
+		// them out.  C23 dropped the form; gcc still takes it, and warns.
+		e.indent++
+		for l := f.DeclarationList; l != nil; l = l.DeclarationList {
+			for _, s := range e.declLines(l.Declaration) {
+				e.line(s)
+			}
+		}
+		e.indent--
 		e.compound(f.CompoundStatement)
 	case cc.ExternalDeclarationAsmStmt:
 		e.line(strings.TrimSpace(cc.NodeSource(n.AsmStatement)))
@@ -238,6 +246,20 @@ func (e *emitter) external(n *cc.ExternalDeclaration) {
 		// `;` at file scope declares nothing and is not printed.
 	default:
 		e.fail(n, "external declaration %v", n.Case)
+	}
+}
+
+// declaration writes a file-scope declaration's lines.  ONE DECLARATION PER
+// DECLARATOR, AND A BLANK LINE BETWEEN THEM, as between any two file-scope
+// declarations: `int a, *b;` prints as the two it is, and printed again each
+// one is its own external declaration, which File separates.  Adjacent, the
+// second print moved the first's text.
+func (e *emitter) declaration(lines []string) {
+	for i, s := range lines {
+		if i > 0 {
+			e.w("\n")
+		}
+		e.line(s)
 	}
 }
 

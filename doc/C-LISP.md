@@ -104,8 +104,8 @@ Against go-whim `9fec73f`, on the 64-core machine:
    bit-field, a case range, a statement expression, a computed goto,
    `alignas`, `_Atomic`, an asm label, `typeof` of a type or a `sizeof`
    without parentheses: the package's tests make each of those and every
-   other form, but `macro-decl` (a declaration wholly a macro's) and
-   `alignof-bare`.
+   other form, `macro-decl` (a declaration wholly a macro's) and
+   `alignof-bare` among them since item 8.
 6. **Nothing else moved.** `make whim-build-check` (with cemit's `Canonical`
    now `Parse` and `File`): every phase reproduces the next and whim-vim.c
    comes back byte for byte, 68 s. `make whim-test`: 80 of 80 as HEAD, the
@@ -120,6 +120,47 @@ Against go-whim `9fec73f`, on the 64-core machine:
    it. Tests in both packages, which fail with the fix reverted; the
    pipeline's text does not move (`make whim-build-check` in order and in
    parallel, every editor what its generator writes, `make whim-vim.lc`).
+8. **The gaps closed.** What C-lisp refused, none of it in the corpus, has a
+   form now (SPEC.md): an attribute on a struct or union, before its tag and
+   after its body (`(@ ATTR...)`), and on a member; a parameter's array
+   declarator with `static`, qualifiers or `*` (`(array static const 3 T)`,
+   `(array const * T)`); the qualifiers of a pointer in their order, and an
+   attribute among them; an identifier list and an old-style (K&R)
+   definition (`(fn-ids (a b) int)`, `(kr-params DECL...)`); a declaration
+   with no type specifier -- C23's `auto x = 1;`, gcc's `__auto_type` --
+   whose type is the empty list, `(def auto x () 1)`; and the `__typeof__`
+   and `__typeof` spellings, the head the keyword (`(__typeof__ E)`). Each
+   is a case of the package's tests both ways, and of cemit's, which also
+   hold gcc -std=c23 to accepting the printed text. Writing them found cemit
+   printing six of them wrong, every one a silent change of the program:
+   `struct __attribute__((packed)) s { ... }` lost its attribute (the
+   front end stored the trailing list over the leading one -- the fork's one
+   corrected field, `crefactor/cc/README.md`), a member's attribute was not
+   printed, `*const volatile` came out `*volatile const` and back (the
+   front end's list is backwards: no fixed point), an `__attribute__` among
+   a pointer's qualifiers was dropped, `int f(a, b);` printed as `int
+   f(,);`, and `__auto_type x = 1;` as `x = 1;`; `[static 3]` and a K&R
+   definition it refused. And two in the macro recovery that `macro-decl`'s
+   test found: a file-scope declaration was printed twice, once to ask
+   whether it printed anything -- and a member-designator macro (`st_mtime`,
+   `st_mtim.tv_sec`) is printed by the first selection that reaches it and
+   recorded, so the second print wrote `sizeof(s.st_mtime)` as `sizeof(s)`;
+   it is printed once now, in cemit's `File` and C-lisp's `Forms` alike --
+   and a file-scope declaration wholly a macro's, `DECLARE(x)`, was read to
+   the end of the file, its invocation having no next token to end it; it
+   ends where its arguments do. Tests that fail with each fix reverted.
+   **What stays refused** is what the front end does not parse, refused
+   there with its position: C23's `[[...]]` but in a statement's place
+   (`struct [[gnu::packed]] s`, a member's), `typeof_unqual`, `[*]` but as an
+   unnamed parameter's first declarator, and an unnamed parameter's
+   `[static 3]` or `[const n]` -- the parser was not forked further for
+   them. The pipeline's text does not move: `make whim-build-check` against
+   the snapshots the code before wrote (every phase reproduces the next, 66
+   s), then in order with none (338 s; the 104 boundaries byte for byte the
+   code before's) and in parallel again (66 s); every editor is what its
+   generator writes; `make whim-vim.lc` compiles to `bin/whim-vim`'s bytes;
+   the corpus of item 4, the 104 boundaries and whim-vim.c, byte for byte
+   again, and slim-vim.c to cemit's text of it.
 
 ## What it is and is not good for here
 
@@ -149,7 +190,8 @@ Against go-whim `9fec73f`, on the 64-core machine:
 - **It is a hard test of cemit.** A second printer that must give cemit's
   bytes on 104 texts of up to 173,000 lines checks that cemit's spelling is
   a function of the tree and the two source facts it exports, and nothing
-  else -- and found the two bugs of item 7, fixed since.
+  else -- and found the two bugs of item 7 and the eight of item 8, fixed
+  since.
 
 ## Reproduce
 

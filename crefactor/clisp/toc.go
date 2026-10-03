@@ -383,7 +383,16 @@ func (p *printer) funcDef(f *Node) {
 		p.w(Indent + head + "\n")
 	}
 	p.w(dc.direct + "\n")
-	p.compound(d.rest)
+	body := d.rest
+	if len(body) > 0 && body[0].Is("kr-params") {
+		p.indent++
+		for _, x := range body[0].Args() {
+			p.line(p.declLine(x))
+		}
+		p.indent--
+		body = body[1:]
+	}
+	p.compound(body)
 }
 
 // ---- specifiers
@@ -405,10 +414,10 @@ func (p *printer) spec(n *Node) string {
 		return p.structOrUnion(n)
 	case "enum":
 		return p.enum(n)
-	case "typeof":
-		return "typeof(" + p.expr(p.arg(n, 0), lvComma) + ")"
-	case "typeof-type":
-		return "typeof(" + p.typeName(p.arg(n, 0)) + ")"
+	case "typeof", "__typeof__", "__typeof":
+		return n.Head() + "(" + p.expr(p.arg(n, 0), lvComma) + ")"
+	case "typeof-type", "__typeof__-type", "__typeof-type":
+		return strings.TrimSuffix(n.Head(), "-type") + "(" + p.typeName(p.arg(n, 0)) + ")"
 	case "atomic":
 		return "_Atomic(" + p.typeName(p.arg(n, 0)) + ")"
 	case "alignas":
@@ -430,7 +439,8 @@ func baseItems(t *Node) []*Node {
 	switch t.Head() {
 	case "spec":
 		return t.Args()
-	case "struct", "union", "enum", "typeof", "typeof-type", "atomic", "alignas", "alignas-type", "attr", "attr-text":
+	case "struct", "union", "enum", "typeof", "typeof-type", "__typeof__", "__typeof__-type",
+		"__typeof", "__typeof-type", "atomic", "alignas", "alignas-type", "attr", "attr-text":
 		return []*Node{t}
 	}
 	return t.List
@@ -473,6 +483,9 @@ func attrText(n *Node) string {
 	return "__attribute__((" + strings.Join(vs, ", ") + "))"
 }
 
+// structOrUnion is `(struct TAG (@ ATTR...) MEMBER... (@ ATTR...))`, the tag
+// and each attribute list optional, `{}` for no members: the attributes
+// before the members are the ones before the body, those after them after.
 func (p *printer) structOrUnion(n *Node) string {
 	kw := n.Head()
 	args := n.Args()
@@ -481,20 +494,33 @@ func (p *printer) structOrUnion(n *Node) string {
 		tag = args[0].Atom
 		args = args[1:]
 	}
+	before, after := "", ""
+	if len(args) > 0 && args[0].Is("@") {
+		before = p.attrList(args[0].Args())
+		args = args[1:]
+	}
+	head := join(kw, before, tag)
 	if len(args) == 0 {
-		return join(kw, tag)
+		return head
+	}
+	if last := args[len(args)-1]; last.Is("@") {
+		after = p.attrList(last.Args())
+		args = args[:len(args)-1]
 	}
 	if len(args) == 1 && !args[0].list && args[0].Atom == "{}" {
 		args = nil
 	}
 	var b strings.Builder
-	b.WriteString(join(kw, tag) + "\n" + p.pad() + "{\n")
+	b.WriteString(head + "\n" + p.pad() + "{\n")
 	p.indent++
 	for _, m := range args {
 		b.WriteString(p.pad() + p.member(m) + "\n")
 	}
 	p.indent--
 	b.WriteString(p.pad() + "}")
+	if after != "" {
+		b.WriteString(" " + after)
+	}
 	return b.String()
 }
 
@@ -507,16 +533,23 @@ func (p *printer) member(m *Node) string {
 		p.fail(m, "not a member")
 		return ""
 	}
-	if len(args) == 1 {
-		return p.specs(baseItems(args[0])) + ";"
+	// (NAME TYPE), or (TYPE) for a member with no declarator; then (bits W)
+	// for a bit-field, then the member's attributes.
+	var s string
+	i := 1
+	if len(args) >= 2 && !args[1].Is("bits") && !isAttr(args[1]) {
+		items, dc := p.build(args[1], dcl{direct: args[0].Atom})
+		s = join(p.specs(items), dc.text())
+		i = 2
+	} else {
+		s = p.specs(baseItems(args[0]))
 	}
-	if args[1].Is("bits") {
-		return join(p.specs(baseItems(args[0]))) + " : " + p.expr(p.arg(args[1], 0), lvCond) + ";"
+	if i < len(args) && args[i].Is("bits") {
+		s += " : " + p.expr(p.arg(args[i], 0), lvCond)
+		i++
 	}
-	items, dc := p.build(args[1], dcl{direct: args[0].Atom})
-	s := join(p.specs(items), dc.text())
-	if len(args) > 2 && args[2].Is("bits") {
-		s += " : " + p.expr(p.arg(args[2], 0), lvCond)
+	if i < len(args) {
+		s = join(s, p.attrList(args[i:]))
 	}
 	return s + ";"
 }
@@ -561,6 +594,13 @@ func (p *printer) enumerator(e *Node) string {
 	return e.List[0].Atom + " = " + p.expr(e.List[1], lvCond)
 }
 
+// arrayWords are the words an array declarator may say before its size.
+var arrayWords = map[string]bool{
+	"static": true, "const": true, "__const": true, "volatile": true, "__volatile": true,
+	"__volatile__": true, "restrict": true, "__restrict": true, "__restrict__": true,
+	"_Atomic": true, "_Nonnull": true,
+}
+
 // ---- declarators
 
 // A dcl is a declarator being built outward from its name: the pointers
@@ -591,6 +631,10 @@ func (p *printer) build(t *Node, d dcl) ([]*Node, dcl) {
 			}
 			var qs []string
 			for _, q := range args[1:] {
+				if q.list {
+					qs = append(qs, p.attr(q))
+					continue
+				}
 				qs = append(qs, q.Atom)
 			}
 			q := strings.Join(qs, " ")
@@ -601,15 +645,22 @@ func (p *printer) build(t *Node, d dcl) ([]*Node, dcl) {
 			t = args[0]
 		case "array":
 			d = d.parenthesised()
+			// (array WORD... N T): `static` and qualifiers, then the size
+			// (`*` for `[*]`), then the element type.
+			var words []string
+			for len(args) > 0 && !args[0].list && arrayWords[args[0].Atom] {
+				words = append(words, args[0].Atom)
+				args = args[1:]
+			}
 			switch len(args) {
 			case 1:
-				d.direct += "[]"
+				d.direct += "[" + strings.Join(words, " ") + "]"
 				t = args[0]
 			case 2:
-				d.direct += "[" + p.expr(args[0], lvAssign) + "]"
+				d.direct += "[" + join(append(words, p.expr(args[0], lvAssign))...) + "]"
 				t = args[1]
 			default:
-				p.fail(t, "an array is (array T) or (array N T)")
+				p.fail(t, "an array is (array WORD... T) or (array WORD... N T)")
 				return nil, d
 			}
 		case "fn":
@@ -619,6 +670,18 @@ func (p *printer) build(t *Node, d dcl) ([]*Node, dcl) {
 			}
 			d = d.parenthesised()
 			d.direct += "(" + p.params(args[0]) + ")"
+			t = args[1]
+		case "fn-ids":
+			if len(args) != 2 || !args[0].list {
+				p.fail(t, "an old-style function is (fn-ids (NAME...) RESULT)")
+				return nil, d
+			}
+			d = d.parenthesised()
+			var ids []string
+			for _, x := range args[0].List {
+				ids = append(ids, x.Atom)
+			}
+			d.direct += "(" + strings.Join(ids, ", ") + ")"
 			t = args[1]
 		case "paren":
 			d = dcl{direct: "(" + d.ptr + d.direct + ")"}

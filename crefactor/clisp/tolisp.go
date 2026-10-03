@@ -52,12 +52,10 @@ func Forms(path string, src []byte) ([]*Node, error) {
 			flush()
 		}
 		c.m.Enter(d)
-		// THE EMPTY DECLARATION IS ASKED ABOUT FIRST, as cemit's File asks:
-		// converting it twice keeps the recovery's record of what it printed
-		// the same as File's.
-		if d.Case == cc.ExternalDeclarationDecl && len(c.decl(d.Declaration)) == 0 {
-			continue
-		}
+		// CONVERTED ONCE, as cemit's File prints it once: the recovery
+		// records the member macros it has handed out, so a second
+		// conversion of the same declaration would lose them.  A declaration
+		// that converts to nothing is left out.
 		out = append(out, c.external(d)...)
 		if c.err != nil {
 			return nil, c.err
@@ -182,6 +180,7 @@ var prefixWords = map[string]bool{
 	"static": true, "extern": true, "typedef": true, "register": true, "auto": true,
 	"inline": true, "__inline": true, "__inline__": true, "_Noreturn": true,
 	"_Thread_local": true, "thread_local": true, "__thread": true, "constexpr": true,
+	"__auto_type": true,
 }
 
 func (c *conv) declSpecs(n *cc.DeclarationSpecifiers) []spec {
@@ -246,15 +245,10 @@ func (c *conv) typeSpec(n *cc.TypeSpecifier) spec {
 	case cc.TypeSpecifierEnum:
 		return spec{n: c.enum(n.EnumSpecifier)}
 	case cc.TypeSpecifierTypeofExpr:
-		if tok(n.Token) != "typeof" {
-			c.fail(n, "typeof spelled %s", tok(n.Token))
-		}
-		return spec{n: L(A("typeof"), c.expr(n.ExpressionList, lvComma))}
+		// The head is the keyword as spelled: `typeof`, `__typeof__`, `__typeof`.
+		return spec{n: L(A(tok(n.Token)), c.expr(n.ExpressionList, lvComma))}
 	case cc.TypeSpecifierTypeofType:
-		if tok(n.Token) != "typeof" {
-			c.fail(n, "typeof spelled %s", tok(n.Token))
-		}
-		return spec{n: L(A("typeof-type"), c.typeName(n.TypeName))}
+		return spec{n: L(A(tok(n.Token)+"-type"), c.typeName(n.TypeName))}
 	case cc.TypeSpecifierAtomic:
 		return spec{n: L(A("atomic"), c.typeName(n.AtomicTypeSpecifier.TypeName))}
 	case cc.TypeSpecifierTypeName:
@@ -303,12 +297,16 @@ func splitPrefix(specs []spec) (prefix []*Node, rest []spec) {
 
 func (c *conv) structOrUnion(n *cc.StructOrUnionSpecifier) *Node {
 	kw := tok(n.StructOrUnion.Token)
-	if n.AttributeSpecifierList != nil || n.AttributeSpecifierList2 != nil {
-		c.fail(n, "an attribute on a %s", kw)
-	}
 	f := L(A(kw))
 	if t := tok(n.Token); t != "" {
 		f.add(A(t))
+	}
+	// ITS ATTRIBUTES ARE `(@ ATTR...)`, before the members when the source
+	// has them before the body, after them when after: `struct
+	// __attribute__((packed)) s { ... }` and `struct s { ... }
+	// __attribute__((packed))`.
+	if a := c.attrs(n.AttributeSpecifierList); len(a) > 0 {
+		f.add(L(A("@")).add(a...))
 	}
 	switch n.Case {
 	case cc.StructOrUnionSpecifierTag:
@@ -319,6 +317,9 @@ func (c *conv) structOrUnion(n *cc.StructOrUnionSpecifier) *Node {
 		}
 		for l := n.StructDeclarationList; l != nil; l = l.StructDeclarationList {
 			f.add(c.structDecl(l.StructDeclaration)...)
+		}
+		if a := c.attrs(n.AttributeSpecifierList2); len(a) > 0 {
+			f.add(L(A("@")).add(a...))
 		}
 		return f
 	}
@@ -334,8 +335,11 @@ func (c *conv) structDecl(n *cc.StructDeclaration) []*Node {
 			c.fail(n, "a member with no type")
 			return nil
 		}
+		// The member's attributes follow its last declarator, as cemit
+		// prints them.
+		attrs := c.attrs(n.AttributeSpecifierList)
 		if n.StructDeclaratorList == nil {
-			return []*Node{L(base(sq))}
+			return []*Node{L(base(sq)).add(attrs...)}
 		}
 		var out []*Node
 		for l := n.StructDeclaratorList; l != nil; l = l.StructDeclaratorList {
@@ -353,6 +357,9 @@ func (c *conv) structDecl(n *cc.StructDeclaration) []*Node {
 				m.add(L(A("bits"), c.expr(d.ConstantExpression, lvCond)))
 			default:
 				c.fail(d, "struct declarator %v", d.Case)
+			}
+			if l.StructDeclaratorList == nil {
+				m.add(attrs...)
 			}
 			out = append(out, m)
 		}
@@ -415,18 +422,37 @@ func (c *conv) pointer(t *Node, p *cc.Pointer) *Node {
 			c.fail(p, "pointer %v", p.Case)
 			return t
 		}
-		f := L(A("ptr"), t)
-		for l := p.TypeQualifiers; l != nil; l = l.TypeQualifiers {
-			if l.TypeQualifier != nil {
-				f.add(A(tok(l.TypeQualifier.Token)))
-			}
-		}
-		t = f
+		t = L(A("ptr"), t).add(c.quals(p.TypeQualifiers)...)
 		if p.Case == cc.PointerTypeQual {
 			break
 		}
 	}
 	return t
+}
+
+// quals is a pointer's or an array declarator's qualifiers, in the source's
+// order (the front end's list holds them backwards; cemit's typeQuals), an
+// `__attribute__` among them its attribute forms.
+func (c *conv) quals(n *cc.TypeQualifiers) []*Node {
+	var out []*Node
+	for l := n; l != nil; l = l.TypeQualifiers {
+		q := l.TypeQualifier
+		switch {
+		case q == nil:
+		case q.Case == cc.TypeQualifierAttr:
+			a := c.attrs(q.AttributeSpecifierList)
+			for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 {
+				a[i], a[j] = a[j], a[i]
+			}
+			out = append(out, a...)
+		default:
+			out = append(out, A(tok(q.Token)))
+		}
+	}
+	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+		out[i], out[j] = out[j], out[i]
+	}
+	return out
 }
 
 // derived reports whether t is an array or a function, whose declarator
@@ -451,17 +477,22 @@ func (c *conv) directDeclarator(t *Node, n *cc.DirectDeclarator) (string, *Node)
 		case cc.DirectDeclaratorDecl:
 			return c.declarator(group(t, n.Declarator.Pointer != nil), n.Declarator)
 		case cc.DirectDeclaratorArr:
-			if n.TypeQualifiers != nil {
-				c.fail(n, "a qualified array declarator")
-			}
-			t = c.array(t, n.AssignmentExpression)
+			t = c.array(t, c.quals(n.TypeQualifiers), n.AssignmentExpression)
+		case cc.DirectDeclaratorStaticArr:
+			t = c.array(t, append([]*Node{A("static")}, c.quals(n.TypeQualifiers)...), n.AssignmentExpression)
+		case cc.DirectDeclaratorArrStatic:
+			t = c.array(t, append(c.quals(n.TypeQualifiers), A("static")), n.AssignmentExpression)
+		case cc.DirectDeclaratorStar:
+			t = L(A("array")).add(c.quals(n.TypeQualifiers)...).add(A("*"), t)
 		case cc.DirectDeclaratorFuncParam:
 			t = L(A("fn"), c.params(n.ParameterTypeList), t)
 		case cc.DirectDeclaratorFuncIdent:
-			if n.IdentifierList != nil {
-				c.fail(n, "an identifier list")
+			// An identifier list, K&R's: `(fn-ids (a b) int)`.
+			ids := L()
+			for l := n.IdentifierList; l != nil; l = l.IdentifierList {
+				ids.add(A(tok(l.Token2)))
 			}
-			t = L(A("fn"), L(), t)
+			t = L(A("fn-ids"), ids, t)
 		default:
 			c.fail(n, "direct declarator %v", n.Case)
 			return "", t
@@ -472,11 +503,15 @@ func (c *conv) directDeclarator(t *Node, n *cc.DirectDeclarator) (string, *Node)
 	return "", t
 }
 
-func (c *conv) array(t *Node, size cc.ExpressionNode) *Node {
-	if size == nil {
-		return L(A("array"), t)
+// array is `(array WORD... N T)`: the words a parameter's array declarator
+// says -- `static` and its qualifiers, in their order -- then its size, if it
+// has one, then the element type.  `[*]` is the size `*`.
+func (c *conv) array(t *Node, words []*Node, size cc.ExpressionNode) *Node {
+	f := L(A("array")).add(words...)
+	if size != nil {
+		f.add(c.expr(size, lvAssign))
 	}
-	return L(A("array"), c.expr(size, lvAssign), t)
+	return f.add(t)
 }
 
 func (c *conv) abstract(t *Node, n *cc.AbstractDeclarator) *Node {
@@ -493,10 +528,16 @@ func (c *conv) directAbstract(t *Node, n *cc.DirectAbstractDeclarator) *Node {
 			a := n.AbstractDeclarator
 			return c.abstract(group(t, a != nil && a.Pointer != nil), a)
 		case cc.DirectAbstractDeclaratorArr:
-			if n.TypeQualifiers != nil {
-				c.fail(n, "a qualified array declarator")
+			// `[const static 5]` arrives as this case, its `static` in Token2.
+			words := c.quals(n.TypeQualifiers)
+			if tok(n.Token2) == "static" {
+				words = append(words, A("static"))
 			}
-			t = c.array(t, n.AssignmentExpression)
+			t = c.array(t, words, n.AssignmentExpression)
+		case cc.DirectAbstractDeclaratorStaticArr:
+			t = c.array(t, append([]*Node{A("static")}, c.quals(n.TypeQualifiers)...), n.AssignmentExpression)
+		case cc.DirectAbstractDeclaratorArrStar:
+			t = L(A("array"), A("*"), t)
 		case cc.DirectAbstractDeclaratorFunc:
 			t = L(A("fn"), c.params(n.ParameterTypeList), t)
 		default:
@@ -625,11 +666,10 @@ func (c *conv) decl(n *cc.Declaration) []*Node {
 			}
 			return []*Node{f}
 		}
+		// A DECLARATION WITH NO TYPE SPECIFIER -- C23's `auto x = 1;`,
+		// whose type is inferred, or an old `static x;` -- has the empty
+		// specifier list for its type: `(def auto x () 1)`.
 		prefix, rest := splitPrefix(specs)
-		if len(rest) == 0 {
-			c.fail(n, "a declaration with no type specifier")
-			return nil
-		}
 		var out []*Node
 		for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
 			d := l.InitDeclarator
@@ -651,6 +691,10 @@ func (c *conv) decl(n *cc.Declaration) []*Node {
 		return out
 	case cc.DeclarationAssert:
 		return []*Node{c.staticAssert(n.StaticAssertDeclaration)}
+	case cc.DeclarationAuto:
+		// `__auto_type x = 1;` is `(def __auto_type x () 1)`.
+		name, t := c.declarator(L(), n.Declarator)
+		return []*Node{L(A("def"), A(tok(n.Token)), A(name), t, c.initializer(n.Initializer))}
 	}
 	c.fail(n, "declaration %v", n.Case)
 	return nil
@@ -673,17 +717,18 @@ func (c *conv) staticAssert(n *cc.StaticAssertDeclaration) *Node {
 }
 
 func (c *conv) funcDef(f *cc.FunctionDefinition) *Node {
-	if f.DeclarationList != nil {
-		c.fail(f, "an old-style parameter declaration list")
-		return nil
-	}
 	prefix, rest := splitPrefix(c.declSpecs(f.DeclarationSpecifiers))
-	if len(rest) == 0 {
-		c.fail(f, "a definition with no type specifier")
-		return nil
-	}
 	name, t := c.declarator(base(rest), f.Declarator)
 	d := L(A("defn")).add(prefix...).add(A(name), t)
+	// AN OLD-STYLE DEFINITION'S PARAMETER DECLARATIONS are `(kr-params
+	// DECL...)`, before the body's items.
+	if f.DeclarationList != nil {
+		kr := L(A("kr-params"))
+		for l := f.DeclarationList; l != nil; l = l.DeclarationList {
+			kr.add(c.decl(l.Declaration)...)
+		}
+		d.add(kr)
+	}
 	return d.add(c.blockItems(f.CompoundStatement.BlockItemList)...)
 }
 

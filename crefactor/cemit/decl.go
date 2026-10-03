@@ -136,20 +136,31 @@ func (e *emitter) structDecl(n *cc.StructDeclaration) []string {
 	switch n.Case {
 	case cc.StructDeclarationDecl:
 		sq := e.specQuals(n.SpecifierQualifierList)
+		// A MEMBER'S ATTRIBUTES FOLLOW ITS LAST DECLARATOR, where the front
+		// end takes them -- after the whole list, before the `;` -- and where
+		// gcc applies them: to that declarator alone, so the one-a-line split
+		// writes them on the last line.  They were not printed at all, and
+		// `int a __attribute__((aligned(8)));` lost its alignment.
+		attrs := e.attrs(n.AttributeSpecifierList)
 		if n.StructDeclaratorList == nil {
-			return []string{sq + ";"}
+			return []string{join(sq, attrs) + ";"}
 		}
 		var out []string
 		for l := n.StructDeclaratorList; l != nil; l = l.StructDeclaratorList {
 			d := l.StructDeclarator
+			var s string
 			switch d.Case {
 			case cc.StructDeclaratorDecl:
-				out = append(out, join(sq, e.declarator(d.Declarator))+";")
+				s = join(sq, e.declarator(d.Declarator))
 			case cc.StructDeclaratorBitField:
-				out = append(out, join(sq, e.declarator(d.Declarator))+" : "+e.expr(d.ConstantExpression)+";")
+				s = join(sq, e.declarator(d.Declarator)) + " : " + e.expr(d.ConstantExpression)
 			default:
 				e.fail(d, "struct declarator %v", d.Case)
 			}
+			if l.StructDeclaratorList == nil {
+				s = join(s, attrs)
+			}
+			out = append(out, s+";")
 		}
 		return out
 	case cc.StructDeclarationAssert:
@@ -229,12 +240,27 @@ func (e *emitter) pointer(n *cc.Pointer) string {
 	return ""
 }
 
+// typeQuals prints a pointer's or an array declarator's qualifiers IN THE
+// SOURCE'S ORDER.  The front end builds the list left-recursively -- each node
+// holds the LAST qualifier and the ones before it in its child -- so the walk
+// down it meets them backwards, and printing them as met wrote `*const
+// volatile p` as `*volatile const p`, and that back again: no fixed point.  An
+// `__attribute__` among a pointer's qualifiers is its attribute list, which
+// the walk printed as nothing.
 func (e *emitter) typeQuals(n *cc.TypeQualifiers) string {
 	var parts []string
 	for l := n; l != nil; l = l.TypeQualifiers {
-		if l.TypeQualifier != nil {
-			parts = append(parts, tok(l.TypeQualifier.Token))
+		q := l.TypeQualifier
+		switch {
+		case q == nil:
+		case q.Case == cc.TypeQualifierAttr:
+			parts = append(parts, e.attrs(q.AttributeSpecifierList))
+		default:
+			parts = append(parts, tok(q.Token))
 		}
+	}
+	for i, j := 0, len(parts)-1; i < j; i, j = i+1, j-1 {
+		parts[i], parts[j] = parts[j], parts[i]
 	}
 	return strings.Join(nonEmpty(parts), " ")
 }
@@ -251,6 +277,14 @@ func (e *emitter) directDeclarator(n *cc.DirectDeclarator) string {
 	case cc.DirectDeclaratorArr:
 		return e.directDeclarator(n.DirectDeclarator) + "[" +
 			joinSp(e.typeQuals(n.TypeQualifiers), e.expr(n.AssignmentExpression)) + "]"
+	// A PARAMETER'S ARRAY MAY SAY `static` -- at least that many elements --
+	// before its qualifiers or after them, and both orders are kept.
+	case cc.DirectDeclaratorStaticArr:
+		return e.directDeclarator(n.DirectDeclarator) + "[" +
+			joinSp("static", e.typeQuals(n.TypeQualifiers), e.expr(n.AssignmentExpression)) + "]"
+	case cc.DirectDeclaratorArrStatic:
+		return e.directDeclarator(n.DirectDeclarator) + "[" +
+			joinSp(e.typeQuals(n.TypeQualifiers), "static", e.expr(n.AssignmentExpression)) + "]"
 	case cc.DirectDeclaratorStar:
 		return e.directDeclarator(n.DirectDeclarator) + "[" +
 			joinSp(e.typeQuals(n.TypeQualifiers), "*") + "]"
@@ -265,8 +299,9 @@ func (e *emitter) directDeclarator(n *cc.DirectDeclarator) string {
 
 func (e *emitter) identList(n *cc.IdentifierList) string {
 	var parts []string
+	// The identifier is Token2; Token is the comma before it.
 	for l := n; l != nil; l = l.IdentifierList {
-		parts = append(parts, tok(l.Token))
+		parts = append(parts, tok(l.Token2))
 	}
 	return strings.Join(nonEmpty(parts), ", ")
 }
@@ -319,8 +354,17 @@ func (e *emitter) directAbstract(n *cc.DirectAbstractDeclarator) string {
 	case cc.DirectAbstractDeclaratorDecl:
 		return "(" + e.abstract(n.AbstractDeclarator) + ")"
 	case cc.DirectAbstractDeclaratorArr:
+		// `[const static 5]` in an abstract declarator arrives as this case
+		// with the `static` in Token2, where `]` is otherwise.
+		st := ""
+		if tok(n.Token2) == "static" {
+			st = "static"
+		}
 		return e.directAbstract(n.DirectAbstractDeclarator) + "[" +
-			joinSp(e.typeQuals(n.TypeQualifiers), e.expr(n.AssignmentExpression)) + "]"
+			joinSp(e.typeQuals(n.TypeQualifiers), st, e.expr(n.AssignmentExpression)) + "]"
+	case cc.DirectAbstractDeclaratorStaticArr:
+		return e.directAbstract(n.DirectAbstractDeclarator) + "[" +
+			joinSp("static", e.typeQuals(n.TypeQualifiers), e.expr(n.AssignmentExpression)) + "]"
 	case cc.DirectAbstractDeclaratorArrStar:
 		return e.directAbstract(n.DirectAbstractDeclarator) + "[*]"
 	case cc.DirectAbstractDeclaratorFunc:
@@ -428,7 +472,9 @@ func (e *emitter) declLines(n *cc.Declaration) []string {
 	case cc.DeclarationAssert:
 		return []string{e.staticAssert(n.StaticAssertDeclaration)}
 	case cc.DeclarationAuto:
-		return []string{join(e.declSpecs(n.DeclarationSpecifiers), e.declarator(n.Declarator)) +
+		// `__auto_type x = 1;` -- the keyword is the declaration's own token,
+		// not a specifier, and printing the specifiers alone wrote `x = 1;`.
+		return []string{join(tok(n.Token), e.declarator(n.Declarator)) +
 			" " + e.assign(n.Initializer) + ";"}
 	}
 	e.fail(n, "declaration %v", n.Case)

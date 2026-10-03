@@ -537,7 +537,7 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
 builds it, caches it and rebuilds it when any `.go` moves; every tool is a
 subcommand, `go tool whim <name>`, and the `Makefile` calls it the same way.
 **The C front end is a fork**, `crefactor/cc`: modernc.org/cc/v4 v4.29.7 with two
-C23 productions added, tracked as ordinary source (`crefactor/cc/README.md`,
+C23 productions added and one field corrected, tracked as ordinary source (`crefactor/cc/README.md`,
 which says how to diff it against upstream). It was composed at build time under `.cache/gofork/`
 before, because a patched `vendor/` fails `go mod verify`; a fork under its own
 import path has neither problem. Measured: with the patch reversed, `whim

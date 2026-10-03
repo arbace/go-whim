@@ -339,3 +339,121 @@ func TestPrintedCompilesAndRunsTheSame(t *testing.T) {
 		t.Fatalf("the fixture ran, but not as written: %q", before)
 	}
 }
+
+// The constructs C-lisp once refused, each printed in its one spelling, a
+// fixed point, and accepted by gcc -std=c23: an attribute on a struct or
+// union, before its tag and after its body, and on a member; a parameter's
+// array declarator with `static`, qualifiers or `*`; the qualifiers of a
+// pointer in their order, and an attribute among them; an old-style (K&R)
+// definition and identifier list; `__auto_type`, C23's `auto`, and the
+// `__typeof__` spellings.  Each printed wrong or not at all before: the
+// leading struct attribute and the member's were dropped, `[static 3]`
+// refused, `*const volatile` reversed, `f(a, b)` printed as `f(,)`,
+// `__auto_type y = 3;` as `y = 3;`, and a K&R definition refused.
+func TestDeclaratorsAndAttributes(t *testing.T) {
+	for _, c := range []struct{ name, src, want string }{
+		{"struct attribute before the tag", "struct __attribute__((packed)) s { int a; char b; };", `struct __attribute__((packed)) s
+{
+    int a;
+    char b;
+};
+`},
+		{"struct attribute after the body", "struct s { int a; char b; } __attribute__((packed));", `struct s
+{
+    int a;
+    char b;
+} __attribute__((packed));
+`},
+		{"union attributes both sides", "union __attribute__((aligned(8))) { int a; } __attribute__((may_alias)) u;", `union __attribute__((aligned(8)))
+{
+    int a;
+} __attribute__((may_alias)) u;
+`},
+		{"struct attribute on a tag", "struct __attribute__((packed)) s; struct __attribute__((packed)) s *p;", "struct __attribute__((packed)) s;\n\nstruct __attribute__((packed)) s *p;\n"},
+		{"member attributes", "struct s { int a __attribute__((aligned(8))); char b, c __attribute__((aligned(4))); unsigned f : 3 __attribute__((packed)); };", `struct s
+{
+    int a __attribute__((aligned(8)));
+    char b;
+    char c __attribute__((aligned(4)));
+    unsigned f : 3 __attribute__((packed));
+};
+`},
+		{"array parameters", "void f(int a[static 3], int b[const 4], int c[static const 5], int d[const static 6], int e[restrict], int n, int g[const *], int h[restrict volatile n]);",
+			"void f(int a[static 3], int b[const 4], int c[static const 5], int d[const static 6], int e[restrict], int n, int g[const *], int h[restrict volatile n]);\n"},
+		{"abstract array parameters", "void g(int[*], int[const 4], int[const static 5], int[static const 6]);",
+			"void g(int [*], int [const 4], int [const static 5], int [static const 6]);\n"},
+		{"pointer qualifiers in order", "char *const volatile p; char *restrict const *volatile q;",
+			"char *const volatile p;\n\nchar *restrict const *volatile q;\n"},
+		{"pointer attribute", "char * __attribute__((aligned(8))) p;", "char *__attribute__((aligned(8))) p;\n"},
+		{"old-style definition", "int f(a, b, p) int a; register char b, *p; { return a + b; }", `    int
+f(a, b, p)
+    int a;
+    register char b;
+    register char *p;
+{
+    return a + b;
+}
+`},
+		{"__auto_type and auto", "void f(void) { __auto_type x = 1; auto y = 2; const auto z = 3; x = y + z; }", `    void
+f(void)
+{
+    __auto_type x = 1;
+    auto y = 2;
+    const auto z = 3;
+    x = y + z;
+}
+`},
+		{"typeof spellings", "__typeof__(1) a; __typeof(1) b; __typeof__(int *) c; typeof(int) d;",
+			"__typeof__(1) a;\n\n__typeof(1) b;\n\n__typeof__(int *) c;\n\ntypeof(int) d;\n"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			got := canon(t, c.src)
+			if got != c.want {
+				t.Errorf("printed\n%s\nwant\n%s", got, c.want)
+			}
+			if again := canon(t, got); again != got {
+				t.Errorf("not a fixed point: a second print gives\n%s", again)
+			}
+			gccAccepts(t, got)
+		})
+	}
+	// An identifier list outside a definition is not C (gcc refuses it), but
+	// the front end parses it, and it is printed as written.
+	if got := canon(t, "int f(a, b);"); got != "int f(a, b);\n" {
+		t.Errorf("an identifier list printed as %q", got)
+	}
+}
+
+// gccAccepts requires gcc -std=c23 to take src without an error.
+func gccAccepts(t *testing.T, src string) {
+	t.Helper()
+	if _, err := exec.LookPath("gcc"); err != nil {
+		return
+	}
+	p := filepath.Join(t.TempDir(), "a.c")
+	if err := os.WriteFile(p, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if out, err := exec.Command("gcc", "-std=c23", "-fsyntax-only", p).CombinedOutput(); err != nil {
+		t.Errorf("gcc -std=c23 refuses the printed text: %v\n%s\n%s", err, out, src)
+	}
+}
+
+// A FILE-SCOPE DECLARATION IS CONVERTED ONCE.  File asked a declaration
+// whether it printed anything by printing it, then printed it again; a
+// member-designator macro (`st_mtime`, which is `st_mtim.tv_sec`) is printed
+// by the first selection that reaches it and recorded, so the second print
+// dropped it: `sizeof(s.st_mtime)` came out `sizeof(s)`.  And a file-scope
+// declaration that is wholly a macro's invocation, the last of its
+// declaration, ends where its arguments do -- it ran to the end of the file.
+func TestMacrosAtFileScope(t *testing.T) {
+	src := "#include \"testdata/macros.h\"\nstruct st s;\nlong t = sizeof(s.st_mtime);\nlong u = s.st_mtime;\nDECLARE(x)\nint y;\n"
+	want := "#include \"testdata/macros.h\"\n\nstruct st s;\n\nlong t = sizeof(s.st_mtime);\n\nlong u = s.st_mtime;\n\nDECLARE(x)\n\nint y;\n"
+	got := canon(t, src)
+	if got != want {
+		t.Errorf("printed\n%s\nwant\n%s", got, want)
+	}
+	if again := canon(t, got); again != got {
+		t.Errorf("not a fixed point: a second print gives\n%s", again)
+	}
+}

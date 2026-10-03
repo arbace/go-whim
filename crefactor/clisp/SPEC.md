@@ -43,6 +43,7 @@ atom (`"<stdio.h>"`, `"va_arg(ap, int)"`), `"` and `\` escaped.
 | `(def static NAME TYPE VALUE)` | `static TYPE NAME = VALUE;` |
 | `(typedef NAME TYPE)` | `typedef TYPE NAME;` |
 | `(defn PREFIX... NAME (fn PARAMS RESULT) ITEM...)` | a function definition |
+| `(defn PREFIX... NAME (fn-ids (ID...) RESULT) (kr-params DECL...) ITEM...)` | an old-style (K&R) definition |
 | `(struct ...)`, `(union ...)`, `(enum ...)` | a declaration of that type alone: `struct pt { ... };` |
 | `(declare SPEC...)` | any other declaration without a declarator |
 | `(static_assert E "msg")` | `static_assert(E, "msg");` |
@@ -58,7 +59,7 @@ them.
 comes before every type specifier stands before the name: `static`, `extern`,
 `typedef`, `register`, `auto`, `inline`, `_Noreturn`, `_Thread_local`,
 `thread_local`, `constexpr` (and the `__inline`, `__inline__`, `__thread`
-spellings), and `(attr ...)`. `(typedef NAME TYPE)` is `(def typedef NAME
+spellings), `__auto_type`, and `(attr ...)`. `(typedef NAME TYPE)` is `(def typedef NAME
 TYPE)`. One that comes after a type specifier stays in the specifier list, in
 its place: `const static int x;` is `(def x (const static int))`.
 
@@ -74,6 +75,18 @@ After the type, a `def` may have attributes (`(attr ...)`), an asm label
 ```c
 static int vim_vsnprintf(char *str, usize str_m, const char *fmt, va_list ap) __attribute__((format(printf, 3, 0)));
 ```
+
+**No type specifier.** A declaration whose specifiers are all prefix --
+C23's `auto x = 1;`, whose type is inferred, or an old `static x;` -- has the
+empty specifier list, `()`, for its type; `__auto_type`, gcc's spelling of the
+inference, is a prefix word the same way:
+
+| form | C |
+| --- | --- |
+| `(def auto x () 1)` | `auto x = 1;` |
+| `(def __auto_type x () 1)` | `__auto_type x = 1;` |
+| `(def static x ())` | `static x;` |
+| `(def x (const auto) 1)` | `const auto x = 1;` -- `auto` after a type word stays in the list |
 
 A definition's head line is cemit's: the specifiers and the result's pointers
 indented, the name at column 0 under them.
@@ -102,13 +115,18 @@ outward, never C's inside-out declarator:
 | `(const char)` | `const char x` |
 | `(spec T const)` | `T const x` -- a list whose first specifier is a typedef name is headed `spec` |
 | `(ptr T)` | `T *x` |
-| `(ptr T const)` | `T *const x` -- the pointer's own qualifiers follow its target |
+| `(ptr T const)` | `T *const x` -- the pointer's own qualifiers follow its target, in the source's order |
+| `(ptr T (attr A))` | `T *__attribute__((A)) x` -- an attribute among them |
 | `(array 10 T)` | `T x[10]` |
 | `(array T)` | `T x[]` |
+| `(array static const 10 T)` | `T x[static const 10]` -- a parameter's `static` and qualifiers, in their order, before the size |
+| `(array const T)` | `T x[const]` |
+| `(array * T)`, `(array const * T)` | `T x[*]`, `T x[const *]` |
 | `(fn PARAMS T)` | `T x(PARAMS)` |
 | `(paren T)` | parentheses the source has where C does not need them: `char *(x[])` is `(array (paren (ptr char)))` |
 | `(struct TAG)`, `(union TAG)`, `(enum TAG)` | `struct TAG x` |
 | `(typeof E)`, `(typeof-type T)` | `typeof(E) x`, `typeof(T) x` |
+| `(__typeof__ E)`, `(__typeof__-type T)` | `__typeof__(E) x`, `__typeof__(T) x`; `__typeof` the same |
 | `(atomic T)` | `_Atomic(T) x` |
 | `(alignas E)`, `(alignas-type T)` | `alignas(E)`, `alignas(T)` as a specifier |
 
@@ -116,6 +134,26 @@ outward, never C's inside-out declarator:
 an array of ten pointers to functions of an int returning int. The parentheses
 a pointer inside an array or a function needs are written by `ToC`, and are not
 in the forms; the ones it does not need are `(paren ...)`.
+
+**Old-style definitions.** An identifier list is `(fn-ids (ID...) RESULT)`,
+and a K&R definition's parameter declarations are `(kr-params DECL...)`, the
+first of its items, one declarator a `def`, as cemit prints them one a line,
+an indent in:
+
+```
+(defn f (fn-ids (a p) int)
+  (kr-params (def a int) (def register p (ptr char)))
+  (return a))
+```
+```c
+    int
+f(a, p)
+    int a;
+    register char *p;
+{
+    return a;
+}
+```
 
 **Parameters.** `PARAMS` is a list: `(NAME TYPE ATTR...)` a named parameter,
 `(TYPE ATTR...)` an unnamed one, an atom type bare (`void`, `int`), and `...`
@@ -136,10 +174,14 @@ void (char *, int)
 is anonymous; `(struct TAG {})` has no members. A member is `(NAME TYPE)`,
 `(NAME TYPE (bits W))` for a bit-field, `(TYPE)` for a member with no
 declarator (an anonymous struct or union), `(TYPE (bits W))` for an unnamed
-bit-field, or a `(static_assert ...)`.
+bit-field, or a `(static_assert ...)`; a member's attributes follow, `(NAME TYPE
+ATTR...)`. **Attributes** of the struct itself are `(@ ATTR...)`: before the
+members when the source has them before the body, after when after, and
+`(struct TAG (@ ATTR...))` on a tag alone.
 
 ```
 (struct pt (x int) (y int) (f unsigned (bits 3)) ((union (i int) (c char))))
+(struct s (@ (attr packed)) (a int (attr (aligned 8))) (@ (attr (aligned 16))))
 ```
 ```c
 struct pt
@@ -153,6 +195,10 @@ struct pt
         char c;
     };
 };
+struct __attribute__((packed)) s
+{
+    int a __attribute__((aligned(8)));
+} __attribute__((aligned(16)));
 ```
 
 **Enum.** `(enum TAG (: SPEC...) ENUMERATOR...)`, the tag and the fixed
@@ -179,8 +225,12 @@ enum hue
 `__attribute__((unused))` is `(attr unused)`; `__attribute__((cold, format(printf,
 1, 2)))` is `(attr cold (format printf 1 2))`. An attribute specifier that does
 not print back as its source with that shape -- other spacing, an argument that
-is not one token -- is `(attr-text "...")`, its source text. C23's `[[...]]` is
-not in the tree (`crefactor/cc` discards it, and so cemit prints none).
+is not one token -- is `(attr-text "...")`, its source text. An attribute
+stands where the C has it: in a declaration's prefix, after a declarator, on a
+parameter or a member, on a struct or union (`(@ ...)`), among a pointer's
+qualifiers, or as a statement (`attributed`). C23's `[[...]]` is not in the
+tree: `crefactor/cc` parses it only in a statement's place, and discards it
+there (so cemit prints none); anywhere else it does not parse.
 
 ## Initializers
 
@@ -287,9 +337,12 @@ the tree does not have it, only the expansion.
 
 ## What it refuses
 
-`ToLisp` refuses what cemit refuses, and what no form says -- an attribute on a
-struct, a qualified or `[*]` array declarator, an identifier-list (K&R)
-declarator, a `typeof` spelled `__typeof__`, `auto` type inference -- with the
-position, never a silent omission. None of them is in whim's corpus. `ToC`
-refuses a form it does not know, an argument missing, a value where none can
-be.
+`ToLisp` refuses what cemit refuses -- a nested function definition, a node of
+the tree no form says -- with the position, never a silent omission. What the
+front end does not parse never reaches either, and is refused there, with its
+position: C23's `[[...]]` attributes but in a statement's place,
+`typeof_unqual`, `[*]` without a qualifier but as an unnamed parameter's first
+declarator (`int [*]` parses; `int a[*]` and `int (*)[*]` do not), and an
+unnamed parameter's `[static 3]` or `[const n]` (`[static const 3]` and
+`[const 4]` parse). `ToC` refuses a form it does not know, an argument
+missing, a value where none can be.

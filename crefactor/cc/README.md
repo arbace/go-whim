@@ -1,7 +1,7 @@
 # crefactor/cc — the C front end, forked
 
 modernc.org/cc/v4 v4.29.7, the fifteen non-test files, with two C23 productions
-added and one lookup exported. Upstream's BSD licence is beside this file and the copyright stays with
+added, one lookup exported and one field corrected. Upstream's BSD licence is beside this file and the copyright stays with
 The CC Authors.
 
 **The delta is the source here, and nowhere else.** It was a patch under
@@ -25,6 +25,13 @@ statement (C23 6.8.1, `theend:` with nothing before the `}`), and
 `[[fallthrough]];` where a statement is expected. `whim parse` is the smoke
 test that this fork, and not a pristine one, is what got linked: whim-vim.c does
 not parse without them.
+
+And one field: a tagged struct or union definition's trailing attributes
+(`struct s { ... } __attribute__((packed))`) are stored in
+`AttributeSpecifierList2`, as the untagged definition's are. Upstream stored
+them in `AttributeSpecifierList`, over the leading ones, so `struct
+__attribute__((packed)) s { ... }` reached a printer, and the type checker,
+without its attribute (`crefactor/cemit`'s test of it; none is in whim's input).
 
 And one method, `Scope.Declares` (end of `parser.go`): the scope an identifier
 resolves to where it is written, asked of the parse alone. The sweep
