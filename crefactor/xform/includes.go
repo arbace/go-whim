@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -19,6 +20,13 @@ import (
 type Silent struct {
 	Cmd   string
 	Flags []string
+	// Same, set, also asks that the file's own lines preprocess (Cmd -E) to
+	// the same text without the header: a header is spare only when no token
+	// of the file means something else without it.  A name the file declares
+	// itself and a header defines as a macro still compiles silently without
+	// the header -- an assertion comparing the two then compares the file's
+	// declaration with itself.
+	Same bool
 }
 
 var includeLine = regexp.MustCompile(`^#include <[^>]+>$`)
@@ -63,6 +71,20 @@ func includes(s Silent, t []byte, args []string, w io.Writer) ([]byte, error) {
 		out, err := exec.Command(s.Cmd, append(append([]string{}, s.Flags...), p)...).CombinedOutput()
 		os.Remove(p)
 		return err == nil && len(out) == 0, nil
+	}
+	if s.Same {
+		ref, err := ownLines(s.Cmd, d, "in.c", t)
+		if err != nil {
+			return nil, err
+		}
+		plain := silent
+		silent = func(name string, text []byte) (bool, error) {
+			if ok, err := plain(name, text); !ok || err != nil {
+				return ok, err
+			}
+			got, err := ownLines(s.Cmd, d, name, text)
+			return got == ref, err
+		}
 	}
 	if ok, err := silent("in.c", t); err != nil {
 		return nil, err
@@ -171,6 +193,34 @@ func includes(s Silent, t []byte, args []string, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintf(w, "  includes     removed: %s \n", strings.Join(removed, " "))
 	return without(lines, keep), nil
+}
+
+// ownLines is text's own lines as the preprocessor gives them: what cmd -E writes
+// for the file itself, the headers' lines and the line markers left out.
+func ownLines(cmd, dir, name string, text []byte) (string, error) {
+	p := filepath.Join(dir, "e-"+name)
+	if err := os.WriteFile(p, text, 0o644); err != nil {
+		return "", err
+	}
+	defer os.Remove(p)
+	out, err := exec.Command(cmd, "-E", p).Output()
+	if err != nil {
+		return "", fmt.Errorf("  includes     %s -E %s: %v", cmd, name, err)
+	}
+	var b strings.Builder
+	in := false
+	for _, ln := range strings.Split(string(out), "\n") {
+		if strings.HasPrefix(ln, "# ") {
+			f := strings.Fields(ln)
+			in = len(f) > 2 && f[2] == strconv.Quote(p)
+			continue
+		}
+		if in && strings.TrimSpace(ln) != "" {
+			b.WriteString(ln)
+			b.WriteByte('\n')
+		}
+	}
+	return b.String(), nil
 }
 
 // without is the phase program's `drop`: the text with those lines deleted.

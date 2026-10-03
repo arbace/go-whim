@@ -13,18 +13,8 @@ Nothing queued.
 
 ## Known stale, not yet scoped
 
-- **The `SIZE_MAX` static_assert checks nothing** (found 2026-10-03 by
-  B2e's include rule, doc/GRAPH-MIGRATION.md *B2e as built*; confirmed on
-  whim-vim.c). Phase 43 defined the header limits as core enumerators
-  (`enum : usize { SIZE_MAX = (usize)-1 };`) and asserted them against the
-  headers' macros below the line; phase 88 (old 169) dropped `<stdint.h>`,
-  since the file still compiles without it, so `static_assert((usize)-1 ==
-  SIZE_MAX, "SIZE_MAX")` now compares the core's enumerator with its own
-  definition. `EXIT_FAILURE`'s assert was the same from phase 88 until phase
-  99 brought `<stdlib.h>` back. A fix keeps `<stdint.h>` (phase 88 judging a
-  header needed when an assert's name would bind to the core without it --
-  the graph's `Collisions`/`Missing` say exactly that); the product gains
-  one include line.
+Nothing known.
+
 
 
 ## Declined, with the reason recorded

@@ -29,3 +29,7 @@ The seven cases answer as before on every editor.
 Under load -- the seven cases 16 times each on the Clojure editor, 48 at a
 time, a load average of 37 -- 5 of 112 runs differed from the C with the
 clock free, and none of 112 with it held.
+
+Since phase 88 keeps `<stdlib.h>` (its `EXIT_FAILURE` assertion names it),
+this phase asserts the include once instead of adding it after `<stddef.h>`;
+the header stays where the input had it.

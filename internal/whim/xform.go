@@ -61,6 +61,7 @@ var Nullptr = xform.NullptrKnobs{
 var Includes = xform.Silent{
 	Cmd:   "gcc",
 	Flags: []string{"-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter"},
+	Same:  true, // phase 43's static_asserts compare the core's limits with the headers'
 }
 
 // GotoTail is phase 89's bound: a label's tail is copied over a goto when

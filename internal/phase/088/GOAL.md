@@ -52,3 +52,15 @@ they were handed. Phase 147 moves `<fcntl.h>` beside `<termios.h>` instead of
 adding it.
 
 The transformation now lives in `crefactor/xform` (`Includes`), with its compiler question in `internal/whim/xform.go`.
+
+**A header is spare only if nothing means otherwise without it** (2026-10-03).
+A file that compiles silently without a header can still lose it wrongly:
+phase 43 declared the headers' limits as the core's own enumerators and
+asserted them against the headers' macros below the line, and with
+`<stdint.h>` and `<stdlib.h>` gone those assertions compiled -- comparing
+`SIZE_MAX` and `EXIT_FAILURE` with themselves. So the step also asks that
+the file's own lines preprocess to the same tokens without the header
+(`xform.Silent`'s `Same`): `<stdint.h>` and `<stdlib.h>` stay, 29 headers go
+where 31 went, and the product's `SIZE_MAX` assertion again expands to the
+header's `0xffffffffffffffffu`. Found by the graph's include rule
+(`doc/GRAPH-MIGRATION.md`, *B2e as built*), which tells the same two.

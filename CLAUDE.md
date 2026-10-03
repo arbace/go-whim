@@ -22,7 +22,7 @@ slim-vim.c  --whim-->  whim-vim.c
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
 - **whim** (the `Makefile`) removes capability on purpose, phases 0-103 from
-  180,870 lines to 77,634, numbered in the order they run (`doc/PHASES.md`
+  180,870 lines to 77,635, numbered in the order they run (`doc/PHASES.md`
   maps them to the numbers they were written under, 0-184 with gaps, which
   `GOALS.md`, every `GOAL.md` and the records still use). It is two arcs, a
   coda, five for the Go's sake, the headers, the gotos, the parallel `:%s`,
