@@ -589,6 +589,27 @@ func (b *builder) typeOfForm(t *Node) *Node {
 // basicType is the graph's `(basic ...)` node for the specifiers spelled,
 // in cc's words ("unsigned" for unsigned int, "long" for long int).
 func basicType(g *Graph, spelled []string) *Node {
+	words := basicWords(spelled)
+	if len(words) == 0 {
+		return nil
+	}
+	for _, t := range g.Types {
+		if t.Is("basic") && len(t.Kids) == len(words)+1 {
+			same := true
+			for j, w := range words {
+				same = same && t.Kids[j+1].Atom == w
+			}
+			if same {
+				return t
+			}
+		}
+	}
+	return nil
+}
+
+// basicWords are cc's words for the specifiers spelled ("unsigned" for
+// unsigned int, "long" for long int), none when they name no basic type.
+func basicWords(spelled []string) []string {
 	count := map[string]int{}
 	for _, w := range spelled {
 		count[w]++
@@ -627,21 +648,7 @@ func basicType(g *Graph, spelled []string) *Node {
 		}
 		words = w
 	}
-	if len(words) == 0 {
-		return nil
-	}
-	for _, t := range g.Types {
-		if t.Is("basic") && len(t.Kids) == len(words)+1 {
-			same := true
-			for j, w := range words {
-				same = same && t.Kids[j+1].Atom == w
-			}
-			if same {
-				return t
-			}
-		}
-	}
-	return nil
+	return words
 }
 
 // pointerTo is the graph's `(pointer @:t)`, when it holds one.

@@ -102,6 +102,10 @@ The new ones, each a batch's job (B0 and B2 below):
 | RETYPE | a declaration's type changed (`int` to `bool`, `void *` to `T *`, a union member to its one member), the typed edges above it cleared and listed (`Untyped`) until step 6's checker re-derives them | ~20 |
 | MOVE | a node or a run of items moved elsewhere keeping their ids (an outlined block, a body inlined, a range wrapped in a loop, a definition moved below the boundary) | ~15 |
 | INCLUDE | **done (B2e)**: `#include` forms added, deleted or moved under the extern rule (each name the file takes from the headers provided by an include above its first use; no header macro over the file's own names below it), and the first one as the core/host boundary: `FirstInclude`, `Core`/`Host`, `InCore`/`InHost`, `MoveToHost`/`MoveToCore` (*B2e as built*) | ~15 |
+| PARAM | **done (B2c)**: `Editor.DropParams`/`DropParam` -- a parameter dropped from every declaration of a function and from the fn forms of the pointers, members, parameters and typedefs of its family, the argument from every call, through pointers and tables too; every use of what changes type a call, a flow to the same new type, or a test, else refused; `DropArg` (one argument through `...`), `ParamToLocal`, `AddParam` (*B2c as built*) | ~20 |
+| RETYPE | **done (B2c)**: `Editor.Retype` (an object in every declaration, a local, a member, a typedef to a fixed point, a function's parameter in every declaration) and `RetypeResult`; the typed edges above every use typed again where plain, else cleared into `Untyped`; `Editor.Rederive` (*B2c as built*) | ~20 |
+| MOVE | **done (B2c)**: `Editor.MoveBefore`/`MoveAfter`/`MoveRun` (items beside an item, ids and edges kept) and `MoveTo` (a node into a placeholder's place, a fill in its own), refused where a use would not resolve, a declaration would hide or repeat one, or a jump would bind elsewhere (*B2c as built*) | ~15 |
+| INCLUDE | `#include` forms added, deleted or moved, and the first one as the core/host boundary: "is X above it", "the host region" | ~15 |
 | FOLDX | the fall-out rules the closure lacks, each a rule in `fallout.go` (generic) or a cut's own `Rule`: a walk folded to `v = cur; body` (refusing a break that binds to the loop); `a && K`, `a \|\| K`, `!K`, `K == 0`; a function whose body is `return K;` made K at its calls; a parameter every call passes alike made its value; statements after a jump or `return` go; a label no goto reaches goes; empty blocks taken everywhere (and an empty else, a trailing empty else-if), not only those an edit emptied; an if whose only effect is a store to a deleted location; the value a cut gives a deleted object (not its initialiser); `if (!f()) {}` becomes `(void)f();` (a declaring block spliced where no name clashes: B0's, `SpliceDeclaring`) | ~30 |
 
 ## B0 as built (2026-10-03)
@@ -1160,3 +1164,186 @@ staticcheck clean; `make whim-build-check` (parallel) byte for byte.
   literal elsewhere, which is the cut's to respell too.
 - No phase is converted: argvfront and filefront are B4's, 51a B3d's;
   the tests are their conversions' proofs in advance.
+## B2c as built (2026-10-03)
+
+PARAM, RETYPE and MOVE in `crefactor/graph`: `param.go`, `retype.go`,
+`move.go`, what the three share in `typeedit.go` (type nodes made and
+interned, an expression's type derived, the typed edges above a change
+walked again), and their verbs in `b2cverbs.go`; generic, naming nothing in
+vim. 904, 287, 346, 349 and 74 lines of Go, comments and blank lines aside.
+Two existing files changed: `edit.go` gains one field, `argLists`, and a
+guard in `place` and `insertPlace` -- **the sanctioned path past "a
+function's parameters are its type"**: while PARAM's splices run, a fn
+form's parameter list and a call's arguments are item places, and nowhere
+else, so `Delete` still refuses a parameter; `build.go`'s `basicType` is
+split, its words in `basicWords`, so that a basic type the file does not
+use yet (`long` in a file that had none) can be made.
+
+### The API
+
+**PARAM.** `DropParams([]ParamDrop{{Decl, I}...}, ParamOptions)` is one edit:
+each drop names a function type form by its declaration -- a function (any
+declaration of it: every one changes, the block-scope prototypes too), a
+parameter of a function (that parameter in every declaration), or a member,
+an object, a local or a typedef of a pointer-to-function type or an array of
+them -- and the index lost; several indices of one form, and several forms,
+at once. `DropParam(fn, param, opt)` is the common case;
+`ParamIndex(fn, param)` the index. `ParamOptions.Dangle` leaves a live use
+of a dropped parameter dangling, for the closure or the collection (an
+unused local's initialiser), instead of refusing. `DropArg(call, i)` drops
+one argument a callee takes through `...` (its format string is the
+caller's). `ParamToLocal(fn, param)` is a drop whose parameter moves into
+the definition's body as its first item, `(def NAME TYPE ATTR...)`, the
+same node with the same id, so that its uses need nothing. `AddParam(fn, i,
+"(NAME TYPE ATTR...)", arg)` adds one, read in each declaration's place,
+and at every call the argument `arg(call)` says, read at the call
+(direct calls only; a name that would hide the file's, or repeat one at the
+top of the body, refused). `ParamStats`: parameters, arguments, calls,
+declarations retyped.
+
+**RETYPE.** `Retype(decl, "TYPE")` -- an object (every file-scope
+declaration of it), a local, a member, a typedef, or a function's parameter
+(in every declaration of the function) -- and `RetypeResult(fn, "TYPE")`,
+the type a C-lisp form read at each declaration's place (BUILD's typedef
+names and tags). `RetypeStats`: forms, declarations retyped, expressions
+typed again, left untyped. `Rederive(n)`, for any edit: the expressions
+from n up typed again where plain -- what a converter calls after a
+`Replace` the editor cleared conservatively (phase 66's `FALSE` in an
+`int`'s place: 20 cleared, 0 after).
+
+**MOVE.** `MoveBefore(n, at)`, `MoveAfter(n, at)`, `MoveRun(first, last, at,
+after)`: items beside an item -- statements among statements, the file's
+forms among the file's. `MoveTo(n, to, fill)`: any node into the place of
+`to`, a placeholder that goes; `fill` (new, built where n stands) takes the
+place n leaves, or nil where an item or an else may be left out.
+
+**Verbs**: `DropParam`, `DropParams`, `ParamToLocal`, `Retype(pat, typ)`,
+`RetypeResult`, `MoveBefore(pat, at)`, `MoveAfter`, each reported and
+refused as B0's acts are.
+
+### The invariants each keeps
+
+- **PARAM, checked before anything moves.** What changes type is closed to
+  a fixed point: a declaration whose form names a typedef that changes, a
+  function one of whose parameters changes. Each one's new type is what its
+  form will say, made by `formType` with the drops and the typedefs' new
+  types in it -- and its form as it stands must first give its type node
+  now, so that a form PARAM cannot read (`typeof`, a computed array size)
+  is refused rather than mistyped. Then every use of every one of them,
+  through `()`, `*`, `&`, `[i]` and a member's selection, must be a callee
+  (the call loses the arguments its callee's fn form loses), an argument
+  dropped with it, a flow -- an argument to a parameter, either side of `=`,
+  `==`, `!=`, a return, a declaration's value, an initialiser's element
+  (positional: an array's element, a struct's k-th member) -- whose other
+  side has the same new type node (a function decays to its pointer) or is
+  a null constant, or a truth test; anything else (a cast, arithmetic, a
+  designated initialiser, a function passed through `...`) is refused,
+  named. A call keeps every other argument only where its type and its
+  parameter's, as the edit leaves them, agree. A dropped argument must be
+  free of side effects (no store, no call, nothing kept as text): the text
+  dropped whatever was there. A dropped parameter of a definition may have
+  no live use but in a dropped argument (or Dangle).
+- **PARAM, made.** Arguments and parameters go through the splice (ids
+  superseded, `delete` acts); a list that empties says `void`; the new type
+  nodes are made in one `type` act and interned (one node per structure:
+  phase 83's member and the five functions it points at share one); each
+  declaration's typed edge is its new type (a `retype` act); and the
+  expressions above every use are typed again. A drop on directly called
+  functions leaves nothing untyped: a call's type is its callee's result.
+- **RETYPE.** A function whose type changes (a parameter, the result, a
+  typedef a parameter names) must be used only as a callee, else refused.
+  The old forms are superseded and the new given; the declarations keep
+  their ids, their changed typed edges logged. A declaration reached
+  through a typedef whose form RETYPE cannot read loses its typed edge,
+  listed in `Untyped`: unknown, never wrong. Above every use, and above a
+  cast that names a changed typedef, each expression is typed again where
+  its type follows plainly (a call, a selection, `&`, `*`, `[i]`, an
+  assignment, a comparison, a cast, a sizeof), otherwise cleared and listed,
+  up to the statement, stopping where it finds a type unchanged. It is not
+  a checker: a cast made redundant, or a value that no longer fits, is the
+  caller's to rewrite (phase 80's two casts are `Rewrite`s).
+- **MOVE.** Made on the graph, checked, and undone when it refuses: nothing
+  logged, no id given. Every edge across the moved nodes' boundary must
+  resolve from where it now stands to the declaration it refers to
+  (BUILD's resolution, the importer's: the scopes before it, innermost
+  first, then the file's first declaration of the name): a use inside of a
+  declaration outside, a use outside of a declaration inside, and, where
+  they go, a use of another declaration of a name they declare (which they
+  would hide, or which is no longer the first). Where it resolves to
+  another file-scope declaration of its name -- one entity in C -- the
+  edge is retargeted there, logged, so that the graph stays the importer's
+  (a definition moved above its prototype takes its uses). A label stays
+  in its function; a member or a tag is used after its definition; a name
+  is not declared twice in one block or as a parameter there; a `break`,
+  `continue`, `case` or `default` binds to the same loop or switch, a
+  `return` to the same function. A move keeps every id (a `move` act);
+  MoveTo's placeholder is superseded and its fill given, as a Replace's,
+  and the expressions above both places are typed again.
+
+### What the tests prove
+
+`crefactor/graph`'s `param_test.go`, `retype_test.go` and `move_test.go`,
+every case on a graph read back from its Lisp: each edit's C view against
+C written by hand, printed canonically, byte for byte, the invariants
+(`Check`) and the graph read back the same (`Equal`); the types (a function
+type interned once, the selections of a retyped member, a typedef's reach
+to a parameter, its function and a cast, a sum cleared and listed); the ids
+(a moved local, `ParamToLocal`'s parameter and its uses, `MoveTo`'s
+argument); and each refusal to its message with the graph untouched: a
+parameter still used (and Dangle's dangling record), an argument with a
+side effect, a function stored in a table of the old type, a typedef's
+pointer named by its object, a `...`; a function whose address is taken;
+a use before its declaration, a declaration that would hide another, one
+declared twice, a break that would rebind, a goto out of its function, a
+node into itself, a local's use moved out of its scope.
+
+`internal/graphcheck`'s `b2c_test.go`, on the real snapshots
+(`GRAPH_SNAPS`): whole phases whose rows need the three, written on the
+graph outside the plan, on q(N-1)'s graph read back from its Lisp, held to
+the text program twice -- before the sweep, the graph's C view against the
+text program's output printed canonically; and collected, against qN.c --
+**byte for byte, every one**, with nothing left untyped:
+
+| phase | on the graph | the graph's acts |
+| --- | --- | ---: |
+| 31 | a condition rewritten, `open_buffer`'s three parameters dropped at its three calls | 31 ms |
+| 66 | five functions' eval parameters dropped (two of `find_ex_command` at once, the formatter's and the parse's it hands `tvs` to in one edit), after the folds and the ten `FALSE`s | 143 ms |
+| 83 | the cookie: five functions, three parameters and a member of the getter's pointer type, one family -- 18 parameters, 13 calls, among them the calls through `eap->ea_getline` and `fgetline` | 143 ms |
+| 57 | `p_emoji` an `int` | 3 ms |
+| 80 | `get_register`'s result, `put_register`'s parameter, two locals; the two casts rewritten | 42 ms |
+| 78 | 11 arguments moved into new locals' values (`MoveTo`), the places they leave taken by the locals | 10 ms |
+| 86 (its parameter alone) | `cmdline_handle_ctrl_bsl`'s `c` made a local, against the text's two literals | -- |
+
+And MOVE on whim-vim.c (q103): `ml_get_buf` before the function of its
+first use is refused (`DATA_BL`, a typedef its body names, is defined
+between); the first definition that can go there (`lalloc`), and the first
+that can go above its own prototype (`ga_init`, two refused before it), each
+give the text cut and pasted, printed canonically, gcc accepts the result
+(`-fsyntax-only`), and the graph imported from the C view refers as many
+uses to the moved definition as the move retargeted.
+
+The pipeline is unchanged: `make whim-build-check` (parallel) gives
+whim-vim.c byte for byte, 103 links, 5 begun on their graph snapshot,
+every boundary compiling.
+
+### Limits
+
+- **No checker.** RETYPE and MOVE keep the edges right and the types never
+  wrong, but whether C accepts the result -- a value that no longer fits its
+  new type, a cast now redundant -- is not asked; `Untyped` is where step 6
+  starts.
+- PARAM follows a function's value through the flows listed and nothing
+  else: a cast of a function pointer, one passed through `...`, a
+  designated initialiser, a struct copied whole that holds one, a typedef
+  named in a cast or a sizeof -- each refused. `AddParam` takes direct calls
+  only. Dropped arguments must be free of side effects; there is no option
+  to keep one as a statement before the call (no row needs it).
+- RETYPE makes no basic type the words do not name, reads no `typeof` or
+  computed array size (the declaration is then untyped, listed), and does
+  not retype a function wholesale (its parameters and result, one by one).
+- MOVE moves items among items, the file's forms among the file's, and any
+  node by `MoveTo`; not a member or an enumerator (an enumerator's value is
+  RENUM's). A tag or a member used at file scope before its definition is
+  refused even where C allows a pointer to an incomplete type. Moving a
+  function above its prototype retargets every use of its name, which on
+  the snapshots asks the whole file.

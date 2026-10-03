@@ -57,6 +57,11 @@ type Editor struct {
 	emptied []*Node           // blocks an edit left with no item
 	wasTop  map[*Node]bool    // top-level forms an edit removed
 
+	// argLists makes a function type's parameter list and a call's arguments
+	// places for items, while PARAM (param.go) edits them: the one
+	// sanctioned path past "a function's parameters are its type".
+	argLists bool
+
 	// Log is every edit, in order.
 	Log []Act
 	// Untyped are the expressions an edit left without a typed edge.
@@ -301,6 +306,9 @@ func (e *Editor) place(p *Node, i int) int {
 	}
 	if p.up == e.top[1] || p.up == e.top[2] {
 		return placeSection
+	}
+	if e.argLists && (isParamList(p) || p.Is("call") && i >= 2) {
+		return placeItem
 	}
 	switch p.Head() {
 	case "block":
@@ -835,6 +843,8 @@ func (e *Editor) insertPlace(p *Node, i int) int {
 		return placeItem
 	case p == e.top[1] || p == e.top[2]:
 		return placeSection
+	case e.argLists && (isParamList(p) || p.Is("call") && i >= 2):
+		return placeItem
 	case p.Is("block"):
 		if i >= 2 || i == 1 && (len(p.Kids) < 2 || !p.Kids[1].Is("@")) {
 			return placeItem

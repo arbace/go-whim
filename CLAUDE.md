@@ -320,7 +320,9 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    written on them, the include edits of phases 43, 73, 88
                    and 99 and the line on every snapshot, B2b's rows,
                    enumerators and renames held to argvfront, filefront and
-                   phase 51a, eight phases' literal C spliced by FRAG:
+                   phase 51a, eight phases' literal C spliced by FRAG, PARAM,
+                   RETYPE and MOVE on phases 31, 57, 66, 78, 80, 83 and
+                   86's parameter and on whim-vim.c's functions:
                    GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
@@ -392,7 +394,7 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    rename.go a declaration and its uses respelled by
                    edge, a use retargeted to another spelling, a string
                    literal respelled whole, named by the cut;
-                                      B2a's
+                   B2a's
                    frag.go, C text made nodes in context (FRAG: SpliceC
                    at a Spot, on a synthesized unit -- the C view pared to
                    what a fragment sees, the fragment between markers --
@@ -404,6 +406,21 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    (CLONE), macrox.go (MACROX: an invocation's name and
                    arguments, expanded through FRAG), same.go (SameGraph:
                    a graph against the import of its C view, ids aside);
+                   and B2c's
+                   capabilities: param.go PARAM (a parameter dropped from
+                   every declaration and every fn form of its family --
+                   pointers, members, typedefs -- with the argument at every
+                   call, every use of what changes type a call, a flow to
+                   the same new type or a test, else refused; DropArg,
+                   ParamToLocal, AddParam; the editor's one sanctioned path
+                   past "a function's parameters are its type"), retype.go
+                   RETYPE (a declaration's type in every declaration of it,
+                   a typedef's reach, the typed edges above every use typed
+                   again or cleared into Untyped), move.go MOVE (items and
+                   nodes moved, ids and edges kept, refused where a use
+                   would no longer resolve or a jump would rebind),
+                   typeedit.go what they share (type nodes interned,
+                   types derived, Rederive), b2cverbs.go their verbs;
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
