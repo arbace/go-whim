@@ -22,6 +22,6 @@ and two tags, the Latin-1 case tables among them.
 ./editor` goes from 17 findings to 0. `whim-test`: 45/45 as the commit before,
 and the Go editor answers all 45 as the C does.
 
-The transformation now lives in `crefactor/xform` (`DeadStmt`).
+The transformation lived in `crefactor/xform` (`DeadStmt`, `4c8b3a7` and before). Since step 5 (`doc/GRAPH-MIGRATION.md`, B1c) it runs on the graph: `crefactor/graph`'s `Editor.DeadStmt`, with `StmtTerminates` and `ItemTerminates` asked of the nodes (a label is an item of its own in C-lisp, so a statement a label stands before is cc's labeled statement, which does not terminate, and a run ends at the first label), its numbers and report the text's -- 18 runs, 0 held -- and `whim-build-check` holds q086 to the bytes the text version made. `crefactor/xform`'s `Terminates` stays, for the closure and the goto transforms that still run on text.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 165, in the group 164-165, whose phases share one purpose. There is no boundary q164 of its own any more; everything above still says what the steps do and why.

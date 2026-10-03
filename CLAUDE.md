@@ -284,7 +284,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 24 and 33 and part 38a so far, `doc/GRAPH-MIGRATION.md`),
+phase converted to the graph (phases 24, 33, 58, 64 and 77 and parts 38a and 86a so far, `doc/GRAPH-MIGRATION.md`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -421,6 +421,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    would no longer resolve or a jump would rebind),
                    typeedit.go what they share (type nodes interned,
                    types derived, Rederive), b2cverbs.go their verbs;
+                   deadstmt.go the statements after a jump (StmtTerminates
+                   on nodes, part 86a's rule);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -739,7 +741,7 @@ make help            # every target, with a line each
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
   the boundary before each phase that begins on the graph the graph it
-  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: seven now), and seals the
+  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: eight now), and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
@@ -862,8 +864,8 @@ was the input boundary's digest and the implementation's together, so a moved
   collected and printed by the C view, cemit's text byte for byte. The graph
   goes on to the next phase only when that phase begins on the graph, with a
   fresh editor, so a phase takes one path in order and in the check. On the
-  graph now: every `droplocal` and phase 24; phases 8, 13, 14, 17 and 24
-  begin on it. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
+  graph now: every `droplocal`, phases 24, 58 and 64, phase 77's own step
+  and part 86a; phases 8, 13, 14, 17, 24, 58, 64 and 86 begin on it. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
   record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).

@@ -380,7 +380,7 @@ var Plan = []Phase{
 		}},
 	{N: 58, Name: "the `(pos_T *)-1` tests go",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim58"}},
+			{Op: "edit", Graph: true, Args: []string{"whim58"}},
 		}},
 	{N: 59, Name: "the saved input buffer is a `garray_T *`",
 		Steps: []Step{
@@ -406,7 +406,7 @@ var Plan = []Phase{
 		}},
 	{N: 64, Name: "the engine is called directly",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim64"}},
+			{Op: "edit", Graph: true, Args: []string{"whim64"}},
 		}},
 	{N: 65, Block: "r10-types", Name: "the changedtick is a number",
 		Steps: []Step{
@@ -463,7 +463,7 @@ var Plan = []Phase{
 	{N: 77, Name: "`free_one_termoption()` compares without a cast, and its NULL write is gone",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim77a"}},
-			{Op: "edit", Args: []string{"whim77"}},
+			{Op: "edit", Graph: true, Args: []string{"whim77"}},
 		}},
 	{N: 78, Name: "call arguments with effects are evaluated in gcc's order",
 		Steps: []Step{
@@ -499,7 +499,7 @@ var Plan = []Phase{
 		}},
 	{N: 86, Block: "g05-dead", Name: "what the Go's linters found dead",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim86a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim86a"}},
 			{Op: "edit", Args: []string{"whim86"}},
 		}},
 	{N: 87, Block: "g06-bool-and-keys", Name: "`bool` and key names",

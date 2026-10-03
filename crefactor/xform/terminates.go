@@ -27,3 +27,9 @@ func StmtTerminates(s *cc.Statement) bool {
 	}
 	return false
 }
+
+// labeled says the block item is a labeled statement: a label, a case or a
+// default, and the statement it labels.  A path can come in there again.
+func labeled(it *cc.BlockItem) bool {
+	return it.Case == cc.BlockItemStmt && it.Statement.Case == cc.StatementLabeled
+}

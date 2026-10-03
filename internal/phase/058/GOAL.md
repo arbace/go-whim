@@ -18,3 +18,5 @@ exactly the tests, their bodies and their `else` lines, counted from the input.
 Its probe drives every way the three sites are reached, `'a`, `` `a ``, `:'a`
 and `g;`, on both binaries; each control (an unset mark, an empty change list)
 must write different bytes.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B1c) the phase runs on the graph: its one `FoldNever` finds the three ifs by their condition's form, `(== ?p (cast (ptr pos_T) (- 1)))`, on `crefactor/graph`'s verbs, its report the text version's, and `whim-build-check` holds q058 to the bytes the text version made (which is in history, `4c8b3a7` and before).

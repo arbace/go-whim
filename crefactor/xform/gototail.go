@@ -47,7 +47,7 @@ type GotoTailKnobs struct {
 // A label no goto reaches any more goes, unless its address is taken (`&&L`,
 // which a computed goto may jump to).  When the statement before it always
 // jumps, nothing reaches its tail any more either, and the tail goes with it
-// (DeadStmt's rule); a label on an empty statement goes with the statement.
+// (the dead-statement rule, crefactor/graph's Editor.DeadStmt); a label on an empty statement goes with the statement.
 //
 // Its one argument is a floor: `--at-least N` refuses when fewer than N gotos
 // are rewritten.  Without it there is none.

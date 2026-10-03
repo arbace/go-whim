@@ -546,7 +546,7 @@ unit was pared (bodies only), it was 419 KB on q021 and FRAG 400-460 ms.
   `localout` and `structscalar` (100), and `plainc`'s three (101). Several
   that live in `crefactor/xform` are NOT typed -- `NullptrUsize`, `Attrs`
   (0a, 0c), `Own` (47), `Unions` (50), `DropCalls` (60), `EmptyBlocks` (62),
-  `NeverNull` (74), `DeadStmt` (86a), `BoolRet` (87a, 102, 103) and the four
+  `NeverNull` (74), `DeadStmt` (86a, on the graph since B1c), `BoolRet` (87a, 102, 103) and the four
   goto steps (89-92): they are text or `cc.Parse` only, so they are (a) or
   (b).
 - **(d)** stays text: the seed (phase 0: it runs on the input before any
@@ -706,13 +706,13 @@ phase 54 | 54 | whim54 @state | 589 | 15478 | b | FRAG RETYPE RENAME PARAM | B3e
 phase 55 | 55 | whim55 @state | 665 | 4418 | b | FRAG PARAM MOVE | B3e | de-page the leaf; after 54
 phase 56 | 56 | whim56 @state | 791 | 4045 | b | FRAG RETYPE PARAM | B3e | fold the node types; after 55
 phase 57 | 57 | whim57 | 13 | - | b | RETYPE | B3f | p_emoji int
-phase 58 | 58 | whim58 | 13 | - | a | - | B1c | three (pos_T *)-1 tests fold
+phase 58 | 58 | whim58 | 13 | - | done | - | B1c | three (pos_T *)-1 tests fold; on the graph (B1c), a FoldNever by form
 phase 59 | 59 | whim59 | 23 | - | b | RETYPE RENAME | B3f | garray_T *
 phase 60 | 60 | crefactor/xform/dropcalls.go | 7+94 | - | a | BUILD FOLDX(dead stores) | B3g | no-op frees go; not typed
 phase 61 | 61 | whim61 | 23 | - | b | FRAG | B3f | buflist_findnr
 phase 62 | 62 | crefactor/xform/emptyblocks.go | 7+89 | - | b | FOLDX(empties everywhere) | B3g | empty blocks fold; not typed
 phase 63 | 63 | whim63 | 58 | - | b | MOVE RENAME RETYPE | B3f | one regprog type
-phase 64 | 64 | whim64 | 21 | - | a | BUILD | B1c | the engine called directly
+phase 64 | 64 | whim64 | 21 | - | done | - | B1c | the engine called directly; on the graph (B1c): 4 statements rebuilt by template, 1 cut
 phase 65 | 65 | whim65 | 14 | - | b | RETYPE RENAME FRAG | B3f | changedtick a number
 phase 66 | 66 | whim66 | 58 | - | b | PARAM FOLDX TEXTQ | B3f | parameters never used
 phase 67 | 67 | whim67 | 72 | - | b | FRAG RETYPE RENAME | B3f | typed sort and search
@@ -730,7 +730,7 @@ phase 75 | 75 | whim75 | 73 | - | b | FRAG INITROW TEXTQ | B3f | three typed sta
 76a | 76 | phase/076/a | 96 | - | b | INITROW RETYPE RENAME FRAG | B3f/step 6 | def_val split; a typed transform in text
 phase 76 | 76 | whim76a, whim76 | 294 | - | b | INITROW RETYPE FRAG RENAME | B3f/step 6 | optvar_T: kinds from typed edges
 77a | 77 | phase/077/a | 13 | - | b | FRAG | B3f | a comparison
-phase 77 | 77 | whim77a, whim77 | 13 | - | a | - | B1c | an if deleted (77 alone)
+phase 77 | 77 | whim77a, whim77 | 13 | - | b | FRAG (77a) | B1c, B3f | whim77 on the graph (B1c): an if cut; 77a still text, so the phase imports after it
 phase 78 | 78 | whim78 | 27 | - | b | FRAG MOVE | B3f | gcc's argument order through locals
 phase 79 | 79 | whim79 | 16 | - | b | FRAG | B3f | a static byte for (char_u *)-1
 phase 80 | 80 | whim80 | 23 | - | b | RETYPE | B3f | yankreg_T *
@@ -739,7 +739,7 @@ phase 82 | 82 | whim82 | 28 | - | b | RETYPE FRAG INITROW | B3f | flexible array
 phase 83 | 83 | whim83 | 29 | - | b | PARAM RETYPE TEXTQ | B3f | no cookie
 phase 84 | 84 | whim84 | 37 | - | b | FRAG MOVE | B3f | ml_get_invalid outlined
 phase 85 | 85 | whim85 | 19 | - | b | FRAG | B3f | a flag for a pointer comparison
-86a | 86 | phase/086/a + xform/deadstmt.go, terminates.go | 6+107 | - | a | - | B1c | statements after a jump; cc.Parse only
+86a | 86 | phase/086/a + graph/deadstmt.go | 21+104 | - | done | - | B1c | statements after a jump; on the graph (B1c): Editor.DeadStmt, StmtTerminates on nodes; xform.Terminates stays for fallout.go and the gotos
 phase 86 | 86 | whim86a, whim86 | 35 | - | b | PARAM FRAG | B3f | six dead stores; one parameter becomes a local
 87a | 87 | phase/087/a + xform/boolret.go | 7+1020 | - | b | RETYPE BUILD | B3f | bool for 278 functions; cc.Parse only
 phase 87 | 87 | whim87a, whim87 | 167 | - | b | FRAG TEXTQ | B3f | 153 key codes named
@@ -802,6 +802,8 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
     programs go and nothing replaces them).
   - **B1b**: 33, 38a (their assertions as queries) -- **done**, *B1b as built* above.
   - **B1c**: 58, 64, 77, 86a (`Terminates` on nodes).
+  - **B1b**: 33, 38a (their assertions as queries).
+  - **B1c**: 58, 64, 77, 86a (`Terminates` on nodes) -- **done**, *B1c as built* below.
 - **B2, the capabilities** (after B0, side by side, each in
   `crefactor/graph`, generic, with unit tests on read-back graphs):
   - **B2a FRAG** (with CLONE and MACROX) -- **done**, *B2a as built*: the
@@ -1347,3 +1349,95 @@ every boundary compiling.
   refused even where C allows a pointer to an incomplete type. Moving a
   function above its prototype retargets every use of its name, which on
   the snapshots asks the whole file.
+## B1c as built (2026-10-03)
+
+Phases 58 and 64, phase 77's own step (`whim77`) and part 86a run on the
+graph; their text programs are replaced (history keeps them, `4c8b3a7` and
+before). Each is a graph step in the plan (`Graph: true`), registered with
+`phase.RegisterGraph`, and reports what the text version reported, line for
+line.
+
+| unit | on the graph | Go (non-blank, non-comment) |
+| --- | --- | ---: |
+| phase 58 | one `FoldNever` of `(== ?p (cast (ptr pos_T) (- 1)))`, 3 | 13 |
+| phase 64 | four `Rewrite`s -- each statement the text's `Literal` named, found by its form and rebuilt from a template naming the callee -- and one `Cut`; the collection takes the table, the field and `regengine_T` | 22 |
+| whim77 | one `Cut` of the `if` and its call, the whole form as the pattern (the text's literal was the whole statement); the collection takes `free_one_termoption()` | 15 |
+| 86a | `Editor.DeadStmt` (`crefactor/graph/deadstmt.go`, new, 104 lines): `StmtTerminates` and `ItemTerminates` on nodes, the runs found first, outermost deleted by `ReplaceRun`, "N runs ... ; M held" as the text said it | 21 + 104 |
+
+**crefactor/graph**: one new file, `deadstmt.go` (`StmtTerminates`,
+`ItemTerminates`, `Editor.DeadStmt`), and its test, `deadstmt_test.go`
+(crefactor/xform's `TestDeadStmt` and `TestStmtTerminates` moved, the text's
+result printed canonically held to the C view, plus a dead run inside a dead
+block cut once). Nothing existing changed. `crefactor/xform`'s `DeadStmt` is
+deleted (86a was its one caller) and its test with it; `Terminates`,
+`StmtTerminates` and `labeled` stay, moved into `terminates.go`, for
+`fallout.go`'s closure and the goto transforms (89, 91), which still run on
+text.
+
+**Refinement: C-lisp's labels change what an item is.** cc's block item
+`case 1: return x;` is ONE labeled statement, which does not terminate; in
+C-lisp it is two items, `(case 1) (return x)`. So the rule on nodes asks
+whether a label (or the attributes before one) stands before the jump, and a
+dead run ends at the first label item. With that, the graph's `DeadStmt` and
+the text's agree on all 104 boundaries of a whole run, q000-q103: the text
+version's output printed canonically is the graph's C view byte for byte, and
+the counts are the same everywhere (0, 3, 15, 16, 17 or 18 runs, 0 held;
+measured before the text version was deleted). A declaration-holding run
+occurs on none of them: the unit test is what holds `held`.
+
+**Refinement: a template rebuilds what the text's literal named.** 64's
+literals named the whole statement, arguments spelled; the patterns name
+them too (`(= prog (call (. bt_regengine regcomp) expr re_flags))`), so the
+assertion is the text's, and the template's names resolve as the importer
+would. 27 ids given, 110 superseded.
+
+### The proof
+
+- `rm -rf .cache/boundaries; make whim-build-check`, in order: whim-vim.c
+  byte for byte, 77,634 lines, every boundary compiling, 397 s at a load of
+  34-54 (not comparable with stage A's 348 s at 3-13); eight graph snapshots
+  now, q057, q063 and q085 added (7 MB each).
+- `make whim-build-check` again, in parallel: byte for byte, 103 links, 8
+  of them begun on their graph snapshot, every boundary compiling, 85 s at a
+  load of ~54.
+- The controls, all four at once on the parallel check: 58's `FoldNever`
+  made `KeepThen`, 64's `Cut` left out, 77's pattern narrowed to the call
+  (leaving the empty if), 86a's deletions stopped after 17 runs. The check
+  names exactly the four: `phase 58 gives 76529 lines where q058.c holds
+  76549`, 64 76064/76042, 77 75169/75166, 86 75137/75128; `4 of 103 phases do
+  not reproduce their snapshot`.
+- `GRAPH_SNAPS=... -run 'TestPhasesOnGraph|TestGraphSnapshots'`, `make
+  whim-editor-check`, `make whim-test` (80 as HEAD, the Go editor 80 as
+  the C), `go test ./...` in both modules, gofmt, go vet and staticcheck on
+  what changed: clean.
+
+### Measured
+
+One phase at a time, 5 runs, medians, two rounds alternating with main
+`4c8b3a7` on the same snapshots, at a load of 15-50 (so ±0.3 s):
+
+| phase | main (text), wall / CPU ms | B1c from text, wall / CPU ms | handed the graph, wall / CPU ms (the read) |
+| --- | ---: | ---: | ---: |
+| 58 | 1,511-1,829 / 2,426-2,828 | 1,920-1,966 / 3,542-3,891 | **207 / 309** (45) |
+| 64 | 2,158-2,168 / 4,084-4,291 | 1,992-2,026 / 3,871-4,014 | **255 / 384** (57) |
+| 77 | 2,120-2,186 / 4,121-4,322 | 1,943-1,956 / 3,657-3,797 | -- (begins on text: 77a) |
+| 86 | 2,832-2,867 / 5,960-5,983 | 3,941-3,973 / 8,140-8,150 | 2,201 / 4,398 (63) |
+
+- **What each costs in the plan as it stands.** 58, 64 and 77 import
+  (1.7-1.9 s) and end on the graph, so they are as fast as on text or a
+  little faster (64, 77: 0.1-0.2 s less; 58 0.1-0.4 s more, its text sweep
+  being the cheapest of the four). Their neighbours 57, 63 and 76 end on
+  text, so no phase is handed the graph in order: the 0.2-0.26 s a phase
+  costs handed the graph arrives only when 57 and 63 (B3f) end on the graph
+  too. In the parallel check 58, 64 and 86 read their graph snapshot.
+- **86 is 1.1 s slower**: 86a imports and whim86 (B3f) is text, so the phase
+  pays the import, a C view, and the text sweep after it. Handed the graph
+  it is still 2.2 s, since the sweep stays text. It turns into a saving when
+  whim86 moves (B3f), so that the phase ends on the graph; 86a runs first in
+  it, as the text did, and moving it after whim86 was not tried.
+- **Import/C-view boundaries**: the plan had 11 imports and 15 C views at
+  stage A; B1c adds 4 imports (before 58, 64, 77's second step and 86a,
+  about 7.5 s in a run in order) and 4 C views (three the boundary's print
+  where cemit's was, one before whim86), and saves 3 text sweeps and
+  canonical prints (58, 64, 77), about what the imports cost. Net: nothing,
+  until the ranges around them convert.

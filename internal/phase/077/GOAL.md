@@ -28,3 +28,5 @@ requires the call and the function gone. Its probes are the paths into
 terminal. Each control moves.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 153-154 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B1c) the phase's own step runs on the graph: the `if` and its call are one node, found by its C-lisp form and cut, and the collection takes `free_one_termoption()`; part 77a, before it, is still text, so the phase imports the text 77a leaves. `whim-build-check` holds q077 to the bytes the text version made (which is in history, `4c8b3a7` and before).
