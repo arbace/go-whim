@@ -88,12 +88,12 @@ func TestBuild(t *testing.T) {
 		t.Errorf("the C view:\n%s", out)
 	}
 
-	// what it refuses: a name declared nowhere visible, a hole twice, a
-	// member the type has not, a fragment that is FRAG's
+	// what it refuses: a name declared nowhere visible, a member the type
+	// has not, a fragment that is FRAG's (a hole used twice is a copy the
+	// second time: CLONE, TestBuildHoleTwice)
 	for _, c := range []struct{ src, refusal string }{
 		{"(call nowhere)", "`nowhere` is declared nowhere visible"},
 		{"(= x 1)", "`x` is declared nowhere visible"},
-		{"(+ ?h ?h)", "used twice"},
 		{"(-> curbuf missing)", "no member `missing`"},
 		{"(macro \"MAX(a, b)\")", "FRAG's"},
 		{"(goto nolabel)", "no label nolabel in f"},

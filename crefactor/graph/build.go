@@ -21,7 +21,7 @@ import (
 //     before it; a member is resolved BY THE TYPE of what it selects from,
 //     a tag to its definition, a goto's label to the function's label;
 //   - `?name` is a HOLE: the node a pattern bound to name, moved in (a node
-//     is contained once, so a hole is used once; a copy is CLONE's, B2a);
+//     is contained once, so a hole used again is a copy: Clone, clone.go);
 //   - each new expression form gets its typed edge where the type follows
 //     from what it is made of -- a call its callee's result, a comparison
 //     int, an assignment its left side's, a selection its member's, a cast
@@ -30,8 +30,9 @@ import (
 //   - the ids are the editor's to give: a built node has none until the
 //     edit that puts it in the graph gives it a fresh one.
 //
-// What it refuses is FRAG's (B2a): a name declared nowhere visible, a
-// macro's invocation, a compound literal, an initialiser, a function type.
+// What it refuses is FRAG's (frag.go: C text in context): a name declared
+// nowhere visible, a macro's invocation, a compound literal, an
+// initialiser, a function type.
 
 // Build reads src, one or more C-lisp forms, as the nodes they make at the
 // place of at -- where at stands, which the nodes will take or stand beside:
@@ -278,7 +279,7 @@ func (b *builder) hole(a string) *Node {
 		return b.fail("the hole %s is bound to nothing", a)
 	}
 	if b.used[name] {
-		return b.fail("the hole %s is used twice: a node is contained once (a copy is CLONE's)", a)
+		return Clone(n) // a node is contained once: the second use is a copy (CLONE)
 	}
 	b.used[name] = true
 	return n
@@ -381,7 +382,7 @@ func (b *builder) expr(f *clisp.Node) *Node {
 		n = NewList(kids...)
 		n.Type = exprType(b.e, n)
 	default:
-		return b.fail("BUILD does not make a (%s ...): a fragment of C is FRAG's (B2a)", h)
+		return b.fail("BUILD does not make a (%s ...): a fragment of C is FRAG's (frag.go: C text)", h)
 	}
 	if n.Type == nil {
 		b.untyped = append(b.untyped, n)
@@ -477,7 +478,7 @@ func (b *builder) typ(f *clisp.Node) *Node {
 		}
 		return NewList(NewAtom(h), &Node{Atom: f.List[1].Atom, Refs: []*Node{d}})
 	case h == "fn" || h == "fn-ids" || h == "struct" || h == "union" || h == "enum":
-		return b.fail("BUILD does not make a (%s ...) type: FRAG's (B2a)", h)
+		return b.fail("BUILD does not make a (%s ...) type: FRAG's (frag.go: C text)", h)
 	case h == "array":
 		n := NewList(NewAtom("array"))
 		for j, k := range f.List[1:] {

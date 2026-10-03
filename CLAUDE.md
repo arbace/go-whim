@@ -320,7 +320,8 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    written on them, the include edits of phases 43, 73, 88
                    and 99 and the line on every snapshot, B2b's rows,
                    enumerators and renames held to argvfront, filefront and
-                   phase 51a: GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
+                   phase 51a, eight phases' literal C spliced by FRAG:
+                   GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
@@ -344,7 +345,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    its forms (tree.go: cursors, edits, an atom index;
                    pattern.go: patterns as forms; scope.go: a resolver of
                    C's name spaces and scopes, untyped; Options.Origin tells a
-                   caller the cc node each form came from). graph/: the
+                   caller the cc node each form came from; printnode.go an
+                   expression's or items' C alone). graph/: the
                    program as one resolved, typed graph (doc/GRAPH.md):
                    import.go cc's parse and check into C-lisp's forms as
                    nodes with ids, refers edges (members by type) and typed
@@ -390,6 +392,18 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    rename.go a declaration and its uses respelled by
                    edge, a use retargeted to another spelling, a string
                    literal respelled whole, named by the cut;
+                                      B2a's
+                   frag.go, C text made nodes in context (FRAG: SpliceC
+                   at a Spot, on a synthesized unit -- the C view pared to
+                   what a fragment sees, the fragment between markers --
+                   that cc parses, checks and imports, its nodes kept and
+                   their edges carried over, the uses it now declares
+                   retargeted, holes `$x`), fragverbs.go its verbs
+                   (BodyC, LiteralC, ReplaceC, TopBeforeC, ...) and
+                   Together (a phase's literals in one unit), clone.go
+                   (CLONE), macrox.go (MACROX: an invocation's name and
+                   arguments, expanded through FRAG), same.go (SameGraph:
+                   a graph against the import of its C view, ids aside);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go

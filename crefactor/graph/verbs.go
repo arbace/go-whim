@@ -59,7 +59,8 @@ type Verbs struct {
 	W     io.Writer
 	Err   error
 	e     *Editor
-	scope *Node // the scope's root; nil is the file
+	scope *Node      // the scope's root; nil is the file
+	batch *fragBatch // FRAG's acts deferred to one import (Together, fragverbs.go)
 }
 
 // NewVerbs starts a phase's acts on e, reported under tag.
@@ -108,7 +109,7 @@ func (v *Verbs) Expect(ok bool, format string, a ...any) {
 
 // within runs acts scoped to root, the refusal carried back.
 func (v *Verbs) within(root *Node, acts func(*Verbs)) {
-	inner := &Verbs{Tag: v.Tag, W: v.W, e: v.e, scope: root}
+	inner := &Verbs{Tag: v.Tag, W: v.W, e: v.e, scope: root, batch: v.batch}
 	acts(inner)
 	if inner.Err != nil {
 		v.Err = inner.Err

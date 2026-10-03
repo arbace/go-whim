@@ -92,6 +92,12 @@ The new ones, each a batch's job (B0 and B2 below):
 | RENAME | **done (B2b)**: `Editor.Rename` -- a declaration, the entity it is one of (a function's prototypes and definition), and every use by edge respelled: a function, an object, a typedef, an enumerator, a local, a parameter, a member (selections and designators), a tag, a label -- refused where a name would change meaning; `RetargetAs`/`RetargetUses`, a use pointed at a target of another spelling; `RespellString`, a string literal written anew, each one named whole (*B2b as built*) | ~25 |
 | INITROW | **done (B2b)**: `Editor.ArrangeRows`/`DeleteRows`/`InsertRows`/`BuildRows`, a table's rows deleted, inserted, reordered, every position the file names said again -- subscripts by constants (by edge), the index enumerators and permutation arrays a cut names (`RowIndex`) -- and the table's typed edge resized; verbs `DeleteRows`, `DeleteRowsEach`, `InsertRows` | ~20 |
 | RENUM | **done (B2b)**: `Editor.ArrangeEnum`/`DeleteEnumerators`/`MoveEnumerators`/`InsertEnumerators` under a policy -- `HoldValues` (no value moves), `Renumber` (they move, reported: `CMD_index` following the rows the front cut), `PinValues` (the sweep's pin, byte for byte) -- and `BuildValue`, `EnumValues` | 5 |
+| FRAG | **done (B2a)**: a C fragment -- statements, a body, an expression, external declarations, an `editlit.go` literal -- made graph nodes in the context of its place, as the importer makes them: `Editor.SpliceC(Frag{At, Src, Holes}...)` at a spot (`SpotOf`, `SpotRun`, `SpotBefore`/`SpotAfter`, `SpotBody`, `SpotEnd`), on a synthesized unit cc parses, checks and imports; the verbs `BodyC`, `LiteralC`, `ReplaceC`/`ReplaceAtC`, `BeforeC`/`AfterC`, `SpliceRunC`, `TopBeforeC`/`TopAfterC`, and `Together` (a phase's FRAG acts in one import): *B2a as built* | ~70 |
+| CLONE | **done (B2a)**: `graph.Clone(n)`, a subtree copied without ids, its edges inside it to the copies and the rest where n's go; BUILD's `?h` and FRAG's `$h` used twice are a copy the second time | 4 |
+| MACROX | **done (B2a)**: a macro's invocation in a fragment made a node as the importer makes it (with its expansion's edges), and an opaque `(macro "...")` expanded: `MacroCall(n)` reads its name and arguments from its text, `ExpandMacros` replaces each by the C a caller makes of them, through FRAG (42's `MIN`/`MAX`: an argument written twice is parsed twice, no CLONE needed) | 1 |
+| RENAME | a declaration and its uses respelled (a member, a function, a typedef), a use retargeted to a target of another spelling, a string literal respelled (its array type changes) | ~25 |
+| INITROW | an initialiser element deleted (a table row: `cmdnames[]`, `options[]`, `key_names_table`, `nv_cmds`), found by its designator or its string; inserted; with positional arrays' indexes said | ~20 |
+| RENUM | an enumerator deleted with the implicit values after it moved, opted into (`CMD_index` must follow the rows the front cut) | 5 |
 | PARAM | a parameter deleted with the argument at every call, in function-pointer types too; one argument of a variadic call deleted (with its format string) | ~20 |
 | RETYPE | a declaration's type changed (`int` to `bool`, `void *` to `T *`, a union member to its one member), the typed edges above it cleared and listed (`Untyped`) until step 6's checker re-derives them | ~20 |
 | MOVE | a node or a run of items moved elsewhere keeping their ids (an outlined block, a body inlined, a range wrapped in a loop, a definition moved below the boundary) | ~15 |
@@ -203,8 +209,12 @@ free `Return`, `Break`, `Void`, `Literal`; `Unwrap(old, block)` and
   left side, a selection's member, `&x`, `*p`, `p[i]`, a cast to a type the
   graph holds. Any other new expression is listed in `Untyped`, as a
   replacement's are. It refuses what is FRAG's: a name declared nowhere
-  visible, a macro, a compound literal or initialiser, a function type,
-  and a hole used twice (CLONE's).
+  visible, a macro, a compound literal or initialiser, a function type.
+  A hole used twice is a copy the second time (CLONE, B2a). (B2a found
+  that "the FIRST declaration" is not quite cc's rule: a use after a
+  function's definition whose prototype names no parameter refers to the
+  definition -- `crefactor/cc`'s `Scope.ident`, *B2a as built*. BUILD
+  still says the first; FRAG says what cc says.)
 - **An initialiser element is a one-node place, verified.**
   `internal/graphcheck`'s `TestInitElementPlace` points onebuffer's CTRL-^
   row (on q003) and 15a's `!` row (on q014) at `nv_error` by `RewriteAt`,
@@ -340,6 +350,187 @@ rest its siblings), and "the writes of x" by edge is a TEXTQ question
 other phases will ask (`Writes(decl)`): both are written locally here and
 left for B2 to lift if a second phase wants them. A converter of a phase
 with several steps should expect 38's cost until its last text step moves.
+## B2a as built (2026-10-03): FRAG, CLONE, MACROX
+
+`crefactor/graph`'s `frag.go` (FRAG), `fragverbs.go` (its verbs and
+`Together`), `clone.go` (CLONE), `macrox.go` (MACROX), `same.go`
+(`SameGraph`, what the tests hold FRAG to), and `crefactor/clisp`'s
+`printnode.go` (`PrintExpr`, `PrintItems`); generic, naming nothing in
+vim. Changed beside them, each additively: `import.go` (`ImportParsed`'s
+body is `importAST`, which keeps the importer: what each node came from),
+`verbs.go` (a `batch` field, carried into a scope), `build.go` (a hole used
+twice is a `Clone`, no longer a refusal; two messages say frag.go) and its
+test's refusal row.
+
+### How a fragment gets its names and types in context
+
+There is one authority on how cc resolves and types C, the importer on cc's
+check, so FRAG runs it on a **synthesized translation unit**: the graph's C
+view with each fragment's text written at its spot, pared to what a
+fragment can see. Every function's body is left out but the ones a
+fragment goes into; a definition that a prototype declared first is left
+out when nothing the unit resolves comes after it; a table's rows are left
+out, its length written where its initialiser said it (from the def's typed
+edge). Everything else stays, in its order: the includes, the types, the
+prototypes, the objects, so that every name is declared where it was and
+cc resolves the fragment's names exactly as in the file -- locals and
+parameters of the enclosing function (printed whole), the file's
+declarations, members by the type selected from, labels, tags, the
+headers' declarations, builtins, macro invocations. On q021 the unit is
+217 KB of the file's 2.18 MB.
+
+A fragment of items sits between two marker statements
+(`__whim_frag_mark;`, declared at the unit's top), external declarations
+between two marker declarations; an expression or a body takes its
+node's own place. The unit is parsed, checked and imported; the import and
+the graph are walked side by side, every context node mapped to the node it
+is a printing of, and the markers say which nodes are the fragment's. Those
+are kept, their ids cleared (the splice gives fresh ones: the id rule), and
+their edges carried over: into the context to the mapped node; to a
+header's declaration to this graph's external node, added if it has none
+(`strlen`, `errno`, a member of `struct stat`); typed edges to this graph's
+type node of the same structure, added if it has none. A macro's
+invocation is the node the importer makes, a `(macro "...")` with an edge to
+every name its expansion uses (MACROX's first half: `va_arg`,
+`__builtin_offsetof(struct win, n)` to struct win's `n`, `FD_SET`).
+
+The graph after the splice is **what an import of its C view gives**,
+uses outside the fragment included: a later use that a new local now
+shadows, a goto to a label the fragment brings, the calls of a function a
+top-level fragment declares anew or redefines are retargeted, as the
+synthesized import resolves them (for a top-level fragment declaring a name
+the file has, the unit is made again with every form using it printed
+whole); and the expressions above an expression's spot are typed as the
+import types them, not cleared. `SameGraph(a, b)` (ids aside: every refers
+edge to the corresponding node, every typed edge to a type of the same
+structure) is how the tests hold it.
+
+**cc's rule is not "the first declaration".** `crefactor/cc`'s
+`Scope.ident` takes the first visible declaration, unless that is a
+prototype naming no parameter and a definition naming them is visible: then
+the definition. So a use after `deathtrap`'s definition refers to the
+definition, one before to its prototype (phase 39's host block found it).
+The importer and FRAG say this; BUILD's templates (B0) still resolve to the
+first declaration, which differs from the import there.
+
+### The API later batches call
+
+```go
+e := v.Editor()
+// spots: where a fragment goes
+e.SpotOf(n)              // n's place: an item (replaced by items), an expression or
+                         // initialiser element (one expression), a body or an else (a block)
+e.SpotRun(first, last)   // a run of items
+e.SpotBefore(at), e.SpotAfter(at)  // an insertion beside an item (a top-level form too)
+e.SpotBody(fn)           // a function's items
+e.SpotEnd(p)             // after p's last item; p nil: the end of the file
+// fragments, one unit for all of them
+ns, err := e.SpliceC(graph.Frag{At: e.SpotBody(fn), Src: body},
+	graph.Frag{At: e.SpotOf(x), Src: "2 * $x", Holes: graph.Bindings{"x": x}})
+e.MakeC(fs...)           // the nodes, not placed (no retargeting): for a caller that places them
+graph.Clone(n)           // CLONE: a copy without ids, its inner edges to the copies
+graph.MacroCall(n)       // `(macro "MIN(a, f(b, c))")` is MIN, [a, f(b, c)]
+e.ExpandMacros(ns, func(name string, args []string) (string, error) {...})
+graph.SameGraph(a, b)    // a graph against the import of its C view, ids aside
+```
+
+`$name` in the C is a hole, the node bound to name (a pattern's binding),
+moved in: it must be in what the fragment replaces, or a copy. It is
+written into the unit as its own C in parentheses, so cc types the fragment
+with its type, and the node replaces what those parentheses made; the C
+view writes the parentheses an operator needs (`$x * 2`, x being `a + b`, is
+`(a + b) * 2`; a text splice would have written `a + b * 2`).
+
+**The verbs**, each act's matches in one unit, counted and reported as
+B0's:
+
+| verb | does | the text's |
+| --- | --- | --- |
+| `BodyC(fn, src, what)` | a function's whole body | `Body` |
+| `LiteralC(old, new, n, what)` | each of the n runs of whole items whose C is old (spacing aside, outside literals) replaced by new | `Literal` (a match of part of an item is not a run: the count says so) |
+| `ReplaceC(pat, src, n, what)`, `ReplaceAtC(pat, at, src, n, what)` | each match (or its node bound to at) replaced by C, the bindings as holes | `Sub`, `Literal` |
+| `BeforeC`, `AfterC(pat, src, n, what)` | items put beside each match | a `Literal` that keeps its anchor |
+| `SpliceRunC(from, through, src, what)` | a run of items, each end a pattern | `Splice` |
+| `TopBeforeC`, `TopAfterC(name, src, what)` | external declarations before the first, after the last, top-level declaration of name (`struct T` for a tag's definition) | a file-level `Literal` |
+| `ExpandMacros(names, expand, n, what)` | the scope's invocations of the macros named, expanded | phase 42's text expansion |
+| `Together(acts)` | the FRAG acts among acts deferred to ONE unit: a phase's literals for the cost of one; each finds and counts its matches on the graph as the batch found it, the deferred acts reported at the end in order, a refusal naming its act | -- |
+
+### What the tests prove
+
+`crefactor/graph`'s `frag_test.go`, on graphs read back from their Lisp,
+each result held to the text verb's C printed canonically where there is
+one, and every result to the import of its C view (`SameGraph`, no edge
+dangling, `Check`):
+
+- a whole body naming a parameter, a local, the file's objects, members by
+  type of two structs sharing names, a label and its goto, `errno`, a
+  header's function, `__builtin_offsetof`; fresh ids above the graph's
+  greatest;
+- a run of items replaced whose new local shadows the file's object for the
+  use after the run (retargeted), and items inserted;
+- expressions with holes: the parentheses kept and dropped, a hole used
+  twice (a copy), the expressions above typed as imported;
+- external declarations: a new prototype that takes the calls of the old
+  one, a new type (`char ***`), new externs (`strspn`);
+- several fragments in one unit, two in one list, a body's place;
+- macros: invocations made as imported (`va_arg`), MIN and MAX expanded;
+  `MacroCall` on nested commas and strings;
+- cc's rule: a use after a definition refers to it; a definition replaced
+  by a top-level fragment takes the uses of the old one;
+- `Together`: the same C and report as the acts one by one; a refusal
+  naming its act;
+- the refusals (a name declared nowhere, a parse error and a check error at
+  the fragment's line, a `#` line, an unbound hole, a fragment that does not
+  stand in its place), each leaving the graph its import; CLONE's edges;
+  BUILD's hole used twice;
+- the control: one edge moved to another declaration of its name, and
+  `SameGraph` says so.
+
+`internal/graphcheck`'s `TestFragOnSnapshots` (GRAPH_SNAPS), literals read
+from the phases' own `editlit.go`/`edit.go` (go/parser, not retyped), on
+q(N-1)'s graph read back, held to the text program's act printed
+canonically **byte for byte**, and to the import of the result
+(`SameGraph`):
+
+| case | what | on | FRAG, median of 5 (load 45-62) | the file's import |
+| --- | --- | --- | ---: | ---: |
+| body/68 | `syn_name2id_len`'s body, spaced by hand | q067 | 252 ms | 1.9 s |
+| body/61 | `buflist_findnr`'s body | q060 | 255 ms | 2.3 s |
+| run/22 | `:edit`'s 45-line block in do_ecmd: `stat()`, `stat_T` and `st_dev`/`st_ino` of the header's struct, a `dev_t` cast, `goto theend` | q021 | 256 ms | 2.9 s |
+| together/21 | phase 21's ten literal acts (2 bodies, 8 runs in 6 functions) in one unit | q020 | 301 ms | 2.4 s |
+| top/39 | the host block: 16 definitions and objects, `FD_ZERO`/`FD_SET`/`FD_ISSET`, `errno`, `SIG_IGN`, `struct termios`, `sig_atomic_t`, `fd_set`, libc | q038 | 308 ms | 2.1 s |
+| builtin/38 | the launcher: `__builtin_setjmp`, `__builtin_longjmp` | q038 without it | 287 ms | 2.0 s |
+| macros/42 | 7 MIN and 16 MAX expanded to the header's text (`steps.MinMax`) | q041 | 394 ms | 2.1 s |
+| refused/72 | `ml_new_data`'s body before the member it names exists: refused, *frag 1 line 16:7: ... has no member named bh_data* | q071 | -- | -- |
+
+A fragment costs about an eighth of an import of the file, and a batch
+about what one fragment costs (together/21: ten acts, 301 ms). Before the
+unit was pared (bodies only), it was 419 KB on q021 and FRAG 400-460 ms.
+`whim-build-check` (parallel) is unchanged: B2a converts no phase.
+
+### Limits
+
+- **Holes are expressions.** A statement or a run moved into a fragment is
+  MOVE's (B2c); a fragment cannot be a member or an enumerator (INITROW,
+  RENUM: B2b) or hold a `#` line (INCLUDE: B2e).
+- **What is retargeted** is what the unit resolves: uses in the forms
+  printed whole -- the function a fragment goes into, and for a top-level
+  fragment declaring a name the file has, every form using it. A top-level
+  fragment defining a struct, union or enum tag that the file uses as a
+  header's (an `extern-struct`) does not move those uses to it. `MakeC`
+  retargets nothing.
+- **cc's check is asked of the fragment's lines only**: a conflict it
+  reports at a line of the context (a redeclaration reported at the later
+  declaration) is not a refusal. A fragment's expression cc left untyped is
+  in `Untyped`, as BUILD's are.
+- **A splice the editor refuses midway** (a body place given more than a
+  block) leaves the splices before it made, as a run of edits does; the
+  type and external nodes added stay, for the collection.
+- **`LiteralC` matches whole items**; a text `Literal` that matched part of
+  a line has no run, and its count refuses.
+- **The unit is printed, parsed and imported each call** (0.25-0.4 s here,
+  a fifth of the file or less, the system headers' parse about 50 ms of
+  it); `Together` and `SpliceC(fs...)` are how a phase pays it once.
 
 ## The classes
 
@@ -609,9 +800,10 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
   - **B1c**: 58, 64, 77, 86a (`Terminates` on nodes).
 - **B2, the capabilities** (after B0, side by side, each in
   `crefactor/graph`, generic, with unit tests on read-back graphs):
-  - **B2a FRAG** (with CLONE and MACROX): the largest; the externs and
-    builtins (`__builtin_setjmp`, `__builtin_offsetof`), macro invocations
-    made nodes as the importer makes them, new ids, types.
+  - **B2a FRAG** (with CLONE and MACROX) -- **done**, *B2a as built*: the
+    externs and builtins (`__builtin_setjmp`, `__builtin_offsetof`), macro
+    invocations made nodes as the importer makes them, new ids, types, on a
+    synthesized unit; 8 literal splices of real phases byte for byte.
   - **B2b INITROW, RENUM, RENAME** (string literals included).
   - **B2c PARAM, RETYPE (clearing types, no checker), MOVE.**
   - **B2d FOLDX**: the rules listed above, each with the units that want

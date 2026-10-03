@@ -105,12 +105,22 @@ func Import(path string, src []byte) (*Graph, *Report, error) {
 // ImportParsed is Import of a tree cemit.Parse returned and Check has
 // typed (or tried to), its report begun as rep.
 func ImportParsed(ast *cc.AST, path string, bsrc []byte, rep *Report) (*Graph, *Report, error) {
+	im, err := importAST(ast, path, bsrc, rep)
+	if err != nil {
+		return nil, nil, err
+	}
+	return im.g, rep, nil
+}
+
+// importAST is ImportParsed, the importer kept: what each node came from
+// (FRAG, frag.go, asks it where a fragment's nodes are).
+func importAST(ast *cc.AST, path string, bsrc []byte, rep *Report) (*importer, error) {
 	origin := map[*clisp.Node]cc.Node{}
 	forms, err := clisp.Options{Origin: func(n *clisp.Node, from cc.Node) {
 		origin[n] = from
 	}}.FormsOf(ast, path, bsrc)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	im := &importer{
 		g: &Graph{ids: &Sequential{}}, path: path, rep: rep,
@@ -137,7 +147,7 @@ func ImportParsed(ast *cc.AST, path string, bsrc []byte, rep *Report) (*Graph, *
 	im.ambiguity()
 	im.g.Number()
 	rep.Counts = im.g.Count()
-	return im.g, rep, nil
+	return im, nil
 }
 
 type importer struct {
