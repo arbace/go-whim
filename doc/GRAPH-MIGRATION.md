@@ -250,6 +250,97 @@ graph read back from its Lisp, no cc node behind it:
 - **TEXTQ**: `Mentions` is `edit.MentionCount` on the canonical text,
   number for number; uses, strings, rows and order are checked as well.
 
+## B1b as built (2026-10-03)
+
+Phase 33 and part 38a are graph steps (`phase.RegisterGraph`, `Graph: true`
+in the plan); their text programs are gone (history keeps them, and 33's
+`editlit.go`). Written on B0's library alone -- `One`, `Cut`, `InFunction`,
+`InTable`/`Rows`, `UsesOf`, `Decls`, `Strings`, `Text`, the editor's
+`Delete`, `Sibling`, `Parent`, `Item`, `Uses` -- with no change to
+`crefactor/graph`. 96 and 247 lines of Go (78+8 and 198 before), the
+growth 38a's, whose assertions now say what each anchor stood for.
+
+**How the assertions moved.** One rule for both programs:
+
+- **A `\bname\b` count stays the text's question**, on the C view, number
+  for number (`edit.MentionCount` on `v.Text()`): such a count includes
+  prototypes, strings and labels, and both phases' tables of counts were
+  written against exactly that. **Take the view once** for a table of
+  counts: `Verbs.Mentions` prints the scope's view on every call (50-90 ms
+  for the file), and 33's 40 counts would cost 2-3 s that way, against two
+  views here.
+- **An exact line or block becomes a pattern**: 33's four-line tail is a
+  run of four items (found once in the file, each next one its sibling);
+  38a's `signal_info[]` is its six rows by `Rows`, catch_signals()'s
+  deadly arm and deathtrap()'s head are forms, and the ladder is one node,
+  found once in the file and checked between `full_screen = FALSE;` and the
+  `entered == 2` arm, as the text checked it in context.
+- **A regexp or a count that stood for uses becomes an edge query**:
+  "not_exiting 2 mentions" is two declarations and no use; "the one
+  `catch_signals(deathtrap, SIG_ERR)`" is deathtrap's one use; the writes
+  of `entered` (a regexp over deathtrap's lines, with a byte test for
+  RE2's missing lookahead) are the uses of the static's declaration that
+  write it -- `++`/`--`, an assignment's left side, `&` -- of which there
+  must be one, `pre++`; "statements beginning with `exit(`" are the uses of
+  the external `exit`, each a call standing as a statement, told by its
+  function. The counting trap is now a partition: the six mentions of
+  `exit` are two string literals (`Strings`), `(goto exit)` and `(label
+  exit)` in vim_regsub_both, and two calls of the external.
+- **The text-only ones are dropped**: 38a's "the file lost 9 lines" and
+  "N runs of two blank lines, exactly as before" have no counterpart; its
+  last report line no longer says the blank-line count.
+
+The reports are the text's line for line but for "goes in the sweep",
+which says "the collection" where the collection now takes it. Each
+refusal was tried on a mutated snapshot: `sa_flags = 4`, `entered += 1`,
+`&entered` and `entered = ...` inside deathtrap, a third deadly row, a third
+`exit()` call, a second use of deathtrap, and `exiting = FALSE` in ex_quit's
+tail each refuse with the phase's own words.
+
+**The proof.** `rm -rf .cache/boundaries; make whim-build-check`, in order:
+whim-vim.c byte for byte, every boundary compiling, 347 s (348 s for stage
+A), seven graph snapshots written (q032.g and q037.g new). Again, in
+parallel: byte for byte, 89 s (77 s the links, 12 s the compiles, under the
+other batches' load), 7 of 7 links that begin on the graph read from their
+snapshot. The controls -- 33 deleting `getout(0);` too, 38a deleting
+`full_screen = FALSE;` with the ladder, neither seen by an assertion -- are
+each named: `phase 33 gives 77498 lines where q033.c holds 77499`, `phase
+38 gives 78188 lines where q038.c holds 78189`, `2 of 103 phases do not
+reproduce their snapshot`. `whim-editor-check`, `whim-test` (80 cases,
+the Go editor all 80), `go test ./...` here and in `crefactor/`, and
+`TestPhasesOnGraph`/`TestGraphSnapshots` pass.
+
+**Measured** (5 runs each, medians, load 3-9; the text in, the graph
+imported, as a run in order does; and handed q(N-1)'s graph read back, as
+the parallel check does, the read apart):
+
+| phase | text before, wall / CPU ms | imported, wall / CPU ms | handed the graph, wall / CPU ms |
+| --- | ---: | ---: | ---: |
+| 33 | 2,251 / 4,358 | 2,112 / 4,225 (import 1,757, C view 67, collection 121) | **366 / 562** |
+| 38 (38a on the graph, 38b and 38 text) | 2,077 / 3,443 | 3,839 / 7,138 (import 1,877, C view 86) | 1,966 / 3,255 |
+
+- **33 begins and ends on the graph**: an import where 32 hands it text
+  (1.6-1.8 s, about the sweep and print it no longer runs), 0.37 s handed
+  the graph, of which the program's own two file views are about 0.14 s.
+  Once 32 ends on the graph (B3b) it imports nothing.
+- **38 is 1.8 s slower until 38b and 38 move (B3c)**: it imports for 38a
+  and prints the C view for 38b, then sweeps as before -- the cost
+  *Converting a phase* warns of, taken because 38a is this batch's and
+  38b's FRAG/RENAME is B2's. In the parallel check it reads q037.g and costs
+  what it did.
+- **Boundaries**: two imports added to the run in order (q032, q037), one
+  C view inside phase 38 (to 38b), and two graph snapshots (q032.g,
+  q037.g, 6.3-6.5 MB each). Phase 33's collection replaces its sweep.
+
+**Refinements to the catalogue.** Both rows were (a) and TEXTQ as said,
+and needed nothing else: no BUILD (33 deletes, the call to `getout` keeps
+its node), no FOLDX. A text literal of several statements is a run of
+items, which a verb could say (`Run(pats...)`: the first found once, the
+rest its siblings), and "the writes of x" by edge is a TEXTQ question
+other phases will ask (`Writes(decl)`): both are written locally here and
+left for B2 to lift if a second phase wants them. A converter of a phase
+with several steps should expect 38's cost until its last text step moves.
+
 ## The classes
 
 - **(a)** expressible with G0 and the B0 library (VERBS, BUILD, TEXTQ).
@@ -390,12 +481,12 @@ phase 29 | 29 | whim29 | 115 | 638 | b | RENUM | B3b | no :read
 phase 30 | 30 | whim30 | 131 | 844 | b | RENUM TEXTQ | B3b | no :edit, gf
 phase 31 | 31 | whim31 | 102 | 569 | b | PARAM | B3b | open_buffer(void)
 phase 32 | 32 | whim32 | 476 | 5665 | b | RENUM PARAM TEXTQ FOLDX | B3b | the buffer has no name
-phase 33 | 33 | whim33 | 87 | 656 | a | TEXTQ | B1b | ex_quit's dead tail, two members
+phase 33 | 33 | whim33 | 87 | 656 | done | - | B1b | begins on the graph (q032.g); ex_quit's dead tail, two members
 phase 34 | 34 | whim34, droplocal x2, whim34rows | 155 | 513 | b | PARAM(variadic arg) TEXTQ | B3b | W10 and [RO]; droplocal on the graph; 1 import today
 phase 35 | 35 | whim35 | 227 | 1854 | b | PARAM | B3b | the never-opened FILE*s
 phase 36 | 36 | whim36 | 242 | 12079 | b | FRAG RENAME | B3c | 18 musl string functions; ~600 uses renamed
 phase 37 | 37 | whim37 + musl-*.md | 188 | 15400 | b | FRAG RENAME | B3c | ctype, case tables in-file; after 36
-38a | 38 | phase/038/a | 199 | - | a | TEXTQ | B1b | deathtrap's ladder; the assertions are the work
+38a | 38 | phase/038/a | 199 | - | done | - | B1b | begins phase 38 on the graph (q037.g), 38b and 38 text after it; deathtrap's ladder, the assertions the work
 38b | 38 | phase/038/b | 98 | - | b | RENAME RETYPE FRAG | B3c | main -> static vim_main, a launcher; the collection's root moves
 phase 38 | 38 | whim38a, whim38b, whim38 | 164 | - | b | FRAG PARAM | B3c | exit through the host; builtins
 phase 39 | 39 | whim39 | 254 | 20227 | b | FRAG INITROW RENAME | B3c | the host block: macros, termios, externs
@@ -514,7 +605,7 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
     programs replaced. Check first whether DropLocal's get_varp rule
     already takes whim18kp's, whim19ep's and whim20bl's cases (then those
     programs go and nothing replaces them).
-  - **B1b**: 33, 38a (their assertions as queries).
+  - **B1b**: 33, 38a (their assertions as queries) -- **done**, *B1b as built* above.
   - **B1c**: 58, 64, 77, 86a (`Terminates` on nodes).
 - **B2, the capabilities** (after B0, side by side, each in
   `crefactor/graph`, generic, with unit tests on read-back graphs):

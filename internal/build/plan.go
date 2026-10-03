@@ -272,7 +272,7 @@ var Plan = []Phase{
 		}},
 	{N: 33, Name: "`:q` quits, and `ZZ` is `ZQ`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim33"}},
+			{Op: "edit", Graph: true, Args: []string{"whim33"}},
 		}},
 	{N: 34, Name: "the options nothing reads",
 		Steps: []Step{
@@ -295,7 +295,7 @@ var Plan = []Phase{
 		}},
 	{N: 38, Block: "r02-host-chain", Name: "the deadly ladder, `vim_main`, and a core that cannot stop the process",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim38a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim38a"}},
 			{Op: "edit", Args: []string{"whim38b"}},
 			{Op: "edit", Args: []string{"whim38"}},
 		}},

@@ -67,14 +67,38 @@ package p033
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B1b).  The cut
+// is five deletions on the program's graph, through the editor,
+// and its report is the text version's, which the plan ran until then
+// (history keeps it, with editlit.go's literals):
+//
+//   - the anchors' file -- the mentions of w33Before and w33After -- is
+//     asked of the C view, `\bname\b` as the text counted it (TEXTQ's
+//     Mentions): the numbers include prototypes and declarations, which is
+//     what they were written against;
+//   - the tail is the four items `int save_exiting = exiting;`, `exiting =
+//     TRUE;`, `getout(0);` and `not_exiting(save_exiting);` in a row, found
+//     once in the file by pattern, and three of them deleted, the call to
+//     getout keeping its node;
+//   - not_exiting's "2 mentions, its prototype and its definition" is the
+//     graph's question: two declarations and no use left;
+//   - the two fields' declaration and writes are deleted by pattern, each
+//     found once in the file.
+//
+// What nothing names afterwards -- not_exiting, w_topline_was_set -- is
+// the collection's, as it was the sweep's.
+
 import (
 	"io"
 
+	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim33", Edit) }
+func init() { phase.RegisterGraph("whim33", Edit) }
 
 // w33Before is the file the two extras were counted against.  The fold, the
 // refusal folded NEVER, is phase 1's since the reform (quitfront, the phase's
@@ -99,46 +123,60 @@ var w33After = map[string]int{
 	"vim_fsync": 3, "scriptin": 8, "redir_fd": 0,
 }
 
-// Whim33 takes what `:q`'s refusal leaves behind once it folds: the tail
-// that cannot run and two fields nothing reads.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "noquit", W: w}
-	var err error
+// w33Tail is ex_quit's tail, an item each, in order: the save, the set,
+// the call that never returns, the restore.
+var w33Tail = []string{
+	"(def save_exiting int exiting)",
+	"(= exiting TRUE)",
+	"(call getout 0)",
+	"(call not_exiting save_exiting)",
+}
 
-	mentions := func(t []byte, name string) int {
-		return edit.WordPatternCount(t, name)
-	}
-	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
-		k := edit.CountAnchorB(t, old)
-		if k != n {
-			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
+// Edit takes what `:q`'s refusal leaves behind once it folds: the tail
+// that cannot run and two fields nothing reads.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noquit", e, w)
+
+	// mentions holds the C view's `\bname\b` counts to want, one view for all.
+	mentions := func(want map[string]int, format string) {
+		if v.Failed() {
+			return
 		}
-		p.Say(what)
-		return edit.ReplaceAnchorB(t, old, []byte(new), n), nil
+		t := v.Text()
+		for _, name := range edit.SortedKeys(want) {
+			if k := edit.MentionCount(t, name); k != want[name] {
+				v.Die(format, name, k, want[name])
+				return
+			}
+		}
 	}
 
 	// ---- 0. the shape every anchor below was counted against ------------------
-	for _, name := range edit.SortedKeys(w33Before) {
-		if k := mentions(text, name); k != w33Before[name] {
-			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, w33Before[name])
-		}
-	}
-	p.Say("check_changed 0 and the switch-buffer island gone at phase 1 (quitfront), " +
+	mentions(w33Before, "%s has %d mentions, expected %d -- the anchors below were counted "+
+		"against a different file")
+	v.Say("check_changed 0 and the switch-buffer island gone at phase 1 (quitfront), " +
 		"not_exiting 3 -- the file the two extras were counted against")
 
 	// ---- 2. extra B: the tail that cannot run ---------------------------------
-	if text, err = textEdit(text, w33lit1, w33lit2,
-		"ex_quit's tail: getout() sets `exiting = TRUE` itself and ends in "+
-			"mch_exit(), which never returns, so the save, the set and the "+
-			"restore are dead -- and not_exiting(), which was the whole of \"we "+
-			"changed our mind, put the terminal back\", has no caller left", 1); err != nil {
-		return nil, err
+	what := "ex_quit's tail: getout() sets `exiting = TRUE` itself and ends in " +
+		"mch_exit(), which never returns, so the save, the set and the " +
+		"restore are dead -- and not_exiting(), which was the whole of \"we " +
+		"changed our mind, put the terminal back\", has no caller left"
+	if tail := run(v, w33Tail, what); tail != nil {
+		// the restore first, then the set, then the save it read
+		for _, x := range []*graph.Node{tail[3], tail[1], tail[0]} {
+			if err := e.Delete(x); err != nil {
+				v.Die("%s -- %v", what, err)
+				break
+			}
+		}
+		v.Say(what)
 	}
-	if k := mentions(text, "not_exiting"); k != 2 {
-		return nil, p.Die("not_exiting has %d mentions, expected 2 -- its prototype and its "+
-			"definition, for the sweep", k)
+	if !v.Failed() {
+		if u, d := v.UsesOf("not_exiting"), e.Decls("not_exiting"); len(u) != 0 || len(d) != 2 {
+			v.Die("not_exiting has %d declarations and %d uses, expected 2 and none -- its "+
+				"prototype and its definition, for the collection", len(d), len(u))
+		}
 	}
 
 	// ---- 3. extra A: two fields that become write-only ------------------------
@@ -147,26 +185,37 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// Their readers, in enter_buffer() and get_winopts(), went with the island
 	// at phase 1 (w33Before counts both functions 0), so each field is only
 	// written now.
-	for _, e := range []struct{ Old, What string }{
-		{w33lit4, "win_T.w_topline_was_set's one surviving write, in set_topline(): its " +
-			"only reader was inside enter_buffer(), and the field, named by nothing " +
-			"after this, goes in the sweep"},
-		{w33lit5, "wininfo_S.wi_changelistidx: its only reader was inside get_winopts()"},
-		{w33lit6, "and its one surviving write"},
-	} {
-		if text, err = textEdit(text, e.Old, "", e.What, 1); err != nil {
-			return nil, err
-		}
-	}
+	v.Cut("(= (-> wp w_topline_was_set) true)", 1,
+		"win_T.w_topline_was_set's one surviving write, in set_topline(): its "+
+			"only reader was inside enter_buffer(), and the field, named by nothing "+
+			"after this, goes in the collection")
+	v.Cut("(wi_changelistidx int)", 1, "wininfo_S.wi_changelistidx: its only reader was inside get_winopts()")
+	v.Cut("(= (-> wip wi_changelistidx) (-> win w_changelistidx))", 1, "and its one surviving write")
 
-	// ---- what the sweep is handed, as a count rather than as trust ------------
-	for _, name := range edit.SortedKeys(w33After) {
-		if k := mentions(text, name); k != w33After[name] {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w33After[name])
-		}
-	}
-	p.Say("the cut is done: not_exiting 2 -- its prototype and its definition, for " +
-		"the sweep -- and read_cmd_fd 12, vim_fsync 3 and scriptin 8 untouched, " +
+	// ---- what the collection is handed, as a count rather than as trust -------
+	mentions(w33After, "%s has %d mentions after the cut, expected %d")
+	v.Say("the cut is done: not_exiting 2 -- its prototype and its definition, for " +
+		"the collection -- and read_cmd_fd 12, vim_fsync 3 and scriptin 8 untouched, " +
 		"each of them a later phase's")
-	return text, nil
+	return v.Done()
+}
+
+// run is the items matching pats in a row, the first found once in the
+// file and each after it its next sibling: what the text's one literal of
+// several lines, counted once, asserted.
+func run(v *graph.Verbs, pats []string, what string) []*graph.Node {
+	first := v.One(pats[0], what)
+	if first == nil {
+		return nil
+	}
+	out := []*graph.Node{first}
+	for k, src := range pats[1:] {
+		x := v.Editor().Sibling(first, k+1)
+		if x == nil || !graph.Matches(clisp.MustPattern(src), x) {
+			v.Die("%s -- the item after %s is not %s", what, pats[k], src)
+			return nil
+		}
+		out = append(out, x)
+	}
+	return out
 }

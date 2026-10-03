@@ -213,3 +213,12 @@ was for as much as the symbol: the next phase in this package has one line to re
 one function rather than three in two.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 102, in the group 100-102, whose phases share one purpose. There is no boundary q100 of its own any more; everything above still says what the steps do and why.
+
+## On the graph (doc/GRAPH.md, step 5)
+
+Since stage B (`doc/GRAPH-MIGRATION.md`, *B1b as built*) this part runs on the
+program's graph, its assertions asked as patterns and edge queries -- the six
+mentions of `exit` told apart as two strings, a goto, its label and two calls
+of the external -- and the ladder deleted as one node; phase 38 imports for it
+and prints the C view for 38b, so it costs 3.8 s from the text (2.1 s before)
+until 38b and 38 move too.

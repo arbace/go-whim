@@ -214,3 +214,11 @@ went, and check_changed() is the :q phase's` — and exits 1. **Only `apart 93 9
 written**, and the four before it are implied: a stage holding 89 and 94 holds 93, so
 that line forbids it already. It is the shape of the missing `apart 85 89`, `apart 89 91`
 and `apart 91 93`.
+
+## On the graph (doc/GRAPH.md, step 5)
+
+Since stage B (`doc/GRAPH-MIGRATION.md`, *B1b as built*) the phase runs on the
+program's graph, a graph step whose anchors are patterns and edge queries
+(`\bname\b` counts on the C view where the text counted them) and whose
+report is the text version's; it costs 2.1 s imported (2.3 s on text before)
+and 0.37 s handed the graph.

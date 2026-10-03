@@ -284,7 +284,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phase 24 so far, `doc/GRAPH-MIGRATION.md`),
+phase converted to the graph (phases 24 and 33 and part 38a so far, `doc/GRAPH-MIGRATION.md`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -696,7 +696,7 @@ make help            # every target, with a line each
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
   the boundary before each phase that begins on the graph the graph it
-  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: five now), and seals the
+  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: seven now), and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
