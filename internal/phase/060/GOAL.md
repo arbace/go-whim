@@ -30,4 +30,4 @@ reports the blocks the calls leave empty,
 which a later phase can fold once each condition is shown to have no side
 effect.
 
-The transformation now lives in `crefactor/xform` (`DropCalls`), with vim's knobs in `internal/whim/xform.go`.
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3g) the phase runs on the graph: `crefactor/graph`'s `Editor.DropCalls`, with vim's knobs in `internal/whim/xform.go`, finds the call statements by their form and the host's calls by edge (pointed at `host_free` by `RetargetAs`), takes the locals left only given values with `Editor.DeadLocals` (the text's `edit.DeadStores`, held to it by `PureCond`), and reports what the text version reported; `whim-build-check` holds q060 to the bytes `crefactor/xform`'s `DropCalls` made (which is in history, `16717ab` and before); its test, moved with it, is `crefactor/graph/dropcalls_test.go`.

@@ -62,3 +62,5 @@ original prints; and a control: `break` written for the held two-level goto
 is caught by that comparison.
 
 **In the chain** (after phase 170, measured by the whole build): 4 gotos are `break;`, 1 is deleted, and 6 are held for leaving more than one loop or switch -- the 18 held on q169 less the 12 that phase 170 had already taken; 2 labels go. 75,504 lines.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3g) the step runs on the graph: `crefactor/graph`'s `Editor.GotoBreak`, the walk of `gotoflow.go` on C-lisp's items (a label an item of its own), its report the text version's; `whim-build-check` holds q090 to the bytes `crefactor/xform`'s `GotoBreak` made (which is in history, `16717ab` and before), and the two agreed on every boundary, q000-q103. Its tests, moved with it, are `crefactor/graph/gotos_test.go`.

@@ -28,6 +28,6 @@ never-NULL set on the output with a second, simpler test: each function
 returns only calls and names, never NULL or a literal. It requires the rule to
 fold nothing more.
 
-The transformation now lives in `crefactor/xform` (`NeverNull`), with vim's knobs in `internal/whim/xform.go`.
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3g) the step `whim74` runs on the graph: `crefactor/graph`'s `Editor.NeverNull`, the stores and tests found by their forms, the never-NULL set to its fixed point on the defn forms (its locals asked by spelling, as the text asked them: `*v =` is a store of `v`), the folds the verbs' `FoldNever`/`FoldAlways` splices, the unreached labels by edge; its report the text version's, and `whim-build-check` holds q074 to the bytes `crefactor/xform`'s `NeverNull` made (which is in history, `16717ab` and before); its test, moved with it, is `crefactor/graph/dropcalls_test.go`. Part 74a is still text, so the phase imports after it.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 148-149 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

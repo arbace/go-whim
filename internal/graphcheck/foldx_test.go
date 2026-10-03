@@ -205,11 +205,10 @@ func TestEmptyBlocksPhase62(t *testing.T) {
 	if !bytes.Equal(got, want) {
 		t.Fatalf("phase 62 on the graph is not q062.c: %s", firstDiff(got, want))
 	}
-	// the text's own numbers, on the same core
-	core := in[:bytes.Index(in, []byte("\n#include"))+1]
-	_, n, took := xform.EmptyBlocksRule(core)
-	if st.Blocks != n || strings.Join(st.Locals, " ") != strings.Join(took, " ") {
-		t.Errorf("graph: %v; text: %d blocks, locals %q", st, n, took)
+	// the text's own numbers, as its report said them on q061 (B3g deleted
+	// it: phase 62 runs this on the graph now)
+	if st.Blocks != 49 || strings.Join(st.Locals, " ") != "did_intro event_cmdlineleavepre_triggered mustfree pp free_str" {
+		t.Errorf("graph: %v; the text said 49 blocks, 5 locals", st)
 	}
 	t.Logf("%v", st)
 	// the control: without the text's test of a condition's text, `if

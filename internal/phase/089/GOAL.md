@@ -91,3 +91,5 @@ the input and the output silently and they print the same; and, as the control,
 the two rewrites the name rule forbids (an inner `r` and an inner typedef
 `T` shadowing at the `goto`), made anyway, compile as silently and print
 something else.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3g) the step runs on the graph: `crefactor/graph`'s `Editor.GotoTail`, each tail's statements copied over a goto by `Clone` (CLONE), the labels and dead tails deleted, its report the text version's; `whim-build-check` holds q089 to the bytes `crefactor/xform`'s `GotoTail` made (which is in history, `16717ab` and before), and before the text version went the two agreed on every boundary, q000-q103. Its tests, moved with it, are `crefactor/graph/gotos_test.go`.

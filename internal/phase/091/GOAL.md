@@ -79,3 +79,5 @@ it takes the `continue` -- the program then loops for ever, which the
 comparison catches.
 
 **In the chain** (after 170-171, measured by the whole build): the same 2 backward gotos are loops, 1 as a do-while and 1 as `for (;;)`, none held. 75,506 lines.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3g) the step runs on the graph: `crefactor/graph`'s `Editor.GotoLoop`, the region's items moved into the loop keeping their ids (MOVE), its report the text version's; `whim-build-check` holds q091 to the bytes `crefactor/xform`'s `GotoLoop` made (which is in history, `16717ab` and before), and the two agreed on every boundary, q000-q103. Its tests, moved with it, are `crefactor/graph/gotos_test.go`.

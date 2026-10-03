@@ -17,4 +17,4 @@ input's core with `edit.W134Rule` applied, run through the real sweep, must
 be the output byte for byte. It names what the sweep took beyond the blocks,
 and requires every empty block left to be one the rule must keep.
 
-The transformation now lives in `crefactor/xform` (`EmptyBlocks`), with vim's knobs in `internal/whim/xform.go`.
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3g) the phase runs on the graph: `crefactor/graph`'s `Editor.EmptyBlocks` (B2d's) on the core's forms, with `edit.PureCond` as the text's own test of a condition, its report the text version's; `whim-build-check` holds q062 to the bytes `crefactor/xform`'s `EmptyBlocks` made (which is in history, `16717ab` and before).

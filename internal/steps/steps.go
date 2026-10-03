@@ -112,10 +112,6 @@ var ops = map[string]Step{
 
 	"cemit":        Step(pipeline.Canonical),
 	"includes":     Step(xform.Includes(whim.Includes)),
-	"gototail":     Step(xform.GotoTail(whim.GotoTail)),
-	"gotobreak":    Step(xform.GotoBreak()),
-	"gotoloop":     Step(xform.GotoLoop()),
-	"gotoblock":    Step(xform.GotoBlock()),
 	"memberout":    Step(xform.MemberOut(whim.Core)),
 	"stateparam":   Step(xform.StateParam(whim.RegEngine)),
 	"localout":     Step(xform.LocalOut(whim.Core)),

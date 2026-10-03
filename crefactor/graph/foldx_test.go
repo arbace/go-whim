@@ -403,7 +403,9 @@ int main(void)
 }
 
 // EmptyBlocks held to xform's EmptyBlocksRule: the empty blocks and the
-// locals only given values, on the text and on the graph read back.
+// locals only given values, on the graph read back, against what the text
+// rule gave on this sample (recorded when B3g deleted it, its last user
+// phase 62 on the graph): 4 blocks, the locals b and p.
 func TestEmptyBlocksAgainstText(t *testing.T) {
 	src := `
 int use(int);
@@ -449,12 +451,9 @@ int main(void)
     return 0;
 }
 `
-	path, canon, g := importSample(t, src)
-	text, n, took := xform.EmptyBlocksRule(canon)
-	want, err := cemit.Canonical(path, text)
-	if err != nil {
-		t.Fatal(err)
-	}
+	_, _, g := importSample(t, src)
+	want := []byte(emptyBlocksTextWant)
+	n, took := 4, []string{"b", "p"}
 	h, err := Read(g.Lisp())
 	if err != nil {
 		t.Fatal(err)
@@ -474,10 +473,37 @@ int main(void)
 	if st.Blocks != n || strings.Join(st.Locals, " ") != strings.Join(took, " ") {
 		t.Errorf("graph %d blocks, %q; text %d, %q", st.Blocks, st.Locals, n, took)
 	}
-	if n == 0 || len(took) == 0 {
-		t.Errorf("the sample folds nothing: %d, %q", n, took)
-	}
 }
+
+const emptyBlocksTextWant = `int use(int);
+
+int g;
+
+    int
+main(void)
+{
+    int a = use(0);
+    int c = use(1);
+    if (use(2))
+    {
+    }
+    if (a)
+    {
+        use(3);
+    }
+    if (c)
+    {
+    }
+    else if (use(4))
+    {
+    }
+    g = c;
+    while (a)
+    {
+    }
+    return 0;
+}
+`
 
 const moreSample = `
 struct opt { int f; int s; };

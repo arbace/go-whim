@@ -681,7 +681,8 @@ the closure is the text's on all three. What it does not have:
   (0a, 0c), `Own` (47) and `Unions` (50) (on the graph since B3d), `DropCalls` (60), `EmptyBlocks` (62),
   `NeverNull` (74), `DeadStmt` (86a, on the graph since B1c), `BoolRet` (87a, 102, 103) and the four
   goto steps (89-92): they are text or `cc.Parse` only, so they are (a) or
-  (b).
+  (b). (60, 62, 74 and 89-92 are on the graph since B3g, their text
+  versions gone.)
 - **(d)** stays text: the seed (phase 0: it runs on the input before any
   graph, its work is spelling, and its proof is an identical binary; the
   first import is of q000 or later), and phase 88's `includes` (judged by
@@ -841,9 +842,9 @@ phase 56 | 56 | whim56 @state | 791 | 4045 | b | FRAG RETYPE PARAM | B3e | fold 
 phase 57 | 57 | whim57 | 13 | - | b | RETYPE | B3f | p_emoji int
 phase 58 | 58 | whim58 | 13 | - | done | - | B1c | three (pos_T *)-1 tests fold; on the graph (B1c), a FoldNever by form
 phase 59 | 59 | whim59 | 23 | - | b | RETYPE RENAME | B3f | garray_T *
-phase 60 | 60 | crefactor/xform/dropcalls.go | 7+94 | - | a | BUILD FOLDX(dead stores) | B3g | no-op frees go; not typed
+phase 60 | 60 | phase/060 + graph/dropcalls.go | 34+126 | - | done | - | B3g | no-op frees go: Editor.DropCalls, the locals by Editor.DeadLocals (PureCond), the host's calls RetargetAs
 phase 61 | 61 | whim61 | 23 | - | b | FRAG | B3f | buflist_findnr
-phase 62 | 62 | crefactor/xform/emptyblocks.go | 7+89 | - | b | FOLDX(empties everywhere) | B3g | empty blocks fold; not typed
+phase 62 | 62 | phase/062 + graph/foldmore.go | 34 | - | done | - | B3g | empty blocks fold: B2d's Editor.EmptyBlocks on the core, PureCond
 phase 63 | 63 | whim63 | 58 | - | b | MOVE RENAME RETYPE | B3f | one regprog type
 phase 64 | 64 | whim64 | 21 | - | done | - | B1c | the engine called directly; on the graph (B1c): 4 statements rebuilt by template, 1 cut
 phase 65 | 65 | whim65 | 14 | - | b | RETYPE RENAME FRAG | B3f | changedtick a number
@@ -858,7 +859,7 @@ phase 71 | 71 | whim71a, whim71b, whim71 | 59 | - | b | FRAG MOVE | B3f | check_
 phase 72 | 72 | whim72 | 58 | - | b | FRAG TEXTQ | B3f | a node names its block
 phase 73 | 73 | whim73 | 58 | - | b | INCLUDE FRAG | B3f | deathtrap at the next wait (host)
 74a | 74 | phase/074/a | 20 | - | b | FRAG | B3f | lalloc's body
-phase 74 | 74 | whim74a, xform/nevernull.go | 7+253 | - | b | FOLDX(label) | B3g | never-NULL tests fold; not typed
+phase 74 | 74 | whim74a, phase/074 + graph/nevernull.go | 35+381 | - | b | FRAG (74a) | B3g, B3f | whim74 on the graph (B3g): Editor.NeverNull, the set by forms, its locals by spelling as the text's; 74a still text, so the phase imports after it
 phase 75 | 75 | whim75 | 73 | - | b | FRAG INITROW TEXTQ | B3f | three typed stacks
 76a | 76 | phase/076/a | 96 | - | b | INITROW RETYPE RENAME FRAG | B3f/step 6 | def_val split; a typed transform in text
 phase 76 | 76 | whim76a, whim76 | 294 | - | b | INITROW RETYPE FRAG RENAME | B3f/step 6 | optvar_T: kinds from typed edges
@@ -872,15 +873,15 @@ phase 82 | 82 | whim82 | 28 | - | b | RETYPE FRAG INITROW | B3f | flexible array
 phase 83 | 83 | whim83 | 29 | - | b | PARAM RETYPE TEXTQ | B3f | no cookie
 phase 84 | 84 | whim84 | 37 | - | b | FRAG MOVE | B3f | ml_get_invalid outlined
 phase 85 | 85 | whim85 | 19 | - | b | FRAG | B3f | a flag for a pointer comparison
-86a | 86 | phase/086/a + graph/deadstmt.go | 21+104 | - | done | - | B1c | statements after a jump; on the graph (B1c): Editor.DeadStmt, StmtTerminates on nodes; xform.Terminates stays for fallout.go and the gotos
+86a | 86 | phase/086/a + graph/deadstmt.go | 21+104 | - | done | - | B1c | statements after a jump; on the graph (B1c): Editor.DeadStmt, StmtTerminates on nodes; xform.Terminates stays for fallout.go (the gotos are on the graph since B3g)
 phase 86 | 86 | whim86a, whim86 | 35 | - | b | PARAM FRAG | B3f | six dead stores; one parameter becomes a local
 87a | 87 | phase/087/a + xform/boolret.go | 7+1020 | - | b | RETYPE BUILD | B3f | bool for 278 functions; cc.Parse only
 phase 87 | 87 | whim87a, whim87 | 167 | - | b | FRAG TEXTQ | B3f | 153 key codes named
 phase 88 | 88 | crefactor/xform/includes.go | 159 | - | d | - | - | each #include tried under gcc
-phase 89 | 89 | crefactor/xform/gototail.go | 366 | - | b | CLONE FOLDX(label) | B3g | goto tails; cc.Parse only
-phase 90 | 90 | crefactor/xform/gotobreak.go, gotoflow.go | 84+186 | - | a | BUILD FOLDX(label) | B3g | goto -> break
-phase 91 | 91 | crefactor/xform/gotoloop.go, gotoflow.go | 232+186 | - | b | MOVE | B3g | goto back -> loop
-phase 92 | 92 | crefactor/xform/gotoblock.go | 404 | - | b | MOVE | B3g | goto out -> do-while(0) break
+phase 89 | 89 | graph/gototail.go, gotoflow.go | 297+256 | - | done | - | B3g | goto tails: Editor.GotoTail, the copies Clone's; begins on text (88), imports
+phase 90 | 90 | graph/gotobreak.go, gotoflow.go | 90+256 | - | done | - | B3g | goto -> break: Editor.GotoBreak; handed the graph
+phase 91 | 91 | graph/gotoloop.go, gotoflow.go | 211+256 | - | done | - | B3g | goto back -> loop: Editor.GotoLoop, the region moved; handed the graph
+phase 92 | 92 | graph/gotoblock.go | 314 | - | done | - | B3g | goto out -> do-while(0) break: Editor.GotoBlock, the region moved; handed the graph
 phase 93 | 93 | whim93 | 71 | - | b | FRAG MOVE TEXTQ | B3f | one_adjust as functions
 phase 94 | 94 | crefactor/xform/memberout.go, rewrite.go | 703+147 | - | c | step 6 | 6 | member out-parameters
 phase 95 | 95 | crefactor/xform/stateparam.go | 429 | - | c | step 6 | 6 | the engine's state a parameter
@@ -975,7 +976,7 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
     may wait for step 6 (a typed transform written in text); 96 after 95.
   - **B3g** phases 60, 62, 74 and 89-92: the `crefactor/xform` text
     transforms (DropCalls, EmptyBlocks, NeverNull, the gotos: ~1,600 lines)
-    on the graph: CLONE, MOVE, FOLDX.
+    on the graph: CLONE, MOVE, FOLDX -- **done**, *B3g as built* below.
 - **B4, the front** (phases 1-3: 47 cutters and parts, ~5,100 lines): last.
   Its cutters run inside one step each, wrapped by `xform.FallOutOf`,
   which types the text before and after the cuts. The closure is on the
@@ -1984,3 +1985,127 @@ the in-order build's difference. 48 and 49 cost most handed: 48's two
 moves across the includes recompute what the headers provide (about 0.5 s
 a time), 49's six FRAG units 0.3 s each. Phase 43 imports until phase 42
 (B3c) ends on the graph.
+## B3g as built (2026-10-03)
+
+Phases 60, 62 and 89-92 and phase 74's own step (`whim74`) run on the
+graph; `crefactor/xform`'s `DropCalls`, `EmptyBlocks`, `NeverNull`,
+`GotoTail`, `GotoBreak`, `GotoLoop` and `GotoBlock` are deleted (history
+keeps them, `16717ab` and before), with their tests, which moved to
+`crefactor/graph`. 60, 62 and 74 are `RegisterGraph` programs
+(`internal/phase/0NN/edit.go`); 89-92 are graph steps of `internal/steps`
+(`b3ggotos.go`, registered into `graphOps` in an `init`), their floors
+`--at-least` as before. Each reports what the text version reported, line
+for line. `xform.Terminates`, `StmtTerminates` and `labeled` stay, for
+`fallout.go`'s closure; `xform.Flags` is the text steps' argument parser,
+exported for the graph versions.
+
+| unit | on the graph | Go (non-blank, non-comment) |
+| --- | --- | ---: |
+| phase 60 | `Editor.DropCalls`: the call statements of `vim_free`/`host_free` in the core found by their form, each deleted or replaced by its argument's one `++`/`--` (moved, not rebuilt), then `Editor.DeadLocals` (new: EmptyBlocks' half that takes the locals, with `PureCond` as the text's `DeadStores`), the host's three calls pointed at `host_free` by `RetargetAs` | 34 + 126 |
+| phase 62 | B2d's `Editor.EmptyBlocks` on the core (`whim.GraphCore`), `PureCond` | 34 |
+| whim74 | `Editor.NeverNull`: the never-NULL set to its fixed point on the defn forms; `if ((v = f()) == nullptr)` split by `Clone` of v; the store, an optional `w = v;`, and the test found as consecutive items; FoldNever/FoldAlways as the verbs make them (`Unwrap`); the labels no goto reaches by edge | 35 + 381 |
+| phase 89 | `Editor.GotoTail`: a tail's statements copied over each goto by `Clone`, a block where cc's goto was a labeled statement | 297 |
+| phase 90 | `Editor.GotoBreak` | 90 |
+| phase 91 | `Editor.GotoLoop`: the region's items moved into `(for () () () (block ...))` or `(do (block ...) c)`, ids kept | 211 |
+| phase 92 | `Editor.GotoBlock`: the region moved into `(do (block ...) 0)`, in rounds | 314 |
+| the walk | `gotoflow.go`: the frames, `gfNext`, `gfMarks`, the groups, positions, names spelled | 256 |
+
+Against about 1,710 lines of text transforms deleted (94, 89, 253, 366,
+84, 232, 404 and 186).
+
+**crefactor/graph**, new files only: `gotoflow.go`, `gototail.go`,
+`gotobreak.go`, `gotoloop.go`, `gotoblock.go`, `nevernull.go`,
+`dropcalls.go` (with `DeadLocals`), and their tests `gotos_test.go`
+(crefactor/xform's `goto_test.go`, `gototail_test.go`,
+`gotoblock_test.go` and `TestGotoTailNoStatements`, moved: each source
+imported, read back from its Lisp, rewritten, `Check`ed, its C view held
+to the text step's result printed canonically, the programs compiled and
+run and required to print the same, the controls kept) and
+`dropcalls_test.go` (`TestDropCalls`, `TestNeverNull`). Nothing existing
+changed but one test: `foldx_test.go`'s `TestEmptyBlocksAgainstText` holds
+the text's result on its sample as recorded (4 blocks, the locals `b` and
+`p`), since `xform.EmptyBlocksRule` is gone; `internal/graphcheck`'s
+`TestEmptyBlocksPhase62` likewise holds the text's numbers on q061 (49, five
+locals).
+
+### Refinements
+
+- **A rule's "item" is a group.** cc's `L: x;` is one labeled block item;
+  C-lisp's is `(label L) x`. Every rule that counted items counts groups
+  -- the label items in a row (goto labels, cases, the attributes before
+  one) and the statement after them: a region's start is its group's
+  first label, a label's "statement" the item after it, a goto "after a
+  label" (`labeledAt`) is cc's goto inside a labeled statement (GotoBreak
+  writes `;` there, GotoTail a block of the copies, as the text did).
+- **Every body is a block.** The text steps had cases for an unbraced
+  `if (c) goto L;` that canonical text never holds; on the graph they do
+  not arise. Three of the moved tests fed the text step such sources: their
+  expectations are now what canonical text gives (TestGotoBreakFalls'
+  emptied else-if is `{ }`, not `{ ; }`; "the label is not a block item"
+  under an unbraced if is "a goto is not in the label's block"; the
+  GotoBlock control edits the canonical spelling).
+- **`attributed` is cc's empty statement**: `__attribute__((fallthrough));`
+  in a tail is skipped and not counted, as the text skipped it.
+- **NeverNull asks its locals by spelling, as the text did.** By edge, a
+  local `dest` whose every store is a never-NULL call makes its function
+  never-NULL; the text read `*dest = NUL;` as a store of `dest` (its
+  `\bdest\s*=`), and `x && dest` as `&dest`. The edge rule gave two more
+  functions (21 against 19) and one more fold (153 against 152), so the
+  local's questions are asked of the forms the way the text spelled them:
+  a store is an `=` whose left side prints ending in the name, a step one
+  printed against it, an address an `&` (or `&&`) printed before it
+  (`nnFirst`, `nnLast`). With that the sets agree at every round. The
+  rest is by form: a cast is a pointer to a type of one word, a path is
+  what `[\w.>\[\]-]+` spells.
+- **Positions for offsets.** Where the text compared byte offsets (a goto
+  before its label, regions overlapping), the graph compares preorder
+  positions in the function (`gfOrder`).
+- **"Named after it" stays a spelling.** The text's `\bname\b` over the
+  rest of a block counts strings, members and macro texts: `gfNames` asks
+  every atom of the spelling and every literal or macro text holding it as
+  a word.
+
+### The proof
+
+- Before the text versions were deleted, the four goto transforms and
+  NeverNull were run text and graph on every boundary (q000-q103; NeverNull
+  from q043, where the core has a line): the graph's C view the text's
+  output printed canonically **byte for byte on all 104**, the reports line
+  for line (a test kept out of the commit: it needs the text versions).
+- `GRAPH_PHASES=N ... -run TestPhasesOnGraph`: 60, 62, 74, 89-92 each qN
+  from q(N-1), imported, and 60, 62, 89-92 handed the graph read back too.
+- `rm -rf .cache/boundaries; make whim-build-check`, in order: whim-vim.c
+  byte for byte, 77,634 lines, every boundary compiling, 351 s (5m53 wall,
+  13m49 user) at a load of 30-75; 27 graph snapshots now, q059, q061 and
+  q088-q091 added. Again, in parallel: byte for byte, 70 s, 27 links begun
+  on their graph snapshot, 0 imported.
+- The control, seven faults at once, one in each unit (60 dropping the
+  `--` it should keep, 62 without `PureCond`, 74 refusing every `!=`
+  fold, 89 never deleting a dead tail, 90 writing `;` for every fall, 91
+  never writing the do form, 92 writing `while (1)`): the parallel check
+  names exactly 60, 62, 74, 89, 90, 91 and 92, `7 of 103 phases do not
+  reproduce their snapshot`.
+- `make whim-editor-check`; `make whim-test` (80 as HEAD, the control seen
+  by 76, the Go editor 80 as the C); `go test ./...` here and in
+  `crefactor/`; gofmt, go vet and staticcheck on what changed: clean.
+
+### Measured
+
+`TestMeasureGraphPhases`, 3 runs, medians, at a load of 30-40, beside
+main's text on the same snapshots:
+
+| phase | main (text), wall / CPU ms | B3g as a run in order takes it, wall / CPU ms | handed the graph, wall / CPU ms |
+| --- | ---: | ---: | ---: |
+| 60 | 2,875 / 4,503 | 1,981 / 3,595 (imports: 59 is text) | 256 / 336 |
+| 62 | 4,294 / 5,675 | 3,037 / 3,961 (imports: 61 is text) | 576 / 687 |
+| 74 | 5,139 / 7,939 | 2,587 / 3,856 (imports after 74a) | -- |
+| 89 | 2,153 / 4,362 | 2,042 / 3,443 (imports: 88 is text) | 282 / 427 |
+| 90 | 2,085 / 4,237 | **335 / 434** (handed) | 335 / 434 |
+| 91 | 3,266 / 4,345 | **279 / 426** (handed) | 279 / 426 |
+| 92 | 3,800 / 7,159 | **339 / 558** (handed) | 339 / 558 |
+
+About 13 s less in a run in order: 90-92 are handed the graph (88 stays
+text, so 89 imports once for the four), and 60, 62 and 74 import where
+their text sweep and print stood and still save the text transforms' own
+cost (74's regexps most). When B3f converts 59, 61 and 74a, 60, 62 and 74
+are handed the graph too (0.26-0.58 s).

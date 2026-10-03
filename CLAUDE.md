@@ -58,7 +58,7 @@ slim-vim.c  --whim-->  whim-vim.c
     directive is a contiguous `#include` and that they add and remove none.
   - **phase 89** copies a label's tail -- at most three statements and the
     return, or a void function's end -- over each of the 98 `goto`s that reach
-    one (`crefactor/xform`'s `GotoTail`), and drops the 21 labels left
+    one (`crefactor/graph`'s `GotoTail`), and drops the 21 labels left
     unreached: 21 of the 41 functions with a `goto` have none left. Record
     168 wrote `return x;` for each `goto` whose label marks `return x;`, which
     is this rule with a tail of no statements, and 89 takes them all (the
@@ -66,11 +66,12 @@ slim-vim.c  --whim-->  whim-vim.c
   - **phases 90-91** take the gotos a loop says: one to the statement after
     its own loop or switch is `break;`, one to where control goes next anyway
     is deleted (90, `GotoBreak`); a goto back to a label is a loop and
-    `continue;` (91, `GotoLoop`): 4 breaks, 1 deleted, 2 loops.
+    `continue;` (91, `GotoLoop`; both `crefactor/graph`'s): 4 breaks, 1
+    deleted, 2 loops.
   - **phase 92** (after the headers: it touches none) wraps the region a
     forward `goto` leaves -- to a label of a block that holds it, no loop or
     switch between -- in `do { ... } while (0);` and writes the goto `break;`
-    (`crefactor/xform`'s `GotoBlock`); togo writes that do-while as Go's
+    (`crefactor/graph`'s `GotoBlock`); togo writes that do-while as Go's
     `switch { default: ... }`, a break leaving it as the C's does (`for { ...;
     break }` before, which staticcheck reads as a loop unconditionally ended). After 89-91: 50 gotos, 11 labels. The C keeps 49
     gotos, all in the core (185 before 89): each leaves a loop or switch and
@@ -284,7 +285,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 15, 19, 20, 23-25, 27-35, 43-52, 58, 64 and 77 and parts 4a, 15a, 38a, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`),
+phase converted to the graph (phases 15, 19, 20, 23-25, 27-35, 43-52, 58, 60, 62, 64, 74 and 77 and parts 4a, 15a, 38a, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -455,6 +456,18 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    (50), b3db_include.go the system include run,
                    b3dc_header.go the file's prototypes of header
                    functions deleted, their uses the headers' (49);
+                   and B3g's, crefactor/xform's text transforms asked of
+                   the nodes, each held to the text on every boundary
+                   before it went: gotoflow.go the statement walk the
+                   gotos share (a label an item of its own, so a rule's
+                   item is a group of labels and their statement),
+                   gototail.go (89: a label's tail copied over its gotos,
+                   by Clone), gotobreak.go (90), gotoloop.go (91) and
+                   gotoblock.go (92: the region moved into a for (;;),
+                   a do-while or a do-while(0)), nevernull.go (74: the
+                   never-NULL set to its fixed point, the tests after a
+                   store folded), dropcalls.go (60: the calls of what
+                   does nothing, DeadLocals);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -902,7 +915,10 @@ was the input boundary's digest and the implementation's together, so a moved
   step, parts 38a and 86a, B3d's phases 43-52 end to end (43 imports, 44-52
   are each handed the graph the one before leaves), and B1a's -- the cutters nointro, optreaders,
   nostat, nobackup, lfonly, keepbytes, noinertopts, nofloat and noowner,
-  part 4a and the programs of phases 15, 19, 20, 23 and 25. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
+  part 4a and the programs of phases 15, 19, 20, 23 and 25 -- and B3g's:
+  the programs of phases 60 and 62 and phase 74's own step, and the goto
+  steps of phases 89-92 (89 imports after 88's text; 90-92 are handed
+  the graph). The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
   record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).

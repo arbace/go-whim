@@ -4,19 +4,51 @@ package p062
 //
 // Phase 60 left 33 blocks empty, beside those earlier phases left: 49 fold.
 // An empty block guarded by a condition that only reads goes, as do an empty
-// else and an empty else-if ending its chain; the sweep takes what the
+// else and an empty else-if ending its chain; the collection takes what the
 // conditions computed and nothing reads any more.
 //
-// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
-// OldBinary), from the boundary's own makefile flags, as $state/old beside
-// $state/old.c, for the check.
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3g): the rule is general, and it is
+// crefactor/graph's Editor.EmptyBlocks (B2d's, held to this phase byte for
+// byte) -- crefactor/xform's EmptyBlocks, which it replaced -- in the core,
+// with the text's own test of a condition's text (crefactor/edit's
+// PureCond, which refuses `regname == '='` for its `=`); its floor is an
+// argument in the plan.
 
 import (
+	"io"
+	"strings"
+
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
-// The rule is general, and it is crefactor/xform's EmptyBlocks, built with vim's
-// knobs (internal/whim/xform.go); its counts are arguments in the plan.
-func init() { phase.RegisterArgs("whim62", xform.EmptyBlocks(whim.Core).Edit()) }
+func init() { phase.RegisterGraph("whim62", Edit) }
+
+// Edit folds the core's empty blocks, and the locals they leave only given
+// values.
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
+	v := graph.NewVerbs("empty", e, w)
+	f, err := xform.Flags(v.Tag, args, "--at-least")
+	if err != nil {
+		return err
+	}
+	if e.FirstInclude() == nil {
+		v.Die("the core does not end where this step was told it does")
+		return v.Done()
+	}
+	st, err := e.EmptyBlocks(graph.EmptyOptions{In: whim.GraphCore(e), Cond: edit.PureCond})
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
+	}
+	if st.Blocks < f["--at-least"] {
+		v.Die("%d empty blocks fold, fewer than the %d this step was told to expect", st.Blocks, f["--at-least"])
+		return v.Done()
+	}
+	v.Sayf("%d empty blocks fold away: an if whose condition only reads, an empty else, an empty else-if that ends its chain", st.Blocks)
+	v.Sayf("%d locals only given values once their tests went, and go with their stores: %s", len(st.Locals), strings.Join(st.Locals, " "))
+	return v.Done()
+}

@@ -391,7 +391,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			// 272: exe_commands' free of what cmds_tofree marked went at phase 1,
 			// nothing writing it once the command line was cut (argvfront, D1)
-			{Op: "edit", Args: []string{"whim60", "--calls", "272", "--redirected", "3"}},
+			{Op: "edit", Graph: true, Args: []string{"whim60", "--calls", "272", "--redirected", "3"}},
 		}},
 	{N: 61, Name: "one buffer needs no hash table",
 		Steps: []Step{
@@ -399,7 +399,7 @@ var Plan = []Phase{
 		}},
 	{N: 62, Block: "g03-empty-blocks", Name: "the empty blocks fold",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim62", "--at-least", "20"}},
+			{Op: "edit", Graph: true, Args: []string{"whim62", "--at-least", "20"}},
 		}},
 	{N: 63, Block: "r09-regex", Name: "one regexp program type",
 		Steps: []Step{
@@ -450,7 +450,7 @@ var Plan = []Phase{
 	{N: 74, Block: "g04-never-null", Name: "allocation cannot fail, and its branches fold",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim74a"}},
-			{Op: "edit", Args: []string{"whim74", "--at-least", "80"}},
+			{Op: "edit", Graph: true, Args: []string{"whim74", "--at-least", "80"}},
 		}},
 	{N: 75, Block: "r13-translation", Name: "the regexp stack is three typed stacks",
 		Steps: []Step{
@@ -514,19 +514,19 @@ var Plan = []Phase{
 		}},
 	{N: 89, Block: "g08-gotos", Name: "a goto whose label marks a short tail is that tail",
 		Steps: []Step{
-			{Op: "gototail", Args: []string{"--at-least", "52"}},
+			{Op: "gototail", Graph: true, Args: []string{"--at-least", "52"}},
 		}},
 	{N: 90, Name: "a goto that is a break is break",
 		Steps: []Step{
-			{Op: "gotobreak", Args: []string{"--at-least", "5"}},
+			{Op: "gotobreak", Graph: true, Args: []string{"--at-least", "5"}},
 		}},
 	{N: 91, Name: "a goto back is a loop",
 		Steps: []Step{
-			{Op: "gotoloop", Args: []string{"--at-least", "2"}},
+			{Op: "gotoloop", Graph: true, Args: []string{"--at-least", "2"}},
 		}},
 	{N: 92, Name: "a goto out of its block is a break",
 		Steps: []Step{
-			{Op: "gotoblock", Args: []string{"--at-least", "50"}},
+			{Op: "gotoblock", Graph: true, Args: []string{"--at-least", "50"}},
 		}},
 	{N: 93, Block: "r14-parallel-substitute", Name: "no address of a position's line or column",
 		Steps: []Step{

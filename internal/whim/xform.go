@@ -3,6 +3,7 @@ package whim
 import (
 	"bytes"
 
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/xform"
 )
@@ -13,22 +14,26 @@ import (
 
 // Core is where whim-vim.c's core ends: the line break before the first
 // `#include`, which is the line between the editor core and its host
-// (phases 43 on).  Phases 60, 62, 74 and 87a hard-coded it.
+// (phases 43 on).  Phases 60, 62, 74 and 87a hard-coded it; on the graph it
+// is the first include form (GraphCore).
 var Core xform.Core = func(text []byte) int { return bytes.Index(text, []byte("\n#include ")) }
 
-// DropCalls is phase 60's: since phase 52 host_free() has an empty body, so
+// DropCalls is phase 60's (crefactor/graph's Editor.DropCalls, its In the
+// core, GraphCore): since phase 52 host_free() has an empty body, so
 // vim_free(), a NULL test around it, does nothing either; the host's
 // formatter called the core's vim_free(), and calls its own host_free().
-var DropCalls = xform.DropCallsKnobs{
-	Core:     Core,
+// A local left only given values goes as crefactor/edit's DeadStores took
+// it: a value whose text PureCond passes.
+var DropCalls = graph.DropCallsOptions{
 	Funcs:    []string{"vim_free", "host_free"},
 	Redirect: [][2]string{{"vim_free", "host_free"}},
+	Cond:     edit.PureCond,
 }
 
-// NeverNull is phase 74's: host_alloc() returns a pointer into the arena or
-// ends the process (phase 74a).
-var NeverNull = xform.NeverNullKnobs{
-	Core:  Core,
+// NeverNull is phase 74's (crefactor/graph's Editor.NeverNull, its In the
+// core): host_alloc() returns a pointer into the arena or ends the process
+// (phase 74a).
+var NeverNull = graph.NeverNullOptions{
 	Roots: []string{"host_alloc"},
 }
 
@@ -65,11 +70,12 @@ var Includes = xform.Silent{
 	Same:  true, // phase 43's static_asserts compare the core's limits with the headers'
 }
 
-// GotoTail is phase 89's bound: a label's tail is copied over a goto when
-// it is at most three statements before its return.  Three is the longest
-// straight tail a goto of the core reaches (a history browser's three
-// stores), and each copy costs its length.
-var GotoTail = xform.GotoTailKnobs{Tail: 3}
+// GotoTail is phase 89's bound (crefactor/graph's Editor.GotoTail): a
+// label's tail is copied over a goto when it is at most three statements
+// before its return.  Three is the longest straight tail a goto of the core
+// reaches (a history browser's three stores), and each copy costs its
+// length.
+const GotoTail = 3
 
 // Own47 is phase 47's: abs and labs, the two libc functions the core called
 // without a body of its own, become musl's, written above musl_bsearch with

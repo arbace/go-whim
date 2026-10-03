@@ -21,3 +21,13 @@ var GraphFallOut = graph.FallOutOptions{
 func GraphCollect() graph.CollectOptions {
 	return graph.CollectOptions{Roots: Profile.Sweep.Roots, FreezeLayoutIf: Profile.Sweep.FreezeLayoutIf}
 }
+
+// GraphCore is Core on the graph: the forms above the first include form,
+// as e holds them now (every form when there is none).
+func GraphCore(e *graph.Editor) func(*graph.Node) bool {
+	core := map[*graph.Node]bool{}
+	for _, f := range e.Core() {
+		core[f] = true
+	}
+	return func(f *graph.Node) bool { return core[f] }
+}

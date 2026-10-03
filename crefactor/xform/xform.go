@@ -73,3 +73,9 @@ func flags(tag string, args []string, want ...string) (map[string]int, error) {
 	}
 	return out, nil
 }
+
+// Flags is flags for a step written elsewhere -- on the graph -- that takes
+// the same counted arguments as the text steps here.
+func Flags(tag string, args []string, want ...string) (map[string]int, error) {
+	return flags(tag, args, want...)
+}
