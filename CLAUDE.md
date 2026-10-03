@@ -341,8 +341,14 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    edges, types.go the type and external nodes, cview.go the
                    C view, byte for byte, lisp.go the graph as Lisp and its
                    reader, collect.go, keys.go and cut.go the sweep as
-                   garbage collection, Prune's rules on the nodes; its corpus
-                   tests run on GRAPH_CORPUS. sweep/: the closure.
+                   garbage collection, Prune's rules on the nodes, names.go
+                   what the forms say of a declaration, exported; its corpus
+                   tests run on GRAPH_CORPUS. graph/view/: its views,
+                   read-only (`go tool whim view`): index.go the edges the
+                   other way round and the roots by name, view.go the steps,
+                   the specs and the tree built with links for revisits,
+                   named.go callers, callees, uses, member, type and def,
+                   print.go the tree as C-lisp, ids on demand. sweep/: the closure.
                    reach/: what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing. ccx/: a core's pointer casts and evaluation order,
@@ -567,10 +573,10 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    that tree instead of the text -- DropLocal and phase 24
                    rewritten in internal/treepilot, byte for byte on their
                    14 phases, measured; not to migrate) and GRAPH.md (a
-                   design, nothing built: the program as one resolved,
-                   typed graph, cuts as deletions whose fall-out is the
-                   constraints' closure, its views trees printed as Lisp,
-                   and an editor over them)
+                   design, its steps 1-3 built and its views read-only:
+                   the program as one resolved, typed graph, cuts as
+                   deletions whose fall-out is the constraints' closure,
+                   its views trees printed as Lisp, and an editor over them)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -620,6 +626,7 @@ make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT
 make caprice.hsl      # the Haskell core as one ghc-lisp module, checked, compiled, and the program run on the quick suite (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
 make whim-vim.lc      # the C product as s-expressions (C-lisp): back byte for byte, compiled to bin/whim-vim's bytes (7 s; doc/C-LISP.md)
 go tool whim graph --check FILE  # the graph of FILE: its C view FILE byte for byte, written as Lisp and read back the same graph (doc/GRAPH.md)
+go tool whim view callers F      # a read-only view of whim-vim.c's graph as Lisp: callers, callees, uses, member S.M, type T, def; 0.07 s once .cache/graph holds it (doc/GRAPH.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary
 make bin/slim-vim    # the input's binary, with the same one line

@@ -1,8 +1,9 @@
 # GRAPH.md -- the program as a graph, its views as trees, printed as Lisp
 
 2026-10-03. A design, not a plan of record; its steps 1-3 are built
-(`crefactor/graph`) and measured, in *Steps 1-3 as built*, near the end, and
-the rest is not. It asks
+(`crefactor/graph`) and measured, in *Steps 1-3 as built*, near the end, and so
+is a first, read-only taste of its views (`crefactor/graph/view`, `whim view`:
+*Views, read-only*); the rest is not. It asks
 what representation the pipeline, and later an editor, would hold a C program
 in, if the C text were no longer the thing edited. It rests on two measured
 pieces: C-lisp (`doc/C-LISP.md`: C23 as s-expressions, byte for byte against
@@ -493,11 +494,232 @@ invocations that name `fds_bits`, and the dangling-edge check found it).
 - **An EDN form**: the four marks become tagged literals and C's tokens
   strings; the containment, the sections and the edges stay as they are.
 
+## Views, read-only (2026-10-03)
+
+The first taste of the view idea, before any editing: `crefactor/graph/view`
+(about 1,200 lines of Go, comments and blank lines aside, naming nothing in vim) projects the graph to
+trees, and `go tool whim view` prints them. It reads the graph and changes
+nothing; it needed of `crefactor/graph` only five exported wrappers of what
+the forms already said (`names.go`: `DeclName`, `DeclType`, `Tag`,
+`IsTypeDef`, `Members`), no signature changed.
+
+### What a view is
+
+**An index**, made once in one walk (15-20 ms on whim-vim.c), holds what the
+edges say the other way round: each node's parent, each declaration's uses
+(its incoming refers edges), the nodes each type node types, and the
+top-level forms by the name they declare -- so that a function's
+prototypes and its definition, an object's declarations and its definition,
+are one entity, as C's linkage makes them (on whim-vim.c every call of
+`ml_get` refers to its prototype, none to its definition).
+
+**A spec** is a relation, a depth, the heads where it stops, and how much to
+show around each use. The relation is written in steps, each from a set of
+nodes to another, and every named view is one:
+
+| step | from a node to |
+| --- | --- |
+| `refers` / `refers<` | its declaration (the entity's: a function's definition) / every use of the entity |
+| `typed` / `typed<` | its type node / every node it types |
+| `contains` / `contains<` | its elements / its parent |
+| `inside` | every node it contains |
+| `^fn`, `^stmt` | the top-level form holding it (the entity's), the statement holding it |
+| `call` | itself, if a call calls it: `(call NODE ...)`; else nothing |
+
+`callers` is `refers< call ^fn`, `callees` is `inside call refers`, `uses`
+is `refers< ^fn`. A child's **context** is the use the edge was crossed
+at -- the referring end of the last refers or typed edge followed, whichever
+way -- shown as the use alone (`--show node`: the call, the selection, the
+atom), its statement (`stmt`, the default: the blocks and initialiser
+elements that hold no use elided as `...`), its whole function (`fn`), or
+not at all (`none`).
+
+**The tree** is built depth first, children in id order -- the source's --
+and **a child the view already holds is a link**, `@NAME` (`@ID NAME` with
+ids), its contexts shown and its own children not: a recursive function's
+callers end on itself, and an unlimited view is finite. Printed, every form
+is C-lisp's, laid out by C-lisp's rules; `--ids` puts the graph's marks on
+it -- `#ID` on every list and every use, `@ID` after a use its refers edge --
+so that every printed form names its node (the typed edges are left to
+`whim graph`).
+
+### The named views
+
+`whim view [--ids] [--depth N] [--show S] [--stop HEADS] VIEW ARG [FILE]`;
+a root is a name (a function's definition, an object, a typedef, an
+enumerator, a header's declaration), `S.M` (a member, S a typedef name or a
+tag, found in anonymous members too), `struct T`, `F/x` (the parameters and
+locals named x in F) or `#ID`.
+
+- **`callers F`**: each function holding a call of F, with the calling
+  statements, and its callers, to `--depth` (2; 0 for no limit). A note
+  counts the uses that are not calls -- a function stored in a table.
+- **`callees F`**: each function a call in F's body names, with the calls,
+  and its callees. A call through a pointer is to the pointer (a
+  parameter, a member); one through an expression, `table[0](2)`, is to
+  nothing the graph resolves, and is not shown.
+- **`uses NAME`**: every use, grouped by the top-level form holding it, each
+  statement labelled with what its uses do -- `:call`, `:read`, `:write`,
+  `:update` (`+=`, `++`), `:addr`, `:init` (a designator), `:type`,
+  `:unevaluated` (in `sizeof` or `typeof`), `:label` -- read off the forms
+  around the use: C's syntax, not an analysis of what a pointer reaches, so
+  a write through `&b->b_ml` is the `:addr` it starts from. Writing a member
+  of a struct member, or an element of an array member, writes the member.
+- **`member S.M`**: `uses` of a member, which the graph resolves by type:
+  struct other's `b_ml` is not buf_T's.
+- **`type T`**: a struct's (union's, enum's) members with their uses
+  counted by access, the functions taking it (by value or through pointers,
+  the parameters shown) and returning it, the other structs' members and
+  the file's objects of it.
+- **`def NAME`**: the definition's containment view, C-lisp, with ids on
+  `--ids`; `--c` prints its C view.
+- **`follow 'STEPS' ROOT`**: an ad hoc view, its relation the steps.
+
+On whim-vim.c (q103), from the cache. The feature view of an option, with
+the option table's other entries elided:
+
+```lisp
+;; 7 uses of p_wiv in 4 top-level forms: 4 read, 2 write, 1 addr
+(uses p_wiv
+  (in options
+    (:addr
+      (def static options (array (struct vimoption))
+        (init ...
+          (init "weirdinvert" "wiv" ...
+            (init (addr p_wiv) nullptr nullptr 0)
+            PV_NONE
+            did_set_weirdinvert
+            nullptr
+            ...)
+          ...))))
+  (in did_set_weirdinvert
+    (:read
+      (if (&& p_wiv (! (. (-> args os_oldval) boolean)))
+        ...
+        (if (&& (! p_wiv) (. (-> args os_oldval) boolean)) ...)))
+    (:write (= p_wiv (paren (!= (deref (paren (index term_strings (cast int (paren KS_XS))))) NUL)))))
+  (in screen_line
+    (:read (if redraw_this ... (if (&& p_wiv (> (+ col coloff) 0) (> off_to 0)) ...)))
+    ...)
+  (in ttest
+    (:write (= p_wiv (paren (!= (deref (paren (index term_strings (cast int (paren KS_XS))))) NUL))))))
+```
+
+Who calls `ml_get` (72 calls in 42 functions; to depth 2, 483 lines), a
+function the view holds already a link:
+
+```lisp
+;; 72 calls of ml_get in 42 functions
+(callers ml_get
+  ...
+  (in truncate_line
+    (= old_line (call ml_get lnum))
+    (in @op_delete
+      (call truncate_line FALSE)
+      (call truncate_line TRUE)))
+  ...
+  (in match_range
+    (= (. (index lines k) string) (call ml_get (+ line1 k)))
+    (in ex_substitute
+      (def found (ptr linefound_T)
+        (? (&& (! (. subflags do_ask)) (> line2 (-> eap line1)))
+          (call match_range (addr regmatch) (. subflags do_all) (-> eap line1) line2)
+          nullptr)))
+    (in ex_global ...))
+```
+
+With no limit, `callers ml_get` holds 998 functions (27,026 lines) and
+`callees main` 1,362, every other meeting a link. With ids, every form is
+its node:
+
+```lisp
+;; 27 calls of ml_get_buf in 23 functions
+(callers #93556 ml_get_buf
+  (in #16343 linetabsize
+    #16356(call #16357:ml_get_buf@5479
+      #16358(-> #16359:wp@16346 #16360:w_buffer@3133)
+      #16361:lnum@16349
+      #16362:FALSE@1900))
+  ...
+```
+
+Members by type, counted (the first line of `member S.M`):
+
+| member | uses | in top-level forms | read | write | update | unevaluated |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `buf_T.b_ml` | 376 | 127 | 310 | 47 | 19 | |
+| `pos_T.lnum` | 1,248 | 206 | 902 | 229 | 67 | 50 (phase 100's `typeof`) |
+| `memline_T.ml_line_count` | 217 | 105 | 212 | 3 | 2 | |
+
+and `type pos_T`: 3 members, taken by 41 functions, returned by 7, held in 25
+members, 6 objects:
+
+```lisp
+(type pos_T
+  (members
+    (member lnum linenr_T (uses 1248 (read 902) (write 229) (update 67) (unevaluated 50)))
+    (member col colnr_T (uses 1120 (read 703) (write 253) (update 113) (unevaluated 51)))
+    (member coladd colnr_T (uses 419 (read 249) (write 117) (update 5) (unevaluated 48))))
+  (taking
+    (fn getvcol (pos (ptr pos_T)))
+    ...
+```
+
+### What was measured and tested
+
+| on whim-vim.c, at a load of 10 | wall |
+| --- | ---: |
+| the first view, the graph imported (and cached: `.cache/graph/`, 6.4 MB of Lisp) | 1.58-1.66 s (320-340 MB) |
+| a later view: the cache read, 39-48 ms; indexed, 15-20 ms; the view built and printed, 0-4 ms | **0.06-0.07 s** (100 MB) |
+| the largest, unlimited: `callers ml_get`, `callees main`, built and printed | 44 ms, 74 ms |
+| the same through `go tool whim view` | 0.17 s |
+
+**The cache** is the graph's Lisp under `.cache/graph/`, one file a source
+file, headed by its key: the source's SHA-256 and the running binary's size
+and time, so that a rebuilt `whim` -- which may import differently -- makes
+it again rather than read a stale graph; a graph's Lisp handed as FILE is
+read as it is. The read is what makes a view fit an editor's keystroke:
+re-rooting is a read-free rebuild of the tree, milliseconds, once the
+graph is in memory.
+
+**The tests** (`crefactor/graph/view`, on a graph imported and read back,
+so no cc node is behind it): every named view on a small C text against
+golden output -- a recursive function's callers ending on a link, mutual
+recursion closed by one with no depth limit, ids, a member told from
+another struct's of the same name by type, each access label; the answers
+stated beside the goldens; the same text twice and on the graph imported
+and read back. On whim-vim.c when it is there: `uses X` shows exactly the
+refers edges into X's declarations, each once, counted by walking the
+graph and not the index, for eight roots (a function, an option, a
+typedef, a global, two members, an enumerator (`NUL`), a
+local); `def F`'s C view is F's text in the file for all 1,755
+definitions; `callers F` to depth 1 is exactly the functions holding a
+call. The control: `refers<` taking the root's own uses and not its
+entity's shows 0 of `ml_get`'s 72 -- each refers to the prototype.
+
+### What an editor would need next
+
+- **Where the cursor is**: the printer knows each form's id as it writes
+  it; a span table (id to the text's range, and back) is what roots a view
+  at the cursor and keeps the ids out of sight when `--ids` is off.
+- **Edits through the view**: every form carries its id, so a changed form
+  says which node it was; the edit operations are step 4's (another
+  worktree's), and the view is printed again from the edited graph.
+- **Derived edges**: calls through function pointers and tables are
+  invisible to `callers` and `callees`, and what is written through a
+  pointer is the `:addr` it came from; both want the derived layer (a
+  points-to answer, `cfacts`' effects) as edges a step can follow.
+- **The graph as the source**: once edits land in the graph, the cache is
+  no longer a cache of the C text but the program itself, written after
+  each edit.
+
 ## Open questions
 
 - Is the derived layer cached by the graph's digest, or kept incrementally
   under edits -- and which analyses are cheap enough to recompute per view?
 - Does the lowered layer of `doc/IR.md` live in the same store from the
   start, or join it once steps 1-3 stand?
-- What is the smallest editor that proves the view idea -- a read-only
-  browser of views over whim-vim.c's graph, before any editing?
+- What is the smallest editor that proves the view idea? The read-only
+  browser is built (*Views, read-only*), its views in milliseconds once the
+  graph is read; what it lacks for a buffer -- a span table from the
+  printed text to the ids, the edits of step 4 -- is listed there.
