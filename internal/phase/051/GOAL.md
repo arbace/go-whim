@@ -220,3 +220,5 @@ words inside string literals — the two `NGETTEXT` strings in `op_shift()` that
 and `E222`'s *"already read from"*, measured on this file.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 121-122 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3d) the phase runs on the graph: termcapinit()'s parameter goes by PARAM with the argument at its one call, mparm_T's member once no use of it is left, the no-screen arm by a FoldAlways and a deletion, the promise by literals respelled whole and `requested`'s use pointed at `term` by edge, its report the text version's line for line, and `whim-build-check` holds q051 to the bytes the text version made (history keeps it).

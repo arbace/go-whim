@@ -70,148 +70,170 @@ package p045
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).  The check needs
 // the binary this phase was HANDED, to run its twelve probes on both sides.
 
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// tables are read as VALUES from their rows' forms, each row's four atoms
+// required to be spelled as the rows this phase writes (hexadecimal ends,
+// decimal step and offset: the text's "re-emitted byte for byte"); the
+// merged table is the vim table's rows kept, with the musl-only codepoints'
+// rows built (INITROW's BuildRows) and placed by ArrangeRows, which says
+// the table's new length; the two wrappers' uses of musl_toUpper[] and
+// musl_toLower[] are retargeted to toUpper[] and toLower[] (RENAME's
+// RetargetAs).  The counts after are the text's own on the C view, and the
+// six calls of utf_convert are asked of the edges.  The report is the text
+// version's (history keeps it) but for the line counts, which are the
+// text's layout and are dropped.
+
 import (
 	"fmt"
 	"io"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim45", Edit) }
+func init() { phase.RegisterGraph("whim45", Edit) }
 
-// A convertStruct row is canonical text, as every table in the file is: four
-// spaces of indent and a space after each comma.
-var w45Row = regexp.MustCompile(`^    \{(0x[0-9a-f]+), (0x[0-9a-f]+), (-?\d+), (-?\d+)\},?$`)
-
-const w45RowFormat = "    {0x%x, 0x%x, %d, %d}"
-
-// w45Names are the four convertStruct tables this phase merges into two.
 var w45Names = []string{"toUpper", "toLower", "musl_toUpper", "musl_toLower"}
 
 type w45Rec struct{ lo, hi, step, off int }
 
-// Whim45 makes the case tables one, and it is the UNION: vim's toUpper[]/toLower[]
-// and the musl_to*[] phase 37 vendored disagreed at 97 upper and 96 lower
-// codepoints -- vim's newer by ninety-six and musl's knowing `ß -> ẞ` alone --
-// and a core with no C library has nothing for 'casemap' to choose between.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "casemap", W: w}
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	t := string(text)
-	before := strings.Count(t, "\n")
+// w45Form is a row as this phase writes it: the ends hexadecimal, the step
+// and the offset decimal, a negative one `(- N)`.
+func w45Form(r w45Rec) string {
+	num := func(n int) string {
+		if n < 0 {
+			return fmt.Sprintf("(- %d)", -n)
+		}
+		return strconv.Itoa(n)
+	}
+	return fmt.Sprintf("(init 0x%x 0x%x %s %s)", r.lo, r.hi, num(r.step), num(r.off))
+}
 
-	words := func(s, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(s, -1))
-	}
-	block := func(name string) ([]int, error) {
-		m := regexp.MustCompile(`(?ms)^static convertStruct ` + name + `\[\] =\n\{\n(.*?)\n\};\n`).
-			FindStringSubmatchIndex(t)
-		if m == nil {
-			return nil, p.Die("there is no `static convertStruct %s[]` in the input, so this phase has "+
-				"nothing to merge", name)
+// w45Value is an element's integer: a decimal or hexadecimal atom, or
+// `(- atom)`.
+func w45Value(n *graph.Node) (int, bool) {
+	neg := false
+	if n.IsList() {
+		if n.Head() != "-" || len(n.Kids) != 2 || n.Kids[1].IsList() {
+			return 0, false
 		}
-		return m, nil
+		neg, n = true, n.Kids[1]
 	}
-	parse := func(name, Body string) ([]w45Rec, error) {
-		var rows []w45Rec
-		for _, line := range strings.Split(Body, "\n") {
-			m := w45Row.FindStringSubmatch(line)
-			if m == nil {
-				return nil, p.Die("%s has a row this phase cannot read: %s", name, edit.PyRepr(line))
+	v, err := strconv.ParseInt(n.Atom, 0, 64)
+	if err != nil {
+		return 0, false
+	}
+	if neg {
+		v = -v
+	}
+	return int(v), true
+}
+
+// Edit merges each of vim's case tables with musl's: the union, read from
+// the rows.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("casemap", e, w)
+	incs := e.Includes()
+	// The text counted `utf_convert(` six times: five calls and the
+	// definition's head.  The calls are asked of the edges, before and after.
+	calls0 := w45Calls(v, "utf_convert")
+	v.Expect(calls0 == 5, "utf_convert is called %d times, where this phase was written against 5", calls0)
+	words := func(name string) int { return edit.MentionCount(v.Text(), name) }
+
+	defs := map[string]*graph.Node{}
+	rowNodes := map[string][]*graph.Node{}
+	parse := func(name string) []w45Rec {
+		var d *graph.Node
+		for _, x := range e.Decls(name) {
+			if graph.TableInit(x) != nil {
+				d = x
 			}
-			lo, _ := strconv.ParseInt(m[1][2:], 16, 64)
-			hi, _ := strconv.ParseInt(m[2][2:], 16, 64)
-			step, _ := strconv.Atoi(m[3])
-			off, _ := strconv.Atoi(m[4])
-			rows = append(rows, w45Rec{int(lo), int(hi), step, off})
 		}
-		return rows, nil
-	}
-	// The canonical text ends every row of a table with a comma, the last one
-	// included.
-	emit := func(rows []w45Rec) string {
-		Out := make([]string, len(rows))
-		for i, r := range rows {
-			Out[i] = fmt.Sprintf(w45RowFormat, r.lo, r.hi, r.step, r.off)
+		if d == nil {
+			v.Die("there is no `static convertStruct %s[]` in the input, so this phase has nothing to merge", name)
+			return nil
 		}
-		return strings.Join(Out, ",\n") + ","
+		defs[name] = d
+		var rows []w45Rec
+		for _, r := range graph.TableInit(d).Kids[1:] {
+			var x [4]int
+			ok := r.Head() == "init" && len(r.Kids) == 5
+			for i := 0; ok && i < 4; i++ {
+				x[i], ok = w45Value(r.Kids[i+1])
+			}
+			if !ok {
+				v.Die("%s has a row this phase cannot read: %s", name, graph.Lisp(r))
+				return nil
+			}
+			rec := w45Rec{x[0], x[1], x[2], x[3]}
+			if w45Form(rec) != graph.Lisp(r).String() {
+				v.Die("%s's row %s is not spelled as the rows this phase writes (%s), so what it writes "+
+					"would not be in the file's own shape", name, graph.Lisp(r), w45Form(rec))
+				return nil
+			}
+			rows = append(rows, rec)
+			rowNodes[name] = append(rowNodes[name], r)
+		}
+		return rows
 	}
-	// expand is {codepoint: target}, EXACTLY as utf_convert() reads the row.  A
-	// row with `step < 0` is how this file spells a single codepoint, and it
-	// works because `(a - lo) % step` is 0 for every a when step is -1.
-	expand := func(name string, rows []w45Rec) (map[int]int, error) {
-		Out := map[int]int{}
+	expand := func(name string, rows []w45Rec) map[int]int {
+		out := map[int]int{}
 		for _, r := range rows {
 			if r.step < 0 {
 				if r.lo != r.hi {
-					return nil, p.Die("%s has a step < 0 row spanning more than one codepoint: "+
+					v.Die("%s has a step < 0 row spanning more than one codepoint: "+
 						"{0x%x,0x%x,%d,%d}", name, r.lo, r.hi, r.step, r.off)
+					return nil
 				}
-				Out[r.lo] = r.lo + r.off
+				out[r.lo] = r.lo + r.off
 			} else {
 				for c := r.lo; c <= r.hi; c += r.step {
-					Out[c] = c + r.off
+					out[c] = c + r.off
 				}
 			}
 		}
-		return Out, nil
+		return out
 	}
-	ascending := func(name string, rows []w45Rec) error {
+	ascending := func(name string, rows []w45Rec) {
 		for i := 0; i+1 < len(rows); i++ {
 			a, b := rows[i], rows[i+1]
 			if a.hi >= b.lo {
-				return p.Die("%s is not ascending and non-overlapping at {0x%x,0x%x,%d,%d} / "+
+				v.Die("%s is not ascending and non-overlapping at {0x%x,0x%x,%d,%d} / "+
 					"{0x%x,0x%x,%d,%d}, and utf_convert() binary-searches on rangeEnd",
 					name, a.lo, a.hi, a.step, a.off, b.lo, b.hi, b.step, b.off)
+				return
 			}
 		}
-		return nil
 	}
 
-	// ---- the four tables, parsed and PROVEN to re-emit as the text they came from
-	blocks := map[string][]int{}
 	rows := map[string][]w45Rec{}
 	maps := map[string]map[int]int{}
 	for _, n := range w45Names {
-		m, err := block(n)
-		if err != nil {
-			return nil, err
+		rows[n] = parse(n)
+		if v.Failed() {
+			return v.Done()
 		}
-		blocks[n] = m
-		r, err := parse(n, t[m[2]:m[3]])
-		if err != nil {
-			return nil, err
+		ascending(n, rows[n])
+		maps[n] = expand(n, rows[n])
+		if v.Failed() {
+			return v.Done()
 		}
-		rows[n] = r
-		if emit(r) != t[m[2]:m[3]] {
-			return nil, p.Die("%s does not re-emit as the text it came from, so the rows this phase "+
-				"writes would not be in the file's own shape", n)
-		}
-		if err := ascending(n, r); err != nil {
-			return nil, err
-		}
-		e, err := expand(n, r)
-		if err != nil {
-			return nil, err
-		}
-		maps[n] = e
 	}
-	var fig []interface{}
+	var fig []any
 	for _, n := range w45Names {
 		fig = append(fig, len(rows[n]), len(maps[n]))
 	}
-	p.Sayf("four convertStruct tables read and re-emitted BYTE FOR BYTE as the text they came "+
-		"from -- toUpper %d rows / %d codepoints, toLower %d / %d, musl_toUpper %d / %d, "+
+	v.Sayf("four convertStruct tables read as values and every row spelled as the rows this "+
+		"phase writes -- toUpper %d rows / %d codepoints, toLower %d / %d, musl_toUpper %d / %d, "+
 		"musl_toLower %d / %d -- so what this phase writes is in the file's shape by "+
 		"construction and not by resemblance", fig...)
 
-	// ---- A. the union, computed -----------------------------------------------
-	merged := map[string][]w45Rec{}
 	type rep struct {
 		vimN, muslN string
 		nv, nm      int
@@ -219,21 +241,23 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		r0, r1      int
 	}
 	var report []rep
+	order := map[string][]*graph.Node{}
 	for _, pr := range []struct{ vimN, muslN string }{
 		{"toUpper", "musl_toUpper"}, {"toLower", "musl_toLower"},
 	} {
 		ev, em := maps[pr.vimN], maps[pr.muslN]
 		var clash []int
-		for c, v := range ev {
-			if m, ok := em[c]; ok && m != v {
+		for c, x := range ev {
+			if m, ok := em[c]; ok && m != x {
 				clash = append(clash, c)
 			}
 		}
 		sort.Ints(clash)
 		if len(clash) > 0 {
-			return nil, p.Die("%s and %s map %d codepoints to DIFFERENT characters (U+%04X -> %04X / "+
+			v.Die("%s and %s map %d codepoints to DIFFERENT characters (U+%04X -> %04X / "+
 				"%04X is the first), and a union is not defined there",
 				pr.vimN, pr.muslN, len(clash), clash[0], ev[clash[0]], em[clash[0]])
+			return v.Done()
 		}
 		var vimOnly, muslOnly []int
 		for c := range ev {
@@ -251,35 +275,55 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		for _, c := range muslOnly {
 			for _, r := range rows[pr.vimN] {
 				if r.lo <= c && c <= r.hi {
-					return nil, p.Die("%s already has a row covering U+%04X ({0x%x,0x%x,%d,%d}), so a "+
+					v.Die("%s already has a row covering U+%04X ({0x%x,0x%x,%d,%d}), so a "+
 						"single-codepoint row for it would be unreachable",
 						pr.vimN, c, r.lo, r.hi, r.step, r.off)
+					return v.Done()
 				}
 			}
 		}
-		newRows := append([]w45Rec{}, rows[pr.vimN]...)
+		type placed struct {
+			rec  w45Rec
+			node *graph.Node
+		}
+		var all []placed
+		for i, r := range rows[pr.vimN] {
+			all = append(all, placed{r, rowNodes[pr.vimN][i]})
+		}
 		for _, c := range muslOnly {
-			newRows = append(newRows, w45Rec{c, c, -1, em[c] - c})
+			rec := w45Rec{c, c, -1, em[c] - c}
+			built, err := e.BuildRows(defs[pr.vimN], w45Form(rec), nil)
+			if err != nil || len(built) != 1 {
+				v.Die("the row %s for %s could not be built: %v", w45Form(rec), pr.vimN, err)
+				return v.Done()
+			}
+			all = append(all, placed{rec, built[0]})
 		}
-		sort.SliceStable(newRows, func(i, j int) bool { return newRows[i].lo < newRows[j].lo })
+		sort.SliceStable(all, func(i, j int) bool { return all[i].rec.lo < all[j].rec.lo })
+		var newRows []w45Rec
+		for _, p := range all {
+			newRows = append(newRows, p.rec)
+			order[pr.vimN] = append(order[pr.vimN], p.node)
+		}
 		union := map[int]int{}
-		for c, v := range ev {
-			union[c] = v
+		for c, x := range ev {
+			union[c] = x
 		}
-		for c, v := range em {
-			union[c] = v
+		for c, x := range em {
+			union[c] = x
 		}
-		got, err := expand(pr.vimN, newRows)
-		if err != nil {
-			return nil, err
+		got := expand(pr.vimN, newRows)
+		if v.Failed() {
+			return v.Done()
 		}
 		if !w45SameMap(got, union) {
-			return nil, p.Die("the merged %s does not expand to the union of the two", pr.vimN)
+			v.Die("the merged %s does not expand to the union of the two", pr.vimN)
+			return v.Done()
 		}
-		if err := ascending(pr.vimN, newRows); err != nil {
-			return nil, err
+		ascending(pr.vimN, newRows)
+		if v.Failed() {
+			return v.Done()
 		}
-		merged[pr.vimN] = newRows
 		report = append(report, rep{pr.vimN, pr.muslN, len(vimOnly), len(muslOnly),
 			muslOnly, len(rows[pr.vimN]), len(newRows)})
 	}
@@ -292,100 +336,103 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if shown == "" {
 			shown = "none"
 		}
-		p.Sayf("%s: %d codepoints %s maps and %s does not -- they ARRIVE on the non-internal "+
+		v.Sayf("%s: %d codepoints %s maps and %s does not -- they ARRIVE on the non-internal "+
 			"arm -- and %d the other way (%s), which ARRIVE on the default one; 0 where both "+
 			"map and disagree.  %d rows -> %d",
 			r.vimN, r.nv, r.vimN, r.muslN, r.nm, shown, r.r0, r.r1)
 	}
 	for _, n := range []string{"toUpper", "toLower"} {
-		oldText := t[blocks[n][0]:blocks[n][1]]
-		if strings.Count(t, oldText) != 1 {
-			return nil, p.Die("%s[] is not in the file exactly once", n)
+		if _, err := e.ArrangeRowsTyped(defs[n], order[n], graph.RowIndex{}); err != nil {
+			v.Die("%s[]'s rows: %v", n, err)
+			return v.Done()
 		}
-		t = strings.Replace(t, oldText,
-			fmt.Sprintf("static convertStruct %s[] =\n{\n%s\n};\n", n, emit(merged[n])), 1)
 	}
 
-	// ---- B. musl's two tables are the sweep's -------------------------------
-	// Once C repoints the two wrappers, nothing reads musl_toUpper[] or
-	// musl_toLower[], and the sweep deletes both.
-
-	// ---- C. the two wrappers, repointed ---------------------------------------
-	for _, wp := range []struct{ W, table string }{
+	for _, wp := range []struct{ w, table string }{
 		{"musl_towupper", "toUpper"}, {"musl_towlower", "toLower"},
 	} {
-		oldCall := fmt.Sprintf("    return utf_convert(a, musl_%s, (int)sizeof(musl_%s));\n", wp.table, wp.table)
-		newCall := fmt.Sprintf("    return utf_convert(a, %s, (int)sizeof(%s));\n", wp.table, wp.table)
-		if strings.Count(t, oldCall) != 1 {
-			return nil, p.Die("%s() does not read musl_%s[] in the one shape this phase rewrites",
-				wp.W, wp.table)
-		}
-		t = strings.ReplaceAll(t, oldCall, newCall)
+		v.InFunction(wp.w, func(v *graph.Verbs) {
+			m := "(return (call utf_convert a ?t (cast int (sizeof ?s))))"
+			ms := v.Find(m)
+			ok := len(ms) == 1
+			var b graph.Bindings
+			if ok {
+				b, _ = graph.Match(clisp.MustPattern(m), ms[0])
+				ok = b["t"].Atom == "musl_"+wp.table && b["s"].Atom == "musl_"+wp.table
+			}
+			if !ok {
+				v.Die("%s() does not read musl_%s[] in the one shape this phase rewrites", wp.w, wp.table)
+				return
+			}
+			for _, u := range []*graph.Node{b["t"], b["s"]} {
+				if err := e.RetargetAs(u, 0, defs[wp.table]); err != nil {
+					v.Die("%s()'s read of musl_%s[]: %v", wp.w, wp.table, err)
+					return
+				}
+			}
+		})
 	}
-	p.Say("musl_towupper() and musl_towlower() now read toUpper[] and toLower[] -- the two " +
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Say("musl_towupper() and musl_towlower() now read toUpper[] and toLower[] -- the two " +
 		"wrappers STAY, being what the non-internal arm of utf_toupper()/utf_tolower() " +
 		"calls and what the two dead `if (c >= 0x100)` arms of vim_toupper()/vim_tolower() " +
 		"name; deleting them is a different idea")
 
-	// ---- what must be true of the result --------------------------------------
 	for _, gone := range []string{"musl_toUpper", "musl_toLower"} {
-		if words(t, gone) != 1 {
-			return nil, p.Die("%s is named other than by its own definition", gone)
-		}
+		v.Expect(words(gone) == 1, "%s is named other than by its own definition", gone)
+		v.Expect(len(v.UsesOf(gone)) == 0, "%s is still used", gone)
 	}
-	for _, kw := range []struct {
-		keep string
-		want int
-	}{{"musl_towupper", 4}, {"musl_towlower", 4}} {
-		if k := words(t, kw.keep); k != kw.want {
-			return nil, p.Die("%s has %d mentions, expected %d -- its prototype, its definition, the one "+
-				"live call and the dead one", kw.keep, k, kw.want)
-		}
+	for _, kw := range []string{"musl_towupper", "musl_towlower"} {
+		k := words(kw)
+		v.Expect(k == 4, "%s has %d mentions, expected 4 -- its prototype, its definition, the one "+
+			"live call and the dead one", kw, k)
 	}
 	for _, n := range []string{"toUpper", "toLower"} {
-		if k := words(t, n); k != 5 {
-			return nil, p.Die("%s is named %d times, expected 5 -- its definition, utf_to%s()'s "+
-				"utf_convert call and the wrapper's", n, k, strings.ToLower(n[2:]))
-		}
+		k := words(n)
+		v.Expect(k == 5, "%s is named %d times, expected 5 -- its definition, utf_to%s()'s "+
+			"utf_convert call and the wrapper's", n, k, strings.ToLower(n[2:]))
 	}
-	if k := edit.CoreCalls([]byte(t), "utf_convert"); k != 6 {
-		return nil, p.Die("utf_convert is called %d times, expected the same 6 -- this phase moves no "+
-			"call, it changes what two of them read", k)
+	calls := w45Calls(v, "utf_convert")
+	v.Expect(calls == calls0, "utf_convert is called %d times, expected the same %d -- this phase moves no "+
+		"call, it changes what two of them read", calls, calls0)
+	after := e.Includes()
+	host := e.Host()
+	okd := len(after) == len(incs) && len(host) >= len(after)
+	for i := 0; okd && i < len(after); i++ {
+		okd = host[i] == after[i]
 	}
-	L := strings.Split(t, "\n")
-	var directives []int
-	for i, l := range L {
-		if strings.HasPrefix(strings.TrimLeft(l, " \t"), "#") {
-			directives = append(directives, i)
-		}
+	v.Expect(okd, "the include forms are no longer the %d it was handed, contiguous", len(incs))
+	if v.Failed() {
+		return v.Done()
 	}
-	inc := regexp.MustCompile(`^ *# *include `)
-	okd := len(directives) == nInc
-	for _, i := range directives {
-		if !inc.MatchString(L[i]) {
-			okd = false
-		}
-	}
-	if !okd {
-		return nil, p.Die("the directives are no longer the %d #includes it was handed and nothing else", nInc)
-	}
-	p.Sayf("musl_toUpper and musl_toLower at 1 mention each, their definitions, for the "+
-		"sweep, musl_towupper and musl_towlower at "+
-		"4 each, toUpper and toLower at 5 each, utf_convert at the same 6 calls, and the "+
-		"first #include -- the boundary -- is still line %d with no directive "+
-		"above it", directives[0]+1)
-	p.Sayf("the file is %d lines and the input was %d", strings.Count(t, "\n"), before)
-	return []byte(t), nil
+	v.Sayf("musl_toUpper and musl_toLower at 1 mention each, their definitions, for the "+
+		"collection, musl_towupper and musl_towlower at 4 each, toUpper and toLower at 5 each, "+
+		"utf_convert at the same 5 calls, and the first include form -- the boundary -- is "+
+		"still form %d with no directive above it", len(e.Core())+1)
+	return v.Done()
 }
 
 func w45SameMap(a, b map[int]int) bool {
 	if len(a) != len(b) {
 		return false
 	}
-	for k, v := range a {
-		if w, ok := b[k]; !ok || w != v {
+	for k, x := range a {
+		if y, ok := b[k]; !ok || y != x {
 			return false
 		}
 	}
 	return true
+}
+
+// w45Calls is how many of the uses of name are a call's callee.
+func w45Calls(v *graph.Verbs, name string) int {
+	n := 0
+	for _, u := range v.UsesOf(name) {
+		if p := v.Editor().Parent(u); p != nil && p.Head() == "call" && p.Kids[1] == u {
+			n++
+		}
+	}
+	return n
 }

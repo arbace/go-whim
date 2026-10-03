@@ -3,6 +3,7 @@ package whim
 import (
 	"bytes"
 
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/xform"
 )
 
@@ -72,14 +73,15 @@ var GotoTail = xform.GotoTailKnobs{Tail: 3}
 
 // Own47 is phase 47's: abs and labs, the two libc functions the core called
 // without a body of its own, become musl's, written above musl_bsearch with
-// the other <stdlib.h> functions the core owns.
-var Own47 = xform.OwnKnobs{
+// the other <stdlib.h> functions the core owns (crefactor/graph's Own, on the
+// graph since B3d).
+var Own47 = graph.OwnKnobs{
 	Prefix: "musl_",
-	Funcs: []xform.OwnFunc{
+	Funcs: []graph.OwnFunc{
 		{Name: "abs", Proto: "int abs(int n);", Def: "    static int\nmusl_abs(int a)\n{\n    return a > 0 ? a : -a;\n}\n\n"},
 		{Name: "labs", Proto: "long labs(long n);", Def: "    static long\nmusl_labs(long a)\n{\n    return a > 0 ? a : -a;\n}\n\n"},
 	},
-	Before: "    static void *\nmusl_bsearch(",
+	Before: "musl_bsearch",
 }
 
 // RegEngine is phase 95's: the regex engine's state at match time -- the

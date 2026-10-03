@@ -74,43 +74,42 @@ package p049a
 // and `adjust_types()` takes its declaration from <stdlib.h>, which is above it.  Eight
 // prototypes remain.  Phases 47 and 49b also shrink this block, and the check computes
 // the count from the input rather than stating it, so this phase composes with either.
-// The flags are read out of the boundary's makefile rather than written here a second
-// time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// cut is FRAG's two literal runs and a deletion for the header, on the
+// program's graph, and its report is the text version's, which the plan
+// ran until then (history keeps it):
+//
+//   - the include checks are the include forms (vimtext.IncludeRun): every
+//     one an `#include <...>`, on consecutive forms;
+//   - "realloc is 3 in the core and 1 in the host" is asked twice: of the
+//     edges -- the core's prototype, its two calls (ga_grow_inner,
+//     get_keystroke) and adjust_types()'s, which cc resolves to that same
+//     prototype -- and of the C view, `\brealloc\b` above and below the
+//     first include line, as the text counted it;
+//   - the two rewrites are LiteralC, each run of whole items found once in
+//     its function (the text found it once in the file);
+//   - the prototype goes by DeleteForHeader: adjust_types()'s call is made
+//     again, as an import of the text after makes it, a use of <stdlib.h>'s
+//     realloc -- the text's "takes its declaration from <stdlib.h>", now an
+//     edge;
+//   - the text-only checks (the line counts, the boundary's line moving by
+//     the file's, the blank-line runs) are dropped.
 
 import (
-	"bytes"
 	"io"
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { phase.Register("whim49a", Edit) }
+func init() { phase.RegisterGraph("whim49a", Edit) }
 
-var (
-	whim49aDirective = regexp.MustCompile(`^ *#`)
-	whim49aInc       = regexp.MustCompile(`^ *# *include <([A-Za-z0-9_/.]+)>$`)
-	// `\brealloc\b` does NOT match inside `realloc_cmdbuff` -- `_` is a word
-	// character -- so this counts the libc name alone, which is what the
-	// phase is about.
-	whim49aRealloc = regexp.MustCompile(`\brealloc\b`)
-)
+var whim49aRealloc = regexp.MustCompile(`\brealloc\b`)
 
-// ga_grow_inner: the old allocation is `ga_itemsize * ga_maxlen`, which the
-// input computes to zero the tail.  It is hoisted ABOVE the allocation so the
-// copy can use it, and the zeroing statement is left exactly as it was, BELOW
-// the copy.
-//
-// THE GUARD IS TRAP 1.  On a first grow `ga_data` is null and `ga_maxlen` is
-// 0; `realloc(nullptr, n)` is `malloc(n)` and frees nothing, so the rewrite
-// must neither copy from null nor free null.
-//
-// THE `return FAIL` IS TRAP 2, and its position is the whole of it: nothing is
-// freed above it, so a failed allocation leaves `gap->ga_data` pointing at a
-// block that is still valid and still allocated, which is what `realloc`
-// guaranteed and what the caller relies on.
 const whim49aOldGa = `    new_len = (usize)gap->ga_itemsize * (gap->ga_len + n);
     pp = realloc((gap->ga_data), (new_len));
     if (pp == nullptr)
@@ -134,18 +133,8 @@ const whim49aNewGa = `    new_len = (usize)gap->ga_itemsize * (gap->ga_len + n);
     }
 `
 
-const whim49aZero = "    musl_memset((pp + old_len), (0), (new_len - old_len));\n"
+const whim49aZero = "musl_memset((pp + old_len), (0), (new_len - old_len));"
 
-// get_keystroke: `t_buflen` is declared beside the `t_buf` the input already
-// keeps, so the two halves of what `realloc`'s interface does not carry -- the
-// old pointer and the old size -- are saved together and on adjacent lines.
-// `buflen - 100` would be the same number and a worse text.
-//
-// TRAP 2 AGAIN, and the other shape of it: here the caller frees the old block
-// ITSELF on failure, so `vim_free(t_buf)` stays exactly where it is and the
-// success-path free goes in an `else`.  It is `free()` and not `vim_free()`
-// because `vim_free` declines while `really_exiting` and `realloc` freed
-// regardless.
 const whim49aOldKs = `            char_u *t_buf = buf;
             buflen += 100;
             buf = realloc((buf), (buflen));
@@ -170,158 +159,138 @@ const whim49aNewKs = `            char_u *t_buf = buf;
             }
 `
 
-const whim49aProto = "void *realloc(void *p, usize n);\n"
+// Edit is part 49a on the graph: realloc's two core calls become malloc, a
+// copy and a free, and its prototype goes for <stdlib.h>'s.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("realloc", e, w)
+	incs, err := vimtext.IncludeRun(e)
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
+	}
+	text := v.Text()
+	core, host, bound := vimtext.SplitCore(text)
+	v.Sayf("%d directives on consecutive lines from %d, every one an `#include <...>`; the "+
+		"core is the %d lines above the first of them", len(incs), bound+1, bound)
 
-// Whim49a stops the core reallocating: `realloc` is rewritten at its two core
-// sites as an allocation, a copy of the OLD size and a free.
-//
-// It is the one libc function that cannot be vendored at all -- to move the
-// old contents it needs a length its interface does not carry -- so the route
-// is each call site supplying the length it already knows.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "realloc", W: w}
-	lines := bytes.Split(text, []byte{'\n'})
-	linesBefore := len(lines)
-
-	// ---- 0. the file this edit was written against -----------------------
-	// The boundary is the first `#include` and nothing else marks it.  The
-	// core is everything above; the host is everything from there down, and
-	// the third `realloc` call is the host's and is not this phase's.
-	var d []int
-	for i, l := range lines {
-		if whim49aDirective.Match(l) {
-			d = append(d, i)
+	// the prototype, and its uses by edge
+	var proto *graph.Node
+	for _, d := range e.Decls("realloc") {
+		if e.InCore(d) && vimtext.IsOrdinaryDecl(d) && proto == nil {
+			proto = d
+		} else {
+			v.Die("`realloc` is declared other than by the core's one prototype: %s", graph.Lisp(d))
+			return v.Done()
 		}
 	}
-	if len(d) == 0 {
-		return nil, p.Die("the file has no preprocessor directive, so there is no boundary and no way to " +
-			"tell a core call from a host one")
+	if proto == nil {
+		v.Die("the core does not declare `realloc`")
+		return v.Done()
 	}
-	for k, i := range d {
-		if i != d[0]+k {
-			return nil, p.Die("the %d directives are not on consecutive lines, so the first `#include` is not "+
-				"a boundary", len(d))
+	var coreFns, hostFns []string
+	for _, u := range e.Uses(proto) {
+		name := "(outside a function)"
+		if f := e.Function(u); f != nil {
+			name = graph.DeclName(f)
+		}
+		if e.InCore(u) {
+			coreFns = append(coreFns, name)
+		} else {
+			hostFns = append(hostFns, name)
 		}
 	}
-	for _, i := range d {
-		if !whim49aInc.Match(lines[i]) {
-			return nil, p.Die("a directive is not an `#include <...>` of a system header")
-		}
+	nc, nh := len(whim49aRealloc.FindAll(core, -1)), len(whim49aRealloc.FindAll(host, -1))
+	if nc != 3 || nh != 1 || strings.Join(coreFns, " ") != "ga_grow_inner get_keystroke" ||
+		strings.Join(hostFns, " ") != "adjust_types" {
+		v.Die("`realloc` occurs %d times in the core and %d in the host, its prototype's uses in %s "+
+			"and %s, where this phase was written against 3 and 1: the prototype and two calls "+
+			"above the boundary (ga_grow_inner, get_keystroke), and adjust_types() below it",
+			nc, nh, vimtext.JoinOrNone(coreFns), vimtext.JoinOrNone(hostFns))
+		return v.Done()
 	}
-	bound := d[0]
-	core := bytes.Join(lines[:bound], []byte{'\n'})
-	host := bytes.Join(lines[bound:], []byte{'\n'})
-	p.Sayf("%d directives on consecutive lines from %d, every one an `#include <...>`; the "+
-		"core is the %d lines above the first of them", len(d), bound+1, bound)
-
-	// ---- 1. the inventory, as a partition and not a list -----------------
-	nc := len(whim49aRealloc.FindAll(core, -1))
-	nh := len(whim49aRealloc.FindAll(host, -1))
-	if nc != 3 || nh != 1 {
-		return nil, p.Die("`realloc` occurs %d times in the core and %d in the host, where this phase was "+
-			"written against 3 and 1: the prototype and two calls above the boundary, and "+
-			"adjust_types() below it", nc, nh)
-	}
-	p.Say("`realloc` is 3 in the core -- the prototype, ga_grow_inner's call and " +
+	v.Say("`realloc` is 3 in the core -- the prototype, ga_grow_inner's call and " +
 		"get_keystroke's -- and 1 in the host, adjust_types(), which is NOT this phase's " +
 		"and is why the symbol does not leave")
 
-	// NO LITERAL MAY HOLD THE NAME.  Phase 0a was caught Out by three string
-	// literals holding `NULL`; the lesson is applied rather than assumed.
-	spans, err := edit.LiteralSpansShort(p, text)
-	if err != nil {
-		return nil, err
-	}
+	strs := v.Strings()
 	var bad []string
-	for _, s := range spans {
-		if whim49aRealloc.Match(text[s[0]:s[1]]) {
-			bad = append(bad, string(text[s[0]:s[1]]))
+	for _, s := range strs {
+		if whim49aRealloc.MatchString(s.Atom) {
+			bad = append(bad, s.Atom)
 		}
 	}
 	if len(bad) > 0 {
-		return nil, p.Die("a literal holds the name `realloc`: %s", strings.Join(bad, " / "))
+		v.Die("a literal holds the name `realloc`: %s", strings.Join(bad, " / "))
+		return v.Done()
 	}
-	p.Sayf("%d string and character literals, none holding `realloc`, so both substitutions "+
-		"below are over code", len(spans))
+	v.Sayf("%d string literals, none holding `realloc`, so both substitutions "+
+		"below are over code", len(strs))
 
-	// ---- 2. ga_grow_inner -- the size is already on the next line --------
-	if bytes.Count(text, []byte(whim49aOldGa)) != 1 {
-		return nil, p.Die("ga_grow_inner's realloc and the two lines either side are not in the file " +
-			"exactly once, so this phase cannot tell what the old size is")
+	v.Together(func(v *graph.Verbs) {
+		v.InFunction("ga_grow_inner", func(v *graph.Verbs) {
+			v.TextCountIs(regexp.QuoteMeta(whim49aZero), 1, "ga_grow_inner's tail-zeroing statement, "+
+				"which must survive the rewrite unmoved and BELOW the copy (trap 3)")
+			v.LiteralC(whim49aOldGa, whim49aNewGa, 1, "ga_grow_inner's realloc and the two lines either side")
+		})
+		v.InFunction("get_keystroke", func(v *graph.Verbs) {
+			v.LiteralC(whim49aOldKs, whim49aNewKs, 1,
+				"get_keystroke's realloc, the `buflen += 100` above it and the `vim_free` below it")
+		})
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	if bytes.Count(text, []byte(whim49aZero)) != 1 {
-		return nil, p.Die("ga_grow_inner's tail-zeroing statement is not in the file exactly once, and " +
-			"trap 3 is that it must survive the rewrite unmoved and BELOW the copy")
+	v.InFunction("ga_grow_inner", func(v *graph.Verbs) {
+		t := string(v.Text())
+		copyAt := strings.Index(t, "musl_memcpy(pp, gap->ga_data, old_len);")
+		if copyAt < 0 || copyAt >= strings.Index(t, whim49aZero) {
+			v.Die("the copy did not land above the tail-zeroing statement")
+		}
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	text = bytes.Replace(text, []byte(whim49aOldGa), []byte(whim49aNewGa), 1)
-	if bytes.Index(text, []byte(whim49aNewGa)) >= bytes.Index(text, []byte(whim49aZero)) {
-		return nil, p.Die("the copy did not land above the tail-zeroing statement")
-	}
-	p.Say("ga_grow_inner: `realloc(ga_data, new_len)` -> `malloc(new_len)` with the copy and " +
+	v.Say("ga_grow_inner: `realloc(ga_data, new_len)` -> `malloc(new_len)` with the copy and " +
 		"the free GUARDED by `ga_data != nullptr`, and `old_len` hoisted above the " +
 		"allocation -- it is the old size and the function already computed it.  The " +
 		"`return FAIL` still comes before anything is freed, so a failed grow leaves the " +
 		"old block valid and ga_data untouched; the tail-zeroing statement is unmoved and " +
 		"below the copy")
 
-	// ---- 3. get_keystroke -- the size is `buflen` before the `+= 100` ----
-	if bytes.Count(text, []byte(whim49aOldKs)) != 1 {
-		return nil, p.Die("get_keystroke's realloc, the `buflen += 100` above it and the `vim_free` " +
-			"below it are not in the file exactly once")
-	}
-	text = bytes.Replace(text, []byte(whim49aOldKs), []byte(whim49aNewKs), 1)
-	p.Say("get_keystroke: `realloc(buf, buflen)` -> `malloc(buflen)` with the old size saved " +
+	v.Say("get_keystroke: `realloc(buf, buflen)` -> `malloc(buflen)` with the old size saved " +
 		"as `t_buflen` beside the old pointer `t_buf`, one line above the `buflen += 100`.  " +
 		"The failure path is untouched -- `vim_free(t_buf)`, which is what this site always " +
 		"did for itself -- and the success path frees with `free()`, not `vim_free()`, " +
 		"because vim_free declines while really_exiting and realloc did not")
 
-	// ---- 4. the prototype, which now declares nothing the core uses ------
-	if bytes.Count(text, []byte(whim49aProto)) != 1 {
-		return nil, p.Die("`%s` is not in the file exactly once -- it is one of the plain libc prototypes "+
-			"phase 42 wrote and phase 43 carried above the includes", strings.TrimSpace(whim49aProto))
+	rebound, _, err := e.DeleteForHeader([]*graph.Node{proto}, false, nil)
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
 	}
-	text = bytes.Replace(text, []byte(whim49aProto), nil, 1)
-	p.Say("`void *realloc(void *p, usize n);` is gone from the core's libc prototype block.  " +
+	if len(rebound) != 1 {
+		v.Die("%d uses of `realloc` went to the header's declaration, where adjust_types()'s one was expected",
+			len(rebound))
+		return v.Done()
+	}
+	v.Say("`void *realloc(void *p, usize n);` is gone from the core's libc prototype block.  " +
 		"adjust_types() takes its declaration from <stdlib.h>, which is above it")
 
-	// ---- 5. what the file is now -----------------------------------------
-	L := bytes.Split(text, []byte{'\n'})
-	const added = 5 + 6 - 1
-	if len(L) != linesBefore+added {
-		return nil, p.Die("the file is %d lines and the input was %d -- this phase adds exactly %d: 5 at "+
-			"ga_grow_inner, 6 at get_keystroke and -1 for the prototype",
-			len(L)-1, linesBefore-1, added)
+	if n := len(e.Includes()); n != len(incs) {
+		v.Die("the file has %d include forms and had %d: this phase adds none and removes none", n, len(incs))
+		return v.Done()
 	}
-	var nd []int
-	for i, l := range L {
-		if whim49aDirective.Match(l) {
-			nd = append(nd, i)
-		}
+	core, host, _ = vimtext.SplitCore(v.Text())
+	if k := len(whim49aRealloc.FindAll(core, -1)); k > 0 {
+		v.Die("`realloc` still occurs %d times in the core, and the phase's whole product is that it is 0", k)
+		return v.Done()
 	}
-	if len(nd) != len(d) {
-		return nil, p.Die("the file has %d directives and had %d: this phase adds none and removes none",
-			len(nd), len(d))
+	if k := len(whim49aRealloc.FindAll(host, -1)); k != nh {
+		v.Die("the host's %d `realloc` did not survive (%d now): adjust_types() is the host's and no "+
+			"phase of this pipeline has taken it", nh, k)
+		return v.Done()
 	}
-	if nd[0]-d[0] != len(L)-linesBefore {
-		return nil, p.Die("the boundary moved by %d lines and the file by %d: every line this phase "+
-			"touches is above the first `#include`", nd[0]-d[0], len(L)-linesBefore)
-	}
-	ncore := bytes.Join(L[:nd[0]], []byte{'\n'})
-	nhost := bytes.Join(L[nd[0]:], []byte{'\n'})
-	if whim49aRealloc.Match(ncore) {
-		return nil, p.Die("`realloc` still occurs %d times in the core, and the phase's whole product is "+
-			"that it is 0", len(whim49aRealloc.FindAll(ncore, -1)))
-	}
-	if len(whim49aRealloc.FindAll(nhost, -1)) != nh {
-		return nil, p.Die("the host's %d `realloc` did not survive: adjust_types() is the host's and no "+
-			"phase of this pipeline has taken it", nh)
-	}
-	// A cut between two blank lines leaves two in a row now that the canonical
-	// print separates every declaration, and the print at the end of the phase
-	// collapses them; the blank runs are layout, and not this phase's to count.
-	p.Sayf("the core does not name `realloc` at all: 3 -> 0 above the boundary, 1 -> 1 below "+
-		"it, %d directives unmoved relative to the text, and the blank-line runs unchanged "+
-		"at %d", len(nd), p.BlankRuns(text))
-	return text, nil
+	v.Sayf("the core does not name `realloc` at all: 3 -> 0 above the boundary, 1 -> 1 below "+
+		"it, the %d include forms unmoved", len(incs))
+	return v.Done()
 }

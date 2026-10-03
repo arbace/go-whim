@@ -166,3 +166,5 @@ has already taken the three symbols by then, so it would pass.
 **There is no `need 125`, for a reason stronger than one stage's measurement**: phase 124's
 **sweep is a no-op** — its edit's output on q123 is byte-identical to q124 — so there is no
 unswept text for phase 125 to be handed at all. `make whim-verify` is 42 of 42.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3d) the phase runs on the graph: its partition is the uses of `malloc`, `free` and `realloc` by edge, each a callee in one of the four places found by its form, the C it writes is FRAG's in one synthesized import, and `whim-build-check` holds q052 to the bytes the text version made (history keeps it); the scratch file `arena-bytes`, which nothing read, is no longer written and the step takes no `@state`.

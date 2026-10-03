@@ -12,7 +12,6 @@ import (
 	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/cut"
-	p051a "github.com/arbace/go-whim/internal/phase/051/a"
 	"github.com/arbace/go-whim/internal/steps"
 )
 
@@ -173,49 +172,6 @@ func TestRowsArgvFront(t *testing.T) {
 	if got, want := views(t, e, want); bytes.Equal(got, want) {
 		t.Error("the control: the index unsaid, the bytes did not move")
 	}
-}
-
-// INITROW and RENAME's strings: phase 51a (on q050) on the graph --
-// builtin_terminals[]'s rows but xterm-256color, debug and the sentinel
-// deleted, find_builtin_term()'s xterm-family clause cut, and the fallback
-// and report_term_error()'s two messages respelled, each literal named
-// whole.
-func TestRows51a(t *testing.T) {
-	dir, _, _, _ := setup(t)
-	in := snapOf(t, dir, 50)
-	want, err := p051a.Edit(in, io.Discard)
-	if err != nil {
-		t.Fatal(err)
-	}
-	e := readBackOne(t, lispOf(t, in))
-	v := graph.NewVerbs("terms", e, io.Discard)
-	v.InTable("builtin_terminals", func(v *graph.Verbs) {
-		var gone []string
-		for _, r := range v.Rows() {
-			if r.Is("init") && len(r.Kids) == 3 && r.Kids[1].Atom != `"xterm-256color"` && r.Kids[1].Atom != `"debug"` && r.Kids[1].Atom != "nullptr" {
-				gone = append(gone, r.Kids[1].Atom)
-			}
-		}
-		v.Expect(len(gone) == 8, "%d rows go: %s", len(gone), strings.Join(gone, " "))
-		var pats []string
-		for _, g := range gone {
-			pats = append(pats, "(init "+g+" _)")
-		}
-		v.DeleteRowsEach(pats, graph.RowIndex{}, "the terminals that are not the product's")
-	})
-	v.InFunction("find_builtin_term", func(v *graph.Verbs) {
-		v.Cut("(if (&& _ (call vim_is_xterm term)) _*)", 1, "the xterm-family clause, which no row can satisfy")
-	})
-	v.InFunction("set_termname", func(v *graph.Verbs) {
-		v.RespellString(`"xterm"`, `"xterm-256color"`, 1, "the fallback is the compiled default")
-	})
-	v.InFunction("report_term_error", func(v *graph.Verbs) {
-		v.RespellString(`"' not known, defaulting to 'xterm'"`, `"' not known, defaulting to 'xterm-256color'"`, 2, "and the messages say so")
-	})
-	if err := v.Done(); err != nil {
-		t.Fatal(err)
-	}
-	sameC(t, e, want)
 }
 
 // RENUM: filefront (phase 1's D4) on the graph, on the text extable leaves

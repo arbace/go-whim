@@ -163,3 +163,5 @@ symmetric difference being exactly `{host_time}`. The fourth was measured with
 114's check stops on three messages — the block losing `time` as well as `labs`/`abs`,
 the core at a difference of 3 where 10 was expected, and *"the host changed size, and
 this phase does not touch it"*. **No `need 115`**, measured in the same run.
+
+It runs on the graph (B3d, `doc/GRAPH-MIGRATION.md`): its measurements the text's own on the C view, its acts FRAG, RENAME, MOVE and RetypeResult, `host_time`'s declarations keeping their ids.

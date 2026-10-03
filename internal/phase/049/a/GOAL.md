@@ -3,6 +3,8 @@
 *Formerly phase 117, now part a of phase 49. The other phase numbers in this file are the old
 numbering, as it was written: `doc/PHASES.md` maps them.*
 
+**It runs on the graph** (doc/GRAPH-MIGRATION.md, B3d): its two rewrites are FRAG's literal runs, and the prototype goes by `DeleteForHeader`, adjust_types()'s call becoming a use of <stdlib.h>'s `realloc` by edge, byte for byte with the text program it replaced.
+
 `internal/phase/117/edit.go` and `internal/phase/117/check.go`, `stage 117`, `package boundary`.
 
 **`realloc` cannot be implemented from `malloc` and `free`**, and that is why this phase

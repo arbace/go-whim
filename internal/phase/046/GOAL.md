@@ -122,3 +122,5 @@ that name is one of the boundary names the `editor.c` cut prints. This check nev
 writes that set out: it computes it from the input and from the output and requires the
 two to be equal, so the rename cost it nothing. **That is the whole argument for
 counting a set as a rule rather than as a table of constants.**
+
+**It runs on the graph** (doc/GRAPH-MIGRATION.md, B3d): the fold one `LiteralC`, the four call sites asked of msg_use_printf's edges -- q046.c byte for byte, its collected graph the import of its C view; 0.6 s handed the graph, 2.4 s from text.

@@ -84,88 +84,76 @@ package p046
 // present VERBATIM below, before and after.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// fold is one LiteralC on the program's graph -- the call item in
+// msg_puts_attr_len()'s true arm made two items, written at their place
+// and resolved as the importer resolves them -- and its report is the text
+// version's, which the plan ran until then (history keeps it):
+//
+//   - the eleven directives are the include forms, contiguous where the
+//     host begins, nothing above the first but C;
+//   - the inventory is the text's `\bname\b` counts on the C view (TEXTQ's
+//     Mentions), the file's view taken once;
+//   - the FOUR call sites, and the three this phase leaves alone, are the
+//     uses of msg_use_printf by edge, each told by its function and its
+//     shape -- hit_return_msg's under a `!`, msg_clr_eos_force's its body's
+//     first item, exit_scroll's an if -- where the text counted indented
+//     lines (the counting trap above is a text's, and does not arise);
+//   - the line count and the blank-line runs are the text's own layout and
+//     are dropped.
 
 import (
-	"bytes"
 	"io"
-	"regexp"
-	"strconv"
-	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim46", Edit) }
+func init() { phase.RegisterGraph("whim46", Edit) }
 
-var whim46Directive = regexp.MustCompile(`^ *#`)
-var whim46Include = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
+// w46Includes is the include forms, refused unless they are contiguous
+// where the host begins: the first is the boundary and nothing above it is
+// a directive.
+func w46Includes(v *graph.Verbs) []*graph.Node {
+	e := v.Editor()
+	incs, host := e.Includes(), e.Host()
+	ok := len(incs) > 0 && len(host) >= len(incs)
+	for i := 0; ok && i < len(incs); i++ {
+		ok = host[i] == incs[i]
+	}
+	v.Expect(ok, "the file's %d include forms are not contiguous where the host begins", len(incs))
+	return incs
+}
 
-// whim46Old is the four-line block at msg_puts_attr_len().
-//
-// THE ONE-LINE FORM IS NOT AN ANCHOR: `    if (msg_use_printf())` at four
-// spaces is a substring of the same line at eight, so it counts 3 where the
-// block counts 1.
-const whim46Old = `    if (msg_use_printf())
-    {
-        msg_puts_printf((char_u *)str, maxlen);
-    }
-`
-
-const whim46New = `    if (msg_use_printf())
-    {
-        host_message((char *)str, maxlen, !info_message);
-        msg_didout = TRUE;
-    }
-`
-
-// Whim46 folds msg_puts_attr_len()'s never-taken arm into one host_message()
-// call.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	p := edit.Ph{Tag: "msgfold", W: w}
-	linesBefore := p.Lines(text)
-
-	// ---- 0. the file this edit was written against -----------------------
-	// ELEVEN DIRECTIVES AND NONE ABOVE THE BOUNDARY.  Phase 43 made the first
-	// `#include` the core -> host boundary; this phase adds no directive,
-	// removes none and moves none.
-	lines := bytes.Split(text, []byte{'\n'})
-	var directives []int
-	for i, l := range lines {
-		if whim46Directive.Match(l) {
-			directives = append(directives, i)
+// w46Site is the use of msg_use_printf in fn, refused unless there is
+// exactly one and shape says yes to it.
+func w46Site(v *graph.Verbs, uses []*graph.Node, fn, why string, shape func(call, use *graph.Node) bool) {
+	e := v.Editor()
+	var in []*graph.Node
+	for _, u := range uses {
+		if f := e.Function(u); f != nil && graph.DeclName(f) == fn {
+			in = append(in, u)
 		}
 	}
-	consecutive := len(directives) > 0
-	for k, i := range directives {
-		if i != directives[0]+k {
-			consecutive = false
-		}
-	}
-	if len(directives) != nInc || !consecutive {
-		var first []string
-		for _, i := range directives {
-			if len(first) < 4 {
-				first = append(first, strconv.Itoa(i+1))
-			}
-		}
-		return nil, p.Die("the file does not have exactly eleven preprocessor directives on eleven "+
-			"consecutive lines: %d at %s", len(directives), strings.Join(first, " "))
-	}
-	for _, i := range directives {
-		if !whim46Include.Match(lines[i]) {
-			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
-				"add one")
-		}
-	}
-	p.Sayf("eleven directives, every one an `#include <...>`, on lines %d-%d -- the first of "+
-		"them is the boundary and this phase writes nothing above it but C",
-		directives[0]+1, directives[len(directives)-1]+1)
+	v.Expect(len(in) == 1 && shape(e.Parent(in[0]), in[0]),
+		"the %s site is %d uses of msg_use_printf and must be 1, in its shape -- %s", fn, len(in), why)
+}
 
-	// ---- 1. the inventory, counted here rather than remembered -----------
-	for _, inv := range []struct {
-		Name string
+// Edit is the fold: msg_puts_attr_len()'s true arm speaks to the host.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("msgfold", e, w)
+	incs := w46Includes(v)
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Sayf("%d directives, every one an `#include <...>` form, contiguous where the host "+
+		"begins -- the first of them is the boundary and this phase writes nothing above it but C",
+		len(incs))
+
+	inventory := []struct {
+		name string
 		want int
 		why  string
 	}{
@@ -183,91 +171,87 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"msg_puts_printf"},
 		{"msg_didout", 29, "one of them msg_puts_printf's last statement, which the " +
 			"replacement keeps"},
-	} {
-		if got := p.Mentions(text, inv.Name); got != inv.want {
-			return nil, p.Die("`%s` has %d mentions and this phase was written against %d -- %s",
-				inv.Name, got, inv.want, inv.why)
-		}
 	}
-	p.Say("the inventory, and the FOUR call sites are four: msg_use_printf 6, " +
+	text := v.Text()
+	for _, inv := range inventory {
+		got := edit.MentionCount(text, inv.name)
+		v.Expect(got == inv.want, "`%s` has %d mentions and this phase was written against %d -- %s",
+			inv.name, got, inv.want, inv.why)
+	}
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Say("the inventory, and the FOUR call sites are four: msg_use_printf 6, " +
 		"msg_puts_printf 3, vim_strlen_maxlen 3, msg_puts_display 4, host_message 10, " +
 		"info_message 9, msg_didout 29")
 
-	// ---- 2. the three sites this phase does NOT touch, asserted VERBATIM -
-	// Two of them are folds that were measured to be WRONG and one is a live
-	// guard.  They are named so a later edit cannot quietly widen this phase
-	// into them.
-	keep := []struct {
-		who, s string
-		want   int
-		why    string
-	}{
-		{"hit_return_msg", "    if (!msg_use_printf())\n", 1,
-			"the live guard -- and it is written with a `!`, which is why an edit that " +
-				"greps for the positive spelling finds three sites and not four"},
-		{"msg_clr_eos_force", "msg_clr_eos_force(void)\n{\n    if (msg_use_printf())\n", 1,
-			"CANNOT BE FOLDED SAFELY: the false arm calls screen_fill() with no valid " +
-				"screen, which the corpus cannot see and two probes can"},
-		{"exit_scroll", "        if (msg_use_printf())\n", 1,
-			"ALIVE: its printf arm fires in three of the 32 stream probes and three of " +
-				"the four signal probes, with no signal needed for the first three"},
-	}
-	for _, k := range keep {
-		if got := bytes.Count(text, []byte(k.s)); got != k.want {
-			return nil, p.Die("the %s site is %d occurrences of %s and must be %d -- %s",
-				k.who, got, edit.PyRepr(k.s), k.want, k.why)
+	keep := func() {
+		uses := v.UsesOf("msg_use_printf")
+		v.Expect(len(uses) == 4, "msg_use_printf has %d uses, where the four call sites were counted", len(uses))
+		ifTest := func(call, _ *graph.Node) bool {
+			p := e.Parent(call)
+			return p != nil && p.Head() == "if" && len(p.Kids) > 1 && p.Kids[1] == call
 		}
+		w46Site(v, uses, "hit_return_msg", "the live guard, written with a `!`",
+			func(call, _ *graph.Node) bool {
+				p := e.Parent(call)
+				return p != nil && p.Head() == "!" && ifTest(p, nil)
+			})
+		w46Site(v, uses, "msg_clr_eos_force", "CANNOT BE FOLDED SAFELY: the false arm calls "+
+			"screen_fill() with no valid screen, which the corpus cannot see and two probes can",
+			func(call, u *graph.Node) bool {
+				if !ifTest(call, u) {
+					return false
+				}
+				f := e.Function(u)
+				b := graph.Body(f)
+				return len(b) > 0 && b[0] == e.Parent(call)
+			})
+		w46Site(v, uses, "exit_scroll", "ALIVE: its printf arm fires in three of the 32 stream "+
+			"probes and three of the four signal probes, with no signal needed for the first three", ifTest)
+		w46Site(v, uses, "msg_puts_attr_len", "the arm this phase folds", ifTest)
 	}
-	p.Say("and the THREE sites this phase leaves alone, each asserted verbatim: " +
+	keep()
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Say("and the THREE sites this phase leaves alone, each asserted by its use and shape: " +
 		"hit_return_msg's `!msg_use_printf()` guard, msg_clr_eos_force's test (folding " +
 		"it moves t_ti_stopterm 2,266 -> 2,280 and hup_clean 2,124 -> 2,142) and " +
 		"exit_scroll's (its printf arm is ALIVE, and phase 40 named it dead)")
 
-	// ---- 3. the fold, at the one anchor whose count is 1 -----------------
-	if got := bytes.Count(text, []byte(whim46Old)); got != 1 {
-		return nil, p.Die("the four-line block at msg_puts_attr_len() occurs %d times and must occur "+
-			"exactly once.  THE ONE-LINE FORM IS NOT AN ANCHOR: `    if "+
-			"(msg_use_printf())` at four spaces is a substring of the same line at eight, "+
-			"so it counts 3 where the block counts 1", got)
+	v.InFunction("msg_puts_attr_len", func(v *graph.Verbs) {
+		v.CountIs("(if (call msg_use_printf) (block (call msg_puts_printf (cast (ptr char_u) str) maxlen)) _)", 1,
+			"the if at msg_puts_attr_len() whose true arm is the one call")
+		v.LiteralC("msg_puts_printf((char_u *)str, maxlen);",
+			"host_message((char *)str, maxlen, !info_message);\nmsg_didout = TRUE;", 1,
+			"the fold: msg_puts_attr_len()'s true arm becomes `host_message((char *)str, "+
+				"maxlen, !info_message); msg_didout = TRUE;`.  host_message() takes len < 0 as "+
+				"strlen and len >= 0 as an exact count, which IS msg_puts_printf's maxlen "+
+				"contract -- and the arm is never executed, so equivalence is not claimed: what "+
+				"the two lines do not reproduce is the CR-before-NL insertion and the msg_col "+
+				"bookkeeping, which no recording or probe can reach")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	text = bytes.Replace(text, []byte(whim46Old), []byte(whim46New), 1)
-	p.Say("the fold: msg_puts_attr_len()'s true arm becomes `host_message((char *)str, " +
-		"maxlen, !info_message); msg_didout = TRUE;`.  host_message() takes len < 0 as " +
-		"strlen and len >= 0 as an exact count, which IS msg_puts_printf's maxlen " +
-		"contract -- and the arm is never executed, so equivalence is not claimed: what " +
-		"the two lines do not reproduce is the CR-before-NL insertion and the msg_col " +
-		"bookkeeping, which no recording or probe can reach")
 
-	// ---- 4. what the file is now -----------------------------------------
-	if n := p.Lines(text); n != linesBefore+1 {
-		return nil, p.Die("the file is %d lines and the input was %d -- this edit adds exactly one",
-			n-1, linesBefore-1)
+	text = v.Text()
+	got := edit.MentionCount(text, "msg_use_printf")
+	v.Expect(got == 6, "`msg_use_printf` is %d mentions after the edit and must still be 6: the test "+
+		"stays, and only the arm behind it goes", got)
+	got = edit.MentionCount(text, "msg_puts_printf")
+	v.Expect(got == 2, "`msg_puts_printf` is %d mentions after the edit and must be 2 -- the "+
+		"prototype and the definition, which the SWEEP removes and this edit does not", got)
+	v.Expect(len(v.UsesOf("msg_puts_printf")) == 0, "msg_puts_printf is still called")
+	keep()
+	after := w46Includes(v)
+	v.Expect(len(after) == len(incs), "the file no longer has its %d include forms", len(incs))
+	if v.Failed() {
+		return v.Done()
 	}
-	if got := p.Mentions(text, "msg_use_printf"); got != 6 {
-		return nil, p.Die("`msg_use_printf` is %d mentions after the edit and must still be 6: the test "+
-			"stays, and only the arm behind it goes", got)
-	}
-	if got := p.Mentions(text, "msg_puts_printf"); got != 2 {
-		return nil, p.Die("`msg_puts_printf` is %d mentions after the edit and must be 2 -- the "+
-			"prototype and the definition, which the SWEEP removes and this edit does not", got)
-	}
-	for _, k := range keep {
-		if bytes.Count(text, []byte(k.s)) != k.want {
-			return nil, p.Die("the %s site moved, and this edit touches exactly one site", k.who)
-		}
-	}
-	n := 0
-	for _, l := range bytes.Split(text, []byte{'\n'}) {
-		if whim46Directive.Match(l) {
-			n++
-		}
-	}
-	if n != nInc {
-		return nil, p.Die("the file no longer has exactly eleven directives")
-	}
-	p.Sayf("one line added, msg_use_printf still 6, msg_puts_printf down to 2 -- the "+
-		"prototype and the definition, which are the SWEEP's to take along with "+
-		"vim_strlen_maxlen and its prototype; eleven directives unmoved and the "+
-		"blank-line runs at %d", p.BlankRuns(text))
-	return text, nil
+	v.Say("msg_use_printf still 6, msg_puts_printf down to 2 -- the prototype and the " +
+		"definition, which are the collection's to take along with vim_strlen_maxlen and " +
+		"its prototype; the include forms unmoved, and every site but the one folded as it was")
+	return v.Done()
 }

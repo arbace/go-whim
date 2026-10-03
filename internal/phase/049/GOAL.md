@@ -3,6 +3,8 @@
 *Formerly phase 119. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+**It runs on the graph** (doc/GRAPH-MIGRATION.md, B3d), all three of its steps: the re-raise made again by FRAG, b0_pid's write cut, getpid and kill deleted for <signal.h>'s and <unistd.h>'s declarations (`DeleteForHeader`), byte for byte with the text programs it replaced; its scratch files are gone.
+
 `internal/phase/119/edit.go` and `internal/phase/119/check.go`, `stage 119`, `package host`. Phase 118
 ended with a sentence it would not write down, and this is the phase that gets to write
 it. The core's block of ordinary, non-`static` declarations — the libc the editor spells

@@ -3,6 +3,8 @@
 *Formerly phase 118, now part b of phase 49. The other phase numbers in this file are the old
 numbering, as it was written: `doc/PHASES.md` maps them.*
 
+**It runs on the graph** (doc/GRAPH-MIGRATION.md, B3d): the core's calls retargeted to the new prototypes by edge, the writes made again by FRAG, the three prototypes deleted for the headers' declarations (`DeleteForHeader`), byte for byte with the text program it replaced; its scratch files are gone.
+
 `internal/phase/118/edit.go` and `internal/phase/118/check.go`, `stage 118`, `package host`. The three
 libc functions the core still **called** for itself go to the host: `malloc`, called by
 `lalloc()`; `free`, called by `vim_free()` and `update_wincolor()`; and `write`, called by

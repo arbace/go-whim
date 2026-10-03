@@ -678,17 +678,17 @@ the closure is the text's on all three. What it does not have:
   (`xform/fallout.go`, phases 1-3), `memberout` (94), `stateparam` (95),
   `localout` and `structscalar` (100), and `plainc`'s three (101). Several
   that live in `crefactor/xform` are NOT typed -- `NullptrUsize`, `Attrs`
-  (0a, 0c), `Own` (47), `Unions` (50), `DropCalls` (60), `EmptyBlocks` (62),
+  (0a, 0c), `Own` (47) and `Unions` (50) (on the graph since B3d), `DropCalls` (60), `EmptyBlocks` (62),
   `NeverNull` (74), `DeadStmt` (86a, on the graph since B1c), `BoolRet` (87a, 102, 103) and the four
   goto steps (89-92): they are text or `cc.Parse` only, so they are (a) or
   (b).
 - **(d)** stays text: the seed (phase 0: it runs on the input before any
   graph, its work is spelling, and its proof is an identical binary; the
   first import is of q000 or later), and phase 88's `includes` (judged by
-  gcc compiling each trial). Phase 43 as built asks gcc three questions the
+  gcc compiling each trial). Phase 43 as built asked gcc three questions the
   graph answers by edges (names the headers still supply, definitions whose
   every use is below the cut, the core's undefined interface): (d) as it
-  stands, (b) rewritten. Phase 42's `MIN`/`MAX` expansion reads the
+  stood, rewritten on the graph by B3d. Phase 42's `MIN`/`MAX` expansion reads the
   preprocessor's own text (`@minmax`): MACROX, or a text step left at the
   phase's end.
 
@@ -821,19 +821,19 @@ phase 39 | 39 | whim39 | 254 | 20227 | b | FRAG INITROW RENAME | B3c | the host 
 phase 40 | 40 | whim40 | 330 | - | b | FRAG PARAM TEXTQ | B3c | stream writes through vim_host_message
 phase 41 | 41 | whim41 | 255 | - | b | PARAM RENAME FRAG INCLUDE | B3c | host calls direct
 phase 42 | 42 | whim42 @minmax | 400 | - | b | RETYPE RENAME FRAG MACROX INCLUDE | B3c | header types owned; MIN/MAX may stay a text step
-phase 43 | 43 | whim43 @state | 717 | - | d | (MOVE INCLUDE FRAG TEXTQ to drop gcc) | B3d | the first #include becomes the boundary; gcc-judged as built
-phase 44 | 44 | whim44 | 272 | - | b | RETYPE FRAG INCLUDE | B3d | the scalar clock
-phase 45 | 45 | whim45 | 287 | - | b | INITROW | B3d | case tables merged (rows read as values)
-phase 46 | 46 | whim46 | 158 | - | b | FRAG | B3d | 1 statement -> 2: the smallest FRAG
-phase 47 | 47 | crefactor/xform/libcown.go | 7+248 | - | b | FRAG INCLUDE | B3d | abs/labs own; text, not typed
-phase 48 | 48 | whim48 | 369 | - | b | RENAME MOVE RETYPE FRAG INCLUDE | B3d | the clock crosses; after 43, 47
-49a | 49 | phase/049/a | 186 | - | b | FRAG INCLUDE | B3d | realloc leaves the core; before 49b
-49b | 49 | phase/049/b | 396 | 828 | b | FRAG INCLUDE | B3d | malloc/free/write leave; before 49
-phase 49 | 49 | whim49a, whim49b, whim49 @state | 506 | 508 | b | FRAG INCLUDE | B3d | getpid/kill leave
-phase 50 | 50 | crefactor/xform/unions.go | 6+311 | - | b | RETYPE | B3d | degenerate unions; text, not typed
-51a | 51 | phase/051/a | 374 | - | b | INITROW RENAME TEXTQ | B3d | terminal names; before 51
-phase 51 | 51 | whim51a, whim51 | 389 | - | b | PARAM MOVE FOLDX RENAME | B3d | -T goes
-phase 52 | 52 | whim52 @state | 218 | 2918 | b | FRAG | B3d | the arena; header types (max_align_t)
+phase 43 | 43 | whim43 | 717 | - | done | - | B3d | the first #include becomes the boundary; gcc's three answers asked of the edges, the move one act (MoveFormsOwning)
+phase 44 | 44 | whim44 | 272 | - | done | - | B3d | the scalar clock; Retype, ReplaceC, two FRAG units
+phase 45 | 45 | whim45 | 287 | - | done | - | B3d | case tables merged (rows read as values); ArrangeRowsTyped, RetargetAs
+phase 46 | 46 | whim46 | 158 | - | done | - | B3d | 1 statement -> 2: one LiteralC
+phase 47 | 47 | crefactor/graph/b3db_own.go | 7+248 | - | done | - | B3d | abs/labs own: graph.Own (xform's Own deleted)
+phase 48 | 48 | whim48 | 369 | - | done | - | B3d | the clock crosses: Rename, MoveForms, RetypeResult, FRAG
+49a | 49 | phase/049/a | 186 | - | done | - | B3d | realloc leaves the core; DeleteForHeader
+49b | 49 | phase/049/b | 396 | 828 | done | - | B3d | malloc/free/write leave; RetargetAs, DeleteForHeader
+phase 49 | 49 | whim49a, whim49b, whim49 | 506 | 508 | done | - | B3d | getpid/kill leave; graph end to end
+phase 50 | 50 | crefactor/graph/b3db_unions.go | 6+311 | - | done | - | B3d | degenerate unions: graph.DegenerateUnions (xform's Unions deleted)
+51a | 51 | phase/051/a | 374 | - | done | - | B3d | terminal names; ArrangeRowsTyped, RespellString
+phase 51 | 51 | whim51a, whim51 | 389 | - | done | - | B3d | -T goes; FoldNever/FoldAlways, DropParam, ReplaceRun
+phase 52 | 52 | whim52 | 218 | 2918 | done | - | B3d | the arena; one SpliceC of six fragments
 phase 53 | 53 | whim53 @state | 817 | 4723 | b | PARAM FOLDX FRAG | B3e | swap-file residue; mostly deletions
 phase 54 | 54 | whim54 @state | 589 | 15478 | b | FRAG RETYPE RENAME PARAM | B3e | a block number becomes a reference; after 53
 phase 55 | 55 | whim55 @state | 665 | 4418 | b | FRAG PARAM MOVE | B3e | de-page the leaf; after 54
@@ -1791,6 +1791,111 @@ text's that B0's set did not say:
 - B2c's `TestB2cPhase31` held phase 31 written on the graph to the text
   program; the phase is that program now, held by `TestPhasesOnGraph`, so
   the test went.
+## B3d as built (2026-10-03)
+
+Phases 43-52 run on the graph end to end -- part 49a, 49b, 51a and every
+phase's own program -- each a graph step (`Graph: true`), its text program
+replaced (history keeps them, `16717ab` and before); `crefactor/xform`'s
+`Own` (47) and `Unions` (50) went with them, their logic now
+`crefactor/graph`'s. Phase 43 imports (42 ends on text); 44-52 are each
+handed the graph the phase before leaves, with no import between them.
+About 4,420 lines of text programs (non-blank, non-comment; 559 of them
+xform's) became about 3,510 on the verbs, beside 940 of library.
+
+**Phase 43: rewritten, not left text.** The text program compiled the cut
+eight times and read gcc's diagnostics; each of its three questions has an
+answer in the edges, and the answers are gcc's:
+
+- *the twelve names* are what the move would leave unprovided --
+  `MoveWouldLose`, B2e's headers' rule as a query: exactly the twelve
+  macros, and no declaration (the core takes no function or type from a
+  header). B2e's `TestIncludesPhase43` had shown the same twelve the other
+  way round on q043.
+- *defined but not used* is a static function or object of the core no use
+  in what stays refers to, **a function's own recursive calls not
+  counting** -- gcc's rule (`c-typeck.cc`: "Recursive call does not count
+  as usage"; a `sizeof`, an address in a dead object's initialiser, a dead
+  function's call all count; measured with gcc on a sample before it was
+  written). The enum blocks are asked the same of their enumerators and
+  tag, by edge, where the text counted words. The rounds are the text's:
+  6, the same names in each, 14 functions, 18 objects, 3 enum blocks.
+- *used but never defined*, the boundary: the static functions the core
+  declares and uses and does not define -- the same 13 names.
+
+The move is ONE act, `MoveFormsOwning` (below): the 41 include forms, the
+enum blocks, the objects, the two `va_list` prototypes and the functions
+before the host block in the text's order, the twelve enumerators written
+by FRAG beneath `usize`, the core's 100 tokens of them made uses; then the
+twelve static_asserts by FRAG below the last include, where their names are
+the headers' again. What compiling the finished cut proved -- 0 errors,
+nothing dead -- is the rule (nothing in the core takes a name from a header,
+no collision) and the fixpoint's last round. 1.2 s handed the graph, where
+the text's compiles took 14 s of wall time (6 s of CPU in this process,
+gcc's beside it). Its `moved`/`boundary` files and `@state` went: nothing
+read them. So did 49b's, 49's and 52's.
+
+**The chain holds to the import.** `TestB3dHandsOnTheImport`
+(`internal/graphcheck/b3d_test.go`) runs each of 43-52 on q(N-1)'s graph
+read back, its programs called directly, collects, and holds the result to
+qN.c's import by `SameGraph`: every refers edge where the importer puts it,
+every typed edge to a type of the same structure, ids aside -- stronger than
+the bytes, and what a phase handed the graph needs of the one before it.
+All ten pass; three gaps it found are fixed (below).
+
+### Library added (crefactor/graph, new files, generic, with tests)
+
+| file | what | for |
+| --- | --- | --- |
+| `moveowning.go` | `MoveWouldLose(at, after, ns)`: what a move of top-level forms would leave unprovided, as a query. `MoveFormsOwning(at, after, ns, own)`: the move, ids kept; every edge it crosses resolved again as the importer resolves it (cc's rule, the definition where the prototype names no parameter) and retargeted, else refused; a lost declaration refused; the lost macros handed to `own`, which declares them (FRAG); every token that was such a macro made a use of the declaration it now resolves to, the typed edges above it kept where cc gives the macro the type of the declaration (a probe unit of the header alone) and cleared otherwise; the rule held against the graph before the move | 43 |
+| `b3da_rows.go` | `ArrangeRowsTyped`: `ArrangeRows` that types the table's new length (an array type made and interned) and a new row's signed literal, as the import types them | 45, 51a |
+| `b3db_own.go` | `Own(knobs)`: libc functions the core declared and called made its own -- prototypes deleted, definitions by FRAG, every use retargeted by edge, no literal naming one | 47 (xform's `Own` deleted) |
+| `b3db_unions.go` | `DegenerateUnions`: a one-member union field takes its member's type, every access rewritten without the member (`x.m.only`, `x->m.only`), the retype first so nothing above an access loses its type | 50 (xform's `Unions` deleted) |
+| `b3db_include.go` | `SystemIncludeRun`: the include forms, contiguous, all `<...>` | 47, 48 |
+| `b3dc_header.go` | `DeleteForHeader(ds, dangle, also)`: the file's own prototypes of header functions deleted, each use below an include declaring the name remade by FRAG as the import makes it (the external, typed from the header); a use above every such include refused, or left dangling for the collection when asked | 49a, 49b, 49 |
+
+`internal/whim/vimtext/graph.go` holds the shapes 49b and 49 share
+(`IncludeRun`, `OrdinaryBlock`, ...); 49's `shapes.go` and the text shapes
+nothing else used went.
+
+**Fixes to existing code, each found by the chain's `SameGraph`:**
+
+- **`(void)` typed as imported** (`typeedit.go` +6, `retype.go` +3,
+  `param.go` +3): cc, and so the importer, types `f(void)` with one `void`
+  parameter; B2c's `formType` (PARAM's and RETYPE's new types) wrote none,
+  so a function whose last parameter PARAM dropped (51's `termcapinit`, 31's
+  `open_buffer` once B3b converts it), or one RETYPE retyped (48's
+  `host_time`), was typed unlike its import. `AddParam` takes the void out
+  before inserting. `TestVoidParamsAsImported`.
+- **A table's new length** (51a): INITROW cleared the typed edge of a
+  table whose new length the graph had no array type for; 51a now uses
+  `ArrangeRowsTyped`.
+- **The tokens' types** (43): a `Replace` of a macro token by a use clears
+  the typed edges above it (the editor cannot tell the type is the same);
+  `MoveFormsOwning` keeps them where the probe says it is.
+
+### Refinements
+
+- **A count that stood for uses is asked of the edges; the text's own
+  counts stay on the C view.** 43's constant counts, 44's and 48's
+  mention tables, 47's and 50's rename counts are `edit.MentionCount` on
+  the view; "every one a call", "the four sites", "only the declaration or
+  an access" are edges. 45's "utf_convert at 6 calls" was 5 calls and the
+  definition's head: the edges say 5, and the report does.
+- **"Eleven directives on eleven lines" is the include forms**: contiguous,
+  `<...>`, nothing above the first but the core. The text-only checks (line
+  deltas, blank-line runs) are dropped, as B0 drops them; 48's two line
+  deltas are restated for the C view, core -8 and host +8.
+- **FRAG units that name each other's declarations are two units** (44: a
+  fragment cannot refer to what another fragment of the same unit
+  declares); 49's six units cost 0.3 s each, its largest cost.
+- **Deleting the file's prototype of a header function** is a deletion and
+  a FRAG of each use where the header provides it (`DeleteForHeader`; 48
+  does it by hand for `time`): the use then refers to the external, typed
+  from the header, as the import has it.
+- **Reports** are the text's line for line but where a line said lines:
+  43's "lines -> lines" and "THE CUT IS N LINES" say forms; 52's last line
+  counts the C view's lines; 49's literal count is `Strings()`'s (no
+  character literals).
 
 ### The proof
 
@@ -1842,3 +1947,40 @@ for the text's counts (2-4 of them, 50-100 ms each at this load) and the
 collection (110-270 ms); 31's three file views are why it is the dearest.
 36 begins on text (B3c), so phase 35's graph is printed for it: the C
 view that was 33's before.
+  byte for byte, 104 boundaries compiling, **330 s** (918 s of CPU); main
+  `16717ab` beside it the same minutes, 353 s (957 s). 31 graph snapshots
+  now, q042-q051 added.
+- Again, in parallel: byte for byte, 103 links, 31 begun on their graph
+  snapshot and 0 imported, every boundary compiling, 83 s at a load of
+  about 40.
+- The control, six faults at once -- 43's objects moved before the enum
+  blocks, 44's `* 1000L` made `* 1000`, 46's `msg_didout = TRUE` made
+  `FALSE`, 47's `musl_labs` testing `>= 0`, 48's assert `default: 0 + 0`,
+  52's message buffer `m[161]` -- names exactly phases 43, 44, 46, 47, 48
+  and 52: `6 of 103 phases do not reproduce their snapshot`.
+- `GRAPH_PHASES=43-52` `TestPhasesOnGraph` (imported and handed) and
+  `TestB3dHandsOnTheImport`; `make whim-editor-check`; `make whim-test` (80
+  as HEAD, the Go editor 80 as the C); `go test ./...` in both modules;
+  gofmt, go vet and staticcheck on what changed: clean.
+
+**Measured** (`TestMeasureGraphPhases`, 3 runs, medians; main's text at a
+load of 10-25, the graph at 30-45):
+
+| phase | main (text), wall / CPU ms | graph, as a run in order takes it, wall / CPU ms |
+| --- | ---: | ---: |
+| 43 | 13,564 / 5,786 (gcc's eight compiles apart) | 3,325 / 6,069 imported (1,291 / 1,640 handed) |
+| 44 | 2,875 / 4,632 | 1,089 / 1,576 handed |
+| 45 | 3,345 / 5,119 | 618 / 1,110 |
+| 46 | 3,060 / 4,688 | 603 / 840 |
+| 47 | 2,324 / 3,395 | 579 / 844 |
+| 48 | 2,762 / 3,785 | 2,172 / 2,710 |
+| 49 | 4,381 / 6,056 | 3,207 / 4,465 |
+| 50 | 2,307 / 3,373 | 817 / 1,028 |
+| 51 | 4,988 / 7,621 | 1,938 / 2,298 |
+| 52 | 2,784 / 4,337 | 993 / 1,198 |
+
+42.5 s of wall time on text against 15.3 s, 23 s less in a run in order:
+the in-order build's difference. 48 and 49 cost most handed: 48's two
+moves across the includes recompute what the headers provide (about 0.5 s
+a time), 49's six FRAG units 0.3 s each. Phase 43 imports until phase 42
+(B3c) ends on the graph.

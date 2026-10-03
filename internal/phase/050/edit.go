@@ -78,11 +78,44 @@ package p050
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The rule
+// is crefactor/graph's DegenerateUnions (b3db_unions.go), which replaced
+// crefactor/xform's Unions: a union is a `(union ...)` form, an access a use
+// of the member by edge, each `x.m.only` the inner selection moved into the
+// outer's place, and the member RETYPEd to the one member's type.
+
 import (
-	"github.com/arbace/go-whim/crefactor/xform"
+	"fmt"
+	"io"
+	"strconv"
+
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// The rule is general, and it is crefactor/xform's Unions: it takes no knobs, and
-// its counts are arguments in the plan.
-func init() { phase.RegisterArgs("whim50", xform.Unions().Edit()) }
+func init() { phase.RegisterGraph("whim50", Edit) }
+
+// Edit is the phase on the graph: `--degenerate N --genuine M`, the least
+// the scan must find of each.
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
+	f := map[string]int{"--degenerate": -1, "--genuine": -1}
+	for i := 0; i < len(args); i += 2 {
+		if _, ok := f[args[i]]; !ok || i+1 >= len(args) {
+			return fmt.Errorf("unions: unexpected argument %q (want --degenerate N --genuine M)", args[i])
+		}
+		n, err := strconv.Atoi(args[i+1])
+		if err != nil {
+			return fmt.Errorf("unions: %s %q is not a number", args[i], args[i+1])
+		}
+		f[args[i]] = n
+	}
+	for k, n := range f {
+		if n < 0 {
+			return fmt.Errorf("unions: %s N is required", k)
+		}
+	}
+	v := graph.NewVerbs("unions", e, w)
+	v.DegenerateUnions(f["--degenerate"], f["--genuine"])
+	return v.Done()
+}

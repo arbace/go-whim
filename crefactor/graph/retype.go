@@ -214,6 +214,9 @@ func (e *Editor) retypeForms(places, forms, fns []*Node, typ string) (RetypeStat
 				params = append(params, old[j])
 			}
 		}
+		if len(paramElems(ft)) == 0 {
+			params = old // `(void)`: cc's one void parameter, as imported
+		}
 		_, variadic, result, _ := funcParts(f.Type)
 		if nf := formOf[ft.Kids[2]]; nf != nil {
 			result = tx.formType(nf, false)

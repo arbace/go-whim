@@ -96,29 +96,60 @@ package p043
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// phase is a graph step now, and gcc is asked nothing: each of its three
+// questions has an answer in the edges (the text program, which compiled
+// the cut eight times, is in history, `16717ab` and before):
+//
+//   - THE TWELVE are what the move would leave unprovided: the names the
+//     headers give the core now and would not once the includes and the
+//     variadic layer are below it (crefactor/graph's MoveWouldLose, the
+//     headers' rule of B2e) -- the macros the core's own tokens are, and
+//     NOT ONE DECLARATION, which would mean the core still takes a function
+//     or a type from a header.  It must be exactly the twelve, as gcc's
+//     `undeclared` set had to be.
+//   - DEFINED BUT NOT USED is a static function or object of the core that
+//     no use in the core refers to, a function's own recursive calls
+//     excepted -- gcc's rule exactly (c-typeck.cc: "Recursive call does not
+//     count as usage"; a sizeof, an initialiser's address, a dead
+//     function's call all count).  The enum blocks are asked the same of
+//     their enumerators (and their tag), by edge where the text counted
+//     words.
+//   - USED BUT NEVER DEFINED, the boundary, is a static function the core
+//     declares and uses and does not define.
+//
+// The move is ONE act, MoveFormsOwning: the includes and everything that
+// goes with them below the core in the text's order, the twelve
+// enumerators written by FRAG beneath `usize`, and every token that was a
+// header's macro made a use of its enumerator, as an import of the text
+// after makes it; the rule (nothing left unprovided, no new collision) is
+// held against the graph before the move.  The twelve static_asserts are a
+// FRAG below the last include, where their names are the headers' again.
+// What compiling the cut proved -- 0 errors, nothing dead above it -- is
+// the rule's answer and the fixpoint's last round.  The state directory
+// the text wrote `moved` and `boundary` into is gone with it: nothing read
+// them.
+
 import (
 	"fmt"
 	"io"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"regexp"
+	"slices"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.RegisterArgs("whim43", Edit) }
+func init() { phase.RegisterGraph("whim43", Edit) }
 
 // ---- the twelve constants -----------------------------------------------
 // Eight derived and four asserted.  The initialiser text is used TWICE -- as
 // the enumerator above the boundary and as the left-hand side of the
 // static_assert below it -- and it is written here ONCE, so the derivation and
-// the thing that checks it cannot drift apart.  The check reads both back Out
-// of the output and requires them equal.
+// the thing that checks it cannot drift apart.
 type w43Const struct{ ty, Name, val string }
 
 var w43Consts = []w43Const{
@@ -139,7 +170,6 @@ var w43Consts = []w43Const{
 const (
 	w43Host    = "static volatile sig_atomic_t host_winch_pending"
 	w43Typedef = "typedef typeof(sizeof(0)) usize;"
-	w43VProto  = "static int vim_vsnprintf("
 )
 
 // The four that hold a `va_list`.  They are named because `va_list` is
@@ -147,499 +177,136 @@ const (
 // computed from them.
 var w43Variadic = []string{"vim_snprintf", "vim_vsnprintf", "skip_to_arg", "vim_vsnprintf_typval"}
 
+// The two `va_list` prototypes, adjacent, which go with them.
+var w43Protos = []string{"vim_vsnprintf", "vim_vsnprintf_typval"}
+
 // The other direction of the boundary: the host calls these, so they are
 // unused ABOVE the cut by construction and stay there.  They are the stopping
 // rule of the fixpoint.
 var w43Keep = map[string]bool{"vim_main": true, "deathtrap": true}
 
-var (
-	w43Inc      = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
-	w43Word     = regexp.MustCompile(`\b[A-Za-z_]\w*\b`)
-	w43EnumHead = regexp.MustCompile(`^enum\b`)
-	w43Ident    = regexp.MustCompile(`^\s*([A-Za-z_]\w*)`)
-	w43Hash     = regexp.MustCompile(`^ *#`)
-	w43HashInc  = regexp.MustCompile(`^ *# *include `)
-	// gcc echoes the offending source line, and this file is full of strings
-	// like "E685: Internal error: %s" -- so an error is recognised by its
-	// POSITION in the diagnostic and never by the word.  Reading it the other
-	// way makes every compile of this particular file look like a failure.
-	w43Err     = regexp.MustCompile(`(?m)^[^ ].*:\d+:\d+: error:.*$`)
-	w43Undecl  = regexp.MustCompile(`'(\w+)' undeclared`)
-	w43Unknown = regexp.MustCompile(`unknown type name '(\w+)'`)
-	w43DeadFn  = regexp.MustCompile(`'(\w+)' defined but not used \[-Wunused-function\]`)
-	w43DeadVar = regexp.MustCompile(`'(\w+)' defined but not used \[-Wunused-variable\]`)
-	w43Dead    = regexp.MustCompile(`'(\w+)' defined but not used`)
-	w43Used    = regexp.MustCompile(`'(\w+)' used but never defined`)
-)
-
-type w43Item struct {
-	kind string
-	at   int
-	Body []string
-}
-
-type w43Enum struct {
-	s, e  int
-	names []string
-	own   map[string]int
-}
-
-// Whim43 is the move: the eleven `#include`s go below the core, twelve
+// Edit is the move: the `#include`s go below the core, twelve
 // header-supplied constants become enumerators asserted from below, and the
 // formatter's private island follows the four `va_list` functions down.
-func Edit(text []byte, w io.Writer, args []string) (out []byte, err error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	p := edit.Ph{Tag: "boundary", W: w}
-	if len(args) != 1 {
-		return nil, p.Die("usage: edit whim43 <file> <state-dir>")
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
+	v := graph.NewVerbs("boundary", e, w)
+	if len(args) != 0 {
+		v.Die("usage: edit whim43 (no arguments)")
+		return v.Done()
 	}
-	state := args[0]
-	base := strings.Split(string(text), "\n")
+	forms := e.Graph().Forms
+	nForms := len(forms)
+	at := map[*graph.Node]int{}
+	for i, f := range forms {
+		at[f] = i
+	}
 
 	// ---- 0. the file this edit was written against ----------------------
-	// ELEVEN DIRECTIVES, every one an `#include` of a system header, on the
-	// first eleven lines -- what phase 40 left and what phases 0a and 42 each
-	// asserted in turn.  This is the LAST phase for which that sentence is
-	// true, and making it false is the point.
-	var dIdx []int
-	var dLine []string
-	for i, l := range base {
-		if strings.HasPrefix(l, "#") {
-			dIdx = append(dIdx, i)
-			dLine = append(dLine, l)
+	// Every include form at the top, contiguous, and nothing above the
+	// first: what phase 40 left and phases 0a and 42 each asserted in turn.
+	// This is the LAST phase for which that is true, and making it false is
+	// the point.
+	incs := e.Includes()
+	nInc := len(incs)
+	for k, inc := range incs {
+		if at[inc] != k {
+			v.Die("the input's %d include forms are not its first %d forms: #%d (%s) is form %d",
+				nInc, nInc, inc.ID, graph.IncludeSpec(inc), at[inc])
+			return v.Done()
 		}
 	}
-	okFirst := len(dIdx) == nInc
-	for k, i := range dIdx {
-		if okFirst && i != k {
-			okFirst = false
+	var specs []string
+	for _, inc := range incs {
+		specs = append(specs, graph.IncludeSpec(inc))
+	}
+	var hosts []*graph.Node
+	for _, d := range e.Decls("host_winch_pending") {
+		if e.TopForm(d) == d && strings.HasPrefix(w43C(d), w43Host) {
+			hosts = append(hosts, d)
 		}
 	}
-	if !okFirst {
-		var at []string
-		for _, i := range dIdx {
-			at = append(at, strconv.Itoa(i))
-		}
-		return nil, p.Die("the input does not have exactly eleven preprocessor directives on its "+
-			"first eleven lines: %d at %s", len(dIdx), strings.Join(at, " "))
+	if len(hosts) != 1 {
+		v.Die("the host block does not begin exactly once with '%s' -- found %d.  It is "+
+			"where the includes are going and there is nowhere else to put them", w43Host, len(hosts))
+		return v.Done()
 	}
-	var incNames []string
-	for _, l := range dLine {
-		m := w43Inc.FindStringSubmatch(l)
-		if m == nil {
-			return nil, p.Die("a directive is not an `#include <...>` of a system header")
-		}
-		incNames = append(incNames, "<"+m[1]+">")
-	}
-	if base[nInc] != "" {
-		return nil, p.Die("the last `#include` is not followed by a blank line, so the block " +
-			"this edit lifts is not the shape it was written against")
-	}
-	var hb []int
-	for i, l := range base {
-		if strings.HasPrefix(l, w43Host) {
-			hb = append(hb, i)
+	hb := hosts[0]
+	var usize []*graph.Node
+	for _, d := range e.Decls("usize") {
+		if d.Is("typedef") && w43C(d) == w43Typedef {
+			usize = append(usize, d)
 		}
 	}
-	if len(hb) != 1 {
-		return nil, p.Die("the host block does not begin exactly once with %s -- found %d.  It is "+
-			"where the includes are going and there is nowhere else to put them",
-			edit.PyRepr(w43Host), len(hb))
-	}
-	nTypedef := 0
-	for _, l := range base {
-		if l == w43Typedef {
-			nTypedef++
-		}
-	}
-	if nTypedef != 1 {
-		return nil, p.Die("`%s` is not in the input exactly once -- phase 0a put it below the last "+
+	if len(usize) != 1 {
+		v.Die("`%s` is not in the input exactly once -- phase 0a put it below the last "+
 			"`#include` and the constants go beneath it", w43Typedef)
+		return v.Done()
 	}
-	p.Sayf("eleven directives, every one an `#include <...>` on the first eleven lines, "+
-		"and the host block beginning exactly once: %s",
-		strings.Join(incNames, " "))
+	v.Sayf("%d include forms, every one an `#include <...>`, the file's first %d forms, "+
+		"and the host block beginning exactly once: %s", nInc, nInc, strings.Join(specs, " "))
 
 	// ---- 1. the four kinds of thing that can move ------------------------
+	defn := func(n string) *graph.Node {
+		var out []*graph.Node
+		for _, d := range e.Decls(n) {
+			if d.Is("defn") {
+				out = append(out, d)
+			}
+		}
+		if len(out) != 1 {
+			v.Die("`%s` is not defined exactly once at file scope -- found %d", n, len(out))
+			return nil
+		}
+		return out[0]
+	}
+	var variadic []*graph.Node
+	for _, n := range w43Variadic {
+		d := defn(n)
+		if d == nil {
+			return v.Done()
+		}
+		variadic = append(variadic, d)
+	}
+	var protos []*graph.Node
+	for _, n := range w43Protos {
+		var ps []*graph.Node
+		for _, d := range e.Decls(n) {
+			if d.Is("def") && w43IsFunc(d) {
+				ps = append(ps, d)
+			}
+		}
+		if len(ps) != 1 {
+			v.Die("`%s` has %d prototypes, not the one this edit lifts", n, len(ps))
+			return v.Done()
+		}
+		protos = append(protos, ps[0])
+	}
+	if at[protos[1]] != at[protos[0]]+1 {
+		v.Die("the two `va_list` prototypes are not the adjacent pair of forms this edit lifts")
+		return v.Done()
+	}
+	region := forms[nInc:at[hb]] // the core-to-be, before anything moves
 
-	// fspan: a function definition, the `    static T` line through the `}`
-	// at column 0.
-	fspan := func(n string) (int, int, error) {
-		var i []int
-		for k, l := range base {
-			if strings.HasPrefix(l, n+"(") {
-				i = append(i, k)
-			}
-		}
-		if len(i) != 1 {
-			return 0, 0, p.Die("`%s` is not defined exactly once at column 0 -- found %d", n, len(i))
-		}
-		s := i[0] - 1
-		if !strings.HasPrefix(base[s], "    static ") {
-			return 0, 0, p.Die("`%s` is not preceded by its `    static T` line: %s",
-				n, edit.PyRepr(base[s]))
-		}
-		e := i[0]
-		for base[e] != "}" {
-			e++
-		}
-		if base[e+1] != "" {
-			return 0, 0, p.Die("`%s` is not followed by a blank line", n)
-		}
-		return s, e, nil
-	}
-
-	// ospan: a file-scope object, one line.
-	ospan := func(n string) (int, int, error) {
-		re := regexp.MustCompile(`^static [^(=]*\b` + n + `\b`)
-		var i []int
-		for k, l := range base {
-			if re.MatchString(l) {
-				i = append(i, k)
-			}
-		}
-		if len(i) != 1 {
-			return 0, 0, p.Die("`%s` is not declared at file scope exactly once -- found %d", n, len(i))
-		}
-		return i[0], i[0], nil
-	}
-
-	// espan: an enum block, the `enum` head through the line holding its `};`.
-	espan := func(first int) (int, int, error) {
-		e := first
-		for !strings.Contains(base[e], "};") {
-			e++
-			if e-first > 512 || e >= len(base) {
-				return 0, 0, p.Die("the enum block at line %d does not close within 512 lines", first+1)
-			}
-		}
-		return first, e, nil
-	}
-
-	enumNames := func(s, e int) []string {
-		Body := strings.Join(base[s:e+1], "\n")
-		Body = Body[strings.Index(Body, "{")+1 : strings.LastIndex(Body, "}")]
-		var Out []string
-		for _, part := range strings.Split(Body, ",") {
-			if m := w43Ident.FindStringSubmatch(part); m != nil {
-				Out = append(Out, m[1])
-			}
-		}
-		return Out
-	}
-
-	countWords := func(s string) map[string]int {
-		c := map[string]int{}
-		for _, m := range w43Word.FindAllString(s, -1) {
-			c[m]++
-		}
-		return c
-	}
-
-	// Every enum block above the host block, read once, with its own names
-	// counted inside its own Body.  An enumerator is invisible to every
-	// warning gcc has (CLAUDE.md), so a block only the moved code names has to
-	// be found by counting rather than by compiling -- and the counting is
-	// done with one word histogram per round, not one regex per name, because
-	// there are seven hundred blocks and two megabytes of text.
-	var enums []w43Enum
-	for i := nInc + 1; i < hb[0]; {
-		if w43EnumHead.MatchString(base[i]) {
-			s, e, err := espan(i)
-			if err != nil {
-				return nil, err
-			}
-			enums = append(enums, w43Enum{s, e, enumNames(s, e),
-				countWords(strings.Join(base[s:e+1], "\n"))})
-			i = e + 1
-		} else {
-			i++
-		}
-	}
-	if len(enums) < 400 {
-		return nil, p.Die("only %d enum blocks were found above the host block, where this file is "+
-			"written almost entirely in them -- the head pattern has stopped matching "+
-			"and every dead one below would go unnoticed", len(enums))
-	}
-	ename := map[int]string{}
-	for _, en := range enums {
-		if len(en.names) > 0 {
-			ename[en.s] = en.names[0]
-		} else {
-			ename[en.s] = "?"
-		}
-	}
-
-	var p0s []int
-	for i, l := range base {
-		if strings.HasPrefix(l, w43VProto) {
-			p0s = append(p0s, i)
-		}
-	}
-	// The two prototypes are a line each in the canonical text, with the blank
-	// line between file-scope declarations that it writes, so the block is three
-	// lines between blank lines and not four.  It is still ONE block and it is
-	// still lifted whole.
-	if len(p0s) != 1 || !strings.HasSuffix(strings.TrimSpace(base[p0s[0]+2]), ";") ||
-		base[p0s[0]-1] != "" || base[p0s[0]+1] != "" || base[p0s[0]+3] != "" {
-		return nil, p.Die("the two `va_list` prototypes are not the three-line block between blank " +
-			"lines this edit lifts")
-	}
-	p0 := p0s[0]
-
-	// build: the whole file, with funcs, objs and enums moved below the
-	// includes.
-	// It lays out nothing: no blank line is dropped, added or collapsed,
-	// because the canonical print that follows every phase re-lays the file.
-	build := func(funcs, objs []string, moveEnums []int, consts bool) ([]string, map[int]bool, error) {
-		drop := map[int]bool{}
-		for i := 0; i < nInc; i++ { // the includes
-			drop[i] = true
-		}
-		for i := p0; i < p0+3; i++ {
-			drop[i] = true
-		}
-		var items []w43Item
-		for _, n := range funcs {
-			s, e, err := fspan(n)
-			if err != nil {
-				return nil, nil, err
-			}
-			for i := s; i <= e; i++ {
-				drop[i] = true
-			}
-			items = append(items, w43Item{"f", s, base[s : e+1]})
-		}
-		for _, n := range objs {
-			s, e, err := ospan(n)
-			if err != nil {
-				return nil, nil, err
-			}
-			drop[s] = true
-			items = append(items, w43Item{"o", s, base[s : e+1]})
-		}
-		for _, st := range moveEnums {
-			s, e, err := espan(st)
-			if err != nil {
-				return nil, nil, err
-			}
-			for i := s; i <= e; i++ {
-				drop[i] = true
-			}
-			items = append(items, w43Item{"e", s, base[s : e+1]})
-		}
-		sort.SliceStable(items, func(i, j int) bool { return items[i].at < items[j].at })
-
-		low := append([]string{}, base[0:nInc]...)
-		if consts {
-			for _, c := range w43Consts {
-				low = append(low, fmt.Sprintf("static_assert(%s == %s, \"%s\");", c.val, c.Name, c.Name))
-			}
-		}
-		for _, k := range []string{"e", "o"} {
-			for _, it := range items {
-				if it.kind == k {
-					low = append(low, it.Body...)
-				}
-			}
-		}
-		low = append(low, base[p0:p0+3]...)
-		for _, it := range items {
-			if it.kind == "f" {
-				low = append(low, it.Body...)
-			}
-		}
-
-		var up []string
-		if consts {
-			for _, c := range w43Consts {
-				if c.ty == "" {
-					up = append(up, fmt.Sprintf("enum { %s = %s };", c.Name, c.val))
-				} else {
-					up = append(up, "enum :",
-						fmt.Sprintf("    %s { %s = %s };", c.ty, c.Name, c.val))
-				}
-			}
-		}
-
-		var o []string
-		for i, l := range base {
-			if i == hb[0] {
-				o = append(o, low...)
-			}
-			if drop[i] {
-				continue
-			}
-			o = append(o, l)
-			if consts && l == w43Typedef {
-				o = append(o, up...)
-			}
-		}
-		return o, drop, nil
-	}
-
-	cut := func(L []string) string {
-		var o []string
-		for _, l := range L {
-			if w43HashInc.MatchString(l) {
-				break
-			}
-			o = append(o, l)
-		}
-		for len(o) > 0 && o[len(o)-1] == "" {
-			o = o[:len(o)-1]
-		}
-		return strings.Join(o, "\n") + "\n"
-	}
-
-	// compileCut writes the cut to state/name and returns what gcc says of
-	// it.  THE COMPILE STOPS AT THE CALL GRAPH: -flto with
-	// -fno-fat-lto-objects writes GIMPLE and no code, and every diagnostic
-	// this phase reads -- the errors, `undeclared`, `unknown type name`,
-	// `defined but not used`, `used but never defined` -- is given before
-	// that point, as are the flow warnings it does not read.  MEASURED on
-	// the eight cuts of a run, the whole of gcc's stderr byte for byte the
-	// same as a plain `-c`'s, at 1.4 s a compile instead of 3.5 -- and held to it
-	// on every run by the guard below.
-	// (-fsyntax-only, at 0.3 s, says nothing of what is unused: that is the
-	// call graph's.)
-	//
-	// A cut compiled once is not compiled again: gcc's answer is a function
-	// of the text, so it is kept by the text, its path written over with
-	// the new one -- the last round's cut IS the finished cut.  And a cut
-	// can be started before it is asked for (speculate): the first round's
-	// does not depend on the move's, so the two compile side by side.
-	type answer struct {
-		path string
-		errs string
-		done chan struct{}
-	}
-	answers := map[string]*answer{}
-	start := func(text, path string) *answer {
-		if a, ok := answers[text]; ok {
-			return a
-		}
-		a := &answer{path: path, done: make(chan struct{})}
-		answers[text] = a
-		go func() {
-			defer close(a.done)
-			a.errs = w43Gcc(w43LTO, path)
-		}()
-		return a
-	}
-	compileCut := func(L []string, name string) (string, error) {
-		path := filepath.Join(state, name)
-		text := cut(L)
-		a, ok := answers[text]
-		// The file is written unless gcc has it already: a compile started
-		// before it was asked for may still be reading it.
-		if !ok || a.path != path {
-			if err := os.WriteFile(path, []byte(text), 0o644); err != nil {
-				return "", p.Die("the cut could not be written to %s: %v", path, err)
-			}
-		}
-		if !ok {
-			a = start(text, path)
-		}
-		<-a.done
-		if a.path != path {
-			return strings.ReplaceAll(a.errs, a.path, path), nil
-		}
-		return a.errs, nil
-	}
-	speculate := func(L []string, name string) {
-		path := filepath.Join(state, name)
-		text := cut(L)
-		if os.WriteFile(path, []byte(text), 0o644) == nil {
-			start(text, path)
-		}
-	}
-
-	// THE GUARD.  That the LTO compile reads as a plain `-c` does was
-	// measured on one input; a moved upstream could part them.  So two cuts
-	// of every run are compiled the plain way too, and what the phase reads
-	// of each (w43Reads) must be the same both ways, or the phase refuses
-	// and names both answers.  The two are the move's cut, the one whose
-	// errors are read (`undeclared`, `unknown type name`), and the
-	// fixpoint's first round, which holds every warning the phase reads and
-	// the most of them (each `defined but not used` the rounds move, and the
-	// boundary's `used but never defined`).  Both are known before the
-	// fixpoint starts, so their plain compiles run beside its rounds, from
-	// copies of their own (the rounds rewrite cutr.c), and are compared as
-	// the phase ends, whatever it ended in.  The finished cut is not
-	// guarded: it is known last, and a plain compile of it would add its 3.5
-	// s to the phase's wall time, where these add none.
-	type guard struct {
-		name, text, path string
-		errs             string
-		done             chan struct{}
-	}
-	var guards []*guard
-	guardCut := func(L []string, name string) {
-		g := &guard{name: name, text: cut(L), path: filepath.Join(state, "plain-"+name),
-			done: make(chan struct{})}
-		if os.WriteFile(g.path, []byte(g.text), 0o644) != nil {
-			return
-		}
-		guards = append(guards, g)
-		go func() {
-			defer close(g.done)
-			g.errs = w43Gcc(w43Plain, g.path)
-		}()
-	}
-	defer func() {
-		for _, g := range guards {
-			<-g.done
-			a, ok := answers[g.text]
-			if !ok {
-				continue // the phase refused before it asked for this cut
-			}
-			<-a.done
-			lto := strings.ReplaceAll(a.errs, a.path, g.name)
-			plain := strings.ReplaceAll(g.errs, g.path, g.name)
-			onlyLTO, onlyPlain := w43Differ(w43Reads(lto), w43Reads(plain))
-			if len(onlyLTO) == 0 && len(onlyPlain) == 0 {
-				continue
-			}
-			ltoAt := filepath.Join(state, g.name+".lto.txt")
-			plainAt := filepath.Join(state, g.name+".plain.txt")
-			_ = os.WriteFile(ltoAt, []byte(lto), 0o644)
-			_ = os.WriteFile(plainAt, []byte(plain), 0o644)
-			out, err = nil, p.Die("THE LTO COMPILE AND A PLAIN `-c` READ DIFFERENTLY on %s, so "+
-				"this phase's answers cannot be trusted.  Only the LTO compile (%s) says:\n    %s\n"+
-				"  Only the plain one (%s) says:\n    %s\n  The LTO line was measured to read as "+
-				"the plain one does (doc/PIPELINE-REFORM.md §7, step 11); that no longer holds",
-				g.name, ltoAt, w43Shown(onlyLTO), plainAt, w43Shown(onlyPlain))
-			return
-		}
-	}()
-
-	// ---- 2. the move, and the twelve names the compiler asks for ---------
-	// THE LIST IS NOT REMEMBERED, IT IS ASKED FOR.  Move the includes and the
-	// variadic layer, compile the cut ALONE, and collect every name it says
-	// is undeclared.  That set must be exactly the twelve this phase
-	// declares: a thirteenth would mean the core still takes something from a
-	// header and phase 42 did not finish, and a missing one would mean this
-	// program declares something nobody needs.
-	l0, _, err := build(w43Variadic, nil, nil, false)
+	// ---- 2. the move, and the twelve names the headers stop providing -----
+	// THE LIST IS NOT REMEMBERED, IT IS ASKED FOR: what moving the includes
+	// and the variadic layer below the core would leave unprovided.  That
+	// set must be exactly the twelve this phase declares: a declaration in
+	// it, or a thirteenth name, would mean the core still takes something
+	// from a header and phase 42 did not finish, and a missing one would
+	// mean this program declares something nobody needs.
+	first := append(append(append([]*graph.Node{}, incs...), protos...), variadic...)
+	lost, err := e.MoveWouldLose(hb, false, first)
 	if err != nil {
-		return nil, err
-	}
-	guardCut(l0, "cut0.c")
-	if lr, _, err := build(w43Variadic, nil, nil, true); err == nil {
-		speculate(lr, "cutr.c") // the fixpoint's first round, below
-		guardCut(lr, "cutr.c")
-	}
-	w0, err := compileCut(l0, "cut0.c")
-	if err != nil {
-		return nil, err
+		v.Die("%v", err)
+		return v.Done()
 	}
 	askedSet := map[string]bool{}
-	for _, m := range w43Undecl.FindAllStringSubmatch(w0, -1) {
-		askedSet[m[1]] = true
-	}
-	for _, m := range w43Unknown.FindAllStringSubmatch(w0, -1) {
-		askedSet[m[1]] = true
+	for _, u := range lost {
+		if !u.Macro {
+			v.Die("the move would leave the core without a header's declaration: %s", u)
+			return v.Done()
+		}
+		askedSet[u.Name] = true
 	}
 	asked := edit.SortedKeys(askedSet)
 	var want []string
@@ -647,24 +314,42 @@ func Edit(text []byte, w io.Writer, args []string) (out []byte, err error) {
 		want = append(want, c.Name)
 	}
 	sort.Strings(want)
-	if strings.Join(asked, "\x00") != strings.Join(want, "\x00") {
+	if !slices.Equal(asked, want) {
 		shown := strings.Join(asked, " ")
 		if shown == "" {
 			shown = "(none)"
 		}
-		return nil, p.Die("the cut asks for %d names and this phase declares %d.  Asked for: %s.  "+
+		v.Die("the move leaves %d names unprovided and this phase declares %d.  Asked for: %s.  "+
 			"Declared: %s.  A name in the first list and not the second is something "+
 			"the core still takes from a header; one in the second and not the first "+
-			"is a declaration nobody needs",
-			len(asked), len(want), shown, strings.Join(want, " "))
+			"is a declaration nobody needs", len(asked), len(want), shown, strings.Join(want, " "))
+		return v.Done()
 	}
-	core0 := strings.Join(base[11:hb[0]], "\n")
+	core0, err := graph.FormsC(region)
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
+	}
 	counts := map[string]int{}
+	tokens := 0
 	for _, c := range w43Consts {
-		counts[c.Name] = len(regexp.MustCompile(`\b`+c.Name+`\b`).FindAllString(core0, -1))
+		counts[c.Name] = edit.MentionCount(core0, c.Name)
 	}
-	// Iterated in CONST order and not over the map: Python's dict keeps its
-	// insertion order and a Go map would reorder this line every run.
+	moving0 := map[*graph.Node]bool{}
+	for _, f := range first {
+		moving0[f] = true
+	}
+	for _, f := range region {
+		if moving0[f] {
+			continue
+		}
+		graph.Walk(f, func(n *graph.Node) bool {
+			if !n.IsList() && askedSet[n.Atom] && n.Ref() == nil {
+				tokens++
+			}
+			return true
+		})
+	}
 	var missing []string
 	for _, c := range w43Consts {
 		if counts[c.Name] < 1 {
@@ -672,285 +357,323 @@ func Edit(text []byte, w io.Writer, args []string) (out []byte, err error) {
 		}
 	}
 	if len(missing) > 0 {
-		return nil, p.Die("a constant this phase declares does not occur above the host block at "+
-			"all: %s", strings.Join(missing, " "))
+		v.Die("a constant this phase declares does not occur above the host block at all: %s",
+			strings.Join(missing, " "))
+		return v.Done()
 	}
-	p.Sayf("the move alone leaves the cut with %d errors naming EXACTLY the twelve "+
-		"constants this phase declares and nothing else", len(w43Err.FindAllString(w0, -1)))
+	v.Sayf("the move alone leaves %d tokens of the core provided by no include above them, "+
+		"naming EXACTLY the twelve constants this phase declares and nothing else", tokens)
 	var shownCounts []string
 	for _, c := range w43Consts {
 		shownCounts = append(shownCounts, fmt.Sprintf("%s %d", c.Name, counts[c.Name]))
 	}
-	p.Sayf("their counts above the host block, re-measured here: %s",
-		strings.Join(shownCounts, "  "))
+	v.Sayf("their counts above the host block, re-measured here: %s", strings.Join(shownCounts, "  "))
 
 	// ---- 3. the fixpoint: whatever only the moved code uses --------------
-	funcs := append([]string{}, w43Variadic...)
-	var objs []string
-	var moveEnums []int
+	moving := map[*graph.Node]bool{}
+	for _, f := range first {
+		moving[f] = true
+	}
 	type round struct {
 		nf, nv []string
-		ne     []int
+		ne     []*graph.Node
 	}
 	var rounds []round
 	settled := false
-	var L []string
 	for r := 0; r < 16; r++ {
-		Lr, drop, err := build(funcs, objs, moveEnums, true)
-		if err != nil {
-			return nil, err
-		}
-		wr, err := compileCut(Lr, "cutr.c")
-		if err != nil {
-			return nil, err
-		}
-		if e := w43Err.FindAllString(wr, -1); len(e) > 0 {
-			if len(e) > 4 {
-				e = e[:4]
-			}
-			return nil, p.Die("the cut does not compile once the constants are in place:\n    %s",
-				strings.Join(e, "\n    "))
-		}
-		nf := sortedMinus(w43DeadFn.FindAllStringSubmatch(wr, -1), w43Keep)
-		nv := sortedMinus(w43DeadVar.FindAllStringSubmatch(wr, -1), w43Keep)
-		// The enum blocks, counted on the text the cut actually is: a block
-		// none of whose names occurs above the boundary outside its own Body
-		// belongs below it, exactly as a dead function does, and no warning
-		// will ever say so.
-		var kept []string
-		for i, l := range base[:hb[0]] {
-			if !drop[i] {
-				kept = append(kept, l)
-			}
-		}
-		above := countWords(strings.Join(kept, "\n"))
-		moving := map[int]bool{}
-		for _, s := range moveEnums {
-			moving[s] = true
-		}
-		var ne []int
-		for _, en := range enums {
-			if moving[en.s] || drop[en.s] || len(en.names) == 0 {
-				continue
-			}
-			all := true
-			for _, n := range en.names {
-				if above[n] != en.own[n] {
-					all = false
-					break
-				}
-			}
-			if all {
-				ne = append(ne, en.s)
-			}
-		}
-		rounds = append(rounds, round{nf, nv, ne})
-		if len(nf) == 0 && len(nv) == 0 && len(ne) == 0 {
+		nf, nv, ne := w43Unused(e, region, moving)
+		rounds = append(rounds, round{nf.names, nv.names, ne})
+		if len(nf.forms) == 0 && len(nv.forms) == 0 && len(ne) == 0 {
 			settled = true
 			break
 		}
-		funcs = append(funcs, nf...)
-		objs = append(objs, nv...)
-		moveEnums = append(moveEnums, ne...)
+		for _, f := range append(append(nf.forms, nv.forms...), ne...) {
+			moving[f] = true
+		}
 	}
 	if !settled {
-		return nil, p.Die("the fixpoint did not settle in 16 rounds")
+		v.Die("the fixpoint did not settle in 16 rounds")
+		return v.Done()
 	}
-	L, _, err = build(funcs, objs, moveEnums, true)
-	if err != nil {
-		return nil, err
+	// the moved forms in the text's order below the includes: the enum
+	// blocks, the objects, the two prototypes, the functions, each kind in
+	// the file's order
+	var enums, objs, funcs []*graph.Node
+	for _, f := range region {
+		switch {
+		case !moving[f] || slices.Contains(protos, f):
+		case f.Is("enum"):
+			enums = append(enums, f)
+		case f.Is("defn"):
+			funcs = append(funcs, f)
+		default:
+			objs = append(objs, f)
+		}
 	}
+	all := append(append([]*graph.Node{}, incs...), enums...)
+	all = append(append(append(all, objs...), protos...), funcs...)
 
-	// ---- 4. what the file is now -----------------------------------------
-	wf, err := compileCut(L, "cut.c")
-	if err != nil {
-		return nil, err
-	}
-	if e := w43Err.FindAllString(wf, -1); len(e) > 0 {
-		if len(e) > 4 {
-			e = e[:4]
-		}
-		return nil, p.Die("the finished cut does not compile:\n    %s", strings.Join(e, "\n    "))
-	}
-	bset := map[string]bool{}
-	for _, m := range w43Used.FindAllStringSubmatch(wf, -1) {
-		bset[m[1]] = true
-	}
-	boundary := edit.SortedKeys(bset)
-	left := sortedMinus(w43Dead.FindAllStringSubmatch(wf, -1), w43Keep)
-	if len(left) > 0 {
-		return nil, p.Die("the fixpoint left %s unused above the boundary", strings.Join(left, " "))
-	}
-	var hashes []int
-	for i, l := range strings.Split(cut(L), "\n") {
-		if w43Hash.MatchString(l) {
-			hashes = append(hashes, i)
+	// ---- 4. the move, owning the twelve ------------------------------------
+	var up strings.Builder
+	for _, c := range w43Consts {
+		if c.ty == "" {
+			fmt.Fprintf(&up, "enum { %s = %s };\n", c.Name, c.val)
+		} else {
+			fmt.Fprintf(&up, "enum : %s { %s = %s };\n", c.ty, c.Name, c.val)
 		}
 	}
-	if len(hashes) > 0 {
-		var at []string
-		for _, i := range hashes {
-			if len(at) < 5 {
-				at = append(at, strconv.Itoa(i+1))
+	rebound, err := e.MoveFormsOwning(hb, false, all, func(lost []graph.HeaderUse) error {
+		for _, u := range lost {
+			if !askedSet[u.Name] {
+				return fmt.Errorf("the whole move leaves %s unprovided, which the variadic layer's did not", u)
 			}
 		}
-		return nil, p.Die("%d lines above the boundary begin with a `#`, at %s",
-			len(hashes), strings.Join(at, " "))
+		_, err := e.SpliceC(graph.Frag{At: e.SpotAfter(usize[0]), Src: up.String()})
+		return err
+	})
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
 	}
-	var incAt []int
-	for i, l := range L {
-		if strings.HasPrefix(l, "#") {
-			incAt = append(incAt, i)
-		}
+	incs = e.Includes()
+	var asserts strings.Builder
+	for _, c := range w43Consts {
+		fmt.Fprintf(&asserts, "static_assert(%s == %s, \"%s\");\n", c.val, c.Name, c.Name)
 	}
-	okAt := len(incAt) == nInc
-	for k, i := range incAt {
-		if okAt && i != incAt[0]+k {
-			okAt = false
-		}
-	}
-	if !okAt {
-		var at []string
-		for _, i := range incAt {
-			at = append(at, strconv.Itoa(i+1))
-		}
-		return nil, p.Die("the output does not have exactly eleven directives on eleven "+
-			"consecutive lines: %d at %s", len(incAt), strings.Join(at, " "))
+	if _, err := e.SpliceC(graph.Frag{At: e.SpotAfter(incs[len(incs)-1]), Src: asserts.String()}); err != nil {
+		v.Die("the static_asserts: %v", err)
+		return v.Done()
 	}
 
-	var moved []string
-	for _, n := range funcs {
-		moved = append(moved, "func "+n)
+	// ---- 5. what the file is now -----------------------------------------
+	forms = e.Graph().Forms
+	at = map[*graph.Node]int{}
+	for i, f := range forms {
+		at[f] = i
 	}
-	for _, n := range objs {
-		moved = append(moved, "obj "+n)
+	incs = e.Includes()
+	for k, inc := range incs {
+		if at[inc] != at[incs[0]]+k {
+			v.Die("the output's %d include forms are not contiguous: #%d (%s) is form %d",
+				len(incs), inc.ID, graph.IncludeSpec(inc), at[inc])
+			return v.Done()
+		}
 	}
-	for _, s := range moveEnums {
-		moved = append(moved, "enum "+strings.TrimSpace(base[s]))
+	if len(incs) != nInc {
+		v.Die("the output has %d include forms where the input had %d", len(incs), nInc)
+		return v.Done()
 	}
-	if err := os.WriteFile(filepath.Join(state, "moved"),
-		[]byte(strings.Join(moved, "\n")+"\n"), 0o644); err != nil {
-		return nil, p.Die("the moved list could not be written: %v", err)
+	core := e.Core()
+	uses, err := e.HeaderUses()
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
 	}
-	if err := os.WriteFile(filepath.Join(state, "boundary"),
-		[]byte(strings.Join(boundary, "\n")+"\n"), 0o644); err != nil {
-		return nil, p.Die("the boundary list could not be written: %v", err)
+	for _, u := range uses {
+		if e.InCore(u.First) {
+			v.Die("the core still takes %s from the headers", u)
+			return v.Done()
+		}
 	}
+	if cs, err := e.Collisions(); err != nil || len(cs) > 0 {
+		v.Die("an include's macro is over a name of the file's own below it: %v %v", cs, err)
+		return v.Done()
+	}
+	nf, nv, ne := w43Unused(e, core, nil)
+	if left := append(append(nf.names, nv.names...), w43EnumNames(ne)...); len(left) > 0 {
+		v.Die("the fixpoint left %s unused above the boundary", strings.Join(left, " "))
+		return v.Done()
+	}
+	boundary := w43Boundary(e, core)
 
-	p.Sayf("the fixpoint settled in %d rounds: %d functions, %d objects and %d enum "+
+	v.Sayf("the fixpoint settled in %d rounds: %d functions, %d objects and %d enum "+
 		"blocks go below the boundary, and every one after the four that hold a "+
-		"`va_list` was named by gcc or counted, never by this program",
-		len(rounds), len(funcs), len(objs), len(moveEnums))
+		"`va_list` was named by the edges, never by this program",
+		len(rounds), len(funcs), len(objs), len(enums))
 	for i, r := range rounds {
 		if len(r.nf) > 0 || len(r.nv) > 0 || len(r.ne) > 0 {
 			var parts []string
 			parts = append(parts, r.nf...)
 			parts = append(parts, r.nv...)
-			for _, s := range r.ne {
-				parts = append(parts, "enum{"+ename[s]+"}")
+			for _, n := range w43EnumNames(r.ne) {
+				parts = append(parts, "enum{"+n+"}")
 			}
-			p.Sayf("  round %d: %s", i, strings.Join(parts, " "))
+			v.Sayf("  round %d: %s", i, strings.Join(parts, " "))
 		}
 	}
-	p.Sayf("%d lines -> %d before the canonical print, the eleven `#include`s now at "+
-		"lines %d-%d, and NOTHING above them begins with a `#`",
-		len(base)-1, len(L)-1, incAt[0]+1, incAt[len(incAt)-1]+1)
-	p.Sayf("THE CUT IS %d LINES, COMPILES WITH 0 ERRORS AND NOTHING ABOVE IT IS DEAD, "+
-		"and its whole warning set is the boundary: %d names, every one `used but "+
-		"never defined` -- %s",
-		len(strings.Split(cut(L), "\n"))-1, len(boundary), strings.Join(boundary, " "))
-	return []byte(strings.Join(L, "\n")), nil
+	v.Sayf("%d forms -> %d, the %d include forms now forms %d-%d, %d tokens made uses of the "+
+		"twelve, and NOTHING above the first include is a directive",
+		nForms, len(forms), len(incs), at[incs[0]]+1, at[incs[len(incs)-1]]+1, len(rebound))
+	v.Sayf("THE CORE IS %d FORMS, TAKES NOTHING FROM THE HEADERS AND NOTHING IN IT IS DEAD, "+
+		"and its boundary is %d names, every one used and never defined there -- %s",
+		len(core), len(boundary), strings.Join(boundary, " "))
+	return v.Done()
 }
 
-func sortedMinus(ms [][]string, minus map[string]bool) []string {
-	set := map[string]bool{}
-	for _, m := range ms {
-		if !minus[m[1]] {
-			set[m[1]] = true
+// w43C is a form's C, trimmed.
+func w43C(f *graph.Node) string {
+	b, err := graph.FormsC([]*graph.Node{f})
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(b))
+}
+
+// w43IsFunc says a def declares a function: its type is a fn form.
+func w43IsFunc(d *graph.Node) bool {
+	t := graph.DeclType(d)
+	return t != nil && t.Is("fn")
+}
+
+// w43Static says a top-level def or defn is `static`.
+func w43Static(d *graph.Node) bool {
+	name := graph.DeclName(d)
+	for _, k := range d.Kids[1:] {
+		if k.IsList() {
+			continue
+		}
+		if k.Atom == "static" {
+			return true
+		}
+		if k.Atom == name {
+			break
 		}
 	}
-	return edit.SortedKeys(set)
+	return false
 }
 
-// The two compile lines.  Both are the core's warnings on the line every
-// compile of the cut has; w43LTO stops at the call graph (Edit, compileCut),
-// and w43Plain is a plain `-c`, the guard's.  A test's control adds to
-// w43Plain to make the two read differently.
-var (
-	w43LTO   = []string{"-flto", "-fno-fat-lto-objects", "-flto-compression-level=0"}
-	w43Plain []string
-)
-
-// w43Gcc compiles path with the mode's flags and returns gcc's stderr.  Its
-// status is not read: what the phase reads is the diagnostics.
-func w43Gcc(mode []string, path string) string {
-	args := append([]string{"-c", "-O0"}, mode...)
-	args = append(args, "-fno-stack-protector", "-Wall", "-Wextra", "-Wno-unused-parameter",
-		"-o", "/dev/null", path)
-	cmd := exec.Command("gcc", args...)
-	var errb strings.Builder
-	cmd.Stderr = &errb
-	_ = cmd.Run()
-	return errb.String()
+type w43Found struct {
+	names []string
+	forms []*graph.Node
 }
 
-// w43Reads is what Edit reads of a compile's stderr, one entry a
-// diagnostic, sorted: the errors as gcc writes them, and the names it says
-// are undeclared, of an unknown type, unused (as a function, as a variable,
-// at all) and used but never defined.  The flow warnings and the echoed
-// source lines it does not read are not in it.
-func w43Reads(errs string) []string {
-	var out []string
-	for _, l := range w43Err.FindAllString(errs, -1) {
-		out = append(out, "error: "+l)
-	}
-	for _, c := range []struct {
-		what string
-		re   *regexp.Regexp
-	}{
-		{"undeclared", w43Undecl}, {"unknown type name", w43Unknown},
-		{"unused function", w43DeadFn}, {"unused variable", w43DeadVar},
-		{"defined but not used", w43Dead}, {"used but never defined", w43Used},
-	} {
-		for _, m := range c.re.FindAllStringSubmatch(errs, -1) {
-			out = append(out, c.what+" "+m[1])
+// w43Unused is what gcc says `defined but not used` of the forms of
+// region, those moving left out: the static functions and objects no use
+// in what stays refers to -- a function's own recursive calls not counting,
+// c-typeck.cc's rule -- and the enum blocks none of whose enumerators, and
+// not its tag, is used there outside the block.  Names sorted; the blocks
+// in the file's order.
+func w43Unused(e *graph.Editor, region []*graph.Node, moving map[*graph.Node]bool) (fns, objs w43Found, enums []*graph.Node) {
+	decls := w43Decls(e)
+	stays := map[*graph.Node]bool{}
+	for _, f := range region {
+		if !moving[f] && !graph.IsInclude(f) {
+			stays[f] = true
 		}
 	}
-	sort.Strings(out)
+	usedFrom := func(decls []*graph.Node, self *graph.Node) bool {
+		for _, d := range decls {
+			for _, u := range e.Uses(d) {
+				t := e.TopForm(u)
+				if stays[t] && t != self {
+					return true
+				}
+			}
+		}
+		return false
+	}
+	add := func(f *w43Found, n *graph.Node) {
+		f.names = append(f.names, graph.DeclName(n))
+		f.forms = append(f.forms, n)
+	}
+	for _, f := range region {
+		if !stays[f] {
+			continue
+		}
+		name := graph.DeclName(f)
+		switch {
+		case f.Is("defn"):
+			if w43Static(f) && !w43Keep[name] && !usedFrom(decls[name], f) {
+				add(&fns, f)
+			}
+		case f.Is("def"):
+			if w43Static(f) && !w43IsFunc(f) && !w43Keep[name] && !usedFrom(decls[name], nil) {
+				add(&objs, f)
+			}
+		case f.Is("enum"):
+			ens := graph.Enumerators(f)
+			if len(ens) == 0 {
+				continue
+			}
+			used := false
+			for _, en := range append([]*graph.Node{f}, ens...) {
+				for _, u := range e.Uses(en) {
+					if t := e.TopForm(u); stays[t] && t != f {
+						used = true
+					}
+				}
+			}
+			if !used {
+				enums = append(enums, f)
+			}
+		}
+	}
+	sortFound := func(f *w43Found) {
+		sort.Sort(w43ByName(*f))
+	}
+	sortFound(&fns)
+	sortFound(&objs)
+	return fns, objs, enums
+}
+
+type w43ByName w43Found
+
+func (b w43ByName) Len() int           { return len(b.names) }
+func (b w43ByName) Less(i, j int) bool { return b.names[i] < b.names[j] }
+func (b w43ByName) Swap(i, j int) {
+	b.names[i], b.names[j] = b.names[j], b.names[i]
+	b.forms[i], b.forms[j] = b.forms[j], b.forms[i]
+}
+
+// w43Decls are the file's top-level declarations by the ordinary name
+// they declare: a function's prototypes and definition, an object's.
+func w43Decls(e *graph.Editor) map[string][]*graph.Node {
+	out := map[string][]*graph.Node{}
+	for _, f := range e.Graph().Forms {
+		if n := graph.DeclName(f); n != "" {
+			out[n] = append(out[n], f)
+		}
+	}
 	return out
 }
 
-// w43Differ is what only a holds and what only b holds, as multisets.
-func w43Differ(a, b []string) (onlyA, onlyB []string) {
-	n := map[string]int{}
-	for _, s := range a {
-		n[s]++
+// w43EnumNames are the enum blocks' first enumerators' names.
+func w43EnumNames(ens []*graph.Node) []string {
+	var out []string
+	for _, f := range ens {
+		out = append(out, graph.EnumeratorName(graph.Enumerators(f)[0]))
 	}
-	for _, s := range b {
-		n[s]--
-	}
-	for _, s := range a {
-		if n[s] > 0 {
-			onlyA = append(onlyA, s)
-			n[s]--
-		}
-	}
-	for _, s := range b {
-		if n[s] < 0 {
-			onlyB = append(onlyB, s)
-			n[s]++
-		}
-	}
-	return onlyA, onlyB
+	return out
 }
 
-// w43Shown is a list for a refusal: the first ten, and how many more.
-func w43Shown(l []string) string {
-	if len(l) == 0 {
-		return "(nothing)"
+// w43Boundary is what gcc says `used but never defined` of the core: the
+// static functions it declares and uses and does not define, sorted.
+func w43Boundary(e *graph.Editor, core []*graph.Node) []string {
+	in := map[*graph.Node]bool{}
+	for _, f := range core {
+		in[f] = true
 	}
-	if len(l) > 10 {
-		return strings.Join(l[:10], "\n    ") + fmt.Sprintf("\n    ... and %d more", len(l)-10)
+	decls := w43Decls(e)
+	set := map[string]bool{}
+	for _, f := range core {
+		if !f.Is("def") || !w43IsFunc(f) || !w43Static(f) {
+			continue
+		}
+		name := graph.DeclName(f)
+		defined, used := false, false
+		for _, d := range decls[name] {
+			if d.Is("defn") && in[d] {
+				defined = true
+			}
+			for _, u := range e.Uses(d) {
+				if in[e.TopForm(u)] {
+					used = true
+				}
+			}
+		}
+		if used && !defined {
+			set[name] = true
+		}
 	}
-	return strings.Join(l, "\n    ")
+	return edit.SortedKeys(set)
 }

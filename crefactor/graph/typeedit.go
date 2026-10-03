@@ -233,6 +233,12 @@ func (tx *typeTx) formType1(t *Node) *Node {
 			}
 			params = append(params, tx.formType(paramTypeForm(p), true))
 		}
+		// `(void)`, written or left by the drops, is one void parameter
+		// in cc's type, which the importer interns: say it as it does
+		if len(params) == 0 && !variadic && len(t.Kids) >= 2 && t.Kids[1].list &&
+			(len(t.Kids[1].Kids) == 1 && !t.Kids[1].Kids[0].list && t.Kids[1].Kids[0].Atom == "void" || len(paramElems(t)) > 0) {
+			params = append(params, tx.formType(NewAtom("void"), true))
+		}
 		return tx.function(params, variadic, tx.formType1(t.Kids[2]))
 	case "fn-ids", "typeof", "typeof-type", "typeof_unqual", "typeof_unqual-type", "__typeof__", "__typeof__-type",
 		"atomic", "_BitInt":

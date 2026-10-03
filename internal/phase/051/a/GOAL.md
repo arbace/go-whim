@@ -175,3 +175,5 @@ and the rule it states is **a phase may assert anything it likes about the past;
 not assert that the future will not change what it measured.**
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 122, in the group 121-122, whose phases share one purpose. There is no boundary q121 of its own any more; everything above still says what the steps do and why.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3d) the part runs on the graph: the eight rows go by INITROW, the partition of the literals is the graph's string literals placed by the form each is in, the family clause is cut whole and the fallback and the messages are respelled literal by literal, its report the text version's line for line, and `whim-build-check` holds q051 to the bytes the text version made (history keeps it).

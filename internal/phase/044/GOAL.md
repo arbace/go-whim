@@ -126,3 +126,5 @@ edit gives a byte-identical `whim-vim.c` and the sweep after it is a complete no
 permanently true, with the five core call sites phase 109 moved named as exceptions at
 the counts they had at q103, q104 and q108. Measured: exactly ten keys move — Part II units
 and edits 103, 104, 108, 109 and 110 — and **not one slim or whim key of the 107**.
+
+**It runs on the graph** (doc/GRAPH-MIGRATION.md, B3d): the four clock objects retyped `long`, the stamps, readings and musl_now_ms() written as C at their places in two synthesized units, musl_gettimeofday() deleted -- q044.c byte for byte, its collected graph the import of its C view; 0.6-1.1 s handed the graph, 2.8 s from text.

@@ -68,150 +68,102 @@ package p049b
 // check states it as a measurement of the output rather than as a sentence written here.
 //
 // THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and the check records from it.
-// The flags are read out of the boundary's makefile rather than written here a second
-// time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// cut is on the program's graph, its report the text version's, which the
+// plan ran until then (history keeps it); the @state argument and the two
+// files it wrote there (block-before, block-after) are gone, since nothing
+// read them once the checks went (448e9a8):
+//
+//   - the include checks are the include forms (vimtext.IncludeRun), and the
+//     block of ordinary declarations is the run of core forms that are
+//     non-`static` prototypes around `void *malloc(usize n);`
+//     (vimtext.OrdinaryBlock), each held to the text's line by its C;
+//   - "every mention above the boundary is the declaration or a call" is the
+//     edges: every use of the core's prototype in the core is a callee, and
+//     `\bname\b` on the core's C view is one more than those calls (the
+//     text's own count, the declaration); every write is to fd 1, its first
+//     argument the constant 1; the host's counts are the text's, on the C view;
+//   - the three prototypes go in after host_message's by FRAG, the calls are
+//     retargeted to them by edge (RetargetAs: malloc and free respelled in
+//     place, their ids kept), and each write is made again by FRAG,
+//     `host_write($a, $b)`, the `(int)` cast around it going with it;
+//   - the three old prototypes go by DeleteForHeader: the host's own calls of
+//     free and write (format_overflow_error, host_message) become uses of the
+//     headers' declarations, as an import of the text after makes them, and
+//     the three definitions above main(), FRAG's too, take theirs the same way;
+//   - the positions (a prototype above every call, the definition below every
+//     one and below the boundary) are asked of the forms; the line numbers
+//     the report gives are the C view's, the canonical text's, where the
+//     text's were its own unprinted lines.
 
 import (
 	"fmt"
 	"io"
-	"os"
-	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { phase.RegisterArgs("whim49b", Edit) }
+func init() { phase.RegisterGraph("whim49b", Edit) }
 
-var (
-	w49bSeed    = "void *malloc(usize n);"
-	w49bCastFd1 = regexp.MustCompile(`\(int\)write\(1, `)
-)
+var w49bSeed = "void *malloc(usize n);"
 
-// Whim49b makes the core call nothing but the host: `malloc`, `free` and `write`
-// become `host_alloc`, `host_free` and `host_write`, three prototypes above the
-// boundary and three definitions below it.
-//
-// ITS ANCHORS ARE A PARTITION AND NOT A COUNT, and phase 49a is why.  They first
-// asserted `malloc` at 2 mentions, `free` at 3 and `write` at 2 -- the counts
-// measured on one boundary -- and phase 49a's realloc rewrite took two of them to
-// 4 and 5.  A count is a fact about a tree that WAS measured; a partition is a
-// fact about the tree that arrives.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	p := edit.Ph{Tag: "hostcall", W: w}
-	if len(args) != 1 {
-		return nil, p.Die("usage: edit whim49b <file> <state-dir>")
-	}
-	state := args[0]
-	t := string(text)
-
-	mentions := func(s, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(s, -1))
-	}
-	swap := func(old, new, what, why string) error {
-		if c := edit.CountAnchor(t, old); c != 1 {
-			return p.Die("%s occurs %d times, expected 1 -- %s", what, c, why)
+// w49bLineOf is the 1-based line of the C view's first line equal to l, 0
+// when there is none.
+func w49bLineOf(lines []string, l string) int {
+	for i, x := range lines {
+		if x == l {
+			return i + 1
 		}
-		t = edit.ReplaceAnchor(t, old, new, 1)
-		return nil
 	}
-	shortName := func(l string) string { return vimtext.DeclNameRe.ReplaceAllString(l, "$1") }
+	return 0
+}
 
-	L := strings.Split(t, "\n")
+// Edit is part 49b on the graph: malloc, free and write leave the core,
+// host_alloc, host_free and host_write in their place.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("hostcall", e, w)
+	incs, err := vimtext.IncludeRun(e)
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
+	}
+	text := v.Text()
+	core, host, bound := vimtext.SplitCore(text)
+	L := strings.Split(string(text), "\n")
 	linesBefore := len(L) - 1
+	v.Sayf("the boundary is line %d, the first of the eleven `#include`s, and there is not a "+
+		"directive above it", bound+1)
 
-	// ---- 0. the boundary -----------------------------------------------------
-	var directives []int
-	for i, l := range L {
-		if vimtext.DirectiveRe.MatchString(l) {
-			directives = append(directives, i)
-		}
-	}
-	if len(directives) != nInc {
-		return nil, p.Die("the file holds %d preprocessor directives and this phase was written against "+
-			"the eleven `#include`s phase 40 left", len(directives))
-	}
-	for i := range directives {
-		if directives[i] != directives[0]+i {
-			return nil, p.Die("the eleven directives are not eleven consecutive lines")
-		}
-	}
-	for _, i := range directives {
-		if !vimtext.SystemIncludeRe.MatchString(L[i]) {
-			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
-				"add one")
-		}
-	}
-	boundary := directives[0]
-	p.Sayf("the boundary is line %d, the first of the eleven `#include`s, and there is not a "+
-		"directive above it", boundary+1)
-
-	// ---- 1. the core's block of ordinary declarations, FOUND rather than assumed
-	var seed []int
-	for i, l := range L[:boundary] {
-		if l == w49bSeed {
-			seed = append(seed, i)
-		}
-	}
-	if len(seed) != 1 {
-		return nil, p.Die("the core does not declare `void *malloc(usize n);` exactly once, so this " +
-			"phase has not been handed the file it was written for")
-	}
-	// THE BLOCK IS THE DECLARATIONS WITH NOTHING BUT BLANK LINES BETWEEN THEM:
-	// the canonical print separates every declaration with one.  lo and hi are
-	// its first and last declaration, and blockBefore is those declarations.
-	lo, hi := seed[0], seed[0]
-	for {
-		j := lo - 1
-		for j > 0 && L[j] == "" {
-			j--
-		}
-		if j < 0 || !vimtext.IsPrototypeLine(L[j]) {
-			break
-		}
-		lo = j
-	}
-	for {
-		j := hi + 1
-		for j < boundary-1 && L[j] == "" {
-			j++
-		}
-		if j >= boundary || !vimtext.IsPrototypeLine(L[j]) {
-			break
-		}
-		hi = j
-	}
-	var blockBefore []string
-	for _, l := range L[lo : hi+1] {
-		if l != "" {
-			blockBefore = append(blockBefore, l)
-		}
+	block, blockBefore, err := vimtext.OrdinaryBlock(e, w49bSeed)
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
 	}
 	for _, line := range w49bGo {
 		if !edit.Contains(blockBefore, line) {
-			return nil, p.Die("`%s` is not in the core's block of ordinary declarations, which is %s",
+			v.Die("`%s` is not in the core's block of ordinary declarations, which is %s",
 				line, strings.Join(blockBefore, " / "))
+			return v.Done()
 		}
 	}
-	if L[lo-1] != "" || L[hi+1] != "" {
-		return nil, p.Die("the block is not a paragraph of its own -- line %d is %s and line %d is %s",
-			lo, edit.PyRepr(L[lo-1]), hi+2, edit.PyRepr(L[hi+1]))
+	names := make([]string, len(block))
+	decl := map[string]*graph.Node{}
+	for i, f := range block {
+		names[i] = graph.DeclName(f)
+		decl[names[i]] = f
 	}
-	names := make([]string, len(blockBefore))
-	for i, l := range blockBefore {
-		names[i] = shortName(l)
-	}
-	p.Sayf("the core's block of ordinary declarations is lines %d-%d, %d of them, and every "+
+	v.Sayf("the core's block of ordinary declarations is lines %d-%d, %d of them, and every "+
 		"one is a libc function the core calls: %s",
-		lo+1, hi+1, len(blockBefore), strings.Join(names, " "))
+		w49bLineOf(L, blockBefore[0]), w49bLineOf(L, blockBefore[len(blockBefore)-1]),
+		len(blockBefore), strings.Join(names, " "))
 
-	// ---- 2. the three names, above the boundary and below it -----------------
-	core := strings.Join(L[:boundary], "\n")
-	host := strings.Join(L[boundary:], "\n")
 	ncalls := map[string]int{}
+	coreUses := map[string][]*graph.Node{}
 	for _, r := range []struct {
 		Name  string
 		nhost int
@@ -222,292 +174,262 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"format_overflow_error() below the boundary"},
 		{"write", 1, "mch_write(); and host_message() below the boundary"},
 	} {
-		occ := mentions(core, r.Name)
-		paren := len(edit.CallsNotAfterWord([]byte(core), r.Name))
-		if occ != paren {
-			return nil, p.Die("`%s` has %d mentions above the boundary and only %d of them are followed by "+
-				"`(` -- every one must be the declaration or a call, and this phase will not "+
-				"rewrite what it cannot classify", r.Name, occ, paren)
+		d := decl[r.Name]
+		for _, u := range e.Uses(d) {
+			if !e.InCore(u) {
+				continue
+			}
+			p := e.Parent(u)
+			if p == nil || !p.Is("call") || p.Kids[1] != u {
+				v.Die("`%s` is used above the boundary other than as a call's callee: %s -- every one must "+
+					"be the declaration or a call, and this phase will not rewrite what it cannot classify",
+					r.Name, graph.Lisp(p))
+				return v.Done()
+			}
+			coreUses[r.Name] = append(coreUses[r.Name], u)
 		}
-		if paren < 2 {
-			return nil, p.Die("`%s` is %d call-shaped mentions above the boundary, and this phase needs its "+
-				"declaration and at least one call -- %s", r.Name, paren, r.why)
+		calls := len(coreUses[r.Name])
+		if occ := edit.MentionCount(core, r.Name); occ != calls+1 {
+			v.Die("`%s` has %d mentions above the boundary and only %d of them are its declaration and its "+
+				"calls -- every one must be the declaration or a call, and this phase will not "+
+				"rewrite what it cannot classify", r.Name, occ, calls+1)
+			return v.Done()
 		}
-		if k := mentions(host, r.Name); k != r.nhost {
-			return nil, p.Die("`%s` has %d mentions below the boundary and this phase was written against "+
-				"%d -- %s", r.Name, k, r.nhost, r.why)
+		if calls < 1 {
+			v.Die("`%s` is %d calls above the boundary, and this phase needs its declaration and at "+
+				"least one call -- %s", r.Name, calls, r.why)
+			return v.Done()
 		}
-		ncalls[r.Name] = paren - 1
+		if k := edit.MentionCount(host, r.Name); k != r.nhost {
+			v.Die("`%s` has %d mentions below the boundary and this phase was written against %d -- %s",
+				r.Name, k, r.nhost, r.why)
+			return v.Done()
+		}
+		ncalls[r.Name] = calls
 	}
-	// `write` LOSES ITS FIRST ARGUMENT, so its rewrite is not a rename and the
-	// descriptor has to be CHECKED: host_write(s, len) writes to the screen, and
-	// the host is where fd 1 is named.
 	fd1 := 0
-	for _, m := range regexp.MustCompile(`write\(1, `).FindAllStringIndex(core, -1) {
-		if m[0] > 0 && edit.IsWordByte(core[m[0]-1]) {
-			continue
+	for _, u := range coreUses["write"] {
+		if call := e.Parent(u); len(call.Kids) == 5 && !call.Kids[2].IsList() && call.Kids[2].Atom == "1" {
+			fd1++
 		}
-		fd1++
 	}
 	if fd1 != ncalls["write"] {
-		return nil, p.Die("%d of the core's %d write() calls are to fd 1 -- host_write() takes no "+
-			"descriptor, so a write to anything else is a call this phase cannot move",
-			fd1, ncalls["write"])
+		v.Die("%d of the core's %d write() calls are to fd 1 -- host_write() takes no descriptor, so a "+
+			"write to anything else is a call this phase cannot move", fd1, ncalls["write"])
+		return v.Done()
 	}
 	for _, name := range []string{"host_alloc", "host_free", "host_write"} {
-		if mentions(t, name) > 0 {
-			return nil, p.Die("`%s` is already a name in this file", name)
+		if edit.MentionCount(text, name) > 0 {
+			v.Die("`%s` is already a name in this file", name)
+			return v.Done()
 		}
 	}
 	s := "s"
 	if ncalls["malloc"] == 1 {
 		s = ""
 	}
-	p.Sayf("the partition holds: above the boundary `malloc` is its declaration and %d call%s, "+
+	v.Sayf("the partition holds: above the boundary `malloc` is its declaration and %d call%s, "+
 		"`free` its declaration and %d, `write` its declaration and %d -- every one to fd 1 "+
 		"-- and NOTHING above the boundary mentions any of the three in any other way.  "+
 		"Below it: 0, 1 and 1, which is where they are going",
 		ncalls["malloc"], s, ncalls["free"], ncalls["write"])
 
-	// ---- 3. the three declarations leave the core's block --------------------
 	var blockAfter []string
 	for _, l := range blockBefore {
 		if !edit.Contains(w49bGo, l) {
 			blockAfter = append(blockAfter, l)
 		}
 	}
-	oldBlock := strings.Join(blockBefore, "\n") + "\n"
-	if len(blockAfter) > 0 {
-		if err := swap(oldBlock, strings.Join(blockAfter, "\n")+"\n",
-			"the core's block of declarations",
-			"the three this phase owns come out of it and the rest stay where they are"); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := swap(oldBlock+"\n", "", "the core's block of declarations AND its trailing "+
-			"blank line",
-			"the block is empty now, and a paragraph separator with nothing to separate "+
-				"is the run of two blank lines this file does not have"); err != nil {
-			return nil, err
-		}
-	}
 
-	// ---- 4. and three arrive at the end of the core -> host boundary block ---
-	if err := swap("static void host_message(const char *msg, int len, int err);\n",
-		"static void host_message(const char *msg, int len, int err);\n"+
-			strings.Join(w49bProtos, "\n")+"\n",
-		"the last of the core -> host prototypes phase 41 left",
-		"the boundary is ONE block, and these three belong at the end of it rather than "+
-			"wherever a declaration happened to fit"); err != nil {
-		return nil, err
-	}
-
-	// ---- 5. every call site, COMPUTED ----------------------------------------
-	// The core half ONLY: the host below calls free() and write() for itself and
-	// must not be touched.
-	L = strings.Split(t, "\n")
-	bnd := -1
-	for i, l := range L {
-		if vimtext.DirectiveRe.MatchString(l) {
-			bnd = i
-			break
+	// the three prototypes, at the end of the core -> host run
+	var hm []*graph.Node
+	for _, f := range e.Core() {
+		if graph.DeclName(f) == "host_message" && f.Is("def") {
+			if c, err := vimtext.FormC(f); err == nil && c == "static void host_message(const char *msg, int len, int err);" {
+				hm = append(hm, f)
+			}
 		}
 	}
-	core, host = strings.Join(L[:bnd], "\n"), strings.Join(L[bnd:], "\n")
+	if len(hm) != 1 {
+		v.Die("the last of the core -> host prototypes phase 41 left occurs %d times, expected 1 -- the "+
+			"boundary is ONE block, and these three belong at the end of it rather than wherever a "+
+			"declaration happened to fit", len(hm))
+		return v.Done()
+	}
+	// ... and each write made again as host_write, in the same unit
+	fs := []graph.Frag{{At: e.SpotAfter(hm[0]), Src: strings.Join(w49bProtos, "\n")}}
+	cast := 0
+	for _, u := range coreUses["write"] {
+		call := e.Parent(u)
+		at := call
+		if p := e.Parent(call); p != nil && p.Is("cast") && len(p.Kids) == 3 && p.Kids[1].Atom == "int" && p.Kids[2] == call {
+			at = p
+			cast++
+		}
+		fs = append(fs, graph.Frag{At: e.SpotOf(at), Src: "host_write($a, $b)",
+			Holes: graph.Bindings{"a": call.Kids[3], "b": call.Kids[4]}})
+	}
+	made, err := e.SpliceC(fs...)
+	if err != nil {
+		v.Die("the three prototypes and the write calls: %v", err)
+		return v.Done()
+	}
+	if len(made[0]) != 3 {
+		v.Die("the three prototypes made %d forms", len(made[0]))
+		return v.Done()
+	}
+	proto := map[string]*graph.Node{"malloc": made[0][0], "free": made[0][1], "write": made[0][2]}
+
+	// the calls of malloc and free, retargeted
 	done := map[string]int{}
-	var n int
-	cb := []byte(core)
-	cb, n = edit.SubNotAfterWord(cb, "malloc", "host_alloc")
-	done["malloc"] = n
-	cb, n = edit.SubNotAfterWord(cb, "free", "host_free")
-	done["free"] = n
-	core = string(cb)
-	// The CAST FORM IS TAKEN FIRST so the bare form cannot strip the call Out
-	// from under it: host_write() returns int, having narrowed inside the host
-	// where the libc type is visible.
-	cast := len(w49bCastFd1.FindAllString(core, -1))
-	core = w49bCastFd1.ReplaceAllString(core, "host_write(")
-	bare := 0
-	var Out strings.Builder
-	last := 0
-	for _, m := range regexp.MustCompile(`write\(1, `).FindAllStringIndex(core, -1) {
-		if m[0] > 0 && edit.IsWordByte(core[m[0]-1]) {
-			continue
+	for _, name := range []string{"malloc", "free"} {
+		for _, u := range coreUses[name] {
+			if err := e.RetargetAs(u, 0, proto[name]); err != nil {
+				v.Die("%s's call: %v", name, err)
+				return v.Done()
+			}
+			done[name]++
 		}
-		Out.WriteString(core[last:m[0]])
-		Out.WriteString("host_write(")
-		last = m[1]
-		bare++
 	}
-	Out.WriteString(core[last:])
-	core = Out.String()
-	done["write"] = cast + bare
+	done["write"] = len(fs) - 1
 	for _, name := range []string{"malloc", "free", "write"} {
 		if done[name] != ncalls[name] {
-			return nil, p.Die("%d `%s` call sites were rewritten and section 2 counted %d",
-				done[name], name, ncalls[name])
+			v.Die("%d `%s` call sites were rewritten and section 2 counted %d", done[name], name, ncalls[name])
+			return v.Done()
 		}
-		if mentions(core, name) > 0 {
-			return nil, p.Die("`%s` still appears above the boundary after its call sites were rewritten",
-				name)
+		if n := len(e.Uses(decl[name])); n != map[string]int{"malloc": 0, "free": 1, "write": 1}[name] {
+			v.Die("`%s` is still used %d times once its core calls were rewritten", name, n)
+			return v.Done()
 		}
 	}
-	t = core + "\n" + host
 	s = "s"
 	if done["malloc"] == 1 {
 		s = ""
 	}
-	p.Sayf("%d call site%s rewritten to `host_alloc`, %d to `host_free` and %d to `host_write` "+
+	v.Sayf("%d call site%s rewritten to `host_alloc`, %d to `host_free` and %d to `host_write` "+
 		"(%d of them shedding an `(int)` cast that the host now does) -- every one COMPUTED "+
-		"from the text, and no mention of any of the three left above the boundary",
+		"from the edges, and no use of any of the three left above the boundary",
 		done["malloc"], s, done["free"], done["write"], cast)
 
-	// ---- 6. the host defines the three, below the boundary -------------------
-	if err := swap("    int\nmain(int argc, char **argv)\n{\n",
-		w49bDefs+"    int\nmain(int argc, char **argv)\n{\n",
-		"the launcher's head, the last function in the file",
-		"the three definitions go immediately above it, below host_exit and host_message "+
-			"and in the order their prototypes are written"); err != nil {
-		return nil, err
+	// the old prototypes go; the host's own calls are the headers'
+	// and the three definitions above the launcher, in the same unit
+	if _, _, err := e.DeleteForHeader([]*graph.Node{decl["malloc"], decl["free"], decl["write"]}, false,
+		func() []graph.Frag { return []graph.Frag{{At: e.SpotBefore(e.Defn("main")), Src: w49bDefs}} }); err != nil {
+		v.Die("%v", err)
+		return v.Done()
 	}
 
-	// ---- 7. what the file is now ---------------------------------------------
-	L = strings.Split(t, "\n")
-	boundary = -1
-	for i, l := range L {
-		if vimtext.DirectiveRe.MatchString(l) {
-			boundary = i
-			break
-		}
-	}
-	core, host = strings.Join(L[:boundary], "\n"), strings.Join(L[boundary:], "\n")
+	text = v.Text()
+	core, host, bound = vimtext.SplitCore(text)
+	L = strings.Split(string(text), "\n")
 	for _, r := range []struct {
 		Name         string
 		ncore, nhost int
 	}{{"malloc", 0, 1}, {"free", 0, 2}, {"write", 0, 2}} {
-		if mentions(core, r.Name) != r.ncore || mentions(host, r.Name) != r.nhost {
-			return nil, p.Die("`%s` ends at %d mentions above the boundary and %d below, expected %d and "+
-				"%d", r.Name, mentions(core, r.Name), mentions(host, r.Name), r.ncore, r.nhost)
+		if c, h := edit.MentionCount(core, r.Name), edit.MentionCount(host, r.Name); c != r.ncore || h != r.nhost {
+			v.Die("`%s` ends at %d mentions above the boundary and %d below, expected %d and %d",
+				r.Name, c, h, r.ncore, r.nhost)
+			return v.Done()
 		}
 	}
 	for _, r := range []struct{ Name, was string }{
 		{"host_alloc", "malloc"}, {"host_free", "free"}, {"host_write", "write"},
 	} {
 		want := ncalls[r.was] + 2
-		if k := mentions(t, r.Name); k != want {
-			return nil, p.Die("`%s` has %d mentions, expected %d -- its prototype, the %d call sites it "+
-				"took over from `%s` and its definition", r.Name, k, want, ncalls[r.was], r.was)
+		if k := edit.MentionCount(text, r.Name); k != want {
+			v.Die("`%s` has %d mentions, expected %d -- its prototype, the %d call sites it took over from "+
+				"`%s` and its definition", r.Name, k, want, ncalls[r.was], r.was)
+			return v.Done()
 		}
 	}
-	have := append([]string{}, L[lo:lo+len(blockAfter)]...)
+	var have []string
+	var ordinary []int
+	for i, f := range e.Core() {
+		if vimtext.IsOrdinaryDecl(f) {
+			c, err := vimtext.FormC(f)
+			if err != nil {
+				v.Die("%v", err)
+				return v.Done()
+			}
+			have = append(have, c)
+			ordinary = append(ordinary, i)
+		}
+	}
 	if strings.Join(have, "\x00") != strings.Join(blockAfter, "\x00") {
-		return nil, p.Die("the ordinary declarations left above the boundary are %s and the input's "+
-			"block minus the three is %s", vimtext.JoinOrNone(have), vimtext.JoinOrNone(blockAfter))
+		v.Die("the ordinary declarations left above the boundary are %s and the input's block minus the "+
+			"three is %s", vimtext.JoinOrNone(have), vimtext.JoinOrNone(blockAfter))
+		return v.Done()
 	}
-	if L[lo-1] != "" || L[lo+len(blockAfter)] != "" {
-		return nil, p.Die("what is left of the block is not a paragraph of its own")
-	}
-	// AND NOWHERE ELSE ABOVE THE BOUNDARY, which needs one more test than DECL:
-	// macro expansion left ordinary STATEMENTS at column 0 that match a
-	// declaration's shape exactly, and what tells them apart is the line above.
-	var stray []string
-	for i := 0; i < boundary; i++ {
-		if vimtext.IsPrototypeLine(L[i]) && (L[i-1] == "" || vimtext.IsPrototypeLine(L[i-1])) &&
-			!(lo <= i && i < lo+len(blockAfter)) {
-			stray = append(stray, fmt.Sprintf("%d:%s", i+1, L[i]))
+	for k := 1; k < len(ordinary); k++ {
+		if ordinary[k] != ordinary[0]+k {
+			v.Die("what is left of the block is not one run of forms")
+			return v.Done()
 		}
-	}
-	if len(stray) > 0 {
-		return nil, p.Die("an ordinary declaration is above the boundary and outside the block: %s",
-			strings.Join(edit.First(stray, 4), " / "))
-	}
-	if err := os.WriteFile(state+"/block-before",
-		[]byte(strings.Join(blockBefore, "\n")+"\n"), 0o644); err != nil {
-		return nil, p.Die("%v", err)
-	}
-	var after strings.Builder
-	for _, l := range blockAfter {
-		after.WriteString(l + "\n")
-	}
-	if err := os.WriteFile(state+"/block-after", []byte(after.String()), 0o644); err != nil {
-		return nil, p.Die("%v", err)
 	}
 	if len(blockAfter) > 0 {
 		var left []string
 		for _, l := range blockAfter {
-			left = append(left, shortName(l))
+			left = append(left, vimtext.DeclNameRe.ReplaceAllString(l, "$1"))
 		}
-		p.Sayf("the core's block of ordinary declarations is %d lines and was %d: %s remain, "+
+		v.Sayf("the core's block of ordinary declarations is %d lines and was %d: %s remain, "+
 			"and each is a libc function some LATER phase owns",
 			len(blockAfter), len(blockBefore), strings.Join(left, " "))
 	} else {
-		p.Sayf("THE CORE'S BLOCK OF ORDINARY DECLARATIONS IS EMPTY: it was %d lines and it is "+
+		v.Sayf("THE CORE'S BLOCK OF ORDINARY DECLARATIONS IS EMPTY: it was %d lines and it is "+
 			"now none.  Above the first `#include` there is no declaration that is not "+
 			"`static`, so the core names no libc function at all and every outward call it "+
 			"makes is a `musl_` or a `host_`", len(blockBefore))
 	}
 
-	// DECLARATION BEFORE USE, COMPUTED.
+	forms := e.Graph().Forms
+	pos := map[*graph.Node]int{}
+	for i, f := range forms {
+		pos[f] = i
+	}
+	first := pos[e.FirstInclude()]
 	for i, name := range []string{"host_alloc", "host_free", "host_write"} {
-		proto := w49bProtos[i]
-		var pr, df, uses []int
-		for j, l := range L {
-			if l == proto {
-				pr = append(pr, j)
-			}
-			if strings.HasPrefix(l, name+"(") && j+1 < len(L) && L[j+1] == "{" {
-				df = append(df, j)
-			}
+		pr := proto[[]string{"malloc", "free", "write"}[i]]
+		df := e.Defn(name)
+		uses := e.Uses(pr)
+		if df == nil || len(uses) == 0 || len(e.Decls(name)) != 2 {
+			v.Die("`%s` has %d declarations, a definition %v and %d call sites", name, len(e.Decls(name)),
+				df != nil, len(uses))
+			return v.Done()
 		}
-		for j, l := range L {
-			if len(edit.CallsNotAfterWord([]byte(l), name)) > 0 && !edit.Contains(pr, j) && !edit.Contains(df, j) {
-				uses = append(uses, j)
-			}
-		}
-		if len(pr) != 1 || len(df) != 1 || len(uses) == 0 {
-			return nil, p.Die("`%s` has %d prototypes, %d definitions and %d call sites",
-				name, len(pr), len(df), len(uses))
-		}
-		lowU, highU := uses[0], uses[len(uses)-1]
-		if !(pr[0] < lowU && highU < df[0] && df[0] > boundary) {
-			return nil, p.Die("`%s`: prototype at %d, calls at %d..%d, definition at %d, boundary at %d "+
-				"-- the prototype must be above every call, the definition below every one "+
-				"and the definition below the boundary",
-				name, pr[0]+1, lowU+1, highU+1, df[0]+1, boundary+1)
-		}
-		var where []string
 		for _, u := range uses {
-			where = append(where, fmt.Sprintf("%d", u+1))
+			if at := pos[e.TopForm(u)]; !(pos[pr] < at && at < pos[df] && pos[df] > first) {
+				v.Die("`%s`: the prototype must be above every call, the definition below every one and "+
+					"the definition below the boundary", name)
+				return v.Done()
+			}
+		}
+		protoLine := w49bLineOf(L, w49bProtos[i])
+		var defLine int
+		var where []string
+		for j, l := range L {
+			if strings.HasPrefix(l, name+"(") && j+1 < len(L) && L[j+1] == "{" {
+				defLine = j + 1
+			} else if j+1 != protoLine && len(edit.CallsNotAfterWord([]byte(l), name)) > 0 {
+				where = append(where, fmt.Sprint(j+1))
+			}
 		}
 		s := "s"
-		if len(uses) == 1 {
+		if len(where) == 1 {
 			s = ""
 		}
-		p.Sayf("`%s`: prototype line %d, %d call site%s at %s, definition line %d, which is "+
-			"below the boundary at %d",
-			name, pr[0]+1, len(uses), s, strings.Join(where, " "), df[0]+1, boundary+1)
+		v.Sayf("`%s`: prototype line %d, %d call site%s at %s, definition line %d, which is "+
+			"below the boundary at %d", name, protoLine, len(where), s, strings.Join(where, " "),
+			defLine, bound+1)
 	}
-
-	// It counted lines (three prototypes and three five-line definitions in,
-	// the block's out), which is layout, and the canonical print's now; what
-	// moved is asserted by content above.
-	var d []int
-	for i, l := range L {
-		if vimtext.DirectiveRe.MatchString(l) {
-			d = append(d, i)
-		}
+	if n := len(e.Includes()); n != len(incs) || e.FirstInclude() != incs[0] {
+		v.Die("the output does not have the same %d contiguous include forms -- this phase adds "+
+			"DECLARATIONS and DEFINITIONS, never a directive", len(incs))
+		return v.Done()
 	}
-	okd := len(d) == nInc && d[0] == boundary
-	for i := range d {
-		if d[i] != d[0]+i {
-			okd = false
-		}
+	if _, err := vimtext.IncludeRun(e); err != nil {
+		v.Die("%v", err)
+		return v.Done()
 	}
-	if !okd {
-		return nil, p.Die("the output does not have the same eleven contiguous `#include` directives -- " +
-			"this phase adds DECLARATIONS and DEFINITIONS, never a directive")
-	}
-	p.Sayf("%d -> %d lines before the canonical print, and the eleven #includes untouched "+
-		"at line %d", linesBefore, len(L)-1, boundary+1)
-	return []byte(t), nil
+	v.Sayf("%d -> %d lines, and the eleven #includes untouched at line %d", linesBefore, len(L)-1, bound+1)
+	return v.Done()
 }

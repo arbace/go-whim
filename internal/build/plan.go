@@ -26,7 +26,7 @@
 // THREE ARGUMENTS ARE NOT LITERAL, because three phases need something the
 // source does not carry:
 //
-//	@state     a scratch directory.  Eight phases' edits write a file there
+//	@state     a scratch directory.  Four phases' edits (53-56) write a file there
 //	           for their check to read; a build gives them one and throws it
 //	           away.  No edit reads anything from it -- measured.
 //	@minmax    the host's MIN and MAX, asked of the preprocessor
@@ -318,46 +318,46 @@ var Plan = []Phase{
 		}},
 	{N: 43, Name: "the move: the first `#include` becomes the boundary",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim43", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim43"}},
 		}},
 	{N: 44, Name: "the scalar clock",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim44"}},
+			{Op: "edit", Graph: true, Args: []string{"whim44"}},
 		}},
 	{N: 45, Name: "the case tables become one, and it is the union",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim45"}},
+			{Op: "edit", Graph: true, Args: []string{"whim45"}},
 		}},
 	{N: 46, Name: "the message fold: `msg_puts_printf()` and the branch that reaches it",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim46"}},
+			{Op: "edit", Graph: true, Args: []string{"whim46"}},
 		}},
 	{N: 47, Name: "`abs` and `labs`, the two the core took on trust",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim47", "abs=1", "labs=2"}},
+			{Op: "edit", Graph: true, Args: []string{"whim47", "abs=1", "labs=2"}},
 		}},
 	{N: 48, Name: "the clock crosses the boundary",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim48"}},
+			{Op: "edit", Graph: true, Args: []string{"whim48"}},
 		}},
 	{N: 49, Name: "the core calls nothing but the host",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim49a"}},
-			{Op: "edit", Args: []string{"whim49b", "@state"}},
-			{Op: "edit", Args: []string{"whim49", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim49a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim49b"}},
+			{Op: "edit", Graph: true, Args: []string{"whim49"}},
 		}},
 	{N: 50, Block: "g02-unions", Name: "the degenerate unions go",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim50", "--degenerate", "1", "--genuine", "1"}},
+			{Op: "edit", Graph: true, Args: []string{"whim50", "--degenerate", "1", "--genuine", "1"}},
 		}},
 	{N: 51, Block: "r04-terminal", Name: "the terminal names, and `-T`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim51a"}},
-			{Op: "edit", Args: []string{"whim51"}},
+			{Op: "edit", Graph: true, Args: []string{"whim51a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim51"}},
 		}},
 	{N: 52, Block: "r05-memory", Name: "freeing is free, and the arena is measured",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim52", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim52"}},
 		}},
 	{N: 53, Block: "r06-memline", Name: "the swap file's residue, and what no sweep could find",
 		Steps: []Step{

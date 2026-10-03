@@ -89,172 +89,220 @@ package p051
 // raises rather than reporting nothing.  Nothing here touches the command table.
 //
 
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// edit is the program's graph edited through crefactor/graph, its report the
+// text version's, which the plan ran until then (history keeps it):
+//
+//   - termcapinit()'s empty-name test is a FoldNever; the `given none` if's
+//     one assignment is read, its value (a copy) becomes `term`'s
+//     initialiser and the if goes; the parameter goes by PARAM
+//     (DropParam), with the argument `params.term` at the one call;
+//   - mparm_T's member goes once no use of it is left, by edge; the other
+//     structs' `.term` are still counted on the C view, the text's question;
+//   - set_termname()'s callers are the uses of its declarations, by the
+//     function each is in; the assignments to `starting` are the stores to
+//     it, by edge;
+//   - the no-screen test is a FoldAlways inside the `termp == nullptr` arm,
+//     and the items after its `return FAIL;` are deleted, their C (as the
+//     C view prints them) what the report quotes;
+//   - report_term_error()'s promise is each literal respelled whole (the
+//     text's regexp applied to the literal alone, which is where it
+//     matched);
+//   - `requested`'s one use, in the 256-colour test, is pointed at the
+//     parameter `term` (a new use with its edge); its declaration is the
+//     collection's.
+
 import (
-	"bytes"
 	"io"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim51", Edit) }
+func init() { phase.RegisterGraph("whim51", Edit) }
 
 var (
-	w51EmptyName = `^[ \t]*if \(term != nullptr && \*term == NUL\)$`
-	w51GivenNone = regexp.MustCompile(edit.Head("if (term == nullptr || *term == NUL)"))
-	w51Assign    = regexp.MustCompile(`(?s)\A\s*\n[ \t]*term = (.*?);\n[ \t]*\z`)
-	w51TermDecl  = regexp.MustCompile(`(?m)^([ \t]*char_u +\*term) = name;$`)
-	w51TciProto  = regexp.MustCompile(`(?m)^static void termcapinit\([^)]*\);$`)
-	w51Member    = regexp.MustCompile(`(?m)^[ \t]*char_u +\*term;\n`)
 	w51Owner     = regexp.MustCompile(`(\w+)\s*(?:\.|->)\s*term\b`)
 	w51DotTerm   = regexp.MustCompile(`(?:\.|->)\s*term\b`)
-	w51SetTerm   = regexp.MustCompile(`\bset_termname\s*\(`)
-	w51FnName    = regexp.MustCompile(`\n[a-zA-Z_]\w*`)
-	w51Row       = regexp.MustCompile(`(?m)^[ \t]*\{\s*"([^"]*)"\s*,\s*\w+\s*\},$`)
-	w51Starting  = regexp.MustCompile(`(?m)^[ \t]*starting = ([^;]+);$`)
-	w51TermpNull = regexp.MustCompile(edit.Head("if (termp == nullptr)"))
-	w51NoScreen  = `^[ \t]*if \(starting != NO_SCREEN\)$`
 	w51FirstLit  = regexp.MustCompile(`"([^"]*)"`)
 	w51Requested = regexp.MustCompile(`\brequested\b`)
 	w51TermRewr  = regexp.MustCompile(`(?m)^[ \t]*term (\+?=[^;]*);$`)
 	w51Prefix    = regexp.MustCompile(`musl_strncmp\(\(char \*\)\(name\), \(char \*\)\("([^"]*)"\), \(\(usize\)(\d+)\)\)`)
 	w51Needle    = regexp.MustCompile(`musl_strstr\(\(char \*\)requested, "([^"]*)"\)`)
-	w51ReqDecl   = regexp.MustCompile(`\n[ \t]*char_u +\*requested = term;\n`)
-	// w51DeclOnly: a local's declaration, what is left of it for the sweep.
+	// the one declaration `requested` may keep (the collection takes it)
 	w51DeclOnly = map[string]*regexp.Regexp{
 		"requested": regexp.MustCompile(`\bchar_u +\*requested = term;`),
 	}
 )
 
-// w51Mentions counts an IDENTIFIER with string literals excluded.
 func w51Mentions(text []byte, name string) int {
 	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).
 		FindAll(edit.Blank(edit.WithoutIncludes(text)), -1))
 }
 
-// Whim51 removes `-T {term}`: command_line_scan() becomes one `if (argv[0][0]
-// == '+')` and one `else` answering mainerr(ME_UNKNOWN_OPTION), with two
-// main_errors[] rows and their enumerators, mparm_T.term, and the no-screen
-// arm of set_termname() that only -T could reach.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "cmdline", W: w}
-
-	span := func(t []byte, name string) (int, int, error) {
-		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
-		if !ok {
-			return 0, 0, p.Die("%s() is not defined in this file, and this phase is drawn against its "+
-				"extent", name)
-		}
-		return a, z, nil
+// w51ItemsC is items' C as the C view prints them in a function's body.
+func w51ItemsC(items []*graph.Node) (string, error) {
+	f := clisp.L(clisp.A("defn"), clisp.A("f"), clisp.L(clisp.A("fn"), clisp.L(clisp.A("void")), clisp.A("void")))
+	for _, n := range items {
+		f.List = append(f.List, graph.Lisp(n))
 	}
-	inFunction := func(t []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, err := span(t, name)
-		if err != nil {
-			return nil, err
-		}
-		seg, err := edit(t[a:z])
-		if err != nil {
-			return nil, err
-		}
-		Out := append([]byte(nil), t[:a]...)
-		Out = append(Out, seg...)
-		return append(Out, t[z:]...), nil
-	}
-
-	// ---- 0-1. the option letters, want_argument's block, mainerr_arg_missing
-	// and the two rows they indexed went with the command line (argvfront,
-	// the reform's D1)
-	t := text
-	var err error
-
-	// ---- 2. termcapinit() takes no name ----------------------------------
-	var dflt string
-	tci := func(s []byte) ([]byte, error) {
-		folded, err := edit.FoldNever(s, "(?m)"+w51EmptyName, 1)
-		if err != nil {
-			return nil, p.Die("termcapinit()'s empty-name test would not fold -- %v", err)
-		}
-		s = folded
-		d := w51GivenNone.FindIndex(s)
-		if d == nil {
-			return nil, p.Die("termcapinit() has no `given none` test, so the compiled default cannot " +
-				"be read out of it")
-		}
-		b := edit.Blank(s)
-		o := d[1] + bytes.IndexByte(b[d[1]:], '{')
-		c := edit.Match(b, o)
-		ass := w51Assign.FindSubmatch(s[o+1 : c])
-		if ass == nil {
-			return nil, p.Die("the compiled default is not one assignment: %s",
-				edit.PyRepr(string(s[o+1:c])))
-		}
-		dflt = string(ass[1])
-		end := c + bytes.IndexByte(s[c:], '\n') + 1
-		k := bytes.LastIndexByte(s[:d[0]], '\n') + 1
-		Out := append([]byte(nil), s[:k]...)
-		s = append(Out, s[end:]...)
-
-		loc := w51TermDecl.FindSubmatchIndex(s)
-		if loc == nil {
-			return nil, p.Die("termcapinit() does not open with `char_u *term = name;`")
-		}
-		repl := string(s[loc[2]:loc[3]]) + " =" + dflt + ";"
-		Out = append([]byte(nil), s[:loc[0]]...)
-		Out = append(Out, repl...)
-		s = append(Out, s[loc[1]:]...)
-		s = bytes.ReplaceAll(s, []byte("termcapinit(char_u *name)"), []byte("termcapinit(void)"))
-		return s, nil
-	}
-	t, err = inFunction(t, "termcapinit", tci)
+	out, err := clisp.Print([]*clisp.Node{f})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	t = w51TciProto.ReplaceAll(t, []byte("static void termcapinit(void);"))
-	if bytes.Count(t, []byte("termcapinit(params.term);")) != 1 {
-		return nil, p.Die("termcapinit() is not called with the field this phase just removed")
+	s := string(out)
+	a, z := strings.Index(s, "{\n"), strings.LastIndex(s, "}")
+	if a < 0 || z < a {
+		return "", nil
 	}
-	t = bytes.ReplaceAll(t, []byte("termcapinit(params.term);"), []byte("termcapinit();"))
-	if w51Mentions(t, "name") > 0 && bytes.Contains(t, []byte("termcapinit(char_u")) {
-		return nil, p.Die("termcapinit() still takes a name")
+	return s[a+2 : z], nil
+}
+
+func w51Content(s *graph.Node) string {
+	if a := s.Atom; len(a) >= 2 && a[0] == '"' && a[len(a)-1] == '"' {
+		return a[1 : len(a)-1]
 	}
-	p.Sayf("termcapinit() takes no name -- nothing could assign the field it was handed -- "+
+	return ""
+}
+
+// Edit is phase 51 on the graph: `-T` goes -- termcapinit() takes no name,
+// mparm_T no `term`, and set_termname()'s no-screen fallback and its promise
+// with them.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("cmdline", e, w)
+	quiet := func(acts func(q *graph.Verbs)) {
+		if v.Failed() {
+			return
+		}
+		q := graph.NewVerbs("cmdline", e, io.Discard)
+		acts(q)
+		if q.Err != nil {
+			v.Err = q.Err
+		}
+	}
+	defn := func(name string) *graph.Node {
+		d := e.Defn(name)
+		if d == nil {
+			v.Die("%s() is not defined in this file, and this phase is drawn against its extent", name)
+		}
+		return d
+	}
+
+	// ---- termcapinit() takes no name
+	var dflt string
+	tci := defn("termcapinit")
+	if v.Failed() {
+		return v.Done()
+	}
+	quiet(func(q *graph.Verbs) {
+		q.InFunction("termcapinit", func(q *graph.Verbs) {
+			q.FoldNever("(&& (!= term nullptr) (== (deref term) NUL))", 1, "termcapinit()'s empty-name test")
+		})
+	})
+	var givenNone, d, init *graph.Node
+	v.InFunction("termcapinit", func(v *graph.Verbs) {
+		ifs := v.Find("(if (|| (== term nullptr) (== (deref term) NUL)) _*)")
+		if len(ifs) != 1 {
+			v.Die("termcapinit() has no `given none` test, so the compiled default cannot " +
+				"be read out of it")
+			return
+		}
+		givenNone = ifs[0]
+		ds := v.Query("(if _ (block (= term ?d)))", "d")
+		if len(ds) != 1 || len(givenNone.Kids) != 3 {
+			c, _ := w51ItemsC([]*graph.Node{givenNone})
+			v.Die("the compiled default is not one assignment: %s", edit.PyRepr(c))
+			return
+		}
+		d = ds[0]
+		inits := v.Query("(def term _ ?v)", "v")
+		if len(inits) != 1 || inits[0].Atom != "name" {
+			v.Die("termcapinit() does not open with `char_u *term = name;`")
+			return
+		}
+		init = inits[0]
+	})
+	if v.Failed() {
+		return v.Done()
+	}
+	s, err := graph.ExprText(d)
+	if err != nil {
+		v.Die("the compiled default's C: %v", err)
+		return v.Done()
+	}
+	dflt = s
+	calls := e.Uses(tci)
+	if len(calls) != 1 {
+		v.Die("termcapinit() is not called with the field this phase just removed")
+		return v.Done()
+	}
+	if c := e.Parent(calls[0]); c == nil || !c.Is("call") || len(c.Kids) != 3 || !c.Kids[2].Is(".") ||
+		c.Kids[2].Kids[1].Atom != "params" || c.Kids[2].Kids[2].Atom != "term" {
+		v.Die("termcapinit() is not called with the field this phase just removed")
+		return v.Done()
+	}
+	if err := e.Replace(init, graph.Clone(d)); err != nil {
+		v.Die("termcapinit()'s initialiser: %v", err)
+		return v.Done()
+	}
+	if err := e.Delete(givenNone); err != nil {
+		v.Die("termcapinit()'s `given none` test: %v", err)
+		return v.Done()
+	}
+	quiet(func(q *graph.Verbs) { q.DropParam("termcapinit", "name", "termcapinit() takes no name") })
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Sayf("termcapinit() takes no name -- nothing could assign the field it was handed -- "+
 		"and the compiled default it substituted when it was given none, %s, is its "+
 		"initialiser now.  That is internal/phase/035/edit.go's ui_write(console) again",
 		strings.TrimSpace(dflt))
 
-	// ---- 3. mparm_T loses the field nothing assigns ----------------------
-	// THE PARTITION, and it is why this is the edit's: every `.term`/`->term`
-	// belongs either to this struct -- and those mentions have just gone --
-	// or to another struct with a member of the same name, which is exactly
-	// what deadfields.py cannot tell apart, because it matches by NAME.
-	iM := bytes.Index(t, []byte("} mparm_T;"))
-	if iM < 0 {
-		return nil, p.Die("mparm_T's definition is not balanced")
+	// ---- mparm_T loses `term`
+	var member *graph.Node
+	for _, td := range e.Decls("mparm_T") {
+		if td.Is("typedef") {
+			for _, k := range td.Kids {
+				if k.Is("struct") {
+					for _, m := range graph.Members(k) {
+						if m.Head() == "term" {
+							member = m
+						}
+					}
+				}
+			}
+		}
 	}
-	oM := edit.RMatch(edit.Blank(t), bytes.LastIndexByte(t[:iM+1], '}'))
-	if oM < 0 {
-		return nil, p.Die("mparm_T's definition is not balanced")
+	if member == nil {
+		v.Die("mparm_T has no `char_u *term;` member to remove")
+		return v.Done()
 	}
-	mem := w51Member.FindIndex(t[oM:iM])
-	if mem == nil {
-		return nil, p.Die("mparm_T has no `char_u *term;` member to remove")
+	if u := e.Uses(member); len(u) != 0 {
+		v.Die("%d uses still name this struct's `term` field", len(u))
+		return v.Done()
 	}
-	Out := append([]byte(nil), t[:oM+mem[0]]...)
-	t = append(Out, t[oM+mem[1]:]...)
+	if err := e.Delete(member); err != nil {
+		v.Die("mparm_T's `term`: %v", err)
+		return v.Done()
+	}
+	view := edit.Blank(v.Text())
 	var owners []string
-	for _, m := range w51Owner.FindAllSubmatch(edit.Blank(t), -1) {
+	for _, m := range w51Owner.FindAllSubmatch(view, -1) {
 		if !edit.ContainsStr(owners, string(m[1])) {
 			owners = append(owners, string(m[1]))
 		}
 	}
 	sort.Strings(owners)
 	if len(owners) == 0 {
-		return nil, p.Die("nothing in the file names a `.term` member at all, so the partition below " +
+		v.Die("nothing in the file names a `.term` member at all, so the partition below " +
 			"says nothing -- read the file before removing this")
+		return v.Done()
 	}
 	var mine []string
 	for _, x := range owners {
@@ -263,34 +311,28 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if len(mine) > 0 {
-		return nil, p.Die("%s still names this struct's `term` field", strings.Join(mine, " "))
+		v.Die("%s still names this struct's `term` field", strings.Join(mine, " "))
+		return v.Done()
 	}
-	p.Sayf("mparm_T loses its `term` member, in the EDIT: every one of the %d `.term` "+
+	v.Sayf("mparm_T loses its `term` member, in the EDIT: every one of the %d `.term` "+
 		"mentions left belongs to another struct (%s), and deadfields.py matches by "+
 		"NAME, so that tool could never see this one dead",
-		len(w51DotTerm.FindAll(edit.Blank(t), -1)), strings.Join(owners, " "))
+		len(w51DotTerm.FindAll(view, -1)), strings.Join(owners, " "))
 
-	// ---- 4. set_termname()'s no-screen arm cannot run --------------------
-	// THE ARGUMENT, computed in three parts before a line is cut.
-	dA, dZ, err := span(t, "set_termname")
-	if err != nil {
-		return nil, err
+	// ---- who calls set_termname(), and what `starting` can be
+	stn := defn("set_termname")
+	if v.Failed() {
+		return v.Done()
 	}
 	var sites []string
-	for _, m := range w51SetTerm.FindAllIndex(edit.Blank(t), -1) {
-		at := m[0]
-		if dA <= at && at < dZ {
+	for _, u := range v.UsesOf("set_termname") {
+		f := e.Function(u)
+		if f == stn {
 			continue
 		}
-		if strings.TrimSpace(string(t[bytes.LastIndexByte(t[:at], '\n')+1:at])) == "static int" {
-			continue
-		}
-		lo := bytes.LastIndex(t[:at], []byte("\n    static "))
 		who := "?"
-		if lo >= 0 {
-			if f := w51FnName.Find(t[lo:at]); f != nil {
-				who = strings.TrimSpace(string(f))
-			}
+		if f != nil {
+			who = graph.DeclName(f)
 		}
 		if !edit.ContainsStr(sites, who) {
 			sites = append(sites, who)
@@ -302,133 +344,171 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if j == "" {
 			j = "nowhere"
 		}
-		return nil, p.Die("set_termname() is called from %s, and this phase is written against the "+
+		v.Die("set_termname() is called from %s, and this phase is written against the "+
 			"two -- termcapinit(), before there is a screen, and did_set_term(), at run "+
 			"time", j)
+		return v.Done()
 	}
-	tabStart := bytes.Index(t, []byte("static builtin_tcap_T builtin_terminals[] =\n{"))
-	tabEnd := tabStart + bytes.Index(t[tabStart:], []byte("\n};"))
 	var tabRows []string
-	for _, m := range w51Row.FindAllSubmatch(t[tabStart:tabEnd], -1) {
-		tabRows = append(tabRows, string(m[1]))
-	}
+	v.InTable("builtin_terminals", func(v *graph.Verbs) {
+		for _, r := range v.Rows() {
+			if r.Is("init") && len(r.Kids) == 3 && w51Content(r.Kids[1]) != "" {
+				tabRows = append(tabRows, w51Content(r.Kids[1]))
+			}
+		}
+	})
 	dn := w51FirstLit.FindStringSubmatch(dflt)
 	if dn == nil || !edit.ContainsStr(tabRows, dn[1]) {
 		name := ""
 		if dn != nil {
 			name = dn[1]
 		}
-		return nil, p.Die("the compiled default %s is not a row of builtin_terminals[], so "+
+		v.Die("the compiled default %s is not a row of builtin_terminals[], so "+
 			"termcapinit() can still be refused and the arm below is live", edit.PyRepr(name))
+		return v.Done()
 	}
 	defaultName := dn[1]
 	var assigns []string
-	for _, m := range w51Starting.FindAllSubmatch(t, -1) {
-		v := strings.TrimSpace(string(m[1]))
-		if !edit.ContainsStr(assigns, v) {
-			assigns = append(assigns, v)
+	for _, u := range v.UsesOf("starting") {
+		p := e.Parent(u)
+		if p == nil || !p.Is("=") || p.Kids[1] != u || e.Item(p) != p {
+			continue
+		}
+		x, err := graph.ExprText(p.Kids[2])
+		if err != nil {
+			v.Die("a store to `starting`: %v", err)
+			return v.Done()
+		}
+		if !edit.ContainsStr(assigns, x) {
+			assigns = append(assigns, x)
 		}
 	}
 	sort.Strings(assigns)
 	if edit.ContainsStr(assigns, "NO_SCREEN") {
-		return nil, p.Die("something assigns starting = NO_SCREEN, so `starting != NO_SCREEN` is not "+
+		v.Die("something assigns starting = NO_SCREEN, so `starting != NO_SCREEN` is not "+
 			"true wherever the arm below is reached: %s", strings.Join(assigns, " "))
+		return v.Done()
 	}
-	p.Sayf("set_termname() is called from %s and from nowhere else; termcapinit() now "+
+	v.Sayf("set_termname() is called from %s and from nowhere else; termcapinit() now "+
 		"passes %s, which IS a row of builtin_terminals[]; and the only assignments to "+
 		"`starting` are %s -- so a refusal can only come from did_set_term(), where "+
 		"`starting != NO_SCREEN`",
 		strings.Join(sites, " and "), edit.PyRepr(defaultName), strings.Join(assigns, " and "))
 
-	var tail string
-	stn := func(s []byte) ([]byte, error) {
-		b := edit.Blank(s)
-		m := w51TermpNull.FindIndex(s)
-		if m == nil {
-			return nil, p.Die("set_termname() has no `termp == nullptr` arm")
+	// ---- the no-screen test folds ALWAYS, and the fallback after the refusal goes
+	var arm *graph.Node
+	v.InFunction("set_termname", func(v *graph.Verbs) {
+		arms := v.Query("(if (== termp nullptr) ?b)", "b")
+		if len(arms) != 1 {
+			v.Die("set_termname() has no `termp == nullptr` arm")
+			return
 		}
-		o := m[1] + bytes.IndexByte(b[m[1]:], '{')
-		c := edit.Match(b, o)
-		if c < 0 {
-			return nil, p.Die("the refusal arm is not balanced")
-		}
-		Inner, err := edit.FoldAlways(s[o+1:c], "(?m)"+w51NoScreen, 1)
-		if err != nil {
-			return nil, p.Die("the no-screen test would not fold -- %v", err)
-		}
-		k := bytes.Index(Inner, []byte("return FAIL;\n")) + len("return FAIL;\n")
-		tail = string(Inner[k:])
-		if strings.TrimSpace(tail) == "" {
-			return nil, p.Die("nothing follows the refusal, so this phase has already been applied or " +
-				"the arm is not the one it was written against")
-		}
-		Out := append([]byte(nil), s[:o+1]...)
-		Out = append(Out, Inner[:k]...)
-		return append(Out, s[c:]...), nil
+		arm = arms[0]
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	sA, sZ, err := span(t, "set_termname")
+	quiet(func(q *graph.Verbs) {
+		q.In(arm, func(q *graph.Verbs) {
+			q.FoldAlways("(!= starting NO_SCREEN)", 1, "the no-screen test")
+		})
+	})
+	if v.Failed() {
+		return v.Done()
+	}
+	k := -1
+	for i, it := range arm.Kids {
+		if it.Is("return") && len(it.Kids) == 2 && it.Kids[1].Atom == "FAIL" {
+			k = i
+			break
+		}
+	}
+	if k < 0 || k+1 >= len(arm.Kids) {
+		v.Die("nothing follows the refusal, so this phase has already been applied or " +
+			"the arm is not the one it was written against")
+		return v.Done()
+	}
+	tailItems := append([]*graph.Node(nil), arm.Kids[k+1:]...)
+	tail, err := w51ItemsC(tailItems)
 	if err != nil {
-		return nil, err
+		v.Die("the fallback's C: %v", err)
+		return v.Done()
 	}
-	seg, err := stn(t[sA:sZ])
-	if err != nil {
-		return nil, err
+	if strings.TrimSpace(tail) == "" {
+		v.Die("nothing follows the refusal, so this phase has already been applied or " +
+			"the arm is not the one it was written against")
+		return v.Done()
 	}
-	Out = append([]byte(nil), t[:sA]...)
-	Out = append(Out, seg...)
-	t = append(Out, t[sZ:]...)
-	p.Sayf("the no-screen test folds ALWAYS, and what followed the refusal is unreachable "+
+	if err := e.ReplaceRun(tailItems[0], tailItems[len(tailItems)-1]); err != nil {
+		v.Die("the fallback after the refusal: %v", err)
+		return v.Done()
+	}
+	v.Sayf("the no-screen test folds ALWAYS, and what followed the refusal is unreachable "+
 		"and goes: %s", strings.Join(strings.Fields(tail), " "))
 
-	// The name the fallback promised, read Out of the text just deleted.
 	nm := w51FirstLit.FindStringSubmatch(tail)
 	if nm == nil || !edit.ContainsStr(tabRows, nm[1]) {
-		return nil, p.Die("the deleted fallback does not name a row of builtin_terminals[], so the " +
+		v.Die("the deleted fallback does not name a row of builtin_terminals[], so the " +
 			"message below cannot be kept in step with it")
+		return v.Done()
 	}
 	promised := nm[1]
 	if !strings.Contains(tail, "report_default_term") {
-		return nil, p.Die("the deleted text does not call report_default_term(), which this phase " +
+		v.Die("the deleted text does not call report_default_term(), which this phase " +
 			"leaves for the sweep -- read the arm before removing this")
+		return v.Done()
 	}
 
-	message := func(s []byte) ([]byte, error) {
-		re := regexp.MustCompile(`,[^"]*'` + regexp.QuoteMeta(promised) + `'`)
-		o := re.ReplaceAll(s, nil)
-		if bytes.Equal(o, s) {
-			return nil, p.Die("report_term_error() does not promise %s, so there is nothing here to "+
+	// ---- report_term_error() stops promising it: each literal respelled whole
+	re := regexp.MustCompile(`,[^"]*'` + regexp.QuoteMeta(promised) + `'`)
+	v.InFunction("report_term_error", func(v *graph.Verbs) {
+		changed := 0
+		for _, s := range v.Strings() {
+			if n := re.ReplaceAllString(s.Atom, ""); n != s.Atom {
+				if err := e.RespellString(s, n); err != nil {
+					v.Die("report_term_error()'s message: %v", err)
+					return
+				}
+				changed++
+			}
+		}
+		if changed == 0 {
+			v.Die("report_term_error() does not promise %s, so there is nothing here to "+
 				"keep in step with the fallback", edit.PyRepr(promised))
+			return
 		}
 		var left []string
-		for _, x := range tabRows {
-			if bytes.Contains(o, []byte("'"+x+"'")) {
-				left = append(left, x)
+		for _, s := range v.Strings() {
+			for _, x := range tabRows {
+				if strings.Contains(s.Atom, "'"+x+"'") && !edit.ContainsStr(left, x) {
+					left = append(left, x)
+				}
 			}
 		}
 		if len(left) > 0 {
-			return nil, p.Die("report_term_error() still names %s after the cut", strings.Join(left, " "))
+			v.Die("report_term_error() still names %s after the cut", strings.Join(left, " "))
 		}
-		return o, nil
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	t, err = inFunction(t, "report_term_error", message)
-	if err != nil {
-		return nil, err
-	}
-	p.Sayf("report_term_error() stops promising %s: phase 51a moved the message and the "+
+	v.Sayf("report_term_error() stops promising %s: phase 51a moved the message and the "+
 		"fallback together because nothing in the build checks that a message tells the "+
 		"truth, and this is that rule with no fallback left to name", edit.PyRepr(promised))
 
-	// ---- 5. `requested` is `term` for the one test that reads it ---------
-	requested := func(s []byte) ([]byte, error) {
+	// ---- `requested` is `term` for the 256-colour test
+	v.InFunction("set_termname", func(v *graph.Verbs) {
+		s := v.Text()
 		if k := len(w51Requested.FindAll(edit.Blank(s), -1)); k != 2 {
-			return nil, p.Die("`requested` has %d mentions in set_termname(), and this phase is "+
+			v.Die("`requested` has %d mentions in set_termname(), and this phase is "+
 				"written against two -- its declaration and the 256-colour test", k)
+			return
 		}
 		var rew []string
 		for _, m := range w51TermRewr.FindAllSubmatch(s, -1) {
-			v := strings.TrimSpace(string(m[1]))
-			if !edit.ContainsStr(rew, v) {
-				rew = append(rew, v)
+			x := strings.TrimSpace(string(m[1]))
+			if !edit.ContainsStr(rew, x) {
+				rew = append(rew, x)
 			}
 		}
 		sort.Strings(rew)
@@ -437,81 +517,101 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			if j == "" {
 				j = "nothing"
 			}
-			return nil, p.Die("`term` is rewritten as %s inside set_termname(), and `requested` can "+
+			v.Die("`term` is rewritten as %s inside set_termname(), and `requested` can "+
 				"only be folded into it while the prefix strip is the only one", j)
+			return
 		}
-		bA, bZ, err := span(t, "term_is_builtin")
-		if err != nil {
-			return nil, err
-		}
-		pre := w51Prefix.FindSubmatch(t[bA:bZ])
+		var pre []string
+		v.InFunction("term_is_builtin", func(v *graph.Verbs) {
+			if m := w51Prefix.FindStringSubmatch(string(v.Text())); m != nil {
+				pre = m
+			}
+		})
 		if pre == nil {
-			return nil, p.Die("term_is_builtin() does not strip a counted literal prefix, so what " +
+			v.Die("term_is_builtin() does not strip a counted literal prefix, so what " +
 				"`term += 8` skips cannot be read off the file")
+			return
 		}
-		if n, _ := strconv.Atoi(string(pre[2])); len(pre[1]) != n {
-			return nil, p.Die("term_is_builtin() does not strip a counted literal prefix, so what " +
+		if n, _ := strconv.Atoi(pre[2]); len(pre[1]) != n {
+			v.Die("term_is_builtin() does not strip a counted literal prefix, so what " +
 				"`term += 8` skips cannot be read off the file")
+			return
 		}
 		nd := w51Needle.FindSubmatch(s)
 		if nd == nil {
-			return nil, p.Die("the 256-colour test is not a musl_strstr on `requested`")
+			v.Die("the 256-colour test is not a musl_strstr on `requested`")
+			return
 		}
-		if bytes.IndexByte(pre[1], nd[1][0]) >= 0 {
-			return nil, p.Die("%s begins with a character the stripped prefix %s contains, so a match "+
+		if strings.IndexByte(pre[1], nd[1][0]) >= 0 {
+			v.Die("%s begins with a character the stripped prefix %s contains, so a match "+
 				"could start inside the prefix and `requested` is NOT `term` here",
-				edit.PyRepr(string(nd[1])), edit.PyRepr(string(pre[1])))
+				edit.PyRepr(string(nd[1])), edit.PyRepr(pre[1]))
+			return
 		}
-		s = bytes.ReplaceAll(s,
-			[]byte(`musl_strstr((char *)requested, "`+string(nd[1])+`")`),
-			[]byte(`musl_strstr((char *)term, "`+string(nd[1])+`")`))
-		if !w51ReqDecl.Match(s) {
-			return nil, p.Die("`requested` is not declared as `= term`")
+		decl := v.Find("(def requested (ptr char_u) term)")
+		if len(decl) != 1 {
+			v.Die("`requested` is not declared as `= term`")
+			return
 		}
-		p.Sayf("`requested` goes: it existed because the fallback reassigned `term`, and "+
+		termParam := decl[0].Kids[len(decl[0].Kids)-1].Refs
+		uses := e.Uses(decl[0])
+		if len(termParam) != 1 || len(uses) != 1 {
+			v.Die("`requested` is not declared as `= term`")
+			return
+		}
+		u := uses[0]
+		c := e.Parent(u)
+		for c != nil && !c.Is("call") {
+			c = e.Parent(c)
+		}
+		if c == nil || c.Kids[1].Atom != "musl_strstr" || c.Kids[3].Atom != `"`+string(nd[1])+`"` {
+			v.Die("the 256-colour test is not a musl_strstr on `requested`")
+			return
+		}
+		ref := e.RefTo(termParam[0])
+		if err := e.Replace(u, ref); err != nil {
+			v.Die("the 256-colour test: %v", err)
+			return
+		}
+		e.Rederive(ref) // the test above it typed again: `term` is what `requested` was
+		v.Sayf("`requested` goes: it existed because the fallback reassigned `term`, and "+
 			"the only rewrite left is the %s that strips %s -- %s cannot match inside "+
 			"that, because it begins with a character the prefix does not hold",
-			rew[0], edit.PyRepr(string(pre[1])), edit.PyRepr(string(nd[1])))
-		return s, nil
+			rew[0], edit.PyRepr(pre[1]), edit.PyRepr(string(nd[1])))
+	})
+	if v.Failed() {
+		return v.Done()
 	}
-	rA, rZ, err := span(t, "set_termname")
-	if err != nil {
-		return nil, err
-	}
-	seg, err = requested(t[rA:rZ])
-	if err != nil {
-		return nil, err
-	}
-	Out = append([]byte(nil), t[:rA]...)
-	Out = append(Out, seg...)
-	t = append(Out, t[rZ:]...)
 
-	// ---- 6. what is left, as a partition ---------------------------------
+	// ---- what is left
+	t := v.Text()
 	goneNames := []string{"mainerr_arg_missing", "ME_GARBAGE", "ME_ARG_MISSING"}
 	for _, name := range goneNames {
 		if k := w51Mentions(t, name); k != 0 {
-			return nil, p.Die("%s still has %d mentions", name, k)
+			v.Die("%s still has %d mentions", name, k)
+			return v.Done()
 		}
 	}
-	// requested is left declared and read by nothing, which is what the
-	// sweep takes.
 	for _, name := range []string{"requested"} {
 		if k := w51Mentions(t, name); k != 1 || !w51DeclOnly[name].Match(t) {
-			return nil, p.Die("%s still has %d mentions, beyond its declaration", name, k-1)
+			v.Die("%s still has %d mentions, beyond its declaration", name, k-1)
+			return v.Done()
 		}
 	}
 	for _, name := range []string{"ME_UNKNOWN_OPTION", "ME_EXTRA_CMD", "MAX_ARG_CMDS",
 		"exe_commands", "p_paste", "did_set_term", "report_term_error"} {
 		if w51Mentions(t, name) == 0 {
-			return nil, p.Die("%s went, and it is not this phase's", name)
+			v.Die("%s went, and it is not this phase's", name)
+			return v.Done()
 		}
 	}
 	if k := w51Mentions(t, "report_default_term"); k != 1 {
-		return nil, p.Die("report_default_term has %d mentions, and this phase leaves it at one -- "+
+		v.Die("report_default_term has %d mentions, and this phase leaves it at one -- "+
 			"its own definition, which is what the sweep takes", k)
+		return v.Done()
 	}
-	p.Sayf("0 mentions of %s; requested and report_default_term are down to their declarations and are the "+
+	v.Sayf("0 mentions of %s; requested and report_default_term are down to their declarations and are the "+
 		"sweep's; ME_UNKNOWN_OPTION, ME_EXTRA_CMD, MAX_ARG_CMDS, exe_commands and "+
 		"'paste' are untouched", strings.Join(goneNames, ", "))
-	return t, nil
+	return v.Done()
 }

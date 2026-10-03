@@ -141,4 +141,4 @@ and every part held, at exactly the counts it gets on swept text. It asserts no 
 sweep can move. Adding the phase moved no existing implementation key — 144 whim, slim and
 Part II keys identical either side, with only z37 new.
 
-The transformation now lives in `crefactor/xform` (`Unions`).
+The transformation now lives in `crefactor/graph` (`DegenerateUnions`, `b3db_unions.go`): the phase runs on the graph (B3d, `doc/GRAPH-MIGRATION.md`), each member retyped and each `x.m.only` the selection without its one member, by edge.

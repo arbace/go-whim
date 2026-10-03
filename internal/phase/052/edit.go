@@ -122,22 +122,43 @@ package p052
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// edit is the program's graph edited through crefactor/graph, its report the
+// text version's, which the plan ran until then (history keeps it):
+//
+//   - THE PARTITION is the uses of the three, by edge: each a callee in one
+//     of the four places, found by its form (host_alloc's and host_free's
+//     whole bodies, the call `free(argcopy)`, adjust_types()'s realloc in an
+//     else followed by its failure test); the mentions in the C view must
+//     be exactly those uses, so a word the edges cannot see refuses too;
+//   - the C is written by FRAG, in one synthesized import: the arena before
+//     host_alloc()'s definition, the two bodies, the two items of
+//     adjust_types() and the one of format_overflow_error(), each at its
+//     place (editlit.go, the text's literals cut where they go);
+//   - the core is held unchanged by its own C view, before and after; the
+//     includes by their forms.
+//
+// The scratch file the text wrote (arena-bytes, the arena's size for a
+// check that no longer exists) was read by nothing and is not written: the
+// plan's step no longer passes @state.  The text's last check, that the file
+// grew by exactly the lines its replacements held, was a count of the
+// text's own lines and has no counterpart; the report says the C view's.
+
 import (
-	"fmt"
 	"io"
-	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.RegisterArgs("whim52", Edit) }
+func init() { phase.RegisterGraph("whim52", Edit) }
 
-// w52Names are the three libc allocators.  `\b` does not match inside
-// `host_free`, `vim_free` or `realloc_cmdbuff` -- `_` is a word character --
-// so these are the bare libc names.
 var w52Names = []string{"malloc", "free", "realloc"}
 
 var (
@@ -145,222 +166,241 @@ var (
 	w52Inc = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
 )
 
-// Whim52 makes freeing free: host_alloc() becomes a bump allocator into a 1 GiB
-// arena and host_free() a function that returns.
-//
-// IT TOUCHES NO CORE LINE, and that is the phase's central claim: the text above
-// the first `#include` must be BYTE-IDENTICAL in and Out.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	p := edit.Ph{Tag: "arena", W: w}
-	if len(args) != 1 {
-		return nil, p.Die("usage: edit whim52 <file> <state-dir>")
-	}
-	state := args[0]
-	t := string(text)
-
-	swap := func(old, new, what, why string) error {
-		if c := edit.CountAnchor(t, old); c != 1 {
-			return p.Die("%s occurs %d times, expected 1 -- %s", what, c, why)
-		}
-		t = edit.ReplaceAnchor(t, old, new, 1)
-		return nil
-	}
-
-	L := strings.Split(t, "\n")
-	linesBefore := len(L) - 1
-
-	// ---- 0. the boundary, and the file this edit was written against ---------
-	var directives []int
-	for i, l := range L {
-		if w52Dir.MatchString(l) {
-			directives = append(directives, i)
-		}
-	}
-	if len(directives) != nInc {
-		return nil, p.Die("the file holds %d preprocessor directives and this phase was written against "+
-			"the eleven `#include`s phase 40 left", len(directives))
-	}
-	for i := range directives {
-		if directives[i] != directives[0]+i {
-			return nil, p.Die("the eleven directives are not eleven consecutive lines")
-		}
-	}
-	for _, i := range directives {
-		if !w52Inc.MatchString(L[i]) {
-			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
-				"add one")
-		}
-	}
-	boundary := directives[0]
-	coreBefore := strings.Join(L[:boundary], "\n")
-	p.Sayf("the boundary is line %d, the first of the eleven `#include`s, and there is not a "+
-		"directive above it", boundary+1)
-
-	// ---- 1. no literal holds any of the three names --------------------------
-	spans, err := edit.LiteralSpansShort(p, text)
-	if err != nil {
-		return nil, err
-	}
-	for _, name := range w52Names {
-		re := regexp.MustCompile(`\b` + name + `\b`)
-		var bad []string
-		for _, s := range spans {
-			if re.MatchString(t[s[0]:s[1]]) {
-				bad = append(bad, t[s[0]:s[1]])
-			}
-		}
-		if len(bad) > 0 {
-			return nil, p.Die("a literal holds the name `%s`: %s", name,
-				strings.Join(edit.First(bad, 3), " / "))
-		}
-	}
-	p.Sayf("%d string and character literals, and not one of them holds `malloc`, `free` or "+
-		"`realloc`, so every mention the partition below classifies is code", len(spans))
-
-	// ---- 2. THE PARTITION ----------------------------------------------------
-	// A PARTITION AND NOT A COUNT.  How many mentions there are is read off the
-	// text and never written down; what is written down is that every one falls
-	// in a class this phase rewrites, and that a mention in no class REFUSES.
-	classes := []struct{ What, Text string }{
-		{"host_alloc()'s body", w52AllocOld},
-		{"host_free()'s body", w52FreeOld},
-		{"format_overflow_error()'s free of argcopy", w52OverflowOld},
-		{"adjust_types()'s realloc of *ap_types, with the failure test below it", w52ReallocOld},
-	}
-	var covered [][2]int
-	for _, c := range classes {
-		if k := strings.Count(t, c.Text); k != 1 {
-			return nil, p.Die("%s is in the file %d times and must be there exactly once, so this phase "+
-				"has not been handed the file it was written for", c.What, k)
-		}
-		a := strings.Index(t, c.Text)
-		covered = append(covered, [2]int{a, a + len(c.Text)})
-	}
-	total := map[string]int{}
-	var stray []string
-	for _, name := range w52Names {
-		n := 0
-		for _, m := range regexp.MustCompile(`\b`+name+`\b`).FindAllStringIndex(t, -1) {
-			in := false
-			for _, c := range covered {
-				if c[0] <= m[0] && m[1] <= c[1] {
-					in = true
-					break
-				}
-			}
-			if in {
-				n++
-			} else {
-				stray = append(stray, fmt.Sprintf("%s:%d", name, strings.Count(t[:m[0]], "\n")+1))
-			}
-		}
-		total[name] = n
-	}
-	if len(stray) > 0 {
-		s := "s"
-		if len(stray) == 1 {
-			s = ""
-		}
-		return nil, p.Die("%d mention%s of one of the three is in none of the four classes this phase "+
-			"rewrites: %s -- this phase will not leave a libc allocator call behind on a "+
-			"pointer the arena handed out", len(stray), s, strings.Join(edit.First(stray, 6), " "))
-	}
-	// AND ALL OF THEM ARE BELOW THE BOUNDARY, which is the host-only claim stated
-	// as a place before it is stated as a `cmp`.
-	for _, name := range w52Names {
-		if regexp.MustCompile(`\b` + name + `\b`).MatchString(coreBefore) {
-			return nil, p.Die("`%s` is mentioned above the boundary, and phases 49a and 49b took the core's "+
-				"last one -- this phase changes the host and nothing else", name)
-		}
-	}
-	for _, n := range []string{"host_arena", "host_arena_used", "host_arena_say", "host_arena_num",
-		"host_arena_exhausted", "HOST_ARENA_BYTES"} {
-		if regexp.MustCompile(`\b` + n + `\b`).MatchString(t) {
-			return nil, p.Die("`%s` is already a name in this file", n)
-		}
-	}
-	p.Sayf("THE PARTITION HOLDS: `malloc` %d mentions, `free` %d and `realloc` %d, every one of "+
-		"them below the boundary and inside one of the four runs of text this phase "+
-		"rewrites -- host_alloc's body, host_free's body, format_overflow_error's free of "+
-		"argcopy and adjust_types's realloc of *ap_types.  Nothing else in the file says "+
-		"any of the three", total["malloc"], total["free"], total["realloc"])
-
-	// ---- 3 to 6. the four replacements ---------------------------------------
-	for _, e := range []struct{ Old, New, What, why string }{
-		{w52AllocOld, w52AllocNew, "host_alloc()'s definition",
-			"the arena, its offset, the two message helpers and the abort go where the one " +
-				"call of malloc() was, so the allocator and its data stay one paragraph of the " +
-				"launcher region"},
-		{w52FreeOld, w52FreeNew, "host_free()'s definition",
-			"this is the whole of \"freeing is now free\": the parameter is named so the " +
-				"signature does not move and discarded so the build is silent"},
-		{w52OverflowOld, w52lit2, "format_overflow_error()'s free of argcopy",
-			"argcopy came from alloc_clear(), which is host_alloc(), and from the line above " +
-				"this one libc's free() of that pointer is undefined.  It is the same rename " +
-				"phase 49b made at every core site, made at the one site below the boundary"},
-		{w52ReallocOld, w52ReallocNew, "adjust_types()'s realloc of *ap_types",
-			"phase 49a's rewrite at the one site phase 49a left: allocate, copy what was there, " +
-				"free the old block.  The old size is `*num_posarg` entries, which the function " +
-				"already has, and the guard is the same `*ap_types != nullptr` the arm above tests"},
-	} {
-		if err := swap(e.Old, e.New, e.What, e.why); err != nil {
-			return nil, err
-		}
-	}
-
-	// ---- 7. what the file is now ---------------------------------------------
-	L = strings.Split(t, "\n")
+// w52Directives are the C view's directive lines, by index.
+func w52Directives(view []byte) ([]int, []string) {
+	L := strings.Split(string(view), "\n")
 	var d []int
 	for i, l := range L {
 		if w52Dir.MatchString(l) {
 			d = append(d, i)
 		}
 	}
-	okd := len(d) == nInc && d[0] == boundary
+	return d, L
+}
+
+// Edit is phase 52 on the graph: host_alloc() hands out an arena, host_free()
+// frees nothing, and the two libc calls below the boundary that were not the
+// allocator's own become its.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("arena", e, w)
+	p := edit.Ph{Tag: "arena", W: io.Discard}
+	incs := e.Includes()
+	view := v.Text()
+	d, L := w52Directives(view)
+	linesBefore := len(L) - 1
+	if len(d) != len(incs) {
+		v.Die("the file holds %d preprocessor directives and this phase was written against "+
+			"the eleven `#include`s phase 40 left", len(d))
+		return v.Done()
+	}
 	for i := range d {
 		if d[i] != d[0]+i {
+			v.Die("the eleven directives are not eleven consecutive lines")
+			return v.Done()
+		}
+		if !w52Inc.MatchString(L[d[i]]) {
+			v.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
+				"add one")
+			return v.Done()
+		}
+	}
+	boundary := d[0]
+	coreBefore, err := graph.FormsC(e.Core())
+	if err != nil {
+		v.Die("the core's C view: %v", err)
+		return v.Done()
+	}
+	v.Sayf("the boundary is line %d, the first of the eleven `#include`s, and there is not a "+
+		"directive above it", boundary+1)
+
+	spans, err := edit.LiteralSpansShort(p, view)
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
+	}
+	for _, name := range w52Names {
+		re := regexp.MustCompile(`\b` + name + `\b`)
+		var bad []string
+		for _, s := range spans {
+			if re.Match(view[s[0]:s[1]]) {
+				bad = append(bad, string(view[s[0]:s[1]]))
+			}
+		}
+		if len(bad) > 0 {
+			v.Die("a literal holds the name `%s`: %s", name, strings.Join(edit.First(bad, 3), " / "))
+			return v.Done()
+		}
+	}
+	v.Sayf("%d string and character literals, and not one of them holds `malloc`, `free` or "+
+		"`realloc`, so every mention the partition below classifies is code", len(spans))
+
+	// the four places, by their forms
+	alloc, free := e.Defn("host_alloc"), e.Defn("host_free")
+	if alloc == nil || free == nil {
+		v.Die("host_alloc() and host_free() are not both defined in this file")
+		return v.Done()
+	}
+	var argFree, realloc, failTest *graph.Node
+	classes := []struct {
+		what string
+		ok   bool
+	}{
+		{"host_alloc()'s body", len(graph.Body(alloc)) == 1},
+		{"host_free()'s body", len(graph.Body(free)) == 1},
+	}
+	v.In(alloc, func(v *graph.Verbs) {
+		classes[0].ok = classes[0].ok && graph.Matches(w52Pattern("(return (call malloc n))"), graph.Body(alloc)[0])
+	})
+	v.In(free, func(v *graph.Verbs) {
+		classes[1].ok = classes[1].ok && graph.Matches(w52Pattern("(call free p)"), graph.Body(free)[0])
+	})
+	v.InFunction("format_overflow_error", func(v *graph.Verbs) {
+		ms := v.Find("(call free argcopy)")
+		ok := len(ms) == 1 && e.Item(ms[0]) == ms[0]
+		if ok {
+			argFree = ms[0]
+		}
+		classes = append(classes, struct {
+			what string
+			ok   bool
+		}{"format_overflow_error()'s free of argcopy", ok})
+	})
+	v.InFunction("adjust_types", func(v *graph.Verbs) {
+		ms := v.Find("(if _ _ (block (= new_types (call realloc (paren (cast _ (deref ap_types))) _))))")
+		ok := len(ms) == 1
+		if ok {
+			realloc = ms[0].Kids[3].Kids[1]
+			failTest = e.Sibling(ms[0], 1)
+			ok = failTest != nil && graph.Matches(w52Pattern("(if (== new_types nullptr) (block (return FAIL)))"), failTest)
+		}
+		classes = append(classes, struct {
+			what string
+			ok   bool
+		}{"adjust_types()'s realloc of *ap_types, with the failure test below it", ok})
+	})
+	if v.Failed() {
+		return v.Done()
+	}
+	for _, c := range classes {
+		if !c.ok {
+			v.Die("%s is not in the file in the one shape this phase was written for, so this "+
+				"phase has not been handed the file it was written for", c.what)
+			return v.Done()
+		}
+	}
+	// every use of the three is one of the four, and every mention a use
+	callees := map[*graph.Node]bool{}
+	for _, f := range []*graph.Node{graph.Body(alloc)[0].Kids[1], graph.Body(free)[0], argFree, realloc.Kids[2]} {
+		callees[f.Kids[1]] = true
+	}
+	total := map[string]int{}
+	var stray []string
+	for _, name := range w52Names {
+		for _, u := range v.UsesOf(name) {
+			if !callees[u] {
+				where := "?"
+				if f := e.TopForm(u); f != nil {
+					where = graph.DeclName(f)
+				}
+				stray = append(stray, name+" in "+where)
+				continue
+			}
+			if e.InCore(u) {
+				v.Die("`%s` is mentioned above the boundary, and phases 49a and 49b took the core's "+
+					"last one -- this phase changes the host and nothing else", name)
+				return v.Done()
+			}
+			total[name]++
+		}
+		if m := edit.MentionCount(view, name); m != total[name] && len(stray) == 0 {
+			stray = append(stray, name+": "+strconv.Itoa(m-total[name])+" mention(s) no edge accounts for")
+		}
+	}
+	if len(stray) > 0 {
+		s := "s"
+		if len(stray) == 1 {
+			s = ""
+		}
+		v.Die("%d mention%s of one of the three is in none of the four classes this phase "+
+			"rewrites: %s -- this phase will not leave a libc allocator call behind on a "+
+			"pointer the arena handed out", len(stray), s, strings.Join(edit.First(stray, 6), " "))
+		return v.Done()
+	}
+	for _, name := range w52Names {
+		if edit.MentionCount(coreBefore, name) > 0 {
+			v.Die("`%s` is mentioned above the boundary, and phases 49a and 49b took the core's "+
+				"last one -- this phase changes the host and nothing else", name)
+			return v.Done()
+		}
+	}
+	for _, n := range []string{"host_arena", "host_arena_used", "host_arena_say", "host_arena_num",
+		"host_arena_exhausted", "HOST_ARENA_BYTES"} {
+		if edit.MentionCount(view, n) > 0 {
+			v.Die("`%s` is already a name in this file", n)
+			return v.Done()
+		}
+	}
+	v.Sayf("THE PARTITION HOLDS: `malloc` %d mentions, `free` %d and `realloc` %d, every one of "+
+		"them below the boundary and inside one of the four runs of text this phase "+
+		"rewrites -- host_alloc's body, host_free's body, format_overflow_error's free of "+
+		"argcopy and adjust_types's realloc of *ap_types.  Nothing else in the file says "+
+		"any of the three", total["malloc"], total["free"], total["realloc"])
+
+	// the four rewrites, one synthesized import
+	if _, err := e.SpliceC(
+		graph.Frag{At: e.SpotBefore(alloc), Src: w52Arena},
+		graph.Frag{At: e.SpotBody(alloc), Src: w52AllocBody},
+		graph.Frag{At: e.SpotBody(free), Src: w52FreeBody},
+		graph.Frag{At: e.SpotOf(argFree), Src: w52FreeArg},
+		graph.Frag{At: e.SpotOf(e.Item(realloc)), Src: w52ReallocStmt},
+		graph.Frag{At: e.SpotAfter(failTest), Src: w52CopyOld},
+	); err != nil {
+		v.Die("the arena, the bodies and the two sites -- %v", err)
+		return v.Done()
+	}
+
+	view = v.Text()
+	d2, L2 := w52Directives(view)
+	okd := len(d2) == len(incs) && d2[0] == boundary
+	for i := range d2 {
+		if d2[i] != d2[0]+i {
+			okd = false
+		}
+	}
+	for i, inc := range e.Includes() {
+		if i >= len(incs) || inc != incs[i] {
 			okd = false
 		}
 	}
 	if !okd {
-		return nil, p.Die("the output does not have the same eleven contiguous `#include` directives at " +
+		v.Die("the output does not have the same eleven contiguous `#include` directives at " +
 			"the same line -- this phase adds no directive, removes none and moves none")
+		return v.Done()
 	}
 	for _, name := range w52Names {
-		if n := len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(t, -1)); n != 0 {
-			return nil, p.Die("`%s` still has %d mentions after every class was rewritten", name, n)
+		if n := edit.MentionCount(view, name); n != 0 {
+			v.Die("`%s` still has %d mentions after every class was rewritten", name, n)
+			return v.Done()
 		}
 	}
-	// THE CORE IS BYTE-IDENTICAL, which is this phase's central claim and is
-	// asserted here before the check states it as `make editor.c`'s own `cmp`.
-	if strings.Join(L[:d[0]], "\n") != coreBefore {
-		return nil, p.Die("the text above the boundary is not what it was: this phase is below it " +
+	coreAfter, err := graph.FormsC(e.Core())
+	if err != nil || string(coreAfter) != string(coreBefore) {
+		v.Die("the text above the boundary is not what it was: this phase is below it " +
 			"entirely, and a difference there is a bug in one of the four replacements")
+		return v.Done()
 	}
-	p.Sayf("`malloc`, `free` and `realloc` are 0 mentions in the whole file, and the %d lines "+
+	v.Sayf("`malloc`, `free` and `realloc` are 0 mentions in the whole file, and the %d lines "+
 		"above the boundary are BYTE-IDENTICAL to the input's -- the eleven #includes are "+
-		"untouched at line %d", d[0], d[0]+1)
+		"untouched at line %d", d2[0], d2[0]+1)
+	v.Sayf("%d -> %d lines of the C view, %d more", linesBefore, len(L2)-1, len(L2)-1-linesBefore)
+	return v.Done()
+}
 
-	// The arithmetic, computed rather than written: the four replacements' own
-	// line counts.
-	grew := 0
-	for _, e := range [][2]string{
-		{w52AllocOld, w52AllocNew}, {w52FreeOld, w52FreeNew},
-		{w52OverflowOld, w52lit2}, {w52ReallocOld, w52ReallocNew},
-	} {
-		grew += len(strings.Split(e[1], "\n")) - len(strings.Split(e[0], "\n"))
+// w52Pattern is a pattern this program writes, which reads.
+func w52Pattern(s string) *clisp.Node {
+	p, err := clisp.Pattern(s)
+	if err != nil {
+		panic(err)
 	}
-	if len(L)-1 != linesBefore+grew {
-		return nil, p.Die("the file is %d lines and the input was %d -- the four replacements are %d lines "+
-			"more between them", len(L)-1, linesBefore, grew)
-	}
-	p.Sayf("%d -> %d lines, %d more, which is exactly what the four replacements are worth; no "+
-		"run of two blank lines", linesBefore, len(L)-1, grew)
-
-	if err := os.WriteFile(state+"/arena-bytes",
-		[]byte(fmt.Sprintf("%d\n", 1024*1024*1024)), 0o644); err != nil {
-		return nil, p.Die("%v", err)
-	}
-	return []byte(t), nil
+	return p
 }

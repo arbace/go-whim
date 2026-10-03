@@ -78,156 +78,87 @@ package p049
 // be believed.
 //
 // THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and the check records from it.
-// The flags are read out of the boundary's makefile rather than written here a second
-// time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// cut is on the program's graph, its report the text version's, which the
+// plan ran until then (history keeps it); the @state argument and the two
+// files it wrote there are gone, since nothing read them once the checks
+// went (448e9a8):
+//
+//   - the include checks are the include forms, the block of ordinary
+//     declarations the core forms around `int getpid(void);`
+//     (vimtext.OrdinaryBlock);
+//   - the classes every mention of getpid and kill above the boundary must
+//     fall in are the edges: getpid's prototype used in mch_get_pid() and in
+//     the re-raise, kill's in the re-raise alone, the re-raise the one
+//     statement `kill(getpid(), SIG);` of the core; the mention counts on the
+//     C view are the text's own, beside them;
+//   - "b0_pid is write-only" is the member's one use, the selection inside
+//     the one call of mch_get_pid(), `long_to_char(mch_get_pid(), p->b0_pid);`,
+//     a statement of its own, which is cut;
+//   - the re-raise is made again by FRAG, `host_raise(SIG);`, after
+//     host_raise's prototype goes in after host_time's, and its definition
+//     above musl_suspend()'s, FRAG's both;
+//   - the two prototypes go by DeleteForHeader: musl_suspend()'s kill becomes
+//     <signal.h>'s, and mch_get_pid()'s getpid, which the text left
+//     undeclared for the sweep, is left dangling for the collection, which
+//     takes mch_get_pid() with it, as it took it from the text;
+//   - the host region is asked of the forms (host_raise's definition between
+//     host_winch_pending's and musl_suspend()'s); the report's line numbers
+//     are the C view's.
 
 import (
 	"fmt"
 	"io"
-	"os"
-	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { phase.RegisterArgs("whim49", Edit) }
+func init() { phase.RegisterGraph("whim49", Edit) }
 
-// Whim49 leaves the core naming no libc function at all.  The last two go by
-// DIFFERENT routes: `getpid` is avoidable outright, its one caller feeding a
-// `b0_pid` that nothing reads; `kill` is moved, becoming host_raise(), which
-// takes no pid because a core that cannot ask for its own process id must not be
-// handed one.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	p := edit.Ph{Tag: "noclib", W: w}
-	if len(args) != 1 {
-		return nil, p.Die("usage: edit whim49 <file> <state-dir>")
+// w49Lines are the 1-based numbers of the lines of L in [lo, hi) that
+// mention the word.
+func w49Lines(L []string, lo, hi int, word string) []string {
+	var out []string
+	for i := lo; i < hi && i < len(L); i++ {
+		if edit.MentionCount([]byte(L[i]), word) > 0 {
+			out = append(out, fmt.Sprint(i+1))
+		}
 	}
-	state := args[0]
-	t := string(text)
+	return out
+}
 
-	mentions := func(s, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(s, -1))
+// Edit is phase 49 on the graph: getpid and kill leave the core, the
+// deferred deadly signal re-raised through host_raise().
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noclib", e, w)
+	incs, err := vimtext.IncludeRun(e)
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
 	}
-	swap := func(old, new, what, why string) error {
-		if c := edit.CountAnchor(t, old); c != 1 {
-			return p.Die("%s occurs %d times, expected 1 -- %s", what, c, why)
-		}
-		t = edit.ReplaceAnchor(t, old, new, 1)
-		return nil
-	}
-	// defn is the half-open line range of a definition in this tree's ONE shape,
-	// the same shape zhostonly reads.
-	defn := func(L []string, name string) (int, int, error) {
-		head := regexp.MustCompile(`^` + name + `\s*\(`)
-		var heads []int
-		for i, l := range L {
-			if head.MatchString(l) && i+1 < len(L) && L[i+1] == "{" {
-				heads = append(heads, i)
-			}
-		}
-		if len(heads) != 1 {
-			return 0, 0, p.Die("`%s` is defined %d times at column 0, and this phase needs exactly one",
-				name, len(heads))
-		}
-		end := heads[0]
-		for end < len(L) && L[end] != "}" {
-			end++
-		}
-		if end >= len(L) {
-			return 0, 0, p.Die("`%s` does not close at column 0", name)
-		}
-		if !retTypeRe.MatchString(L[heads[0]-1]) {
-			return 0, 0, p.Die("the line above `%s`'s head is %s and every definition in this tree carries "+
-				"its return type there, indented", name, edit.PyRepr(L[heads[0]-1]))
-		}
-		return heads[0] - 1, end + 1, nil
-	}
-	shortName := func(l string) string { return vimtext.DeclNameRe.ReplaceAllString(l, "$1") }
-
-	L := strings.Split(t, "\n")
+	text := v.Text()
+	core, host, bound := vimtext.SplitCore(text)
+	L := strings.Split(string(text), "\n")
 	linesBefore := len(L) - 1
+	v.Sayf("the boundary is line %d, the first of the eleven `#include`s, and there is not a "+
+		"directive above it", bound+1)
 
-	// ---- 0. the boundary, and the file this edit was written against ---------
-	var directives []int
-	for i, l := range L {
-		if vimtext.DirectiveRe.MatchString(l) {
-			directives = append(directives, i)
-		}
-	}
-	if len(directives) != nInc {
-		return nil, p.Die("the file holds %d preprocessor directives and this phase was written against "+
-			"the eleven `#include`s phase 40 left", len(directives))
-	}
-	for i := range directives {
-		if directives[i] != directives[0]+i {
-			return nil, p.Die("the eleven directives are not eleven consecutive lines")
-		}
-	}
-	for _, i := range directives {
-		if !vimtext.SystemIncludeRe.MatchString(L[i]) {
-			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
-				"add one")
-		}
-	}
-	boundary := directives[0]
-	p.Sayf("the boundary is line %d, the first of the eleven `#include`s, and there is not a "+
-		"directive above it", boundary+1)
-
-	// ---- 1. the core's block of ordinary declarations, FOUND rather than assumed
-	var seed []int
-	for i, l := range L[:boundary] {
-		if l == w49Go[0] {
-			seed = append(seed, i)
-		}
-	}
-	if len(seed) != 1 {
-		return nil, p.Die("the core does not declare `%s` exactly once, so this phase has not been handed "+
-			"the file it was written for", w49Go[0])
-	}
-	// THE BLOCK IS THE DECLARATIONS WITH NOTHING BUT BLANK LINES BETWEEN THEM:
-	// the canonical print separates every declaration with one.  lo and hi are
-	// its first and last declaration, and blockBefore is those declarations.
-	lo, hi := seed[0], seed[0]
-	for {
-		j := lo - 1
-		for j > 0 && L[j] == "" {
-			j--
-		}
-		if j < 0 || !vimtext.IsPrototypeLine(L[j]) {
-			break
-		}
-		lo = j
-	}
-	for {
-		j := hi + 1
-		for j < boundary-1 && L[j] == "" {
-			j++
-		}
-		if j >= boundary || !vimtext.IsPrototypeLine(L[j]) {
-			break
-		}
-		hi = j
-	}
-	var blockBefore []string
-	for _, l := range L[lo : hi+1] {
-		if l != "" {
-			blockBefore = append(blockBefore, l)
-		}
+	block, blockBefore, err := vimtext.OrdinaryBlock(e, w49Go[0])
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
 	}
 	for _, line := range w49Go {
 		if !edit.Contains(blockBefore, line) {
-			return nil, p.Die("`%s` is not in the core's block of ordinary declarations, which is %s",
+			v.Die("`%s` is not in the core's block of ordinary declarations, which is %s",
 				line, strings.Join(blockBefore, " / "))
+			return v.Done()
 		}
-	}
-	if L[lo-1] != "" || L[hi+1] != "" {
-		return nil, p.Die("the block is not a paragraph of its own -- line %d is %s and line %d is %s",
-			lo, edit.PyRepr(L[lo-1]), hi+2, edit.PyRepr(L[hi+1]))
 	}
 	var blockAfter []string
 	for _, l := range blockBefore {
@@ -235,388 +166,306 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			blockAfter = append(blockAfter, l)
 		}
 	}
-	names := make([]string, len(blockBefore))
-	for i, l := range blockBefore {
-		names[i] = shortName(l)
+	names := make([]string, len(block))
+	decl := map[string]*graph.Node{}
+	declLine := map[string]int{}
+	for i, f := range block {
+		names[i] = graph.DeclName(f)
+		decl[names[i]] = f
+		for j, l := range L[:bound] {
+			if l == blockBefore[i] {
+				declLine[names[i]] = j
+				break
+			}
+		}
 	}
-	p.Sayf("the core's block of ordinary declarations is lines %d-%d, %d of them: %s",
-		lo+1, hi+1, len(blockBefore), strings.Join(names, " "))
+	v.Sayf("the core's block of ordinary declarations is lines %d-%d, %d of them: %s",
+		declLine[names[0]]+1, declLine[names[len(names)-1]]+1, len(blockBefore), strings.Join(names, " "))
 
-	// ---- 2. the two names above the boundary, AS A PARTITION AND NOT A COUNT -
-	core := strings.Join(L[:boundary], "\n")
-	host := strings.Join(L[boundary:], "\n")
-	gpLo, gpHi, err := defn(L, "mch_get_pid")
-	if err != nil {
-		return nil, err
+	// the classes, by edge
+	gp := e.Defn("mch_get_pid")
+	if gp == nil || !e.InCore(gp) {
+		v.Die("mch_get_pid() is not defined above the boundary, and this phase is about what the CORE says")
+		return v.Done()
 	}
-	if gpHi > boundary {
-		return nil, p.Die("mch_get_pid() is defined below the boundary, and this phase is about what the " +
-			"CORE says")
+	var raise *graph.Node
+	for _, u := range e.Uses(decl["kill"]) {
+		if !e.InCore(u) {
+			continue
+		}
+		call := e.Parent(u)
+		if raise != nil || call == nil || !call.Is("call") || len(call.Kids) != 4 || e.Item(call) != call ||
+			!call.Kids[2].Is("call") || len(call.Kids[2].Kids) != 2 || call.Kids[3].IsList() {
+			v.Die("`kill` is used above the boundary other than once, as `kill(getpid(), <name>);`, the "+
+				"deferred deadly signal vim_handle_signal() re-raises: %s", graph.Lisp(call))
+			return v.Done()
+		}
+		raise = call
 	}
-	var raiseLines []int
-	for i := 0; i < boundary; i++ {
-		if reraiseRe.MatchString(L[i]) {
-			raiseLines = append(raiseLines, i)
+	if raise == nil || e.Function(raise) == nil || graph.DeclName(e.Function(raise)) != "vim_handle_signal" {
+		v.Die("`kill(getpid(), <name>);` is not one statement of vim_handle_signal() above the boundary")
+		return v.Done()
+	}
+	inner := raise.Kids[2].Kids[1]
+	deferred := raise.Kids[3]
+	for _, u := range e.Uses(decl["getpid"]) {
+		if u != inner && e.Function(u) != gp {
+			v.Die("`getpid` is used at %s, which is in none of the classes this phase rewrites "+
+				"(declaration, mch_get_pid(), the re-raise) -- and this phase will not delete a "+
+				"declaration whose every use it cannot account for", graph.Lisp(e.Parent(u)))
+			return v.Done()
 		}
 	}
-	if len(raiseLines) != 1 {
-		return nil, p.Die("`kill(getpid(), <name>);` is %d lines above the boundary and this phase needs "+
-			"exactly one, the deferred deadly signal vim_handle_signal() re-raises", len(raiseLines))
+	gpLo, gpHi := -1, -1
+	for i, l := range L[:bound] {
+		if strings.HasPrefix(l, "mch_get_pid(") && i+1 < len(L) && L[i+1] == "{" {
+			gpLo = i - 1
+			for gpHi = i; gpHi < len(L) && L[gpHi] != "}"; gpHi++ {
+			}
+			gpHi++
+		}
 	}
-	rl := raiseLines[0]
-	m := reraiseRe.FindStringSubmatch(L[rl])
-	indent, deferred := m[1], m[2]
-	gpRange := make([]int, 0, gpHi-gpLo)
-	for i := gpLo; i < gpHi; i++ {
-		gpRange = append(gpRange, i)
+	rl := -1
+	for i, l := range L[:bound] {
+		if strings.TrimSpace(l) == fmt.Sprintf("kill(getpid(), %s);", deferred.Atom) {
+			rl = i
+		}
 	}
-	type class struct {
-		What  string
-		lines []int
-	}
-	classes := []struct {
-		Name string
-		cls  []class
+	for _, c := range []struct {
+		Name    string
+		mention int
+		cls     [][2]string
 	}{
-		{"getpid", []class{
-			{"declaration", []int{lo + edit.IndexOf(L[lo:hi+1], w49Go[0])}},
-			{"mch_get_pid()", gpRange},
-			{"the re-raise", []int{rl}},
-		}},
-		{"kill", []class{
-			{"declaration", []int{lo + edit.IndexOf(L[lo:hi+1], w49Go[1])}},
-			{"the re-raise", []int{rl}},
-		}},
-	}
-	// The Python iterates a dict, whose order is the insertion order; the report
-	// is what a port must reproduce, so the classes are a SLICE here and not a
-	// map -- ranging a Go map would reorder the line every run.
-	for _, c := range classes {
-		word := regexp.MustCompile(`\b` + c.Name + `\b`)
-		var seen []int
-		for i := 0; i < boundary; i++ {
-			if word.MatchString(L[i]) {
-				seen = append(seen, i)
-			}
-		}
-		owned := map[int]bool{}
-		for _, cl := range c.cls {
-			for _, i := range cl.lines {
-				owned[i] = true
-			}
-		}
-		var stray []string
-		for _, i := range seen {
-			if !owned[i] {
-				stray = append(stray, fmt.Sprintf("%d:%s", i+1, strings.TrimSpace(L[i])))
-			}
-		}
-		if len(stray) > 0 {
-			var labels []string
-			for _, cl := range c.cls {
-				labels = append(labels, cl.What)
-			}
-			return nil, p.Die("`%s` is said above the boundary at %s, which is in none of the classes this "+
-				"phase rewrites (%s) -- and this phase will not delete a declaration whose "+
-				"every use it cannot account for",
-				c.Name, strings.Join(edit.First(stray, 4), " "), strings.Join(labels, ", "))
+		{"getpid", 3, [][2]string{{"declaration", fmt.Sprint(declLine["getpid"] + 1)},
+			{"mch_get_pid()", strings.Join(w49Lines(L, gpLo, gpHi, "getpid"), " ")},
+			{"the re-raise", fmt.Sprint(rl + 1)}}},
+		{"kill", 2, [][2]string{{"declaration", fmt.Sprint(declLine["kill"] + 1)},
+			{"the re-raise", fmt.Sprint(rl + 1)}}},
+	} {
+		if n := edit.MentionCount(core, c.Name); n != c.mention {
+			v.Die("`%s` is said %d times above the boundary, where its declaration and the uses its "+
+				"classes hold are %d", c.Name, n, c.mention)
+			return v.Done()
 		}
 		var parts []string
 		for _, cl := range c.cls {
-			any := false
-			var where []string
-			for _, i := range cl.lines {
-				if word.MatchString(L[i]) {
-					any = true
-					where = append(where, fmt.Sprintf("%d", i+1))
-				}
-			}
-			if !any {
-				return nil, p.Die("the class `%s` of `%s` holds no mention of it", cl.What, c.Name)
-			}
-			parts = append(parts, fmt.Sprintf("%s at %s", cl.What, strings.Join(where, " ")))
+			parts = append(parts, cl[0]+" at "+cl[1])
 		}
-		s := "s"
-		if len(seen) == 1 {
-			s = ""
-		}
-		p.Sayf("`%s` above the boundary: %d mention%s, and every one falls in a class this "+
-			"phase rewrites -- %s", c.Name, len(seen), s, strings.Join(parts, ", "))
+		v.Sayf("`%s` above the boundary: %d mentions, and every one falls in a class this "+
+			"phase rewrites -- %s", c.Name, c.mention, strings.Join(parts, ", "))
 	}
 	for _, nh := range []struct {
 		Name  string
 		nhost int
 	}{{"getpid", 0}, {"kill", 1}} {
-		if k := mentions(host, nh.Name); k != nh.nhost {
-			return nil, p.Die("`%s` has %d mentions below the boundary and this phase was written against "+
-				"%d -- musl_suspend() stops the process group with `kill(0, SIGTSTP)` and "+
-				"nothing below the boundary asks for a pid", nh.Name, k, nh.nhost)
+		if k := edit.MentionCount(host, nh.Name); k != nh.nhost {
+			v.Die("`%s` has %d mentions below the boundary and this phase was written against %d -- "+
+				"musl_suspend() stops the process group with `kill(0, SIGTSTP)` and nothing below "+
+				"the boundary asks for a pid", nh.Name, k, nh.nhost)
+			return v.Done()
 		}
 	}
-	_ = core
-	if mentions(t, "host_raise") > 0 {
-		return nil, p.Die("`host_raise` is already a name in this file")
+	if edit.MentionCount(text, "host_raise") > 0 {
+		v.Die("`host_raise` is already a name in this file")
+		return v.Done()
 	}
 
-	// ---- 3. getpid is AVOIDED -------------------------------------------------
-	var protoGP, callers []int
-	for i, l := range L {
-		if getPidProtoRe.MatchString(l) {
-			protoGP = append(protoGP, i)
+	// mch_get_pid()'s one call, and b0_pid
+	var protoGP []*graph.Node
+	for _, d := range e.Decls("mch_get_pid") {
+		if d != gp {
+			protoGP = append(protoGP, d)
 		}
 	}
-	for i, l := range L {
-		if len(edit.CallsNotAfterWord([]byte(l), "mch_get_pid")) > 0 &&
-			!(gpLo <= i && i < gpHi) && !edit.Contains(protoGP, i) {
-			callers = append(callers, i)
-		}
-	}
-	if len(protoGP) != 1 || len(callers) != 1 {
-		return nil, p.Die("mch_get_pid() has %d forward declarations and %d call sites outside its own "+
-			"definition, and this phase needs one of each -- the prototype tools/deadprotos.py "+
-			"takes, and ml_open()'s write of b0_pid", len(protoGP), len(callers))
-	}
-	if !pidWriteRe.MatchString(L[callers[0]]) {
-		return nil, p.Die("mch_get_pid()'s one call site is %s, and this phase was written against "+
-			"ml_open()'s `long_to_char(mch_get_pid(), b0p->b0_pid);`", edit.PyRepr(L[callers[0]]))
-	}
-	var b0, field []int
-	b0Re := regexp.MustCompile(`\bb0_pid\b`)
-	for i, l := range L {
-		if b0Re.MatchString(l) {
-			b0 = append(b0, i)
-			if pidFieldRe.MatchString(l) {
-				field = append(field, i)
+	var callers []*graph.Node
+	for _, d := range append(protoGP, gp) {
+		for _, u := range e.Uses(d) {
+			if e.Function(u) != gp {
+				callers = append(callers, u)
 			}
 		}
 	}
-	want := append(append([]int{}, field...), callers[0])
-	sort.Ints(want)
-	if len(b0) != 2 || len(field) != 1 || !sameInts(b0, want) {
-		var shown []string
-		for _, i := range b0 {
-			shown = append(shown, fmt.Sprintf("%d:%s", i+1, strings.TrimSpace(L[i])))
-		}
-		return nil, p.Die("`b0_pid` has %d mentions and this phase needs exactly two, its own declaration "+
-			"and the one write: %s", len(b0), strings.Join(shown, " "))
+	if len(protoGP) != 1 || len(callers) != 1 {
+		v.Die("mch_get_pid() has %d forward declarations and %d call sites outside its own definition, "+
+			"and this phase needs one of each -- the prototype the sweep takes, and ml_open()'s write "+
+			"of b0_pid", len(protoGP), len(callers))
+		return v.Done()
 	}
-	p.Sayf("`b0_pid` is WRITE-ONLY: %d mentions in the whole file, its declaration at line %d "+
+	write := e.Parent(e.Parent(callers[0]))
+	if write == nil || !write.Is("call") || len(write.Kids) != 4 || write.Kids[1].Atom != "long_to_char" ||
+		write.Kids[2] != e.Parent(callers[0]) || !write.Kids[3].Is("->") || e.Item(write) != write ||
+		graph.DeclName(e.Function(write)) != "ml_open" {
+		v.Die("mch_get_pid()'s one call site is %s, and this phase was written against ml_open()'s "+
+			"`long_to_char(mch_get_pid(), b0p->b0_pid);`", graph.Lisp(write))
+		return v.Done()
+	}
+	field := write.Kids[3].Kids[2].Ref()
+	if field == nil || len(e.Uses(field)) != 1 || edit.MentionCount(text, "b0_pid") != 2 {
+		v.Die("`b0_pid` has %d mentions and this phase needs exactly two, its own declaration and the "+
+			"one write", edit.MentionCount(text, "b0_pid"))
+		return v.Done()
+	}
+	fieldLine, writeLine := 0, 0
+	for i, l := range L {
+		if strings.Contains(l, "b0_pid") {
+			if strings.Contains(l, "long_to_char") {
+				writeLine = i + 1
+			} else {
+				fieldLine = i + 1
+			}
+		}
+	}
+	v.Sayf("`b0_pid` is WRITE-ONLY: 2 mentions in the whole file, its declaration at line %d "+
 		"and ml_open()'s write at line %d, and not one read.  So the write is the entry "+
 		"point, mch_get_pid() (lines %d-%d) is its only feeder, and `getpid` leaves the core "+
-		"without a host call", len(b0), field[0]+1, callers[0]+1, gpLo+1, gpHi)
-	if err := swap(L[callers[0]]+"\n", "", "ml_open()'s write of b0_pid",
-		"it is the only mention of the field that is not its declaration, and the only "+
-			"caller of mch_get_pid()"); err != nil {
-		return nil, err
-	}
-	// mch_get_pid() is uncalled now, and its body, the only other place the
-	// core says `getpid`, goes with it in the sweep.
-
-	// ---- 4. kill is MOVED -----------------------------------------------------
-	if err := swap(fmt.Sprintf("%skill(getpid(), %s);\n", indent, deferred),
-		fmt.Sprintf("%shost_raise(%s);\n", indent, deferred),
-		"vim_handle_signal()'s re-raise of a deferred deadly signal",
-		"the core asks the host to raise the signal on this process; WHICH process that is "+
-			"is the host's idea, exactly as fd 1 is under host_write"); err != nil {
-		return nil, err
+		"without a host call", fieldLine, writeLine, gpLo+1, gpHi)
+	if err := e.Delete(write); err != nil {
+		v.Die("ml_open()'s write of b0_pid: %v", err)
+		return v.Done()
 	}
 
-	// ---- 5. the two declarations leave the core's block -----------------------
-	// AS ONE REPLACEMENT OF THE WHOLE BLOCK, because of what happens when it
-	// empties: the block is a paragraph, and taking its last line away leaves two
-	// blank lines in a row.
-	oldBlock := strings.Join(blockBefore, "\n") + "\n"
-	if len(blockAfter) > 0 {
-		if err := swap(oldBlock, strings.Join(blockAfter, "\n")+"\n",
-			"the core's block of declarations",
-			"the two this phase owns come out of it and the rest stay where they are"); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := swap(oldBlock+"\n", "", "the core's block of declarations AND its trailing "+
-			"blank line",
-			"the block is empty now, and a paragraph separator with nothing to separate "+
-				"is the run of two blank lines this file does not have"); err != nil {
-			return nil, err
+	// host_raise: its prototype, the re-raise, the old prototypes, the definition
+	var ht []*graph.Node
+	for _, f := range e.Core() {
+		if graph.DeclName(f) == "host_time" && f.Is("def") {
+			if c, err := vimtext.FormC(f); err == nil && c == "static long host_time(void);" {
+				ht = append(ht, f)
+			}
 		}
 	}
-
-	// ---- 6. one prototype at the end of the core -> host block ---------------
-	if err := swap("static long host_time(void);\n",
-		"static long host_time(void);\n"+w49Proto+"\n",
-		"the last of the core -> host prototypes",
-		"the boundary is ONE block, and this belongs at the end of it rather than wherever "+
-			"a declaration happened to fit"); err != nil {
-		return nil, err
+	if len(ht) != 1 {
+		v.Die("the last of the core -> host prototypes, `static long host_time(void);`, occurs %d times, "+
+			"expected 1 -- the boundary is ONE block, and this belongs at the end of it", len(ht))
+		return v.Done()
+	}
+	made, err := e.SpliceC(graph.Frag{At: e.SpotAfter(ht[0]), Src: w49Proto},
+		graph.Frag{At: e.SpotOf(raise), Src: "host_raise($sig);", Holes: graph.Bindings{"sig": deferred}})
+	if err != nil {
+		v.Die("host_raise's prototype and vim_handle_signal()'s re-raise of a deferred deadly signal: %v", err)
+		return v.Done()
+	}
+	proto := made[0][0]
+	suspend := e.Defn("musl_suspend")
+	if suspend == nil || !e.InHost(suspend) {
+		v.Die("musl_suspend() is not defined below the boundary, the last function of the host region")
+		return v.Done()
+	}
+	// kill's every use is the header's now, its definition's too; getpid's one
+	// left in the core is mch_get_pid()'s, for the collection
+	if _, dangling, err := e.DeleteForHeader([]*graph.Node{decl["getpid"], decl["kill"]}, true,
+		func() []graph.Frag { return []graph.Frag{{At: e.SpotBefore(suspend), Src: w49Def}} }); err != nil {
+		v.Die("%v", err)
+		return v.Done()
+	} else if len(dangling) != 1 || e.Function(dangling[0]) != gp || dangling[0].Atom != "getpid" {
+		v.Die("`getpid` and `kill` are left used %d times, where mch_get_pid()'s one getpid, for the "+
+			"collection, was expected", len(dangling))
+		return v.Done()
 	}
 
-	// ---- 7. and the host defines it, INSIDE the host block -------------------
-	if err := swap("    static void\nmusl_suspend(void)\n{\n",
-		w49Def+"    static void\nmusl_suspend(void)\n{\n",
-		"musl_suspend()'s head, the last function of the host region",
-		"the definition goes immediately above it, so that it is INSIDE the region "+
-			"zhostonly reads and its two host words are where every other one is"); err != nil {
-		return nil, err
-	}
-
-	// ---- 8. what the file is now ----------------------------------------------
-	L = strings.Split(t, "\n")
-	boundary = -1
-	for i, l := range L {
-		if vimtext.DirectiveRe.MatchString(l) {
-			boundary = i
-			break
-		}
-	}
-	core, host = strings.Join(L[:boundary], "\n"), strings.Join(L[boundary:], "\n")
+	text = v.Text()
+	core, host, bound = vimtext.SplitCore(text)
+	L = strings.Split(string(text), "\n")
 	for _, r := range []struct {
 		Name         string
 		ncore, nhost int
 	}{{"getpid", 1, 1}, {"kill", 0, 2}, {"mch_get_pid", 2, 0}} {
-		if mentions(core, r.Name) != r.ncore || mentions(host, r.Name) != r.nhost {
-			return nil, p.Die("`%s` ends at %d mentions above the boundary and %d below, expected %d and "+
-				"%d", r.Name, mentions(core, r.Name), mentions(host, r.Name), r.ncore, r.nhost)
+		if c, h := edit.MentionCount(core, r.Name), edit.MentionCount(host, r.Name); c != r.ncore || h != r.nhost {
+			v.Die("`%s` ends at %d mentions above the boundary and %d below, expected %d and %d",
+				r.Name, c, h, r.ncore, r.nhost)
+			return v.Done()
 		}
 	}
-	if k := mentions(t, "host_raise"); k != 3 {
-		return nil, p.Die("`host_raise` has %d mentions and it must have three -- its prototype, the one "+
-			"call site it took over from `kill` and its definition", k)
+	if k := edit.MentionCount(text, "host_raise"); k != 3 {
+		v.Die("`host_raise` has %d mentions and it must have three -- its prototype, the one call site "+
+			"it took over from `kill` and its definition", k)
+		return v.Done()
 	}
-	if k := mentions(t, "b0_pid"); k != 1 {
-		return nil, p.Die("`b0_pid` has %d mentions and the edit leaves exactly one, its own declaration, "+
-			"for tools/deadfields.py to take", k)
+	if k := edit.MentionCount(text, "b0_pid"); k != 1 || len(e.Uses(field)) != 0 {
+		v.Die("`b0_pid` has %d mentions and the edit leaves exactly one, its own declaration, for the "+
+			"sweep to take", k)
+		return v.Done()
 	}
-	have := append([]string{}, L[lo:lo+len(blockAfter)]...)
+	var have []string
+	for _, f := range e.Core() {
+		if vimtext.IsOrdinaryDecl(f) {
+			c, _ := vimtext.FormC(f)
+			have = append(have, c)
+		}
+	}
 	if strings.Join(have, "\x00") != strings.Join(blockAfter, "\x00") {
-		return nil, p.Die("the ordinary declarations left above the boundary are %s and the input's "+
-			"block minus the two is %s", vimtext.JoinOrNone(have), vimtext.JoinOrNone(blockAfter))
-	}
-	if len(blockAfter) > 0 && (L[lo-1] != "" || L[lo+len(blockAfter)] != "") {
-		return nil, p.Die("what is left of the block is not a paragraph of its own")
-	}
-	var stray []string
-	for i := 0; i < boundary; i++ {
-		if vimtext.IsPrototypeLine(L[i]) && (L[i-1] == "" || vimtext.IsPrototypeLine(L[i-1])) &&
-			!(lo <= i && i < lo+len(blockAfter)) {
-			stray = append(stray, fmt.Sprintf("%d:%s", i+1, L[i]))
-		}
-	}
-	if len(stray) > 0 {
-		return nil, p.Die("an ordinary declaration is above the boundary and outside the block: %s",
-			strings.Join(edit.First(stray, 4), " / "))
-	}
-	if err := os.WriteFile(state+"/block-before",
-		[]byte(strings.Join(blockBefore, "\n")+"\n"), 0o644); err != nil {
-		return nil, p.Die("%v", err)
-	}
-	var after strings.Builder
-	for _, l := range blockAfter {
-		after.WriteString(l + "\n")
-	}
-	if err := os.WriteFile(state+"/block-after", []byte(after.String()), 0o644); err != nil {
-		return nil, p.Die("%v", err)
+		v.Die("the ordinary declarations left above the boundary are %s and the input's block minus the "+
+			"two is %s", vimtext.JoinOrNone(have), vimtext.JoinOrNone(blockAfter))
+		return v.Done()
 	}
 	if len(blockAfter) > 0 {
 		var left []string
 		for _, l := range blockAfter {
-			left = append(left, shortName(l))
+			left = append(left, vimtext.DeclNameRe.ReplaceAllString(l, "$1"))
 		}
-		p.Sayf("the core's block of ordinary declarations is %d lines and was %d: %s remain, "+
+		v.Sayf("the core's block of ordinary declarations is %d lines and was %d: %s remain, "+
 			"and each is a libc function some LATER phase owns",
 			len(blockAfter), len(blockBefore), strings.Join(left, " "))
 	} else {
-		p.Sayf("THE CORE'S BLOCK OF ORDINARY DECLARATIONS IS EMPTY: it was %d lines and it is "+
+		v.Sayf("THE CORE'S BLOCK OF ORDINARY DECLARATIONS IS EMPTY: it was %d lines and it is "+
 			"now none.  Above the first `#include` there is no declaration that is not "+
 			"`static`, and the check states what that means as a measurement of the cut "+
 			"rather than as a sentence written here", len(blockBefore))
 	}
 
-	// DECLARATION BEFORE USE, COMPUTED, and the definition INSIDE the host region.
-	var pr, df, uses []int
+	pos := map[*graph.Node]int{}
+	for i, f := range e.Graph().Forms {
+		pos[f] = i
+	}
+	df := e.Defn("host_raise")
+	uses := e.Uses(proto)
+	if df == nil || len(uses) != 1 || len(e.Decls("host_raise")) != 2 {
+		v.Die("`host_raise` has %d declarations, a definition %v and %d call sites",
+			len(e.Decls("host_raise")), df != nil, len(uses))
+		return v.Done()
+	}
+	if !(pos[proto] < pos[e.TopForm(uses[0])] && pos[e.TopForm(uses[0])] < pos[df]) {
+		v.Die("`host_raise`: the prototype must be above the call and the definition below it")
+		return v.Done()
+	}
+	var hb *graph.Node
+	for _, d := range e.Decls("host_winch_pending") {
+		if d.Is("def") && e.InHost(d) {
+			hb = d
+		}
+	}
+	if hb == nil || !(pos[e.FirstInclude()] < pos[df] && pos[hb] <= pos[df] && pos[df] < pos[suspend]) {
+		v.Die("`host_raise` must be defined below the boundary and INSIDE the host region, from " +
+			"host_winch_pending to musl_suspend(): its body says `kill` and `getpid`, and every " +
+			"mention of a host word lives in that region")
+		return v.Done()
+	}
+	prLine, callLine, defLine, hbLine, end := 0, 0, 0, 0, 0
 	for i, l := range L {
-		if l == w49Proto {
-			pr = append(pr, i)
-		}
-		if strings.HasPrefix(l, "host_raise(") && i+1 < len(L) && L[i+1] == "{" {
-			df = append(df, i)
-		}
-	}
-	for i, l := range L {
-		if len(edit.CallsNotAfterWord([]byte(l), "host_raise")) > 0 &&
-			!edit.Contains(pr, i) && !edit.Contains(df, i) {
-			uses = append(uses, i)
-		}
-	}
-	if len(pr) != 1 || len(df) != 1 || len(uses) != 1 {
-		return nil, p.Die("`host_raise` has %d prototypes, %d definitions and %d call sites",
-			len(pr), len(df), len(uses))
-	}
-	var hb, he []int
-	for i, l := range L {
-		if strings.HasPrefix(l, "static volatile sig_atomic_t host_winch_pending") {
-			hb = append(hb, i)
-		}
-		if strings.HasPrefix(l, "musl_suspend(") {
-			he = append(he, i)
+		switch {
+		case l == w49Proto:
+			prLine = i + 1
+		case strings.HasPrefix(l, "host_raise("):
+			defLine = i + 1
+		case strings.Contains(l, "host_raise("):
+			callLine = i + 1
+		case strings.HasPrefix(l, "static volatile sig_atomic_t host_winch_pending"):
+			hbLine = i + 1
+		case strings.HasPrefix(l, "musl_suspend("):
+			for end = i; end < len(L) && L[end] != "}"; end++ {
+			}
 		}
 	}
-	if len(hb) != 1 || len(he) != 1 {
-		return nil, p.Die("the host region does not begin and end exactly once -- zhostonly reads " +
-			"it from `host_winch_pending` to musl_suspend's last brace")
-	}
-	end := he[0]
-	for end < len(L) && L[end] != "}" {
-		end++
-	}
-	if !(pr[0] < uses[0] && uses[0] < df[0]) {
-		return nil, p.Die("`host_raise`: prototype at %d, call at %d, definition at %d -- the prototype "+
-			"must be above the call and the definition below it", pr[0]+1, uses[0]+1, df[0]+1)
-	}
-	if !(boundary < df[0] && hb[0] <= df[0] && df[0] <= end) {
-		return nil, p.Die("`host_raise` is defined at line %d, and it must be below the boundary (%d) and "+
-			"INSIDE the host region (%d-%d): its body says `kill` and `getpid`, and every "+
-			"mention of a host word lives in that region",
-			df[0]+1, boundary+1, hb[0]+1, end+1)
-	}
-	p.Sayf("`host_raise`: prototype line %d, one call site at line %d, definition line %d, "+
+	v.Sayf("`host_raise`: prototype line %d, one call site at line %d, definition line %d, "+
 		"which is below the boundary at %d and inside the %d-line host region "+
-		"zhostonly reads", pr[0]+1, uses[0]+1, df[0]+1, boundary+1, end+1-hb[0])
+		"zhostonly reads", prLine, callLine, defLine, bound+1, end+2-hbLine)
 
-	// ---- 9. the arithmetic, every term computed from what was found ----------
-	// It counted lines (a prototype and a definition in, mch_get_pid() and
-	// part of the block out), which is layout, and the canonical print's now;
-	// what moved is asserted by content above.
-	var d2 []int
-	for i, l := range L {
-		if vimtext.DirectiveRe.MatchString(l) {
-			d2 = append(d2, i)
-		}
+	if _, err := vimtext.IncludeRun(e); err != nil || len(e.Includes()) != len(incs) || e.FirstInclude() != incs[0] {
+		v.Die("the output does not have the same %d contiguous include forms -- this phase adds a "+
+			"DECLARATION and a DEFINITION, never a directive", len(incs))
+		return v.Done()
 	}
-	okd := len(d2) == nInc && d2[0] == boundary
-	for i := range d2 {
-		if d2[i] != d2[0]+i {
-			okd = false
-		}
-	}
-	if !okd {
-		return nil, p.Die("the output does not have the same eleven contiguous `#include` directives -- " +
-			"this phase adds a DECLARATION and a DEFINITION, never a directive")
-	}
-	p.Sayf("%d -> %d lines before the sweep, the eleven #includes untouched at line %d, and no "+
-		"run of two blank lines.  The sweep is left mch_get_pid(), its prototype and "+
-		"`b0_pid` to find",
-		linesBefore, len(L)-1, boundary+1)
-	return []byte(t), nil
-}
-
-func sameInts(a, b []int) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
+	v.Sayf("%d -> %d lines before the collection, the eleven #includes untouched at line %d.  "+
+		"The collection is left mch_get_pid(), its prototype and `b0_pid` to find",
+		linesBefore, len(L)-1, bound+1)
+	return v.Done()
 }

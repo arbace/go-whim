@@ -74,233 +74,47 @@ package p044
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// text program's literals are graph acts, and its report is the text
+// version's, which the plan ran until then (history keeps it):
+//
+//   - the four `start_tv` declarations -- three locals and oscstate_T's
+//     member -- are RETYPED `long`, keeping their ids, where the text
+//     rewrote their lines;
+//   - the stamps and the readings are expressions replaced by C (FRAG),
+//     each found by its form: `musl_gettimeofday(&X.tv_sec, &X.tv_usec)`
+//     is `X = musl_now_ms()`, `elapsed(&(X))` is `musl_now_ms() - X`;
+//   - musl_now_ms's prototype, the host's two objects and its definition
+//     are external declarations put beside what they replace or follow,
+//     all of it ONE synthesized unit (Together); musl_gettimeofday's
+//     prototype and definition are then deleted;
+//   - the eleven directives are the include forms, contiguous where the
+//     host begins, the core the forms above the first and the host the
+//     rest, and the counts above and below the boundary the text's
+//     `\bname\b` counts on each side's C view; the literal scan is the
+//     text's own, on the file's C view;
+//   - the line counts are the text's own layout and are dropped.
+
 import (
-	"bytes"
 	"io"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim44", Edit) }
+func init() { phase.RegisterGraph("whim44", Edit) }
 
 var (
-	whim44Inc   = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
 	whim44Timev = regexp.MustCompile(`struct timeval\b`)
 	whim44Names = regexp.MustCompile(`\b(?:elapsed_T|elapsed|now_tv|start_tv|musl_gettimeofday` +
 		`|gettimeofday|musl_now_ms)\b|struct timeval\b`)
 )
 
-const whim44HostMark = "static volatile sig_atomic_t host_winch_pending"
-
-// whim44Once replaces text that must occur exactly once, with this phase's own
-// refusal: the anchor truncated to seventy characters with its newlines shown.
-func whim44Once(p edit.Ph, text []byte, old, new, why string) ([]byte, error) {
-	if k := edit.CountAnchorB(text, old); k != 1 {
-		shown := strings.ReplaceAll(old, "\n", `\n`)
-		if len(shown) > 70 {
-			shown = shown[:70]
-		}
-		return nil, p.Die("`%s` is not in the file exactly once (%s)", shown, why)
-	}
-	return edit.ReplaceAnchorB(text, old, []byte(new), 1), nil
-}
-
-// Whim44 makes the clock a scalar: `long musl_now_ms(void)` replaces
-// `void musl_gettimeofday(long *, long *)` and takes elapsed_T, elapsed() and
-// the Out-parameter pair with it.
-//
-// THE POINT IS THE SIGNATURE AND NOT THE SAVING: after this phase no core ->
-// host call's shape is decided by a type the core cannot name.  Phase 42 had
-// to invent a tagless `struct timeval` mirror for the core to hold; this
-// deletes it.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	p := edit.Ph{Tag: "clock", W: w}
-	lines := bytes.Split(text, []byte{'\n'})
-	var err error
-
-	// ---- 0. the file this edit was written against -----------------------
-	// ELEVEN DIRECTIVES, contiguous, and NOTHING ABOVE THEM.  Phase 43 made
-	// the first of them the boundary; this phase edits both sides of that
-	// line and must know exactly where it is.
-	var directives []int
-	for i, l := range lines {
-		if bytes.HasPrefix(bytes.TrimLeft(l, " \t"), []byte("#")) {
-			directives = append(directives, i)
-		}
-	}
-	if len(directives) != nInc {
-		return nil, p.Die("the file has %d preprocessor directives and this phase was written against 11",
-			len(directives))
-	}
-	for k, i := range directives {
-		if i != directives[0]+k {
-			var at []string
-			for _, d := range directives {
-				at = append(at, strconv.Itoa(d+1))
-			}
-			return nil, p.Die("the eleven directives are not contiguous: %s", strings.Join(at, " "))
-		}
-	}
-	for _, i := range directives {
-		if !whim44Inc.Match(lines[i]) {
-			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
-				"add one")
-		}
-	}
-	cut := directives[0]
-	core := bytes.Join(lines[:cut], []byte{'\n'})
-	below := bytes.Join(lines[cut:], []byte{'\n'})
-	p.Sayf("eleven `#include`s, contiguous, at lines %d-%d, and NOTHING above the first of "+
-		"them -- so the core is the %d lines above the boundary and the host is the %d "+
-		"below it", cut+1, cut+11, cut, len(lines)-cut-1)
-
-	// ---- 1. the host region, which is where the new definition has to land
-	// `zhostonly` reads the host as the lines from `host_winch_pending` to
-	// musl_suspend()'s last brace, and requires every mention of its
-	// vocabulary -- `struct timeval` among them -- to be inside it.
-	hb := 0
-	for _, l := range lines {
-		if bytes.HasPrefix(l, []byte(whim44HostMark)) {
-			hb++
-		}
-	}
-	if hb != 1 {
-		return nil, p.Die("the host block does not begin exactly once with %s -- found %d",
-			"'"+whim44HostMark+"'", hb)
-	}
-
-	// ---- 2. the inventory, counted here rather than remembered -----------
-	for _, inv := range []struct {
-		Name          string
-		ncore, nbelow int
-	}{
-		{"elapsed_T", 8, 0}, {"elapsed", 6, 0}, {"elapsed_time", 3, 0},
-		{"now_tv", 5, 0}, {"start_tv", 20, 0}, {"musl_gettimeofday", 6, 1},
-		{"gettimeofday", 0, 1}, {"musl_now_ms", 0, 0},
-	} {
-		gc := p.Mentions(core, inv.Name)
-		gb := p.Mentions(below, inv.Name)
-		if gc != inv.ncore || gb != inv.nbelow {
-			return nil, p.Die("`%s` occurs %d times above the boundary and %d below it, where this phase "+
-				"was written against %d and %d", inv.Name, gc, gb, inv.ncore, inv.nbelow)
-		}
-	}
-	tvCore := len(whim44Timev.FindAll(core, -1))
-	tvBelow := len(whim44Timev.FindAll(below, -1))
-	if tvCore != 0 || tvBelow != 3 {
-		return nil, p.Die("`struct timeval` occurs %d times above the boundary and %d below, where this "+
-			"phase was written against 0 and 3", tvCore, tvBelow)
-	}
-	p.Say("the core's clock is elapsed_T 8, elapsed 6, musl_gettimeofday 6 and `struct " +
-		"timeval` 0 -- phase 42 took the last of those; the host has musl_gettimeofday's " +
-		"definition, its one real `gettimeofday` call and three `struct timeval`")
-
-	// ---- 3. the literals -------------------------------------------------
-	// Phase 0a was caught Out by three string literals holding `NULL`, and
-	// phase 42 applied the lesson rather than assuming it.  So does this one.
-	spans, err := edit.LiteralSpans(p, text)
-	if err != nil {
-		return nil, err
-	}
-	var bad []string
-	for _, s := range spans {
-		if whim44Names.Match(text[s[0]:s[1]]) {
-			bad = append(bad, string(text[s[0]:s[1]]))
-		}
-	}
-	if len(bad) > 0 {
-		return nil, p.Die("a literal holds a name this phase substitutes: %s", strings.Join(bad, " / "))
-	}
-	p.Sayf("%d string and character literals, NONE holding any of the seven names -- so every "+
-		"substitution below is over code", len(spans))
-
-	// ---- 4. the type and the function are the sweep's --------------------
-	// Once every reading below is `musl_now_ms() - X`, nothing calls elapsed(),
-	// and the typedef, the prototype and the definition go in the sweep.
-
-	// ---- 5. the four objects become `long` -------------------------------
-	// The declarator column is kept: this file aligns a declaration block and
-	// `long` is five characters shorter than `elapsed_T`.
-	for _, s := range []struct{ Old, New, who string }{
-		{"    elapsed_T start_tv;\n    musl_gettimeofday(&start_tv.tv_sec, " +
-			"&start_tv.tv_usec);\n    if (hide_cursor)",
-			"    long start_tv;\n    start_tv = musl_now_ms();\n" +
-				"    if (hide_cursor)", "do_sleep"},
-		{"        static elapsed_T start_tv;",
-			"        static long             start_tv;", "vim_beep"},
-		{"    elapsed_T start_tv;\n} oscstate_T;",
-			"    long            start_tv;\n} oscstate_T;", "oscstate_T"},
-		{"    elapsed_T start_tv;\n    musl_gettimeofday(&start_tv.tv_sec, " +
-			"&start_tv.tv_usec);\n    for (;;)",
-			"    long start_tv;\n    start_tv = musl_now_ms();\n" +
-				"    for (;;)", "inchar_loop"},
-	} {
-		text, err = whim44Once(p, text, s.Old, s.New, "the clock object in "+s.who)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// ---- 6. the remaining stamps and every difference --------------------
-	// A stamp is `X = musl_now_ms();` and a reading is `musl_now_ms() - X`.
-	// The leading space and the space before the semicolon at these sites are
-	// what macro expansion left behind, three pipelines ago.
-	for _, s := range []struct{ Old, New, who string }{
-		{"            musl_gettimeofday(&start_tv.tv_sec, &start_tv.tv_usec);",
-			"            start_tv = musl_now_ms();", "vim_beep's stamp"},
-		{"        musl_gettimeofday(&osc_state.start_tv.tv_sec, " +
-			"&osc_state.start_tv.tv_usec);",
-			"        osc_state.start_tv = musl_now_ms();", "handle_osc's stamp"},
-		{"        done = elapsed(&(start_tv));",
-			"        done = musl_now_ms() - start_tv;", "do_sleep's reading"},
-		{"        if (!did_init || elapsed(&(start_tv)) > 500)",
-			"        if (!did_init || musl_now_ms() - start_tv > 500)",
-			"vim_beep's 500 ms rate limit"},
-		{"    if (elapsed(&(osc_state.start_tv)) >= p_ost)",
-			"    if (musl_now_ms() - osc_state.start_tv >= p_ost)",
-			"handle_osc's p_ost timeout"},
-		{"            elapsed_time = elapsed(&(start_tv));",
-			"            elapsed_time = musl_now_ms() - start_tv;",
-			"inchar_loop's deadline"},
-	} {
-		text, err = whim44Once(p, text, s.Old, s.New, s.who)
-		if err != nil {
-			return nil, err
-		}
-	}
-	p.Say("four stamps -- do_sleep, vim_beep, handle_osc, inchar_loop -- are `X = " +
-		"musl_now_ms();`, and the four readings are `musl_now_ms() - X`.  `-` binds tighter " +
-		"than `>` and `>=`, so the two comparisons need no parenthesis they did not have")
-
-	// ---- 7. the host call ------------------------------------------------
-	text, err = whim44Once(p, text, "static void musl_gettimeofday(long *sec, long *usec);\n",
-		"static long musl_now_ms(void);\n", "the host call's prototype")
-	if err != nil {
-		return nil, err
-	}
-	text, err = whim44Once(p, text, "static int host_tty_raw = FALSE;\n",
-		"static int host_tty_raw = FALSE;\n"+
-			"static long host_now_base = 0;\n"+
-			"static int host_now_based = FALSE;\n",
-		"the host's own state, beside the terminal's")
-	if err != nil {
-		return nil, err
-	}
-	text, err = whim44Once(p, text, `    static void
-musl_gettimeofday(long *sec, long *usec)
-{
-    struct timeval tv;
-
-    gettimeofday(&tv, nullptr);
-    *sec = tv.tv_sec;
-    *usec = tv.tv_usec;
-}
-`, `    static long
+const whim44Def = `static long
 musl_now_ms(void)
 {
     struct timeval tv;
@@ -312,96 +126,179 @@ musl_now_ms(void)
         host_now_base = tv.tv_sec;
     }
     return (tv.tv_sec - host_now_base) * 1000L + tv.tv_usec / 1000L;
-}
-`, "the host call's definition, above musl_delay and inside zhostonly's region")
-	if err != nil {
-		return nil, err
+}`
+
+// whim44Sides is the core's C view and the host's, refused unless the
+// include forms are contiguous where the host begins.
+func whim44Sides(v *graph.Verbs) (core, host []byte, nInc int) {
+	e := v.Editor()
+	incs, hs := e.Includes(), e.Host()
+	ok := len(incs) > 0 && len(hs) >= len(incs)
+	for i := 0; ok && i < len(incs); i++ {
+		ok = hs[i] == incs[i]
 	}
-	p.Say("`long musl_now_ms(void)` replaces `void musl_gettimeofday(long *, long *)`: " +
+	if !ok {
+		v.Die("the file's %d include forms are not contiguous where the host begins", len(incs))
+		return nil, nil, 0
+	}
+	c, err := graph.FormsC(e.Core())
+	if err != nil {
+		v.Die("the core's C view: %v", err)
+		return nil, nil, 0
+	}
+	h, err := graph.FormsC(hs)
+	if err != nil {
+		v.Die("the host's C view: %v", err)
+		return nil, nil, 0
+	}
+	return c, h, len(incs)
+}
+
+// Edit is the scalar clock: musl_now_ms() for musl_gettimeofday() and
+// elapsed().
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("clock", e, w)
+	core, below, nInc := whim44Sides(v)
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Sayf("%d `#include` forms, contiguous where the host begins, and NOTHING above the first of "+
+		"them -- so the core is the %d forms above the boundary and the host the %d from it on",
+		nInc, len(e.Core()), len(e.Host()))
+
+	hb := e.Decls("host_winch_pending")
+	v.Expect(len(hb) == 1 && e.InHost(hb[0]), "the host block does not begin exactly once with "+
+		"host_winch_pending, declared below the boundary -- found %d", len(hb))
+
+	for _, inv := range []struct {
+		name          string
+		ncore, nbelow int
+	}{
+		{"elapsed_T", 8, 0}, {"elapsed", 6, 0}, {"elapsed_time", 3, 0},
+		{"now_tv", 5, 0}, {"start_tv", 20, 0}, {"musl_gettimeofday", 6, 1},
+		{"gettimeofday", 0, 1}, {"musl_now_ms", 0, 0},
+	} {
+		gc, gb := edit.MentionCount(core, inv.name), edit.MentionCount(below, inv.name)
+		v.Expect(gc == inv.ncore && gb == inv.nbelow, "`%s` occurs %d times above the boundary and %d "+
+			"below it, where this phase was written against %d and %d", inv.name, gc, gb, inv.ncore, inv.nbelow)
+	}
+	tvCore, tvBelow := len(whim44Timev.FindAll(core, -1)), len(whim44Timev.FindAll(below, -1))
+	v.Expect(tvCore == 0 && tvBelow == 3, "`struct timeval` occurs %d times above the boundary and %d "+
+		"below, where this phase was written against 0 and 3", tvCore, tvBelow)
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Say("the core's clock is elapsed_T 8, elapsed 6, musl_gettimeofday 6 and `struct " +
+		"timeval` 0 -- phase 42 took the last of those; the host has musl_gettimeofday's " +
+		"definition, its one real `gettimeofday` call and three `struct timeval`")
+
+	text := v.Text()
+	spans, err := edit.LiteralSpans(edit.Ph{Tag: "clock", W: io.Discard}, text)
+	if err != nil {
+		v.Die("%v", err)
+		return v.Done()
+	}
+	var bad []string
+	for _, s := range spans {
+		if whim44Names.Match(text[s[0]:s[1]]) {
+			bad = append(bad, string(text[s[0]:s[1]]))
+		}
+	}
+	v.Expect(len(bad) == 0, "a literal holds a name this phase substitutes: %s", strings.Join(bad, " / "))
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Sayf("%d string and character literals, NONE holding any of the seven names -- so every "+
+		"substitution below is over code", len(spans))
+
+	// The acts, quiet: the text reported them in two lines.  The four
+	// clock objects are `long` first, so that the C put in below type-checks
+	// where it lands.
+	q := graph.NewVerbs("clock", e, io.Discard)
+	for _, fn := range []string{"do_sleep", "inchar_loop"} {
+		q.InFunction(fn, func(q *graph.Verbs) {
+			q.Retype("(def start_tv elapsed_T)", "long", "the clock object in "+fn)
+		})
+	}
+	q.InFunction("vim_beep", func(q *graph.Verbs) {
+		q.Retype("(def static start_tv elapsed_T)", "long", "the clock object in vim_beep")
+	})
+	q.Retype("(start_tv elapsed_T)", "long", "the clock object in oscstate_T")
+	// Two units: a fragment's names resolve to the graph's declarations,
+	// so the declarations go in before what names them.
+	q.Together(func(q *graph.Verbs) {
+		q.TopBeforeC("musl_gettimeofday", "static long musl_now_ms(void);", "the host call's prototype")
+		q.TopAfterC("host_tty_raw", "static long host_now_base = 0;\nstatic int host_now_based = FALSE;",
+			"the host's own state, beside the terminal's")
+	})
+	q.Together(func(q *graph.Verbs) {
+		for _, fn := range []string{"do_sleep", "vim_beep", "inchar_loop"} {
+			q.InFunction(fn, func(q *graph.Verbs) {
+				q.ReplaceC("(call musl_gettimeofday (addr (. ?x tv_sec)) (addr (. ?x tv_usec)))",
+					"$x = musl_now_ms();", 1, fn+"'s stamp")
+			})
+		}
+		q.InFunction("handle_osc", func(q *graph.Verbs) {
+			q.ReplaceC("(call musl_gettimeofday (addr (. osc_state start_tv tv_sec)) (addr (. osc_state start_tv tv_usec)))",
+				"osc_state.start_tv = musl_now_ms();", 1, "handle_osc's stamp")
+		})
+		for _, fn := range []string{"do_sleep", "vim_beep", "handle_osc", "inchar_loop"} {
+			q.InFunction(fn, func(q *graph.Verbs) {
+				q.ReplaceC("(call elapsed (addr (paren ?x)))", "musl_now_ms() - $x", 1, fn+"'s reading")
+			})
+		}
+		q.TopAfterC("musl_gettimeofday", whim44Def,
+			"the host call's definition, above musl_delay and inside zhostonly's region")
+	})
+	q.Cut("(def static musl_gettimeofday _*)", 1, "musl_gettimeofday's prototype")
+	q.Cut("(defn static musl_gettimeofday _*)", 1, "musl_gettimeofday's definition")
+	if q.Failed() {
+		return q.Done()
+	}
+	v.Say("four stamps -- do_sleep, vim_beep, handle_osc, inchar_loop -- are `X = " +
+		"musl_now_ms();`, and the four readings are `musl_now_ms() - X`.  `-` binds tighter " +
+		"than `>` and `>=`, so the two comparisons need no parenthesis they did not have")
+	v.Say("`long musl_now_ms(void)` replaces `void musl_gettimeofday(long *, long *)`: " +
 		"milliseconds since the WHOLE SECOND of its first call, which makes a difference of " +
 		"two readings identical to what an epoch-millisecond clock would give and keeps " +
 		"(tv_sec - base) * 1000 inside a 32-bit `long` for 24.86 days")
 
-	// ---- 8. what the file is now -----------------------------------------
-	// It counted lines -- -7 for the typedef and its prototype and their
-	// blanks, -8 for elapsed() -- which is layout, and layout is the
-	// canonical print's now.  What the phase removed is asserted by content
-	// below: musl_now_ms above and below the boundary.
-	L := bytes.Split(text, []byte{'\n'})
-	var ndir []int
-	for i, l := range L {
-		if bytes.HasPrefix(bytes.TrimLeft(l, " \t"), []byte("#")) {
-			ndir = append(ndir, i)
-		}
+	ncore, nbelow, n := whim44Sides(v)
+	if v.Failed() {
+		return v.Done()
 	}
-	// THE ELEVEN DIRECTIVES ARE STILL ONE BLOCK.  How far it moved up was a
-	// count of lines, which is layout; what the core and the host each lost is
-	// asserted by content below.
-	okDir := len(ndir) == nInc
-	for k, i := range ndir {
-		if i != ndir[0]+k {
-			okDir = false
-		}
-	}
-	if !okDir {
-		var at []string
-		for _, i := range ndir {
-			if len(at) < 3 {
-				at = append(at, strconv.Itoa(i+1))
-			}
-		}
-		return nil, p.Die("the eleven directives are not eleven contiguous lines: they are at %s",
-			strings.Join(at, " "))
-	}
-	for _, i := range ndir {
-		if !whim44Inc.Match(L[i]) {
-			return nil, p.Die("a directive is no longer an `#include <...>` of a system header")
-		}
-	}
-	ncore := bytes.Join(L[:ndir[0]], []byte{'\n'})
-	nbelow := bytes.Join(L[ndir[0]:], []byte{'\n'})
-	// What is left of the old clock is elapsed() and its type, uncalled: the
-	// typedef, the prototype and the definition, which the sweep takes.
+	v.Expect(n == nInc, "the %d include forms are %d now", nInc, n)
+	text = v.Text()
 	for _, r := range []struct {
 		name string
 		want int
 	}{{"elapsed_T", 4}, {"elapsed", 2}, {"now_tv", 5}, {"musl_gettimeofday", 1}} {
-		if n := p.Mentions(text, r.name); n != r.want {
-			return nil, p.Die("`%s` occurs %d times in the file, where %d were expected -- the uncalled "+
-				"elapsed() and its type, which the sweep takes", r.name, n, r.want)
-		}
+		got := edit.MentionCount(text, r.name)
+		v.Expect(got == r.want, "`%s` occurs %d times in the file, where %d were expected -- the uncalled "+
+			"elapsed() and its type, which the collection takes", r.name, got, r.want)
 	}
-	if bytes.Contains(text, []byte("elapsed(&")) {
-		return nil, p.Die("elapsed() is still called")
+	v.Expect(len(v.UsesOf("elapsed")) == 0, "elapsed() is still called")
+	v.Expect(!whim44Timev.Match(ncore), "`struct timeval` is back above the boundary")
+	k := len(whim44Timev.FindAll(nbelow, -1))
+	v.Expect(k == 3, "the host should still have its three `struct timeval` and has %d", k)
+	k = edit.MentionCount(text, "gettimeofday")
+	v.Expect(k == 1, "the bare name `gettimeofday` occurs %d times and must occur exactly once -- "+
+		"the one call musl_now_ms makes", k)
+	v.Expect(edit.MentionCount(ncore, "gettimeofday") == 0, "the core calls `gettimeofday` directly")
+	k = edit.MentionCount(ncore, "musl_now_ms")
+	v.Expect(k == 9, "`musl_now_ms` occurs %d times above the boundary where 9 were expected -- the "+
+		"prototype, four stamps and four readings", k)
+	k = edit.MentionCount(nbelow, "musl_now_ms")
+	v.Expect(k == 1, "`musl_now_ms` occurs %d times below the boundary where 1 was expected -- its "+
+		"definition", k)
+	k = edit.MentionCount(text, "elapsed_time")
+	v.Expect(k == 3, "`elapsed_time`, which is inchar_loop's own `long` and not this phase's, is at "+
+		"%d and was at 3", k)
+	if v.Failed() {
+		return v.Done()
 	}
-	if whim44Timev.Match(ncore) {
-		return nil, p.Die("`struct timeval` is back above the boundary")
-	}
-	if n := len(whim44Timev.FindAll(nbelow, -1)); n != 3 {
-		return nil, p.Die("the host should still have its three `struct timeval` and has %d", n)
-	}
-	if n := p.Mentions(text, "gettimeofday"); n != 1 {
-		return nil, p.Die("the bare name `gettimeofday` occurs %d times and must occur exactly once -- "+
-			"the one call musl_now_ms makes", n)
-	}
-	if p.Mentions(ncore, "gettimeofday") > 0 {
-		return nil, p.Die("the core calls `gettimeofday` directly")
-	}
-	if n := p.Mentions(ncore, "musl_now_ms"); n != 9 {
-		return nil, p.Die("`musl_now_ms` occurs %d times above the boundary where 9 were expected -- the "+
-			"prototype, four stamps and four readings", n)
-	}
-	if n := p.Mentions(nbelow, "musl_now_ms"); n != 1 {
-		return nil, p.Die("`musl_now_ms` occurs %d times below the boundary where 1 was expected -- its "+
-			"definition", n)
-	}
-	if n := p.Mentions(text, "elapsed_time"); n != 3 {
-		return nil, p.Die("`elapsed_time`, which is inchar_loop's own `long` and not this phase's, is at "+
-			"%d and was at 3", n)
-	}
-	p.Sayf("the core has NO clock type and NO clock call of its own once the sweep has "+
-		"taken the uncalled elapsed(): `struct timeval` is at 0 above the boundary, "+
-		"musl_now_ms is 9 there and 1 below, and the file is %d lines against %d",
-		len(L)-1, len(lines)-1)
-	return text, nil
+	v.Say("the core has NO clock type and NO clock call of its own once the collection has " +
+		"taken the uncalled elapsed(): `struct timeval` is at 0 above the boundary, " +
+		"musl_now_ms is 9 there and 1 below")
+	return v.Done()
 }

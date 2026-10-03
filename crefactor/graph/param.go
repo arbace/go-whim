@@ -1027,6 +1027,9 @@ func (e *Editor) AddParam(fn string, i int, param string, arg func(c *Node) (str
 		if !ok {
 			return st, fmt.Errorf("param: %s's type is not a function's", label(m.d))
 		}
+		if len(params) == 1 && params[0] != nil && params[0].Is("basic") && len(params[0].Kids) == 2 && params[0].Kids[1].Atom == "void" {
+			params = nil // `(void)`: no parameter to insert beside
+		}
 		params = slices.Insert(slices.Clone(params), i, m.t)
 		newT[m.d] = tx.function(params, variadic, result)
 	}

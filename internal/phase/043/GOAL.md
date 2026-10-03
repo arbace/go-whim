@@ -3,6 +3,8 @@
 *Formerly phase 110. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B3d): gcc is asked nothing -- the twelve are what the headers' rule says the move would leave unprovided, "defined but not used" is gcc's own rule asked of the edges (a function's recursive calls not counting), the boundary the static functions the core uses and does not define -- and the move is one act that keeps every id, the twelve enumerators written by FRAG and the core's 100 tokens of them made uses (crefactor/graph's `MoveFormsOwning`); the same rounds, the same 14 functions, 18 objects and 3 enum blocks moved, the same 13 names, in 1.2 s handed the graph where the text's eight compiles took 14 s.*
+
 `internal/phase/110/edit.go` and `internal/phase/110/check.go`, `stage 110`, `package boundary`.
 This is what the pipeline had been clearing the ground for. **The eleven `#include`s
 move from the first eleven lines to line 78,360, and above them there is not one

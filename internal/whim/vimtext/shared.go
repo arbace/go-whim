@@ -27,20 +27,6 @@ func Key(a, b string) string {
 var _ = BwdWalk
 
 // From phase 49.
-// IsPrototypeLine is the phase's `DECL`, whose Python spells the exclusion as a
-// NEGATIVE LOOKAHEAD -- `^(?!static |typedef |static_assert)...`.  RE2 has none,
-// and the three prefixes are tested instead, which is exact here for the reason
-// the byte tests elsewhere are: what is excluded is at the START of the line and
-// is consumed by nothing.
-func IsPrototypeLine(l string) bool {
-	if strings.HasPrefix(l, "static ") || strings.HasPrefix(l, "typedef ") ||
-		strings.HasPrefix(l, "static_assert") {
-		return false
-	}
-	return declRe.MatchString(l)
-}
-
-// From phase 49.
 // JoinOrNone is Python's `' / '.join(xs) or 'none'`.
 func JoinOrNone(xs []string) string {
 	if len(xs) == 0 {
@@ -51,10 +37,7 @@ func JoinOrNone(xs []string) string {
 
 // From phase 49.
 var (
-	DirectiveRe     = regexp.MustCompile(`^ *# *`)
-	SystemIncludeRe = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
-	declRe          = regexp.MustCompile(`^[A-Za-z_][\w *]*\**\w+\([^;]*\);$`)
-	DeclNameRe      = regexp.MustCompile(`^.*?\**(\w+)\(.*$`)
+	DeclNameRe = regexp.MustCompile(`^.*?\**(\w+)\(.*$`)
 )
 
 // From phase 54.

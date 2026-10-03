@@ -127,64 +127,6 @@ step(int state, int ctx __attribute__((unused)))
 	refuses(t, Attrs(), strings.Replace(src, "((format(printf, 1, 2)))", "((noreturn))", 1), "never looked at")
 }
 
-// A tagged value's one-member union is that member; the two-member one stays.
-func TestUnions(t *testing.T) {
-	src := `struct value
-{
-    int tag;
-    union
-    {
-        long i;
-        double d;
-    } num;
-    union
-    {
-        char *s;
-    } str;
-};
-
-long
-get(struct value *v)
-{
-    if (v->tag)
-    {
-        return v->num.i;
-    }
-    return v->str.s[0];
-}
-
-#include <stdio.h>
-`
-	want := `struct value
-{
-    int tag;
-    union
-    {
-        long i;
-        double d;
-    } num;
-    char *str;
-};
-
-long
-get(struct value *v)
-{
-    if (v->tag)
-    {
-        return v->num.i;
-    }
-    return v->str[0];
-}
-
-#include <stdio.h>
-`
-	got := run(t, Unions(), src, "--degenerate", "1", "--genuine", "1")
-	same(t, got, want)
-	compiles(t, got)
-	refuses(t, Unions(), src, "at least 1 and 2", "--degenerate", "1", "--genuine", "2")
-	refuses(t, Unions(), strings.Replace(src, "return v->str.s[0];", "return sizeof v->str;", 1), "neither its own declaration")
-}
-
 // The compiler says which headers a file needs: math.h and string.h go,
 // stdio.h stays.
 func TestIncludes(t *testing.T) {

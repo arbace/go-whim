@@ -123,3 +123,5 @@ previous boundary as `r$((first - 1))`, so a reserved-but-unlanded number made i
 on a missing tar. And `make whim-tip` in a fresh worktree re-ran every phase, because
 `git worktree add` gives `whim-vim.c` a new mtime and `$(ZEROBUILD)/input.sha256`
 depended on it.
+
+**It runs on the graph** (doc/GRAPH-MIGRATION.md, B3d): the tables read as values from their rows, U+00DF's row built and placed by `ArrangeRowsTyped` (the table typed at its new length), the wrappers' reads retargeted -- q045.c byte for byte, its collected graph the import of its C view; 0.6 s handed the graph, 2.5 s from text.

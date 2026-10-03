@@ -64,13 +64,49 @@ package p047
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+// ON THE GRAPH (doc/GRAPH.md, step 5; doc/GRAPH-MIGRATION.md, B3d).  The
+// rule is crefactor/graph's Own (b3db_own.go), built with vim's knobs
+// (internal/whim/xform.go): the two prototypes deleted, the two bodies
+// written by FRAG before musl_bsearch, and every use of a prototype
+// retargeted to its definition BY EDGE -- so no literal scan is needed to
+// keep a string out of the rename, and none reaches one.  Its call counts
+// are arguments in the plan.
+
 import (
-	"github.com/arbace/go-whim/crefactor/xform"
+	"fmt"
+	"io"
+	"strconv"
+	"strings"
+
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
-// The rule is general, and it is crefactor/xform's Own, built with vim's
-// knobs (internal/whim/xform.go): the two bodies are musl's.  Its call counts
-// are arguments in the plan.
-func init() { phase.RegisterArgs("whim47", xform.Own(whim.Own47).Edit()) }
+func init() { phase.RegisterGraph("whim47", Edit) }
+
+// Edit is the phase on the graph: args are NAME=N, the uses each function's
+// prototype must have.
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
+	want := map[string]int{}
+	for _, a := range args {
+		name, n, ok := strings.Cut(a, "=")
+		c, err := strconv.Atoi(n)
+		if !ok || err != nil || !owns(name) {
+			return fmt.Errorf("arith: unexpected argument %q (want NAME=N for a function this step owns)", a)
+		}
+		want[name] = c
+	}
+	v := graph.NewVerbs("arith", e, w)
+	v.Own(whim.Own47, want)
+	return v.Done()
+}
+
+func owns(name string) bool {
+	for _, f := range whim.Own47.Funcs {
+		if f.Name == name {
+			return true
+		}
+	}
+	return false
+}

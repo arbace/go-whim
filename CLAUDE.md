@@ -284,7 +284,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 15, 19, 20, 23-25, 27-35, 58, 64 and 77 and parts 4a, 15a, 38a and 86a so far, `doc/GRAPH-MIGRATION.md`),
+phase converted to the graph (phases 15, 19, 20, 23-25, 27-35, 43-52, 58, 64 and 77 and parts 4a, 15a, 38a, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -324,7 +324,9 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    RETYPE and MOVE on phases 57, 66, 78, 80, 83 and
                    86's parameter and on whim-vim.c's functions, and FOLDX held to the text's
                    closures (the front's three, every seed, phase 62's
-                   empties, notags' conditions): GRAPH_SNAPS), steps'
+                   empties, notags' conditions), and phases 43-52 each
+                   held to the import of its snapshot (B3d's chain):
+                   GRAPH_SNAPS), steps'
                    FrontCut (a front phase's cuts without their closure),
                    build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
@@ -442,6 +444,17 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    b3bverbs.go the verbs phases 27-35's conversions
                    wanted (a fold by where its if stands, CutWhere,
                    Run and CutRun, Muted, DropArgPure);
+                   and B3d's (phases 43-52):
+                   moveowning.go top-level forms moved across the
+                   include forms owning what they leave unprovided (the
+                   lost macros declared, their tokens made uses, every
+                   edge the move crosses resolved again; phase 43's
+                   move), b3da_rows.go a table's rows arranged and typed
+                   as imported, b3db_own.go libc functions made the
+                   core's own (47), b3db_unions.go the degenerate unions
+                   (50), b3db_include.go the system include run,
+                   b3dc_header.go the file's prototypes of header
+                   functions deleted, their uses the headers' (49);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -760,7 +773,7 @@ make help            # every target, with a line each
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
   the boundary before each phase that begins on the graph the graph it
-  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: twenty-nine now), and seals the
+  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: thirty-one now), and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
@@ -781,7 +794,7 @@ make help            # every target, with a line each
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
   committed `whim-vim.c`. Measured: **105 s** under a load of 54-69 (118 s at 107-139, 76-77 s at a
   lighter one), 103 links 64 at a time, bound by
-  the machine's load and no longer by one link (in order, the front's three closures, phases 1-3, take 37, 25 and 33 s, phases 4 and 5 12 and 7 s, the seed 12 s and phase 43 15 s; phase 1 alone was 89 s), against 451 s in
+  the machine's load and no longer by one link (in order, the front's three closures, phases 1-3, take 37, 25 and 33 s, phases 4 and 5 12 and 7 s, the seed 12 s; phase 43 15 s until B3d asked its questions of the graph instead of gcc, 1-3 s now; phase 1 alone was 89 s), against 451 s in
   order then (348-352 s now, at a load of 3-13); and a phase whose program was changed -- on purpose (a control),
   or phase 96's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -886,7 +899,8 @@ was the input boundary's digest and the implementation's together, so a moved
   goes on to the next phase only when that phase begins on the graph, with a
   fresh editor, so a phase takes one path in order and in the check. On the
   graph now: every `droplocal`, phases 24, 27-35, 58 and 64, phase 77's own
-  step, parts 38a and 86a, and B1a's -- the cutters nointro, optreaders,
+  step, parts 38a and 86a, B3d's phases 43-52 end to end (43 imports, 44-52
+  are each handed the graph the one before leaves), and B1a's -- the cutters nointro, optreaders,
   nostat, nobackup, lfonly, keepbytes, noinertopts, nofloat and noowner,
   part 4a and the programs of phases 15, 19, 20, 23 and 25. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
   record of the schedule there was, and of the measurement that retired it.
