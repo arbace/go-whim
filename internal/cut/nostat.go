@@ -4,16 +4,15 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // nostatCalls are the two direct buf_check_timestamp() sites, each with the
 // function it sits in, so a refusal names WHERE the shape moved.
 var nostatCalls = []struct{ pat, where string }{
-	{edit.Line("(void)buf_check_timestamp(curbuf, FALSE);"), "do_ecmd"},
-	{edit.Line("(void)buf_check_timestamp(buf, FALSE);"), "enter_buffer"},
+	{"(cast void (call buf_check_timestamp curbuf FALSE))", "do_ecmd"},
+	{"(cast void (call buf_check_timestamp buf FALSE))", "enter_buffer"},
 	// ex_drop's went with :drop, retired at phase 1 (exfront, the reform's D2)
 }
 
@@ -26,24 +25,42 @@ var nostatCalls = []struct{ pat, where string }{
 //
 // check_mtime() is NOT touched: it runs only when the user asks to write, and
 // it is what stops a write silently clobbering someone else's edit.
-func NoStat(text []byte, w io.Writer) ([]byte, error) {
-	text, was, err := edit.ReplaceBody(text, "check_timestamps", "    return 0;")
-	if err != nil {
-		return nil, fmt.Errorf("nostat: %v", err)
-	}
-	fmt.Fprintf(w, "  nostat       check_timestamps was %d lines, and now looks at nothing\n", was)
-
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B1a): the body is replaced by its
+// one statement (Body), and the two calls are deleted as items, each
+// counted; the text version rewrote the lines (history keeps it).  The old
+// body's length and the mentions left are the text's numbers, on the C view.
+func NoStat(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nostat", e, w)
+	was := 0
+	v.InFunction("check_timestamps", func(v *graph.Verbs) { was = bodyLines(v.Text()) })
+	v.Body("check_timestamps", "(return 0)",
+		fmt.Sprintf("check_timestamps was %d lines, and now looks at nothing", was))
 	for _, c := range nostatCalls {
-		re := regexp.MustCompile(c.pat)
-		n := len(re.FindAll(text, -1))
-		if n != 1 {
-			return nil, fmt.Errorf("nostat: expected one buf_check_timestamp call in %s, "+
+		if v.Failed() {
+			break
+		}
+		if n := v.Count(c.pat); n != 1 {
+			return fmt.Errorf("nostat: expected one buf_check_timestamp call in %s, "+
 				"matched %d", c.where, n)
 		}
-		text = re.ReplaceAll(text, nil)
-		fmt.Fprintf(w, "  nostat       %s stops checking on the way in\n", c.where)
+		v.Cut(c.pat, 1, c.where+" stops checking on the way in")
 	}
-	fmt.Fprintf(w, "  nostat       %d buf_check_timestamp mentions left for the sweep\n",
-		bytes.Count(text, []byte("buf_check_timestamp")))
-	return text, nil
+	if !v.Failed() {
+		v.Sayf("%d buf_check_timestamp mentions left for the sweep",
+			bytes.Count(v.Text(), []byte("buf_check_timestamp")))
+	}
+	return v.Done()
+}
+
+// bodyLines is the text's measure of a function's body, on the function's C
+// view: the line ends from its opening brace, at the start of a line, to its
+// closing one -- what edit.ReplaceBody reported as the body it replaced.
+func bodyLines(fn []byte) int {
+	o := bytes.Index(fn, []byte("\n{"))
+	c := bytes.LastIndexByte(fn, '}')
+	if o < 0 || c < o {
+		return 0
+	}
+	return bytes.Count(fn[o+1:c], []byte{'\n'})
 }

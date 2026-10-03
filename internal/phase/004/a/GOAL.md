@@ -62,3 +62,7 @@ non-capturing group `\%(a\|b\)\{2}` — the shape the NFA engine used to be chos
 — and a plain search. All five were calibrated against q75 first.
 
 Measured: 89,804 → **89,713 lines**.
+
+**It runs on the graph** (`doc/GRAPH-MIGRATION.md`, B1a): the proof asked of the
+C view by the text's own code, the two retries folded and the validation deleted
+on `crefactor/graph`'s verbs, byte for byte what the text program wrote.

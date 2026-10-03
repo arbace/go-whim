@@ -39,7 +39,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
@@ -49,20 +49,22 @@ const (
 
 // Whim23 stops a command naming a buffer by pattern, having first proved that
 // no command left can.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nobufpat", text, w)
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B1a): the rows are asked of the C
+// view by the text version's own expression, so the proof is its proof;
+// the fold is the verbs' (history keeps the text program).
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nobufpat", e, w)
 
-	// Every command that carried EX_BUFNAME was a stub, and phase 1 deleted
-	// the stub rows (extable, the reform's D2b): no row carries it, so the
-	// block below is never entered.
-	names := e.Query(bufnameRows, 1)
-	e.Expect(len(names) == 0, "these rows still carry EX_BUFNAME: %s", strings.Join(names, " "))
-	e.Say("confirmed: no command carries EX_BUFNAME")
+	names := v.TextQuery(bufnameRows, 1)
+	v.Expect(len(names) == 0, "these rows still carry EX_BUFNAME: %s", strings.Join(names, " "))
+	v.Say("confirmed: no command carries EX_BUFNAME")
 
-	e.InFunction("do_one_cmd", func(e *edit.E) {
-		e.FoldNever(edit.Head("if ((ea.argt & EX_BUFNAME) && *ea.arg != NUL && ea.addr_count == 0 && !((int)(ea.cmdidx) < 0))"), 1, "naming a buffer by pattern for commands that cannot run")
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.FoldNever("(&& (paren (& (. ea argt) EX_BUFNAME)) (!= (deref (. ea arg)) NUL) (== (. ea addr_count) 0) (! (< (cast int (paren (. ea cmdidx))) 0)))", 1,
+			"naming a buffer by pattern for commands that cannot run")
 	})
-	return e.Done()
+	return v.Done()
 }
 
-func init() { phase.Register("whim23", Edit) }
+func init() { phase.RegisterGraph("whim23", Edit) }

@@ -77,10 +77,32 @@ func DropLocal(e *graph.Editor, field string, opt graph.FallOutOptions) (int, er
 // generic fall-out rule -- a `return &field;` cannot go without the case
 // that reaches it, which is a choice only this cut makes -- so it is the
 // cut's own Rule.  ?f is the field.
+//
+// Each comes with its field's address spelled `&(curbuf->f)` or
+// `&curbuf->f`: get_varp() writes the cases of 'equalprg' and
+// 'keywordprg' without the parentheses, which phases 18 and 19 once took
+// by a program of their own (whim18kp, whim19ep) before their droplocal
+// could run.
 var (
-	plVarp     = clisp.MustPattern("(cast (ptr char_u) (addr (paren (-> curbuf ?f))))")
-	plVarpBoth = clisp.MustPattern("(? ?test (cast (ptr char_u) (addr (paren (-> curbuf ?f)))) (-> p var))")
+	plVarp = []*clisp.Node{
+		clisp.MustPattern("(cast (ptr char_u) (addr (paren (-> curbuf ?f))))"),
+		clisp.MustPattern("(cast (ptr char_u) (addr (-> curbuf ?f)))"),
+	}
+	plVarpBoth = []*clisp.Node{
+		clisp.MustPattern("(? ?test (cast (ptr char_u) (addr (paren (-> curbuf ?f)))) (-> p var))"),
+		clisp.MustPattern("(? ?test (cast (ptr char_u) (addr (-> curbuf ?f))) (-> p var))"),
+	}
 )
+
+// matchAny is the bindings of the first of ps that matches n.
+func matchAny(ps []*clisp.Node, n *graph.Node) (graph.Bindings, bool) {
+	for _, p := range ps {
+		if b, ok := graph.Match(p, n); ok {
+			return b, true
+		}
+	}
+	return nil, false
+}
 
 // plumbingTypes are the declared types DropLocal's declaration has.
 var plumbingTypes = []*clisp.Node{
@@ -96,9 +118,9 @@ func getVarp(field string) graph.Rule {
 			return nil, nil
 		}
 		v := it.Kids[1]
-		b, ok := graph.Match(plVarp, v)
+		b, ok := matchAny(plVarp, v)
 		if !ok || b["f"].Atom != field {
-			b, ok = graph.Match(plVarpBoth, v)
+			b, ok = matchAny(plVarpBoth, v)
 			if !ok || b["f"].Atom != field ||
 				!graph.Contains(b["test"], clisp.L(clisp.A("->"), clisp.A("curbuf"), clisp.A(field))) {
 				return nil, nil

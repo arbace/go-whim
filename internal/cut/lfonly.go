@@ -1,55 +1,12 @@
 package cut
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
-
-// keepThen is an `if (T) { A } else { B }` whose condition is always true:
-// keep A, lose B.
-//
-// FoldAlways refuses a block with an else, rightly -- it cannot tell whether
-// the else is meant.  Here it is meant, so this does the one shape by the same
-// brace matching FoldNever uses.
-func (e ed) keepThen(seg []byte, pattern, what string) ([]byte, error) {
-	re := regexp.MustCompile("(?m)" + pattern)
-	ms := re.FindAllIndex(seg, -1)
-	if len(ms) != 1 {
-		return nil, fmt.Errorf("%s: %s -- the condition occurs %d times, expected 1",
-			e.tool, what, len(ms))
-	}
-	b := edit.Blank(seg)
-	k, o, c, head, err := edit.Guarded(seg, b, ms[0])
-	if err != nil {
-		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
-	}
-	if head != "if" {
-		return nil, fmt.Errorf("%s: %s -- not a plain if", e.tool, what)
-	}
-	end := c + bytes.IndexByte(seg[c:], '\n') + 1
-	rest := seg[end:]
-	nxt := regexp.MustCompile(`^[ \t]*else\b`).FindIndex(rest)
-	if nxt == nil || regexp.MustCompile(`^[ \t]*else[ \t]+if\b`).Match(rest) {
-		return nil, fmt.Errorf("%s: %s -- expected a plain else after the block", e.tool, what)
-	}
-	at := end + nxt[1]
-	o2 := at + bytes.IndexByte(b[at:], '{')
-	c2 := edit.Match(b, o2)
-	if c2 < 0 {
-		return nil, fmt.Errorf("%s: %s -- the else block is unbalanced", e.tool, what)
-	}
-	body := seg[o+bytes.IndexByte(seg[o:], '\n')+1 : bytes.LastIndexByte(seg[:c], '\n')+1]
-	e.say(what)
-	out := make([]byte, 0, len(seg))
-	out = append(out, seg[:k]...)
-	out = append(out, body...)
-	return append(out, seg[c2+bytes.IndexByte(seg[c2:], '\n')+1:]...), nil
-}
 
 // lfonlyDying are the format functions and the option callbacks whose rows
 // lfonly drops (record 50's cut).  Every call left must sit inside one of them.
@@ -61,288 +18,158 @@ var lfonlyDying = []string{
 	"did_set_eof_eol_fixeol_bomb",
 }
 
-var lfonlyHeads = regexp.MustCompile(`(?m)^(\w+)\([^;\n]*\)[ \t]*\n\{`)
-
 // LfOnly makes every line end with LF, read and written.
-func LfOnly(text []byte, w io.Writer) ([]byte, error) {
-	e := ed{"lfonly", w}
-	var err error
+//
+// readfile went with open_buffer's read arms, and its other callers, by
+// phase 1 (readfront, phase 31's move): every format it chose on reading
+// went with it.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B1a): the text version's acts, one
+// for one and in its order (history keeps it), each found by its form and
+// counted; where the text took several lines with one counted pattern
+// (get_varp's two cases, buf_clear_file's four stores, buf_copy_options'
+// three), the acts are made one by one and reported once.  Its last check
+// is the edges': every call of a dying function left sits inside one.
+func LfOnly(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("lfonly", e, w)
+	// quiet is v's acts unreported, for a group the text reported as one
+	quiet := func(acts func(q *graph.Verbs)) {
+		if v.Failed() {
+			return
+		}
+		q := graph.NewVerbs("lfonly", e, io.Discard)
+		acts(q)
+		if q.Err != nil {
+			v.Err = q.Err
+		}
+	}
 
-	// readfile went with open_buffer's read arms, and its other callers, by
-	// phase 1 (readfront, phase 31's move): every format it chose on reading
-	// went with it.
-
-	text, err = e.inFunction(text, "buf_write", func(s []byte) ([]byte, error) {
-		var err error
-		if s, err = e.subOnce(s,
-			`^[ \t]*if \(eap != nullptr && eap->force_bin != 0\)\n`+
-				`[ \t]*\{\n`+
-				`[ \t]*write_bin = \(eap->force_bin == FORCE_BIN\);\n`+
-				`[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*write_bin = buf->b_p_bin;\n[ \t]*\}\n`,
-			"buf_write choosing 'binary' or ++bin"); err != nil {
-			return nil, err
-		}
-		if s, err = e.literal(s, "        fileformat = get_fileformat_force(buf, eap);\n", "",
-			"buf_write choosing a format", 1); err != nil {
-			return nil, err
-		}
-		if s, err = e.foldNever(s, `^[ \t]*else if \(c == CAR && fileformat == EOL_MAC\)$`,
-			"buf_write writing CR as a line end"); err != nil {
-			return nil, err
-		}
-		if s, err = e.literal(s,
-			"if (end == 0 || (lnum == end && (write_bin || !buf->b_p_fixeol) && ((write_bin && lnum == buf->b_no_eol_lnum) || (lnum == buf->b_ml.ml_line_count && !buf->b_p_eol))))",
-			"if (end == 0)", "buf_write leaving the last LF off", 1); err != nil {
-			return nil, err
-		}
-		if s, err = e.keepThen(s, `^[ \t]*if \(fileformat == EOL_UNIX\)$`,
-			"buf_write writing CR LF or CR"); err != nil {
-			return nil, err
-		}
-		if s, err = e.foldNever(s, `^[ \t]*if \(!buf->b_p_fixeol && buf->b_p_eof\)$`,
-			"buf_write appending CTRL-Z"); err != nil {
-			return nil, err
-		}
-		return e.dropIf(s, `^[ \t]*if \(msg_add_fileformat\(fileformat\)\)$`,
-			`the "[dos]" and "[mac]" write messages`)
+	v.InFunction("buf_write", func(v *graph.Verbs) {
+		v.Cut("(if (&& (!= eap nullptr) (!= (-> eap force_bin) 0)) (block (= write_bin _)) (block (= write_bin (-> buf b_p_bin))))", 1,
+			"buf_write choosing 'binary' or ++bin")
+		v.Cut("(= fileformat (call get_fileformat_force buf eap))", 1, "buf_write choosing a format")
+		v.FoldNever("(&& (== c CAR) (== fileformat EOL_MAC))", 1, "buf_write writing CR as a line end")
+		v.Rewrite("(|| ?a (paren (&& (== lnum end) _*)))", "?a", 1,
+			"buf_write leaving the last LF off")
+		v.FoldAlwaysElse("(== fileformat EOL_UNIX)", 1, "buf_write writing CR LF or CR")
+		v.FoldNever("(&& (! (-> buf b_p_fixeol)) (-> buf b_p_eof))", 1, "buf_write appending CTRL-Z")
+		v.DropIf("(call msg_add_fileformat fileformat)", 1, `the "[dos]" and "[mac]" write messages`)
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	// open_buffer's fifo and stdin arms, and their 'binary', went at phase 1
-	// (readfront).
-	text, err = e.inFunction(text, "open_buffer", func(s []byte) ([]byte, error) {
-		return e.literal(s, "    save_file_ff(curbuf);\n", "",
-			"open_buffer saving the format", 1)
+	v.InFunction("open_buffer", func(v *graph.Verbs) {
+		v.Cut("(call save_file_ff curbuf)", 1, "open_buffer saving the format")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	if text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
-		return e.subOnce(s, `^[ \t]*set_file_options\(TRUE, eap\);\n`,
-			"do_ecmd setting ++ff and ++bin")
-	}); err != nil {
-		return nil, err
-	}
-
-	// 'endofline' and 'endoffile' had no initialiser in buf_copy_options():
-	// their only resets were the ones removed above.  droplocal wants an
-	// initialiser to recognise the shape, so their get_varp() case goes here,
-	// and the sweep takes the fields no one names after it.
-	if text, err = e.inFunction(text, "get_varp", func(s []byte) ([]byte, error) {
-		return e.subCount(s,
-			`^[ \t]*case \(idopt_T\)\(PV_BUF \+ \(int\)\(BV_EO[LF]\)\):\n`+
-				`[ \t]*return \(char_u \*\)&\(curbuf->b_p_eo[lf]\);\n`,
-			"get_varp handing out 'endofline' and 'endoffile'", 2)
-	}); err != nil {
-		return nil, err
-	}
-	// one (readfile's) went at phase 1 (readfront)
-	if text, err = e.subCount(text, `^[ \t]*curbuf->b_no_eol_lnum = 0;\n`,
-		"resetting the no-LF line for 'binary'", 1); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "set_init_1", func(s []byte) ([]byte, error) {
-		return e.literal(s, "    save_file_ff(curbuf);\n", "",
-			"startup saving the format of the first buffer", 1)
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "did_set_modified", func(s []byte) ([]byte, error) {
-		return e.dropIf(s, `^[ \t]*if \(!args->os_newval\.boolean\)$`,
-			"'nomodified' saving the format")
-	}); err != nil {
-		return nil, err
-	}
-
-	if text, err = e.inFunction(text, "cursor_pos_info", func(s []byte) ([]byte, error) {
-		var err error
-		for _, f := range []struct{ pat, what string }{
-			{`^[ \t]*if \(get_fileformat\(curbuf\) == EOL_DOS\)$`,
-				"g CTRL-G counting CR LF as two bytes"},
-			{`^[ \t]*if \(lnum == curbuf->b_ml\.ml_line_count && !curbuf->b_p_eol && \(curbuf->b_p_bin \|\| !curbuf->b_p_fixeol\) && [^\n]*\)$`,
-				"g CTRL-G at a last line with no LF"},
-			{`^[ \t]*if \(!curbuf->b_p_eol && \(curbuf->b_p_bin \|\| !curbuf->b_p_fixeol\)\)$`,
-				"g CTRL-G counting a missing last LF"},
-		} {
-			if s, err = e.foldNever(s, f.pat, f.what); err != nil {
-				return nil, err
+	v.InFunction("do_ecmd", func(v *graph.Verbs) {
+		v.Cut("(call set_file_options TRUE eap)", 1, "do_ecmd setting ++ff and ++bin")
+	})
+	quiet(func(q *graph.Verbs) {
+		q.InFunction("get_varp", func(q *graph.Verbs) {
+			for _, bv := range []string{"BV_EOL", "BV_EOF"} {
+				q.DropCase("(case (cast idopt_T (+ PV_BUF (cast int (paren "+bv+")))))", 1,
+					"get_varp handing out 'endofline' and 'endoffile'")
 			}
-		}
-		return s, nil
-	}); err != nil {
-		return nil, err
-	}
+		})
+	})
+	v.Say("get_varp handing out 'endofline' and 'endoffile'")
+	v.Cut("(= (-> curbuf b_no_eol_lnum) 0)", 1, "resetting the no-LF line for 'binary'")
+	v.InFunction("set_init_1", func(v *graph.Verbs) {
+		v.Cut("(call save_file_ff curbuf)", 1, "startup saving the format of the first buffer")
+	})
+	v.InFunction("did_set_modified", func(v *graph.Verbs) {
+		v.DropIf("(! (. (-> args os_newval) boolean))", 1, "'nomodified' saving the format")
+	})
 
-	if text, err = e.inFunction(text, "unchanged", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "buf->b_changed || (ff && file_ff_differs(buf, FALSE))",
-			"buf->b_changed", "a changed format counting as a change", 1)
-		if err != nil {
-			return nil, err
-		}
-		return e.dropIf(s, `^[ \t]*if \(ff\)$`, "unchanged saving the format")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "bufIsChangedNotTerm", func(s []byte) ([]byte, error) {
-		return e.literal(s, "(buf->b_changed || file_ff_differs(buf, TRUE))",
-			"(buf->b_changed)", "a changed format counting as changed", 1)
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "buf_clear_file", func(s []byte) ([]byte, error) {
-		return e.subCount(s, `^[ \t]*buf->b_(?:p|start)_eo[fl] = (?:FALSE|TRUE);\n`,
-			"buf_clear_file resetting 'endofline' and 'endoffile'", 4)
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "transchar_nonprint", func(s []byte) ([]byte, error) {
-		return e.foldNever(s,
-			`^[ \t]*else if \(buf != nullptr && c == CAR && get_fileformat\(buf\) == EOL_MAC\)$`,
-			"CR shown as a line end")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "do_ascii", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(c == CAR && get_fileformat\(curbuf\) == EOL_MAC\)$`,
-			"ga showing CR as a line end")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "ml_open", func(s []byte) ([]byte, error) {
-		return e.subOnce(s,
-			`^[ \t]*b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] = get_fileformat\(buf\) \+ 1;\n`,
+	v.InFunction("cursor_pos_info", func(v *graph.Verbs) {
+		v.FoldNever("(== (call get_fileformat curbuf) EOL_DOS)", 1, "g CTRL-G counting CR LF as two bytes")
+		v.FoldNever("(&& (== lnum (. (-> curbuf b_ml) ml_line_count)) (! (-> curbuf b_p_eol)) (|| (-> curbuf b_p_bin) (! (-> curbuf b_p_fixeol))) _)", 1,
+			"g CTRL-G at a last line with no LF")
+		v.FoldNever("(&& (! (-> curbuf b_p_eol)) (|| (-> curbuf b_p_bin) (! (-> curbuf b_p_fixeol))))", 1,
+			"g CTRL-G counting a missing last LF")
+	})
+
+	v.InFunction("unchanged", func(v *graph.Verbs) {
+		v.Rewrite("(|| ?a (paren (&& ff (call file_ff_differs buf FALSE))))", "?a", 1,
+			"a changed format counting as a change")
+		v.DropIf("ff", 1, "unchanged saving the format")
+	})
+	v.InFunction("bufIsChangedNotTerm", func(v *graph.Verbs) {
+		// the text kept its parentheses: `(buf->b_changed)`
+		v.Rewrite("(|| ?a (call file_ff_differs buf TRUE))", "(paren ?a)", 1, "a changed format counting as changed")
+	})
+	quiet(func(q *graph.Verbs) {
+		q.InFunction("buf_clear_file", func(q *graph.Verbs) {
+			for _, m := range []string{"b_p_eof", "b_start_eof", "b_p_eol", "b_start_eol"} {
+				q.Cut("(= (-> buf "+m+") _)", 1, "buf_clear_file resetting 'endofline' and 'endoffile'")
+			}
+		})
+	})
+	v.Say("buf_clear_file resetting 'endofline' and 'endoffile'")
+	v.InFunction("transchar_nonprint", func(v *graph.Verbs) {
+		v.FoldNever("(&& (!= buf nullptr) (== c CAR) (== (call get_fileformat buf) EOL_MAC))", 1, "CR shown as a line end")
+	})
+	v.InFunction("do_ascii", func(v *graph.Verbs) {
+		v.FoldNever("(&& (== c CAR) (== (call get_fileformat curbuf) EOL_MAC))", 1, "ga showing CR as a line end")
+	})
+	v.InFunction("ml_open", func(v *graph.Verbs) {
+		v.Cut("(= (index (-> b0p b0_fname) (- B0_FNAME_SIZE_ORG 2)) (+ (call get_fileformat buf) 1))", 1,
 			"block 0 recording the format")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "ml_setflags", func(s []byte) ([]byte, error) {
-		return e.subOnce(s,
-			`^[ \t]*b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] = \(b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] & ~B0_FF_MASK\) \| \(get_fileformat\(buf\) \+ 1\);\n`,
-			"block 0 updating the format")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "set_init_3", func(s []byte) ([]byte, error) {
-		return e.dropIf(s,
-			`^[ \t]*if \(\(curbuf->b_ml\.ml_line_count == 1 && \*ml_get\(\(linenr_T\)1\) == NUL\)\)$`,
+	})
+	v.InFunction("ml_setflags", func(v *graph.Verbs) {
+		v.Cut("(= (index (-> b0p b0_fname) (- B0_FNAME_SIZE_ORG 2)) _)", 1, "block 0 updating the format")
+	})
+	v.InFunction("set_init_3", func(v *graph.Verbs) {
+		v.DropIf("(paren (&& (== (. (-> curbuf b_ml) ml_line_count) 1) (== (deref (call ml_get (cast linenr_T 1))) NUL)))", 1,
 			"startup applying 'fileformats' to an empty buffer")
-	}); err != nil {
-		return nil, err
-	}
+	})
 
-	if text, err = e.inFunction(text, "getargopt", func(s []byte) ([]byte, error) {
-		var err error
-		if s, err = e.dropIf(s,
-			`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("bin"\), \(3\)\) == 0 \|\| strncmp\(\(char \*\)\(arg\), \(char \*\)\("nobin"\), \(5\)\) == 0\)$`,
-			"++bin and ++nobin"); err != nil {
-			return nil, err
-		}
-		for _, f := range []struct{ pat, what string }{
-			{`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("ff"\), \(2\)\) == 0\)$`, "++ff"},
-			{`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("fileformat"\), \(10\)\) == 0\)$`,
-				"++fileformat"},
-			{`^[ \t]*if \(pp == &eap->force_ff\)$`, "++ff checking its value"},
-		} {
-			if s, err = e.foldNever(s, f.pat, f.what); err != nil {
-				return nil, err
+	strncmp := func(s string, n int) string {
+		return fmt.Sprintf(`(== (call strncmp (cast (ptr char) (paren arg)) (cast (ptr char) (paren "%s")) (paren %d)) 0)`, s, n)
+	}
+	v.InFunction("getargopt", func(v *graph.Verbs) {
+		v.DropIf("(|| "+strncmp("bin", 3)+" "+strncmp("nobin", 5)+")", 1, "++bin and ++nobin")
+		v.FoldNever(strncmp("ff", 2), 1, "++ff")
+		v.FoldNever(strncmp("fileformat", 10), 1, "++fileformat")
+		v.FoldNever("(== pp (addr (-> eap force_ff)))", 1, "++ff checking its value")
+	})
+	v.InFunction("prepare_help_buffer", func(v *graph.Verbs) {
+		v.Cut("(= (-> curbuf b_p_bin) FALSE)", 1, "the help buffer clearing 'binary'")
+	})
+
+	v.InFunction("buf_copy_options", func(v *graph.Verbs) {
+		v.Cut("(switch (deref p_ffs) _*)", 1, "a new buffer's 'fileformat' from 'fileformats'")
+		v.DropIf("(!= (-> buf b_p_ff) nullptr)", 1, "a new buffer's remembered format")
+	})
+	quiet(func(q *graph.Verbs) {
+		q.InFunction("buf_copy_options", func(q *graph.Verbs) {
+			for _, o := range []string{"tw", "wm", "et"} {
+				q.Cut("(= (-> buf b_p_"+o+"_nobin) p_"+o+"_nobin)", 1, "a new buffer's values saved for 'binary'")
 			}
-		}
-		return s, nil
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "prepare_help_buffer", func(s []byte) ([]byte, error) {
-		return e.literal(s, "    curbuf->b_p_bin = FALSE;\n", "",
-			"the help buffer clearing 'binary'", 1)
-	}); err != nil {
-		return nil, err
-	}
-
-	if text, err = e.inFunction(text, "buf_copy_options", func(s []byte) ([]byte, error) {
-		a := bytes.Index(s, []byte("switch (*p_ffs)"))
-		if a < 0 {
-			return nil, fmt.Errorf("lfonly: buf_copy_options has no 'fileformats' switch")
-		}
-		a = bytes.LastIndexByte(s[:a], '\n') + 1
-		b := edit.Blank(s)
-		o := a + bytes.IndexByte(b[a:], '{')
-		c := edit.Match(b, o)
-		if c < 0 {
-			return nil, fmt.Errorf("lfonly: buf_copy_options' switch is unbalanced")
-		}
-		out := make([]byte, 0, len(s))
-		out = append(out, s[:a]...)
-		s = append(out, s[c+bytes.IndexByte(s[c:], '\n')+1:]...)
-		e.say("a new buffer's 'fileformat' from 'fileformats'")
-		var err error
-		if s, err = e.dropIf(s, `^[ \t]*if \(buf->b_p_ff != nullptr\)$`,
-			"a new buffer's remembered format"); err != nil {
-			return nil, err
-		}
-		return e.subCount(s, `^[ \t]*buf->b_p_(?:tw|wm|et)_nobin = p_(?:tw|wm|et)_nobin;\n`,
-			"a new buffer's values saved for 'binary'", 3)
-	}); err != nil {
-		return nil, err
-	}
+		})
+	})
+	v.Say("a new buffer's values saved for 'binary'")
 
 	// Every call left must be inside code the sweep takes with them.  Counted
 	// by WHERE each call sits, not by a tally that has to be guessed.
-	blanked := edit.Blank(text)
-	var spans [][2]int
-	for _, n := range lfonlyDying {
-		if a, z, ok := edit.FindDefinition(text, blanked, n); ok {
-			spans = append(spans, [2]int{a, z})
-		}
-	}
-	type head struct {
-		at   int
-		name string
-	}
-	var heads []head
-	for _, m := range lfonlyHeads.FindAllSubmatchIndex(text, -1) {
-		heads = append(heads, head{m[0], string(text[m[2]:m[3]])})
+	if v.Failed() {
+		return v.Done()
 	}
 	var live []string
 	for _, n := range lfonlyDying {
-		for _, m := range edit.CallsNotAfterWord(text, n) {
-			ls := bytes.LastIndexByte(text[:m[0]], '\n') + 1
-			le := bytes.IndexByte(text[m[0]:], '\n')
-			var line []byte
-			if le < 0 {
-				line = text[ls:]
-			} else {
-				line = text[ls : m[0]+le]
-			}
-			if bytes.HasPrefix(line, []byte("static ")) ||
-				bytes.HasPrefix(line, []byte(n+"(")) {
-				continue
-			}
-			inDying := false
-			for _, sp := range spans {
-				if sp[0] <= m[0] && m[0] < sp[1] {
-					inDying = true
-					break
-				}
-			}
-			if inDying {
-				continue
+		for _, u := range v.UsesOutside(n, lfonlyDying...) {
+			if c := e.Parent(u); c == nil || !c.Is("call") || c.Kids[1] != u {
+				continue // not a call: an option row's pointer
 			}
 			owner := "?"
-			for _, h := range heads {
-				if h.at <= m[0] {
-					owner = h.name
-				}
+			if f := e.Function(u); f != nil {
+				owner = graph.DeclName(f)
 			}
 			live = append(live, n+" in "+owner)
 		}
 	}
 	if len(live) > 0 {
-		return nil, fmt.Errorf("lfonly: still called from live code: %s", strings.Join(live, ", "))
+		return fmt.Errorf("lfonly: still called from live code: %s", strings.Join(live, ", "))
 	}
 
-	e.say("every line ends with LF, read and written")
-	return text, nil
+	v.Say("every line ends with LF, read and written")
+	return v.Done()
 }

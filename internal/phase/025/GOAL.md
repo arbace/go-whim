@@ -3,6 +3,8 @@
 *Formerly phase 79. The other phase numbers in this file are the old numbering,
 as it was written: `doc/PHASES.md` maps them.*
 
+*It runs on the graph (`doc/GRAPH-MIGRATION.md`, B1a): the same acts, each found by its C-lisp form and counted, its report the text program's line for line.*
+
 Twenty-eight functions whose whole body is `return <constant>;`. Each was emptied by
 an earlier phase and left with its callers in place, so the editor still asks "is the
 popup menu visible", "are we in a Vim9 script", "is there more than one window" — and
@@ -100,3 +102,5 @@ saving. Five quit probes calibrated on q78 guard it: `:q` refuses a modified fil
 `:q!` discards, `:wq` and `:x` write and exit.
 
 Measured: 89,233 → **88,636 lines**.
+
+On the graph, handed the graph phase 24 leaves, it costs 0.62 s (main's text 4.2 s; `TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).

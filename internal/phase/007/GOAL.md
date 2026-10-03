@@ -47,3 +47,13 @@ nothing left to look the field up from.
 
 **None.** All six report `E518: Unknown option` instead of a value that decided
 nothing.
+
+## On the graph
+
+Since B1a (`doc/GRAPH-MIGRATION.md`) the phase runs on the program's graph
+from its first step to its last: `noinertopts` is a graph step
+(`internal/cut/noinertopts.go`, on `crefactor/graph`'s verbs: a FoldNever,
+a RewriteAt, a Cut), its in-phase sweep a collection, then `droplocal`; the
+report is the text version's, line for line, and `whim-build-check` holds
+q007 to the bytes it made (the text program is in history, `4c8b3a7` and
+before). It costs 2.5 s from the text (the import most of it; main's text 4.5 s) and 0.49 s handed the graph (`TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).

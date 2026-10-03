@@ -46,8 +46,11 @@ func snapOf(t *testing.T, dir string, n int) []byte {
 // graph gives it too handed q(N-1)'s graph written as Lisp and read back --
 // the graph snapshot's own path, whether or not the snapshots hold one.
 func TestPhasesOnGraph(t *testing.T) {
-	dir, _, _, _ := setup(t)
+	dir, only, _, _ := setup(t)
 	for _, p := range graphPhases() {
+		if os.Getenv("GRAPH_PHASES") != "" && !slices.Contains(only, p.N) {
+			continue
+		}
 		t.Run(fmt.Sprint(p.N), func(t *testing.T) {
 			in, want := snapOf(t, dir, p.N-1), snapOf(t, dir, p.N)
 			out, conv, err := build.AdvanceFrom(p, in, nil, io.Discard)
@@ -130,7 +133,7 @@ func TestGraphSnapshots(t *testing.T) {
 // where its graph steps begin), and, for one that begins on the graph, as
 // the check runs it from its graph snapshot (the Lisp read, timed apart).
 func TestMeasureGraphPhases(t *testing.T) {
-	dir, _, _, _ := setup(t)
+	dir, only, _, _ := setup(t)
 	runs := 0
 	fmt.Sscan(os.Getenv("GRAPH_MEASURE"), &runs)
 	if runs == 0 {
@@ -141,7 +144,7 @@ func TestMeasureGraphPhases(t *testing.T) {
 		sort.Slice(cs, func(i, j int) bool { return cs[i].wall < cs[j].wall })
 		return cs[len(cs)/2]
 	}
-	for _, p := range graphPhases() {
+	for _, p := range measured(only) {
 		in := snapOf(t, dir, p.N-1)
 		var lisp []byte
 		if pipeline.BeginsOnGraph(p) {
@@ -242,4 +245,21 @@ func TestMeasureCollect(t *testing.T) {
 		fmt.Printf("phase %3d  %7d ids collected: through the editor %4d ms, collected and indexed anew %4d ms\n",
 			n, gone, through[runs/2].Milliseconds(), anew[runs/2].Milliseconds())
 	}
+}
+
+// measured are the phases TestMeasureGraphPhases times: those with a graph
+// step, or, with GRAPH_PHASES set, the phases it names whatever their steps
+// are -- so that a phase can be timed on text before it is converted and on
+// the graph after, by the same code.
+func measured(only []int) []build.Phase {
+	if os.Getenv("GRAPH_PHASES") == "" {
+		return graphPhases()
+	}
+	var out []build.Phase
+	for _, p := range build.Plan {
+		if slices.Contains(only, p.N) {
+			out = append(out, p)
+		}
+	}
+	return out
 }

@@ -36,12 +36,13 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
 var (
 	btEngineWrite = regexp.MustCompile(`(?m)^[ \t]*prog->re_engine = BACKTRACKING_ENGINE;[ \t]*$`)
-	retryOther    = edit.Head("if (rmp->regprog->re_engine == AUTOMATIC_ENGINE && result == (-1))")
+	retryOther    = "(&& (== (-> rmp regprog re_engine) AUTOMATIC_ENGINE) (== result (paren (- 1))))"
 )
 
 // assignsTo is writesTo with `->name` fields included -- written the careful way
@@ -79,35 +80,40 @@ func assignsTo(text []byte, name string) []int {
 	return Out
 }
 
-// Whim4a leaves one regexp engine, having first proved there is only one.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("oneengine", text, w)
-
+// Edit, part 4a, leaves one regexp engine, having first proved there is only one.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B1a): the proof -- one assignment to
+// re_engine, to BACKTRACKING_ENGINE, and no NFA engine left -- is asked of
+// the C view by the text's own code, so its numbers are the text's; the two
+// retries are folded as the text folded them, and the validation is deleted
+// as an item (history keeps the text version).
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("oneengine", e, w)
+	text := v.Text()
 	if ws := assignsTo(text, "re_engine"); len(ws) != 1 {
-		e.Refuse("re_engine is assigned in %d place(s) (lines %s), not once -- a second engine may exist and both retry blocks may be reachable",
+		v.Refuse("re_engine is assigned in %d place(s) (lines %s), not once -- a second engine may exist and both retry blocks may be reachable",
 			len(ws), edit.JoinInts(ws))
-		return e.Done()
+		return v.Done()
 	}
 	if !btEngineWrite.Match(text) {
-		e.Refuse("the one assignment to re_engine is not to BACKTRACKING_ENGINE")
-		return e.Done()
+		v.Refuse("the one assignment to re_engine is not to BACKTRACKING_ENGINE")
+		return v.Done()
 	}
 	for _, gone := range []string{"nfa_regengine", "regexp_engine"} {
 		if regexp.MustCompile(`\b` + gone + `\b`).Match(text) {
-			e.Refuse("%s still exists -- the NFA engine is back and this phase is wrong", gone)
-			return e.Done()
+			v.Refuse("%s still exists -- the NFA engine is back and this phase is wrong", gone)
+			return v.Done()
 		}
 	}
-	e.Say("confirmed: re_engine is written once, to BACKTRACKING_ENGINE, and only there")
+	v.Say("confirmed: re_engine is written once, to BACKTRACKING_ENGINE, and only there")
 
-	e.InFunction("vim_regexec_string", func(e *edit.E) { e.FoldNever(retryOther, 1, "a failed match recompiling with the other engine") })
-	e.InFunction("vim_regexec_multi", func(e *edit.E) { e.FoldNever(retryOther, 1, "and the multi-line variant of the same") })
-	e.InFunction("check_num_option_bounds", func(e *edit.E) {
-		e.Literal(w4alit2, "", 1, "validating an option nothing can set")
+	v.InFunction("vim_regexec_string", func(v *graph.Verbs) { v.FoldNever(retryOther, 1, "a failed match recompiling with the other engine") })
+	v.InFunction("vim_regexec_multi", func(v *graph.Verbs) { v.FoldNever(retryOther, 1, "and the multi-line variant of the same") })
+	v.InFunction("check_num_option_bounds", func(v *graph.Verbs) {
+		v.Cut("(if (|| (< p_re 0) (> p_re 2)) (block (= errmsg e_invalid_argument) (= p_re 0)))", 1,
+			"validating an option nothing can set")
 	})
-	// p_re, which had no row to set it, and AUTOMATIC_ENGINE, the engine it
-	// chose between, are named by nothing now; the sweep takes them.
-	return e.Done()
+	return v.Done()
 }
 
-func init() { phase.Register("whim4a", Edit) }
+func init() { phase.RegisterGraph("whim4a", Edit) }

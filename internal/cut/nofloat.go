@@ -7,12 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
-
-const floatLabels = "            case 'f':\n            case 'F':\n" +
-	"            case 'e':\n            case 'E':\n" +
-	"            case 'g':\n            case 'G':\n"
 
 var (
 	// A printf conversion: % then flags, width, precision, then the letter.
@@ -29,18 +25,21 @@ var (
 	libmCall    = regexp.MustCompile(`\b(?:ceil|floor|log10)\s*\(`)
 )
 
-var nofloatCuts = []struct{ what, pat string }{
-	{"format_typeof's float arm",
-		`(?m)^    case 'f':\n    case 'F':\n    case 'e':\n    case 'E':\n` +
-			`    case 'g':\n    case 'G':\n        return TYPE_FLOAT;\n`},
-	{"the argument walker's six labels",
-		edit.Line("case 'f':", "case 'F':", "case 'e':") +
-			`[ \t]*case 'E':\n[ \t]*case 'g':\n[ \t]*case 'G':\n`},
-	{"format_typename's float arm",
-		edit.Line("case TYPE_FLOAT:", "return typename_float;")},
-	{"the va_arg walker's float arm",
-		edit.Line("case TYPE_FLOAT:", "va_arg(*ap, double);", "break;")},
+// nofloatCuts are TYPE_FLOAT's three arms and the walker's six labels: case
+// labels, each dropped with the run it heads alone (DropCase), in the
+// function each is in.
+var nofloatCuts = []struct {
+	what, fn string
+	labels   []string
+}{
+	{"format_typeof's float arm", "format_typeof", floatLetters},
+	{"the argument walker's six labels", "parse_fmt_types", floatLetters},
+	{"format_typename's float arm", "format_typename", []string{"(case TYPE_FLOAT)"}},
+	{"the va_arg walker's float arm", "skip_to_arg", []string{"(case TYPE_FLOAT)"}},
 }
+
+// floatLetters are the six conversions' case labels.
+var floatLetters = []string{"(case 'f')", "(case 'F')", "(case 'e')", "(case 'E')", "(case 'g')", "(case 'G')"}
 
 // checkNoFloatFormats refuses to cut unless nothing can reach the branch being
 // cut.
@@ -86,48 +85,58 @@ func checkNoFloatFormats(text []byte, w io.Writer) error {
 
 // NoFloat removes the float conversion nothing can reach, and the libm calls
 // that were the only other floating point in the file.
-func NoFloat(text []byte, w io.Writer) ([]byte, error) {
-	if err := checkNoFloatFormats(text, w); err != nil {
-		return nil, err
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B1a): the conversion is the run of
+// items from its first label through its block, replaced by nothing
+// (Splice), in vim_vsnprintf_typval; the arms are case labels dropped
+// (DropCase); the string literals and the libm calls are counted on the C
+// view by the text version's own expressions, so the numbers are its
+// numbers (history keeps it).  The arms' acts report nothing of their own,
+// as the text's did not: one line says all four.
+func NoFloat(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nofloat", e, w)
+	if err := checkNoFloatFormats(v.Text(), w); err != nil {
+		return err
 	}
 
 	// The fuzzy matcher, whose score rounding called ceil and floor, went
 	// with every completion context but files at phase 4 (whim4f, phase 4f's
 	// program, which runs before this phase now).
 
-	blanked := edit.Blank(text)
-	k := bytes.Index(text, []byte(floatLabels+"                {\n"))
-	if k < 0 {
-		return nil, fmt.Errorf("nofloat: the float conversion case is not where this expects")
+	// The conversion: its six labels and the block they share, the run
+	// that ends where `default:` begins.  It is the one that calls log10.
+	quiet := graph.NewVerbs("nofloat", e, io.Discard)
+	lines := 0
+	quiet.InFunction("vim_vsnprintf_typval", func(q *graph.Verbs) {
+		block := "(block (def f double) _*)"
+		if q.One(block, "the float conversion case") == nil {
+			return
+		}
+		q.Expect(q.Count("(call log10 _*)") > 0, "the float conversion case is not where this expects")
+		before := bytes.Count(q.Text(), []byte{'\n'})
+		q.Splice("(case 'f')", block, "", "the float conversion case")
+		lines = before - bytes.Count(q.Text(), []byte{'\n'})
+	})
+	if err := quiet.Done(); err != nil {
+		return err
 	}
-	o := k + len(floatLabels) + bytes.IndexByte(blanked[k+len(floatLabels):], '{')
-	c := edit.Match(blanked, o)
-	if c < 0 {
-		return nil, fmt.Errorf("nofloat: the float conversion case is unbalanced")
-	}
-	if !bytes.Contains(text[k:c], []byte("log10")) {
-		return nil, fmt.Errorf("nofloat: the float conversion case is not where this expects")
-	}
-	end := c + bytes.IndexByte(text[c:], '\n') + 1
-	fmt.Fprintf(w, "  nofloat      the %%f conversion, %d lines nothing can reach\n",
-		bytes.Count(text[k:end], []byte{'\n'}))
-	var buf []byte
-	buf = append(buf, text[:k]...)
-	text = append(buf, text[end:]...)
+	v.Sayf("the %%f conversion, %d lines nothing can reach", lines)
 
 	for _, c := range nofloatCuts {
-		re := regexp.MustCompile(c.pat)
-		var hit bool
-		text, hit = replaceFirst(re, text, "")
-		if !hit {
-			return nil, fmt.Errorf("nofloat: %s -- expected 1, matched 0", c.what)
-		}
+		quiet.InFunction(c.fn, func(q *graph.Verbs) {
+			for _, l := range c.labels {
+				q.DropCase(l, 1, c.what)
+			}
+		})
+	}
+	if err := quiet.Done(); err != nil {
+		return err
 	}
 
-	// TYPE_FLOAT itself is the sweep's: it is the last enumerator, so taking
-	// it renumbers nothing.
-	fmt.Fprintln(w, "  nofloat      TYPE_FLOAT's three arms")
+	// TYPE_FLOAT itself and typename_float, now unreferenced, are the
+	// collection's.
+	v.Say("TYPE_FLOAT's three arms")
 
-	fmt.Fprintf(w, "  nofloat      %d libm calls left\n", len(libmCall.FindAll(text, -1)))
-	return text, nil
+	v.Sayf("%d libm calls left", v.TextCount(libmCall.String()))
+	return v.Done()
 }

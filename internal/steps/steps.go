@@ -46,8 +46,6 @@ func plain(f func([]byte, io.Writer) ([]byte, error)) Step {
 }
 
 var ops = map[string]Step{
-	"keepbytes": plain(cut.KeepBytes),
-	"lfonly":    plain(cut.LfOnly),
 	"noabbr":    plain(cut.NoAbbr),
 	"noarglist": plain(cut.NoArgList),
 	// the command line cut at the front, and what that leaves unwritten
@@ -65,7 +63,6 @@ var ops = map[string]Step{
 	"front":       Step(xform.FallOutOf(xform.Step(front), frontHold...)),
 	"front2":      Step(xform.FallOutOf(xform.Step(front2), frontHold...)),
 	"front3":      Step(xform.FallOutOf(xform.Step(front3), frontHold...)),
-	"nobackup":    plain(cut.NoBackup),
 	"nobuflist":   plain(cut.NoBufList),
 	"nochdir":     plain(cut.NoChdir),
 	"nocindent":   plain(cut.NoCindent),
@@ -78,27 +75,22 @@ var ops = map[string]Step{
 	"nofenc":      plain(cut.NoFenc),
 	"nofencs":     plain(cut.NoFencs),
 	"nofind":      plain(cut.NoFind),
-	"nofloat":     plain(cut.NoFloat),
 	"nofnamemod":  plain(cut.NoFnameMod),
 	"nogetenv":    plain(cut.NoGetEnv),
 	"noglob":      plain(cut.NoGlob),
 	"nohome":      plain(cut.NoHome),
 	"noident":     plain(cut.NoIdent),
 	"noinert":     plain(cut.NoInert),
-	"noinertopts": plain(cut.NoInertOpts),
-	"nointro":     plain(cut.NoIntro),
 	"nolocale":    plain(cut.NoLocale),
 	"nomemfile":   plain(cut.NoMemfile),
 	"nomouse":     plain(cut.NoMouse),
 	"nonfa":       plain(cut.NoNfa),
-	"noowner":     plain(cut.NoOwner),
 	"norecover":   plain(cut.NoRecover),
 	"noruntime":   plain(cut.NoRuntime),
 	"nosession":   plain(cut.NoSession),
 	"noshellout":  plain(cut.NoShellOut),
 	"nosignals":   plain(cut.NoSignals),
 	"nostartup":   plain(cut.NoStartup),
-	"nostat":      plain(cut.NoStat),
 	"noswap":      plain(cut.NoSwap),
 	"notabs":      plain(cut.NoTabs),
 	"notags":      plain(cut.NoTags),
@@ -110,7 +102,6 @@ var ops = map[string]Step{
 	"nowinsizes":  plain(cut.NoWinSizes),
 	"onebuffer":   plain(cut.OneBuffer),
 	"oneoptset":   plain(cut.OneOptSet),
-	"optreaders":  plain(cut.OptReaders),
 	"utf8only":    plain(cut.Utf8Only),
 
 	// The four that take arguments, and the three that only ask a question;
@@ -184,6 +175,16 @@ type GraphStep func(e *graph.Editor, args []string, w io.Writer) error
 var graphOps = map[string]GraphStep{
 	"droplocal": dropLocal,
 	"edit":      runGraphEdit,
+	// B1a (doc/GRAPH-MIGRATION.md): cutters converted to the graph
+	"noinertopts": plainGraph(cut.NoInertOpts),
+	"nofloat":     plainGraph(cut.NoFloat),
+	"noowner":     plainGraph(cut.NoOwner),
+	"nointro":     plainGraph(cut.NoIntro),
+	"optreaders":  plainGraph(cut.OptReaders),
+	"nostat":      plainGraph(cut.NoStat),
+	"nobackup":    plainGraph(cut.NoBackup),
+	"lfonly":      plainGraph(cut.LfOnly),
+	"keepbytes":   plainGraph(cut.KeepBytes),
 }
 
 // LookupGraph returns the graph step of that name, and whether there is one.
@@ -475,4 +476,9 @@ func MinMax() ([]byte, error) {
 		return nil, fmt.Errorf("the MIN/MAX probe gave %d lines, not 2", len(keep))
 	}
 	return []byte(strings.Join(keep, "\n") + "\n"), nil
+}
+
+// plainGraph wraps a cutter on the graph that takes no arguments of its own.
+func plainGraph(f func(*graph.Editor, io.Writer) error) GraphStep {
+	return func(e *graph.Editor, _ []string, w io.Writer) error { return f(e, w) }
 }

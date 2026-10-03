@@ -8,95 +8,46 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
-var (
-	badCharLine = regexp.MustCompile(`(?m)^[^\n]*\bbad_char\b[^\n]*$`)
-	elseHere    = regexp.MustCompile(`^[ \t]*else\b`)
-)
-
-// foldAll folds every occurrence, however many -- but at least one.
-func (e ed) foldAll(seg []byte, pattern, what string) ([]byte, error) {
-	re := regexp.MustCompile("(?m)" + pattern)
-	n := len(re.FindAll(seg, -1))
-	if n == 0 {
-		return nil, fmt.Errorf("%s: %s -- no occurrence", e.tool, what)
-	}
-	out, err := edit.FoldNever(seg, "(?m)"+pattern, n)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
-	}
-	fmt.Fprintf(e.w, "  %-13s%s (%d)\n", e.tool, what, n)
-	return out, nil
-}
-
-// keepThenChain handles `if (T) { A } else if ... else { ... }` with T always
-// true: keep A, lose the rest of the chain.
-//
-// This is not FoldAlways, which refuses a block that has an else at all.  Here
-// the else arms are the ones going, and there may be any number of them, so
-// the walk continues while the next thing is an `else`.
-func (e ed) keepThenChain(seg []byte, pattern, what string) ([]byte, error) {
-	re := regexp.MustCompile("(?m)" + pattern)
-	ms := re.FindAllIndex(seg, -1)
-	if len(ms) != 1 {
-		return nil, fmt.Errorf("%s: %s -- the condition occurs %d times, expected 1",
-			e.tool, what, len(ms))
-	}
-	b := edit.Blank(seg)
-	k, o, c, head, err := edit.Guarded(seg, b, ms[0])
-	if err != nil {
-		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
-	}
-	if head != "if" {
-		return nil, fmt.Errorf("%s: %s -- not a plain if", e.tool, what)
-	}
-	body := seg[o+bytes.IndexByte(seg[o:], '\n')+1 : bytes.LastIndexByte(seg[:c], '\n')+1]
-	end := c + bytes.IndexByte(seg[c:], '\n') + 1
-	for {
-		nxt := elseHere.FindIndex(seg[end:])
-		if nxt == nil {
-			break
-		}
-		o2 := end + nxt[1] + bytes.IndexByte(b[end+nxt[1]:], '{')
-		c2 := edit.Match(b, o2)
-		if c2 < 0 {
-			return nil, fmt.Errorf("%s: %s -- an else arm is unbalanced", e.tool, what)
-		}
-		end = c2 + bytes.IndexByte(seg[c2:], '\n') + 1
-	}
-	e.say(what)
-	out := make([]byte, 0, len(seg))
-	out = append(out, seg[:k]...)
-	out = append(out, body...)
-	return append(out, seg[end:]...), nil
-}
+var badCharLine = regexp.MustCompile(`(?m)^[^\n]*\bbad_char\b[^\n]*$`)
 
 // KeepBytes makes an invalid byte kept, with nothing able to ask otherwise.
-func KeepBytes(text []byte, w io.Writer) ([]byte, error) {
-	e := ed{"keepbytes", w}
-	var err error
-
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B1a): every `++bad` arm folded,
+// however many but at least one, and `++enc`'s value kept with the chain
+// after it gone (KeepThen); the text version did both by brace matching
+// (history keeps it).  The last check is the text's own, on the C view: no
+// line reads eap->bad_char but its declaration, its stores and get_bad_opt.
+func KeepBytes(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("keepbytes", e, w)
 	// readfile went at phase 1 (readfront, phase 31's move)
-
-	text, err = e.inFunction(text, "getargopt", func(s []byte) ([]byte, error) {
-		s, err := e.foldAll(s,
-			`^[ \t]*else if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("bad"\), \(3\)\) == 0\)$`,
-			"++bad")
-		if err != nil {
-			return nil, err
+	v.InFunction("getargopt", func(v *graph.Verbs) {
+		bad := `(== (call strncmp (cast (ptr char) (paren arg)) (cast (ptr char) (paren "bad")) (paren 3)) 0)`
+		n := v.Count("(if " + bad + " _*)")
+		if n == 0 {
+			v.Die("++bad -- no occurrence")
+			return
 		}
-		return e.keepThenChain(s, `^[ \t]*if \(pp == &eap->force_enc\)$`,
-			"++enc's value, the only one left to check")
+		q := graph.NewVerbs("keepbytes", e, io.Discard)
+		q.In(v.Scope(), func(q *graph.Verbs) { q.FoldNever(bad, n, "++bad") })
+		if q.Err != nil {
+			v.Err = q.Err
+			return
+		}
+		v.Sayf("++bad (%d)", n)
+		v.KeepThen("(== pp (addr (-> eap force_enc)))", 1, "++enc's value, the only one left to check")
 	})
-	if err != nil {
-		return nil, err
+	if v.Failed() {
+		return v.Done()
 	}
 
 	// The Python writes this as `\bbad_char\b(?!_)`, and the lookahead is
 	// REDUNDANT rather than unspellable: `_` is a word character, so a word
 	// boundary after "bad_char" already cannot occur inside
 	// "bad_char_behavior".  Measured on the whole corpus, the two agree.
+	text := v.Text()
 	if edit.WordCount(bytes.ReplaceAll(text, []byte("int bad_char;"), nil), "bad_char") > 0 {
 		var live []string
 		for _, m := range badCharLine.FindAll(text, -1) {
@@ -112,10 +63,10 @@ func KeepBytes(text []byte, w io.Writer) ([]byte, error) {
 			live = append(live, line)
 		}
 		if len(live) > 0 {
-			return nil, fmt.Errorf("keepbytes: eap->bad_char still read: %s", pyList(live))
+			return fmt.Errorf("keepbytes: eap->bad_char still read: %s", pyList(live))
 		}
 	}
 
-	e.say("an invalid byte is kept, and nothing can ask otherwise")
-	return text, nil
+	v.Say("an invalid byte is kept, and nothing can ask otherwise")
+	return v.Done()
 }

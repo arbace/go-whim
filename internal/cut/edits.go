@@ -1,6 +1,7 @@
 package cut
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"regexp"
@@ -111,4 +112,61 @@ func (e ed) inFunction(t []byte, name string, fn func([]byte) ([]byte, error)) (
 		return nil, fmt.Errorf("%s: %s is not defined at file scope", e.tool, name)
 	}
 	return out, err
+}
+
+// cutCounted deletes a pattern `count` times, refusing on any other number.
+func cutCounted(text []byte, pattern, tool, what string, count int) ([]byte, error) {
+	re := regexp.MustCompile(pattern)
+	locs := edit.AllIndexN(re, text, count)
+	if len(locs) != count {
+		return nil, fmt.Errorf("%s: %s -- expected %d, matched %d", tool, what, count, len(locs))
+	}
+	out := make([]byte, 0, len(text))
+	prev := 0
+	for _, l := range locs {
+		out = append(out, text[prev:l[0]]...)
+		prev = l[1]
+	}
+	return append(out, text[prev:]...), nil
+}
+
+// keepThen is an `if (T) { A } else { B }` whose condition is always true:
+// keep A, lose B.
+//
+// FoldAlways refuses a block with an else, rightly -- it cannot tell whether
+// the else is meant.  Here it is meant, so this does the one shape by the same
+// brace matching FoldNever uses.
+func (e ed) keepThen(seg []byte, pattern, what string) ([]byte, error) {
+	re := regexp.MustCompile("(?m)" + pattern)
+	ms := re.FindAllIndex(seg, -1)
+	if len(ms) != 1 {
+		return nil, fmt.Errorf("%s: %s -- the condition occurs %d times, expected 1",
+			e.tool, what, len(ms))
+	}
+	b := edit.Blank(seg)
+	k, o, c, head, err := edit.Guarded(seg, b, ms[0])
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
+	}
+	if head != "if" {
+		return nil, fmt.Errorf("%s: %s -- not a plain if", e.tool, what)
+	}
+	end := c + bytes.IndexByte(seg[c:], '\n') + 1
+	rest := seg[end:]
+	nxt := regexp.MustCompile(`^[ \t]*else\b`).FindIndex(rest)
+	if nxt == nil || regexp.MustCompile(`^[ \t]*else[ \t]+if\b`).Match(rest) {
+		return nil, fmt.Errorf("%s: %s -- expected a plain else after the block", e.tool, what)
+	}
+	at := end + nxt[1]
+	o2 := at + bytes.IndexByte(b[at:], '{')
+	c2 := edit.Match(b, o2)
+	if c2 < 0 {
+		return nil, fmt.Errorf("%s: %s -- the else block is unbalanced", e.tool, what)
+	}
+	body := seg[o+bytes.IndexByte(seg[o:], '\n')+1 : bytes.LastIndexByte(seg[:c], '\n')+1]
+	e.say(what)
+	out := make([]byte, 0, len(seg))
+	out = append(out, seg[:k]...)
+	out = append(out, body...)
+	return append(out, seg[c2+bytes.IndexByte(seg[c2:], '\n')+1:]...), nil
 }

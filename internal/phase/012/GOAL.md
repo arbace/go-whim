@@ -114,3 +114,14 @@ a read-only file, which is why that check lives here.
 ### The delta
 
 **None.**
+
+## On the graph
+
+Since B1a (`doc/GRAPH-MIGRATION.md`) the phase runs on the program's graph
+from end to end: `noowner` is a graph step (`internal/cut/noowner.go`: an
+operand of `buf_write`'s test dropped, the mode masking's guard folded
+always true, the root test dropped, block zero's user name cut, the
+get_user_name arm kept to its then, `flen = home_replace(...)` made a void
+call), then `droplocal`. The report is the text version's, line for line,
+and `whim-build-check` holds q012 to its bytes. Phases 13 and 14 are handed
+the graph it leaves. Handed the graph phase 11 leaves it costs 0.48 s (main's text 2.5 s; `TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).

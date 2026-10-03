@@ -56,3 +56,10 @@ load, a write, `:e` naming a file (the argument path *next to* the one removed),
 It passed its first dry run.
 
 Measured: 89,713 → **89,407 lines**.
+
+## On the graph
+
+Since B1a (`doc/GRAPH-MIGRATION.md`) `whim23` runs on the program's graph:
+the rows are still asked of the text -- the graph's C view -- by the same
+expression, and the guard is folded by the verbs. Its report is the text
+version's, line for line; phase 24 is handed the graph it leaves. It costs 2.2 s from the text, the import most of it (main's text 2.4 s), and 0.27 s handed the graph (`TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).

@@ -55,12 +55,15 @@ type (
 // phases that edit nothing now are records in internal/phase/archive/.
 //
 // THE GRAPH STEPS (doc/GRAPH.md step 5, doc/GRAPH-MIGRATION.md): every
-// `droplocal` (internal/cut's DropLocal, a deletion and its fall-out) and
-// phase 24's program.  Phases 8, 13, 14, 17 and 24 begin on the graph -- the
-// first step, sweeps aside, is a graph step -- so the run hands them the
-// graph the phase before left, and the check reads it from qNNN.g; the rest
-// import the text where their graph steps begin.  Phases 7, 8, 12-14,
-// 16-20 and 24 end on the graph: collected, not swept.
+// `droplocal` (internal/cut's DropLocal, a deletion and its fall-out),
+// phase 24's program, and B1a's: the cutters nointro, optreaders, nostat,
+// nobackup, lfonly, keepbytes, noinertopts, nofloat and noowner, and the
+// programs of part 4a and phases 15, 15a, 19, 20, 23 and 25.  Phases 4, 5,
+// 7, 8, 11-15, 17-20 and 23-25 begin on the graph -- the first step, sweeps
+// aside, is a graph step -- so the run hands them the graph the phase
+// before left when it ended on one, and the check reads it from qNNN.g; the
+// rest import the text where their graph steps begin.  Phases 3, 7, 8,
+// 11-20 and 23-25 end on the graph: collected, not swept.
 var Plan = []Phase{
 	// Phase 0 seeds the input canonically and spells it in C23 there:
 	// whim0a's `nullptr` and `usize` (internal/phase/000/a), whim0b's
@@ -87,15 +90,15 @@ var Plan = []Phase{
 	{N: 3, Name: "the front, continued; and no introduction, and the command line says only what the editor still decides",
 		Steps: []Step{
 			{Op: "front3"},
-			{Op: "nointro"},
-			{Op: "optreaders"},
+			{Op: "nointro", Graph: true},
+			{Op: "optreaders", Graph: true},
 		}},
 	{N: 4, Name: "the front, on swept text; and the editor stops writing shell scripts, and stops drawing a menu",
 		Steps: []Step{
 			// part 4a's program, which asserts the NFA engine is gone: on the
 			// text the front swept (nonfa, phase 3)
-			{Op: "nostat"},
-			{Op: "edit", Args: []string{"whim4a"}},
+			{Op: "nostat", Graph: true},
+			{Op: "edit", Graph: true, Args: []string{"whim4a"}},
 			// parts 3a's and 3b's fields, whose readers phase 3 took (whim3a
 			// and whim3b, on the front)
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_lisp", "b_p_lw", "b_p_iminsert", "b_p_imsearch"}},
@@ -122,9 +125,9 @@ var Plan = []Phase{
 			// phase 4); part 5a's program, in noconv's spelling; then parts
 			// 5b's and 5c's, which count ONE_WINDOW and the frame tree's
 			// writers; then the fields of records 50 and 53 and of part 5a
-			{Op: "nobackup"},
-			{Op: "lfonly"},
-			{Op: "keepbytes"},
+			{Op: "nobackup", Graph: true},
+			{Op: "lfonly", Graph: true},
+			{Op: "keepbytes", Graph: true},
 			{Op: "noconv"},
 			{Op: "edit", Args: []string{"whim5a"}},
 			{Op: "edit", Args: []string{"whim5b"}},
@@ -142,7 +145,7 @@ var Plan = []Phase{
 		}},
 	{N: 7, Name: "six options that no longer decide anything",
 		Steps: []Step{
-			{Op: "noinertopts"},
+			{Op: "noinertopts", Graph: true},
 			{Op: "sweep"},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_path", "b_p_sua", "b_p_tags", "b_p_tc", "b_p_ar", "b_p_swf"}},
 		}},
@@ -163,13 +166,13 @@ var Plan = []Phase{
 		}},
 	{N: 11, Name: "no floating-point library",
 		Steps: []Step{
-			{Op: "nofloat"},
+			{Op: "nofloat", Graph: true},
 		}},
 	{N: 12, Name: "a write is a write, and nobody owns it",
 		Steps: []Step{
 			// nobackup runs at phase 5, before noconv, which is written for
 			// buf_write() without the backup
-			{Op: "noowner"},
+			{Op: "noowner", Graph: true},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_bkc"}},
 		}},
 	{N: 13, Block: "d03-editing", Name: "C indenting",
@@ -186,8 +189,8 @@ var Plan = []Phase{
 		}},
 	{N: 15, Block: "d05-commands-and-options", Name: "no filters, sorting, alignment, `:drop`, `:wall` and the `:…all` commands, `:startinsert` and its kin, or `:noswapfile`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim15a"}},
-			{Op: "edit", Args: []string{"whim15"}},
+			{Op: "edit", Graph: true, Args: []string{"whim15a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim15"}},
 		}},
 	{N: 16, Name: "one set of options",
 		Steps: []Step{
@@ -205,21 +208,19 @@ var Plan = []Phase{
 		Steps: []Step{
 			// whim18 runs at phase 2 (the reform's D6); 'keywordprg''s field
 			// still has readers there, so its cut stays here
-			{Op: "edit", Args: []string{"whim18kp"}},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_kp"}},
 		}},
 	{N: 19, Name: "no suffix, case, delay, verbose-file, debug or filter-program options",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim19"}},
+			{Op: "edit", Graph: true, Args: []string{"whim19"}},
 			{Op: "sweep"},
-			{Op: "edit", Args: []string{"whim19ep"}},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_fp", "b_p_ep"}},
 		}},
 	{N: 20, Name: "no buffer-type, file-type, listing, jump, update-time or autowrite options",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim20"}},
+			{Op: "edit", Graph: true, Args: []string{"whim20"}},
 			{Op: "sweep"},
-			{Op: "edit", Args: []string{"whim20bl"}},
+			{Op: "edit", Graph: true, Args: []string{"whim20bl"}},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_bt", "b_p_ft"}},
 		}},
 	{N: 21, Block: "d09-one-of-each", Name: "one file argument, and no argument list",
@@ -232,7 +233,7 @@ var Plan = []Phase{
 		}},
 	{N: 23, Block: "d11-commands", Name: "no buffer-name argument matching",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim23"}},
+			{Op: "edit", Graph: true, Args: []string{"whim23"}},
 		}},
 	{N: 24, Name: "empty functions, write-only counters, and the window id",
 		Steps: []Step{
@@ -240,7 +241,7 @@ var Plan = []Phase{
 		}},
 	{N: 25, Name: "the constant-return predicates",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim25"}},
+			{Op: "edit", Graph: true, Args: []string{"whim25"}},
 		}},
 	{N: 26, Name: "the Ex command table, cut to the commands that exist",
 		Steps: []Step{

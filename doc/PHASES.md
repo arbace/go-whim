@@ -23,11 +23,11 @@ numbers).
   program the front calls. Its directory is `internal/phase/NNN/x/`, its
   package `pNNNx`, its program `whimNx`, and the letters follow the order the
   phase runs them. A part has no snapshot of its own.
-- **A second entry** of a phase's package keeps its suffix: `whim18kp`,
-  `whim19ep`, `whim20bl`, `whim34rows`; `whim2` is phase 2's query. One
-  program runs outside its phase: `whim18`, which phase 2's front calls (the
-  reform's D6), while its package's second entry runs in phase 18 -- a package
-  is not split across two phases.
+- **A second entry** of a phase's package keeps its suffix: `whim20bl`,
+  `whim34rows`; `whim2` is phase 2's query (`whim18kp` and `whim19ep` went in
+  B1a, `doc/GRAPH-MIGRATION.md`: the graph's `droplocal` takes their cases).
+  One program runs outside its phase: `whim18`, which phase 2's front calls
+  (the reform's D6), its package phase 18's.
 - **A record keeps its old number**: `internal/phase/archive/NNN/`, its
   `GOAL.md` alone, cited in live text as *record N*. Three group members whose
   rows the front retires now (45, 46 and 47, with no program of their own)

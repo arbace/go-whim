@@ -14,3 +14,10 @@ the completion arm for modifiers.
 **The row**, which succeeded run bare. Measured: 115,588 → **115,568 lines**.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 44-48 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).
+
+**On the graph** (B1a, `doc/GRAPH-MIGRATION.md`): `whim15a` and `whim15`
+run on the program's graph -- the `!` row's handler replaced in place, the
+`:noswapfile` case dropped with its run, the two readers folded, the
+mentions counted on the C view and the enumerator's uses asked of its
+edges -- their report the text versions', line for line; phase 14 hands
+the phase the graph. Handed the graph it costs 0.30 s (main's text 2.4 s; `TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).

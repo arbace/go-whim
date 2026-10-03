@@ -49,3 +49,10 @@ first reading had missed, not a reader the check invented.
 ## The delta
 
 **None the harnesses record.** Measured: 101,188 → **100,643 lines**.
+
+## On the graph
+
+Since B1a (`doc/GRAPH-MIGRATION.md`) its programs, `whim20` and `whim20bl`,
+run on the program's graph (`crefactor/graph`'s verbs), their acts and
+report the text versions', byte for byte; with the `droplocal` after them
+the phase is graph from end to end. Handed the graph it costs 0.44 s (main's 4.6 s; `TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).

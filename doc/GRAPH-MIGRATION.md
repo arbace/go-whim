@@ -592,7 +592,7 @@ nolocale | 2 | cut/nolocale.go | 66 | - | b | BUILD INITROW | B4 | a call statem
 nostartup | 2 | cut/nostartup.go | 42 | - | a | - | B4 | a body emptied, 2 calls
 nocmdopts | 2 | cut/nocmdopts.go | 51 | - | a | - | B4 | 3 ifs, a member (after the ifs)
 nosession | 2 | cut/nosession.go | 123 | - | b | BUILD TEXTQ | B4 | 18 stubs, 6 DropIf, a get_varp case
-whim18 | 2 | phase/018 (Edit) | 44 | - | a | - | B4 | shell redirection and runtime completion; whim18kp is phase 18's
+whim18 | 2 | phase/018 (Edit) | 44 | - | a | - | B4 | shell redirection and runtime completion
 noenc | 2 | cut/noenc.go | 191 | - | b | FRAG | B4 | mb_init's dispatch, 6 iconv stubs
 nofencs | 2 | cut/nofencs.go | 23 | - | a | - | B4 | an else-if arm
 nofenc | 2 | cut/nofenc.go | 113 | - | b | BUILD FRAG | B4 | 'fileencoding' reads and stores
@@ -626,11 +626,11 @@ noabbr | 3 | cut/noabbr.go | 97 | - | a | - | B4 | abbreviations
 3d | 3 | phase/003/d | 41 | - | a | - | B4 | rot13
 3e | 3 | phase/003/e | 49 | - | b | RENAME | B4 | sentence motions; 2 string respells
 3f | 3 | phase/003/f | 33 | 3206 | b | FRAG | B4 | file marks: 2 bodies
-nointro | 3 | cut/small.go | 11 | - | a | - | B1a | 2 calls
-optreaders | 3 | cut/optreaders.go | 57 | - | a | TEXTQ | B1a | a statement found by its string
+nointro | 3 | cut/small.go | 11 | - | done | - | B1a | 2 calls cut, counted
+optreaders | 3 | cut/optreaders.go | 57 | - | done | - | B1a | a statement found by its string; the leftover check TextCount; phase 3 ends on the graph
 phase 4 | 4 | 13 steps, 1 sweep | - | - | b | FRAG FOLDX PARAM INITROW | B3a | droplocal x2 on the graph; 2 imports today
-nostat | 4 | cut/nostat.go | 32 | - | a | BUILD | B1a | check_timestamps returns 0
-4a | 4 | phase/004/a | 72 | 480 | a | TEXTQ | B1a | AUTOMATIC_ENGINE retries
+nostat | 4 | cut/nostat.go | 32 | - | done | - | B1a | check_timestamps returns 0 (Body); phase 4 begins on the graph, handed phase 3's
+4a | 4 | phase/004/a | 72 | 480 | done | - | B1a | AUTOMATIC_ENGINE retries; the one-engine proof the text's code on the C view
 onebuffer | 4 | cut/onebuffer.go | 176 | - | a | BUILD | B3a | one buffer; a key-table element Replace
 4b | 4 | phase/004/b | 70 | - | b | INITROW PARAM | B3a | 19 key rows; win_line's parameter
 4c | 4 | phase/004/c | 53 | - | b | FRAG | B3a | aucmd window
@@ -640,9 +640,9 @@ nowild | 4 | cut/small.go | 24 | - | b | FRAG BUILD | B3a | delegations to save_
 nowildmenu | 4 | cut/nowildmenu.go | 252 | - | b | PARAM | B3a | wildmenu; showmatches' 2 parameters
 4f | 4 | phase/004/f | 84 | - | b | BUILD | B3a | completion keys; >=20 options[] callbacks to nullptr (Replace); after nowildmenu
 phase 5 | 5 | 12 steps, 1 sweep | - | - | b | FRAG FOLDX RENAME PARAM MOVE | B3a | droplocal x2 on the graph; 1 import today
-nobackup | 5 | cut/nobackup.go | 158 | - | a | - | B1a | backups and ACLs
-lfonly | 5 | cut/lfonly.go | 310 | - | a | TEXTQ | B1a | LF only
-keepbytes | 5 | cut/keepbytes.go | 98 | - | a | TEXTQ | B1a | ++bad gone
+nobackup | 5 | cut/nobackup.go | 158 | - | done | - | B1a | backups and ACLs; quiet acts, a line a group; reproduces the text's bodiless-if accident (B1a as built)
+lfonly | 5 | cut/lfonly.go | 310 | - | done | - | B1a | LF only; the dying functions' callers asked of the edges
+keepbytes | 5 | cut/keepbytes.go | 98 | - | done | - | B1a | ++bad gone; KeepThen on a chain; phase 5 begins on the graph and imports again after noconv
 noconv | 5 | cut/noconv.go | 290 | - | b | FRAG RENAME | B3a | mb_* pointers become utf_* calls
 5a | 5 | phase/005/a | 201 | - | b | PARAM FRAG MOVE | B3a | 'formatoptions', gq, = and !
 5b | 5 | phase/005/b | 132 | 3511 | b | FRAG FOLDX(walk) RENAME | B3a | one window and tab: walks, 35 uses to curwin
@@ -650,25 +650,25 @@ noconv | 5 | cut/noconv.go | 290 | - | b | FRAG RENAME | B3a | mb_* pointers bec
 5d | 5 | phase/005/d | 112 | 4261 | b | FRAG TEXTQ | B3a | no autocommands
 noglob | 5 | cut/small.go | 27 | - | b | BUILD | B3a | a one-call body; after nowild
 phase 6 | 6 | nofind | 45 | - | b | FRAG | B3a | find_file_in_path's 15-line body
-phase 7 | 7 | noinertopts, sweep, droplocal | 30 | - | a | - | B1a | droplocal on the graph; noinertopts then makes the sweep a collection
+phase 7 | 7 | noinertopts, sweep, droplocal | 30 | - | done | - | B1a | graph end to end: a FoldNever, a RewriteAt, a Cut; the sweep a collection
 phase 8 | 8 | droplocal | - | - | done | - | A | begins on the graph (q007.g)
 phase 9 | 9 | nohome, nogetenv | 138 | - | b | FRAG | B3a | bodies naming libc (externs)
 phase 10 | 10 | nochdir | 112 | - | b | FRAG | B3a | 2 bodies with static locals, getcwd, errno
-phase 11 | 11 | nofloat | 97 | - | a | TEXTQ | B1a | string literals' conversions; case arms
-phase 12 | 12 | noowner, droplocal | 123 | - | a | BUILD | B1a | `(void)f()`; droplocal on the graph
+phase 11 | 11 | nofloat | 97 | - | done | - | B1a | the conversion a Splice, the arms DropCase; literals and libm calls counted on the C view
+phase 12 | 12 | noowner, droplocal | 123 | - | done | - | B1a | handed the graph: DropOperand, FoldAlways, DropIf, FoldAlwaysElse, `(void)f()` by Rewrite
 phase 13 | 13 | sweep, droplocal | - | - | done | - | A | begins on the graph (q012.g)
 phase 14 | 14 | sweep, droplocal | - | - | done | - | A | begins on the graph (q013.g)
-phase 15 | 15 | whim15a, whim15 | 37 | - | a | BUILD | B1a | an nv_cmds element Replace; :noswapfile
+phase 15 | 15 | whim15a, whim15 | 37 | - | done | - | B1a | handed the graph: an nv_cmds element RewriteAt; :noswapfile's DropCase
 phase 16 | 16 | oneoptset, sweep, droplocal | 142 | - | b | RENAME | B3a | a string literal respelled
 phase 17 | 17 | droplocal | - | - | done | - | A | begins on the graph (q016.g)
-phase 18 | 18 | whim18kp, droplocal | 5 | - | a | - | B1a | a get_varp case; maybe DropLocal's rule already takes it
-phase 19 | 19 | whim19, sweep, whim19ep, droplocal | 73 | - | a | BUILD | B1a | options cut; whim19ep maybe DropLocal's rule
-phase 20 | 20 | whim20, sweep, whim20bl, droplocal | 115 | - | a | BUILD | B1a | options cut; whim20bl maybe DropLocal's rule
+phase 18 | 18 | droplocal | 5 | - | done | - | B1a | whim18kp gone: DropLocal's get_varp rule takes `&curbuf->f` unparenthesised now
+phase 19 | 19 | whim19, sweep, droplocal | 73 | - | done | - | B1a | handed the graph; whim19ep gone as whim18kp
+phase 20 | 20 | whim20, sweep, whim20bl, droplocal | 115 | - | done | - | B1a | handed the graph; whim20bl a DropCase (b_p_bl is the collection's, not droplocal's)
 phase 21 | 21 | whim21 | 59 | 2403 | b | FRAG | B3a | one file argument
 phase 22 | 22 | whim22 | 38 | 3147 | b | FRAG | B3a | :e in place: a 45-line block with stat()
-phase 23 | 23 | whim23 | 21 | - | a | TEXTQ | B1a | one FoldNever and a row query
+phase 23 | 23 | whim23 | 21 | - | done | - | B1a | one FoldNever; the row query TextQuery on the C view
 phase 24 | 24 | edit whim24 | 188 | - | done | - | A | begins on the graph (q023.g)
-phase 25 | 25 | whim25 | 129 | 961 | a | BUILD (FOLDX would make it generic) | B1a | constant-return predicates folded
+phase 25 | 25 | whim25 | 129 | 961 | done | - | B1a | handed the graph; its own DropOperand keeps the text's parentheses; one MIN() macro's text respelled (MACROX's)
 phase 26 | 26 | whim26 | 262 | 450 | b | RENAME TEXTQ | B3a | the Ex table: enumerators last-first, a string respelled
 phase 27 | 27 | whim27 | 346 | 1992 | b | PARAM TEXTQ | B3b | no Ex mode: ~28 folds, main_loop's parameter
 phase 28 | 28 | whim28 | 67 | 850 | b | RENUM BUILD TEXTQ | B3b | no :write
@@ -761,11 +761,11 @@ phase 102 | 102 | crefactor/xform/boolret.go (Globals) | 11 | - | b | RETYPE BUI
 phase 103 | 103 | crefactor/xform/boolret.go (Relax) | 12 | - | b | RETYPE BUILD | B3f | more flags bool
 ```
 
-190 rows: 45 (a), 126 (b), 8 (c: the `FallOutOf` wrapper and the three
+190 rows: 29 (a), 126 (b), 8 (c: the `FallOutOf` wrapper and the three
 front phases it wraps, 94, 95, 100, 101), 6 (d: phase 0 and its three
-parts, 43 as built, 88), and 5 `done` (the phases that begin on the graph
-now; the `droplocal` steps of 4, 5, 7, 12, 16, 18-20 and 34 are done too,
-inside phases whose other steps are listed). A phase of several units has a
+parts, 43 as built, 88), and 21 `done` (stage A's 5 phases that began on
+the graph, and B1a's 16 rows; the `droplocal` steps of 4, 5, 16 and 34 are
+done too, inside phases whose other steps are listed). A phase of several units has a
 row of its own besides theirs, so the classes overlap by those rows.
 
 ## Batches for stage B
@@ -799,7 +799,9 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
     with no import at all, the graph handed along. ~1,700 lines of text
     programs replaced. Check first whether DropLocal's get_varp rule
     already takes whim18kp's, whim19ep's and whim20bl's cases (then those
-    programs go and nothing replaces them).
+    programs go and nothing replaces them). **Done**, *B1a as built* below:
+    the rule took neither as it stood, and takes both with one more
+    spelling; whim20bl's field is no droplocal's.
   - **B1b**: 33, 38a (their assertions as queries) -- **done**, *B1b as built* above.
   - **B1c**: 58, 64, 77, 86a (`Terminates` on nodes).
   - **B1b**: 33, 38a (their assertions as queries).
@@ -1441,3 +1443,131 @@ One phase at a time, 5 runs, medians, two rounds alternating with main
   where cemit's was, one before whim86), and saves 3 text sweeps and
   canonical prints (58, 64, 77), about what the imports cost. Net: nothing,
   until the ranges around them convert.
+## B1a as built (2026-10-03)
+
+Sixteen units on the graph, byte for byte, their text programs replaced
+(history keeps them, `4c8b3a7` and before): the cutters `nointro`,
+`optreaders` (phase 3), `nostat` (4), `nobackup`, `lfonly`, `keepbytes`
+(5), `noinertopts` (7), `nofloat` (11) and `noowner` (12), graph steps in
+`internal/steps`' `graphOps` (`plainGraph`), their text ops gone; and the
+programs of part 4a and phases 15 (`whim15a`, `whim15`), 19 (`whim19`),
+20 (`whim20`, `whim20bl`), 23 and 25, registered with `RegisterGraph`. Two
+programs went and nothing replaces them: `whim18kp` and `whim19ep`. About
+1,520 lines of text programs became about 1,210 on the verbs (non-blank,
+non-comment). No change to `crefactor/graph` was needed.
+
+**The get_varp finding.** DropLocal's rule did NOT take whim18kp's and
+whim19ep's cases as it stood: `get_varp()` writes them `(char_u
+*)&curbuf->b_p_kp`, without the parentheses the rule's two patterns
+required (`droplocal b_p_kp` on q017 refused: "2 mentions ... no rule
+takes it"). One more spelling of each pattern
+(`internal/cut/droplocal.go`, `matchAny`) takes both, and the two programs
+went. whim20bl's case is not the rule's to take: `b_p_bl` is no
+droplocal's field -- whim20 takes its readers and the collection its
+member -- so whim20bl stays a program of one `DropCase`. The rule's
+report counts the case's `return` among the plumbing sites (`b_p_kp` 6
+where the text's said 5); the bytes are the same.
+
+**Phases 12-15, 17-20, 24 and 25 are handed the graph** in a run in order
+and end on it, with no import and one C view each; with 8 (stage A's)
+that is eleven phases. 3, 7, 11 and 23 import and end on the graph; 4 is
+handed phase 3's graph and imports once more after `onebuffer` (two
+imports before); 5 imports at its start and again after `noconv`, since
+phase 4 ends on text (one import before): the cost the recipe predicts
+until B3a. 16 graph snapshots now (q003, q004, q006, q007, q010-q014,
+q016-q019, q022-q024), every one gate 2's (`TestGraphSnapshots`).
+
+**The proof.** `rm -rf .cache/boundaries; make whim-build-check` in order:
+whim-vim.c byte for byte, 104 boundaries compiling, the 16 graph snapshots
+written. Again, in parallel: byte for byte, 103 links, 16 begun on their
+graph snapshot, 0 imported. The control, nine faults at once -- one act
+changed or dropped in nointro, nostat, nobackup (the accident below),
+noinertopts, noowner, 15a, droplocal's new spelling, whim20bl and whim25
+-- named exactly phases 3, 4, 5, 7, 12, 15, 18, 19 (the droplocal fault
+refuses in both), 20 and 25: `10 of 103 phases do not reproduce their
+snapshot`. `GRAPH_PHASES=N` now picks the phases `TestPhasesOnGraph` holds
+and `TestMeasureGraphPhases` times (the latter text phases too, for a
+before and after); `TestVerbsOnPhase15` runs the registered programs and
+holds their report. Every converted unit's report was diffed against the
+text program's on its input: the same lines, in order, but phase 18's
+droplocal count above.
+
+**Measured**, B1a beside main `4c8b3a7`, each pair side by side at a load
+of 20-35 (other agents' builds beside them):
+
+| | main | B1a |
+| --- | ---: | ---: |
+| the in-order build check, wall | 408 s | 382 s |
+| its CPU (user + system, gcc's included) | 982 s | 976 s |
+| the parallel check, wall | 113 s | 98 s |
+| its CPU | 1,495 s | 1,340 s |
+
+Phase by phase (`TestMeasureGraphPhases`, 5 runs, medians; main's text,
+and B1a's the way a run in order takes it -- handed the graph where the
+phase before ends on it, else imported):
+
+| phase | main, wall / CPU ms | B1a, wall / CPU ms | how |
+| --- | ---: | ---: | --- |
+| 3 | 30,134 / 60,275 | 29,456 / 55,263 | an import after front3, a collection for the sweep |
+| 4 | 16,545 / 31,484 | 12,212 / 27,448 | handed; 1 import (2 before) |
+| 5 | 10,090 / 24,932 | 12,070 / 29,514 | 2 imports (1 before) |
+| 7 | 4,493 / 9,309 | 2,542 / 4,931 | imported (0.49 s handed) |
+| 11 | 2,565 / 5,624 | 2,477 / 5,276 | imported (0.44 s handed) |
+| 12 | 2,528 / 4,838 | 479 / 750 | handed |
+| 15 | 2,407 / 5,201 | 302 / 639 | handed |
+| 18 | 2,280 / 4,843 | 230 / 481 | handed |
+| 19 | 5,522 / 11,908 | 499 / 746 | handed |
+| 20 | 4,604 / 10,677 | 442 / 727 | handed |
+| 23 | 2,432 / 5,325 | 2,205 / 4,713 | imported (0.27 s handed) |
+| 25 | 4,242 / 10,185 | 618 / 750 | handed |
+
+Their sum, about 26 s less in a run in order, is the in-order build's
+difference. A phase handed the graph costs 0.23-0.62 s against 2.3-5.5 s
+on text; one that imports costs what the text did, the import standing
+where the sweep's parse and the print were.
+
+### Refinements of the catalogue
+
+- **The verbs report every act; the text often reported once for several.**
+  nofloat's arms, nobackup's groups, noowner's swap-file acts and lfonly's
+  multi-place regexps run on a second, quiet `Verbs` (`io.Discard`) whose
+  refusal is returned, and the line is written after. A verb option that
+  silences an act's report would say it directly.
+- **`DropOperand` drops parentheses the text kept.** C-lisp has no `paren`
+  where the printer adds one, so `if ((a || b) && !f())` with `!f()`
+  dropped prints `if (a || b)` where the text's literal left `if ((a ||
+  b))`. Phase 25 has its own `dropOperand`, wrapping a lone `||` or `?:`
+  left under `&&` in a `paren`; lfonly writes `(paren ?a)` in its template.
+  An option on the verb would serve the next converter.
+- **A macro's text respelled.** One of phase 25's five `(Rows - p_ch -
+  tabline_height())` is inside an unexpanded `MIN()`: the phase replaces
+  the `macro` node by one with the text respelled, its edges kept but the
+  one to `tabline_height`. MACROX's (B2a) in miniature.
+- **The text's accidents are reproduced, said as acts.** nobackup's text
+  cut the lines `{`, `acl = mch_get_acl(fname);`, `}` and left `if
+  (!newfile)` without its block; once the statements after it went, the if
+  took `prev_got_int = got_int;` as its body, and q005-q019 hold that (the
+  product does not: `buf_write` goes at phase 20). The graph version deletes the
+  call and moves the statement into the emptied block by a `Splice`, its
+  comment saying why. The control drops that act and phase 5 is named. A
+  later phase could undo it; byte for byte forbids doing it here.
+- **"Count 1" sometimes meant "the first".** The text's `cutCounted` cut
+  the first N matches and never refused on more, and `Line()` matches any
+  indentation; on the graph `mch_free_acl(acl)` and `vim_free(backup)` are
+  scoped to `buf_write`, where there is one each.
+- **`DeleteDefinition` refuses while a call to a function with no
+  prototype remains** (`set_init_default_backupskip`): cut the call first.
+- **A pattern that binds a node and constrains its shape** (`?x:pat`)
+  would have made whim20's two `fileinfo` acts, whose `&&`s share an
+  operand, one `Rewrite` each; they are a `One` and a scoped `DropOperand`.
+- **The text's own questions are kept exactly** where the count was the
+  assertion: nofloat's literal scan, 4a's one-engine proof, keepbytes'
+  `bad_char`, 23's rows, noowner's and nobackup's leftover mentions run the
+  text version's expressions on the C view (`Text`, `TextCount`,
+  `TextQuery`), 50-110 ms for the file. Where the count stood for an edge
+  question (lfonly's dying functions' callers, whim15's enumerator), the
+  edges answer.
+- **No count differed from the text's.** No else-if arm moved a fold's
+  count; where a bare name matched more than the text's head (`p_fic`,
+  `nofile_err`), `DropOperand`'s operand rule or an `InFunction` scope
+  made the count the text's.

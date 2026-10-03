@@ -8,6 +8,7 @@ import (
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
+	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
@@ -73,12 +74,12 @@ func TestInitElementPlace(t *testing.T) {
 	}
 }
 
-// The verbs on a whole phase, outside the plan: phase 15's two programs
-// (whim15a, whim15) written on crefactor/graph's verbs -- a table row's
-// element rewritten, a case's run dropped, a DropIf, a FoldNever, the
-// mentions asserted -- from q014's graph read back from its Lisp, then
-// collected as a phase that ends on the graph is: q015.c byte for byte.
-// (B1a converts the phase; this holds the verbs it will be written on.)
+// The verbs on a whole phase: phase 15's two programs (whim15a, whim15),
+// written on crefactor/graph's verbs since B1a -- a table row's element
+// rewritten, a case's run dropped, a DropIf, a FoldNever, the mentions
+// asserted -- run from q014's graph read back from its Lisp, then collected
+// as a phase that ends on the graph is: q015.c byte for byte, and the text
+// programs' report line for line.
 func TestVerbsOnPhase15(t *testing.T) {
 	dir, _, _, _ := setup(t)
 	in, want := snapOf(t, dir, 14), snapOf(t, dir, 15)
@@ -92,22 +93,14 @@ func TestVerbsOnPhase15(t *testing.T) {
 	}
 	e := graph.NewEditor(h)
 	var log bytes.Buffer
-	v := graph.NewVerbs("filters", e, &log)
-	v.InTable("nv_cmds", func(v *graph.Verbs) {
-		v.RewriteAt("(init '!' ?h 0 0)", "h", "nv_error", 1, "the ! operator's row points at nv_error")
-	})
-	v.Tag = "noswapfile"
-	noswap := "(& (. cmdmod cmod_flags) CMOD_NOSWAPFILE)"
-	v.InFunction("parse_command_modifiers", func(v *graph.Verbs) {
-		v.DropCase("(case 'n')", 1, "the :noswapfile modifier")
-	})
-	v.InFunction("ml_open", func(v *graph.Verbs) { v.DropIf(noswap, 1, "ml_open asking for it") })
-	v.InFunction("buf_copy_options", func(v *graph.Verbs) { v.FoldNever(noswap, 1, "buf_copy_options asking for it") })
-	n := v.Mentions("CMOD_NOSWAPFILE")
-	v.Expect(n == 1, "CMOD_NOSWAPFILE outside its enumerator -- %d mentions, expected 1", n)
-	v.Expect(len(v.UsesOf("CMOD_NOSWAPFILE")) == 0, "CMOD_NOSWAPFILE still used")
-	if err := v.Done(); err != nil {
-		t.Fatal(err)
+	for _, name := range []string{"whim15a", "whim15"} {
+		f, ok := phase.LookupGraph(name)
+		if !ok {
+			t.Fatalf("%s is not a program on the graph", name)
+		}
+		if err := f(e, &log, nil); err != nil {
+			t.Fatal(err)
+		}
 	}
 	if err := e.Check(); err != nil {
 		t.Fatal(err)

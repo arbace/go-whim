@@ -83,6 +83,15 @@ package p025
 // silent rather than fatal -- check_more() feeds the four ex_quit/ex_exit conditions
 // that decide whether getout(0) runs -- so five quit probes, calibrated on q024, guard
 // it directly.  Declared empty, left for the delta check to correct.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B1a): the same acts in the same
+// order on the program's graph, each found by its C-lisp form and counted
+// as the text counted its lines (history keeps the text program); a term
+// dropped from a condition is DropOperand, a literal replaced a Rewrite of
+// its node.  Two are by hand on the editor: the five window heights, one
+// of which is inside an unexpanded MIN() macro's text, respelled with the
+// macro's refers edges kept but tabline_height's; and wc_use_keyname's body
+// read for `wcp` atom by atom.
 
 import (
 	"fmt"
@@ -90,6 +99,7 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
@@ -120,102 +130,87 @@ var w25Variable = map[string]string{
 }
 
 // Whim25 folds every call to a function whose Body is a constant.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("noconstfn", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noconstfn", e, w)
 
 	for _, n := range edit.SortedKeys(w25Constants) {
-		e.ConstOf(n, w25Constants[n])
+		v.ConstOf(n, w25Constants[n])
 	}
-	e.Say(fmt.Sprintf("confirmed: %d functions whose whole body is `return <constant>;`", len(w25Constants)))
+	v.Say(fmt.Sprintf("confirmed: %d functions whose whole body is `return <constant>;`", len(w25Constants)))
 	for _, n := range edit.SortedKeys(w25Variable) {
-		e.ConstOf(n, w25Variable[n])
+		v.ConstOf(n, w25Variable[n])
 	}
-	e.Say(fmt.Sprintf("confirmed: %d more return a VARIABLE and are left alone", len(w25Variable)))
-	// THE SIGNATURE IS NOT THE BODY.  `long *wcp` is in the parameter list of
-	// every version of this function, so asking the whole definition whether it
-	// mentions wcp answers yes for ever and the check can never pass.  The
-	// Python asks the INNER Body -- from the `{` on its own line to the last
-	// `}` -- which is what innerBody reproduces.
-	body, ok := e.InnerBody("wc_use_keyname")
-	e.Expect(ok && !strings.Contains(body, "wcp"), "wc_use_keyname now mentions wcp -- it may write through the out-parameter")
-	e.Say("confirmed: wc_use_keyname never dereferences its out-parameter")
+	v.Say(fmt.Sprintf("confirmed: %d more return a VARIABLE and are left alone", len(w25Variable)))
+	v.Expect(!bodySays(e, "wc_use_keyname", "wcp"), "wc_use_keyname now mentions wcp -- it may write through the out-parameter")
+	v.Say("confirmed: wc_use_keyname never dereferences its out-parameter")
 
-	e.FoldNever(edit.Head("if (vim9script && (flags & DOCMD_RANGEOK) == 0)"), 1,
+	v.FoldNever("(&& vim9script (== (& flags DOCMD_RANGEOK) 0))", 1,
 		"scanning backwards for a colon to decide whether a range is allowed")
-	e.FoldNever(edit.Head("if (vim9script && !may_have_range)"), 1, "the Vim9 path through find_ex_command")
-	// one of two: the other was in the comment skip, gone at phase 1
-	// (onecmdfront, record 81's move)
-	e.FoldNever(edit.Head("if (vim9script)"), 1, "a Vim9 check in parse_command_modifiers")
-	e.FoldNever(edit.Head("if (vim9script && has_cmdmod(cmod, FALSE))"), 1, "a command modifier without a command")
-	// separate_nextcmd's comment and hash tests went at phase 1 (onecmdfront,
-	// record 81's move)
-	// The three vim9script locals, in do_one_cmd, parse_command_modifiers and
-	// separate_nextcmd, are named by nothing now; the sweep takes them.
-	e.FoldAlways(edit.Head("if (may_have_range)"), 1, "skipping a range that is always allowed")
-	e.FoldNever(edit.Head("if (!may_have_range)"), 1, "the default address for a range that cannot be absent")
-	e.Cut(edit.Line("may_have_range = TRUE;"), 1, "the flag nothing decides any more")
-	e.FoldNever(edit.Head(`if (in_vim9script() && *p == '\'' && ((unsigned)(p[1]) - '0' < 10))`), 1,
+	v.FoldNever("(&& vim9script (! may_have_range))", 1, "the Vim9 path through find_ex_command")
+	v.FoldNever("vim9script", 1, "a Vim9 check in parse_command_modifiers")
+	v.FoldNever("(&& vim9script (call has_cmdmod cmod FALSE))", 1, "a command modifier without a command")
+	v.FoldAlways("may_have_range", 1, "skipping a range that is always allowed")
+	v.FoldNever("(! may_have_range)", 1, "the default address for a range that cannot be absent")
+	v.Cut("(= may_have_range TRUE)", 1, "the flag nothing decides any more")
+	v.FoldNever(`(&& (call in_vim9script) (== (deref p) '\'') _)`, 1,
 		"a digit separator in a Vim9 number literal")
-	e.FoldNever(edit.Head("if (in_vim9script() && *p == '#')"), 1, "a hash comment ending a Vim9 command")
-	e.FoldNever(edit.Head(`if (in_vim9script() && arg > arg_start && vim_strchr((char_u *)"!&<", *arg) != nullptr)`), 1,
+	v.FoldNever("(&& (call in_vim9script) (== (deref p) '#'))", 1, "a hash comment ending a Vim9 command")
+	v.FoldNever("(&& (call in_vim9script) (> arg arg_start) _)", 1,
 		"the Vim9 spacing rule for an unknown option")
-	// five: three more were in ends_excmd, ends_excmd2 and comment_start,
-	// gone at phase 1 (onecmdfront, record 81's move)
-	e.FoldNever(edit.Head("if (in_vim9script())"), 5, "five more Vim9 script branches")
-	e.Literal("in_vim9script() ? GETLINE_CONCAT_CONTBAR : GETLINE_CONCAT_CONT", "GETLINE_CONCAT_CONT", 1,
+	v.FoldNever("(call in_vim9script)", 5, "five more Vim9 script branches")
+	v.Rewrite("(? (call in_vim9script) GETLINE_CONCAT_CONTBAR GETLINE_CONCAT_CONT)", "GETLINE_CONCAT_CONT", 1,
 		"how a continuation line is joined")
-	e.FoldNever(edit.Head("if (pum_under_menu(row, col, TRUE))"), 1, "skipping a cell the popup menu covers")
-	e.FoldNever(edit.Head("if (pum_visible() && (State & MODE_CMDLINE) == 0 && pum_under_menu(row, col, FALSE))"), 1,
+	v.FoldNever("(call pum_under_menu row col TRUE)", 1, "skipping a cell the popup menu covers")
+	v.FoldNever("(&& (call pum_visible) (== (& State MODE_CMDLINE) 0) (call pum_under_menu row col FALSE))", 1,
 		"and the same test on the command line")
-	e.ConstOf("skip_for_popup", "FALSE")
-	e.Say("confirmed: skip_for_popup has collapsed to `return FALSE;`")
-	e.Literal("may_trigger_safestate(ready && !ins_compl_active() && !pum_visible());",
-		"may_trigger_safestate(ready);", 1, "whether a state is safe no longer asks about completion")
-	e.FoldNever(edit.Head("if (pum_visible())"), 2, "two redraws deferred for the popup menu")
-	e.FoldNever(edit.Head("if (!ignore_pum && pum_visible())"), 1, "the ruler deferred for it")
-	e.FoldNever(edit.Head("if (pum_redraw_in_same_position())"), 1, "redrawing it in place")
-	e.Literal(" || (!ignore_pum && pum_visible())", "", 1, "the status line deferred for it")
-	e.Literal(" && !pum_visible())", ")", 1, "'relativenumber' redrawing around it")
-	e.Literal(" && !ins_compl_active())", ")", 1, "'showmatch' suppressed during completion")
-	e.FoldNever(edit.Head("if ((State & MODE_INSERT) && ins_compl_win_active(wp) && (in_curline || ins_compl_lnum_in_range(lnum)))"), 2,
+	v.ConstOf("skip_for_popup", "FALSE")
+	v.Say("confirmed: skip_for_popup has collapsed to `return FALSE;`")
+	v.Rewrite("(&& ?r (! (call ins_compl_active)) (! (call pum_visible)))", "?r", 1,
+		"whether a state is safe no longer asks about completion")
+	v.FoldNever("(call pum_visible)", 2, "two redraws deferred for the popup menu")
+	v.FoldNever("(&& (! ignore_pum) (call pum_visible))", 1, "the ruler deferred for it")
+	v.FoldNever("(call pum_redraw_in_same_position)", 1, "redrawing it in place")
+	dropOperand(v, "(paren (&& (! ignore_pum) (call pum_visible)))", 1, "the status line deferred for it")
+	dropOperand(v, "(! (call pum_visible))", 1, "'relativenumber' redrawing around it")
+	dropOperand(v, "(! (call ins_compl_active))", 1, "'showmatch' suppressed during completion")
+	v.FoldNever("(&& (paren (& State MODE_INSERT)) (call ins_compl_win_active wp) (|| in_curline (call ins_compl_lnum_in_range lnum)))", 2,
 		"two completion highlights in the line drawer")
-	e.Literal(" && !at_ins_compl_key())", ")", 1, "a mapping suppressed by a completion key")
-	e.FoldNever(edit.Head("if (redraw_this && char_cells == 2 && skip_for_popup(row, col + coloff + 1))"), 1,
+	dropOperand(v, "(! (call at_ins_compl_key))", 1, "a mapping suppressed by a completion key")
+	v.FoldNever("(&& redraw_this (== char_cells 2) (call skip_for_popup row (+ col coloff 1)))", 1,
 		"a double-width cell under the menu")
-	e.FoldNever(edit.Head("if (redraw_this && skip_for_popup(row, col + coloff))"), 1, "and a single-width one")
-	e.Literal(" && !skip_for_popup(row, col + coloff))", ")", 1, "clearing the next cell")
-	e.FoldAlways(edit.Head("if (!skip_for_popup(row, col + coloff))"), 1, "drawing a screen line cell")
-	e.FoldAlways(edit.Head("if (!skip_for_popup(row, col - 1))"), 1, "redrawing the cell to the left")
-	e.Literal(" && !skip_for_popup(row, col))", ")", 3, "three more cells that are never covered")
-	e.FoldAlways(edit.Head("if (!skip_for_popup(r, c))"), 1, "and filling a screen region")
-	e.FoldAlways(edit.Head("if (quit_all || (check_more(FALSE, forceit) == OK))"), 1, "the autocommand check before quitting")
-	// one: :exit's went with it at phase 1 (filefront, the reform's D4)
-	e.FoldAlways(edit.Head("if (check_more(FALSE, eap->forceit) == OK && only_one_window())"), 1,
+	v.FoldNever("(&& redraw_this (call skip_for_popup row (+ col coloff)))", 1, "and a single-width one")
+	dropOperand(v, "(! (call skip_for_popup row (+ col coloff)))", 1, "clearing the next cell")
+	v.FoldAlways("(! (call skip_for_popup row (+ col coloff)))", 1, "drawing a screen line cell")
+	v.FoldAlways("(! (call skip_for_popup row (- col 1)))", 1, "redrawing the cell to the left")
+	dropOperand(v, "(! (call skip_for_popup row col))", 3, "three more cells that are never covered")
+	v.FoldAlways("(! (call skip_for_popup r c))", 1, "and filling a screen region")
+	v.FoldAlways("(|| quit_all (paren (== (call check_more FALSE forceit) OK)))", 1, "the autocommand check before quitting")
+	v.FoldAlways("(&& (== (call check_more FALSE (-> eap forceit)) OK) (call only_one_window))", 1,
 		"deciding to exit in :quit")
-	// :quit's refusal, with its check_more and only_one_window terms, folded
-	// at phase 1 (quitfront, phase 33's move)
-	e.FoldNever(edit.Head("if (stl_connected(wp))"), 2, "a status line joined to the one beside it")
-	e.FoldNever(edit.Head("if (get_cellwidth(ScreenLinesUC[off]) > 1)"), 1, "a character widened by 'setcellwidths'")
-	e.FoldNever(edit.Head("if (wc_use_keyname(varp, &wc))"), 1, "showing a numeric option as a key name")
-	e.FoldNever(edit.Head("if (wc != 0)"), 1, "and showing it as a character")
-	e.FoldNever(edit.Head("if (!check_can_set_curbuf_disabled())"), 1, "refusing to change buffer in gf")
-	// check_can_set_curbuf_forceit and :edit's refusal went with :edit at
-	// phase 1 (filefront, the reform's D4)
-	e.Literal(" && !bt_terminal(wp->w_buffer)", "", 1, "the [+] flag suppressed for a terminal buffer")
-	e.Literal(" && !bt_quickfix(curbuf)", "", 1, "a quickfix buffer never being reusable")
-	e.Literal(" && !has_insertcharpre()", "", 1, "the InsertCharPre fast path")
-	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && \(has_cursormoved\(\)\) && !\(`, 1, "tracking the cursor for CursorMoved")
-	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && has_textchanged\(\) && `, 1, "and the change tick for TextChanged")
-	e.DropIf(edit.Head("if (need_check_timestamps)"), 3, "three checks for a file changed outside the editor")
-	e.Cut(edit.Line("need_check_timestamps = TRUE;"), 1, "asking for one")
-	e.Cut(edit.Line("need_redraw = check_timestamps(FALSE);"), 1, "the timestamp check on focus")
-	e.FoldNever(edit.Head("if (need_redraw)"), 1, "and the redraw it asked for")
-	e.Cut(edit.Line("(void)append_arg_number(curwin, (char_u *)buffer + bufferlen, (1024 + 1) - bufferlen, !shortmess(SHM_FILE));"), 1,
+	v.FoldNever("(call stl_connected wp)", 2, "a status line joined to the one beside it")
+	v.FoldNever("(> (call get_cellwidth (index ScreenLinesUC off)) 1)", 1, "a character widened by 'setcellwidths'")
+	v.FoldNever("(call wc_use_keyname varp (addr wc))", 1, "showing a numeric option as a key name")
+	v.FoldNever("(!= wc 0)", 1, "and showing it as a character")
+	v.FoldNever("(! (call check_can_set_curbuf_disabled))", 1, "refusing to change buffer in gf")
+	dropOperand(v, "(! (call bt_terminal (-> wp w_buffer)))", 1, "the [+] flag suppressed for a terminal buffer")
+	dropOperand(v, "(! (call bt_quickfix curbuf))", 1, "a quickfix buffer never being reusable")
+	dropOperand(v, "(! (call has_insertcharpre))", 1, "the InsertCharPre fast path")
+	v.FoldNever("(&& (! finish_op) (paren (call has_cursormoved)) _)", 1, "tracking the cursor for CursorMoved")
+	v.FoldNever("(&& (! finish_op) (call has_textchanged) _)", 1, "and the change tick for TextChanged")
+	v.DropIf("need_check_timestamps", 3, "three checks for a file changed outside the editor")
+	v.Cut("(= need_check_timestamps TRUE)", 1, "asking for one")
+	v.Cut("(= need_redraw (call check_timestamps FALSE))", 1, "the timestamp check on focus")
+	v.FoldNever("need_redraw", 1, "and the redraw it asked for")
+	v.Cut("(cast void (call append_arg_number curwin _*))", 1,
 		"appending the argument-list position to the file message")
-	e.Literal(w25lit1, w25lit2, 1, "reading a here-document for a command that cannot run")
-	e.Cut(edit.Line("bom_count = bomb_size();"), 1, "counting the byte order mark")
-	e.FoldNever(edit.Head("if (dict == nullptr && bom_count > 0)"), 1, "and reporting it")
-	e.Literal(w25lit3, w25lit4, 1, "the window-or-tab count for a bare range")
+	v.InFunction("ex_script_ni", func(v *graph.Verbs) {
+		v.Cut("(block (call vim_free (call script_get eap (-> eap arg))))", 1,
+			"reading a here-document for a command that cannot run")
+	})
+	v.Cut("(= bom_count (call bomb_size))", 1, "counting the byte order mark")
+	v.FoldNever("(&& (== dict nullptr) (> bom_count 0))", 1, "and reporting it")
+	v.Rewrite("(? (== (-> eap addr_type) ADDR_WINDOWS) (call current_win_nr nullptr) (call current_tab_nr nullptr))", "1", 1,
+		"the window-or-tab count for a bare range")
 	for _, f := range []struct {
 		fn, arg string
 		n       int
@@ -223,15 +218,143 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"current_win_nr", "curwin", 3}, {"current_win_nr", "nullptr", 3},
 		{"current_tab_nr", "curtab", 3}, {"current_tab_nr", "nullptr", 3},
 	} {
-		e.Literal(fmt.Sprintf("%s(%s)", f.fn, f.arg), "1", f.n,
+		v.Rewrite(fmt.Sprintf("(call %s %s)", f.fn, f.arg), "1", f.n,
 			fmt.Sprintf("there is one window and one tabpage (%s(%s))", f.fn, f.arg))
 	}
-	e.Literal(w25lit5, w25lit6, 1, "the minimum rows needed, without a tab line")
-	e.Cut(edit.Line("total += tabline_height();"), 1, "the tab line in the all-tabpages minimum")
-	e.Literal("int row = tabline_height();", "int row = 0;", 1, "window layout starting at the top row")
-	e.Literal("(Rows - p_ch - tabline_height())", "(Rows - p_ch)", 5, "five window heights with no tab line to subtract")
-	e.Literal("tabline_height() + topframe->fr_height", "topframe->fr_height", 1, "and the 'cmdheight' consistency check")
-	return e.Done()
+	v.Rewrite("(+ ?a (call tabline_height) ?b)", "(+ ?a ?b)", 1, "the minimum rows needed, without a tab line")
+	v.Cut("(+= total (call tabline_height))", 1, "the tab line in the all-tabpages minimum")
+	v.InFunction("win_comp_pos", func(v *graph.Verbs) {
+		v.RewriteAt("(def row int ?v)", "v", "0", 1, "window layout starting at the top row")
+	})
+	heights(v, "five window heights with no tab line to subtract")
+	v.Rewrite("(+ (call tabline_height) ?f)", "?f", 1, "and the 'cmdheight' consistency check")
+	return v.Done()
 }
 
-func init() { phase.Register("whim25", Edit) }
+// bodySays says some atom of the function fn's body -- a name, a literal,
+// a macro's text -- holds s: the text's question of its inner body.
+func bodySays(e *graph.Editor, fn, s string) bool {
+	d := e.Defn(fn)
+	if d == nil {
+		return true
+	}
+	found := false
+	for _, it := range graph.Body(d) {
+		graph.Walk(it, func(n *graph.Node) bool {
+			found = found || !n.IsList() && strings.Contains(n.Atom, s)
+			return !found
+		})
+	}
+	return found
+}
+
+// heights is the text's `(Rows - p_ch - tabline_height())` -> `(Rows -
+// p_ch)`, five times: four expressions, and one inside an unexpanded MIN()
+// macro, whose text is respelled and whose refers edges are kept but the
+// one to tabline_height.
+func heights(v *graph.Verbs, what string) {
+	if v.Failed() {
+		return
+	}
+	e := v.Editor()
+	const old, new = "(Rows - p_ch - tabline_height())", "(Rows - p_ch)"
+	exprs := v.Find("(- Rows p_ch (call tabline_height))")
+	macros := v.Find("(macro _)")
+	var ms []*graph.Node
+	for _, m := range macros {
+		if strings.Contains(m.Kids[1].Atom, old) {
+			ms = append(ms, m)
+		}
+	}
+	if n := len(exprs) + strings.Count(fmt.Sprint(macroTexts(ms)), old); n != 5 {
+		v.Die("%s -- matched %d times, expected 5", what, n)
+		return
+	}
+	for _, x := range exprs {
+		with, err := e.Build(x, "(- Rows p_ch)", nil)
+		if err == nil {
+			err = e.Replace(x, with...)
+		}
+		if err != nil {
+			v.Die("%s -- %v", what, err)
+			return
+		}
+	}
+	for _, m := range ms {
+		nm := graph.NewList(graph.NewAtom("macro"), graph.NewAtom(strings.ReplaceAll(m.Kids[1].Atom, old, new)))
+		for _, r := range m.Refs {
+			if graph.DeclName(r) != "tabline_height" {
+				nm.Refs = append(nm.Refs, r)
+			}
+		}
+		nm.Type = m.Type
+		if err := e.Replace(m, nm); err != nil {
+			v.Die("%s -- %v", what, err)
+			return
+		}
+	}
+	v.Say(what)
+}
+
+func macroTexts(ms []*graph.Node) []string {
+	var out []string
+	for _, m := range ms {
+		out = append(out, m.Kids[1].Atom)
+	}
+	return out
+}
+
+func init() { phase.RegisterGraph("whim25", Edit) }
+
+// dropOperand is the verbs' DropOperand, as the text's literal deletion of
+// ` && X` left the C: where one operand is left and it is an `||` (or a
+// lower operator still), the parentheses the && needed around it stay, a
+// paren node, as the text's did.
+func dropOperand(v *graph.Verbs, pat string, n int, what string) {
+	if v.Failed() {
+		return
+	}
+	e := v.Editor()
+	var ms []*graph.Node
+	for _, x := range v.Find(pat) {
+		q := e.Parent(x)
+		if q != nil && (q.Is("&&") || q.Is("||") || q.Is("|")) {
+			ms = append(ms, x)
+		}
+	}
+	if len(ms) != n {
+		v.Die("%s -- matched %d times, expected %d", what, len(ms), n)
+		return
+	}
+	for _, x := range ms {
+		if !e.Live(x) {
+			v.Die("%s -- the match vanished: an earlier one took #%d with it", what, x.ID)
+			return
+		}
+		q := e.Parent(x)
+		var rest []*graph.Node
+		for _, k := range q.Args() {
+			if k != x {
+				rest = append(rest, k)
+			}
+		}
+		var r *graph.Node
+		switch {
+		case len(rest) > 1:
+			r = graph.NewList(append([]*graph.Node{graph.NewAtom(q.Head())}, rest...)...)
+			if !q.Is("|") {
+				r.Type = q.Type
+			}
+		case q.Is("&&") && (rest[0].Is("||") || rest[0].Is("?")):
+			r = graph.NewList(graph.NewAtom("paren"), rest[0])
+			r.Type = rest[0].Type
+		default:
+			r = rest[0]
+		}
+		if err := e.Replace(q, r); err != nil {
+			v.Die("%s -- %v", what, err)
+			return
+		}
+	}
+	v.Say(what)
+}

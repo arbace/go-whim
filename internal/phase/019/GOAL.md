@@ -29,3 +29,13 @@ The phase checks the seven are unknown and that `gqq` with `tw=4` still breaks
 
 **None the harnesses record.** Measured: 102,166 → **101,826 lines**; libc symbols
 81 → 80.
+
+## On the graph
+
+Since B1a (`doc/GRAPH-MIGRATION.md`) the program, `whim19`, runs on the
+program's graph (`crefactor/graph`'s verbs), its acts and report the text
+version's, byte for byte.
+`whim19ep`, the case of 'equalprg' in `get_varp()`, spelled without the
+parentheses as 'keywordprg''s was, went the same way as phase 18's: the
+graph's `droplocal` takes it. The phase is graph from end to end, begun on
+the graph phase 18 leaves. Handed the graph it costs 0.50 s (main's 5.5 s; `TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).

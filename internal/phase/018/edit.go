@@ -94,21 +94,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-// Whim18KP takes get_varp()'s per-buffer resolution of 'keywordprg'.
-//
-// IT IS A SECOND ENTRY AND NOT PART OF Whim18, because in the phase program it
-// stands AFTER two dropoptions calls rather than before them.  Folding the two
-// heredocs into one call would have moved this cut earlier, which is a change
-// to the phase and not to its spelling -- the kind a port must not make and the
-// boundary would have caught.
-func Whim18KP(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("noshellrtp", text, w)
-	e.Cut(`(?m)^[ \t]*case[^\n]*\bBV_KP\b[^\n]*\n[ \t]*return \*curbuf->b_p_kp != NUL \? \(char_u \*\)&curbuf->b_p_kp : p->var;\n`,
-		1, "get_varp no longer resolves 'keywordprg' per buffer")
-	return e.Done()
-}
+// whim18kp, get_varp()'s per-buffer resolution of 'keywordprg', a second
+// entry that ran in phase 18 before its droplocal, is gone: since B1a
+// (doc/GRAPH-MIGRATION.md) droplocal's own get_varp rule takes the case,
+// its address spelled without the parentheses (internal/cut/droplocal.go).
 
 func init() {
 	phase.Register("whim18", Edit)
-	phase.Register("whim18kp", Whim18KP)
 }

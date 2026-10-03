@@ -7,7 +7,7 @@ as it was written: `doc/PHASES.md` maps them.*
 name (the pipeline reform's D6, `doc/PIPELINE-REFORM.md` §7), on the seed,
 after the options are dropped. At the front every option the directory-list
 test names is gone, so the test folds whole. What stays here is
-`'keywordprg'`'s field: `whim56kp` and `droplocal b_p_kp`, since at the front
+`'keywordprg'`'s field: `droplocal b_p_kp` (and, until B1a, `whim56kp`), since at the front
 the field still has readers (K's `nv_ident`, `get_varp_scope`) that earlier
 phases take. What follows is the account of the cut as it was made here.
 
@@ -26,9 +26,14 @@ phase greps afterwards for every variable and helper.
 **One plumbing site had a shape `droplocal.py` did not know.** `get_varp()`'s "local
 if set" case for `'keywordprg'` reads `&curbuf->b_p_kp`, without the parentheses
 every other such case has, so its two mentions counted as readers and the tool
-refused. The phase removes that case by hand first; the shared tool is unchanged,
-so no other phase's key moved.
+refused. The phase removed that case by hand first (`whim56kp`, later `whim18kp`);
+the shared tool was unchanged, so no other phase's key moved. Since B1a
+(`doc/GRAPH-MIGRATION.md`) the tool's graph version, `droplocal`'s get_varp
+rule, knows the address with or without the parentheses, and the program is
+gone: the phase is its one `droplocal`, begun on the graph phase 17 leaves
+(its report counts the case's `return` among the plumbing sites, 6 where
+the text's said 5).
 
 ## The delta
 
-**None the harnesses record.** Measured: 109,655 → **109,039 lines**.
+**None the harnesses record.** Measured: 109,655 → **109,039 lines**. Handed the graph it costs 0.23 s (main's 2.3 s, which imported; `TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).

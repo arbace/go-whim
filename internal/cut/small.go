@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // NoIntro cuts the splash screen.
@@ -14,17 +15,19 @@ import (
 // The count is asserted, not hoped for: exactly TWO maybe_intro_message()
 // call sites.  A different number means the redraw path
 // has moved under the phase, and a partial cut would leave one splash behind.
-func NoIntro(text []byte, w io.Writer) ([]byte, error) {
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B1a): the two calls are deleted as
+// items, counted; the text version cut their lines (history keeps it).
+func NoIntro(e *graph.Editor, w io.Writer) error {
 	// :intro and :version point at ex_ni from phase 1 (exfront, D2)
-	splash := regexp.MustCompile(edit.Line("maybe_intro_message();"))
-	n := len(splash.FindAll(text, -1))
+	v := graph.NewVerbs("nointro", e, w)
+	n := v.Count("(call maybe_intro_message)")
 	if n != 2 {
-		return nil, fmt.Errorf("nointro: expected two splash call sites, removed %d -- "+
+		return fmt.Errorf("nointro: expected two splash call sites, removed %d -- "+
 			"the redraw path has moved under this phase", n)
 	}
-	text = splash.ReplaceAll(text, nil)
-	fmt.Fprintf(w, "  nointro      %d splash call sites cut\n", n)
-	return text, nil
+	v.Cut("(call maybe_intro_message)", 2, "2 splash call sites cut")
+	return v.Done()
 }
 
 // NoGlob replaces gen_expand_wildcards' body with one that treats every

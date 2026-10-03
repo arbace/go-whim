@@ -60,3 +60,13 @@ either — what changes is that `nm -u` stops naming a floating-point function.
 ## The delta
 
 **None.**
+
+## On the graph
+
+Since B1a (`doc/GRAPH-MIGRATION.md`) `nofloat` is a graph step
+(`internal/cut/nofloat.go`): the conversion is the run of items from its
+first label through its block, spliced out of `vim_vsnprintf_typval`;
+TYPE_FLOAT's arms and the walker's labels are case labels dropped; the
+string literals and the libm calls are still counted on the text -- the
+graph's C view -- by the same expressions, so the report is the text
+version's, line for line, and `whim-build-check` holds q011 to its bytes. It costs 2.5 s from the text, the import most of it (main's text 2.6 s), and 0.44 s handed the graph (`TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).

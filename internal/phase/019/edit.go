@@ -23,111 +23,104 @@ package p019
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
 // Whim19 takes six options that share nothing but being unreachable: 'suffixes',
 // 'fileignorecase', 'autocompletedelay', 'verbosefile', 'debug', and the pair
 // 'formatprg'/'equalprg'.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nosixopts", text, w)
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B1a): the same acts in the same
+// order, each found by its C-lisp form and counted, its report the text
+// version's (history keeps it): a substring dropped from a condition is
+// DropOperand, a whole expression replaced is Rewrite.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nosixopts", e, w)
 
 	// 'suffixes'
-	e.InFunction("ExpandOne_start", func(e *edit.E) {
-		e.Cut(edit.Line("for (i = 0; i < 2; ++i)", "{", "if (match_suffix(xp->xp_files[i]))", "{", "++non_suf_match;", "}", "}"),
-			1, "a single match chosen by 'suffixes'")
+	v.InFunction("ExpandOne_start", func(v *graph.Verbs) {
+		v.Cut("(for (= i 0) (< i 2) (pre++ i) (block (if (call match_suffix _) _)))", 1,
+			"a single match chosen by 'suffixes'")
 	})
-	e.InFunction("expand_wildcards", func(e *edit.E) {
-		e.DropIf(edit.Head("if (*num_files > 1 && !got_int)"), 1, "matches reordered by 'suffixes'")
+	v.InFunction("expand_wildcards", func(v *graph.Verbs) {
+		v.DropIf("(&& (> (deref num_files) 1) (! got_int))", 1, "matches reordered by 'suffixes'")
 	})
 
 	// 'fileignorecase': match_file_pat()'s went with the autocommands at
 	// phase 5 (whim5d, phase 5d's program, which runs before this phase now);
 	// the other died with the command retired at phase 1 that reached it
 	// (exfront, the reform's D2)
-	e.InFunction("fname_match", func(e *edit.E) {
-		e.Literal("rmp->rm_ic = p_fic || ignore_case;", "rmp->rm_ic = ignore_case;", 1,
-			"buffer names ignoring case by 'fileignorecase'")
+	v.InFunction("fname_match", func(v *graph.Verbs) {
+		v.DropOperand("p_fic", 1, "buffer names ignoring case by 'fileignorecase'")
 	})
-	e.InFunction("vim_fnamecmp", func(e *edit.E) {
-		e.DropIf(edit.Head("if (p_fic)"), 1, "vim_fnamecmp ignoring case")
+	v.InFunction("vim_fnamecmp", func(v *graph.Verbs) {
+		v.DropIf("p_fic", 1, "vim_fnamecmp ignoring case")
 	})
-	e.InFunction("vim_fnamencmp", func(e *edit.E) {
-		e.DropIf(edit.Head("if (p_fic)"), 1, "vim_fnamencmp ignoring case")
+	v.InFunction("vim_fnamencmp", func(v *graph.Verbs) {
+		v.DropIf("p_fic", 1, "vim_fnamencmp ignoring case")
 	})
 
 	// 'autocompletedelay'
-	e.InFunction("inchar_loop", func(e *edit.E) {
-		e.Literal(" && !delay_pending", "", 1, "blocking without waiting on the delay")
-		e.FoldNever(edit.Head("else if (delay_pending)"), 1, "waiting out the autocomplete delay")
-		e.DropIf(edit.Head("if (delay_pending && acl_elapsed >= p_acl && maxlen >= 3 && !typebuf_changed(tb_change_cnt))"), 1,
+	v.InFunction("inchar_loop", func(v *graph.Verbs) {
+		v.DropOperand("(! delay_pending)", 1, "blocking without waiting on the delay")
+		v.FoldNever("delay_pending", 1, "waiting out the autocomplete delay")
+		v.DropIf("(&& delay_pending (>= acl_elapsed p_acl) (>= maxlen 3) (! (call typebuf_changed tb_change_cnt)))", 1,
 			"the autocomplete delay expiring")
 	})
 
 	// 'verbosefile'
-	e.InFunction("redir_write", func(e *edit.E) {
-		e.DropIf(edit.Head("if (*p_vfile != NUL && verbose_fd == nullptr)"), 1,
+	v.InFunction("redir_write", func(v *graph.Verbs) {
+		v.DropIf("(&& (!= (deref p_vfile) NUL) (== verbose_fd nullptr))", 1,
 			"opening 'verbosefile' on first write")
-		e.FoldNever(edit.Head("if (verbose_fd != nullptr)"), 2, "writing to 'verbosefile'")
+		v.FoldNever("(!= verbose_fd nullptr)", 2, "writing to 'verbosefile'")
 	})
-	e.InFunction("redirecting", func(e *edit.E) {
+	v.InFunction("redirecting", func(v *graph.Verbs) {
 		// redir_fd's test is gone already: only :redir wrote it, and the
 		// fall-out closure folded it at phase 1 (exfront, the reform's D2)
-		e.Sub(`return \*p_vfile != NUL\s*;`, "return FALSE;", 1,
+		v.Rewrite("(return (!= (deref p_vfile) NUL))", "(return FALSE)", 1,
 			"redirecting to 'verbosefile'")
 	})
 	// verbose_enter() and verbose_leave(), and their four calls, went with
 	// the autocommands' verbose messages at phase 5 (whim5d, phase 5d's
 	// program, which runs before this phase now)
-	e.InFunction("verbose_enter_scroll", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (*p_vfile != NUL)"), 1, "verbose_enter_scroll silencing for 'verbosefile'")
+	v.InFunction("verbose_enter_scroll", func(v *graph.Verbs) {
+		v.FoldNever("(!= (deref p_vfile) NUL)", 1, "verbose_enter_scroll silencing for 'verbosefile'")
 	})
-	e.InFunction("verbose_leave_scroll", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (*p_vfile != NUL)"), 1, "verbose_leave_scroll silencing for 'verbosefile'")
+	v.InFunction("verbose_leave_scroll", func(v *graph.Verbs) {
+		v.FoldNever("(!= (deref p_vfile) NUL)", 1, "verbose_leave_scroll silencing for 'verbosefile'")
 	})
 
 	// 'debug'
-	e.InFunction("emsg_not_now", func(e *edit.E) {
-		e.Literal("(emsg_off > 0 && vim_strchr(p_debug, 'm') == nullptr && vim_strchr(p_debug, 't') == nullptr)",
-			"(emsg_off > 0)", 1, "'debug' m and t showing suppressed errors")
+	v.InFunction("emsg_not_now", func(v *graph.Verbs) {
+		v.Rewrite("(&& ?off (== (call vim_strchr p_debug 'm') nullptr) (== (call vim_strchr p_debug 't') nullptr))",
+			"?off", 1, "'debug' m and t showing suppressed errors")
 	})
-	e.InFunction("emsg_core", func(e *edit.E) {
-		e.Literal("if (!emsg_off || vim_strchr(p_debug, 't') != nullptr)", "if (!emsg_off)", 1,
+	v.InFunction("emsg_core", func(v *graph.Verbs) {
+		v.DropOperand("(!= (call vim_strchr p_debug 't') nullptr)", 1,
 			"'debug' t handling errors under emsg_off")
 	})
-	e.InFunction("vim_beep", func(e *edit.E) {
-		e.DropIf(edit.Head("if (vim_strchr(p_debug, 'e') != nullptr)"), 1, "'debug' e showing Beep!")
+	v.InFunction("vim_beep", func(v *graph.Verbs) {
+		v.DropIf("(!= (call vim_strchr p_debug 'e') nullptr)", 1, "'debug' e showing Beep!")
 	})
 
 	// 'formatprg' and 'equalprg': gq through 'formatprg' and = through
 	// 'equalprg' went with the format operator's case and the filter and
 	// indent dispatch at phase 5 (whim5a, phase 5a's program, which runs
 	// before this phase now)
-	e.InFunction("op_colon", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (oap->op_type == OP_INDENT)"), 1, "op_colon building an 'equalprg' filter")
-		e.FoldNever(edit.Head("if (oap->op_type == OP_FORMAT)"), 1, "op_colon building a 'formatprg' filter")
+	v.InFunction("op_colon", func(v *graph.Verbs) {
+		v.FoldNever("(== (-> oap op_type) OP_INDENT)", 1, "op_colon building an 'equalprg' filter")
+		v.FoldNever("(== (-> oap op_type) OP_FORMAT)", 1, "op_colon building a 'formatprg' filter")
 	})
-	return e.Done()
+	return v.Done()
 }
 
-// Whim19EP takes get_varp()'s per-buffer resolution of 'equalprg'.  A second
-// entry for whim18kp's reason: it stands after a dropoptions call in the phase
-// program, and folding it in would move the cut.
-//
-// The report line is the heredoc's last statement and it prints AFTER the
-// write, which is why a filtered read of the file missed it and the port was
-// briefly silent.  editcmp caught it in both directions -- first that the
-// message existed, then that removing it was wrong -- which is the whole reason
-// the report is compared and not only the tree.
-func Whim19EP(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nosixopts", text, w)
-	e.Cut(`(?m)^[ \t]*case[^\n]*\bBV_EP\b[^\n]*\n[ \t]*return \*curbuf->b_p_ep != NUL \? \(char_u \*\)&curbuf->b_p_ep : p->var;\n`,
-		1, "get_varp no longer resolves 'equalprg' per buffer")
-	return e.Done()
-}
+// whim19ep, get_varp()'s per-buffer resolution of 'equalprg', a second
+// entry that ran between the phase's sweep and its droplocal, is gone:
+// since B1a (doc/GRAPH-MIGRATION.md) droplocal's own get_varp rule takes
+// the case, its address spelled without the parentheses
+// (internal/cut/droplocal.go).
 
 func init() {
-	phase.Register("whim19", Edit)
-	phase.Register("whim19ep", Whim19EP)
+	phase.RegisterGraph("whim19", Edit)
 }

@@ -284,7 +284,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 24, 33, 58, 64 and 77 and parts 38a and 86a so far, `doc/GRAPH-MIGRATION.md`),
+phase converted to the graph (phases 15, 19, 20, 23-25, 33, 58, 64 and 77 and parts 4a, 15a, 38a and 86a so far, `doc/GRAPH-MIGRATION.md`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -736,12 +736,12 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 104 phases, **348 s** with every boundary compiled after (936 s of CPU, gcc's included), 77,634 lines, at a load of 3-13 (main before step 5: 352 s and 958 s
+  before the reason. Measured: 104 phases, **382 s** with every boundary compiled after (976 s of CPU, gcc's included), 77,634 lines, at a load of 20-35 after B1a, the two run side by side (main before it: 408 s and 982 s; at a load of 3-13, stage A's 348 s and 936 s, and main before step 5 352 s and 958 s
   the same hour; 451 s and 563 s of CPU under a load of 54-62; 815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
   the boundary before each phase that begins on the graph the graph it
-  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: eight now), and seals the
+  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: sixteen now), and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
@@ -771,7 +771,9 @@ make help            # every target, with a line each
   on the graph begins on q(N-1).g read back (75-90 ms; a tenth of the
   import, which it falls back to where there is no graph snapshot of that
   text). Measured since: 73 s (61 s the links, 10 s the compiles) at a load
-  of 10-16, main's 74 s beside it. **Either way it then
+  of 10-16, main's 74 s beside it; after B1a, 98 s (83 s the links, 13 s the
+  compiles, 16 links begun on their graph snapshot) at a load of 20-35,
+  main's 113 s beside it. **Either way it then
   compiles and links every boundary**, q000-q103, with the one compile line
   (`internal/build`'s `compileBoundary`, the driver's `Config.Compile`), 64 at
   a time, an error failing the check and naming the boundary -- warnings
@@ -840,8 +842,8 @@ same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d that run as one phase,
 the group's last: 15, 38, 49, 51, 71, 74, 76, 77, 86 and 87 (of the two other
 groups still running before, 72-73 are phase 5's parts 5b and 5c, and 51-53
 are records). One program runs before its own
-phase: phase 2's front calls `whim18`, whose package's second entry,
-`whim18kp`, runs in phase 18. **There is no memoize**: its key
+phase: phase 2's front calls `whim18`, and phase 18 is its `droplocal`
+alone (its second entry, `whim18kp`, the graph's `droplocal` took). **There is no memoize**: its key
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.
 
@@ -864,8 +866,10 @@ was the input boundary's digest and the implementation's together, so a moved
   collected and printed by the C view, cemit's text byte for byte. The graph
   goes on to the next phase only when that phase begins on the graph, with a
   fresh editor, so a phase takes one path in order and in the check. On the
-  graph now: every `droplocal`, phases 24, 58 and 64, phase 77's own step
-  and part 86a; phases 8, 13, 14, 17, 24, 58, 64 and 86 begin on it. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
+  graph now: every `droplocal`, phases 24, 33, 58 and 64, phase 77's own
+  step, parts 38a and 86a, and B1a's -- the cutters nointro, optreaders,
+  nostat, nobackup, lfonly, keepbytes, noinertopts, nofloat and noowner,
+  part 4a and the programs of phases 15, 19, 20, 23 and 25. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
   record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).

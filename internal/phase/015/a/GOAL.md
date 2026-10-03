@@ -22,3 +22,7 @@ without their `!` being special, `:w !cmd` would write a file of that name.
 → **115,798 lines**.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 48, as the first of the group 44-48, which was one idea split for history's sake. There is no boundary q044 of its own any more; everything above still says what the steps do and why.
+
+**On the graph** (B1a, `doc/GRAPH-MIGRATION.md`): the row's handler is one
+node of `nv_cmds[]`'s initialiser, replaced in place (`RewriteAt`), the
+row and its id kept.
