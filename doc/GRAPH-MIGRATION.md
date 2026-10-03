@@ -15,11 +15,14 @@ per unit, `|`-separated, its columns named in the first row.
    `phase.RegisterGraph("whimN", ...)` in the phase's `edit.go` (it REPLACES
    the text program, which history keeps), or a `steps.GraphStep` in
    `internal/steps`' `graphOps` for a cutter (the cutter's text version is
-   then deleted, unless another step still calls it). Write it on the
-   editor (`graph.Editor`: `Delete`, `Replace`, `InsertBefore/After`,
-   `Retarget`, `FallOut`, `Collect`) and on patterns (`graph.Match`/`Find`,
-   clisp's pattern forms). Report what the text version reported, in its
-   order; the bytes are what is checked, the report is the reader's.
+   then deleted, unless another step still calls it). Write it on B0's
+   verbs (`graph.NewVerbs(tag, e, w)`: the text program's acts, one for
+   one, *B0 as built* below), and below them on the editor (`graph.Editor`:
+   `Delete`, `Replace`, `InsertBefore/After`, `Retarget`, `Unwrap`,
+   `ReplaceRun`, `Build`, `FallOut`, `Collect`) and on patterns
+   (`graph.Match`/`Find`, clisp's pattern forms). Report what the text
+   version reported, in its order; the bytes are what is checked, the
+   report is the reader's.
 2. Mark the step `Graph: true` in `internal/build/plan.go`.
 3. `GRAPH_SNAPS=.cache/boundaries go test ./internal/graphcheck/ -run
    PhasesOnGraph` holds every phase with a graph step to its snapshot in
@@ -47,12 +50,14 @@ yet by a build):
 
 - The text's unwrap (`FoldAlways`, keep-then, keep-else) splices a branch's
   items into the block around it even when the branch declares something;
-  the graph's if-fold keeps a declaring block whole. Where a converted fold
-  keeps such a block the bytes move: a `FOLDX` "splice a declaring block
-  where no name clashes" rule (B2d) is the fix, opted into by the cut.
-- `FALSE`, `TRUE`, `nullptr` are references in the text, not integers:
-  `graph.Literal(0)` prints `0`. Build a reference to the declaration
-  (`BUILD`, B0).
+  the closure's if-fold keeps a declaring block whole. B0 took it: the
+  verbs splice as the text does, refusing where a name would clash
+  (`Editor.Unwrap`, `Clash`), and the closure splices too when the cut opts
+  in (`FallOutOptions.SpliceDeclaring`), keeping the block whole on a clash.
+- `FALSE` and `TRUE` are references (enumerators) in the graph, not
+  integers: `graph.Literal(0)` prints `0`. A template says `FALSE` and BUILD
+  makes the use, its edge to the enumerator. `nullptr` is a plain token, an
+  atom with no edge: `graph.NewAtom("nullptr")`.
 - The editor refuses deleting an enumerator whose successor's value is
   implicit: delete last-first (phase 26), or opt into renumbering (`RENUM`).
 - A member deleted while a use survives leaves a dangling record the
@@ -78,9 +83,9 @@ The new ones, each a batch's job (B0 and B2 below):
 
 | name | what it is | units that need it (about) |
 | --- | --- | ---: |
-| VERBS | crefactor/edit's verb set on the graph, as a library: `InFunction` (scope to a `Defn`), `Cut`/`DropIf` by pattern with counts, `FoldNever`/`FoldAlways` (`Replace(cond, 0/1)` and the closure's fold), keep-then/keep-else/unwrap, an operand dropped from `&&`/`\|\|`/`\|` (Replace by the kept operand), an else-if arm dropped (Replace an else by its else), a case run or a label-only statement deleted (Replace a labelled statement by its inner one); every act counted and refused as the text verbs refuse | nearly all |
-| BUILD | constructors of small new nodes with their edges AND typed edges (so `Untyped` stays empty): a reference to a declaration (`FALSE`, `nullptr`, `curwin`, `nv_error`), an int literal, `return E;`, `break;`, a call statement of moved or built arguments, `(void)E`, a string literal | ~60 |
-| TEXTQ | the text's assertions as graph queries: a `\bname\b` count is `Uses`; a write count is the uses in a store's left side; "the uses outside these functions" is `Uses` and `Function`; a string literal's contents is a walk over string atoms; an initialiser row found by its string or its designator; the order of top-level forms. Most are trivial; the text-only ones (line deltas, blank-line runs, "directives on the first N lines") are dropped, not ported | ~70 |
+| VERBS | **done (B0)**: crefactor/edit's verb set on the graph, `graph.Verbs`: `InFunction`, `InTable`, `In`; `Cut`, `Rewrite`/`RewriteAt`/`RewriteFunc`, `FoldNever`/`FoldAlways`/`DropIf`/`FoldAlwaysElse`/`KeepThen` (structural, not `Replace(cond, 0/1)`: see *B0 as built*), `DropOperand`, `DropCase` (a label is an item of its own in C-lisp, so a case run is a run of items), `Splice`, `Body`, `DeleteDefinition`, `DropBareBlock`, `FoldWalk`/`FoldWalks`; every act counted and refused as the text verbs refuse | nearly all |
+| BUILD | **done (B0)**: `Editor.Build(at, template, holes)`, C-lisp forms made nodes at a place -- names resolved as the importer resolves them, members by type, typed edges where they follow, holes for moved nodes -- and `RefTo`, `Call`, `Return`, `Break`, `Void`, `Literal` | ~60 |
+| TEXTQ | **done (B0)**: the text's own counts on the scope's C view (`Mentions`, `TextCount(Is)`, `TextQuery`: the text's numbers exactly), and the graph's questions (`UsesOf`, `UsesOutside`, `Says`, `Strings`, `Rows`/`Row` -- a row by its first element, string or designator, as a pattern -- `Editor.Decls`, `Editor.Before`, `Find`/`Count`/`CountIs`/`One`/`Query` by pattern, `ConstOf`); the text-only ones (line deltas, blank-line runs, "directives on the first N lines") are dropped, not ported | ~70 |
 | FRAG | a C fragment -- an expression, statements, a declaration, a function, a body, an `editlit.go` or fenced `.md` literal -- made graph nodes in the context of its place: its names resolved to the graph's declarations (and to the externs: libc, builtins like `__builtin_setjmp`, macro invocations like `FD_SET`), typed, given fresh ids, its holes filled with existing nodes. The likely way: print the context's C view with the fragment in place, import that, and keep the new nodes with their edges retargeted to the graph's ids | ~70 |
 | CLONE | a subtree copied with fresh ids and the same refers edges, for a node used twice (0b's format argument, 89's tails, 42's `MIN(x, y)` operands) | 4 |
 | MACROX | an opaque `(macro "...")` invocation replaced by its expansion as nodes, its arguments taken from its text (42's `MIN`/`MAX`) | 1 |
@@ -91,7 +96,159 @@ The new ones, each a batch's job (B0 and B2 below):
 | RETYPE | a declaration's type changed (`int` to `bool`, `void *` to `T *`, a union member to its one member), the typed edges above it cleared and listed (`Untyped`) until step 6's checker re-derives them | ~20 |
 | MOVE | a node or a run of items moved elsewhere keeping their ids (an outlined block, a body inlined, a range wrapped in a loop, a definition moved below the boundary) | ~15 |
 | INCLUDE | `#include` forms added, deleted or moved, and the first one as the core/host boundary: "is X above it", "the host region" | ~15 |
-| FOLDX | the fall-out rules the closure lacks, each a rule in `fallout.go` (generic) or a cut's own `Rule`: a walk folded to `v = cur; body` (refusing a break that binds to the loop); `a && K`, `a \|\| K`, `!K`, `K == 0`; a function whose body is `return K;` made K at its calls; a parameter every call passes alike made its value; statements after a jump or `return` go; a label no goto reaches goes; empty blocks taken everywhere (and an empty else, a trailing empty else-if), not only those an edit emptied; an if whose only effect is a store to a deleted location; the value a cut gives a deleted object (not its initialiser); `if (!f()) {}` becomes `(void)f();`; a declaring block spliced where no name clashes | ~30 |
+| FOLDX | the fall-out rules the closure lacks, each a rule in `fallout.go` (generic) or a cut's own `Rule`: a walk folded to `v = cur; body` (refusing a break that binds to the loop); `a && K`, `a \|\| K`, `!K`, `K == 0`; a function whose body is `return K;` made K at its calls; a parameter every call passes alike made its value; statements after a jump or `return` go; a label no goto reaches goes; empty blocks taken everywhere (and an empty else, a trailing empty else-if), not only those an edit emptied; an if whose only effect is a store to a deleted location; the value a cut gives a deleted object (not its initialiser); `if (!f()) {}` becomes `(void)f();` (a declaring block spliced where no name clashes: B0's, `SpliceDeclaring`) | ~30 |
+
+## B0 as built (2026-10-03)
+
+`crefactor/graph`'s `verbs.go` (the verbs), `build.go` (BUILD), `textq.go`
+(TEXTQ) and `unwrap.go` (the declaring-block splice, a run of items
+replaced), and `FallOutOptions.SpliceDeclaring` in `fallout.go`; generic,
+naming nothing in vim. 624, 622, 197 and 120 lines of Go, comments and blank
+lines aside. A converted phase reads like its text program:
+
+```go
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noswapfile", e, w)
+	noswap := "(& (. cmdmod cmod_flags) CMOD_NOSWAPFILE)"
+	v.InFunction("parse_command_modifiers", func(v *graph.Verbs) {
+		v.DropCase("(case 'n')", 1, "the :noswapfile modifier")
+	})
+	v.InFunction("ml_open", func(v *graph.Verbs) { v.DropIf(noswap, 1, "ml_open asking for it") })
+	v.InFunction("buf_copy_options", func(v *graph.Verbs) { v.FoldNever(noswap, 1, "buf_copy_options asking for it") })
+	n := v.Mentions("CMOD_NOSWAPFILE")
+	v.Expect(n == 1, "CMOD_NOSWAPFILE outside its enumerator -- %d mentions, expected 1", n)
+	return v.Done()
+}
+```
+
+### The API later batches use
+
+**The driver**, `graph.Verbs` (`NewVerbs(tag, e, w)`): `Say`/`Sayf` (the
+text's report column, `  %-12s %s`), `Die`/`Refuse`, `Expect`, `Done`,
+`Failed`; the first refusal stops the rest and nothing after it reports, as
+`edit.E`. **Scopes**: `InFunction(name, acts)`, `InTable(name, acts)` (the
+initialised definition of a file-scope object), `In(node, acts)`.
+**Acts**, each counted (`pat, ..., n, what`) and reported as it succeeds:
+
+| verb | does | the text's |
+| --- | --- | --- |
+| `Cut(pat, n, what)` | deletes the matches: items, members, enumerators, top-level forms, an else | `Cut`, `Lines`, `DropBlocks` |
+| `Rewrite(pat, tmpl, n, what)` | each match replaced by the template, its holes the match's bindings | `Literal`, `Sub`, `ReplaceBlock`, `DropWalk` |
+| `RewriteAt(pat, at, tmpl, n, what)` | in each match, the node bound to `?at` replaced, the rest kept | `Sub` with `${1}...${2}` |
+| `RewriteFunc(pat, n, f, what)` | each match replaced by what f builds | a computed `Sub` |
+| `FoldNever`, `FoldAlways`, `DropIf`, `FoldAlwaysElse` | the text's folds: the pattern is the `if`, or, not headed `if`, its condition | the same names |
+| `KeepThen(pat, n, what)` | `if (T) A else ...` is A, whatever chain follows | the cutters' `keepThen`/`keepThenChain` |
+| `DropOperand(pat, n, what)` | an operand of `&&`, `\|\|`, `\|` dropped | a `Literal` on a condition |
+| `DropCase(pat, n, what)` | a case label; with its run of statements when it heads one alone; refused where the case before falls into it | a `Cut` of `Line("case 'n':", ...)` |
+| `Splice(from, through, tmpl, what)` | a run of items, each end matching one item, replaced | `Splice` |
+| `Body(fn, tmpl, what)` | a function's whole body | `Body` |
+| `DeleteDefinition(fn, what)` | refused while something outside it refers to it | `DeleteDefinition` |
+| `DropBareBlock(pat, what)` | the block around the one statement, if it is an item and holds only that and bare declarations | `DropBareBlock` |
+| `FoldWalk(pat, set, n, what)`, `FoldWalks(pat, ok, set, what)` | a loop folded to `set` and its body, a break or continue that would rebind refused | `FoldWalk`, `FoldWalks` |
+| `FallOut(opt)` | the closure over what the acts left dangling, its refusal the acts' | -- |
+
+**Assertions and queries**: `Find`, `Count`, `CountIs`, `One`, `Query(pat,
+name)` (the bound nodes), `ConstOf(fn, form)`; `Text` (the scope's C view),
+`Mentions`, `TextCount`, `TextCountIs`, `TextQuery` (the text's numbers, by
+crefactor/edit's own code on that view); `UsesOf`, `UsesOutside`, `Says`,
+`Strings`, `Rows`, `Row`.
+
+**On the editor**: `Build(at, tmpl, holes)` and `BuildIn(p, tmpl, holes)`
+(BUILD), `Resolve(at, name)`, `RefTo(decl)`, `Call(f, args...)`, and the
+free `Return`, `Break`, `Void`, `Literal`; `Unwrap(old, block)` and
+`Clash(p, i, items)`; `ReplaceRun(first, last, with...)`; `Decls(name)`,
+`Before(a, b)`.
+
+### Refinements of the catalogue's vocabulary
+
+- **The folds are structural, not `Replace(cond, 0/1)` and the closure.**
+  The closure's fold is right for what a cut makes constant, but a text
+  fold names one if and says what it keeps; the verb does exactly that, so
+  that its bytes are the text's. The closure is still there for a cut that
+  writes a constant (`Replace(cond, 0)`, then `FallOut`, as phase 24).
+- **A pattern is a form, and an else-if arm is an if.** The text's
+  `Head("if (x)")` did not match `else if (x)`, since the spellings differ.
+  On the graph both are `(if x ...)`, the arm told apart by where it is
+  (an if's else). So a count may differ from the text's, and the converter
+  recounts. `FoldAlways` refuses an arm, as the text refused an `else if`
+  head.
+- **Lines, DropBlocks, ReplaceBlock and DropWalk collapse into `Cut` and
+  `Rewrite`**: without lines, a statement and a block are both a node.
+  `BodyOf` and `InnerBody` are `Editor.Defn` and `graph.Body`.
+- **A `\bname\b` count is not `Uses`.** The text counts declarations,
+  string contents and macro texts too. So TEXTQ has both: `Mentions` on the
+  scope's C view gives the text's number exactly (a function's view prints
+  in well under a millisecond, the file's in 50-90 ms), and `UsesOf` asks
+  the edges, which is usually what the count stood for.
+- **The declaring-block splice is B0's**, not B2d's. The verbs splice as
+  the text does, so that their bytes are the text's, and refuse where a
+  name clashes: a moved declaration declared again where it moves, one that
+  is a parameter there, or one that would hide another declaration a later
+  use names (by edge: a use whose target is declared inside what follows
+  is not a clash). The closure splices only when the cut opts in
+  (`SpliceDeclaring`), and keeps the block whole on a clash. A block whose
+  items define a type or that carries attributes is refused. The text's
+  splice was unconditional, and a clash there made a different or a
+  broken program, which no gate looked for.
+- **BUILD is templates.** A template is C-lisp forms read at a place, and
+  is how the text's replacement strings carry over: `"(= bp curbuf)"`,
+  `"(return FALSE)"`, `"nv_error"`. Its names resolve as the importer
+  resolves them. A local or parameter is a use if it is declared before the
+  place; otherwise the name is the file's FIRST declaration above it (cc's
+  check takes the first declarator, so a use refers to a function's
+  prototype, not its definition), or an enumerator, or an external. A
+  member resolves by the type selected from, a tag to its definition, a
+  goto to the function's label. The typed edges follow where they are
+  plain: a call's result, a comparison or logical int, an assignment's
+  left side, a selection's member, `&x`, `*p`, `p[i]`, a cast to a type the
+  graph holds. Any other new expression is listed in `Untyped`, as a
+  replacement's are. It refuses what is FRAG's: a name declared nowhere
+  visible, a macro, a compound literal or initialiser, a function type,
+  and a hole used twice (CLONE's).
+- **An initialiser element is a one-node place, verified.**
+  `internal/graphcheck`'s `TestInitElementPlace` points onebuffer's CTRL-^
+  row (on q003) and 15a's `!` row (on q014) at `nv_error` by `RewriteAt`,
+  on the graph read back from its Lisp. In each, the row keeps its id, one
+  atom is superseded and one given, nothing is left untyped, and the C
+  view is the text program's substitution byte for byte. So the rows
+  pointed elsewhere (15a, onebuffer, 4f's `nullptr`, nomouse's 22) need no
+  INITROW. INITROW stays B2b's for deleting and inserting rows and saying
+  positional indexes. A row FOUND by its string or its designator is
+  `Row(pat)`.
+- **A whole phase on the verbs, outside the plan**:
+  `TestVerbsOnPhase15` writes phase 15's two programs (whim15a, whim15) on
+  the verbs, runs them on q014's graph read back, and collects: the result
+  is q015.c byte for byte, with the text's report line for line. The
+  control (the `!` row pointed at another handler) moves it by a byte.
+  B1a's conversion of phase 15 is that test's body moved into the phase.
+
+### What the tests prove
+
+`crefactor/graph`'s `verbs_test.go` and `build_test.go`, every case on a
+graph read back from its Lisp, no cc node behind it:
+
+- **The text verbs' own cases** (`crefactor/edit`'s `acts_test.go`): each
+  shape of if-chain folded (`TestFolds`), the refusals (`TestFoldRefusals`),
+  and the driver (`TestEDriver`): order, report, the first refusal stopping
+  the rest. Each gives the C the text verb gives, printed canonically, byte
+  for byte, with the same report.
+- **Every other verb against its text counterpart**, the same way:
+  `FoldAlwaysElse` and `KeepThen`, `FoldWalk` and `FoldWalks` (a declaring
+  body spliced), `DropBareBlock`, `Splice`, `Body`, `DropCase` and
+  `DropOperand` (against the cutters' line cuts and literals), `RewriteAt`
+  on a table's row, `ConstOf`. And their refusals: a break that would
+  rebind, a declaration that would clash, a case fallen into, a block that
+  is a body, a run backwards, a definition still referred to.
+- **BUILD**: each kind of name resolved where the place is (a local over
+  the file's object of the same name, and the file's before the local; a
+  parameter, an enumerator, the prototype, a typedef, members through a
+  typedef and a pointer, a label), the typed edges, `Untyped`, fresh ids on
+  insertion, and the refusals.
+- **The splice**: the clash cases, and the closure with and without
+  `SpliceDeclaring`. Where it splices, the result is the text's
+  `FoldAlways`.
+- **TEXTQ**: `Mentions` is `edit.MentionCount` on the canonical text,
+  number for number; uses, strings, rows and order are checked as well.
 
 ## The classes
 
@@ -141,7 +298,7 @@ readfront | 1 | cut/extable.go | 15 | - | a | - | B4 | two FoldNever
 onecmdfront | 1 | cut/onecmdfront.go | 45 | - | b | FRAG | B4 | condition shrinks (a), two new small bodies
 optfront | 1 | cut/optfront.go, droprow.go, optfront.md | 112 | - | b | INITROW TEXTQ | B4 | 375 options[] rows and their names in string lists
 noswap | 1 | cut/noswap.go | 69 | - | b | BUILD | B4 | 4 bodies stubbed, an else-if arm
-norecover | 1 | cut/norecover.go | 123 | - | b | FOLDX(splice declaring) | B4 | recovery cut; add_time's body flattened
+norecover | 1 | cut/norecover.go | 123 | - | a | - | B4 | recovery cut; add_time's body flattened (the declaring splice: B0's Unwrap)
 nomemfile | 1 | cut/nomemfile.go | 241 | - | b | PARAM FRAG | B4 | mf_open's parameters, two bodies, lalloc's retry block
 noruntime | 1 | cut/noruntime.go | 34 | - | b | RENAME BUILD TEXTQ | B4 | runtime strings to "", vimruntime = FALSE
 phase 2 | 2 | front2 + query-empty | - | - | c | FallOutOf; FRAG FOLDX INITROW MOVE RENAME | B4 | D6-D8
@@ -194,7 +351,7 @@ onebuffer | 4 | cut/onebuffer.go | 176 | - | a | BUILD | B3a | one buffer; a key
 4d | 4 | phase/004/d | 80 | 8385 | b | FRAG FOLDX(walk) | B3a | one buffer: walks folded, bodies; members after their uses
 4e | 4 | phase/004/e | 26 | - | b | PARAM TEXTQ | B3a | check_tty's parameter
 nowild | 4 | cut/small.go | 24 | - | b | FRAG BUILD | B3a | delegations to save_patterns, a prototype
-nowildmenu | 4 | cut/nowildmenu.go | 252 | - | b | PARAM FOLDX(splice declaring) | B3a | wildmenu; showmatches' 2 parameters
+nowildmenu | 4 | cut/nowildmenu.go | 252 | - | b | PARAM | B3a | wildmenu; showmatches' 2 parameters
 4f | 4 | phase/004/f | 84 | - | b | BUILD | B3a | completion keys; >=20 options[] callbacks to nullptr (Replace); after nowildmenu
 phase 5 | 5 | 12 steps, 1 sweep | - | - | b | FRAG FOLDX RENAME PARAM MOVE | B3a | droplocal x2 on the graph; 1 import today
 nobackup | 5 | cut/nobackup.go | 158 | - | a | - | B1a | backups and ACLs
@@ -230,7 +387,7 @@ phase 26 | 26 | whim26 | 262 | 450 | b | RENAME TEXTQ | B3a | the Ex table: enum
 phase 27 | 27 | whim27 | 346 | 1992 | b | PARAM TEXTQ | B3b | no Ex mode: ~28 folds, main_loop's parameter
 phase 28 | 28 | whim28 | 67 | 850 | b | RENUM BUILD TEXTQ | B3b | no :write
 phase 29 | 29 | whim29 | 115 | 638 | b | RENUM | B3b | no :read
-phase 30 | 30 | whim30 | 131 | 844 | b | RENUM TEXTQ FOLDX(splice declaring?) | B3b | no :edit, gf
+phase 30 | 30 | whim30 | 131 | 844 | b | RENUM TEXTQ | B3b | no :edit, gf
 phase 31 | 31 | whim31 | 102 | 569 | b | PARAM | B3b | open_buffer(void)
 phase 32 | 32 | whim32 | 476 | 5665 | b | RENUM PARAM TEXTQ FOLDX | B3b | the buffer has no name
 phase 33 | 33 | whim33 | 87 | 656 | a | TEXTQ | B1b | ex_quit's dead tail, two members
@@ -318,7 +475,7 @@ phase 102 | 102 | crefactor/xform/boolret.go (Globals) | 11 | - | b | RETYPE BUI
 phase 103 | 103 | crefactor/xform/boolret.go (Relax) | 12 | - | b | RETYPE BUILD | B3f | more flags bool
 ```
 
-190 rows: 44 (a), 127 (b), 8 (c: the `FallOutOf` wrapper and the three
+190 rows: 45 (a), 126 (b), 8 (c: the `FallOutOf` wrapper and the three
 front phases it wraps, 94, 95, 100, 101), 6 (d: phase 0 and its three
 parts, 43 as built, 88), and 5 `done` (the phases that begin on the graph
 now; the `droplocal` steps of 4, 5, 7, 12, 16, 18-20 and 34 are done too,
@@ -344,12 +501,11 @@ B0 ──┬── B1a, B1b, B1c                          (a-class conversions)
 step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
 ```
 
-- **B0, the library** (one agent, first; `crefactor/graph`, generic): VERBS,
-  BUILD, TEXTQ's helpers, and the opt-in declaring-block splice. Small (a
-  few hundred lines) but everything else is written on it; its tests are
-  the text verbs' own cases (`crefactor/edit`'s), on graphs read back from
-  Lisp. Also verify that an initialiser element is a one-node place
-  (`Replace` of an `nv_cmds` handler: onebuffer, 5a, 15a, 4f).
+- **B0, the library** -- **done**, *B0 as built* above: VERBS, BUILD,
+  TEXTQ's helpers, and the opt-in declaring-block splice, about 1,560 lines
+  of Go in `crefactor/graph`; its tests the text verbs' own cases on graphs
+  read back from Lisp; an initialiser element verified a one-node place on
+  the snapshots (onebuffer's and 15a's `nv_cmds` rows).
 - **B1, the a-class conversions** (after B0; three agents):
   - **B1a**: phases 7 (noinertopts), 11, 12, 15, 18, 19, 20, 23, 25 and the
     steps nostat, 4a, nobackup, lfonly, keepbytes, nointro, optreaders.
@@ -368,7 +524,7 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
   - **B2b INITROW, RENUM, RENAME** (string literals included).
   - **B2c PARAM, RETYPE (clearing types, no checker), MOVE.**
   - **B2d FOLDX**: the rules listed above, each with the units that want
-    it, and the declaring-block splice if B0 did not take it.
+    it (B0 took the declaring-block splice).
   - **B2e INCLUDE** and the boundary queries (the first include form,
     "above/below", the host region).
 - **B3, the b-class conversions** (each after the capabilities its rows

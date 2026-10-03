@@ -611,15 +611,25 @@ func (e *Editor) splice(op string, p *Node, lo, hi int, with []*Node) error {
 // retype keeps or clears the typed edges above an expression replaced.
 func (e *Editor) retype(p, old, new *Node) {
 	if new.list && new.Type == nil && !IsStatement(new) {
-		e.Untyped = append(e.Untyped, new)
+		e.untype(new)
 	}
 	if sameType(old, new) {
 		return
 	}
 	for q := p; q != nil && q.Type != nil && !IsStatement(q) && q.up != e.top[0]; q = e.Parent(q) {
 		q.Type = nil
-		e.Untyped = append(e.Untyped, q)
+		e.untype(q)
 	}
+}
+
+// untype lists n in Untyped, once.
+func (e *Editor) untype(n *Node) {
+	for _, u := range e.Untyped {
+		if u == n {
+			return
+		}
+	}
+	e.Untyped = append(e.Untyped, n)
 }
 
 // sameType says new is known to have old's type: the same type node, or

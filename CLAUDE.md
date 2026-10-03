@@ -285,7 +285,7 @@ plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s ver
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
 phase converted to the graph (phase 24 so far, `doc/GRAPH-MIGRATION.md`),
-is written on `crefactor/graph`'s editor and registers with
+is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
 
@@ -314,8 +314,10 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    one table), treepilot (doc/C-LISP-TREE.md's pilot,
                    outside the plan), graphcheck (crefactor/graph's sweep
                    held to the pipeline's on every phase, and the phases
-                   with a graph step held to their snapshots, timed, and
-                   the graph snapshots read back: GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
+                   with a graph step held to their snapshots, timed, the
+                   graph snapshots read back, and the graph's verbs on the
+                   snapshots -- an initialiser element replaced, phase 15
+                   written on them: GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
@@ -356,7 +358,18 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    gives vim's), pattern.go clisp's patterns on nodes,
                    names.go what the forms say of a declaration, exported;
                    editcollect.go the collection through the editor (its
-                   index kept, the act logged);
+                   index kept, the act logged); and the library the phases
+                   are converted on (doc/GRAPH-MIGRATION.md, B0): verbs.go
+                   crefactor/edit's verb set on the graph (Verbs: the
+                   scopes, the counted acts by C-lisp pattern, the text's
+                   report and refusals), build.go new nodes from C-lisp
+                   templates at a place (names resolved as the importer
+                   resolves them, members by type, typed edges where they
+                   follow), textq.go the text's assertions (its counts on
+                   the scope's C view, and the edges' answers), unwrap.go a
+                   branch's items spliced where no name clashes, and a run
+                   of items replaced; its tests hold each verb to its text
+                   verb's C, on graphs read back from Lisp;
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -596,7 +609,8 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    cuts as deletions whose fall-out is the constraints'
                    closure, its views trees printed as Lisp, and an editor
                    over them), GRAPH-MIGRATION.md (every phase classified
-                   for the move to the graph, and the batches that do it)
+                   for the move to the graph, the batches that do it, and
+                   B0's library as built)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go

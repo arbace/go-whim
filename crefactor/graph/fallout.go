@@ -39,7 +39,8 @@ import (
 // operands are constants is its value; `c ? a : b` of a constant c is the
 // branch; an `if` of a constant condition is the branch it takes, a block's
 // items spliced into the block that held it (the block kept whole when it
-// declares anything); `while (0)` goes.  And, unless KeepEmpty: a block an
+// declares anything, unless SpliceDeclaring and no name clashes: Unwrap's
+// check); `while (0)` goes.  And, unless KeepEmpty: a block an
 // edit emptied goes when it is an item or an else, and an `if` whose only
 // branch it was goes, its condition free of side effects.  Then the caller
 // collects (Collect): what nothing names is the sweep's.
@@ -62,6 +63,11 @@ type FallOutOptions struct {
 	Rules []Rule
 	// KeepEmpty leaves a block the closure empties, as the text cutters do.
 	KeepEmpty bool
+	// SpliceDeclaring splices the branch an if of a constant takes into the
+	// block around it even when the branch declares something, as the
+	// text's unwrap does, where no name clashes (Unwrap); a clash keeps the
+	// block whole, as without it.
+	SpliceDeclaring bool
 }
 
 // A Rule is a cut's own fall-out: given a dangling edge, the items that go
@@ -472,9 +478,9 @@ func (c *closure) branch(s *Node) (bool, error) {
 			return false, nil
 		}
 	case v != 0:
-		with = c.spliced(s.Kids[2], optional)
+		with = c.spliced(p, i, s.Kids[2], optional)
 	case len(s.Kids) > 3:
-		with = c.spliced(s.Kids[3], optional)
+		with = c.spliced(p, i, s.Kids[3], optional)
 	}
 	if err := c.e.Replace(s, with...); err != nil {
 		return false, err
@@ -483,9 +489,10 @@ func (c *closure) branch(s *Node) (bool, error) {
 	return true, nil
 }
 
-// spliced is what a branch taken puts in its if's place: its items, or the
-// block whole where it declares something or must stay one node.
-func (c *closure) spliced(b *Node, one bool) []*Node {
+// spliced is what a branch taken puts in the place of its if, element i of
+// p: its items, or the block whole where it declares something (unless
+// SpliceDeclaring, and no name clashes) or must stay one node.
+func (c *closure) spliced(p *Node, i int, b *Node, one bool) []*Node {
 	if !b.Is("block") {
 		return []*Node{b}
 	}
@@ -493,10 +500,17 @@ func (c *closure) spliced(b *Node, one bool) []*Node {
 	if one || len(items) != len(b.Kids)-1 {
 		return []*Node{b}
 	}
+	declares := false
 	for _, it := range items {
-		if IsStatement(it) && (it.Is("def") || it.Is("typedef") || it.Is("label")) {
+		switch {
+		case it.Is("label"):
 			return []*Node{b}
+		case it.Is("def") || it.Is("typedef"):
+			declares = true
 		}
+	}
+	if declares && (!c.opt.SpliceDeclaring || c.e.Clash(p, i, items) != nil) {
+		return []*Node{b}
 	}
 	return items
 }
