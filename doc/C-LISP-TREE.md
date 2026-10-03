@@ -348,3 +348,7 @@ wanted: the 14 phases and 64 fields came out byte for byte at the first
 attempt, a pattern says a statement more plainly than its regexp, and the
 resolver answers exactly the questions the text verbs approximate with
 `\bname\b`.
+
+`doc/GRAPH.md` takes the lesson the other way: not a tree beside the text,
+but one representation, resolved and typed when it is built and never
+reparsed, of which C, C-lisp and every other view are printings.

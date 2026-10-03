@@ -544,10 +544,14 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    module, converted, checked and compiled: make caprice.hsl),
                    C-LISP.md (whim-vim.c as s-expressions, crefactor/clisp:
                    back byte for byte and compiled to the same binary: make
-                   whim-vim.lc) and C-LISP-TREE.md (a pilot: phases editing
+                   whim-vim.lc), C-LISP-TREE.md (a pilot: phases editing
                    that tree instead of the text -- DropLocal and phase 24
                    rewritten in internal/treepilot, byte for byte on their
-                   14 phases, measured; not to migrate)
+                   14 phases, measured; not to migrate) and GRAPH.md (a
+                   design, nothing built: the program as one resolved,
+                   typed graph, cuts as deletions whose fall-out is the
+                   constraints' closure, its views trees printed as Lisp,
+                   and an editor over them)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
