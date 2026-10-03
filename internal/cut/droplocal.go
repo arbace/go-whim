@@ -1,111 +1,128 @@
 package cut
 
 import (
-	"bytes"
 	"fmt"
-	"regexp"
+
+	"github.com/arbace/go-whim/crefactor/clisp"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // DropLocal removes a buffer-local option field and its PLUMBING -- the
-// declaration, the assignments, the free, and the get_varp case that hands its
-// address out -- and refuses when anything else still names it.
+// declaration, the assignments, the checks and frees, and the get_varp case
+// that hands its address out -- and refuses when anything else still names
+// it.  It is a cut on the graph (crefactor/graph, doc/GRAPH.md step 4): it
+// DELETES the field's declaration, and the editor's fall-out closure takes
+// the plumbing -- the stores to the field (generic), the checks and frees
+// of it (generic, told which functions act on their argument alone:
+// whim.GraphFallOut), and the get_varp case (this cut's own rule).
 //
 // The refusal is the point.  Plumbing is what the phase may remove on its own;
-// a mention that is left over is a READER, and a reader has to be dealt with
-// by the phase before the field can go.  It also refuses when it found fewer
-// than three sites, because the field, an initialiser and a get_varp case are
-// the minimum shape -- fewer means the shape has moved and a silent partial
-// cut would leave the struct and its users disagreeing.
-func DropLocal(text []byte, bvar string) (out []byte, n int, err error) {
-	if !bytes.Contains(text, []byte(bvar)) {
-		return nil, 0, fmt.Errorf("droplocal: there is no %s here", bvar)
-	}
-	q := regexp.QuoteMeta(bvar)
-	// Each pattern matches whole lines -- one, or for the two get_varp
-	// shapes two -- and the last holds the field's name, so it runs on the
-	// lines around the name and not on the whole text (inLines).
-	pats := []struct {
-		before int
-		re     string
-	}{
-		{0, `(?m)^[ \t]*(?:char_u[ \t]*\*|int[ \t]+|long[ \t]+)` + q + `;\n`},
-		{0, `(?m)^[ \t]*buf->` + q + ` = [^\n]*;\n`},
-		{0, `(?m)^[ \t]*curbuf->` + q + ` = -1;\n`},
-		{0, `(?m)^[ \t]*(?:check|clear)_string_option\(&buf->` + q + `\);\n`},
-		{1, `(?m)^[ \t]*case[^\n]*\n[ \t]*return \(char_u \*\)&\(curbuf->` + q + `\);\n`},
-		{1, `(?m)^[ \t]*case[^\n]*\n[ \t]*return [^\n]*curbuf->` + q +
-			`[^\n]*\? \(char_u \*\)&\(curbuf->` + q + `\) : p->var;\n`},
-	}
-	for _, p := range pats {
-		ms := inLines(regexp.MustCompile(p.re), text, []byte(bvar), p.before)
-		n += len(ms)
-		if len(ms) == 0 {
-			continue
+// a use no rule takes is a READER, and a reader has to be dealt with by the
+// phase before the field can go.  It also refuses when it found fewer than
+// three sites, because the field, an initialiser and a get_varp case are the
+// minimum shape -- fewer means the shape has moved and a silent partial cut
+// would leave the struct and its users disagreeing.  It reports the sites as
+// the text version it replaced did: the declaration and each statement, a
+// get_varp case one.
+func DropLocal(e *graph.Editor, field string, opt graph.FallOutOptions) (int, error) {
+	var decls []*graph.Node
+	for _, f := range e.Graph().Forms {
+		graph.Walk(f, func(n *graph.Node) bool {
+			if (n.Is("struct") || n.Is("union")) && len(graph.Members(n)) > 0 {
+				for _, m := range graph.Members(n) {
+					if declaresField(m, field) {
+						decls = append(decls, m)
+					}
+				}
+			}
+			return true
+		})
+		if f.Is("def") && len(f.Kids) == 3 && !f.Kids[1].IsList() && f.Kids[1].Atom == field && plumbing(f.Kids[2]) {
+			decls = append(decls, f)
 		}
-		out := make([]byte, 0, len(text))
-		last := 0
-		for _, m := range ms {
-			out = append(out, text[last:m[0]]...)
-			last = m[1]
+	}
+	if len(decls) == 0 {
+		return 0, fmt.Errorf("droplocal: there is no %s here", field)
+	}
+	for _, d := range decls {
+		if err := e.Delete(d); err != nil {
+			return 0, fmt.Errorf("droplocal: %s: %w", field, err)
 		}
-		text = append(out, text[last:]...)
+	}
+	opt.Rules = append([]graph.Rule{getVarp(field)}, opt.Rules...)
+	st, err := e.FallOut(opt)
+	if u, ok := err.(*graph.Unhandled); ok {
+		return 0, fmt.Errorf("droplocal: %s still has %d mentions after the plumbing "+
+			"went -- those are readers, and the phase has to deal with them before the "+
+			"field can go (%v)", field, u.Left, u)
+	}
+	if err != nil {
+		return 0, fmt.Errorf("droplocal: %s: %w", field, err)
+	}
+	n := len(decls)
+	for _, r := range st.Removed {
+		if !r.Item.Is("case") {
+			n++
+		}
 	}
 	if n < 3 {
-		return nil, 0, fmt.Errorf("droplocal: %s: only %d plumbing sites, expected at "+
+		return 0, fmt.Errorf("droplocal: %s: only %d plumbing sites, expected at "+
 			"least the field, an initialiser and a get_varp case -- the shape has moved",
-			bvar, n)
+			field, n)
 	}
-	left := 0
-	if bytes.Contains(text, []byte(bvar)) {
-		left = len(regexp.MustCompile(`\b`+q+`\b`).FindAll(text, -1))
-	}
-	if left > 0 {
-		return nil, 0, fmt.Errorf("droplocal: %s still has %d mentions after the plumbing "+
-			"went -- those are readers, and the phase has to deal with them before the "+
-			"field can go", bvar, left)
-	}
-	return text, n, nil
+	return n, nil
 }
 
-// inLines is the matches of re in text, as FindAllIndex gives them, for a re
-// that matches only a whole run of at most before+1 lines whose last holds
-// lit -- found on those lines alone.  The lines holding lit and the before
-// lines above each make runs, merged where they meet; a match lies in one
-// run, a run starts at the start of a line, and nothing between the runs can
-// match, so scanning the runs one by one finds what scanning the text finds,
-// in the same order.  It is DropLocal's regexps on a few lines instead of
-// the whole multi-megabyte text, which was 44 s of a build's CPU.
-func inLines(re *regexp.Regexp, text, lit []byte, before int) [][2]int {
-	var runs [][2]int
-	for pos := 0; ; {
-		rel := bytes.Index(text[pos:], lit)
-		if rel < 0 {
-			break
+// The get_varp shapes: a case that hands out a field's address.  Not a
+// generic fall-out rule -- a `return &field;` cannot go without the case
+// that reaches it, which is a choice only this cut makes -- so it is the
+// cut's own Rule.  ?f is the field.
+var (
+	plVarp     = clisp.MustPattern("(cast (ptr char_u) (addr (paren (-> curbuf ?f))))")
+	plVarpBoth = clisp.MustPattern("(? ?test (cast (ptr char_u) (addr (paren (-> curbuf ?f)))) (-> p var))")
+)
+
+// plumbingTypes are the declared types DropLocal's declaration has.
+var plumbingTypes = []*clisp.Node{
+	clisp.MustPattern("(ptr char_u)"), clisp.A("int"), clisp.A("long"),
+}
+
+// getVarp is the cut's rule for field: a get_varp case returning its
+// address goes, with the case label before it.
+func getVarp(field string) graph.Rule {
+	return graph.Rule{Name: "get_varp", Take: func(e *graph.Editor, d graph.Dangling) ([]*graph.Node, error) {
+		it := e.Item(d.Use)
+		if it == nil || !it.Is("return") || len(it.Kids) != 2 {
+			return nil, nil
 		}
-		i := pos + rel
-		a := bytes.LastIndexByte(text[:i], '\n') + 1
-		for k := 0; k < before && a > 0; k++ {
-			a = bytes.LastIndexByte(text[:a-1], '\n') + 1
+		v := it.Kids[1]
+		b, ok := graph.Match(plVarp, v)
+		if !ok || b["f"].Atom != field {
+			b, ok = graph.Match(plVarpBoth, v)
+			if !ok || b["f"].Atom != field ||
+				!graph.Contains(b["test"], clisp.L(clisp.A("->"), clisp.A("curbuf"), clisp.A(field))) {
+				return nil, nil
+			}
 		}
-		z := len(text)
-		if e := bytes.IndexByte(text[i:], '\n'); e >= 0 {
-			z = i + e + 1
+		prev := e.Sibling(it, -1)
+		if prev == nil || !prev.Is("case") {
+			return nil, nil
 		}
-		if len(runs) > 0 && a <= runs[len(runs)-1][1] {
-			runs[len(runs)-1][1] = max(runs[len(runs)-1][1], z)
-		} else {
-			runs = append(runs, [2]int{a, z})
-		}
-		pos = z
-		if pos >= len(text) {
-			break
+		return []*graph.Node{prev, it}, nil
+	}}
+}
+
+// declaresField says m is the field's member as DropLocal's declaration
+// shape has it: `char_u *F;`, `int F;` or `long F;`.
+func declaresField(m *graph.Node, field string) bool {
+	return len(m.Kids) == 2 && !m.Kids[0].IsList() && m.Kids[0].Atom == field && plumbing(m.Kids[1])
+}
+
+func plumbing(t *graph.Node) bool {
+	for _, p := range plumbingTypes {
+		if graph.Matches(p, t) {
+			return true
 		}
 	}
-	var out [][2]int
-	for _, r := range runs {
-		for _, m := range re.FindAllIndex(text[r[0]:r[1]], -1) {
-			out = append(out, [2]int{r[0] + m[0], r[0] + m[1]})
-		}
-	}
-	return out
+	return false
 }

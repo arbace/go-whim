@@ -10,6 +10,7 @@ import (
 
 	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/clisp"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/internal/cut"
 	_ "github.com/arbace/go-whim/internal/phase/004/a"
@@ -27,6 +28,7 @@ import (
 	_ "github.com/arbace/go-whim/internal/phase/020"
 	_ "github.com/arbace/go-whim/internal/phase/024"
 	_ "github.com/arbace/go-whim/internal/phase/034"
+	"github.com/arbace/go-whim/internal/whim"
 )
 
 // DropLocalPhases are the plan's phases with a droplocal step.
@@ -96,9 +98,27 @@ func TestTreeControl(t *testing.T) {
 	}
 }
 
+// graphDropLocal is internal/cut's DropLocal on text: since doc/GRAPH.md's
+// step 5 it is a cut on the graph, so the text is imported and the graph's
+// C view returned.
+func graphDropLocal(scratch string, text []byte, field string) ([]byte, int, error) {
+	g, _, err := graph.Import(filepath.Join(scratch, "whim-vim.c"), text)
+	if err != nil {
+		return nil, 0, err
+	}
+	n, err := cut.DropLocal(graph.NewEditor(g), field, whim.GraphFallOut)
+	if err != nil {
+		return nil, 0, err
+	}
+	out, err := g.C()
+	return out, n, err
+}
+
 // Step by step: each droplocal step's fields, on the text the plan's steps
-// before it leave, by internal/cut's DropLocal and by the tree's -- the same
-// count of plumbing sites, and the same C, canonically.
+// before it leave, by internal/cut's DropLocal (on the graph since
+// doc/GRAPH.md's step 5, the text version the pilot was held to before) and
+// by the tree's -- the same count of plumbing sites, and the same C,
+// canonically.
 func TestDropLocalSteps(t *testing.T) {
 	dir := snaps(t)
 	for _, n := range DropLocalPhases {
@@ -118,7 +138,7 @@ func TestDropLocalSteps(t *testing.T) {
 					continue
 				}
 				for _, f := range s.Args {
-					want, n1, err := cut.DropLocal(text, f)
+					want, n1, err := graphDropLocal(scratch, text, f)
 					if err != nil {
 						t.Fatal(err)
 					}

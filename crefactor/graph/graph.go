@@ -64,6 +64,10 @@ func (s *Sequential) Saw(id ID) {
 	}
 }
 
+// Last is the greatest id given or seen (Lasting): what the Lisp records,
+// so that a graph read back never gives an id an edit superseded.
+func (s *Sequential) Last() ID { return s.last }
+
 // A Node is a list or an atom, with its edges.
 type Node struct {
 	ID   ID

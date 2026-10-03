@@ -68,8 +68,9 @@ a goto before its label; `Mentions`.
 **The pilot**, `internal/treepilot` (whim's: it knows vim's names), outside
 the plan:
 
-- `DropLocal` -- `internal/cut/droplocal.go` (six regexps, run on the lines
-  around the field since `doc/PIPELINE-REFORM.md` §7 step 9) as forms.
+- `DropLocal` -- `internal/cut/droplocal.go` as it was then (six regexps, run
+  on the lines around the field since `doc/PIPELINE-REFORM.md` §7 step 9;
+  a cut on the graph since `doc/GRAPH.md`'s step 5) as forms.
 - `P24` -- phase 24, `internal/phase/024`: every call to twelve functions that
   do nothing, the write-only counters `autocmd_blocked`, `autocmd_no_enter`,
   `autocmd_no_leave`, `redrawing_for_callback` and `last_win_id`'s store, the

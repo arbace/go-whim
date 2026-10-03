@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/sweep"
 )
 
@@ -48,15 +49,24 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 			return nil, err
 		}
 		os.Remove(filepath.Join(c.SnapDir, "manifest"))
+		// and the graph snapshots: this run writes those its plan reads
+		if old, err := filepath.Glob(filepath.Join(c.SnapDir, "q*.g")); err == nil {
+			for _, f := range old {
+				os.Remove(f)
+			}
+		}
 	}
 
-	var text []byte
+	// pr is the program between phases: the text, always, and the graph
+	// when the phase about to run begins on it (hybrid.go).
+	var pr *prog
 	if o.From > 0 {
 		// Starting inside the pipeline: the input is a boundary, not the seed.
 		// Nothing here proves it is the boundary it claims to be -- that is for
 		// the caller, and only a build from phase 0 answers for the product.
-		text = src
+		pr = &prog{text: src}
 	}
+	last := -1 // the boundary before the phase about to run
 	for _, p := range c.Plan {
 		if o.To >= 0 && p.N > o.To {
 			break
@@ -84,44 +94,69 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 				held.Reset()
 			}
 		}
-		before := bytes.Count(text, []byte("\n"))
+		var before int
+		if pr != nil {
+			before = bytes.Count(pr.text, []byte("\n"))
+		}
 		if p.Seed {
 			out, err := Seed(src, rep)
 			if err != nil {
 				refused()
 				return nil, fmt.Errorf("phase %d: %w", p.N, err)
 			}
-			text = out
+			pr = &prog{text: out}
 			before = bytes.Count(src, []byte("\n"))
 		}
-		if text == nil {
+		if pr == nil {
 			return nil, fmt.Errorf("build: phase %d runs before the input was seeded", p.N)
 		}
 		if p.NoSource {
 			if held != nil {
 				summary := "no edit"
 				if p.Seed {
-					summary = fmt.Sprintf("%d lines from %d", bytes.Count(text, []byte("\n")), before)
+					summary = fmt.Sprintf("%d lines from %d", bytes.Count(pr.text, []byte("\n")), before)
 				}
 				fmt.Fprintf(o.W, "  phase %-6d %s: %s\n", p.N, p.Name, summary)
 			}
-			if err := c.keep(o, p.N, text); err != nil {
+			if err := c.keep(o, p.N, pr.text); err != nil {
 				return nil, err
 			}
+			last = p.N
 			continue
 		}
 		scratch, err := os.MkdirTemp("", fmt.Sprintf("%s%03d.", c.Name, p.N))
 		if err != nil {
 			return nil, err
 		}
-		out, err := c.RunPhase(p, text, scratch, rep)
+		in := pr.text
+		pr.conv = Conv{}
+		// The boundary: the graph goes on only to a phase that begins on
+		// it, with an editor of its own, imported here if the phase before
+		// ended on text; and a whole run keeps it beside the boundary.
+		if BeginsOnGraph(p) {
+			if pr.ed != nil {
+				pr.ed = graph.NewEditor(pr.ed.Graph())
+				pr.conv.Graph = true
+			} else if _, err := c.editor(pr, scratch); err != nil {
+				os.RemoveAll(scratch)
+				refused()
+				return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
+			}
+			if o.snap && last >= 0 {
+				if err := c.writeGraphSnap(last, in, pr.ed.Graph()); err != nil {
+					return nil, err
+				}
+			}
+		} else {
+			pr.ed = nil
+		}
+		err = c.steps(p, pr, scratch, rep)
 		acts := 0
 		if held != nil {
 			acts = bytes.Count(held.Bytes(), []byte("\n"))
 		}
 		switch {
 		case err == nil:
-			text = out
 		case o.KeepGoing:
 			// A PHASE THAT HAS ALREADY SAID WHY RETURNS AN EMPTY ERROR.  Several
 			// edits print their refusal to the report and return `fmt.Errorf("")`,
@@ -135,40 +170,51 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 			refused()
 			fmt.Fprintf(o.W, "  REFUSED %-4d %s\n", p.N, why)
 			o.Refused = append(o.Refused, fmt.Sprintf("%d: %s", p.N, why))
+			pr = &prog{text: in}
 		default:
 			os.RemoveAll(scratch)
 			refused()
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
-		edited := bytes.Count(text, []byte("\n"))
-		// The sweep and the canonical print --
-		// also after a refusal, so the text handed on is canonical either way.
-		finished, err := c.finish(text, scratch, rep)
+		// The lines the edits took: on text, before the sweep; a phase that
+		// ends on the graph is not printed until it is collected.
+		edited := -1
+		if pr.ed == nil {
+			edited = bytes.Count(pr.text, []byte("\n"))
+		}
+		// The sweep and the canonical print, or the collection and the C
+		// view -- also after a refusal, so the text handed on is canonical
+		// either way.
+		err = c.finish(pr, scratch, rep)
 		os.RemoveAll(scratch)
 		switch {
 		case err == nil:
-			text = finished
 		case o.KeepGoing:
 			refused()
 			fmt.Fprintf(o.W, "  REFUSED %-4d %v\n", p.N, err)
 			o.Refused = append(o.Refused, fmt.Sprintf("%d: %v", p.N, err))
+			pr = &prog{text: in}
 		default:
 			refused()
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
-		if err := c.keep(o, p.N, text); err != nil {
+		if err := c.keep(o, p.N, pr.text); err != nil {
 			return nil, err
 		}
+		last = p.N
 		d := time.Since(start)
-		after := bytes.Count(text, []byte("\n"))
+		after := bytes.Count(pr.text, []byte("\n"))
 		if held != nil {
-			fmt.Fprintf(o.W, "  phase %-6d %s: %s\n", p.N, p.Name, summary(acts, before, edited, after, d))
+			fmt.Fprintf(o.W, "  phase %-6d %s: %s\n", p.N, p.Name, summary(acts, before, edited, after, d, pr.conv))
 		} else if d > time.Second {
 			fmt.Fprintf(o.W, "  phase %-6d %ds, %d lines\n", p.N, int(d.Seconds()), after)
 		}
 	}
+	if pr == nil {
+		return nil, fmt.Errorf("build: no phase ran")
+	}
 	// The work tree is left holding the source the pipeline leaves.
-	if err := os.WriteFile(path, text, 0o644); err != nil {
+	if err := os.WriteFile(path, pr.text, 0o644); err != nil {
 		return nil, err
 	}
 	if o.snap {
@@ -176,61 +222,107 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 			return nil, err
 		}
 	}
-	return text, nil
+	return pr.text, nil
 }
 
 // RunPhase applies one phase's steps, with scratch as the directory the
-// Config's Resolve may hand its arguments.
+// Config's Resolve may hand its arguments: the text in, the text out, the
+// graph steps on a graph imported where they begin and printed where they
+// end (hybrid.go).
 func (c *Config) RunPhase(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error) {
+	pr := &prog{text: text}
+	if err := c.steps(p, pr, scratch, w); err != nil {
+		return nil, err
+	}
+	return pr.textOf()
+}
+
+// steps applies one phase's steps to the program as it holds it, each on
+// its own kind, converting where the kind changes.
+func (c *Config) steps(p Phase, pr *prog, scratch string, w io.Writer) error {
 	for _, s := range p.Steps {
 		if s.Op == "sweep" {
 			// A phase that sweeps in the middle of its own edit: the same
-			// sweep, at the point its program ran one.
+			// sweep, at the point its program ran one -- on the graph, its
+			// collection.
+			if pr.ed != nil {
+				if err := c.collect(pr, w); err != nil {
+					return err
+				}
+				continue
+			}
 			path := filepath.Join(scratch, "inner.c")
-			if err := os.WriteFile(path, text, 0o644); err != nil {
-				return nil, err
+			if err := os.WriteFile(path, pr.text, 0o644); err != nil {
+				return err
 			}
 			if _, err := sweep.Sweep(path, w, c.Sweep); err != nil {
-				return nil, err
+				return err
 			}
 			out, err := os.ReadFile(path)
 			if err != nil {
-				return nil, err
+				return err
 			}
-			text = out
+			pr.text = out
 			continue
 		}
-		op, ok := c.Lookup(s.Op)
-		if !ok {
-			return nil, fmt.Errorf("no step named %q", s.Op)
+		var op Op
+		var gop GraphOp
+		ok := false
+		switch {
+		case s.Graph && c.GraphLookup == nil:
+			return fmt.Errorf("no graph step named %q: the pipeline has no graph steps", s.Op)
+		case s.Graph:
+			if gop, ok = c.GraphLookup(s.Op); !ok {
+				return fmt.Errorf("no graph step named %q", s.Op)
+			}
+		default:
+			if op, ok = c.Lookup(s.Op); !ok {
+				return fmt.Errorf("no step named %q", s.Op)
+			}
 		}
 		args := s.Args
 		if c.Resolve != nil {
 			var err error
 			if args, err = c.Resolve(p, s.Args, scratch); err != nil {
-				return nil, err
+				return err
 			}
 		}
 		var undo func()
 		if s.Declared {
 			if c.Declared == nil {
-				return nil, fmt.Errorf("phase %d: a step reads what the phase declares, and nothing declares it", p.N)
+				return fmt.Errorf("phase %d: a step reads what the phase declares, and nothing declares it", p.N)
 			}
 			var err error
 			if undo, err = c.Declared(p.N); err != nil {
-				return nil, err
+				return err
 			}
 		}
-		out, err := op(text, args, w)
+		var err error
+		if s.Graph {
+			var e *graph.Editor
+			if e, err = c.editor(pr, scratch); err == nil {
+				err = gop(e, args, w)
+				pr.text = nil
+			}
+		} else {
+			var t []byte
+			if t, err = pr.textOf(); err == nil {
+				var out []byte
+				if out, err = op(t, args, w); err == nil {
+					pr.tally()
+					pr.ed = nil
+					pr.text = out
+				}
+			}
+		}
 		if undo != nil {
 			undo()
 		}
 		if err != nil {
-			return nil, err
+			return err
 		}
-		text = out
 	}
-	return text, nil
+	return nil
 }
 
 // keep writes the boundary after phase n into the snapshots, on a whole run,
@@ -252,17 +344,29 @@ func (c *Config) keep(o *Options, n int, text []byte) error {
 
 // summary is a phase in one line: how many acts its steps reported, the lines
 // its edits and then the sweep and canonical print took (a negative count is
-// lines added), the lines left, and the time when it is a second or more.
+// lines added), the lines left, and the time when it is a second or more;
+// and, for a phase that touched the graph, what it spent converting and
+// what its editor's log says (Conv).
 //
 //	54 acts, -1203 edited, -91 swept; 84059 lines, 9s
-func summary(acts, before, edited, after int, d time.Duration) string {
+//	2 acts, -40 edited and collected; 84019 lines; graph: 1 collection 140ms, 9 acts, 312 ids superseded, 0 given
+func summary(acts, before, edited, after int, d time.Duration, conv Conv) string {
 	noun := "acts"
 	if acts == 1 {
 		noun = "act"
 	}
-	s := fmt.Sprintf("%d %s, %s edited, %s swept; %d lines", acts, noun, took(before-edited), took(edited-after), after)
+	var s string
+	if edited < 0 {
+		// it ended on the graph: the edits and the collection, together
+		s = fmt.Sprintf("%d %s, %s edited and collected; %d lines", acts, noun, took(before-after), after)
+	} else {
+		s = fmt.Sprintf("%d %s, %s edited, %s swept; %d lines", acts, noun, took(before-edited), took(edited-after), after)
+	}
 	if d >= time.Second {
 		s += fmt.Sprintf(", %ds", int(d.Seconds()))
+	}
+	if g := conv.String(); g != "" {
+		s += "; " + g
 	}
 	return s
 }

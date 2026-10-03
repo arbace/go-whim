@@ -150,8 +150,12 @@ func (c *collector) cut(dead []deadLocal, orphans []*Node) error {
 					continue
 				}
 				if deleted && !n.explicit {
-					n.form.Kids = append(n.form.Kids, NewAtom(formatValue(n.val)))
+					v := NewAtom(formatValue(n.val))
+					n.form.Kids = append(n.form.Kids, v)
 					c.st.Pinned++
+					if c.rec != nil {
+						c.rec.pinned = append(c.rec.pinned, [2]*Node{n.form, v})
+					}
 				}
 				deleted = false
 			}
@@ -219,6 +223,14 @@ func (c *collector) cut(dead []deadLocal, orphans []*Node) error {
 		c.st.Fallthroughs++
 		gone[o] = true
 	}
+	if c.rec != nil {
+		for n := range gone {
+			c.rec.gone = append(c.rec.gone, n)
+		}
+		for f, s := range swap {
+			c.rec.swapped = append(c.rec.swapped, [2]*Node{f, s})
+		}
+	}
 	forms := c.g.Forms[:0]
 	for _, f := range c.g.Forms {
 		if gone[f] {
@@ -272,8 +284,8 @@ func formatValue(v int64) string {
 }
 
 // unreached drops the type and external nodes nothing in the file reaches
-// any more, and says how many of each.
-func (g *Graph) unreached() (types, externs int) {
+// any more, and says how many of each; rec, when given, records them.
+func (g *Graph) unreached(rec *cutRecord) (types, externs int) {
 	reached := map[*Node]bool{}
 	var mark func(n *Node)
 	mark = func(n *Node) {
@@ -314,6 +326,9 @@ func (g *Graph) unreached() (types, externs int) {
 				out = append(out, x)
 			} else {
 				n++
+				if rec != nil {
+					rec.gone = append(rec.gone, x)
+				}
 			}
 		}
 		return out, n

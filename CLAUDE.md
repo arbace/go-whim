@@ -283,7 +283,10 @@ the phase's, `internal/phase/NNN/x/`: package `pNNNx`, registered as `whimNx`,
 lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
-itself with `internal/phase` (`phase.Register`) in an `init()`, and
+itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
+phase converted to the graph (phase 24 so far, `doc/GRAPH-MIGRATION.md`),
+is written on `crefactor/graph`'s editor and registers with
+`phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
 
 **`doc/GOALS.md`** is what holds for every phase, in the old numbers but for its
@@ -310,11 +313,9 @@ cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand
 internal/          whim's Go: cut (the cutters), steps (every transformation a phase names, as
                    one table), treepilot (doc/C-LISP-TREE.md's pilot,
                    outside the plan), graphcheck (crefactor/graph's sweep
-                   held to the pipeline's on every phase, GRAPH_SNAPS), graphcut
-                   (doc/GRAPH.md's step 4: DropLocal and phase 24 as
-                   deletions on the graph and its fall-out closure, byte
-                   for byte on their 14 phases, GRAPHCUT_SNAPS; outside the
-                   plan), build (whim's pipeline: the plan -- what each
+                   held to the pipeline's on every phase, and the phases
+                   with a graph step held to their snapshots, timed, and
+                   the graph snapshots read back: GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
@@ -354,6 +355,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    through FallOutOptions, which internal/whim/graph.go
                    gives vim's), pattern.go clisp's patterns on nodes,
                    names.go what the forms say of a declaration, exported;
+                   editcollect.go the collection through the editor (its
+                   index kept, the act logged);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -367,7 +370,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    partitioned. dead/: funcreach and gcc's unused warnings.
                    pipeline/: the driver -- Phase, Step, Plan, Run, Advance,
                    Check, the snapshots, Seed -- told everything through a
-                   Config. xform/: the generic transforms (fallout.go: the
+                   Config; hybrid.go its text and graph steps, the
+                   conversions between them, and the graph snapshots. xform/: the generic transforms (fallout.go: the
                    fall-out closure, what a drop's cut leaves unwritten
                    folded, and what that makes constant). edit/: the C-text
                    substrate that was cutil, and the one verb set -- E, every act
@@ -586,11 +590,13 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    that tree instead of the text -- DropLocal and phase 24
                    rewritten in internal/treepilot, byte for byte on their
                    14 phases, measured; not to migrate) and GRAPH.md (a
-                   design, steps 1-4 built and measured and its views
+                   design, steps 1-4 built and measured, step 5's stage A
+                   -- text and graph phases side by side -- built, and its views
                    read-only: the program as one resolved, typed graph,
                    cuts as deletions whose fall-out is the constraints'
                    closure, its views trees printed as Lisp, and an editor
-                   over them)
+                   over them), GRAPH-MIGRATION.md (every phase classified
+                   for the move to the graph, and the batches that do it)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -651,7 +657,9 @@ make help            # every target, with a line each
 - **One path.** `make whim-build` is what a moved upstream runs:
   `internal/build`'s plan -- each phase's steps (`internal/steps`), **the sweep,
   after every phase** (there are no stages), and **the canonical print of what is left**
-  (`crefactor/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
+  (`crefactor/cemit`: one spelling per construct, and NO COMMENTS, of any kind;
+  for a phase that ends on the graph, the collection and the C view, the same
+  text -- a step is a text step or a graph step, below),
   so every boundary that is C is in the one spelling phase 0 seeds with -- C23's,
   `nullptr` and `usize` and the attributes included, since phase 0 runs its
   parts 0a's rename, 0b's variadic collapse and 0c's attributes on the canonical
@@ -661,10 +669,12 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 104 phases, **451 s**, 563 s of CPU, 77,634 lines, under a
-  load of 54-62 (815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
+  before the reason. Measured: 104 phases, **348 s** with every boundary compiled after (936 s of CPU, gcc's included), 77,634 lines, at a load of 3-13 (main before step 5: 352 s and 958 s
+  the same hour; 451 s and 563 s of CPU under a load of 54-62; 815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
-  whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
+  whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
+  the boundary before each phase that begins on the graph the graph it
+  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: five now), and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
@@ -686,11 +696,15 @@ make help            # every target, with a line each
   committed `whim-vim.c`. Measured: **105 s** under a load of 54-69 (118 s at 107-139, 76-77 s at a
   lighter one), 103 links 64 at a time, bound by
   the machine's load and no longer by one link (in order, the front's three closures, phases 1-3, take 37, 25 and 33 s, phases 4 and 5 12 and 7 s, the seed 12 s and phase 43 15 s; phase 1 alone was 89 s), against 451 s in
-  order; and a phase whose program was changed -- on purpose (a control),
+  order then (348-352 s now, at a load of 3-13); and a phase whose program was changed -- on purpose (a control),
   or phase 96's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
   program changed breaks its own link and is named. With no snapshots of this
-  input it runs the pipeline in order, which writes them. **Either way it then
+  input it runs the pipeline in order, which writes them. A phase that begins
+  on the graph begins on q(N-1).g read back (75-90 ms; a tenth of the
+  import, which it falls back to where there is no graph snapshot of that
+  text). Measured since: 73 s (61 s the links, 10 s the compiles) at a load
+  of 10-16, main's 74 s beside it. **Either way it then
   compiles and links every boundary**, q000-q103, with the one compile line
   (`internal/build`'s `compileBoundary`, the driver's `Config.Compile`), 64 at
   a time, an error failing the check and naming the boundary -- warnings
@@ -767,13 +781,24 @@ was the input boundary's digest and the implementation's together, so a moved
 - **The driver is generic, the plan is whim's.** `crefactor/pipeline`
   runs a plan (Run, the parallel Check, Advance, the snapshots, `--keep-going`)
   and knows no code base; `internal/build` hands it a `pipeline.Config` -- the
-  plan, the op table (`internal/steps`), the work file `whim-vim.c`, `SnapDir`
+  plan, the op table (`internal/steps`) and its graph table (`graphOps`), the
+  collection's options (`whim.GraphCollect`), the work file `whim-vim.c`, `SnapDir`
   `.cache/boundaries`, the sweep's options (`internal/whim`'s `Profile`), the
   `@state`/`@minmax` arguments and phase 1's `delta.md` -- and keeps its old
   names (`build.Run`, `Check`, `Advance`, `Options`) as wrappers.
 - **There are no stages.** Every phase is its steps, the sweep, and the
   canonical print; a `sweep` step inside a phase's steps is for an edit that
-  reads its own earlier steps' text swept. `internal/phase/STAGES.md` is the
+  reads its own earlier steps' text swept.
+- **A step is a text step or a graph step** (`Step.Graph`; doc/GRAPH.md,
+  *Step 5 as built*). The driver holds the program as text or as
+  `crefactor/graph`'s graph and converts only where the kind changes (the C
+  view before a text step, an import before a graph step); a `sweep` is the
+  collection where the graph is held, and a phase that ends on the graph is
+  collected and printed by the C view, cemit's text byte for byte. The graph
+  goes on to the next phase only when that phase begins on the graph, with a
+  fresh editor, so a phase takes one path in order and in the check. On the
+  graph now: every `droplocal` and phase 24; phases 8, 13, 14, 17 and 24
+  begin on it. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
   record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).

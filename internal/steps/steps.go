@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/dead"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/cut"
@@ -112,8 +113,8 @@ var ops = map[string]Step{
 	"optreaders":  plain(cut.OptReaders),
 	"utf8only":    plain(cut.Utf8Only),
 
-	// The five that take arguments, and the three that only ask a question.
-	"droplocal": dropLocal,
+	// The four that take arguments, and the three that only ask a question;
+	// droplocal is a graph step (graphOps).
 	"funcreach": funcReach,
 	"edit":      runEdit,
 	"query":     runQuery,
@@ -169,21 +170,94 @@ func sortStrings(s []string) {
 	}
 }
 
-// dropLocal is `droplocal <field>...`, one field at a time, reporting each.
-func dropLocal(t []byte, args []string, w io.Writer) ([]byte, error) {
-	if len(args) == 0 {
-		return nil, fmt.Errorf("droplocal: no field named")
+// ---- the graph steps -------------------------------------------------------
+//
+// A GraphStep edits the program as crefactor/graph's graph, through its
+// editor (doc/GRAPH.md): the plan names it with Graph set, and the driver
+// hands it the graph it holds, importing the text where a run of graph
+// steps begins.  Its fall-out is the editor's closure, told vim's
+// specifics by whim.GraphFallOut.
+
+// A GraphStep is one transformation on the graph, its report on w.
+type GraphStep func(e *graph.Editor, args []string, w io.Writer) error
+
+var graphOps = map[string]GraphStep{
+	"droplocal": dropLocal,
+	"edit":      runGraphEdit,
+}
+
+// LookupGraph returns the graph step of that name, and whether there is one.
+func LookupGraph(name string) (GraphStep, bool) {
+	s, ok := graphOps[name]
+	return s, ok
+}
+
+// GraphNames returns every graph step, sorted.
+func GraphNames() []string {
+	out := make([]string, 0, len(graphOps))
+	for k := range graphOps {
+		out = append(out, k)
 	}
-	for _, bvar := range args {
-		var n int
-		var err error
-		t, n, err = cut.DropLocal(t, bvar)
+	sortStrings(out)
+	return out
+}
+
+// OnText is the step of that name as a function of text, for a caller with
+// a file and no graph (`whim droplocal F`, `whim edit whimN F`): a text
+// step as it is; a graph step -- or an `edit` of a phase whose program is
+// on the graph -- on the text imported, its C view returned.  The plan
+// never runs this: it runs a graph step on the graph it holds.
+func OnText(name string) (Step, bool) {
+	gs, isGraph := graphOps[name]
+	if s, ok := ops[name]; ok && name != "edit" {
+		return s, true
+	} else if !isGraph {
+		return nil, false
+	}
+	return func(t []byte, args []string, w io.Writer) ([]byte, error) {
+		if name == "edit" && len(args) > 0 {
+			if _, ok := phase.Lookup(args[0]); ok {
+				return runEdit(t, args, w)
+			}
+		}
+		g, _, err := graph.Import(filepath.Join(os.TempDir(), "whim-vim.c"), t)
 		if err != nil {
 			return nil, err
 		}
+		if err := gs(graph.NewEditor(g), args, w); err != nil {
+			return nil, err
+		}
+		return g.C()
+	}, true
+}
+
+// dropLocal is `droplocal <field>...`, one field at a time, reporting each:
+// internal/cut's DropLocal, a deletion and its fall-out on the graph.
+func dropLocal(e *graph.Editor, args []string, w io.Writer) error {
+	if len(args) == 0 {
+		return fmt.Errorf("droplocal: no field named")
+	}
+	for _, bvar := range args {
+		n, err := cut.DropLocal(e, bvar, whim.GraphFallOut)
+		if err != nil {
+			return err
+		}
 		fmt.Fprintf(w, "  droplocal    %-10s %d plumbing sites\n", bvar, n)
 	}
-	return t, nil
+	return nil
+}
+
+// runGraphEdit is `edit <phase> [args...]` on the graph: the phase's own
+// program, registered with phase.RegisterGraph.
+func runGraphEdit(e *graph.Editor, args []string, w io.Writer) error {
+	if len(args) == 0 {
+		return fmt.Errorf("edit: no phase named")
+	}
+	f, ok := phase.LookupGraph(args[0])
+	if !ok {
+		return fmt.Errorf("edit: no graph edit for phase %q", args[0])
+	}
+	return f(e, w, args[1:])
 }
 
 // front runs phase 1's front cuts in order, D1-D5: the command line, the Ex

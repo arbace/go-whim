@@ -29,11 +29,19 @@ const (
 	markTyped = ':' // @:ID: a typed edge
 )
 
-// Section heads: the type nodes and the external nodes, after the forms.
+// Section heads: the type nodes and the external nodes, after the forms;
+// and the last id the graph's IDs has given, `(ids N)`, last of all, so
+// that an id an edit superseded is not given again by a graph read back:
+// the greatest id the graph holds may be less than one it gave and removed.
 const (
 	typesHead   = "types"
 	externsHead = "externs"
+	idsHead     = "ids"
 )
+
+// A Lasting IDs says the last id it gave or saw (Sequential does): the Lisp
+// writes it, and Read hands it to the IDs it makes.
+type Lasting interface{ Last() ID }
 
 // Width is the column a form is broken at.
 const Width = 100
@@ -59,6 +67,9 @@ func (g *Graph) Lisp() []byte {
 			layout(&b, n, 2)
 		}
 		b.WriteString(")\n")
+	}
+	if l, ok := g.ids.(Lasting); ok {
+		b.WriteString("\n(" + idsHead + " " + strconv.FormatUint(uint64(l.Last()), 10) + ")\n")
 	}
 	return b.Bytes()
 }
@@ -237,10 +248,26 @@ func Read(src []byte) (*Graph, error) {
 	r.edges = make([]edge, 0, bytes.Count(src, []byte{markEdge}))
 	r.refs = make([]*Node, 0, cap(r.edges))
 	g := &Graph{}
+	var last ID
 	for {
 		r.space()
 		if r.i >= len(r.s) {
 			break
+		}
+		if r.s[r.i] == '(' && r.word(idsHead) {
+			r.i += 1 + len(idsHead)
+			r.space()
+			n, err := r.number()
+			if err != nil {
+				return nil, err
+			}
+			last = n
+			r.space()
+			if r.i >= len(r.s) || r.s[r.i] != ')' {
+				return nil, r.errf("an unclosed (%s", idsHead)
+			}
+			r.i++
+			continue
 		}
 		if r.s[r.i] == '(' && (r.word(typesHead) || r.word(externsHead)) {
 			head := typesHead
@@ -294,6 +321,7 @@ func Read(src []byte) (*Graph, error) {
 	}
 	seq := &Sequential{}
 	seq.Saw(r.maxID)
+	seq.Saw(last)
 	g.ids = seq
 	return g, nil
 }

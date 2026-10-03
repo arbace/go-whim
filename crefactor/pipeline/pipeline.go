@@ -10,25 +10,45 @@
 // A phase is a function of the text it is handed, p_N = f_N(p_{N-1}), so a
 // whole run from phase 0 can keep every boundary (the snapshots), and Check
 // can prove the plan link by link, every phase at once.
+//
+// A step is a TEXT step (an Op, text to text) or a GRAPH step (a GraphOp,
+// on crefactor/graph's graph through its editor).  The driver holds the
+// program as text or as a graph and converts only where the kind changes:
+// the graph's C view before a text step, an import before a graph step.  A
+// phase that ends on the graph is collected (the sweep as garbage
+// collection) and printed by the C view, which is cemit's canonical print
+// byte for byte; one that ends on text is swept and printed as before.  A
+// graph is handed from one phase to the next when the next begins on the
+// graph, and kept beside its snapshot for the parallel check (hybrid.go).
 package pipeline
 
 import (
 	"io"
 
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/sweep"
 )
 
 // An Op is what a step calls: the text in, the text out, a report to w.
 type Op func(text []byte, args []string, w io.Writer) ([]byte, error)
 
+// A GraphOp is what a graph step calls: it edits the program as a graph,
+// through the editor it is handed (crefactor/graph), and reports to w.
+type GraphOp func(e *graph.Editor, args []string, w io.Writer) error
+
 // A Step is one call: an op in the Config's table and its arguments.  The op
-// "sweep" is not in any table: it is the sweep, run where the step stands.
+// "sweep" is not in any table: it is the sweep, run where the step stands --
+// on the graph its collection, when the program is held as a graph there
+// (hybrid.go).
 type Step struct {
 	Op   string
 	Args []string
 	// Declared says the step reads what its phase declares: Config.Declared
 	// prepares it before the call and undoes it after.
 	Declared bool
+	// Graph says the step is a graph step: its op is Config.GraphLookup's,
+	// and it edits the graph.  Unset, the step is a text step, the default.
+	Graph bool
 }
 
 // A Phase is what one phase of the pipeline does to the source.
@@ -53,6 +73,13 @@ type Config struct {
 	// Lookup is the op table: the op of that name, and whether there is one.
 	Lookup func(name string) (Op, bool)
 
+	// GraphLookup is the graph steps' table.  Nil: a graph step is refused.
+	GraphLookup func(name string) (GraphOp, bool)
+
+	// Collect is what every collection is told -- the sweep on the graph:
+	// the same roots and guard as Sweep.
+	Collect graph.CollectOptions
+
 	// Name prefixes the temporary directories a run makes (Name-build for the
 	// work tree, NameNNN. for a phase's scratch).
 	Name string
@@ -62,7 +89,9 @@ type Config struct {
 	WorkName string
 
 	// SnapDir is where a whole run from phase 0 keeps every boundary, as
-	// qNNN.c, sealed by `manifest`: the digest of the input.  Empty: no
+	// qNNN.c, sealed by `manifest`: the digest of the input -- and, beside
+	// the boundary before each phase that begins on the graph, the graph
+	// the run handed it, as Lisp: qNNN.g (hybrid.go).  Empty: no
 	// snapshots, and Check runs the pipeline in order.
 	SnapDir string
 

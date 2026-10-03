@@ -77,10 +77,23 @@ func (s *CollectStats) add(o CollectStats) {
 
 // Collect collects g in place, round after round until a round deletes no
 // local, and then the type and external nodes nothing left reaches.
-func Collect(g *Graph, opt CollectOptions) (CollectStats, error) {
+func Collect(g *Graph, opt CollectOptions) (CollectStats, error) { return collect(g, opt, nil) }
+
+// A cutRecord is what a collection took out of the graph, for an Editor to
+// keep its index by (Editor.Collect): the nodes cut, each the root of what
+// went with it; the top-level forms replaced by a tag's definition they
+// held; the enumerators a value was pinned on, with the atom.
+type cutRecord struct {
+	gone    []*Node
+	swapped [][2]*Node // the form, the definition that took its place
+	pinned  [][2]*Node // the enumerator, the value's atom
+}
+
+func collect(g *Graph, opt CollectOptions, rec *cutRecord) (CollectStats, error) {
 	var total CollectStats
 	for round := 1; ; round++ {
 		c := newCollector(g, opt)
+		c.rec = rec
 		st, err := c.run()
 		if err != nil {
 			return total, fmt.Errorf("round %d: %w", round, err)
@@ -94,7 +107,7 @@ func Collect(g *Graph, opt CollectOptions) (CollectStats, error) {
 			return total, fmt.Errorf("not converging after %d rounds", round)
 		}
 	}
-	total.Types, total.Externs = g.unreached()
+	total.Types, total.Externs = g.unreached(rec)
 	return total, nil
 }
 
@@ -145,6 +158,7 @@ type collector struct {
 	anon    map[*Node]string
 	st      CollectStats
 	queue   []string
+	rec     *cutRecord // where the cut is recorded, when an Editor collects
 }
 
 func newCollector(g *Graph, opt CollectOptions) *collector {

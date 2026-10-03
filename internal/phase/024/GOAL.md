@@ -75,3 +75,17 @@ second class exists for the sweep's closure (`crefactor/sweep`,
 the sweep itself since the six deleters went), whose closure sees that no code reads the
 member and takes it in an earlier sweep. A stray mention is neither class and
 refuses as it always did.
+
+## On the graph (doc/GRAPH.md, step 5)
+
+Since step 5 the phase's program is a cut on the program's graph
+(`crefactor/graph`), run by the plan as a graph step: the twelve functions,
+the seven write-only locations and `prechar` are **deleted**, the two guards'
+conditions **replaced** by `0`, and the editor's fall-out closure takes what
+the text version cut by regexp -- the 46 calls (its call rule refuses any use
+that is not a call standing as a statement, which is the text's "every
+mention is a bare call" asked of the edges), the ten statements (asserted
+function by function and shape by shape, none more), the folded `if`s -- and
+the collection takes `LOWEST_WIN_ID`. Its report is the text version's, line
+for line; `whim-build-check` holds q024 to the bytes the text version made.
+The text program is in history (`291eded` and before).

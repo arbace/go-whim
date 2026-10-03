@@ -1,8 +1,9 @@
 # GRAPH.md -- the program as a graph, its views as trees, printed as Lisp
 
 2026-10-03. A design, not a plan of record; its steps 1-4 are built
-(`crefactor/graph`, `internal/graphcut`) and measured, in *Steps 1-3 as
-built* and *Step 4 as built*, near the end, and so is a first, read-only
+(`crefactor/graph`) and measured, in *Steps 1-3 as built* and *Step 4 as
+built*, near the end, and so is step 5's foundation, the pipeline running
+text and graph phases side by side (*Step 5 as built*), and a first, read-only
 taste of its views (`crefactor/graph/view`, `whim view`: *Views,
 read-only*); the rest is not. It asks
 what representation the pipeline, and later an editor, would hold a C program
@@ -196,6 +197,8 @@ analyses, or cached under the graph's digest.
 5. **The pipeline on the graph**, phase by phase, the graph handed from one
    to the next and C printed only for the snapshots. *Gate:*
    `whim-build-check` unchanged; the in-order time measured against 451 s.
+   Its stage A is built (the hybrid driver, the graph snapshots, 14 phases'
+   cuts); stage B is `doc/GRAPH-MIGRATION.md`'s batches.
 6. **The typed transforms** onto typed edges, `cc.Translate` gone from them.
 
 Steps 1-3 are worth building on their own: they prove the representation is
@@ -719,11 +722,12 @@ entity's shows 0 of `ml_get`'s 72 -- each refers to the prototype.
 `crefactor/graph`'s `edit.go` (the editor), `fallout.go` (the closure) and
 `pattern.go` (clisp's patterns matched on nodes), naming nothing in vim;
 `internal/whim/graph.go`, what the closure is told about vim; and
-`internal/graphcut`, whim's, which writes `DropLocal` and phase 24 as
-deletions on the graph and holds them to the snapshots
-(`GRAPHCUT_SNAPS=.cache/boundaries go test ./internal/graphcut/`;
-`GRAPHCUT_RUNS=5 ... -run Measure -v` the tables below). The plan does not
-run it. Against go-whim `a329f9b` and its snapshots, on the 64-core machine.
+`internal/graphcut`, whim's, which wrote `DropLocal` and phase 24 as
+deletions on the graph and held them to the snapshots; the plan did not
+run it. Step 5 moved the two cuts into the plan (`internal/cut/droplocal.go`,
+`internal/phase/024/edit.go`) and removed the package, its gate now the
+build check's (*Step 5 as built*). Against go-whim `a329f9b` and its
+snapshots, on the 64-core machine.
 
 ### The edit API and its invariants
 
@@ -941,6 +945,245 @@ the closure's.
 - **Ids across phases**: the `Log` is the record of what each phase
   superseded; content-addressed ids (*Decided*, later) would make an
   unchanged function the same node in every snapshot.
+
+## Step 5 as built: stage A, the hybrid pipeline (2026-10-03)
+
+The pipeline runs text phases and graph phases side by side, holds the
+program as a graph while graph steps follow one another, and keeps the
+graph beside the snapshots for the parallel check. 14 phases' cuts are graph
+steps now -- every `droplocal` and phase 24 -- byte for byte. Stage B
+converts the rest from `doc/GRAPH-MIGRATION.md`'s catalogue. Against go-whim
+`291eded` and its snapshots, on the 64-core machine.
+
+### The hybrid driver
+
+`crefactor/pipeline` (`hybrid.go`; generic, it names nothing in vim):
+
+- **A step is a text step or a graph step.** `Step.Graph` marks a graph
+  step. Its op is `Config.GraphLookup`'s, a `GraphOp` that edits through
+  the `graph.Editor` it is handed. Text is the default, so a plan without
+  the mark runs as it did. whim's graph table is `internal/steps`' `graphOps`
+  (`droplocal`, and `edit` for a phase registered with
+  `phase.RegisterGraph`).
+- **The program is held as one kind, converted only where the kind
+  changes**: a text step after graph steps gets the graph's C view, and a
+  graph step after text steps gets the text imported (`graph.Import`). A
+  run of graph steps edits one graph through one editor.
+- **The sweep after a phase** is the graph's collection when the phase ended
+  on the graph, printed by the C view (cemit's canonical print byte for
+  byte, gate 1). It is crefactor/sweep and cemit when the phase ended on
+  text. **An in-phase `sweep` step** is a collection when the program is held
+  as a graph there, through the editor, so the steps after it edit on the
+  same index. Otherwise it is crefactor/sweep's on the text.
+- **Between phases the text is always there**: a boundary is C, for the
+  snapshot and the line counts. The graph goes on only to a phase that
+  BEGINS on the graph, meaning its first step, sweeps aside, is a graph step
+  (`BeginsOnGraph`). So a phase takes the same path whether it is run in
+  order or from its snapshot: a phase that begins on text gets text either
+  way. The graph handed on gets a **fresh editor**, because an editor's
+  records (what was written, emptied, removed) belong to one phase's
+  closure. Handing the old one across would let phase N's closure fold what
+  phase N-1 wrote, which the check, starting from a snapshot, would not do.
+- **The log** says what a phase spent on the graph: `...; graph: 1 import
+  1707ms, 1 C view 57ms, 1 collection 120ms, 87 acts, 287 ids superseded, 0
+  given`. A phase that ended on the graph reports its edits and collection
+  together (`-151 edited and collected`), since nothing printed the text
+  between them. `AdvanceFrom` is a phase handed a graph, and returns that
+  account (`Conv`).
+
+### The graph snapshots
+
+`qNNN.g` sits beside `qNNN.c` in `.cache/boundaries/`. It holds the graph a
+whole run handed from boundary NNN to the phase after it, when that phase
+begins on the graph. It is the graph's Lisp, headed by a comment line naming
+the SHA-256 of `qNNN.c`:
+
+```lisp
+;; the graph of q023.c, sha256 83a7754eb7af88b5a00758b3ad9c3a1c3b629022c9ce8b2fea05ef533115752f
+;; a C translation unit as a graph: crefactor/graph
+#1(include "<limits.h>")
+...
+(ids 253555)
+```
+
+- **Written** by a whole run, before the manifest seals the set; a run first
+  removes the old ones. Today there are five, q007, q012, q013, q016 and
+  q023, the boundaries before phases 8, 13, 14, 17 and 24, 6.7-7.1 MB each.
+  Where a run already held the graph (phase 7, 12, 13 and 16 ended on it),
+  the snapshot is that graph, its ids carried from phase to phase. Where the
+  phase before ended on text (23), the run imports at the boundary and
+  writes what it imported.
+- **Read** by the parallel check: a phase that begins on the graph reads
+  q(N-1).g (the read, 74-89 ms, a tenth of cc's parse) instead of importing
+  q(N-1).c. It reads the file only when its header names q(N-1).c's digest.
+  A graph snapshot of another text (left by another plan, or missing) is
+  not read: the phase imports the text, which proves the same thing more
+  slowly, and the check says how many links did which (`5 of them began on
+  the graph: 5 read from its graph snapshot, 0 imported from the text`). It
+  still compares every phase's C view with qN.c byte for byte and compiles
+  every boundary.
+- **Ids carry across.** A graph read back is the graph written: the same
+  nodes and edges, and since stage A the same id allocator, through a new
+  last section `(ids N)` that records the last id the graph's IDs gave
+  (`Lasting`). A graph whose greatest ids an edit superseded would otherwise
+  give them again once read back, which the id rule forbids. Every graph
+  snapshot passes gate 2 (`internal/graphcheck`'s `TestGraphSnapshots`):
+  read back, its C view is qNNN.c, and written again it reads back equal.
+- **What each phase retired and created** is in its log line, counted from
+  the editor's `Log`: the acts, the ids superseded, the ids given. Stage A's
+  14 phases supersede 25-378 ids each and give none, because their fall-out
+  adds only tokens (`0` for a folded condition). This is the record
+  content-addressed ids would start from. Nothing else is written for it.
+
+### Collecting through the editor
+
+`Editor.Collect` is the collection made through the editor. The collector
+records what its cut took: each removed node as a root, the forms a tag's
+definition replaced, the enumerators a value was pinned on. The editor
+clears each removed root's container, so nothing under it is `Live`. It
+places a definition that took a top-level form's place in the file, places
+a pinned value in its enumerator, and logs one `collect` act with the ids it
+superseded. The refers index needs nothing, because a use the collection
+took is filtered out on reading, as an edit's are.
+
+The alternative was to collect and then make a new editor (`NewEditor`).
+Both were measured on the text nine phases leave before their sweep, with 5
+runs, medians (`TestMeasureCollect`):
+
+| phase | ids collected | through the editor | collected and indexed anew |
+| --- | ---: | ---: | ---: |
+| 1 | 43,249 | 335 ms | 384 ms |
+| 3 | 88,706 | 266 ms | 275 ms |
+| 8 | 5 | 114 ms | 153 ms |
+| 24 | 2 | 109 ms | 141 ms |
+| 30 | 1,925 | 121 ms | 139 ms |
+| 53 | 236 | 172 ms | 192 ms |
+| 60 | 12 | 100 ms | 133 ms |
+| 74 | 25 | 99 ms | 132 ms |
+| 89 | 0 | 94 ms | 118 ms |
+
+Through the editor is 9-49 ms faster everywhere, and it is the one that
+logs the ids, so it is the driver's. `TestEditorCollect` holds it to
+`Collect` on every sample: the same C, the same counts, the index whole
+(`Check`), nothing it cut `Live`, and every superseded id in the act.
+`TestEditCollectEdit` covers edit, collect, edit again.
+
+### The first batch
+
+The 13 phases with a `droplocal` step (4, 5, 7, 8, 12-14, 16-20, 34) and
+phase 24 are graph steps in the plan. Their text programs are gone:
+`internal/cut`'s `DropLocal` is the graph's (its six regexps and
+`inLines` went), and phase 24's `edit.go` is the graph's, registered with
+`RegisterGraph`. Nothing else called either. The CLI keeps
+`whim droplocal F` and `whim edit whim24 F`: `steps.OnText` runs a graph
+step on a file imported and writes its C view. `internal/graphcut` is
+removed. Its byte gate is the build check's now, its control (the guards
+taken as always) was repeated against the parallel check, and its
+refusal test is `internal/cut`'s `TestDropLocalRefuses`.
+`internal/treepilot`'s step test, which held the pilot's tree to the text
+`DropLocal`, now holds it to the graph's. `internal/graphcheck`'s
+`TestPhasesOnGraph` holds each phase with a graph step to its snapshot in
+seconds, both from text and handed the graph.
+
+Phases 8, 13, 14, 17 and 24 begin on the graph. 7, 8, 12-14, 16-20 and 24
+end on it, collected and not swept. 4, 5 and 34 end on text.
+
+### The proof
+
+- `rm -rf .cache/boundaries; make whim-build-check`, in order: **whim-vim.c
+  byte for byte**, 77,634 lines, every boundary compiling, the five graph
+  snapshots written.
+- `make whim-build-check` again, in parallel: **byte for byte**, 103 links,
+  5 of them begun on their graph snapshot, every boundary compiling.
+- The control: phase 24's guards replaced by `1` instead of `0`. The
+  parallel check names it: `phase 24 gives 81748 lines where q024.c holds
+  81746`, `1 of 103 phases do not reproduce their snapshot`.
+- `crefactor/pipeline`'s hybrid tests run the toy plan with a graph phase
+  that begins on the graph, one that turns from graph to text, and one that
+  begins with a sweep on the graph. They check that the hybrid plan gives the
+  text plan's product, that the run writes exactly the graph snapshots its
+  plan reads, and that the check reads them (3 of 3), imports where one is
+  missing or of another text (1 read, 2 imported), and names a changed graph
+  step.
+
+### Measured
+
+At a load of 3-13 (agents reading beside it), main `291eded` against
+`step5a`, the same machine and the same hour:
+
+| | main (all text) | step 5a (14 phases' cuts on the graph) |
+| --- | ---: | ---: |
+| the in-order build check, wall | 352 s | 348 s |
+| its CPU (user + system, gcc's compiles included) | 958 s | 936 s |
+| the parallel check, wall | 74 s (64 s the links, 9 s the compiles) | 73 s (61 s, 10 s) |
+| its CPU | 1,585 s | 1,477 s |
+
+The CLAUDE.md figure of 451 s was measured under a load of 54-62. Re-measured
+on main in these conditions it is 352 s.
+
+Phase by phase, one at a time, 5 runs, medians: text on main
+(`build.Advance`), and on step5a from the text (the graph imported where its
+graph steps begin, as a run in order does after a text phase, and as the
+check does without a graph snapshot) and handed the graph (as a run in order
+after a graph phase, and as the check from qNNN.g: the read timed apart)
+(`TestMeasureGraphPhases`):
+
+| phase | main, wall / CPU ms | step 5a from text, wall / CPU ms | its import / C view / collection ms | handed the graph, wall / CPU ms (and the read) |
+| --- | ---: | ---: | ---: | ---: |
+| 4 | 10,057 / 23,831 | 15,178 / 35,748 | 2 imports 5,145 / 198 / -- | |
+| 5 | 8,002 / 19,703 | 10,200 / 24,101 | 2,188 / 68 / -- | |
+| 7 | 4,733 / 9,913 | 4,604 / 9,388 | 2,113 / 81 / 144 | |
+| 8 | 2,471 / 5,131 | 2,279 / 4,714 | 2,001 / 63 / 148 | **218 / 315** (89) |
+| 12 | 3,800 / 7,862 | 2,554 / 5,156 | 2,119 / 81 / 253 | |
+| 13 | 3,726 / 7,677 | 3,292 / 6,132 | 1,961 / 63 / 148 | **368 / 529** (74) |
+| 14 | 3,683 / 7,810 | 3,241 / 6,472 | 2,079 / 58 / 129 | **358 / 487** (79) |
+| 16 | 3,667 / 7,628 | 3,568 / 7,166 | 2,000 / 80 / 133 | |
+| 17 | 2,409 / 5,079 | 2,291 / 4,763 | 2,069 / 92 / 142 | **226 / 335** (85) |
+| 18 | 2,538 / 5,337 | 2,315 / 4,765 | 2,082 / 82 / 139 | |
+| 19 | 5,889 / 12,300 | 5,552 / 11,762 | 2,036 / 90 / 133 | |
+| 20 | 4,867 / 11,231 | 4,633 / 10,436 | 2,016 / 79 / 162 | |
+| 24 | 3,286 / 6,432 | 2,121 / 4,170 | 1,888 / 55 / 121 | **214 / 311** (76) |
+| 34 | 2,644 / 5,540 | 4,401 / 9,293 | 1,839 / 71 / -- | |
+
+- **A phase handed the graph is 7-15 times faster than on text**: 0.21-0.37
+  s against 2.4-3.7 s. 13 and 14 cost more than 8, 17 and 24 because their
+  in-phase sweep is a second collection.
+- **A phase that imports and ends on the graph is as fast as on text, or a
+  little faster** (7, 12, 16-20, 24: 0.1-1.2 s less). The import costs what
+  the sweep's parse and the canonical print it replaces cost.
+- **A phase that imports and ends on text pays both**: 4 (two imports), 5
+  and 34 are 1.8-5.1 s slower, because their text steps after the graph's
+  still need the sweep.
+- **The conversions in the plan as it stands**, in the in-order run: 11
+  imports, 20.2 s in all (at q003-q033, 1.6-2.3 s each); 15 C views, 0.9 s;
+  13 collections, 1.7 s. In the run, phases 8, 13, 14 and 17 are handed the
+  graph the phase before left: the 4-5 s they gain is about what 4, 5 and 34
+  lose. That is why the in-order total barely moves. The gain arrives as
+  contiguous runs of phases convert: B1a's would make 17-20 import-free.
+- **In the parallel check** (64 links at once, so every time is inflated by
+  the load) the five links read from their graph snapshot take 1.6-3.0 s,
+  their collections most of it. The links that import take 1.6-18 s for the
+  import alone. The check is bound by its longest links (the front's), so
+  its wall time does not move.
+
+### What stage B is
+
+`doc/GRAPH-MIGRATION.md`: every phase and part (190 rows) classified as
+(a) expressible now, (b) needing a named capability, (c) a typed transform
+for step 6, or (d) staying text, with its lines of code, and batches to hand
+out:
+
+- **B0**: a shared library on the graph (crefactor/edit's verbs, small node
+  constructors, the text's assertions as queries).
+- **B1**: the a-class conversions.
+- **B2**: five capabilities side by side: FRAG (C fragments as nodes in
+  context), INITROW/RENUM/RENAME, PARAM/RETYPE/MOVE, the missing fall-out
+  rules, INCLUDE.
+- **B3**: the b-class conversions in contiguous ranges.
+- **B4**: the front, last, behind `FallOutOf`.
+
+Only the seed (phase 0) and phase 88 (gcc) stay text. Phase 43 stays text
+unless gcc's three answers become edge queries.
 
 ## Open questions
 

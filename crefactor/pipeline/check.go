@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/arbace/go-whim/crefactor/cemit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/sweep"
 )
 
@@ -27,41 +28,81 @@ import (
 // It touches no shared state: its scratch and its sweep's file are temporary
 // directories of its own, which is what lets Check run phases side by side.
 func (c *Config) Advance(p Phase, text []byte, w io.Writer) ([]byte, error) {
+	pr := &prog{text: text}
+	if err := c.advance(p, pr, w); err != nil {
+		return nil, err
+	}
+	return pr.text, nil
+}
+
+// AdvanceFrom is Advance handed the graph g of text as well, as a run in
+// order hands a phase that begins on the graph the graph the phase before
+// it left, and the parallel check the graph snapshot it reads (g nil: as
+// Advance, the graph imported where the graph steps begin).  It returns
+// what the phase spent converting and what its editor did.
+func (c *Config) AdvanceFrom(p Phase, text []byte, g *graph.Graph, w io.Writer) ([]byte, Conv, error) {
+	pr := &prog{text: text}
+	if g != nil && BeginsOnGraph(p) {
+		pr.ed = graph.NewEditor(g)
+		pr.conv.Graph = true
+	}
+	err := c.advance(p, pr, w)
+	return pr.text, pr.conv, err
+}
+
+// GraphSnapshot is the graph a whole run kept beside boundary n, read back
+// from its Lisp, when there is one and it is text's graph; nil otherwise.
+func (c *Config) GraphSnapshot(n int, text []byte) *graph.Graph { return c.readGraphSnap(n, text) }
+
+// advance is Advance on the program as it is held: a phase that begins on
+// the graph may be handed it (pr.ed).  It leaves the text, and the graph
+// when the phase ended on it.
+func (c *Config) advance(p Phase, pr *prog, w io.Writer) error {
 	if p.NoSource {
-		return text, nil
+		return nil
 	}
 	scratch, err := os.MkdirTemp("", fmt.Sprintf("%s%03d.", c.Name, p.N))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer os.RemoveAll(scratch)
-	out, err := c.RunPhase(p, text, scratch, w)
-	if err != nil {
-		return nil, err
+	if err := c.steps(p, pr, scratch, w); err != nil {
+		return err
 	}
-	return c.finish(out, scratch, w)
+	return c.finish(pr, scratch, w)
 }
 
 // finish is what follows every phase's steps: the sweep, and the canonical
-// print.  There are no stages -- no phase hands on a text the sweep has not
-// seen, and every text a phase hands on is C.
-func (c *Config) finish(text []byte, scratch string, w io.Writer) ([]byte, error) {
+// print -- or, for a phase that ended on the graph, the collection and the
+// C view, which are the same text (doc/GRAPH.md, step 3).  There are no
+// stages -- no phase hands on a text the sweep has not seen, and every text
+// a phase hands on is C.
+func (c *Config) finish(pr *prog, scratch string, w io.Writer) error {
+	if pr.ed != nil {
+		if err := c.collect(pr, w); err != nil {
+			return err
+		}
+		pr.tally()
+		_, err := pr.textOf()
+		return err
+	}
 	// In memory: the sweep is a function of the bytes, and the path is only
 	// the name it parses them under.  When it cuts nothing in its last round
 	// it hands on that round's parse, which is the parse the canonical
 	// print would make of the same text.
 	path := filepath.Join(scratch, c.WorkName)
 	start := time.Now()
-	swept, st, ast, err := sweep.PruneParsed(text, path, c.Sweep)
+	swept, st, ast, err := sweep.PruneParsed(pr.text, path, c.Sweep)
 	if err != nil {
-		return nil, fmt.Errorf("sweep: %w", err)
+		return fmt.Errorf("sweep: %w", err)
 	}
 	fmt.Fprintf(w, "  sweep        %s; %dms\n", st, time.Since(start).Milliseconds())
 	canon, err := cemit.CanonicalParsed(path, swept, ast)
 	if err != nil {
-		return nil, fmt.Errorf("canonical print: cemit: %w", err)
+		return fmt.Errorf("canonical print: cemit: %w", err)
 	}
-	return canon, nil
+	pr.text = canon
+	return nil
 }
 
 // SNAPSHOTS.  A complete run from phase 0 keeps every boundary it produced in
@@ -154,6 +195,10 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 		results []result
 		wg      sync.WaitGroup
 		sem     = make(chan struct{}, jobs)
+		// the links begun on the graph: read from the graph snapshot, or
+		// imported from the text where there is none of that text
+		read, imported int
+		links          []string // each link's time and conversions, for -v
 	)
 	for i := 1; i < len(c.Plan); i++ {
 		p, prev := c.Plan[i], c.Plan[i-1]
@@ -167,8 +212,30 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 			var out, want []byte
 			refused := false
 			if err == nil {
-				out, err = c.Advance(p, in, &log)
+				// A phase that begins on the graph begins on q(N-1)'s, read
+				// back from its Lisp -- the graph the run handed it -- or,
+				// where there is none, imported from q(N-1).c.
+				t0 := time.Now()
+				var g *graph.Graph
+				if BeginsOnGraph(p) && !p.NoSource {
+					g = c.readGraphSnap(prev.N, in)
+					mu.Lock()
+					if g != nil {
+						read++
+					} else {
+						imported++
+					}
+					mu.Unlock()
+				}
+				var conv Conv
+				out, conv, err = c.AdvanceFrom(p, in, g, &log)
+				conv.FromSnapshot = g != nil
 				refused = err != nil
+				if o.Verbose {
+					mu.Lock()
+					links = append(links, fmt.Sprintf("  link  %-6d %dms %s", p.N, time.Since(t0).Milliseconds(), conv))
+					mu.Unlock()
+				}
 			}
 			if err == nil {
 				want, err = os.ReadFile(c.snapPath(p.N))
@@ -201,8 +268,18 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if o.Verbose {
+		sort.Strings(links)
+		for _, l := range links {
+			fmt.Fprintln(o.W, l)
+		}
+	}
 	fmt.Fprintf(o.W, "  check        %d phases, each from its snapshot, %d at a time: every one reproduces the next, %ds\n",
 		len(c.Plan)-1, jobs, int(time.Since(start).Seconds()))
+	if read+imported > 0 {
+		fmt.Fprintf(o.W, "  check        %d of them began on the graph: %d read from its graph snapshot, %d imported from the text\n",
+			read+imported, read, imported)
+	}
 	if err := c.compileAll(o.W, jobs); err != nil {
 		return nil, err
 	}

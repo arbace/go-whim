@@ -554,8 +554,9 @@ func TestSummaryLine(t *testing.T) {
 		{54, 85353, 84150, 84059, 9 * time.Second, "54 acts, -1203 edited, -91 swept; 84059 lines, 9s"},
 		{1, 10, 13, 13, 0, "1 act, +3 edited, 0 swept; 13 lines"},
 		{0, 10, 10, 12, 999 * time.Millisecond, "0 acts, 0 edited, +2 swept; 12 lines"},
+		{2, 50, -1, 40, 0, "2 acts, -10 edited and collected; 40 lines"},
 	} {
-		if got := summary(tc.acts, tc.before, tc.edited, tc.after, tc.d); got != tc.want {
+		if got := summary(tc.acts, tc.before, tc.edited, tc.after, tc.d, Conv{}); got != tc.want {
 			t.Errorf("summary is %q, want %q", got, tc.want)
 		}
 	}

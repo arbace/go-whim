@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/internal/steps"
 	"github.com/arbace/go-whim/internal/whim"
@@ -29,6 +30,11 @@ var config = &pipeline.Config{
 		s, ok := steps.Lookup(name)
 		return pipeline.Op(s), ok
 	},
+	GraphLookup: func(name string) (pipeline.GraphOp, bool) {
+		s, ok := steps.LookupGraph(name)
+		return pipeline.GraphOp(s), ok
+	},
+	Collect:  whim.GraphCollect(),
 	Name:     "whim",
 	WorkName: "whim-vim.c",
 	SnapDir:  SnapDir,
@@ -120,3 +126,13 @@ func declared(n int) (string, error) {
 	}
 	return strings.Join(toks, " "), nil
 }
+
+// AdvanceFrom is one phase handed the graph of its text as well (nil: as
+// Advance), and what it spent converting (pipeline.Config.AdvanceFrom).
+func AdvanceFrom(p Phase, text []byte, g *graph.Graph, w io.Writer) ([]byte, pipeline.Conv, error) {
+	return config.AdvanceFrom(p, text, g, w)
+}
+
+// GraphSnapshot is the graph kept beside boundary n in .cache/boundaries
+// (qNNN.g), when it is text's.
+func GraphSnapshot(n int, text []byte) *graph.Graph { return config.GraphSnapshot(n, text) }

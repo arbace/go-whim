@@ -20,7 +20,7 @@ func fileStep(name string) func([]string) int {
 			fmt.Fprintf(os.Stderr, "usage: whim %s <file> [args...]\n", name)
 			return 1
 		}
-		step, ok := steps.Lookup(name)
+		step, ok := steps.OnText(name)
 		if !ok {
 			fmt.Fprintf(os.Stderr, "whim: no step named %q\n", name)
 			return 1
