@@ -26,7 +26,29 @@ func Forms(path string, src []byte) ([]*Node, error) {
 	if err != nil {
 		return nil, err
 	}
-	c := &conv{m: cemit.NewMacros(src)}
+	return Options{}.FormsOf(ast, path, src)
+}
+
+// Options are a conversion's choices.  The zero value is Forms'.
+type Options struct {
+	// Origin, when set, is told the node of crefactor/cc's tree each form
+	// and each identifier atom came from (crefactor/graph resolves and types
+	// them by it): an expression's form its expression (the one that says
+	// something, below the grammar's one-child levels; a run flattened into
+	// one form, `(+ a b c)`, the outermost); a member's atom its selection;
+	// a typedef name its TypeSpecifier; a declaration's form its Declarator,
+	// Enumerator, StructOrUnionSpecifier or EnumSpecifier; a designator's
+	// atom its Designator and its `(at ...)` the Initializer; a label's form
+	// its LabeledStatement, a goto's its JumpStatement; a macro's form the
+	// node it is the invocation of.  A node may be told more than once; the
+	// last is the outermost.
+	Origin func(n *Node, from cc.Node)
+}
+
+// FormsOf is Forms of a tree cemit.Parse returned: ast, the parse of path,
+// and src, the blanked source it returned.
+func (o Options) FormsOf(ast *cc.AST, path string, src []byte) ([]*Node, error) {
+	c := &conv{m: cemit.NewMacros(src), opt: o}
 	incl, inclAt := cemit.Includes(src)
 	var out []*Node
 	written := false
@@ -100,6 +122,15 @@ type conv struct {
 	// with an emitter of its own that recovers no macro.
 	noMacros bool
 	err      error
+	opt      Options
+}
+
+// at tells the Origin that n came from the tree's node from, and is n.
+func (c *conv) at(n *Node, from cc.Node) *Node {
+	if c.opt.Origin != nil && n != nil {
+		c.opt.Origin(n, from)
+	}
+	return n
 }
 
 func (c *conv) fail(n cc.Node, format string, a ...any) {
@@ -265,7 +296,7 @@ func (c *conv) typeSpec(n *cc.TypeSpecifier) spec {
 		if c.noMacros {
 			s = tok(n.Token)
 		}
-		return spec{n: A(s), tdname: true}
+		return spec{n: c.at(A(s), n), tdname: true}
 	}
 	s := tok(n.Token)
 	if !c.noMacros {
@@ -306,7 +337,7 @@ func splitPrefix(specs []spec) (prefix []*Node, rest []spec) {
 
 func (c *conv) structOrUnion(n *cc.StructOrUnionSpecifier) *Node {
 	kw := tok(n.StructOrUnion.Token)
-	f := L(A(kw))
+	f := c.at(L(A(kw)), n)
 	if t := tok(n.Token); t != "" {
 		f.add(A(t))
 	}
@@ -348,17 +379,17 @@ func (c *conv) structDecl(n *cc.StructDeclaration) []*Node {
 		// prints them.
 		attrs := c.attrs(n.AttributeSpecifierList)
 		if n.StructDeclaratorList == nil {
-			return []*Node{L(base(sq)).add(attrs...)}
+			return []*Node{c.at(L(base(sq)).add(attrs...), n)}
 		}
 		var out []*Node
 		for l := n.StructDeclaratorList; l != nil; l = l.StructDeclaratorList {
 			d := l.StructDeclarator
 			var m *Node
 			if d.Declarator == nil {
-				m = L(base(sq))
+				m = c.at(L(base(sq)), d)
 			} else {
 				name, t := c.declarator(base(sq), d.Declarator)
-				m = L(A(name), t)
+				m = c.at(L(A(name), t), d.Declarator)
 			}
 			switch d.Case {
 			case cc.StructDeclaratorDecl:
@@ -381,7 +412,7 @@ func (c *conv) structDecl(n *cc.StructDeclaration) []*Node {
 }
 
 func (c *conv) enum(n *cc.EnumSpecifier) *Node {
-	f := L(A("enum"))
+	f := c.at(L(A("enum")), n)
 	if t := tok(n.Token2); t != "" {
 		f.add(A(t))
 	}
@@ -405,9 +436,9 @@ func (c *conv) enum(n *cc.EnumSpecifier) *Node {
 			e := l.Enumerator
 			switch e.Case {
 			case cc.EnumeratorIdent:
-				f.add(L(A(tok(e.Token))).add(c.attrs(e.AttributeSpecifierList)...))
+				f.add(c.at(L(A(tok(e.Token))).add(c.attrs(e.AttributeSpecifierList)...), e))
 			case cc.EnumeratorExpr:
-				f.add(L(A(tok(e.Token))).add(c.attrs(e.AttributeSpecifierList)...).add(c.expr(e.ConstantExpression, lvCond)))
+				f.add(c.at(L(A(tok(e.Token))).add(c.attrs(e.AttributeSpecifierList)...).add(c.expr(e.ConstantExpression, lvCond)), e))
 			default:
 				c.fail(e, "enumerator %v", e.Case)
 			}
@@ -582,13 +613,13 @@ func (c *conv) params(n *cc.ParameterTypeList) *Node {
 		switch p.Case {
 		case cc.ParameterDeclarationDecl:
 			name, t := c.declarator(b, p.Declarator)
-			out.add(L(A(name), t).add(attrs...))
+			out.add(c.at(L(A(name), t).add(attrs...), p.Declarator))
 		case cc.ParameterDeclarationAbstract:
 			t := c.abstract(b, p.AbstractDeclarator)
 			if !t.list && len(attrs) == 0 {
 				out.add(t)
 			} else {
-				out.add(L(t).add(attrs...))
+				out.add(c.at(L(t).add(attrs...), p))
 			}
 		default:
 			c.fail(p, "parameter declaration %v", p.Case)
@@ -678,7 +709,7 @@ func (c *conv) decl(n *cc.Declaration) []*Node {
 		return nil
 	}
 	if s, ok := c.macro(n); ok {
-		return []*Node{L(A("macro-decl"), A(quote(s)))}
+		return []*Node{c.at(L(A("macro-decl"), A(quote(s))), n)}
 	}
 	switch n.Case {
 	case cc.DeclarationDecl:
@@ -716,7 +747,7 @@ func (c *conv) decl(n *cc.Declaration) []*Node {
 			default:
 				c.fail(d, "init declarator %v", d.Case)
 			}
-			out = append(out, f)
+			out = append(out, c.at(f, d.Declarator))
 		}
 		return out
 	case cc.DeclarationAssert:
@@ -724,7 +755,7 @@ func (c *conv) decl(n *cc.Declaration) []*Node {
 	case cc.DeclarationAuto:
 		// `__auto_type x = 1;` is `(def __auto_type x () 1)`.
 		name, t := c.declarator(L(), n.Declarator)
-		return []*Node{L(A("def"), A(tok(n.Token)), A(name), t, c.initializer(n.Initializer))}
+		return []*Node{c.at(L(A("def"), A(tok(n.Token)), A(name), t, c.initializer(n.Initializer)), n.Declarator)}
 	}
 	c.fail(n, "declaration %v", n.Case)
 	return nil
@@ -761,7 +792,7 @@ func (c *conv) funcDef(f *cc.FunctionDefinition) *Node {
 		}
 		d.add(kr)
 	}
-	return d.add(c.blockItems(f.CompoundStatement.BlockItemList)...)
+	return c.at(d.add(c.blockItems(f.CompoundStatement.BlockItemList)...), f.Declarator)
 }
 
 // ---- initializers
@@ -791,14 +822,14 @@ func (c *conv) initItems(n *cc.InitializerList) []*Node {
 				case cc.DesignatorIndex2:
 					at.add(L(A("idx"), c.expr(d.ConstantExpression, lvCond), c.expr(d.ConstantExpression2, lvCond)))
 				case cc.DesignatorField:
-					at.add(A("." + tok(d.Token2)))
+					at.add(c.at(A("."+tok(d.Token2)), d))
 				case cc.DesignatorField2:
-					at.add(A(tok(d.Token) + ":"))
+					at.add(c.at(A(tok(d.Token)+":"), d))
 				default:
 					c.fail(d, "designator %v", d.Case)
 				}
 			}
-			v = at.add(v)
+			v = c.at(at.add(v), l.Initializer)
 		}
 		out = append(out, v)
 	}
@@ -881,11 +912,11 @@ func (c *conv) stmt(n *cc.Statement) []*Node {
 func (c *conv) bareStmt(n *cc.Statement) []*Node {
 	if !c.noMacros {
 		if s, ok := c.m.Stmt(n); ok {
-			return []*Node{macroForm(strings.TrimSuffix(s, ";"))}
+			return []*Node{c.at(macroForm(strings.TrimSuffix(s, ";")), n)}
 		}
 	}
 	if s, ok := c.macro(n); ok {
-		return []*Node{macroForm(s)}
+		return []*Node{c.at(macroForm(s), n)}
 	}
 	switch n.Case {
 	case cc.StatementLabeled:
@@ -893,7 +924,7 @@ func (c *conv) bareStmt(n *cc.Statement) []*Node {
 		var lab *Node
 		switch ls.Case {
 		case cc.LabeledStatementLabel:
-			lab = L(A("label"), A(tok(ls.Token)))
+			lab = c.at(L(A("label"), A(tok(ls.Token))), ls)
 		case cc.LabeledStatementCaseLabel:
 			lab = L(A("case"), c.expr(ls.ConstantExpression, lvCond))
 		case cc.LabeledStatementRange:
@@ -1010,7 +1041,7 @@ func (c *conv) iteration(n *cc.IterationStatement) *Node {
 func (c *conv) jump(n *cc.JumpStatement) *Node {
 	switch n.Case {
 	case cc.JumpStatementGoto:
-		return L(A("goto"), A(tok(n.Token2)))
+		return L(A("goto"), c.at(A(tok(n.Token2)), n))
 	case cc.JumpStatementGotoExpr:
 		return L(A("goto*"), c.expr(n.ExpressionList, lvComma))
 	case cc.JumpStatementContinue:

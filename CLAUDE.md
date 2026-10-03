@@ -309,7 +309,8 @@ cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand
                    (README.md: each tool, and what each retired script became)
 internal/          whim's Go: cut (the cutters), steps (every transformation a phase names, as
                    one table), treepilot (doc/C-LISP-TREE.md's pilot,
-                   outside the plan), build (whim's pipeline: the plan -- what each
+                   outside the plan), graphcheck (crefactor/graph's sweep
+                   held to the pipeline's on every phase, GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
@@ -320,7 +321,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    module requires it and replaces it with ./crefactor), knowing
                    no code base: it cannot import this module, so the boundary
                    between generic C and vim is the compiler's. cc/: the forked C
-                   front end (c23.go: the C23 it adds). c23conf/: its
+                   front end (c23.go: the C23 it adds; check_export.go:
+                   Check, the type check of a parsed tree, kept whatever it
+                   resolved). c23conf/: its
                    conformance test, a file per C23 feature, held to gcc 15
                    through the parser, cemit and C-lisp (doc/C23.md).
                    cemit/: the canonical printer (recover.go: its
@@ -330,7 +333,16 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    SPEC.md, every form; doc/C-LISP.md), and a tree API on
                    its forms (tree.go: cursors, edits, an atom index;
                    pattern.go: patterns as forms; scope.go: a resolver of
-                   C's name spaces and scopes, untyped). sweep/: the closure.
+                   C's name spaces and scopes, untyped; Options.Origin tells a
+                   caller the cc node each form came from). graph/: the
+                   program as one resolved, typed graph (doc/GRAPH.md):
+                   import.go cc's parse and check into C-lisp's forms as
+                   nodes with ids, refers edges (members by type) and typed
+                   edges, types.go the type and external nodes, cview.go the
+                   C view, byte for byte, lisp.go the graph as Lisp and its
+                   reader, collect.go, keys.go and cut.go the sweep as
+                   garbage collection, Prune's rules on the nodes; its corpus
+                   tests run on GRAPH_CORPUS. sweep/: the closure.
                    reach/: what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing. ccx/: a core's pointer casts and evaluation order,
@@ -607,6 +619,7 @@ go tool whim whimsical --debug  # its debugging build, bin/whimsical-debug: opti
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make caprice.hsl      # the Haskell core as one ghc-lisp module, checked, compiled, and the program run on the quick suite (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
 make whim-vim.lc      # the C product as s-expressions (C-lisp): back byte for byte, compiled to bin/whim-vim's bytes (7 s; doc/C-LISP.md)
+go tool whim graph --check FILE  # the graph of FILE: its C view FILE byte for byte, written as Lisp and read back the same graph (doc/GRAPH.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary
 make bin/slim-vim    # the input's binary, with the same one line

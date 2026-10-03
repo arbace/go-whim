@@ -2,7 +2,7 @@
 
 modernc.org/cc/v4 v4.29.7, the fifteen non-test files and `c23.go` of its
 own, with the C23 productions upstream's parser refuses added (`c23.go`, and
-hooks in upstream's files, each marked `go-whim`), one lookup exported, and three faults
+hooks in upstream's files, each marked `go-whim`), one lookup and the type check of a parsed tree exported, and three faults
 corrected. Upstream's BSD licence is beside this file and the copyright stays
 with The CC Authors.
 
@@ -93,6 +93,13 @@ resolves to where it is written, asked of the parse alone. The sweep
 (`crefactor/sweep`) needs it to tell a local from the global it shadows without
 type-checking a text that need not type-check; the checker's own lookup is
 unexported and resolves further than a scope.
+
+And `AST.Check` (`check_export.go`): the type check `Translate` runs after its
+parse, on a tree `Parse` returned, leaving what it resolved -- types, an
+identifier's declaration, a selection's field -- in the tree whether or not it
+succeeds. `crefactor/graph` imports texts the pipeline holds between an edit
+and its sweep, which parse and need not type-check; `Translate` refuses such a
+text whole.
 
 **Upstream is still named**, in go.mod's comment and here, so a later version can
 be diffed against this tree: take the delta above, copy the new release's

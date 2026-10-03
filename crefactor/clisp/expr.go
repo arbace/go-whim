@@ -169,7 +169,7 @@ func (c *conv) unwrap(n cc.ExpressionNode) (cc.ExpressionNode, string, bool) {
 func (c *conv) expr(n cc.ExpressionNode, want int) *Node {
 	x, text, isMacro := c.unwrap(n)
 	if isMacro {
-		return macroForm(text)
+		return c.at(macroForm(text), n)
 	}
 	if x == nil {
 		c.fail(nil, "a missing expression")
@@ -180,9 +180,9 @@ func (c *conv) expr(n cc.ExpressionNode, want int) *Node {
 		if level(in) < want {
 			return in // ToC writes these parentheses
 		}
-		return L(A("paren"), in)
+		return c.at(L(A("paren"), in), p)
 	}
-	return c.form(x)
+	return c.at(c.form(x), x)
 }
 
 // bin is a binary operation, a left-nested run of one operator flattened:
@@ -246,7 +246,7 @@ func (c *conv) form(n cc.ExpressionNode) *Node {
 					return inner
 				}
 			}
-			m := macroForm(name)
+			m := c.at(macroForm(name), x)
 			if inner.Is(sep) && !m.list {
 				return inner.add(m)
 			}
@@ -293,7 +293,7 @@ func (c *conv) form(n cc.ExpressionNode) *Node {
 		case cc.UnaryExpressionAlignofType:
 			return L(A("alignof-type"), c.typeName(x.TypeName))
 		case cc.UnaryExpressionLabelAddr:
-			return L(A("label-addr"), A(tok(x.Token2)))
+			return L(A("label-addr"), c.at(A(tok(x.Token2)), x))
 		}
 		c.fail(x, "unary expression %v", x.Case)
 
@@ -353,9 +353,9 @@ func (c *conv) sizeof(kw string, operand cc.ExpressionNode) *Node {
 		if p, ok := x.(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionExpr {
 			return L(A(kw), c.expr(p.ExpressionList, lvComma))
 		}
-		return L(A(kw+"-bare"), c.form(x))
+		return L(A(kw+"-bare"), c.at(c.form(x), x))
 	}
-	return L(A(kw+"-bare"), macroForm(text))
+	return L(A(kw+"-bare"), c.at(macroForm(text), operand))
 }
 
 func (c *conv) generic(n *cc.GenericSelection) *Node {

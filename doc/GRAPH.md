@@ -1,6 +1,8 @@
 # GRAPH.md -- the program as a graph, its views as trees, printed as Lisp
 
-2026-10-03. A design, not a plan of record: nothing here is built. It asks
+2026-10-03. A design, not a plan of record; its steps 1-3 are built
+(`crefactor/graph`) and measured, in *Steps 1-3 as built*, near the end, and
+the rest is not. It asks
 what representation the pipeline, and later an editor, would hold a C program
 in, if the C text were no longer the thing edited. It rests on two measured
 pieces: C-lisp (`doc/C-LISP.md`: C23 as s-expressions, byte for byte against
@@ -118,7 +120,8 @@ tree prints trivially as an s-expression.
   (in #f511 win_redr_status   (if @o88 #s7741)))
 ```
 
-`#id` marks a node and `@id` refers to one; a view may print names and hide
+`#id` marks a node and `@id` refers to one (as built: `#N` before a node,
+`@N` and `@:N` after it, *The Lisp* below); a view may print names and hide
 the ids, and show them on demand. **A view is editable**: every printed form
 carries its node's id, so an edit made in the view -- delete this use,
 replace that condition -- is a graph operation on known nodes, checked
@@ -178,12 +181,12 @@ analyses, or cached under the graph's digest.
 
 ## The way there, each step with a gate
 
-1. **The importer**: cc's parse and types into the graph, with ids and
+1. **The importer** (built): cc's parse and types into the graph, with ids and
    refers-, typed- and contains-edges. *Gate:* the C view of the imported
    graph is the input byte for byte, on every snapshot q000-q103.
-2. **Serialisation**: the graph as Lisp, and a reader. *Gate:* write, read,
+2. **Serialisation** (built): the graph as Lisp, and a reader. *Gate:* write, read,
    print C: byte for byte, and the read under a tenth of `cc.Parse`.
-3. **The sweep as collection.** *Gate:* on every phase's output before its
+3. **The sweep as collection** (built). *Gate:* on every phase's output before its
    sweep, the collected graph's C view is the swept text byte for byte.
 4. **One cut as deletion plus closure**, a drop phase the pilot measured
    (24, or the `DropLocal` phases). *Gate:* qN byte for byte from
@@ -240,6 +243,255 @@ Defaults, not decisions: Go, a generic crefactor package naming nothing in
 vim; the headers' declarations external nodes typed from cc; the serialised
 graph not tracked; the lowered layer after steps 1-3; the sweep's guards
 reproduced exactly in step 3.
+
+## Steps 1-3 as built (2026-10-03)
+
+`crefactor/graph`, about 3,100 lines of Go (comments and blank lines aside),
+naming nothing in vim; `internal/graphcheck` holds its sweep to the
+pipeline's, and `go tool whim graph` is the tool (`graph FILE` the Lisp,
+`graph --check FILE...` steps 1 and 2 on each, `graph --collect FILE` the
+sweep as collection). Against go-whim `03bf458` and its snapshots, on the
+64-core machine.
+
+### What the graph is
+
+- **Containment is C-lisp's.** The importer is cc's parse, cc's type check
+  of the same tree (`AST.Check`, exported from the fork for this: the check
+  `Translate` runs, keeping what it resolved when it fails, since a text
+  before its sweep need not type-check), and C-lisp's conversion with a hook
+  that tells it, for every form and identifier atom, the cc node it came
+  from (`clisp.Options.Origin`). Its forms become the nodes: **every list is
+  a node with an id; an atom is a node with an id when an edge starts from
+  it** (a use of a name), and otherwise a token of its form. What cemit keeps
+  from the source that the tree has not -- the parentheses it kept, `sizeof
+  x` bare, a recovered macro's text, the include lines -- C-lisp already has
+  as forms (`paren`, `sizeof-bare`, `macro`, `include`), so the graph has them
+  as nodes, not as attributes.
+- **Refers edges**, a use to its declaration's form: an identifier to its
+  `def`, `defn`, parameter, enumerator or local (the declaration cc's check
+  found, else the one the parser's scopes say is visible); a member to the
+  member, BY THE TYPE of what it selects from (the field cc's check found,
+  `PostfixExpression.Field`); a designator `.x` to the member, by the type of
+  the object its braces initialise; a tag to its definition; a typedef name
+  to its typedef; a label to its `(label L)`; and a macro's invocation --
+  `(macro "va_arg(ap, int)")`, `errno`, `nullptr` -- to every name its
+  expansion uses, which is how names inside macro text stop being invisible.
+  Every use has its edge: what nothing declares is an external node of its
+  own (`(undeclared semsg)`, `(unresolved-member b_next)`), so that "every
+  reference resolves" is a property of the graph, not of its luck.
+- **Typed edges**, from every expression's form and every declaration's
+  (a def, a parameter, a member, an enumerator) to a **type node**:
+  `(basic int)`, `(pointer @:T)`, `(array 10 @:T)`, `(function (@:P ...)
+  @:R)`, interned by structure (1,648 for whim-vim.c). A struct, union or
+  enum type is its definition's own form in the file. An atom's type is not
+  an edge: an identifier's is its declaration's, a literal's its spelling's.
+  Qualifiers and typedef names stay the forms' business; a typedef is its
+  type.
+- **External nodes**, what the headers declare that the file uses, typed
+  from cc's view of the headers: `(extern errno)`, `(extern-typedef
+  size_t)`, `(extern-struct stat (member st_size) ...)` with the members
+  named, `(extern-enumerator ...)`.
+- **Ids** are sequential, in the order of the containment, then the types,
+  then the externs, given by one interface (`IDs`: `Next`, `Saw`) that
+  `Import` and `Read` use and an edit's `Graph.Fresh` asks; nothing else
+  makes an id, so content addresses are a second `IDs` and a pass, not a
+  rewrite. `Equal` is identity by id: the same nodes, texts, elements, and
+  edges to the same ids.
+
+### The Lisp
+
+The containment view with the graph's marks, then two top-level lists,
+`(types ...)` and `(externs ...)`; from q103, whim-vim.c's first function:
+
+```lisp
+#1(defn static inline ascii_isupper
+  #2(fn #3(#4(c int)@:237424) bool)
+  #5(return #6(< #7(- #8(cast unsigned #9:c@4)@:237428 'A')@:237428 26)@:237424))@:237426
+
+(types
+  #237424(basic int)
+  #237425(basic _Bool)
+  #237426(function #237427(@:237424) @:237425)
+  ...)
+(externs
+  #239073(extern-typedef time_t)@:237430
+  ...)
+```
+
+`#N` before a node is its id -- before a list's `(`, and before an atom with
+`:` between, `#9:c`; `@N` after a node is a refers edge, `@:N` a typed edge,
+and a type's operand is an edge alone. The four marks are constants in one
+file (`lisp.go`), the atoms are C-lisp's (C's tokens), and the reader is its
+own: it reads the text as one string and slices the atoms from it, the nodes
+and their elements and edges allocated in slabs, 63 allocations for
+whim-vim.c's 430,000 nodes and tokens. The `(types` and `(externs` heads
+cannot be a top-level form's: C-lisp's are `def`, `defn`, `struct` and the
+like. The Lisp is not tracked; `go tool whim graph F` writes it.
+
+### The gates
+
+| gate | on | result |
+| --- | --- | --- |
+| 1: the C view of the imported graph is the text | q000-q103, the 104 snapshots | **104 of 104 byte for byte** (`TestCorpus`) |
+| 2: written, read back: the same graph (ids, every edge), its C view the text | q000-q103 | **104 of 104** (`TestCorpus`) |
+| 2: the read under a tenth of cc's parse and check | q000-q103, one at a time, best of 3 | **104 of 104**, 13.8 to 26.1 times faster, median 19.3 (`TestCorpusTimes`) |
+| 3: each phase's text before its sweep, imported, collected: its C view is qN | phases 0-103 (0 on slim-vim.c's seed) | **104 of 104 byte for byte**, and on every one the same counts as the sweep's, kind by kind (functions, objects, prototypes, typedefs, tags, members, enumerators, locals, fallthroughs, pinned survivors, kept runs, positional structs, rounds), no edge left dangling (`internal/graphcheck`'s `TestCollect`) |
+
+**The controls.** Step 1: a token changed in the graph changes the C view.
+Step 2: one edge retargeted in the Lisp, `@N` made `@N1`, is caught by
+`Equal`. Step 3: the collected graph's last form dropped is caught on all
+104 phases; and the graph's own member rule (below) is not the sweep's, which
+the gate sees on 103 of 104 phases. Each is a test (`TestControls`,
+`TestCollectControl`). Unit tests hold the collection to the sweep, its
+oracle, on crefactor/sweep's own cases and the graph's (orphaned
+fallthroughs, `T *(a[3])` filled by position, anonymous members, headers'
+structs and typedefs, designators, labels), every one through Read first, so
+the collection is shown to need no cc node behind the graph.
+
+### Measured
+
+Steps 1 and 2, one file at a time, best of 3 (`TestCorpusTimes`):
+
+| | cc's parse and check (`cemit.Parse`, `Check`) | the import | the read of the Lisp | the read, times faster |
+| --- | ---: | ---: | ---: | ---: |
+| q000, 4.8 MB of C, 14.8 MB of Lisp | 1,439 ms | 3,921 ms | 72 ms | 20.0 |
+| q001, 4.2 MB, 13.0 MB | 1,303 ms | 3,287 ms | 68 ms | 19.0 |
+| q023, 2.2 MB, 6.7 MB | 823 ms | 1,905 ms | 40 ms | 20.8 |
+| whim-vim.c, 2.1 MB, 6.4 MB | 788 ms | 1,654 ms | 31 ms | 25.1 |
+| the 104, median | 779 ms | 1,727 ms | 40 ms | 19.3 (13.8 to 26.1) |
+| the 104, total | 83.5 s | 188.5 s | 4.3 s | |
+
+The import costs 2.0 to 2.7 times cc's parse and check, median 2.2: C-lisp's conversion
+with its origin map, then the resolution. It is made once; the read is what
+the graph costs after that.
+
+| graph of | nodes | of them lists | atoms with an id | tokens | refers edges | typed edges | type nodes | externs | Lisp, bytes |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| q000 (the seed, 4.8 MB of C) | 545,058 | 327,547 | 217,511 | 431,788 | 218,004 | 228,853 | 2,683 | 236 | 14,815,474 |
+| q023 (2.2 MB) | 253,555 | 153,907 | 99,648 | 207,483 | 99,954 | 110,060 | 1,654 | 121 | 6,732,821 |
+| whim-vim.c (2.1 MB) | 239,125 | 142,721 | 96,404 | 192,569 | 96,585 | 102,080 | 1,648 | 54 | 6,397,609 |
+
+**What resolves.** On every snapshot, every use: 0 unresolved identifiers,
+members, designators, typedef names, tags or labels, 0 expression forms cc
+left untyped, cc's check clean on all 104. Members by type:
+
+| | member uses | resolved by type | of a name more than one struct has | of those resolved |
+| --- | ---: | ---: | ---: | ---: |
+| q023 | 16,641 | 16,641 | 3,876 (the pilot: 3,843 by its count) | 3,876 |
+| whim-vim.c | 17,520 | 17,520 | 4,390 | 4,390 |
+| q000 | 30,195 | 30,195 | 7,628 | 7,628 |
+
+whim-vim.c: 72,198 identifier uses (32,604 to the file's declarations, 39,570
+to locals, 24 to the headers'), 6,633 typedef names, 107 tags, 49 labels, 26
+members of the headers' structs; 3,144 macro invocations (nearly all
+`nullptr`), 78 refers edges from their expansions. The pilot counted 3,843
+ambiguous uses on q023; this count, 3,876, includes the members of anonymous
+structs and unions. **vim has no designated initializer**; the designators
+are tested on the samples.
+
+**What does not resolve, and why.** On the snapshots, nothing. Before a
+sweep, where a phase's edit has left the text momentarily inconsistent, six
+of the 104 texts hold a use nothing declares, and the graph is built all the
+same, the use's edge to an `(undeclared NAME)` or `(unresolved-member NAME)`
+node, and the collection on each is byte for byte. Three are calls in the
+core to a function whose prototype the edit took while the call survives in
+code the sweep then takes -- `set_sigwinch_handler` at phase 39,
+`musl_gettimeofday` at 44, `getpid` at 49: an implicit declaration, which
+cc's check lets by and gcc 15 refuses, and which only the edges show; three
+fail cc's check: phase 4's (part 4d deletes `buf_T.b_next` while two uses of it survive,
+which the sweep then takes with what holds them: two `(unresolved-member
+b_next)`, and two of `wim_flags_arg`, a parameter gone), phase 32's (two locals initialised from parameters the edit
+removed, `ffname_arg` and `sfname_arg`, which the sweep then takes as locals
+nothing reads: two `(undeclared ...)`), and phase 72's (`static_assert(sizeof(DATA_BL)
+== 8 + DB_LINE_MAX * sizeof(DATA_LN), ...)` fails until the sweep has cut the
+members the edit left dead; every use resolves). Names
+in macro text are resolved through the expansion; what stays opaque is the
+text of an attribute the forms keep whole (`attr-text`) and of an `asm`, and
+the collection scans those by name, as the sweep does.
+
+Step 3, phase by phase, one at a time (`GRAPH_JOBS=1`), wall:
+
+| | the sweep (`Prune`, its parses) | the import | the collection | the C view |
+| --- | ---: | ---: | ---: | ---: |
+| over phases 0-103 | 134.1 s | 192.4 s | **15.4 s** | 7.0 s |
+| a phase, median | 0.99 s | 1.75 s | **0.13 s** | 0.06 s |
+| the slowest (phase 1, the front) | 5.09 s | 3.77 s | 0.41 s | 0.15 s |
+
+The collection is 7-15 times the sweep's speed, median 8, and the C view
+replaces the canonical print (0.6-1.3 s a phase today) at 0.05-0.16 s. A
+graph handed from phase to phase would pay neither the sweep's parse nor
+the print's; the import is what it would pay once.
+
+**Members by type.** The sweep keeps a member while any live use names a
+member of that name (`p->next` keeps every `next`); the graph knows which
+member each use is (`CollectOptions.MembersByType`). On the snapshots, which
+the sweep has swept already, the graph's rule would take 1 member more from
+whim-vim.c (`xp_context`, of an anonymous struct, named only as another
+struct's) and from 38 more boundaries, 4 from 58 of the middle
+(`dictitem16_S.di_flags`, `re_flags`, `re_engine`, `xp_context`), 13 from
+q003 and 0 from q000, where `ml_recover` freezes every layout; and moves the text of 103 of the 104
+phases' sweeps (`TestCorpusMembersByType`, `TestCollectControl`). It is not
+the gate's rule: the gate is the sweep's text.
+
+### How the sweep became collection
+
+The collector is Prune's closure on the nodes: the same entities (a
+top-level form, a struct's member, an enumerator), the same keys, the same
+guards (no member while `ml_recover` is defined, a struct filled by position
+keeps its members and the structs it holds by value, nothing emptied, an
+enumerator's deletion pinning the survivor after it to the value Prune's
+evaluator gives, now on the forms), the unused locals by their declarations'
+incoming edges, the orphaned fallthroughs by where control goes next, the
+rounds. A name's key is read off the graph, not the text: a use whose edge is
+to a file-scope declaration or an external is `o:NAME`, one to a local is
+none -- the parser's scopes, which the sweep consults by offset, are the
+edges here. Where the sweep's text rule is not the graph's own, the
+collector says the sweep's on purpose, since the gate is the sweep's text:
+members by name; a tag by its name wherever it is written; a label's and a
+local typedef's name as a file-scope key; an initialiser's array depth
+counted after the last parenthesised declarator, as Prune's loop over the
+direct declarator stops there, so `static histentry_T *(history[5]) =
+{...}` counts as filled by position (a first version counted through the
+parentheses, and the gate's counts -- 29 positional structs against 30 --
+found it, the text being the same). The collection also drops the type and
+external nodes nothing left reaches; an external struct lives while one of
+its members does (a first version dropped `fd_set` under three macro
+invocations that name `fds_bits`, and the dangling-edge check found it).
+
+### Steps 4-6, given what was measured
+
+- **Step 4 (one cut as deletion and closure)** is ready to start: the graph
+  has the edges a cut asks about (phase 24's "every mention is a bare call"
+  is an incoming-edge count, members included), and the collection is the
+  closure's last half already. What is missing is the edit surface: a
+  delete that refuses to leave an edge dangling, a replace that says which
+  ids it supersedes, and the fall-out rules (`FallOut`'s: a constant's use
+  its value, a folded condition, a statement left empty) on the forms.
+  `clisp`'s cursors and patterns carry over; they want the edges.
+- **Step 5 (the pipeline on the graph)** is priced better now. Per phase,
+  the sweep and the canonical print (about 2.4 s together today, the
+  pilot's profile) would be the collection and nothing (0.13 s; the C view only for a snapshot,
+  0.06 s): some 230 s of the 451-s in-order build, a little more than the
+  pilot's estimate of 200.
+  But a phase still written on text costs an import, 1.75 s median, more
+  than it saves, so converting phase by phase is slower until the last is
+  converted -- the pilot's conclusion stands, and the graph does not change
+  it. The import itself could be cheaper by building the nodes directly
+  rather than C-lisp's forms and an origin map; it is 2.2 times cc's parse
+  and check now.
+- **Step 6 (the typed transforms)** has its inputs: 102,080 typed edges on
+  whim-vim.c, every expression typed, every member resolved by type. What
+  the transforms ask cc today -- a declarator's type kind, a selection's
+  struct, a function's parameters, whether a type is a scalar -- is a walk
+  of type nodes. Keeping the types right after an edit is the part not
+  begun: the check would be local to the edit, and it is a type checker's
+  rules written over the graph.
+- **Content-addressed ids**: a second `IDs` and a numbering pass over the
+  containment bottom-up; the type nodes' cycles (a struct holding a pointer
+  to itself) need Unison's treatment of a cycle as one unit. The Lisp then
+  writes hashes where it writes numbers; nothing else names an id's form.
+- **An EDN form**: the four marks become tagged literals and C's tokens
+  strings; the containment, the sections and the edges stay as they are.
 
 ## Open questions
 
