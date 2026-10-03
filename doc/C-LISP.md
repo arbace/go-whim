@@ -112,10 +112,14 @@ Against go-whim `9fec73f`, on the 64-core machine:
    Go editor 80 of 80 as the C. gofmt, go vet and staticcheck are clean on
    `crefactor/clisp`, `crefactor/cemit` and `cmd/whim`.
 7. **Two cemit bugs, found by writing a second printer after it**, neither in
-   the corpus and both left as they are (a change of cemit is a change of the
-   pipeline's text, its own commit): `enum hue : long { ... }` prints as
-   `enum : long hue`, which gcc refuses; and `- -x` prints as `--x`, a
-   decrement. C-lisp reproduces both, being cemit's text by construction.
+   the corpus, and fixed in cemit and C-lisp together: `enum hue : long {
+   ... }` printed as `enum : long hue`, which gcc refuses, and `- -x` as
+   `--x`, a decrement (`- --x` as `---x`, `& &x` as `&&x`). The type now
+   follows the tag, and `cemit.Prefix` keeps a prefix `+`, `-` or `&` apart
+   from an operand that starts with the same character; both printers call
+   it. Tests in both packages, which fail with the fix reverted; the
+   pipeline's text does not move (`make whim-build-check` in order and in
+   parallel, every editor what its generator writes, `make whim-vim.lc`).
 
 ## What it is and is not good for here
 
@@ -145,7 +149,7 @@ Against go-whim `9fec73f`, on the 64-core machine:
 - **It is a hard test of cemit.** A second printer that must give cemit's
   bytes on 104 texts of up to 173,000 lines checks that cemit's spelling is
   a function of the tree and the two source facts it exports, and nothing
-  else -- and found the two bugs of item 7.
+  else -- and found the two bugs of item 7, fixed since.
 
 ## Reproduce
 

@@ -62,6 +62,8 @@ func TestForms(t *testing.T) {
 		{"anonymous union", "struct s { union { int i; char c; }; };",
 			"(struct s ((union (i int) (c char))))\n"},
 		{"enum", "enum hue { RED, GREEN = 3, BLUE };", "(enum hue (RED) (GREEN 3) (BLUE))\n"},
+		{"enum with a tag and a type", "enum hue : long { RED };", "(enum hue (: long) (RED))\n"},
+		{"prefix operators kept apart", "int f(int a) { return - -a + - --a; }", ""},
 		{"one-line enum", "enum : long { BIG = 1L << 40 };", "(enum (: long) (BIG (<< 1L 40)))\n"},
 		{"designated initializer", "struct pt { int x; int y; }; struct pt o = { .y = 2, [0] = 1, .x = { 1, 2 } };", ""},
 		{"array of rows", "static int t[][2] = { {1, 2}, {3, 4} };", "(def static t (array (array 2 int)) (init (init 1 2) (init 3 4)))\n"},

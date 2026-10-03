@@ -94,13 +94,13 @@ func (e *emitter) expr(n cc.ExpressionNode) string {
 		case cc.UnaryExpressionDec:
 			return "--" + e.expr(x.UnaryExpression)
 		case cc.UnaryExpressionAddrof:
-			return "&" + e.expr(x.CastExpression)
+			return Prefix("&", e.expr(x.CastExpression))
 		case cc.UnaryExpressionDeref:
 			return "*" + e.expr(x.CastExpression)
 		case cc.UnaryExpressionPlus:
-			return "+" + e.expr(x.CastExpression)
+			return Prefix("+", e.expr(x.CastExpression))
 		case cc.UnaryExpressionMinus:
-			return "-" + e.expr(x.CastExpression)
+			return Prefix("-", e.expr(x.CastExpression))
 		case cc.UnaryExpressionCpl:
 			return "~" + e.expr(x.CastExpression)
 		case cc.UnaryExpressionNot:
@@ -256,4 +256,14 @@ func (e *emitter) generic(n *cc.GenericSelection) string {
 		}
 	}
 	return "_Generic(" + e.expr(n.AssignmentExpression) + ", " + strings.Join(parts, ", ") + ")"
+}
+
+// Prefix writes a prefix operator before its operand, with a space where the
+// two would lex as another token: `- -x` and `- --x`, not `--x` and `---x`
+// (a decrement), `& &x` and not `&&x`.
+func Prefix(op, operand string) string {
+	if operand != "" && op[len(op)-1] == operand[0] && strings.ContainsRune("+-&", rune(operand[0])) {
+		return op + " " + operand
+	}
+	return op + operand
 }

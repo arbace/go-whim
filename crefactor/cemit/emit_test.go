@@ -143,6 +143,13 @@ f(int v)
     return (long)v + (unsigned char)v + sizeof(int) + sizeof v;
 }
 `},
+		{"enum with a tag and a type", "enum hue:long{RED};", "enum hue : long { RED };\n"},
+		{"prefix operators kept apart", "int f(int a){return - -a+ - --a+ +(+a);}", `    int
+f(int a)
+{
+    return - -a + - --a + +(+a);
+}
+`},
 		{"operators spaced one way", "int f(int a,int b){a+=b<<2;return a&&!b||a%b==0?a:-b;}", `    int
 f(int a, int b)
 {

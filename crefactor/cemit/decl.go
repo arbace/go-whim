@@ -163,16 +163,17 @@ func (e *emitter) enum(n *cc.EnumSpecifier) string {
 	// C23'S FIXED UNDERLYING TYPE IS PART OF THE TYPE.  `enum : long { ... }` is
 	// what phase 42 wrote the header limits as, and dropping the `: long`
 	// leaves the constants `int`: measured, four comparisons in the core then
-	// warn -Wsign-compare that did not.
+	// warn -Wsign-compare that did not.  The type follows the tag, if there is
+	// one: `enum hue : long`.
 	under := ""
 	if n.EnumTypeSpecifier != nil {
 		under = " : " + e.specQuals(n.EnumTypeSpecifier.SpecifierQualifierList)
 	}
 	switch n.Case {
 	case cc.EnumSpecifierTag:
-		return join("enum"+under, tok(n.Token2))
+		return join("enum", tok(n.Token2)) + under
 	case cc.EnumSpecifierDef:
-		head := join("enum"+under, tok(n.Token2))
+		head := join("enum", tok(n.Token2)) + under
 		// ONE ENUMERATOR IS ONE LINE.  `enum { EXTRA_MARKS = 10 };` is how this
 		// tree spells a constant -- arbace/slim-vim writes every `#define` of a
 		// number that way, 1,448 of them -- and the pipeline reads, rewrites and

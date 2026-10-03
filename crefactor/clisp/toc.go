@@ -3,6 +3,8 @@ package clisp
 import (
 	"fmt"
 	"strings"
+
+	"github.com/arbace/go-whim/crefactor/cemit"
 )
 
 // ToC prints s-expressions as C, in crefactor/cemit's canonical spelling: the
@@ -530,7 +532,7 @@ func (p *printer) enum(n *Node) string {
 		under = " : " + p.specs(args[0].Args())
 		args = args[1:]
 	}
-	head := join("enum"+under, tag)
+	head := join("enum", tag) + under
 	if len(args) == 0 {
 		return head
 	}
@@ -810,10 +812,12 @@ func (p *printer) form(n *Node) string {
 	case "pre--":
 		return "--" + p.expr(p.arg(n, 0), lvUnary)
 	case "addr":
-		return "&" + p.expr(p.arg(n, 0), lvCast)
+		return cemit.Prefix("&", p.expr(p.arg(n, 0), lvCast))
 	case "deref":
 		return "*" + p.expr(p.arg(n, 0), lvCast)
-	case "-", "+", "!", "~":
+	case "-", "+":
+		return cemit.Prefix(h, p.expr(p.arg(n, 0), lvCast))
+	case "!", "~":
 		return h + p.expr(p.arg(n, 0), lvCast)
 	case "sizeof", "alignof":
 		return h + "(" + p.expr(p.arg(n, 0), lvComma) + ")"
