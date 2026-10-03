@@ -320,9 +320,12 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    module requires it and replaces it with ./crefactor), knowing
                    no code base: it cannot import this module, so the boundary
                    between generic C and vim is the compiler's. cc/: the forked C
-                   front end. cemit/: the canonical printer (recover.go: its
+                   front end (c23.go: the C23 it adds). c23conf/: its
+                   conformance test, a file per C23 feature, held to gcc 15
+                   through the parser, cemit and C-lisp (doc/C23.md).
+                   cemit/: the canonical printer (recover.go: its
                    parse, include lines and macro recovery, exported for
-                   clisp). clisp/: C-lisp, C as s-expressions and back, byte
+                   clisp; Options: the form a caller may ask for). clisp/: C-lisp, C as s-expressions and back, byte
                    for byte on canonical text (`whim c2lisp`, `whim lisp2c`;
                    SPEC.md, every form; doc/C-LISP.md), and a tree API on
                    its forms (tree.go: cursors, edits, an atom index;
@@ -543,7 +546,10 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    (the Go editor in go-lisp syntax: an experiment, and make
                    editor.lgo), GHC-LISP.md (caprice's core as one ghc-lisp
                    module, converted, checked and compiled: make caprice.hsl),
-                   C-LISP.md (whim-vim.c as s-expressions, crefactor/clisp:
+                   C23.md (the front end against C23 -- ISO/IEC 9899:2024,
+                   N3220 -- the conformance test, how it judges, its score
+                   before and after, what stays out), C-LISP.md (whim-vim.c
+                   as s-expressions, crefactor/clisp:
                    back byte for byte and compiled to the same binary: make
                    whim-vim.lc), C-LISP-TREE.md (a pilot: phases editing
                    that tree instead of the text -- DropLocal and phase 24
@@ -558,9 +564,14 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
 builds it, caches it and rebuilds it when any `.go` moves; every tool is a
 subcommand, `go tool whim <name>`, and the `Makefile` calls it the same way.
-**The C front end is a fork**, `crefactor/cc`: modernc.org/cc/v4 v4.29.7 with two
-C23 productions added and one field corrected, tracked as ordinary source (`crefactor/cc/README.md`,
-which says how to diff it against upstream). It was composed at build time under `.cache/gofork/`
+**The C front end is a fork**, `crefactor/cc`: modernc.org/cc/v4 v4.29.7 with
+the C23 its parser lacks added -- `[[...]]` attributes in every position,
+`constexpr`, `_BitInt`, `typeof_unqual`, `static_assert` without a message,
+digit separators, `u8'a'`, storage classes in a compound literal, a label at
+a block's end -- and three faults corrected, tracked as ordinary source
+(`crefactor/cc/README.md`, which says how to diff it against upstream;
+`crefactor/c23conf` holds it, cemit and C-lisp to gcc 15, 49 of 49 C23
+features, 22 before: `doc/C23.md`). It was composed at build time under `.cache/gofork/`
 before, because a patched `vendor/` fails `go mod verify`; a fork under its own
 import path has neither problem. Measured: with the patch reversed, `whim
 parse whim-vim.c` says *unexpected `<EOF>`, expected `}`*, and `internal/gen` writes
@@ -610,7 +621,9 @@ make help            # every target, with a line each
   so every boundary that is C is in the one spelling phase 0 seeds with -- C23's,
   `nullptr` and `usize` and the attributes included, since phase 0 runs its
   parts 0a's rename, 0b's variadic collapse and 0c's attributes on the canonical
-  input and every later phase is written for them -- applied
+  input and every later phase is written for them; the print writes 0c's 37
+  `[[fallthrough]];` as `;`, by name (`cemit.Options.NullAttributeStatements`,
+  as the front end did unasked before it held them: `doc/C23.md`) -- applied
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report

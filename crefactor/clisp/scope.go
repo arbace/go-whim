@@ -299,7 +299,7 @@ func (r *resolver) def(f *Node, kind string) {
 }
 
 func isFnType(t *Node) bool {
-	for t.Is("paren") && len(t.List) == 2 {
+	for t.Is("paren") && len(t.List) == 2 || t.Is("name-attr") && len(t.List) >= 2 {
 		t = t.List[1]
 	}
 	return t.Is("fn") || t.Is("fn-ids")
@@ -383,16 +383,21 @@ func (r *resolver) typ(t *Node, declParams bool) {
 		r.structOrUnion(t)
 	case "enum":
 		r.enum(t)
-	case "typeof", "__typeof__", "__typeof", "alignas":
+	case "typeof", "__typeof__", "__typeof", "typeof_unqual", "alignas", "_BitInt":
 		for _, a := range args {
 			r.expr(a)
 		}
-	case "typeof-type", "__typeof__-type", "__typeof-type", "atomic", "alignas-type":
+	case "typeof-type", "__typeof__-type", "__typeof-type", "typeof_unqual-type", "atomic", "alignas-type":
 		for _, a := range args {
 			r.typ(a, false)
 		}
-	case "attr", "attr-text":
+	case "attr", "attr-text", "std-attr":
 		r.attrs([]*Node{t})
+	case "name-attr":
+		if len(args) > 0 {
+			r.typ(args[0], declParams)
+			r.attrs(args[1:])
+		}
 	case "spec":
 		for _, a := range args {
 			r.typ(a, false)
@@ -568,6 +573,8 @@ func (r *resolver) item(f *Node) {
 			r.expr(a)
 		}
 	case "default", "empty", "break", "continue":
+	case "stmt-attr", "@": // C23's attributes before a statement or a block
+		r.attrs(args)
 	case "attributed":
 		for _, a := range args {
 			if isAttr(a) {
@@ -673,6 +680,9 @@ func (r *resolver) expr(n *Node) {
 			r.typ(a, false)
 		}
 	case "literal":
+		for len(args) > 0 && !args[0].list && prefixWords[args[0].Atom] {
+			args = args[1:] // C23's storage classes
+		}
 		if len(args) > 0 {
 			r.typ(args[0], false)
 			for _, x := range args[1:] {

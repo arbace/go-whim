@@ -256,7 +256,13 @@ func (c *conv) form(n cc.ExpressionNode) *Node {
 		case cc.PostfixExpressionDec:
 			return L(A("post--"), c.expr(x.PostfixExpression, lvPostfix))
 		case cc.PostfixExpressionComplit:
-			return L(A("literal"), c.typeName(x.TypeName)).add(c.initItems(x.InitializerList)...)
+			// C23's storage classes stand before the type: `(literal static
+			// (array int) 1 2)`.
+			f := L(A("literal"))
+			for _, s := range x.StorageClassSpecifiers {
+				f.add(A(tok(s.Token)))
+			}
+			return f.add(c.typeName(x.TypeName)).add(c.initItems(x.InitializerList)...)
 		}
 		c.fail(x, "postfix expression %v", x.Case)
 

@@ -13,9 +13,10 @@ import (
 // upstream's and not this fork's to change.
 //
 // The fork's tests are of what the fork ADDS to modernc.org/cc/v4 v4.29.7
-// (README.md): two C23 productions the upstream parser refuses, and
-// Scope.Declares.  Upstream's own tests are not carried, for the reason the
-// README gives.
+// (README.md): Scope.Declares, the fixes, and -- here only as smoke tests --
+// the C23 productions the upstream parser refuses, which crefactor/c23conf
+// holds to gcc 15 one file per feature.  Upstream's own tests are not
+// carried, for the reason the README gives.
 
 // parseC is Parse on one translation unit, with the predefined macros and the
 // builtins every caller in this module passes.
@@ -39,7 +40,8 @@ func parseC(t *testing.T, src string) *cc.AST {
 // Each snippet uses a production the fork adds, and parses.  Measured against
 // upstream v4.29.7 when these were written: every one is refused there, the
 // labels with "unexpected '}', expected statement" and the attributes with
-// "unexpected '[', expected block item" (or "statement").
+// "unexpected '[', expected block item" (or "statement").  The attributes
+// were then parsed and discarded; they are held now (TestStdAttributesHeld).
 func TestC23Productions(t *testing.T) {
 	for _, c := range []struct{ name, src string }{
 		{"label last in a compound statement", `
@@ -212,6 +214,49 @@ f(void)
 	})
 	if len(got) != 1 || got[0] != ast.Scope {
 		t.Errorf("n through extern resolves to %v, want the file scope %p", got, ast.Scope)
+	}
+}
+
+// The attributes of `[[...]]` are in the tree, where a printer finds them:
+// an attribute statement's in its ExpressionStatement, a namespace's prefix
+// in the AttributeValue, another vendor's arguments as their tokens.
+func TestStdAttributesHeld(t *testing.T) {
+	ast := parseC(t, "int f(int x) { switch (x) { case 1: x++; [[fallthrough]]; default: break; } [[gnu::cold, vendor::thing(1, [2])]]; return x; }\n")
+	var specs []*cc.AttributeSpecifier
+	var vals []*cc.AttributeValue
+	walkNodes(ast.TranslationUnit, func(n any) {
+		switch x := n.(type) {
+		case *cc.AttributeSpecifier:
+			specs = append(specs, x)
+		case *cc.AttributeValue:
+			vals = append(vals, x)
+		}
+	})
+	if len(specs) != 2 || !specs[0].IsStd() || !specs[1].IsStd() {
+		t.Fatalf("%d attribute specifiers, want 2, both [[...]]", len(specs))
+	}
+	if got := cc.NodeSource(specs[1]); got != "[[gnu::cold, vendor::thing(1, [2])]]" {
+		t.Errorf("the second specifier's source is %q", got)
+	}
+	if len(vals) != 3 || vals[1].Prefix.SrcStr() != "gnu" || vals[2].BalancedTokenSequence == nil {
+		t.Errorf("the attributes are not held as written: %d values", len(vals))
+	}
+}
+
+// A GNU attribute list of three values keeps all three.  Upstream's loop
+// linked each value after the first to the first, so a third replaced the
+// second: `__attribute__((cold, noinline, unused))` reached a printer as
+// `__attribute__((cold, unused))`.
+func TestGNUAttributeListKept(t *testing.T) {
+	ast := parseC(t, "int f(void) __attribute__((cold, noinline, unused));\n")
+	var names []string
+	walkNodes(ast.TranslationUnit, func(n any) {
+		if v, ok := n.(*cc.AttributeValue); ok {
+			names = append(names, v.Token.SrcStr())
+		}
+	})
+	if !reflect.DeepEqual(names, []string{"cold", "noinline", "unused"}) {
+		t.Errorf("the list holds %q", names)
 	}
 }
 

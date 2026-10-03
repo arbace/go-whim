@@ -16,6 +16,11 @@ func (e *emitter) stmt(n *cc.Statement) {
 	if n == nil {
 		return
 	}
+	// C23's attributes before a statement that does not hold them itself --
+	// `[[gnu::musttail]] return f(x);` -- are a line of their own above it.
+	if a := e.attrs(n.AttributeSpecifierList); a != "" {
+		e.line(a)
+	}
 	if s, ok := e.stmtMacro(n); ok {
 		e.line(s)
 		return
@@ -36,6 +41,9 @@ func (e *emitter) stmt(n *cc.Statement) {
 		// deliberate fallthroughs into ones the compiler warns about.
 		x := n.ExpressionStatement
 		a := join(e.declSpecs(x.Specifiers()), e.attrs(x.AttributeSpecifierList))
+		if e.opt.NullAttributeStatements && x.ExpressionList == nil && onlyStd(x.AttributeSpecifierList) && x.Specifiers() == nil {
+			a = ""
+		}
 		if x.ExpressionList == nil {
 			e.line(a + ";")
 			return
@@ -63,6 +71,9 @@ func (e *emitter) block(n *cc.Statement) {
 		return
 	}
 	if n.Case == cc.StatementCompound {
+		if a := e.attrs(n.AttributeSpecifierList); a != "" {
+			e.line(a)
+		}
 		e.compound(n.CompoundStatement)
 		return
 	}
@@ -84,7 +95,7 @@ func (e *emitter) compound(n *cc.CompoundStatement) {
 // compoundInline is a statement expression's block, ({ ... }), printed where an
 // expression is expected.
 func (e *emitter) compoundInline(n *cc.CompoundStatement) string {
-	sub := &emitter{indent: e.indent}
+	sub := &emitter{indent: e.indent, opt: e.opt}
 	sub.compound(n)
 	if sub.err != nil && e.err == nil {
 		e.err = sub.err
@@ -204,7 +215,9 @@ func (e *emitter) otherwise(n *cc.Statement) {
 // chained returns the `if` an else branch is, or nil when the branch is
 // anything else -- a block, a statement, or a `switch`.
 func chained(n *cc.Statement) *cc.SelectionStatement {
-	if n == nil || n.Case != cc.StatementSelection || n.SelectionStatement == nil {
+	// An `if` with C23 attributes before it is not a link: they are a line
+	// of their own, inside the else's block.
+	if n == nil || n.Case != cc.StatementSelection || n.SelectionStatement == nil || n.AttributeSpecifierList != nil {
 		return nil
 	}
 	s := n.SelectionStatement
@@ -375,4 +388,17 @@ func funcName(n *cc.Declaration) bool {
 		dd = dd.DirectDeclarator
 	}
 	return dd.Case == cc.DirectDeclaratorIdent && dd.Token.SrcStr() == "__func__"
+}
+
+// onlyStd reports whether an attribute list is C23's `[[...]]` alone.
+func onlyStd(n *cc.AttributeSpecifierList) bool {
+	if n == nil {
+		return false
+	}
+	for l := n; l != nil; l = l.AttributeSpecifierList {
+		if !l.AttributeSpecifier.IsStd() {
+			return false
+		}
+	}
+	return true
 }

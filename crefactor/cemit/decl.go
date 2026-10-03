@@ -44,6 +44,12 @@ func (e *emitter) specQuals(n *cc.SpecifierQualifierList) string {
 		case cc.SpecifierQualifierListTypeSpec:
 			parts = append(parts, e.typeSpec(l.TypeSpecifier))
 		case cc.SpecifierQualifierListTypeQual:
+			// An attribute among them -- a member's leading one, GNU's or
+			// C23's -- is the qualifier's list; its Token is no token.
+			if q := l.TypeQualifier; q.Case == cc.TypeQualifierAttr {
+				parts = append(parts, e.attrs(q.AttributeSpecifierList))
+				break
+			}
 			parts = append(parts, tok(l.TypeQualifier.Token))
 		case cc.SpecifierQualifierListAlignSpec:
 			parts = append(parts, e.alignSpec(l.AlignmentSpecifier))
@@ -93,6 +99,8 @@ func (e *emitter) typeSpec(n *cc.TypeSpecifier) string {
 		return tok(n.Token) + "(" + e.typeName(n.TypeName) + ")"
 	case cc.TypeSpecifierAtomic:
 		return e.atomic(n.AtomicTypeSpecifier)
+	case cc.TypeSpecifierBitInt:
+		return "_BitInt(" + e.expr(n.ExpressionList) + ")"
 	}
 	e.fail(n, "type specifier %v", n.Case)
 	return ""
@@ -180,11 +188,13 @@ func (e *emitter) enum(n *cc.EnumSpecifier) string {
 	if n.EnumTypeSpecifier != nil {
 		under = " : " + e.specQuals(n.EnumTypeSpecifier.SpecifierQualifierList)
 	}
+	// C23's attributes stand between `enum` and the tag, `enum [[deprecated]] e`.
+	kw := join("enum", e.attrs(n.AttributeSpecifierList))
 	switch n.Case {
 	case cc.EnumSpecifierTag:
-		return join("enum", tok(n.Token2)) + under
+		return join(kw, tok(n.Token2)) + under
 	case cc.EnumSpecifierDef:
-		head := join("enum", tok(n.Token2)) + under
+		head := join(kw, tok(n.Token2)) + under
 		// ONE ENUMERATOR IS ONE LINE.  `enum { EXTRA_MARKS = 10 };` is how this
 		// tree spells a constant -- arbace/slim-vim writes every `#define` of a
 		// number that way, 1,448 of them -- and the pipeline reads, rewrites and
@@ -208,11 +218,13 @@ func (e *emitter) enum(n *cc.EnumSpecifier) string {
 }
 
 func (e *emitter) enumerator(n *cc.Enumerator) string {
+	// An enumerator's attributes follow its name, `B [[deprecated]] = 2`.
+	name := join(tok(n.Token), e.attrs(n.AttributeSpecifierList))
 	switch n.Case {
 	case cc.EnumeratorIdent:
-		return tok(n.Token)
+		return name
 	case cc.EnumeratorExpr:
-		return tok(n.Token) + " = " + e.expr(n.ConstantExpression)
+		return name + " = " + e.expr(n.ConstantExpression)
 	}
 	e.fail(n, "enumerator %v", n.Case)
 	return ""
@@ -271,7 +283,9 @@ func (e *emitter) directDeclarator(n *cc.DirectDeclarator) string {
 	}
 	switch n.Case {
 	case cc.DirectDeclaratorIdent:
-		return tok(n.Token)
+		// C23's attributes after the identifier are the identifier's:
+		// `x [[maybe_unused]]`, `arr [[maybe_unused]][4]`.
+		return join(tok(n.Token), e.attrs(n.AttributeSpecifierList))
 	case cc.DirectDeclaratorDecl:
 		return "(" + e.declarator(n.Declarator) + ")"
 	case cc.DirectDeclaratorArr:
@@ -381,9 +395,9 @@ func (e *emitter) typeName(n *cc.TypeName) string {
 	return join(e.specQuals(n.SpecifierQualifierList), e.abstract(n.AbstractDeclarator))
 }
 
-// staticAssert prints `static_assert(expr, "message");`.  The message is
-// Token4 -- Token3 is the comma -- and cc/v4's parser requires it, so the C23
-// one-argument form would not have parsed in the first place.
+// staticAssert prints `static_assert(expr, "message");`, or C23's
+// `static_assert(expr);` when there is no message.  The message is Token4 --
+// Token3 is the comma.
 func (e *emitter) staticAssert(n *cc.StaticAssertDeclaration) string {
 	if n.Token4.SrcStr() == "" {
 		return "static_assert(" + e.expr(n.ConstantExpression) + ");"

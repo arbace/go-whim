@@ -1217,7 +1217,9 @@ func (n *StaticAssertDeclaration) check(c *ctx) {
 	}
 
 	n.ConstantExpression.check(c, decay)
-	if !isNonzero(n.ConstantExpression.Value()) {
+	if !isNonzero(n.ConstantExpression.Value()) && n.Token4.Ch == 0 { // go-whim: C23, no message
+		c.errors.add(errorf("%v: assertion failed", n.ConstantExpression.Position()))
+	} else if !isNonzero(n.ConstantExpression.Value()) {
 		s := stringConst(func(msg string, args ...interface{}) {
 			c.errors.add(errorf(msg, args...))
 		}, n.Token4)
@@ -2648,7 +2650,11 @@ func (n *AttributeSpecifier) check(c *ctx, attr *Attributes) {
 // |       AttributeValueList ',' AttributeValue
 func (n *AttributeValueList) check(c *ctx, attr *Attributes) {
 	for ; n != nil; n = n.AttributeValueList {
-		n.AttributeValue.check(c, attr)
+		// go-whim: a C23 [[...]] list may leave one out, and another vendor's
+		// attribute is not GNU's to check.
+		if n.AttributeValue != nil && n.AttributeValue.BalancedTokenSequence == nil {
+			n.AttributeValue.check(c, attr)
+		}
 	}
 }
 
@@ -2901,6 +2907,9 @@ func (n *StorageClassSpecifier) check(c *ctx, isExtern, isStatic, isThreadLocal,
 		*isThreadLocal = true
 	case StorageClassSpecifierDeclspec: // "__declspec" '(' ')'
 		c.errors.add(errorf("TODO %v", n.Case))
+	case StorageClassSpecifierConstexpr: // go-whim: "constexpr"
+		// Read as no storage class: the object is not made const, and its
+		// value is not a constant expression to the checker.
 	default:
 		c.errors.add(errorf("internal error: %v", n.Case))
 	}
@@ -2998,9 +3007,17 @@ func (n *TypeSpecifier) check(c *ctx, isAtomic *bool, isVolatile, isConst bool) 
 
 		c.errors.add(errorf("%v: undefined type name: %s", n.Position(), n.Token.Src()))
 	case TypeSpecifierTypeofExpr: // "typeof" '(' ExpressionList ')'
+		if n.Token.SrcStr() == "typeof_unqual" { // go-whim: C23 6.7.3.6
+			return unqualified(n.ExpressionList.check(c, 0))
+		}
 		return n.ExpressionList.check(c, 0)
 	case TypeSpecifierTypeofType: // "typeof" '(' TypeName ')'
+		if n.Token.SrcStr() == "typeof_unqual" { // go-whim: C23 6.7.3.6
+			return unqualified(n.TypeName.check(c))
+		}
 		return n.TypeName.check(c)
+	case TypeSpecifierBitInt: // go-whim: "_BitInt" '(' ConstantExpression ')'
+		c.errors.add(errorf("%v: _BitInt: a bit-precise integer type is parsed, not type-checked", n.Position()))
 	case TypeSpecifierAtomic: // AtomicTypeSpecifier
 		*isAtomic = true
 		return n.AtomicTypeSpecifier.check(c)
@@ -5247,7 +5264,7 @@ func (n *GenericAssociationList) check(c *ctx, mode flags, ctrl Type, p *purer, 
 }
 
 func (n *PrimaryExpression) floatConst(c *ctx) (v Value, t Type) {
-	s := strings.ToLower(n.Token.SrcStr())
+	s := strings.ToLower(stripDigitSeparators(n.Token.SrcStr())) // go-whim: C23's separators
 	val, err := strconv.ParseFloat(s, 64)
 	if err == nil {
 		return Float64Value(val), c.ast.kinds[Double]
@@ -5387,6 +5404,9 @@ func (n *PrimaryExpression) charConst(c *ctx) (v Value, t Type) {
 		n.val = Int64Value(charConstValue(func(msg string, args ...interface{}) {
 			c.errors.add(errorf(msg, args...))
 		}, c.ast.ABI, n.Token))
+		if strings.HasPrefix(n.Token.SrcStr(), "u8") { // go-whim: C23 6.4.4.5, unsigned char
+			n.typ = c.ast.kinds[UChar]
+		}
 	default:
 		c.errors.add(errorf("TODO %v", n.Case))
 	}
@@ -5394,7 +5414,7 @@ func (n *PrimaryExpression) charConst(c *ctx) (v Value, t Type) {
 }
 
 func (n *PrimaryExpression) intConst(c *ctx) (v Value, t Type) {
-	s0 := n.Token.SrcStr()
+	s0 := stripDigitSeparators(n.Token.SrcStr()) // go-whim: C23's separators
 	s := strings.TrimRight(s0, "uUlL")
 	prefix := 0
 	var base int

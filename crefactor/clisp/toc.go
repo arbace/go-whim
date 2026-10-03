@@ -176,12 +176,14 @@ func (p *printer) item(f *Node) {
 		p.outdented("default:")
 	case "empty":
 		p.line(";")
+	case "stmt-attr":
+		p.line(p.attrList(f.Args()))
 	case "attributed":
 		args := f.Args()
 		var attrs []string
 		var e *Node
 		for i, a := range args {
-			if i == len(args)-1 && !a.Is("attr") && !a.Is("attr-text") {
+			if i == len(args)-1 && !isAttr(a) {
 				e = a
 				break
 			}
@@ -255,6 +257,10 @@ func space(s string) string {
 }
 
 func (p *printer) compound(items []*Node) {
+	if len(items) > 0 && items[0].Is("@") {
+		p.line(p.attrList(items[0].Args())) // C23's attributes before the block
+		items = items[1:]
+	}
 	p.line("{")
 	p.indent++
 	for _, it := range items {
@@ -304,7 +310,7 @@ type decl struct {
 	rest   []*Node
 }
 
-func isAttr(n *Node) bool { return n.Is("attr") || n.Is("attr-text") }
+func isAttr(n *Node) bool { return n.Is("attr") || n.Is("attr-text") || n.Is("std-attr") }
 
 func (p *printer) parseDef(f *Node) decl {
 	var d decl
@@ -376,13 +382,13 @@ func (p *printer) staticAssert(f *Node) string {
 func (p *printer) funcDef(f *Node) {
 	d := p.parseDef(f)
 	items, dc := p.build(d.typ, dcl{direct: d.name})
-	if len(d.attrs) > 0 || d.asm != nil {
-		p.fail(f, "an attribute after a definition's declarator")
+	if d.asm != nil {
+		p.fail(f, "an asm label after a definition's declarator")
 	}
 	if head := join(p.specs(d.prefix), p.specs(items), dc.ptr); head != "" {
 		p.w(Indent + head + "\n")
 	}
-	p.w(dc.direct + "\n")
+	p.w(join(dc.direct, p.attrList(d.attrs)) + "\n")
 	body := d.rest
 	if len(body) > 0 && body[0].Is("kr-params") {
 		p.indent++
@@ -414,17 +420,19 @@ func (p *printer) spec(n *Node) string {
 		return p.structOrUnion(n)
 	case "enum":
 		return p.enum(n)
-	case "typeof", "__typeof__", "__typeof":
+	case "typeof", "__typeof__", "__typeof", "typeof_unqual":
 		return n.Head() + "(" + p.expr(p.arg(n, 0), lvComma) + ")"
-	case "typeof-type", "__typeof__-type", "__typeof-type":
+	case "typeof-type", "__typeof__-type", "__typeof-type", "typeof_unqual-type":
 		return strings.TrimSuffix(n.Head(), "-type") + "(" + p.typeName(p.arg(n, 0)) + ")"
 	case "atomic":
 		return "_Atomic(" + p.typeName(p.arg(n, 0)) + ")"
+	case "_BitInt":
+		return "_BitInt(" + p.expr(p.arg(n, 0), lvCond) + ")"
 	case "alignas":
 		return "alignas(" + p.expr(p.arg(n, 0), lvCond) + ")"
 	case "alignas-type":
 		return "alignas(" + p.typeName(p.arg(n, 0)) + ")"
-	case "attr", "attr-text":
+	case "attr", "attr-text", "std-attr":
 		return p.attr(n)
 	}
 	p.fail(n, "not a specifier")
@@ -440,7 +448,8 @@ func baseItems(t *Node) []*Node {
 	case "spec":
 		return t.Args()
 	case "struct", "union", "enum", "typeof", "typeof-type", "__typeof__", "__typeof__-type",
-		"__typeof", "__typeof-type", "atomic", "alignas", "alignas-type", "attr", "attr-text":
+		"__typeof", "__typeof-type", "atomic", "alignas", "alignas-type", "attr", "attr-text",
+		"typeof_unqual", "typeof_unqual-type", "_BitInt", "std-attr":
 		return []*Node{t}
 	}
 	return t.List
@@ -459,14 +468,15 @@ func (p *printer) attr(n *Node) string {
 	if n.Is("attr-text") {
 		return p.unquote(p.arg(n, 0))
 	}
-	if !n.Is("attr") {
+	if !n.Is("attr") && !n.Is("std-attr") {
 		p.fail(n, "not an attribute")
 		return ""
 	}
 	return attrText(n)
 }
 
-// attrText writes `(attr a (b x y))` as `__attribute__((a, b(x, y)))`.
+// attrText writes `(attr a (b x y))` as `__attribute__((a, b(x, y)))`, and
+// `(std-attr a (b x y))` as `[[a, b(x, y)]]`.
 func attrText(n *Node) string {
 	var vs []string
 	for _, v := range n.Args() {
@@ -479,6 +489,9 @@ func attrText(n *Node) string {
 			args = append(args, a.Atom)
 		}
 		vs = append(vs, v.Head()+"("+strings.Join(args, ", ")+")")
+	}
+	if n.Is("std-attr") {
+		return "[[" + strings.Join(vs, ", ") + "]]"
 	}
 	return "__attribute__((" + strings.Join(vs, ", ") + "))"
 }
@@ -561,11 +574,16 @@ func (p *printer) enum(n *Node) string {
 		tag = args[0].Atom
 		args = args[1:]
 	}
+	attrs := ""
+	if len(args) > 0 && args[0].Is("@") {
+		attrs = p.attrList(args[0].Args())
+		args = args[1:]
+	}
 	if len(args) > 0 && args[0].Is(":") {
 		under = " : " + p.specs(args[0].Args())
 		args = args[1:]
 	}
-	head := join("enum", tag) + under
+	head := join("enum", attrs, tag) + under
 	if len(args) == 0 {
 		return head
 	}
@@ -588,10 +606,21 @@ func (p *printer) enumerator(e *Node) string {
 		p.fail(e, "not an enumerator")
 		return ""
 	}
-	if len(e.List) == 1 {
-		return e.List[0].Atom
+	// (NAME ATTR... VALUE): the attributes follow the name.
+	name, rest := e.List[0].Atom, e.List[1:]
+	var attrs []*Node
+	for len(rest) > 0 && isAttr(rest[0]) {
+		attrs, rest = append(attrs, rest[0]), rest[1:]
 	}
-	return e.List[0].Atom + " = " + p.expr(e.List[1], lvCond)
+	name = join(name, p.attrList(attrs))
+	switch len(rest) {
+	case 0:
+		return name
+	case 1:
+		return name + " = " + p.expr(rest[0], lvCond)
+	}
+	p.fail(e, "an enumerator is (NAME ATTR... VALUE)")
+	return ""
 }
 
 // arrayWords are the words an array declarator may say before its size.
@@ -686,6 +715,14 @@ func (p *printer) build(t *Node, d dcl) ([]*Node, dcl) {
 		case "paren":
 			d = dcl{direct: "(" + d.ptr + d.direct + ")"}
 			t = p.arg(t, 0)
+		case "name-attr":
+			// (name-attr T ATTR...): the attributes after the identifier.
+			if len(args) < 2 {
+				p.fail(t, "a name's attributes are (name-attr T ATTR...)")
+				return nil, d
+			}
+			d.direct = join(d.direct, p.attrList(args[1:]))
+			t = args[0]
 		default:
 			return baseItems(t), d
 		}
@@ -869,7 +906,16 @@ func (p *printer) form(n *Node) string {
 	case "post--":
 		return p.expr(p.arg(n, 0), lvPostfix) + "--"
 	case "literal":
-		return "(" + p.typeName(p.arg(n, 0)) + "){" + p.initList(args[1:]) + "}"
+		// (literal STORAGE... T ITEM...): C23's storage classes first.
+		var words []string
+		for len(args) > 0 && !args[0].list && prefixWords[args[0].Atom] {
+			words, args = append(words, args[0].Atom), args[1:]
+		}
+		if len(args) == 0 {
+			p.fail(n, "a compound literal is (literal STORAGE... T ITEM...)")
+			return ""
+		}
+		return "(" + join(append(words, p.typeName(args[0]))...) + "){" + p.initList(args[1:]) + "}"
 	case "pre++":
 		return "++" + p.expr(p.arg(n, 0), lvUnary)
 	case "pre--":

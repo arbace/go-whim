@@ -156,6 +156,10 @@ func (r *reader) atom() (*Node, error) {
 		case ' ', '\t', '\n', '\r', '\f', '\v', '(', ')', ';':
 			return A(string(r.src[start:r.i])), nil
 		case '"', '\'':
+			if c == '\'' && r.i > start && (r.src[start] >= '0' && r.src[start] <= '9' || r.src[start] == '.') {
+				r.i++ // C23's digit separator inside a number, 1'000
+				break
+			}
 			r.i++
 			for r.i < len(r.src) && r.src[r.i] != c {
 				if r.src[r.i] == '\n' {

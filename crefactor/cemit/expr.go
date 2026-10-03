@@ -80,7 +80,13 @@ func (e *emitter) expr(n cc.ExpressionNode) string {
 		case cc.PostfixExpressionDec:
 			return e.expr(x.PostfixExpression) + "--"
 		case cc.PostfixExpressionComplit:
-			return "(" + e.typeName(x.TypeName) + "){" + e.initializerList(x.InitializerList) + "}"
+			// C23's storage classes in a compound literal, `(static
+			// int[]){1, 2}`, before its type.
+			var scs []string
+			for _, s := range x.StorageClassSpecifiers {
+				scs = append(scs, tok(s.Token))
+			}
+			return "(" + join(append(scs, e.typeName(x.TypeName))...) + "){" + e.initializerList(x.InitializerList) + "}"
 		}
 		e.fail(x, "postfix expression %v", x.Case)
 		return ""

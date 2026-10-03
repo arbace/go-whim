@@ -138,7 +138,10 @@ so it also needs:
   zlib and ncursesw it links against.
 
 The C front end is a fork of `modernc.org/cc/v4` carried as source, so after
-fetching the input nothing needs the network.
+fetching the input nothing needs the network. The fork parses C23, which
+upstream's parser does not wholly: `crefactor/c23conf` holds it, the
+canonical printer and C-lisp to gcc 15, a file per language feature
+(`doc/C23.md`).
 
 ## Layout
 
@@ -163,7 +166,8 @@ doc/             GOALS.md (what holds for every phase, and the blocks),
                  pipeline reordered: the front, the blocks, what was measured),
                  PIPELINE-COMPACTION.md, JAVA.md, CLOJURE.md, CLOJURE-PROFILE.md,
                  HASKELL.md, RUST.md, SCHEME.md, the *-IDIOMS.md surveys, GO-LISP.md,
-                 GHC-LISP.md, C-LISP.md, C-LISP-TREE.md,
+                 GHC-LISP.md, C-LISP.md, C-LISP-TREE.md, C23.md (the
+                 front end against C23: the conformance test, its score),
                  GRAPH.md (the program as a graph, its views as Lisp: a design),
                  PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
                  IR.md and IR-SCHEMA.md (an intermediate representation),

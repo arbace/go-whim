@@ -2,8 +2,8 @@ module github.com/arbace/go-whim/crefactor
 
 go 1.27.1
 
-// The C front end is a FORK, cc/: modernc.org/cc/v4 v4.29.7 with two C23
-// productions added (cc/README.md).  What is required here is what that fork
+// The C front end is a FORK, cc/: modernc.org/cc/v4 v4.29.7 with the C23
+// productions its parser lacks added (cc/README.md, doc/C23.md).  What is required here is what that fork
 // needs and nothing else -- its test-only dependencies, ccorpus2 among them,
 // are not carried.
 

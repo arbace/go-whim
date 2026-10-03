@@ -138,6 +138,8 @@ const (
 	VOLATILE          // 'volatile'
 	WHILE             // 'while'
 	XORASSIGN         // '^='
+	BITINT            // '_BitInt' (go-whim: C23, appended so no value above moves)
+	CONSTEXPR         // 'constexpr' (go-whim: C23)
 )
 
 // Node is implemented by Token and AST nodes.
@@ -584,6 +586,11 @@ func (s *scanner) cppScan0() (tok Token) {
 			s.shift()
 			return s.stringLiteral(rune(STRINGLITERAL))
 		}
+		if s.peek(1) == '8' && s.peek(2) == '\'' { // go-whim: C23 6.4.4.5, u8'a'
+			s.shift()
+			s.shift()
+			return s.characterConstant(rune(CHARCONST))
+		}
 	case eof:
 		s.closed = true
 		return s.newToken(c)
@@ -819,6 +826,14 @@ func (s *scanner) ppnumber() Token {
 		case 'e', 'E', 'p', 'P':
 			s.shift()
 			s.sign(false)
+		case '\'': // go-whim: C23 6.4.8, a digit separator: ' digit or ' nondigit
+			switch c2 := rune(s.peek(1)); {
+			case c2 >= '0' && c2 <= '9', c2 >= 'a' && c2 <= 'z', c2 >= 'A' && c2 <= 'Z', c2 == '_':
+				s.shift()
+				s.shift()
+			default:
+				return s.newToken(rune(PPNUMBER))
+			}
 		default:
 			switch {
 			case c >= '0' && c <= '9':

@@ -217,6 +217,13 @@ func (c *conv) specQuals(n *cc.SpecifierQualifierList) []spec {
 		case cc.SpecifierQualifierListTypeSpec:
 			out = append(out, c.typeSpec(l.TypeSpecifier))
 		case cc.SpecifierQualifierListTypeQual:
+			if q := l.TypeQualifier; q.Case == cc.TypeQualifierAttr {
+				// A member's leading attribute, as cemit prints it.
+				for _, a := range c.attrs(q.AttributeSpecifierList) {
+					out = append(out, spec{n: a})
+				}
+				break
+			}
 			out = append(out, spec{n: A(tok(l.TypeQualifier.Token))})
 		case cc.SpecifierQualifierListAlignSpec:
 			out = append(out, spec{n: c.alignSpec(l.AlignmentSpecifier)})
@@ -251,6 +258,8 @@ func (c *conv) typeSpec(n *cc.TypeSpecifier) spec {
 		return spec{n: L(A(tok(n.Token)+"-type"), c.typeName(n.TypeName))}
 	case cc.TypeSpecifierAtomic:
 		return spec{n: L(A("atomic"), c.typeName(n.AtomicTypeSpecifier.TypeName))}
+	case cc.TypeSpecifierBitInt:
+		return spec{n: L(A("_BitInt"), c.expr(n.ExpressionList, lvCond))}
 	case cc.TypeSpecifierTypeName:
 		s := c.m.SpecToken(n.Token)
 		if c.noMacros {
@@ -376,6 +385,11 @@ func (c *conv) enum(n *cc.EnumSpecifier) *Node {
 	if t := tok(n.Token2); t != "" {
 		f.add(A(t))
 	}
+	// C23's attributes between `enum` and the tag, `(@ ATTR...)` after the
+	// tag, as a struct's.
+	if a := c.attrs(n.AttributeSpecifierList); len(a) > 0 {
+		f.add(L(A("@")).add(a...))
+	}
 	if n.EnumTypeSpecifier != nil {
 		u := L(A(":"))
 		for _, s := range c.specQuals(n.EnumTypeSpecifier.SpecifierQualifierList) {
@@ -391,9 +405,9 @@ func (c *conv) enum(n *cc.EnumSpecifier) *Node {
 			e := l.Enumerator
 			switch e.Case {
 			case cc.EnumeratorIdent:
-				f.add(L(A(tok(e.Token))))
+				f.add(L(A(tok(e.Token))).add(c.attrs(e.AttributeSpecifierList)...))
 			case cc.EnumeratorExpr:
-				f.add(L(A(tok(e.Token)), c.expr(e.ConstantExpression, lvCond)))
+				f.add(L(A(tok(e.Token))).add(c.attrs(e.AttributeSpecifierList)...).add(c.expr(e.ConstantExpression, lvCond)))
 			default:
 				c.fail(e, "enumerator %v", e.Case)
 			}
@@ -473,6 +487,11 @@ func (c *conv) directDeclarator(t *Node, n *cc.DirectDeclarator) (string, *Node)
 	for n != nil {
 		switch n.Case {
 		case cc.DirectDeclaratorIdent:
+			// C23's attributes after the identifier: `(name-attr T ATTR...)`,
+			// the outermost form, as they are the nearest the name.
+			if a := c.attrs(n.AttributeSpecifierList); len(a) > 0 {
+				t = L(A("name-attr"), t).add(a...)
+			}
 			return tok(n.Token), t
 		case cc.DirectDeclaratorDecl:
 			return c.declarator(group(t, n.Declarator.Pointer != nil), n.Declarator)
@@ -594,7 +613,8 @@ func (c *conv) typeName(n *cc.TypeName) *Node {
 
 // attrs is an attribute list's forms: `__attribute__((unused))` is `(attr
 // unused)`, `__attribute__((cold, format(printf, 1, 2)))` is `(attr cold
-// (format printf 1 2))`, and a specifier spelled any other way is `(attr-text
+// (format printf 1 2))`, C23's `[[nodiscard("why")]]` is `(std-attr
+// (nodiscard "why"))`, and a specifier spelled any other way is `(attr-text
 // "...")`, its source as cemit prints it.
 func (c *conv) attrs(n *cc.AttributeSpecifierList) []*Node {
 	var out []*Node
@@ -610,17 +630,27 @@ func (c *conv) attrs(n *cc.AttributeSpecifierList) []*Node {
 }
 
 func attrForm(a *cc.AttributeSpecifier) *Node {
-	if tok(a.Token) != "__attribute__" {
+	f := L(A("attr"))
+	switch {
+	case a.IsStd():
+		// C23's `[[...]]` is `(std-attr ...)`, a prefixed name one atom:
+		// `[[gnu::aligned(8), nodiscard]]` is `(std-attr (gnu::aligned 8)
+		// nodiscard)`.
+		f = L(A("std-attr"))
+	case tok(a.Token) != "__attribute__":
 		return nil
 	}
-	f := L(A("attr"))
 	for l := a.AttributeValueList; l != nil; l = l.AttributeValueList {
 		v := l.AttributeValue
+		if v == nil || v.BalancedTokenSequence != nil {
+			return nil // an attribute left out, or another vendor's tokens: its text
+		}
+		name := tok(v.Prefix) + tok(v.Colon) + tok(v.Colon2) + tok(v.Token)
 		switch v.Case {
 		case cc.AttributeValueIdent:
-			f.add(A(tok(v.Token)))
+			f.add(A(name))
 		case cc.AttributeValueExpr:
-			g := L(A(tok(v.Token)))
+			g := L(A(name))
 			for al := v.ArgumentExpressionList; al != nil; al = al.ArgumentExpressionList {
 				s := strings.TrimSpace(cc.NodeSource(al.AssignmentExpression))
 				if !atomic(s) {
@@ -720,6 +750,8 @@ func (c *conv) funcDef(f *cc.FunctionDefinition) *Node {
 	prefix, rest := splitPrefix(c.declSpecs(f.DeclarationSpecifiers))
 	name, t := c.declarator(base(rest), f.Declarator)
 	d := L(A("defn")).add(prefix...).add(A(name), t)
+	// C23's attributes after the declarator follow the type, as a def's.
+	d.add(c.attrs(f.AttributeSpecifierList)...)
 	// AN OLD-STYLE DEFINITION'S PARAMETER DECLARATIONS are `(kr-params
 	// DECL...)`, before the body's items.
 	if f.DeclarationList != nil {
@@ -809,18 +841,44 @@ func (c *conv) body(n *cc.Statement) *Node {
 		return L(A("block"))
 	}
 	if n.Case == cc.StatementCompound {
-		return c.compound(n.CompoundStatement)
+		return c.attributedBlock(n)
 	}
 	return L(A("block")).add(c.stmt(n)...)
+}
+
+// attributedBlock is a compound statement's block, C23's attributes before
+// it its `(@ ATTR...)`, first: `(block (@ (std-attr likely)) ...)`.
+func (c *conv) attributedBlock(n *cc.Statement) *Node {
+	b := c.compound(n.CompoundStatement)
+	if a := c.attrs(n.AttributeSpecifierList); len(a) > 0 {
+		b.List = append([]*Node{b.List[0], L(A("@")).add(a...)}, b.List[1:]...)
+	}
+	return b
 }
 
 // stmt is one statement's forms.  A LABEL IS AN ITEM OF ITS OWN, `(label L)`,
 // `(case 1)`, `(default)`, before the statement it labels, as C writes it:
 // the text is the same, and a switch reads as one.
+//
+// C23'S ATTRIBUTES BEFORE A STATEMENT -- one that does not hold them itself,
+// as an expression statement does (`attributed`) -- are an item of their own
+// before it, `(stmt-attr ATTR...)`, as cemit prints them a line of their own;
+// a block's are its `(@ ATTR...)`.
 func (c *conv) stmt(n *cc.Statement) []*Node {
 	if n == nil {
 		return nil
 	}
+	if n.AttributeSpecifierList != nil {
+		if n.Case == cc.StatementCompound {
+			return []*Node{c.attributedBlock(n)}
+		}
+		return append([]*Node{L(A("stmt-attr")).add(c.attrs(n.AttributeSpecifierList)...)}, c.bareStmt(n)...)
+	}
+	return c.bareStmt(n)
+}
+
+// bareStmt is stmt without the attributes before the statement.
+func (c *conv) bareStmt(n *cc.Statement) []*Node {
 	if !c.noMacros {
 		if s, ok := c.m.Stmt(n); ok {
 			return []*Node{macroForm(strings.TrimSuffix(s, ";"))}
@@ -902,7 +960,7 @@ func (c *conv) ifForm(s *cc.SelectionStatement) *Node {
 	f := L(A("if"), c.expr(s.ExpressionList, lvComma), c.body(s.Statement))
 	if s.Case == cc.SelectionStatementIfElse {
 		e := s.Statement2
-		if e != nil && e.Case == cc.StatementSelection && e.SelectionStatement != nil &&
+		if e != nil && e.Case == cc.StatementSelection && e.SelectionStatement != nil && e.AttributeSpecifierList == nil &&
 			(e.SelectionStatement.Case == cc.SelectionStatementIf || e.SelectionStatement.Case == cc.SelectionStatementIfElse) {
 			f.add(c.ifForm(e.SelectionStatement))
 		} else {

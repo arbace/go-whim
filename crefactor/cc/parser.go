@@ -105,6 +105,7 @@ var defaultKeywords = map[string]rune{
 	"__volatile__":  rune(VOLATILE),
 	"asm":           rune(ASM),
 	"typeof":        rune(TYPEOF),
+	"_BitInt":       rune(BITINT), // go-whim: C23
 }
 
 type parser struct {
@@ -121,6 +122,8 @@ type parser struct {
 	seq int32
 
 	labelDeclOK bool // The statement about to be parsed is a block item, so a label in it may be followed by a declaration.
+
+	complitStorage []*StorageClassSpecifier // go-whim: compoundLiteralStorage's, for postfixExpression
 }
 
 func newParser(cfg *Config, fset *fset, sources []Source) (*parser, error) {
@@ -421,6 +424,15 @@ again:
 	if p.rune(false) != ';' {
 		d = p.declarator(nil, ds, true)
 	}
+	if p.stdAttrAt(0) { // go-whim: C23 attributes after a declarator, `int f(int) [[unsequenced]];`
+		if p.peek(p.stdAttrsEnd(), false).Ch == '{' {
+			attrs := p.attributeSpecifierListOpt()
+			fd := p.functionDefinition(ds, d)
+			fd.AttributeSpecifierList = attrs
+			return &ExternalDeclaration{Case: ExternalDeclarationFuncDef, FunctionDefinition: fd}
+		}
+		return &ExternalDeclaration{Case: ExternalDeclarationDecl, Declaration: p.declaration(ds, d, true)}
+	}
 	switch p.rune(false) {
 	case
 		',',
@@ -505,7 +517,7 @@ func (p *parser) declarationListOpt() (r *DeclarationList) {
 // stay with whatever they precede: the expression statement or the
 // declaration parsed as the next block item.
 //
-// C23 6.8.1 also allows a label to be the last thing in a compound
+// C23 6.8.2 also allows a label to be the last thing in a compound
 // statement, with nothing after the colon at all:
 //
 //	void f(void) {
@@ -564,33 +576,6 @@ func (p *parser) skipAttributeSpecifiers(i int) int {
 		}
 	}
 	return i
-}
-
-// skipStdAttributeSpecifiers consumes a C23 6.7.12 attribute-specifier-sequence,
-// one or more '[' '[' balanced-token-sequence_opt ']' ']' groups, starting at
-// the current lookahead token, which must be '[' followed by '['. Standard
-// attributes are not represented in the AST (mirroring how
-// attributeSpecifierListOpt's GNU __attribute__ is dropped at some call
-// sites, e.g. in expressionStatement), so this only discards the tokens; the
-// caller re-enters its own dispatch on whatever follows, exactly as
-// expressionStatement's ATTRIBUTE case falls through to reparse after a GNU
-// attribute.
-func (p *parser) skipStdAttributeSpecifiers() {
-	for p.rune(false) == '[' && p.peek(1, false).Ch == '[' {
-		p.shift(false) // '['
-		p.shift(false) // '['
-		for depth := 2; depth != 0; {
-			switch p.rune(false) {
-			case '[':
-				depth++
-			case ']':
-				depth--
-			case eof:
-				return
-			}
-			p.shift(false)
-		}
-	}
 }
 
 // [0], 6.8.2 Compound statement
@@ -728,7 +713,7 @@ again:
 	case p.isStatement(ch) || p.isExpression(ch) || ch == rune(TYPENAME) && p.peek(1, false).Ch == ':':
 		p.labelDeclOK = true
 		return &BlockItem{Case: BlockItemStmt, Statement: p.statement(false)}
-	case p.isDeclarationSpecifier(ch, true):
+	case p.isDeclarationSpecifier(ch, true) || p.stdAttrsBeginDeclaration(): // go-whim: C23 [[...]] may begin one
 		r0 := p.rune(false)
 		ds, ok := p.declarationSpecifiers()
 		if !ok {
@@ -757,16 +742,18 @@ again:
 		}
 	case ch == rune(LABEL):
 		return &BlockItem{Case: BlockItemLabel, LabelDeclaration: p.labelDeclaration()}
+	case p.stdAttrAt(0): // go-whim: C23 [[...]] before a statement, `[[fallthrough]];`
+		p.labelDeclOK = true
+		return &BlockItem{Case: BlockItemStmt, Statement: p.statement(false)}
 	case ch == rune(STATICASSERT), ch == rune(AUTOTYPE):
-		return &BlockItem{Case: BlockItemDecl, Declaration: p.declaration(nil, nil, false)}
-	case ch == '[' && p.peek(1, false).Ch == '[':
-		// C23 6.7.12/6.8: a standalone attribute-specifier-sequence, most
-		// commonly '[[fallthrough]];', is an attribute-declaration, itself a
-		// declaration and so a block item. Not represented in the AST (see
-		// skipStdAttributeSpecifiers); what follows, typically just ';', is
-		// reparsed as the real block item.
-		p.skipStdAttributeSpecifiers()
-		goto again
+		d := p.declaration(nil, nil, false)
+		if ch == rune(STATICASSERT) && d != nil {
+			// go-whim: the static assertion's ';' is the declaration's
+			// (6.7.12), not a null statement after it, which a printer
+			// would print and print again.
+			d.Token = p.must(';')
+		}
+		return &BlockItem{Case: BlockItemDecl, Declaration: d}
 	default:
 		t := p.shift(false)
 		p.cpp.eh("%v: unexpected %v, expected block item", t.Position(), runeName(t.Ch))
@@ -812,13 +799,11 @@ func (p *parser) statement(newBlock bool) *Statement {
 		}
 	case p.isExpression(ch) || ch == ';' || ch == rune(ATTRIBUTE):
 		return &Statement{Case: StatementExpr, ExpressionStatement: p.expressionStatement()}
-	case ch == '[' && p.peek(1, false).Ch == '[':
-		// C23 6.7.12/6.8.3: an attribute-specifier-sequence in statement
-		// position (typically '[[fallthrough]];') is an attribute-declaration.
-		// Discarded, as skipStdAttributeSpecifiers' doc comment explains;
-		// reparse whatever follows as the real statement.
-		p.skipStdAttributeSpecifiers()
-		return p.statement(false)
+	case p.stdAttrAt(0):
+		// go-whim: C23 6.8, an attribute-specifier-sequence before a
+		// statement: an expression or null statement's own, `[[fallthrough]];`,
+		// and any other's the Statement's.
+		return p.attributedStatement(labelDeclOK)
 	}
 
 	switch p.rune(true) {
@@ -1072,7 +1057,7 @@ func (p *parser) iterationStatement() (r *IterationStatement) {
 func (p *parser) expressionStatement() *ExpressionStatement {
 	switch p.rune(false) {
 	case rune(ATTRIBUTE):
-		p.attributeSpecifierListOpt() // Not supported yet, ignored.
+		p.gnuAttributeSpecifierListOpt() // Not supported yet, ignored.
 		fallthrough
 	default:
 		return &ExpressionStatement{ExpressionList: p.expression(true), Token: p.must(';')}
@@ -1293,21 +1278,31 @@ func (p *parser) declaration(ds *DeclarationSpecifiers, d *Declarator, declare b
 
 //	 static-assert-declaration
 //		_Static_assert ( constant-expression , string-literal )
+//
+// go-whim: C23 6.7.12, the message is optional.
 func (p *parser) staticAssertDeclaration() *StaticAssertDeclaration {
-	return &StaticAssertDeclaration{Token: p.must(rune(STATICASSERT)), Token2: p.must('('), ConstantExpression: p.constantExpression(), Token3: p.must(','), Token4: p.must(rune(STRINGLITERAL)), Token5: p.must(')')}
+	r := &StaticAssertDeclaration{Token: p.must(rune(STATICASSERT)), Token2: p.must('('), ConstantExpression: p.constantExpression()}
+	if p.rune(false) == ',' {
+		r.Token3 = p.shift(false)
+		r.Token4 = p.must(rune(STRINGLITERAL))
+	}
+	r.Token5 = p.must(')')
+	return r
 }
 
 //	 attribute-specifier-list:
 //		attribute-specifier
 //		attribute-specifier-list attribute-specifier
+//
+// go-whim: and C23's [[...]] beside them, in any order.
 func (p *parser) attributeSpecifierListOpt() (r *AttributeSpecifierList) {
-	if p.rune(false) != rune(ATTRIBUTE) {
+	if p.rune(false) != rune(ATTRIBUTE) && !p.stdAttrAt(0) {
 		return nil
 	}
 
 	r = &AttributeSpecifierList{AttributeSpecifier: p.attributeSpecifier()}
 	prev := r
-	for p.rune(false) == rune(ATTRIBUTE) {
+	for p.rune(false) == rune(ATTRIBUTE) || p.stdAttrAt(0) {
 		asl := &AttributeSpecifierList{AttributeSpecifier: p.attributeSpecifier()}
 		prev.AttributeSpecifierList = asl
 		prev = asl
@@ -1319,6 +1314,10 @@ func (p *parser) attributeSpecifierListOpt() (r *AttributeSpecifierList) {
 //	 attribute-specifier:
 //		__attribute__ (( attribute-value-list_opt ))
 func (p *parser) attributeSpecifier() (r *AttributeSpecifier) {
+	if p.stdAttrAt(0) { // go-whim: C23
+		return p.stdAttributeSpecifier()
+	}
+
 	return &AttributeSpecifier{Token: p.must(rune(ATTRIBUTE)), Token2: p.must('('), Token3: p.must('('), AttributeValueList: p.attributeValueListOpt(), Token4: p.must(')'), Token5: p.must(')')}
 }
 
@@ -1346,6 +1345,7 @@ func (p *parser) attributeValueListOpt() (r *AttributeValueList) {
 	for p.rune(false) == ',' {
 		avl := &AttributeValueList{Token: p.shift(false), AttributeValue: p.attributeValue()}
 		prev.AttributeValueList = avl
+		prev = avl // go-whim: without it a third value replaced the second
 	}
 	return r
 }
@@ -1424,7 +1424,7 @@ func (p *parser) initDeclarator(ds *DeclarationSpecifiers, d *Declarator, declar
 	if p.rune(false) == rune(ASM) {
 		r.Asm = p.asm()
 	}
-	if p.rune(false) == rune(ATTRIBUTE) {
+	if p.rune(false) == rune(ATTRIBUTE) || p.stdAttrAt(0) { // go-whim: C23's too
 		r.AttributeSpecifierList = p.attributeSpecifierListOpt()
 	}
 	if p.rune(false) == '=' {
@@ -1958,6 +1958,9 @@ func (p *parser) castExpression(checkTypeName bool) (r, u ExpressionNode) {
 		return nil, nil
 	case '(':
 		switch ch := p.peek(1, true).Ch; {
+		case p.isStorageClassSpecifier(ch): // go-whim: C23 6.5.3.6, `(static int[]){1, 2}`
+			u = p.compoundLiteralStorage(checkTypeName)
+			return u, u
 		case p.isSpecifierQualifer(ch, true) || ch == rune(ATTRIBUTE):
 			lparen := p.shift(false)
 			tn := p.typeName()
@@ -2001,7 +2004,7 @@ func (p *parser) typeName() *TypeName {
 //		pointer_opt direct-abstract-declarator
 func (p *parser) abstractDeclarator(ptr *Pointer, opt bool) *AbstractDeclarator {
 	if ptr == nil {
-		p.attributeSpecifierListOpt() //TODO not stored yet
+		p.gnuAttributeSpecifierListOpt() //TODO not stored yet
 		ptr = p.pointer(true)
 	}
 	switch {
@@ -2206,7 +2209,7 @@ func (p *parser) specifierQualifierList() (r *SpecifierQualifierList) {
 		case p.isTypeSpecifier(ch, false):
 			sql = &SpecifierQualifierList{Case: SpecifierQualifierListTypeSpec, TypeSpecifier: p.typeSpecifier()}
 			acceptTypeName = false
-		case p.isTypeQualifier(ch) || ch == rune(ATTRIBUTE):
+		case p.isTypeQualifier(ch) || ch == rune(ATTRIBUTE) || p.stdAttrAt(0): // go-whim: C23's too
 			sql = &SpecifierQualifierList{Case: SpecifierQualifierListTypeQual, TypeQualifier: p.typeQualifier(true)}
 		case ch == rune(ALIGNAS):
 			sql = &SpecifierQualifierList{Case: SpecifierQualifierListAlignSpec, AlignmentSpecifier: p.alignmentSpecifier()}
@@ -2360,7 +2363,9 @@ func (p *parser) postfixExpression(lp Token, tn *TypeName, rp Token, checkTypeNa
 	var r0 *PostfixExpression
 	switch {
 	case tn != nil:
-		r0 = &PostfixExpression{Case: PostfixExpressionComplit, Token: lp, TypeName: tn, Token2: rp, Token3: p.must('{'), InitializerList: p.initializerList(nil)}
+		scs := p.complitStorage // go-whim
+		p.complitStorage = nil
+		r0 = &PostfixExpression{Case: PostfixExpressionComplit, Token: lp, TypeName: tn, Token2: rp, Token3: p.must('{'), InitializerList: p.initializerList(nil), StorageClassSpecifiers: scs}
 		switch p.rune(false) {
 		case eof:
 			p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
@@ -2590,9 +2595,12 @@ func (p *parser) directDeclarator(declare bool) (r *DirectDeclarator) {
 	switch p.rune(false) {
 	case rune(IDENTIFIER):
 		r = &DirectDeclarator{Case: DirectDeclaratorIdent, Token: p.shift(false)}
+		if p.stdAttrAt(0) { // go-whim: C23 6.7.7.1, `x [[maybe_unused]]`
+			r.AttributeSpecifierList = p.attributeSpecifierListOpt()
+		}
 	case '(':
 		r = &DirectDeclarator{Case: DirectDeclaratorDecl, Token: p.shift(false)}
-		p.attributeSpecifierListOpt() //TODO not stored yet
+		p.gnuAttributeSpecifierListOpt() //TODO not stored yet
 		r.Declarator = p.declarator(nil, nil, false)
 		r.Token2 = p.must(')')
 	default:
@@ -2621,6 +2629,10 @@ func (p *parser) directDeclarator2(dd *DirectDeclarator, declare bool) (r *Direc
 				r.params = p.scope
 			}()
 		case '[':
+			if p.stdAttrAt(0) { // go-whim: C23 attributes after the declarator, not an array
+				return r
+			}
+
 			ch := p.peek(1, true).Ch
 			switch {
 			case p.isExpression(ch):
@@ -2782,7 +2794,7 @@ func (p *parser) declaratorOrAbstractDeclarator(declare bool) (r Node) {
 		return nil
 	case '(':
 		lparen := p.shift(false)
-		p.attributeSpecifierListOpt() //TODO not stored yet
+		p.gnuAttributeSpecifierListOpt() //TODO not stored yet
 		if p.isSpecifierQualifer(p.rune(true), true) {
 			dad := &DirectAbstractDeclarator{Case: DirectAbstractDeclaratorFunc, Token: lparen, ParameterTypeList: p.parameterTypeListOpt(), Token2: p.must(')')}
 			switch {
@@ -2990,6 +3002,8 @@ func (p *parser) typeQualifierList(opt, acceptAttributes bool) (r *TypeQualifier
 	switch ch := p.rune(true); {
 	case p.isTypeQualifier(ch):
 		r = &TypeQualifiers{Case: TypeQualifiersTypeQual, TypeQualifier: p.typeQualifier(false)}
+	case acceptAttributes && p.stdAttrAt(0): // go-whim: C23, `int *[[gnu::aligned(8)]] p`
+		r = &TypeQualifiers{Case: TypeQualifiersTypeQual, TypeQualifier: p.typeQualifier(true)}
 	case p.in(ch, ':', ')', ',', '[', ']', rune(STATIC)) || p.isExpression(ch) || ch == rune(TYPENAME):
 		if opt {
 			return nil
@@ -3111,7 +3125,7 @@ func (p *parser) declarationSpecifiers() (r *DeclarationSpecifiers, ok bool) {
 			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersTypeQual, TypeQualifier: p.typeQualifier(false)}
 		case p.in(ch, rune(INLINE), rune(NORETURN)):
 			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersFunc, FunctionSpecifier: p.functionSpecifier()}
-		case ch == rune(ATTRIBUTE):
+		case ch == rune(ATTRIBUTE) || p.stdAttrAt(0): // go-whim: C23's too
 			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersAttr, AttributeSpecifierList: p.attributeSpecifierListOpt()}
 		case ch == rune(ALIGNAS):
 			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersAlignSpec, AlignmentSpecifier: p.alignmentSpecifier()}
@@ -3186,6 +3200,10 @@ func (p *parser) isFunctionSpecifier(ch rune) bool { return ch == rune(INLINE) |
 //		_Atomic
 //		__attribute__
 func (p *parser) typeQualifier(acceptAttributes bool) *TypeQualifier {
+	if acceptAttributes && p.stdAttrAt(0) { // go-whim: C23's
+		return &TypeQualifier{Case: TypeQualifierAttr, AttributeSpecifierList: p.attributeSpecifierListOpt()}
+	}
+
 	switch p.rune(false) {
 	case eof:
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
@@ -3239,6 +3257,8 @@ func (p *parser) storageClassSpecifier() (r *StorageClassSpecifier) {
 		return &StorageClassSpecifier{Case: StorageClassSpecifierTypedef, Token: p.shift(false)}
 	case rune(THREADLOCAL):
 		return &StorageClassSpecifier{Case: StorageClassSpecifierThreadLocal, Token: p.shift(false)}
+	case rune(CONSTEXPR): // go-whim: C23 6.7.2
+		return &StorageClassSpecifier{Case: StorageClassSpecifierConstexpr, Token: p.shift(false)}
 	case rune(DECLSPEC):
 		r = &StorageClassSpecifier{Case: StorageClassSpecifierDeclspec, Token: p.shift(false), Token2: p.must('(')}
 	out:
@@ -3270,6 +3290,7 @@ func (p *parser) isStorageClassSpecifier(ch rune) bool {
 	switch ch {
 	case
 		rune(AUTO),
+		rune(CONSTEXPR), // go-whim
 		rune(DECLSPEC),
 		rune(EXTERN),
 		rune(REGISTER),
@@ -3379,9 +3400,11 @@ func (p *parser) typeSpecifier() *TypeSpecifier {
 		return &TypeSpecifier{Case: TypeSpecifierDecimal64, Token: p.shift(false)}
 	case rune(DECIMAL128):
 		return &TypeSpecifier{Case: TypeSpecifierDecimal128, Token: p.shift(false)}
+	case rune(BITINT): // go-whim: C23 6.7.3.1
+		return &TypeSpecifier{Case: TypeSpecifierBitInt, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.constantExpression(), Token3: p.must(')')}
 	case rune(TYPEOF):
 		switch ch := p.peek(2, true).Ch; {
-		case p.isTypeSpecifier(ch, true):
+		case p.isSpecifierQualifer(ch, true): // go-whim: a qualifier too, `typeof_unqual(const int)`
 			return &TypeSpecifier{Case: TypeSpecifierTypeofType, Token: p.shift(false), Token2: p.must('('), TypeName: p.typeName(), Token3: p.must(')')}
 		case p.isExpression(ch):
 			return &TypeSpecifier{Case: TypeSpecifierTypeofExpr, Token: p.shift(false), Token2: p.must('('), ExpressionList: p.expression(false), Token3: p.must(')')}
@@ -3401,6 +3424,7 @@ func (p *parser) isTypeSpecifier(ch rune, typenameOk bool) bool {
 	switch ch {
 	case
 		rune(BF16),
+		rune(BITINT), // go-whim
 		rune(BOOL),
 		rune(CHAR),
 		rune(COMPLEX),
@@ -3452,6 +3476,10 @@ func (p *parser) atomicTypeSpecifier() (r *AtomicTypeSpecifier) {
 //		enum identifier_opt enum-type-specifier_opt { enumerator-list , }
 //		enum identifier enum-type-specifier_opt
 func (p *parser) enumSpecifier() (r *EnumSpecifier) {
+	if p.peek(1, false).Ch == rune(ATTRIBUTE) || p.stdAttrAt(1) { // go-whim: `enum [[deprecated]] e`
+		return p.enumSpecifierAttributes()
+	}
+
 	switch p.peek(1, false).Ch {
 	case eof:
 		p.cpp.eh("%v: unexpected EOF", p.toks[0].Position())
@@ -3567,13 +3595,13 @@ func (p *parser) enumerator() (r *Enumerator) {
 		r = &Enumerator{Case: EnumeratorIdent, Token: p.must(rune(IDENTIFIER))}
 	case '=':
 		r = &Enumerator{Case: EnumeratorExpr, Token: p.must(rune(IDENTIFIER)), Token2: p.shift(false), ConstantExpression: p.constantExpression()}
-	case rune(ATTRIBUTE):
-		t := p.enumeratorConst()
+	case rune(ATTRIBUTE), '[': // go-whim: '[', C23's [[...]]
+		t, attrs := p.enumeratorConst()
 		switch p.rune(false) {
 		case '}', ',':
-			r = &Enumerator{Case: EnumeratorIdent, Token: t}
+			r = &Enumerator{Case: EnumeratorIdent, Token: t, AttributeSpecifierList: attrs}
 		case '=':
-			r = &Enumerator{Case: EnumeratorExpr, Token: t, Token2: p.shift(false), ConstantExpression: p.constantExpression()}
+			r = &Enumerator{Case: EnumeratorExpr, Token: t, Token2: p.shift(false), ConstantExpression: p.constantExpression(), AttributeSpecifierList: attrs}
 		default:
 			t := p.shift(false)
 			p.cpp.eh("%v: unexpected %v, expected enumerator", t.Position(), runeName(t.Ch))
@@ -3589,10 +3617,10 @@ func (p *parser) enumerator() (r *Enumerator) {
 	return r
 }
 
-func (p *parser) enumeratorConst() (r Token) {
+func (p *parser) enumeratorConst() (r Token, attrs *AttributeSpecifierList) { // go-whim: the attributes kept
 	r = p.must(rune(IDENTIFIER))
-	p.attributeSpecifierListOpt()
-	return r
+	attrs = p.attributeSpecifierListOpt()
+	return r, attrs
 }
 
 // [0], 6.7.2.1 Structure and union specifiers

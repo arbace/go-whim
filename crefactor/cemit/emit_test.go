@@ -457,3 +457,26 @@ func TestMacrosAtFileScope(t *testing.T) {
 		t.Errorf("not a fixed point: a second print gives\n%s", again)
 	}
 }
+
+// C23'S ATTRIBUTE STATEMENTS ARE PRINTED, and dropped only when asked by name.
+// `[[fallthrough]];` reached the printer as `;` while the front end discarded
+// the attributes of such a statement; it holds them now, and the default form
+// keeps them.  NullAttributeStatements is whim's pipeline's form -- its
+// boundaries were printed without them -- and touches nothing else: not a
+// GNU attribute statement, not an attributed expression, not another
+// statement's attributes.
+func TestNullAttributeStatements(t *testing.T) {
+	src := "int g(int x);\nint f(int x) { switch (x) { case 1: x++; [[fallthrough]]; case 2: __attribute__((fallthrough)); default: [[gnu::musttail]] return g(x); } }\n"
+	def := canon(t, src)
+	if !strings.Contains(def, "[[fallthrough]];") || !strings.Contains(def, "[[gnu::musttail]]") {
+		t.Fatalf("the default form drops an attribute:\n%s", def)
+	}
+	got, err := Options{NullAttributeStatements: true}.Canonical("snippet.c", []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := strings.Replace(def, "[[fallthrough]];", ";", 1)
+	if string(got) != want {
+		t.Errorf("NullAttributeStatements printed\n%s\nwant\n%s", got, want)
+	}
+}

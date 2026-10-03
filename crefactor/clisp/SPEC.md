@@ -18,9 +18,10 @@ measured.
 ## Atoms and lists
 
 An **atom** is C's own token text, never decoded or re-encoded: an identifier
-(`buf`), a keyword (`unsigned`), a number (`0x7fUL`, `1.5e3`), a character or
-string literal with its prefix and escapes (`'\''`, `L"x"`, `"a\tb"`), and the
-operator heads (`+`, `->`, `<<=`). The reader keeps a quoted literal whole,
+(`buf`), a keyword (`unsigned`), a number (`0x7fUL`, `1.5e3`, C23's `1'000'000`
+and `3uwb`), a character or string literal with its prefix and escapes
+(`'\''`, `L"x"`, `u8'a'`, `"a\tb"`), and the operator heads (`+`, `->`,
+`<<=`). A `'` inside a number is C23's digit separator, not a quote. The reader keeps a quoted literal whole,
 whatever it holds, so `'('` and `"a ;b"` are one atom each; outside a literal
 `;` starts a comment that runs to the end of the line. Adjacent string literals
 are one atom already: the front end joins them (`"a" "b"` is `"ab"`).
@@ -47,6 +48,7 @@ atom (`"<stdio.h>"`, `"va_arg(ap, int)"`), `"` and `\` escaped.
 | `(struct ...)`, `(union ...)`, `(enum ...)` | a declaration of that type alone: `struct pt { ... };` |
 | `(declare SPEC...)` | any other declaration without a declarator |
 | `(static_assert E "msg")` | `static_assert(E, "msg");` |
+| `(static_assert E)` | `static_assert(E);`, C23's without a message |
 | `(macro-decl "TEXT")` | a declaration that is wholly a macro's invocation |
 | `(verbatim "TEXT")` | a line cemit prints from the source's tokens: an `asm` statement, a `__label__` declaration, a for-declaration of more than one declarator |
 
@@ -126,6 +128,9 @@ outward, never C's inside-out declarator:
 | `(paren T)` | parentheses the source has where C does not need them: `char *(x[])` is `(array (paren (ptr char)))` |
 | `(struct TAG)`, `(union TAG)`, `(enum TAG)` | `struct TAG x` |
 | `(typeof E)`, `(typeof-type T)` | `typeof(E) x`, `typeof(T) x` |
+| `(typeof_unqual E)`, `(typeof_unqual-type T)` | `typeof_unqual(E) x`, `typeof_unqual(T) x` |
+| `(_BitInt N)` | `_BitInt(N) x`; `(unsigned (_BitInt 7))` is `unsigned _BitInt(7) x` |
+| `(name-attr T ATTR...)` | `T x ATTR...`: C23's attributes after the identifier, so the outermost form -- `(name-attr (array 4 int) (std-attr maybe_unused))` is `int x [[maybe_unused]][4]` |
 | `(__typeof__ E)`, `(__typeof__-type T)` | `__typeof__(E) x`, `__typeof__(T) x`; `__typeof` the same |
 | `(atomic T)` | `_Atomic(T) x` |
 | `(alignas E)`, `(alignas-type T)` | `alignas(E)`, `alignas(T)` as a specifier |
@@ -201,8 +206,11 @@ struct __attribute__((packed)) s
 } __attribute__((aligned(16)));
 ```
 
-**Enum.** `(enum TAG (: SPEC...) ENUMERATOR...)`, the tag and the fixed
-underlying type each optional; an enumerator is `(NAME)` or `(NAME VALUE)`. An
+**Enum.** `(enum TAG (@ ATTR...) (: SPEC...) ENUMERATOR...)`, the tag, C23's
+attributes between `enum` and the tag, and the fixed underlying type each
+optional; an enumerator is `(NAME)` or `(NAME VALUE)`, its attributes after
+the name, `(NAME ATTR... VALUE)`: `(enum e (@ (std-attr deprecated)) (A) (B
+(std-attr deprecated) 2))` is `enum [[deprecated]] e { A, B [[deprecated]] = 2, };`. An
 enum of one enumerator is one line, as cemit prints it -- how this tree spells
 a constant.
 
@@ -223,14 +231,20 @@ enum hue
 ## Attributes
 
 `__attribute__((unused))` is `(attr unused)`; `__attribute__((cold, format(printf,
-1, 2)))` is `(attr cold (format printf 1 2))`. An attribute specifier that does
-not print back as its source with that shape -- other spacing, an argument that
-is not one token -- is `(attr-text "...")`, its source text. An attribute
-stands where the C has it: in a declaration's prefix, after a declarator, on a
-parameter or a member, on a struct or union (`(@ ...)`), among a pointer's
-qualifiers, or as a statement (`attributed`). C23's `[[...]]` is not in the
-tree: `crefactor/cc` parses it only in a statement's place, and discards it
-there (so cemit prints none); anywhere else it does not parse.
+1, 2)))` is `(attr cold (format printf 1 2))`. C23's `[[...]]` is `(std-attr
+...)` the same way, a namespace's prefix part of the name's atom:
+`[[nodiscard("why")]]` is `(std-attr (nodiscard "why"))`, `[[gnu::packed,
+deprecated]]` is `(std-attr gnu::packed deprecated)`, `[[]]` is `(std-attr)`.
+An attribute specifier that does not print back as its source with that shape
+-- other spacing, an argument that is not one token, an attribute left out of
+a list (`[[a,]]`), another vendor's arguments (`[[vendor::x(1, [2])]]`) -- is
+`(attr-text "...")`, its source text. An attribute stands where the C has
+it: in a declaration's prefix, after a declarator, after its identifier
+(`name-attr`), on a parameter or a member, on a struct, union or enum (`(@
+...)`), on an enumerator, among a pointer's qualifiers, after a function
+definition's declarator (`(defn f (fn (void) int) (std-attr unsequenced)
+...)`), as a statement (`attributed`), or before one (`stmt-attr`, and a
+block's `(@ ...)`).
 
 ## Initializers
 
@@ -273,7 +287,9 @@ each:
 | `(goto L)`, `(goto* E)` | `goto L;`, `goto *E;` |
 | `(label L)` | `L:` |
 | `(case E)`, `(case-range A B)`, `(default)` | `case E:`, `case A ... B:`, `default:` |
-| `(attributed ATTR... [E])` | `__attribute__((fallthrough));` and its kin |
+| `(attributed ATTR... [E])` | `__attribute__((fallthrough));`, `[[fallthrough]];` and their kin |
+| `(stmt-attr ATTR...)` | C23's attributes before the statement that follows, a line of their own: `[[gnu::musttail]]` above `return f(x);`, `[[maybe_unused]]` above `l:` |
+| `(block (@ ATTR...) ITEM...)` | `[[likely]] { ... }`, the attributes a line above the `{` |
 
 A body (`THEN`, `BODY`) is a `(block ...)`: cemit braces every body, so a
 statement the source left unbraced is the block it prints as.
@@ -310,6 +326,7 @@ same, and a switch reads as one.
 | `(& a b)`, `(^ a b)`, `(\| a b)` | | | `(alignof e)`, `(alignof-bare e)`, `(alignof-type T)` | the same, `alignof` |
 | `(&& a b c)`, `(\|\| a b)` | | | `(literal T ITEM...)` | `(T){...}` |
 | `(? c a b)` | `c ? a : b` | | `(generic e (T v) (default v))` | `_Generic(e, T: v, default: v)` |
+| | | | `(literal static T ITEM...)` | C23's `(static T){...}`: storage classes before the type |
 | `(= a b)`, `(+= a b)` ... | `a = b` | | `(stmt-expr ITEM...)` | `({ ... })` |
 | `(comma a b)` | `a, b` | | `(label-addr L)` | `&&L` |
 | `(paren e)` | `(e)`, see below | | `(macro "TEXT")` | a macro's invocation |
@@ -340,9 +357,11 @@ the tree does not have it, only the expansion.
 `ToLisp` refuses what cemit refuses -- a nested function definition, a node of
 the tree no form says -- with the position, never a silent omission. What the
 front end does not parse never reaches either, and is refused there, with its
-position: C23's `[[...]]` attributes but in a statement's place,
-`typeof_unqual`, `[*]` without a qualifier but as an unnamed parameter's first
+position: `[*]` without a qualifier but as an unnamed parameter's first
 declarator (`int [*]` parses; `int a[*]` and `int (*)[*]` do not), and an
 unnamed parameter's `[static 3]` or `[const n]` (`[static const 3]` and
-`[const 4]` parse). `ToC` refuses a form it does not know, an argument
+`[const 4]` parse), and C23's `[[...]]` where upstream's parser takes GNU's
+attributes and discards them -- just inside a declarator's parenthesis, `int
+([[a]] *p)`, and before an abstract declarator -- which the fork refuses
+rather than drops. `ToC` refuses a form it does not know, an argument
 missing, a value where none can be.

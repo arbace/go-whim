@@ -548,6 +548,8 @@ var c23Keywords = map[string]rune{
 	"bool":          rune(BOOL),
 	"static_assert": rune(STATICASSERT),
 	"thread_local":  rune(THREADLOCAL),
+	"constexpr":     rune(CONSTEXPR), // go-whim
+	"typeof_unqual": rune(TYPEOF),    // go-whim: typeof's production, told apart by its text
 }
 
 // stdcVersion returns the value of __STDC_VERSION__ defined in predefined or 0

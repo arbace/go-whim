@@ -284,6 +284,8 @@ func charConst(eh errHandler, tok Token) (r rune, isByte bool) {
 		fallthrough
 	case rune(CHARCONST):
 		isByte = tok.Ch == rune(CHARCONST)
+		// go-whim: C23's u8'a'.
+		s = strings.TrimPrefix(s, "u8")
 		s = s[1 : len(s)-1] // Remove outer 's.
 		if len(s) == 1 {
 			return rune(s[0]), isByte

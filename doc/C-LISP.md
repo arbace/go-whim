@@ -154,7 +154,7 @@ Against go-whim `9fec73f`, on the 64-core machine:
    (`struct [[gnu::packed]] s`, a member's), `typeof_unqual`, `[*]` but as an
    unnamed parameter's first declarator, and an unnamed parameter's
    `[static 3]` or `[const n]` -- the parser was not forked further for
-   them. The pipeline's text does not move: `make whim-build-check` against
+   them (the first two parse since: `doc/C23.md`). The pipeline's text does not move: `make whim-build-check` against
    the snapshots the code before wrote (every phase reproduces the next, 66
    s), then in order with none (338 s; the 104 boundaries byte for byte the
    code before's) and in parallel again (66 s); every editor is what its

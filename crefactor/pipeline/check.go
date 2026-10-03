@@ -14,7 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/sweep"
 )
 
@@ -57,7 +56,7 @@ func (c *Config) finish(text []byte, scratch string, w io.Writer) ([]byte, error
 		return nil, fmt.Errorf("sweep: %w", err)
 	}
 	fmt.Fprintf(w, "  sweep        %s; %dms\n", st, time.Since(start).Milliseconds())
-	canon, err := cemit.CanonicalParsed(path, swept, ast)
+	canon, err := c.Print.CanonicalParsed(path, swept, ast)
 	if err != nil {
 		return nil, fmt.Errorf("canonical print: cemit: %w", err)
 	}

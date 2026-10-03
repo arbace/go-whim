@@ -666,6 +666,7 @@ func (n *AtomicTypeSpecifier) Position() (r token.Position) {
 //
 //	AttributeSpecifier:
 //	        "__attribute__" '(' '(' AttributeValueList ')' ')'
+//	|       '[' '[' AttributeValueList ']' ']'                  // go-whim: C23 6.7.13, Token3 unused
 type AttributeSpecifier struct {
 	AttributeValueList *AttributeValueList
 	Token              Token
@@ -755,12 +756,22 @@ func (n AttributeValueCase) String() string {
 //	AttributeValue:
 //	        IDENTIFIER                                 // Case AttributeValueIdent
 //	|       IDENTIFIER '(' ArgumentExpressionList ')'  // Case AttributeValueExpr
+//
+// go-whim: in a C23 [[...]] list, IDENTIFIER may be prefixed by a namespace,
+// `gnu::packed`: Prefix, Colon and Colon2 are `gnu`, `:` and `:`.  The
+// arguments of an attribute of another vendor's namespace are its tokens,
+// BalancedTokenSequence, and not an ArgumentExpressionList.
 type AttributeValue struct {
 	ArgumentExpressionList *ArgumentExpressionList
 	Case                   AttributeValueCase `PrettyPrint:"stringer,zero"`
 	Token                  Token
 	Token2                 Token
 	Token3                 Token
+
+	Prefix                Token                  // go-whim
+	Colon                 Token                  // go-whim
+	Colon2                Token                  // go-whim
+	BalancedTokenSequence *BalancedTokenSequence // go-whim
 }
 
 // String implements fmt.Stringer.
@@ -1740,6 +1751,9 @@ func (n DirectDeclaratorCase) String() string {
 //	|       DirectDeclarator '[' TypeQualifiers '*' ']'                            // Case DirectDeclaratorStar
 //	|       DirectDeclarator '(' ParameterTypeList ')'                             // Case DirectDeclaratorFuncParam
 //	|       DirectDeclarator '(' IdentifierList ')'                                // Case DirectDeclaratorFuncIdent
+//
+// go-whim: AttributeSpecifierList is C23's attribute-specifier-sequence after
+// the IDENTIFIER of Case DirectDeclaratorIdent (6.7.7.1), `x [[maybe_unused]]`.
 type DirectDeclarator struct {
 	params               *Scope
 	AssignmentExpression ExpressionNode
@@ -1752,6 +1766,8 @@ type DirectDeclarator struct {
 	Token2               Token
 	Token3               Token
 	TypeQualifiers       *TypeQualifiers
+
+	AttributeSpecifierList *AttributeSpecifierList // go-whim
 }
 
 // String implements fmt.Stringer.
@@ -1915,6 +1931,8 @@ func (n EnumSpecifierCase) String() string {
 //	EnumSpecifier:
 //	        "enum" IDENTIFIER EnumTypeSpecifier '{' EnumeratorList ',' '}'  // Case EnumSpecifierDef
 //	|       "enum" IDENTIFIER EnumTypeSpecifier                             // Case EnumSpecifierTag
+//
+// go-whim: AttributeSpecifierList is what stands between "enum" and the tag.
 type EnumSpecifier struct {
 	*lexicalScope
 	visible
@@ -1927,6 +1945,8 @@ type EnumSpecifier struct {
 	Token3            Token
 	Token4            Token
 	Token5            Token
+
+	AttributeSpecifierList *AttributeSpecifierList // go-whim
 }
 
 // String implements fmt.Stringer.
@@ -2031,6 +2051,8 @@ func (n EnumeratorCase) String() string {
 //	Enumerator:
 //	        IDENTIFIER                         // Case EnumeratorIdent
 //	|       IDENTIFIER '=' ConstantExpression  // Case EnumeratorExpr
+//
+// go-whim: AttributeSpecifierList is what follows the IDENTIFIER.
 type Enumerator struct {
 	typer
 	resolver
@@ -2040,6 +2062,8 @@ type Enumerator struct {
 	ConstantExpression ExpressionNode
 	Token              Token
 	Token2             Token
+
+	AttributeSpecifierList *AttributeSpecifierList // go-whim
 }
 
 // String implements fmt.Stringer.
@@ -2367,6 +2391,9 @@ func (n *ExternalDeclaration) Position() (r token.Position) {
 //
 //	FunctionDefinition:
 //	        DeclarationSpecifiers Declarator DeclarationList CompoundStatement
+//
+// go-whim: AttributeSpecifierList is C23's attribute-specifier-sequence after
+// the function declarator (6.7.7.4), `int f(void) [[unsequenced]] { ... }`.
 type FunctionDefinition struct {
 	scope                 *Scope
 	usesVectors           bool
@@ -2374,6 +2401,8 @@ type FunctionDefinition struct {
 	DeclarationList       *DeclarationList
 	DeclarationSpecifiers *DeclarationSpecifiers
 	Declarator            *Declarator
+
+	AttributeSpecifierList *AttributeSpecifierList // go-whim
 }
 
 // String implements fmt.Stringer.
@@ -3740,6 +3769,9 @@ func (n PostfixExpressionCase) String() string {
 //	|       PostfixExpression "++"                            // Case PostfixExpressionInc
 //	|       PostfixExpression "--"                            // Case PostfixExpressionDec
 //	|       '(' TypeName ')' '{' InitializerList ',' '}'      // Case PostfixExpressionComplit
+//
+// go-whim: StorageClassSpecifiers is a compound literal's, C23 6.5.3.6:
+// `(static int[]){1, 2}`, between the '(' and the TypeName.
 type PostfixExpression struct {
 	typer
 	valuer
@@ -3757,6 +3789,8 @@ type PostfixExpression struct {
 	Token4                 Token
 	Token5                 Token
 	TypeName               *TypeName
+
+	StorageClassSpecifiers []*StorageClassSpecifier // go-whim
 }
 
 // String implements fmt.Stringer.
@@ -4321,6 +4355,10 @@ func (n StatementCase) String() string {
 //	|       IterationStatement   // Case StatementIteration
 //	|       JumpStatement        // Case StatementJump
 //	|       AsmStatement         // Case StatementAsm
+//
+// go-whim: AttributeSpecifierList is C23's attribute-specifier-sequence
+// before a statement other than an expression or null one (6.8), whose own
+// ExpressionStatement holds it: `[[gnu::musttail]] return f(x);`, `[[maybe_unused]] l: ;`.
 type Statement struct {
 	AsmStatement        *AsmStatement
 	Case                StatementCase `PrettyPrint:"stringer,zero"`
@@ -4330,6 +4368,8 @@ type Statement struct {
 	JumpStatement       *JumpStatement
 	LabeledStatement    *LabeledStatement
 	SelectionStatement  *SelectionStatement
+
+	AttributeSpecifierList *AttributeSpecifierList // go-whim
 }
 
 // String implements fmt.Stringer.
@@ -4365,6 +4405,9 @@ func (n *Statement) Position() (r token.Position) {
 //
 //	StaticAssertDeclaration:
 //	        "_Static_assert" '(' ConstantExpression ',' STRINGLITERAL ')'
+//
+// go-whim: C23 6.7.12 makes the message optional; without it Token3 and
+// Token4 are zero.
 type StaticAssertDeclaration struct {
 	ConstantExpression ExpressionNode
 	Token              Token
@@ -4418,6 +4461,7 @@ const (
 	StorageClassSpecifierRegister
 	StorageClassSpecifierThreadLocal
 	StorageClassSpecifierDeclspec
+	StorageClassSpecifierConstexpr // go-whim
 )
 
 // String implements fmt.Stringer
@@ -4437,6 +4481,8 @@ func (n StorageClassSpecifierCase) String() string {
 		return "StorageClassSpecifierThreadLocal"
 	case StorageClassSpecifierDeclspec:
 		return "StorageClassSpecifierDeclspec"
+	case StorageClassSpecifierConstexpr:
+		return "StorageClassSpecifierConstexpr"
 	default:
 		return fmt.Sprintf("StorageClassSpecifierCase(%v)", int(n))
 	}
@@ -4452,6 +4498,7 @@ func (n StorageClassSpecifierCase) String() string {
 //	|       "register"            // Case StorageClassSpecifierRegister
 //	|       "_Thread_local"       // Case StorageClassSpecifierThreadLocal
 //	|       "__declspec" '(' ')'  // Case StorageClassSpecifierDeclspec
+//	|       "constexpr"           // Case StorageClassSpecifierConstexpr (go-whim: C23 6.7.2)
 type StorageClassSpecifier struct {
 	Declspecs []Token
 	Case      StorageClassSpecifierCase `PrettyPrint:"stringer,zero"`
@@ -4470,7 +4517,7 @@ func (n *StorageClassSpecifier) Position() (r token.Position) {
 	}
 
 	switch n.Case {
-	case 0, 1, 2, 3, 4, 5:
+	case 0, 1, 2, 3, 4, 5, 7: // go-whim: 7, StorageClassSpecifierConstexpr
 		return n.Token.Position()
 	case 6:
 		if p := n.Token.Position(); p.IsValid() {
@@ -4973,6 +5020,7 @@ const (
 	TypeSpecifierFloat64
 	TypeSpecifierFloat32x
 	TypeSpecifierFloat64x
+	TypeSpecifierBitInt // go-whim
 )
 
 // String implements fmt.Stringer
@@ -5040,6 +5088,8 @@ func (n TypeSpecifierCase) String() string {
 		return "TypeSpecifierFloat32x"
 	case TypeSpecifierFloat64x:
 		return "TypeSpecifierFloat64x"
+	case TypeSpecifierBitInt:
+		return "TypeSpecifierBitInt"
 	default:
 		return fmt.Sprintf("TypeSpecifierCase(%v)", int(n))
 	}
@@ -5079,6 +5129,7 @@ func (n TypeSpecifierCase) String() string {
 //	|       "_Float64"                       // Case TypeSpecifierFloat64
 //	|       "_Float32x"                      // Case TypeSpecifierFloat32x
 //	|       "_Float64x"                      // Case TypeSpecifierFloat64x
+//	|       "_BitInt" '(' ConstantExpression ')'  // Case TypeSpecifierBitInt (go-whim: C23 6.7.3.1, in ExpressionList)
 type TypeSpecifier struct {
 	*lexicalScope
 	AtomicTypeSpecifier    *AtomicTypeSpecifier
@@ -5110,7 +5161,7 @@ func (n *TypeSpecifier) Position() (r token.Position) {
 		return n.StructOrUnionSpecifier.Position()
 	case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 23, 27, 28, 29, 30:
 		return n.Token.Position()
-	case 24:
+	case 24, 31: // go-whim: 31, TypeSpecifierBitInt
 		if p := n.Token.Position(); p.IsValid() {
 			return p
 		}

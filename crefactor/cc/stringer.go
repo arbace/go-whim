@@ -107,11 +107,13 @@ func _() {
 	_ = x[VOLATILE-57441]
 	_ = x[WHILE-57442]
 	_ = x[XORASSIGN-57443]
+	_ = x[BITINT-57444]
+	_ = x[CONSTEXPR-57445]
 }
 
-const _tokCh_name = "'+=''_Alignas''_Alignof''&&''&=''->''__asm__''_Atomic''__attribute__''auto''__auto_type''__bf16''_Bool''break''case''char'character constant'_Complex''const''continue''...''--''_Decimal128''_Decimal32''_Decimal64''__declspec''default''/=''do''double''else''enum''==''extern''float''_Float128''_Float128x''_Float16''_Float32''_Float32x''_Float64''_Float64x'floating point constant'for''_Generic''>=''goto'<header-name>identifier'if''__imag__''_Imaginary''++''inline''int''__int128'integer constant'__label__''<=''long'long character constantlong string literal'<<''<<=''%=''*=''!=''_Nonnull''_Noreturn''|=''||'preprocessing number'##''__real__''register''restrict''return''>>''>>=''short''signed''sizeof''static'_Static_assertstring literal'struct''-=''switch''_Thread_local''typedef'type name'typeof''__uint128_t''union''unsigned''void''volatile''while''^='"
+const _tokCh_name = "'+=''_Alignas''_Alignof''&&''&=''->''__asm__''_Atomic''__attribute__''auto''__auto_type''__bf16''_Bool''break''case''char'character constant'_Complex''const''continue''...''--''_Decimal128''_Decimal32''_Decimal64''__declspec''default''/=''do''double''else''enum''==''extern''float''_Float128''_Float128x''_Float16''_Float32''_Float32x''_Float64''_Float64x'floating point constant'for''_Generic''>=''goto'<header-name>identifier'if''__imag__''_Imaginary''++''inline''int''__int128'integer constant'__label__''<=''long'long character constantlong string literal'<<''<<=''%=''*=''!=''_Nonnull''_Noreturn''|=''||'preprocessing number'##''__real__''register''restrict''return''>>''>>=''short''signed''sizeof''static'_Static_assertstring literal'struct''-=''switch''_Thread_local''typedef'type name'typeof''__uint128_t''union''unsigned''void''volatile''while''^=''_BitInt''constexpr'"
 
-var _tokCh_index = [...]uint16{0, 4, 14, 24, 28, 32, 36, 45, 54, 69, 75, 88, 96, 103, 110, 116, 122, 140, 150, 157, 167, 172, 176, 189, 201, 213, 225, 234, 238, 242, 250, 256, 262, 266, 274, 281, 292, 304, 314, 324, 335, 345, 356, 379, 384, 394, 398, 404, 417, 427, 431, 441, 453, 457, 465, 470, 480, 496, 507, 511, 517, 540, 559, 563, 568, 572, 576, 580, 590, 601, 605, 609, 629, 633, 643, 653, 663, 671, 675, 680, 687, 695, 703, 711, 725, 739, 747, 751, 759, 774, 783, 792, 800, 813, 820, 830, 836, 846, 853, 857}
+var _tokCh_index = [...]uint16{0, 4, 14, 24, 28, 32, 36, 45, 54, 69, 75, 88, 96, 103, 110, 116, 122, 140, 150, 157, 167, 172, 176, 189, 201, 213, 225, 234, 238, 242, 250, 256, 262, 266, 274, 281, 292, 304, 314, 324, 335, 345, 356, 379, 384, 394, 398, 404, 417, 427, 431, 441, 453, 457, 465, 470, 480, 496, 507, 511, 517, 540, 559, 563, 568, 572, 576, 580, 590, 601, 605, 609, 629, 633, 643, 653, 663, 671, 675, 680, 687, 695, 703, 711, 725, 739, 747, 751, 759, 774, 783, 792, 800, 813, 820, 830, 836, 846, 853, 857, 866, 877}
 
 func (i tokCh) String() string {
 	idx := int(i) - 57345

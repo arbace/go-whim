@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/internal/steps"
 	"github.com/arbace/go-whim/internal/whim"
@@ -33,7 +34,13 @@ var config = &pipeline.Config{
 	WorkName: "whim-vim.c",
 	SnapDir:  SnapDir,
 	Sweep:    whim.Profile.Sweep,
-	Resolve:  resolve,
+	// Every boundary was printed with phase 0c's 37 `[[fallthrough]];` as
+	// `;` while crefactor/cc discarded the attributes of such a statement
+	// unasked, and every phase after the seed is written against that text
+	// (internal/phase/000/c/GOAL.md, doc/C23.md): the print keeps it so, by
+	// name, now that the front end holds them.
+	Print:   cemit.Options{NullAttributeStatements: true},
+	Resolve: resolve,
 	Declared: func(n int) (func(), error) {
 		removed, err := declared(n)
 		if err != nil {

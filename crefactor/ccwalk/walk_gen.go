@@ -23,8 +23,9 @@ var genFields = map[string][]string{
 	"AtomicTypeSpecifier":      {"Token:t", "Token2:t", "Token3:t", "TypeName:p"},
 	"AttributeSpecifier":       {"AttributeValueList:p", "Token:t", "Token2:t", "Token3:t", "Token4:t", "Token5:t"},
 	"AttributeSpecifierList":   {"AttributeSpecifier:p", "AttributeSpecifierList:p"},
-	"AttributeValue":           {"ArgumentExpressionList:p", "Token:t", "Token2:t", "Token3:t"},
+	"AttributeValue":           {"ArgumentExpressionList:p", "Token:t", "Token2:t", "Token3:t", "Prefix:t", "Colon:t", "Colon2:t", "BalancedTokenSequence:p"},
 	"AttributeValueList":       {"AttributeValue:p", "AttributeValueList:p", "Token:t"},
+	"BalancedTokenSequence":    {"Token:t", "BalancedTokenSequence:p"},
 	"BlockItem":                {"CompoundStatement:p", "Declaration:p", "DeclarationSpecifiers:p", "Declarator:p", "LabelDeclaration:p", "Statement:p"},
 	"BlockItemList":            {"BlockItem:p", "BlockItemList:p"},
 	"CastExpression":           {"CastExpression:i", "Token:t", "Token2:t", "TypeName:p", "UnaryExpression:i"},
@@ -39,17 +40,17 @@ var genFields = map[string][]string{
 	"Designator":               {"ConstantExpression:i", "ConstantExpression2:i", "Token:t", "Token2:t", "Token3:t"},
 	"DesignatorList":           {"Designator:p", "DesignatorList:p"},
 	"DirectAbstractDeclarator": {"AbstractDeclarator:p", "AssignmentExpression:i", "DirectAbstractDeclarator:p", "ParameterTypeList:p", "Token:t", "Token2:t", "Token3:t", "TypeQualifiers:p"},
-	"DirectDeclarator":         {"AssignmentExpression:i", "Declarator:p", "DirectDeclarator:p", "IdentifierList:p", "ParameterTypeList:p", "Token:t", "Token2:t", "Token3:t", "TypeQualifiers:p"},
-	"EnumSpecifier":            {"EnumTypeSpecifier:p", "EnumeratorList:p", "Token:t", "Token2:t", "Token3:t", "Token4:t", "Token5:t"},
+	"DirectDeclarator":         {"AssignmentExpression:i", "Declarator:p", "DirectDeclarator:p", "IdentifierList:p", "ParameterTypeList:p", "Token:t", "Token2:t", "Token3:t", "TypeQualifiers:p", "AttributeSpecifierList:p"},
+	"EnumSpecifier":            {"EnumTypeSpecifier:p", "EnumeratorList:p", "Token:t", "Token2:t", "Token3:t", "Token4:t", "Token5:t", "AttributeSpecifierList:p"},
 	"EnumTypeSpecifier":        {"SpecifierQualifierList:p", "Token:t"},
-	"Enumerator":               {"ConstantExpression:i", "Token:t", "Token2:t"},
+	"Enumerator":               {"ConstantExpression:i", "Token:t", "Token2:t", "AttributeSpecifierList:p"},
 	"EnumeratorList":           {"Enumerator:p", "EnumeratorList:p", "Token:t"},
 	"EqualityExpression":       {"EqualityExpression:i", "RelationalExpression:i", "Token:t"},
 	"ExclusiveOrExpression":    {"AndExpression:i", "ExclusiveOrExpression:i", "Token:t"},
 	"ExpressionList":           {"AssignmentExpression:i", "ExpressionList:p", "Token:t"},
 	"ExpressionStatement":      {"AttributeSpecifierList:p", "ExpressionList:i", "Token:t"},
 	"ExternalDeclaration":      {"AsmStatement:p", "Declaration:p", "FunctionDefinition:p", "Token:t"},
-	"FunctionDefinition":       {"CompoundStatement:p", "DeclarationList:p", "DeclarationSpecifiers:p", "Declarator:p"},
+	"FunctionDefinition":       {"CompoundStatement:p", "DeclarationList:p", "DeclarationSpecifiers:p", "Declarator:p", "AttributeSpecifierList:p"},
 	"FunctionSpecifier":        {"Token:t"},
 	"GenericAssociation":       {"AssignmentExpression:i", "Token:t", "Token2:t", "TypeName:p"},
 	"GenericAssociationList":   {"GenericAssociation:p", "GenericAssociationList:p", "Token:t"},
@@ -79,7 +80,7 @@ var genFields = map[string][]string{
 	"SelectionStatement":       {"ExpressionList:i", "Statement:p", "Statement2:p", "Token:t", "Token2:t", "Token3:t", "Token4:t"},
 	"ShiftExpression":          {"AdditiveExpression:i", "ShiftExpression:i", "Token:t"},
 	"SpecifierQualifierList":   {"AttributeSpecifierList:p", "AlignmentSpecifier:p", "SpecifierQualifierList:p", "TypeQualifier:p", "TypeSpecifier:p"},
-	"Statement":                {"AsmStatement:p", "CompoundStatement:p", "ExpressionStatement:p", "IterationStatement:p", "JumpStatement:p", "LabeledStatement:p", "SelectionStatement:p"},
+	"Statement":                {"AsmStatement:p", "CompoundStatement:p", "ExpressionStatement:p", "IterationStatement:p", "JumpStatement:p", "LabeledStatement:p", "SelectionStatement:p", "AttributeSpecifierList:p"},
 	"StaticAssertDeclaration":  {"ConstantExpression:i", "Token:t", "Token2:t", "Token3:t", "Token4:t", "Token5:t"},
 	"StorageClassSpecifier":    {"Token:t", "Token2:t", "Token3:t"},
 	"StructDeclaration":        {"AttributeSpecifierList:p", "SpecifierQualifierList:p", "StaticAssertDeclaration:p", "StructDeclaratorList:p", "Token:t"},
@@ -257,6 +258,9 @@ func Walk(n cc.Node, f func(cc.Node) bool) {
 		if x.ArgumentExpressionList != nil {
 			Walk(x.ArgumentExpressionList, f)
 		}
+		if x.BalancedTokenSequence != nil {
+			Walk(x.BalancedTokenSequence, f)
+		}
 	case *cc.AttributeValueList:
 		if x == nil || !f(x) {
 			return
@@ -266,6 +270,13 @@ func Walk(n cc.Node, f func(cc.Node) bool) {
 		}
 		if x.AttributeValueList != nil {
 			Walk(x.AttributeValueList, f)
+		}
+	case *cc.BalancedTokenSequence:
+		if x == nil || !f(x) {
+			return
+		}
+		if x.BalancedTokenSequence != nil {
+			Walk(x.BalancedTokenSequence, f)
 		}
 	case *cc.BlockItem:
 		if x == nil || !f(x) {
@@ -474,6 +485,9 @@ func Walk(n cc.Node, f func(cc.Node) bool) {
 		if x.TypeQualifiers != nil {
 			Walk(x.TypeQualifiers, f)
 		}
+		if x.AttributeSpecifierList != nil {
+			Walk(x.AttributeSpecifierList, f)
+		}
 	case *cc.EnumSpecifier:
 		if x == nil || !f(x) {
 			return
@@ -483,6 +497,9 @@ func Walk(n cc.Node, f func(cc.Node) bool) {
 		}
 		if x.EnumeratorList != nil {
 			Walk(x.EnumeratorList, f)
+		}
+		if x.AttributeSpecifierList != nil {
+			Walk(x.AttributeSpecifierList, f)
 		}
 	case *cc.EnumTypeSpecifier:
 		if x == nil || !f(x) {
@@ -497,6 +514,9 @@ func Walk(n cc.Node, f func(cc.Node) bool) {
 		}
 		if y, ok := any(x.ConstantExpression).(cc.Node); ok {
 			Walk(y, f)
+		}
+		if x.AttributeSpecifierList != nil {
+			Walk(x.AttributeSpecifierList, f)
 		}
 	case *cc.EnumeratorList:
 		if x == nil || !f(x) {
@@ -576,6 +596,9 @@ func Walk(n cc.Node, f func(cc.Node) bool) {
 		}
 		if x.Declarator != nil {
 			Walk(x.Declarator, f)
+		}
+		if x.AttributeSpecifierList != nil {
+			Walk(x.AttributeSpecifierList, f)
 		}
 	case *cc.FunctionSpecifier:
 		if x == nil || !f(x) {
@@ -925,6 +948,9 @@ func Walk(n cc.Node, f func(cc.Node) bool) {
 		if x.SelectionStatement != nil {
 			Walk(x.SelectionStatement, f)
 		}
+		if x.AttributeSpecifierList != nil {
+			Walk(x.AttributeSpecifierList, f)
+		}
 	case *cc.StaticAssertDeclaration:
 		if x == nil || !f(x) {
 			return
@@ -1267,6 +1293,12 @@ func WalkTok(n cc.Node, f func(cc.Token)) {
 		f(x.Token)
 		f(x.Token2)
 		f(x.Token3)
+		f(x.Prefix)
+		f(x.Colon)
+		f(x.Colon2)
+		if x.BalancedTokenSequence != nil {
+			WalkTok(x.BalancedTokenSequence, f)
+		}
 	case *cc.AttributeValueList:
 		if x == nil {
 			return
@@ -1278,6 +1310,14 @@ func WalkTok(n cc.Node, f func(cc.Token)) {
 			WalkTok(x.AttributeValueList, f)
 		}
 		f(x.Token)
+	case *cc.BalancedTokenSequence:
+		if x == nil {
+			return
+		}
+		f(x.Token)
+		if x.BalancedTokenSequence != nil {
+			WalkTok(x.BalancedTokenSequence, f)
+		}
 	case *cc.BlockItem:
 		if x == nil {
 			return
@@ -1505,6 +1545,9 @@ func WalkTok(n cc.Node, f func(cc.Token)) {
 		if x.TypeQualifiers != nil {
 			WalkTok(x.TypeQualifiers, f)
 		}
+		if x.AttributeSpecifierList != nil {
+			WalkTok(x.AttributeSpecifierList, f)
+		}
 	case *cc.EnumSpecifier:
 		if x == nil {
 			return
@@ -1520,6 +1563,9 @@ func WalkTok(n cc.Node, f func(cc.Token)) {
 		f(x.Token3)
 		f(x.Token4)
 		f(x.Token5)
+		if x.AttributeSpecifierList != nil {
+			WalkTok(x.AttributeSpecifierList, f)
+		}
 	case *cc.EnumTypeSpecifier:
 		if x == nil {
 			return
@@ -1537,6 +1583,9 @@ func WalkTok(n cc.Node, f func(cc.Token)) {
 		}
 		f(x.Token)
 		f(x.Token2)
+		if x.AttributeSpecifierList != nil {
+			WalkTok(x.AttributeSpecifierList, f)
+		}
 	case *cc.EnumeratorList:
 		if x == nil {
 			return
@@ -1621,6 +1670,9 @@ func WalkTok(n cc.Node, f func(cc.Token)) {
 		}
 		if x.Declarator != nil {
 			WalkTok(x.Declarator, f)
+		}
+		if x.AttributeSpecifierList != nil {
+			WalkTok(x.AttributeSpecifierList, f)
 		}
 	case *cc.FunctionSpecifier:
 		if x == nil {
@@ -2020,6 +2072,9 @@ func WalkTok(n cc.Node, f func(cc.Token)) {
 		}
 		if x.SelectionStatement != nil {
 			WalkTok(x.SelectionStatement, f)
+		}
+		if x.AttributeSpecifierList != nil {
+			WalkTok(x.AttributeSpecifierList, f)
 		}
 	case *cc.StaticAssertDeclaration:
 		if x == nil {
