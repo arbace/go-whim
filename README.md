@@ -84,6 +84,7 @@ make whim-test-rs      # ... with the Rust editor
 make whim-test-scm     # ... with the Scheme editor
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make caprice.hsl       # the Haskell core as one ghc-lisp module (doc/GHC-LISP.md)
+make whim-vim.lc       # the C product as s-expressions, back byte for byte (doc/C-LISP.md)
 make help              # every target
 ```
 
@@ -148,7 +149,8 @@ internal/        the plan (internal/build), the cuts and steps, the phases
                  phases that edit nothing now in internal/phase/archive/), and
                  what the generic library is told about vim (internal/whim)
 crefactor/       the generic C refactoring library, a Go module of its own:
-                 the C front end, the canonical printer, the sweep, the driver,
+                 the C front end, the canonical printer, C-lisp (C as
+                 s-expressions and back), the sweep, the driver,
                  the transforms (the fall-out closure among them), the
                  analyses, and togo, the C-to-Go, Java, Clojure, Haskell,
                  Rust and Scheme translator
@@ -161,7 +163,7 @@ doc/             GOALS.md (what holds for every phase, and the blocks),
                  pipeline reordered: the front, the blocks, what was measured),
                  PIPELINE-COMPACTION.md, JAVA.md, CLOJURE.md, CLOJURE-PROFILE.md,
                  HASKELL.md, RUST.md, SCHEME.md, the *-IDIOMS.md surveys, GO-LISP.md,
-                 GHC-LISP.md,
+                 GHC-LISP.md, C-LISP.md,
                  PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
                  IR.md and IR-SCHEMA.md (an intermediate representation),
                  SCHEME.md (a Scheme editor surveyed and measured, not scheduled)

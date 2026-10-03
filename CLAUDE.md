@@ -308,7 +308,11 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    module requires it and replaces it with ./crefactor), knowing
                    no code base: it cannot import this module, so the boundary
                    between generic C and vim is the compiler's. cc/: the forked C
-                   front end. cemit/: the canonical printer. sweep/: the closure.
+                   front end. cemit/: the canonical printer (recover.go: its
+                   parse, include lines and macro recovery, exported for
+                   clisp). clisp/: C-lisp, C as s-expressions and back, byte
+                   for byte on canonical text (`whim c2lisp`, `whim lisp2c`;
+                   SPEC.md, every form; doc/C-LISP.md). sweep/: the closure.
                    reach/: what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing. ccx/: a core's pointer casts and evaluation order,
@@ -522,8 +526,11 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    PARALLEL-SUBSTITUTE.md (how much of a :%s is matching,
                    measured on every editor, and what stands in the way), GO-LISP.md
                    (the Go editor in go-lisp syntax: an experiment, and make
-                   editor.lgo) and GHC-LISP.md (caprice's core as one ghc-lisp
+                   editor.lgo), GHC-LISP.md (caprice's core as one ghc-lisp
                    module, converted, checked and compiled: make caprice.hsl)
+                   and C-LISP.md (whim-vim.c as s-expressions, crefactor/clisp:
+                   back byte for byte and compiled to the same binary: make
+                   whim-vim.lc)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -566,6 +573,7 @@ make whim-test-scm    # the quick suite with the Scheme editor too (whim test --
 go tool whim whimsical --debug  # its debugging build, bin/whimsical-debug: optimize-level 2, safe, inspectable (39 s, 1.1 GB)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make caprice.hsl      # the Haskell core as one ghc-lisp module, checked and compiled (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
+make whim-vim.lc      # the C product as s-expressions (C-lisp): back byte for byte, compiled to bin/whim-vim's bytes (7 s; doc/C-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary
 make bin/slim-vim    # the input's binary, with the same one line

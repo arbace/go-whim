@@ -276,24 +276,12 @@ func includes(src []byte) ([]string, int) {
 // Parsing prints that text and reaches a fixpoint on a second pass, so
 // canonicalisation is available there; translating refuses it.
 func Canonical(path string, src []byte) ([]byte, error) {
-	src = stripComments(src)
 	// ONLY #include.  The front end preprocesses: a #define is expanded and gone,
 	// an #if resolved to one branch, and the printer prints the tree -- so a
 	// directive other than #include would be lost from the output without a
-	// word.  It is refused instead.  (vim's text has only #include; a foreign
+	// word.  Parse refuses it instead.  (vim's text has only #include; a foreign
 	// file with macros is not this printer's to canonicalise.)
-	if err := onlyIncludes(path, src); err != nil {
-		return nil, err
-	}
-	cfg, err := cc.NewConfig("linux", "amd64")
-	if err != nil {
-		return nil, err
-	}
-	ast, err := cc.Parse(cfg, []cc.Source{
-		{Name: "<predefined>", Value: cfg.Predefined},
-		{Name: "<builtin>", Value: cc.Builtin},
-		{Name: path, Value: string(src)},
-	})
+	ast, src, err := Parse(path, src)
 	if err != nil {
 		return nil, err
 	}

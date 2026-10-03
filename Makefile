@@ -278,6 +278,28 @@ caprice.hsl:  ## the Haskell editor's core as one ghc-lisp module, checked and c
 	 printf '  %-12s %s lines, the Haskell core in ghc-lisp, one module; ghc-lisp compiles it\n' $@ \
 	    "`grep -c '' $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 
+# whim-vim.lc is the C product as C-lisp, s-expressions (doc/C-LISP.md):
+# src/whim-vim.c converted by crefactor/clisp (whim c2lisp), its round trip
+# held byte for byte both ways (whim lisp2c --check: the forms print as
+# whim-vim.c, and whim-vim.c converts to the same forms), and the C lisp2c
+# prints compiled with the one line to a binary that must be bin/whim-vim
+# byte for byte -- the proof it is the program.  Nothing outside this
+# repository is needed.  Not tracked, not part of `all`.
+.PHONY: whim-vim.lc
+whim-vim.lc: bin/whim-vim  ## the C product as s-expressions (C-lisp), checked both ways and compiled to bin/whim-vim's bytes
+	@set -e; t0=`date +%s`; \
+	 go tool whim c2lisp -o $@.tmp src/whim-vim.c; \
+	 go tool whim lisp2c --check $@.tmp src/whim-vim.c || { rm -f $@.tmp; exit 1; }; \
+	 work=`mktemp -d`; \
+	 go tool whim lisp2c -o $$work/whim-vim.c $@.tmp; \
+	 SOURCE_DATE_EPOCH=0 $(CC) $(CFLAGS) $(LDFLAGS) -o $$work/whim-vim $$work/whim-vim.c; \
+	 cmp -s $$work/whim-vim bin/whim-vim \
+	    || { echo "  whim-vim.lc  REFUSED -- lisp2c's C does not compile to bin/whim-vim's bytes"; rm -rf $$work $@.tmp; exit 1; }; \
+	 rm -rf $$work; \
+	 mv $@.tmp $@; \
+	 printf '  %-12s %s lines, the C product in C-lisp; back to whim-vim.c byte for byte, compiled to bin/whim-vim byte for byte, %ss\n' $@ \
+	    "`grep -c '' $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" "$$((`date +%s` - t0))"
+
 # ==== the editor in Java
 # The editor in Java (braaam/, doc/JAVA.md): the core cut from whim-vim.c and
 # written as package whim.editor (braaam/editor/) by crefactor/togo's Java backend, compiled with javac
@@ -394,7 +416,7 @@ go-test:  ## the Go tests of both modules: this one and crefactor/
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and jars
-	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical bin/whimsical-debug braaam.jar vijure.jar editor.lgo caprice.hsl
+	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical bin/whimsical-debug braaam.jar vijure.jar editor.lgo caprice.hsl whim-vim.lc
 	rm -rf lib/braaam lib/vijure lib/caprice lib/whimsy lib/whimsical lib/whimsical-debug .cache/caprice-suite .cache/whimsy-suite .cache/whimsical-suite .cache/whimsical-suite-debug
 
 .PHONY: clean-cache

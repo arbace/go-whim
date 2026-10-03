@@ -41,7 +41,7 @@ var order = []string{
 	"sweep",
 	"funcreach",
 	"score", "cmdnames", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
-	"build", "cemit",
+	"build", "cemit", "c2lisp", "lisp2c",
 	"parse", "fieldref", "reach", "measure", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "whimsical", "pre", "gocat", "hscat",
 }
 
@@ -106,6 +106,8 @@ var tools = map[string]tool{
 	"utf8only":    {fileStep("utf8only"), "utf8only <file>"},
 	"fold":        {runFold, "fold <always|never|dropif> <file> <pattern> <count>"},
 	"cemit":       {runCemit, "cemit <file.c> [--check]"},
+	"c2lisp":      {runC2lisp, "c2lisp [-o OUT] [FILE] | c2lisp --check FILE..."},
+	"lisp2c":      {runLisp2c, "lisp2c [-o OUT] [FILE.lc] | lisp2c --check FILE.lc FILE.c"},
 	"build":       {runBuild, "build [--check] [-v] [--canonical] [--keep-going] [--from N] [--to N] [--src F] [--out F] [--work D] [--keep D]"},
 	"parse":       {runParse, "parse <file.c>"},
 	"cdiff":       {runCdiff, "cdiff [-n N] A.c B.c"},

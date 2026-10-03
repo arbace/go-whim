@@ -19,6 +19,8 @@
 /editor.lgo
 # The Haskell editor's core as one ghc-lisp module (make caprice.hsl, doc/GHC-LISP.md).
 /caprice.hsl
+# The C product as C-lisp (make whim-vim.lc, doc/C-LISP.md).
+/whim-vim.lc
 
 
 # The baselines the removed test suite recorded (448e9a8 and before).  Nothing
