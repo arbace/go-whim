@@ -42,7 +42,7 @@ var order = []string{
 	"funcreach",
 	"score", "cmdnames", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit",
-	"parse", "fieldref", "reach", "measure", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "whimsical", "pre", "gocat",
+	"parse", "fieldref", "reach", "measure", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "whimsical", "pre", "gocat", "hscat",
 }
 
 var tools = map[string]tool{
@@ -120,6 +120,7 @@ var tools = map[string]tool{
 	"whimsical":   {runWhimsical, "whimsical [--debug] [--out DIR] [FILE]"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
 	"gocat":       {runGocat, "gocat <dir>"},
+	"hscat":       {runHscat, "hscat [--ghc GHC] [--hsl FILE] [--out DIR] [SRC]"},
 	"test":        {runTest, "test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--rust] [--scheme] [--scheme-debug] [--ref REV] [FILE]"},
 	"measure":     {runMeasure, "measure <dir of qNNN.c>"},
 	"reach":       {runReach, "reach <file.c> [--no-control]"},

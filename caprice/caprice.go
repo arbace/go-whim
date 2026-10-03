@@ -57,6 +57,10 @@ var ErrNoBackend = errors.New("caprice: the generator wrote no Caprice/Editor.hs
 //     where the call graph lets them be.
 var GHCFlags = []string{"-O1", "-threaded", "-rtsopts", "-with-rtsopts=-N -qg", "-j4"}
 
+// GHC is the compiler CompileStats runs: ghc from PATH, or another (ghc-lisp's,
+// for `whim hscat --ghc`).
+var GHC = "ghc"
+
 // command is exec.Command whose process dies with ours.
 func command(name string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(context.Background(), name, args...)
@@ -192,7 +196,7 @@ func CompileStats(dir, out, main string) (string, GHCStats, error) {
 	} else {
 		args = append(args, main)
 	}
-	cmd := command("ghc", args...)
+	cmd := command(GHC, args...)
 	start := time.Now()
 	o, err := cmd.CombinedOutput()
 	st.Wall = time.Since(start)

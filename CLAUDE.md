@@ -520,9 +520,10 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    IR-SCHEMA.md (that representation sketched against togo:
                    what is shared and duplicated, a schema, a migration path),
                    PARALLEL-SUBSTITUTE.md (how much of a :%s is matching,
-                   measured on every editor, and what stands in the way) and GO-LISP.md
+                   measured on every editor, and what stands in the way), GO-LISP.md
                    (the Go editor in go-lisp syntax: an experiment, and make
-                   editor.lgo)
+                   editor.lgo) and GHC-LISP.md (caprice's core as one ghc-lisp
+                   module, converted, checked and compiled: make caprice.hsl)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -564,6 +565,7 @@ make bin/whimsical    # the editor in Scheme: the library (whimsical editor) gen
 make whim-test-scm    # the quick suite with the Scheme editor too (whim test --scheme; --wide --scheme)
 go tool whim whimsical --debug  # its debugging build, bin/whimsical-debug: optimize-level 2, safe, inspectable (39 s, 1.1 GB)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
+make caprice.hsl      # the Haskell core as one ghc-lisp module, checked and compiled (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary
 make bin/slim-vim    # the input's binary, with the same one line

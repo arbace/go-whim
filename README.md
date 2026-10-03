@@ -83,6 +83,7 @@ make whim-test-hs      # ... with the Haskell editor
 make whim-test-rs      # ... with the Rust editor
 make whim-test-scm     # ... with the Scheme editor
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
+make caprice.hsl       # the Haskell core as one ghc-lisp module (doc/GHC-LISP.md)
 make help              # every target
 ```
 
@@ -160,6 +161,7 @@ doc/             GOALS.md (what holds for every phase, and the blocks),
                  pipeline reordered: the front, the blocks, what was measured),
                  PIPELINE-COMPACTION.md, JAVA.md, CLOJURE.md, CLOJURE-PROFILE.md,
                  HASKELL.md, RUST.md, SCHEME.md, the *-IDIOMS.md surveys, GO-LISP.md,
+                 GHC-LISP.md,
                  PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
                  IR.md and IR-SCHEMA.md (an intermediate representation),
                  SCHEME.md (a Scheme editor surveyed and measured, not scheduled)

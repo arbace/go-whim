@@ -17,6 +17,8 @@
 
 # The Go editor as one go-lisp file (make editor.lgo, doc/GO-LISP.md).
 /editor.lgo
+# The Haskell editor's core as one ghc-lisp module (make caprice.hsl, doc/GHC-LISP.md).
+/caprice.hsl
 
 
 # The baselines the removed test suite recorded (448e9a8 and before).  Nothing

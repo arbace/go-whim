@@ -251,6 +251,33 @@ editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLI
 	 printf '  %-12s %s lines, the Go editor in go-lisp, one file; go-lisp compiles it\n' $@ \
 	    "`grep -c '' $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 
+# caprice.hsl is the Haskell editor's core as ONE ghc-lisp module
+# (doc/GHC-LISP.md): Caprice.Editor written unsplit (whim hscat), converted by
+# ghc-lisp's ghc (--hs2lisp), its round trip checked (--lisp-check), and
+# compiled by that ghc, in the Haskell's place, with caprice's runtime, host
+# and launcher -- the proof it is the editor.  It needs ghc-lisp, which is not
+# this repository's: GHCLISP_ROOT names its tree (the compiler is
+# _build/stage1/bin/ghc), or GHCLISP a ghc-lisp ghc.  About sixteen minutes and
+# 25 GB at the peak (the round-trip check of one 90,000-line module); not
+# tracked, not part of `all`.
+GHCLISP ?=
+GHCLISP_ROOT ?=
+.PHONY: caprice.hsl
+caprice.hsl:  ## the Haskell editor's core as one ghc-lisp module, checked and compiled (needs ghc-lisp: GHCLISP_ROOT=.../ghc-lisp)
+	@if [ -n "$(GHCLISP_ROOT)" ]; then ghc="$(GHCLISP_ROOT)/_build/stage1/bin/ghc"; \
+	 elif [ -n "$(GHCLISP)" ]; then ghc="$(GHCLISP)"; \
+	 else echo "  caprice.hsl  needs ghc-lisp: make caprice.hsl GHCLISP_ROOT=/path/to/ghc-lisp (doc/GHC-LISP.md)"; exit 1; fi; \
+	 [ -x "$$ghc" ] || { echo "  caprice.hsl  no ghc-lisp ghc at $$ghc (doc/GHC-LISP.md)"; exit 1; }; \
+	 probe=`mktemp -d`; printf 'module M where\n' > $$probe/M.hs; \
+	 "$$ghc" --hs2lisp $$probe/M.hs 2>/dev/null | grep -q '(module M)' \
+	    || { echo "  caprice.hsl  $$ghc is not ghc-lisp's: it has no --hs2lisp (doc/GHC-LISP.md)"; rm -rf $$probe; exit 1; }; \
+	 rm -rf $$probe; \
+	 go tool whim hscat --ghc "$$ghc" --hsl $@.tmp \
+	    || { echo "  caprice.hsl  REFUSED -- see above"; rm -f $@.tmp; exit 1; }; \
+	 mv $@.tmp $@; \
+	 printf '  %-12s %s lines, the Haskell core in ghc-lisp, one module; ghc-lisp compiles it\n' $@ \
+	    "`grep -c '' $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
+
 # ==== the editor in Java
 # The editor in Java (braaam/, doc/JAVA.md): the core cut from whim-vim.c and
 # written as package whim.editor (braaam/editor/) by crefactor/togo's Java backend, compiled with javac
@@ -367,7 +394,7 @@ go-test:  ## the Go tests of both modules: this one and crefactor/
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and jars
-	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical bin/whimsical-debug braaam.jar vijure.jar editor.lgo
+	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical bin/whimsical-debug braaam.jar vijure.jar editor.lgo caprice.hsl
 	rm -rf lib/braaam lib/vijure lib/caprice lib/whimsy lib/whimsical lib/whimsical-debug .cache/caprice-suite .cache/whimsy-suite .cache/whimsical-suite .cache/whimsical-suite-debug
 
 .PHONY: clean-cache
