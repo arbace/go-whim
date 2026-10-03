@@ -87,7 +87,7 @@ func (r *Report) String() string {
 // the containment's order, then the types', then the externs'.
 func Import(path string, src []byte) (*Graph, *Report, error) {
 	if abs, err := filepath.Abs(path); err == nil {
-		path = abs // cc names a relative path's tokens otherwise, and the file holds nothing
+		path = abs // one name for a file however it was reached; a relative or `..` path imports the same (measured)
 	}
 	ast, bsrc, err := cemit.Parse(path, src)
 	if err != nil {
