@@ -757,7 +757,7 @@ make help            # every target, with a line each
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
   the boundary before each phase that begins on the graph the graph it
-  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: sixteen now), and seals the
+  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: twenty-one now), and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and

@@ -1042,7 +1042,7 @@ func hasLabel(s *Node) bool {
 	return found
 }
 
-func isLabelItem(n *Node) bool { return n.Is("label") || isCaseLabel(n) || n.Is("stmt-attr") }
+func isLabelOrAttr(n *Node) bool { return n.Is("label") || isCaseLabel(n) || n.Is("stmt-attr") }
 
 // alone says s is an item of a block, not the statement of a label.
 func (f *xfold) alone(s *Node) bool {
@@ -1054,18 +1054,9 @@ func (f *xfold) alone(s *Node) bool {
 		if isXMark(prev) {
 			continue
 		}
-		return !isLabelItem(prev)
+		return !isLabelOrAttr(prev)
 	}
 	return true
-}
-
-// isDeclItem says an item is a declaration.
-func isDeclItem(n *Node) bool {
-	switch n.Head() {
-	case "def", "typedef", "declare", "struct", "union", "enum", "static_assert", "macro-decl":
-		return true
-	}
-	return false
 }
 
 // spliced is a taken branch's items, as the text splices them: a block
@@ -1204,7 +1195,7 @@ func xitems(items []*Node) []xitem {
 		}
 		start := i
 		labeled := false
-		for i < len(items) && (isLabelItem(items[i]) || isXMark(items[i]) && i > start) {
+		for i < len(items) && (isLabelOrAttr(items[i]) || isXMark(items[i]) && i > start) {
 			labeled = labeled || !items[i].Is("stmt-attr")
 			i++
 		}
