@@ -41,6 +41,7 @@
 
 use crate::host::Host;
 use std::cell::{Cell, RefCell};
+use std::ffi::c_void;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 
@@ -116,8 +117,8 @@ extern "C" {
     fn pipe2(fds: *mut i32, flags: i32) -> i32;
     fn close(fd: i32) -> i32;
     fn select(n: i32, r: *mut FdSet, w: *mut FdSet, e: *mut FdSet, tv: *mut Timeval) -> i32;
-    fn read(fd: i32, buf: *mut u8, n: usize) -> isize;
-    fn write(fd: i32, buf: *const u8, n: usize) -> isize;
+    fn read(fd: i32, buf: *mut c_void, n: usize) -> isize;
+    fn write(fd: i32, buf: *const c_void, n: usize) -> isize;
     fn nanosleep(req: *const Timespec, rem: *mut Timespec) -> i32;
     fn gettimeofday(tv: *mut Timeval, tz: *mut u8) -> i32;
     fn time(t: *mut i64) -> i64;
@@ -196,7 +197,7 @@ extern "C" fn host_on_death(sig: i32) {
         HOST_DEATH_PENDING.store(sig, Ordering::SeqCst);
         let w = HOST_DEATH_PIPE[1].load(Ordering::SeqCst);
         if w >= 0 {
-            write(w, b"\0".as_ptr(), 1);
+            write(w, b"\0".as_ptr().cast(), 1);
         }
         *__errno_location() = e;
     }
@@ -236,7 +237,7 @@ impl Term {
         let r = HOST_DEATH_PIPE[0].load(Ordering::SeqCst);
         if r >= 0 {
             let mut b = [0u8; 16];
-            while unsafe { read(r, b.as_mut_ptr(), b.len()) } > 0 {}
+            while unsafe { read(r, b.as_mut_ptr().cast(), b.len()) } > 0 {}
         }
         let sig = HOST_DEATH_PENDING.load(Ordering::SeqCst);
         if sig != 0 {
@@ -475,7 +476,7 @@ impl Host for Term {
                 return 5;
             }
         }
-        unsafe { read(0, buf.as_mut_ptr(), len) as i32 }
+        unsafe { read(0, buf.as_mut_ptr().cast(), len) as i32 }
     }
 
     /// host_raise: kill(getpid(), sig) -- the installed handler runs.
@@ -501,7 +502,7 @@ impl Host for Term {
         let fd = if err { 2 } else { 1 };
         let mut off = 0;
         while off < msg.len() {
-            let w = unsafe { write(fd, msg[off..].as_ptr(), msg.len() - off) };
+            let w = unsafe { write(fd, msg[off..].as_ptr().cast(), msg.len() - off) };
             if w <= 0 {
                 return;
             }
@@ -511,6 +512,6 @@ impl Host for Term {
 
     /// host_write: one write(1).
     fn write(&self, p: &[u8]) -> i32 {
-        unsafe { write(1, p.as_ptr(), p.len()) as i32 }
+        unsafe { write(1, p.as_ptr().cast(), p.len()) as i32 }
     }
 }
