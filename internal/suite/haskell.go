@@ -101,3 +101,35 @@ func buildHaskell(gen caprice.Gen, candSrc string) (*jvmEditor, error) {
 	}
 	return e, nil
 }
+
+// hsBinControlOld is the control's literal as a compiled caprice holds it:
+// the module's primitive string, its bytes and its NUL in the program's
+// read-only data.
+var hsBinControlOld, hsBinControlNew = []byte(" INSERT\x00"), []byte(" INSERX\x00")
+
+// prebuiltHaskell is the Haskell editor as the program bin, built already
+// (`whim test --haskell-bin PATH`): caprice compiled some other way --
+// doc/GHC-LISP.md's, from one ghc-lisp module at -O0 -- held to the C
+// candidate on every case as the one the suite builds is.
+//
+// ITS CONTROL IS THE SAME PROGRAM, ONE BYTE CHANGED: the one copy of the
+// literal " INSERT" in it spelled " INSERX", in a copy under dir.  The
+// control the suite builds changes that literal in the generated module and
+// compiles it, which would prove the suite sees the answers of the program
+// it compiled, not of this one; the patched copy is this program, so the
+// cases it moves are this program's own answers.  It is refused unless the
+// literal is in the binary exactly once.
+func prebuiltHaskell(bin, dir string) (*jvmEditor, error) {
+	abs, err := filepath.Abs(bin)
+	if err != nil {
+		return nil, err
+	}
+	e := &jvmEditor{name: "Haskell", where: abs, file: "the program's bytes", launcher: "caprice",
+		frame: regexp.MustCompile(`$^`), bin: abs, prebuilt: true}
+	if e.ctl, err = patchControl(abs, dir, "caprice-control", hsBinControlOld, hsBinControlNew); err != nil {
+		return nil, err
+	}
+	e.note = fmt.Sprintf("the Haskell editor is %s, built already; its control is that program with its one %q changed to %q",
+		abs, hsBinControlOld[:len(hsBinControlOld)-1], hsBinControlNew[:len(hsBinControlNew)-1])
+	return e, nil
+}

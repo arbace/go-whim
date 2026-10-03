@@ -255,15 +255,17 @@ editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLI
 # (doc/GHC-LISP.md): Caprice.Editor written unsplit (whim hscat), converted by
 # ghc-lisp's ghc (--hs2lisp), its round trip checked (--lisp-check), and
 # compiled by that ghc, in the Haskell's place, with caprice's runtime, host
-# and launcher -- the proof it is the editor.  It needs ghc-lisp, which is not
-# this repository's: GHCLISP_ROOT names its tree (the compiler is
-# _build/stage1/bin/ghc), or GHCLISP a ghc-lisp ghc.  About sixteen minutes and
-# 25 GB at the peak (the round-trip check of one 90,000-line module); not
-# tracked, not part of `all`.
+# and launcher, and the program run on the quick suite (whim test
+# --haskell-bin, --limit 2m: at -O0 a par_* case takes up to 43 s) -- the proof
+# it is the editor.  It needs ghc-lisp, which is not this repository's:
+# GHCLISP_ROOT names its tree (the compiler is _build/stage1/bin/ghc), or
+# GHCLISP a ghc-lisp ghc.  About sixteen minutes and 25 GB at the peak (the
+# round-trip check of one 90,000-line module), and the suite's three minutes;
+# not tracked, not part of `all`.
 GHCLISP ?=
 GHCLISP_ROOT ?=
 .PHONY: caprice.hsl
-caprice.hsl:  ## the Haskell editor's core as one ghc-lisp module, checked and compiled (needs ghc-lisp: GHCLISP_ROOT=.../ghc-lisp)
+caprice.hsl:  ## the Haskell editor's core as one ghc-lisp module, checked, compiled and run on the quick suite (needs ghc-lisp: GHCLISP_ROOT=.../ghc-lisp)
 	@if [ -n "$(GHCLISP_ROOT)" ]; then ghc="$(GHCLISP_ROOT)/_build/stage1/bin/ghc"; \
 	 elif [ -n "$(GHCLISP)" ]; then ghc="$(GHCLISP)"; \
 	 else echo "  caprice.hsl  needs ghc-lisp: make caprice.hsl GHCLISP_ROOT=/path/to/ghc-lisp (doc/GHC-LISP.md)"; exit 1; fi; \
@@ -275,7 +277,7 @@ caprice.hsl:  ## the Haskell editor's core as one ghc-lisp module, checked and c
 	 go tool whim hscat --ghc "$$ghc" --hsl $@.tmp \
 	    || { echo "  caprice.hsl  REFUSED -- see above"; rm -f $@.tmp; exit 1; }; \
 	 mv $@.tmp $@; \
-	 printf '  %-12s %s lines, the Haskell core in ghc-lisp, one module; ghc-lisp compiles it\n' $@ \
+	 printf '  %-12s %s lines, the Haskell core in ghc-lisp, one module; ghc-lisp compiles it, and the program answers the quick suite as the C does\n' $@ \
 	    "`grep -c '' $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 
 # whim-vim.lc is the C product as C-lisp, s-expressions (doc/C-LISP.md):

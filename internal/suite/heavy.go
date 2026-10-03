@@ -20,6 +20,11 @@ import (
 // times the C, the Java 2.4 and the Clojure 9.3 -- and, the JIT's huge-method
 // limit left on, the Java 3.8 and the Clojure 52, which is what it is there
 // to refuse.
+//
+// A program built already (--haskell-bin) is held to the answers and timed,
+// but not to the bound: its speed is what whoever built it chose, not what
+// the backend writes -- caprice compiled at -O0 from one ghc-lisp module
+// (doc/GHC-LISP.md) took 80 times the C's time.
 var heavyKeys = []byte("ithe quick brown fox jumps over the lazy dog 0123456789\x1byy5000p" +
 	":%s/o/0/g\r:%s/\\v(qu)(i)/\\2\\1/g\rgg:g/f0x/normal wwdw\rG:%s/e/E/g\r:q!\r")
 
@@ -27,7 +32,8 @@ const heavyBound = 25
 
 // heavyLimit is how long one editor may take on the heavy case before it is
 // killed: long enough that a slow editor is measured and refused by the
-// bound, not by the limit.
+// bound, not by the limit -- or --limit, for an editor a run adds, when that
+// is longer.
 const heavyLimit = 5 * time.Minute
 
 // checkHeavy runs the heavy case on the reference and the candidate, then
@@ -41,16 +47,20 @@ func checkHeavy(w io.Writer, rev string, b *builds) error {
 		//lint:ignore ST1005 it ends in the command :q!, not in punctuation
 		return fmt.Errorf("the heavy case ran out of input on %s: its keys never reach :q!", rev)
 	}
-	type editor struct{ name, bin string }
-	eds := []editor{{"C", b.cand}, {"Go", b.goBin}}
+	type editor struct {
+		name, bin string
+		limit     time.Duration
+		unbound   bool // a program built already: timed, not held to heavyBound
+	}
+	eds := []editor{{"C", b.cand, heavyLimit, false}, {"Go", b.goBin, heavyLimit, false}}
 	for _, e := range b.jvm {
-		eds = append(eds, editor{e.label(""), e.bin})
+		eds = append(eds, editor{e.label(""), e.bin, max(heavyLimit, e.limit), e.prebuilt})
 	}
 	var parts, slow []string
 	var c time.Duration
 	for i, e := range eds {
 		start := time.Now()
-		out, code, err := runLimit(e.bin, nil, heavyKeys, heavyLimit)
+		out, code, err := runLimit(e.bin, nil, heavyKeys, e.limit)
 		d := time.Since(start)
 		if err != nil {
 			return fmt.Errorf("the heavy case on the %s editor: %w", e.name, err)
@@ -65,6 +75,10 @@ func checkHeavy(w io.Writer, rev string, b *builds) error {
 			continue
 		}
 		r := float64(d) / float64(c)
+		if e.unbound {
+			parts = append(parts, fmt.Sprintf("%s %dms (%.1fx, built already: not held to %dx)", e.name, d.Milliseconds(), r, heavyBound))
+			continue
+		}
 		parts = append(parts, fmt.Sprintf("%s %dms (%.1fx)", e.name, d.Milliseconds(), r))
 		if r > heavyBound {
 			slow = append(slow, e.name)

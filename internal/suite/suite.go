@@ -124,8 +124,15 @@ func Run(bin string, keys []byte) ([]byte, int, error) { return RunArgs(bin, nil
 
 // RunArgs is Run with the editor's command-line arguments.
 func RunArgs(bin string, args []string, keys []byte) ([]byte, int, error) {
-	return runLimit(bin, args, keys, 10*time.Second)
+	return runLimit(bin, args, keys, DefaultLimit)
 }
+
+// DefaultLimit is how long one run of a case may take before the editor is
+// killed and the run counted a hang.  Every editor answers a case in well
+// under a second at its own optimization; JVM.Limit (`whim test --limit`)
+// raises it for the editors a run adds, for a build that is slow on purpose
+// (caprice compiled at -O0 from one ghc-lisp module, doc/GHC-LISP.md).
+const DefaultLimit = 10 * time.Second
 
 // pinnedTime holds every editor's clock still (phase 99: WHIM_TIME, which
 // host_time() returns when it is set).  undo's message says how long ago a
@@ -313,6 +320,25 @@ type JVM struct {
 	// build (whimsical.Debug) instead: --scheme-debug
 	Scheme      whimsical.Gen
 	SchemeDebug bool
+	// HaskellBin, a caprice program built already, is run as the Haskell
+	// editor instead of one built from the candidate: --haskell-bin PATH.
+	// Its control is the same program with the one copy of the control's
+	// literal in it changed (prebuiltHaskell).
+	HaskellBin string
+	// Limit is the time one run of a case may take on the editors these
+	// fields add, and on their controls: --limit DURATION; 0 is
+	// DefaultLimit.  The C builds and the Go editor keep DefaultLimit: they
+	// are the oracle, they answer in milliseconds, and a hang there is a
+	// fault to report as soon as it ever was.
+	Limit time.Duration
+}
+
+// limit is the per-run limit of the editors j adds.
+func (j JVM) limit() time.Duration {
+	if j.Limit > 0 {
+		return j.Limit
+	}
+	return DefaultLimit
 }
 
 // builds is what a run compares: the C of rev (the reference), the
@@ -367,7 +393,9 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 		},
 	}
 	var java, clj, hs, rs, scm *jvmEditor
-	if jvm.Haskell != nil {
+	if jvm.HaskellBin != "" {
+		jobs = append(jobs, func() (err error) { hs, err = prebuiltHaskell(jvm.HaskellBin, dir); return })
+	} else if jvm.Haskell != nil {
 		jobs = append(jobs, func() (err error) { hs, err = buildHaskell(jvm.Haskell, candSrc); return })
 	}
 	if jvm.Rust != nil {
@@ -403,6 +431,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 	}
 	for _, e := range []*jvmEditor{java, clj, hs, rs, scm} {
 		if e != nil {
+			e.limit = jvm.limit()
 			b.jvm = append(b.jvm, e)
 		}
 	}

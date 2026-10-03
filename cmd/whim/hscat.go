@@ -7,27 +7,36 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/arbace/go-whim/caprice"
 	"github.com/arbace/go-whim/crefactor/togo"
+	"github.com/arbace/go-whim/internal/suite"
 )
+
+// hscatLimit is how long one run of a case may take on the program hscat
+// builds, against the suite's 10 s: at -O0 the par_* cases run past that.
+const hscatLimit = 2 * time.Minute
 
 // runHscat is the Haskell editor's core as ONE module, as gocat is the Go
 // editor as one file: the Haskell backend with the profile `whim gen` uses
 // but HsParts 1, so Caprice.Editor is not split into Defs and parts.
 //
-//	whim hscat [--ghc GHC] [--hsl FILE] [--out DIR] [SRC]
+//	whim hscat [--ghc GHC] [--hsl FILE] [--out DIR] [--no-test] [SRC]
 //
 // With no --ghc it prints the module. With --ghc, GHC is ghc-lisp's ghc
 // (github.com/arbace/ghc-lisp, doc/GHC-LISP.md): the module is converted to
 // ghc-lisp's s-expressions (--hs2lisp), the round trip is checked
 // (--lisp-check: Haskell, Lisp, Haskell give the same tree), and the .hsl,
 // in the module's place, is compiled by that ghc with caprice's runtime, host
-// and launcher into DIR/caprice -- the proof it is the editor. The .hsl is
-// written to FILE (stdout when no --hsl). SRC is src/whim-vim.c by default;
-// DIR a temporary directory, removed after, unless --out names one.
+// and launcher into DIR/caprice, and that program is run on the quick suite
+// (whim test --haskell-bin DIR/caprice --limit 2m, against HEAD) -- the proof it
+// is the editor; --no-test skips the suite. The .hsl is written to FILE
+// (stdout when no --hsl) only when all of it passed. SRC is src/whim-vim.c
+// by default; DIR a temporary directory, removed after, unless --out names
+// one.
 func runHscat(args []string) int {
-	src, ghc, hsl, out := "src/whim-vim.c", "", "", ""
+	src, ghc, hsl, out, test := "src/whim-vim.c", "", "", "", true
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--ghc" && i+1 < len(args):
@@ -39,21 +48,23 @@ func runHscat(args []string) int {
 		case args[i] == "--out" && i+1 < len(args):
 			i++
 			out = args[i]
+		case args[i] == "--no-test":
+			test = false
 		case len(args[i]) > 0 && args[i][0] != '-':
 			src = args[i]
 		default:
-			fmt.Fprintln(os.Stderr, "usage: whim hscat [--ghc GHC] [--hsl FILE] [--out DIR] [SRC]")
+			fmt.Fprintln(os.Stderr, "usage: whim hscat [--ghc GHC] [--hsl FILE] [--out DIR] [--no-test] [SRC]")
 			return 2
 		}
 	}
-	if err := hscat(src, ghc, hsl, out); err != nil {
+	if err := hscat(src, ghc, hsl, out, test); err != nil {
 		fmt.Fprintf(os.Stderr, "whim hscat: %v\n", err)
 		return 1
 	}
 	return 0
 }
 
-func hscat(src, ghc, hsl, out string) error {
+func hscat(src, ghc, hsl, out string, test bool) error {
 	dir := out
 	if dir == "" {
 		d, err := os.MkdirTemp("", "hscat.")
@@ -125,6 +136,16 @@ func hscat(src, ghc, hsl, out string) error {
 	}
 	fmt.Fprintf(os.Stderr, "  caprice.hsl  %d lines; --lisp-check OK; compiled with caprice's runtime into %s (%s)\n",
 		bytes.Count(lisp, []byte{'\n'}), prog, st)
+	// And it answers as the editor does: the quick suite, the program held to
+	// the C on every case with its control its own bytes, one literal changed.
+	// At -O0 the par_* cases that build 3,000 lines by keys run past the
+	// suite's 10 s, so a run may take hscatLimit; the heavy case times it but,
+	// for a program built already, holds it to no bound.
+	if test {
+		if err := suite.Check(os.Stderr, "HEAD", src, suite.JVM{HaskellBin: prog, Limit: hscatLimit}); err != nil {
+			return fmt.Errorf("the program %s ghc-lisp built is not the editor: %v", prog, err)
+		}
+	}
 	if hsl == "" {
 		_, err = os.Stdout.Write(lisp)
 		return err

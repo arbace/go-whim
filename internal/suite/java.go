@@ -40,6 +40,9 @@ type jvmEditor struct {
 	launcher    string         // the name its launcher reports a failure under
 	frame       *regexp.Regexp // a frame of the core; its function the first group
 	bin, ctl    string         // the two launchers
+	limit       time.Duration  // how long one run may take (JVM.Limit)
+	note        string         // what its control is, when not the generated file changed
+	prebuilt    bool           // a program built already (--haskell-bin), not by the suite
 }
 
 // buildJava builds the Java editor from candSrc, and its control, under dir.
@@ -106,8 +109,9 @@ type result struct {
 	stopB bool // b could not be run to its end (a hang, or no start)
 }
 
-// compareEach runs every case on a and b, as many at once as there are cores.
-func compareEach(cases []WideCase, a, b string) ([]result, error) {
+// compareEach runs every case on a and b, as many at once as there are cores,
+// a run on a killed after la and one on b after lb.
+func compareEach(cases []WideCase, a, b string, la, lb time.Duration) ([]result, error) {
 	results := make([]result, len(cases))
 	sem := make(chan struct{}, runtime.NumCPU())
 	var wg sync.WaitGroup
@@ -117,12 +121,12 @@ func compareEach(cases []WideCase, a, b string) ([]result, error) {
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			oa, sa, err := runWide(a, c)
+			oa, sa, err := runWide(a, c, la)
 			if err != nil {
 				results[i] = result{c: c, err: fmt.Errorf("%s %s on %s: %w", c.Group, c.Name, a, err)}
 				return
 			}
-			ob, sb, err := runWide(b, c)
+			ob, sb, err := runWide(b, c, lb)
 			if err != nil {
 				results[i] = result{c: c, outB: ob, stopB: true}
 				return
@@ -206,11 +210,18 @@ func failures(rs []result, e *jvmEditor) []string {
 // its control went unseen.
 func checkJVM(w io.Writer, label string, groups []string, cases []WideCase, b *builds, e *jvmEditor) error {
 	start := time.Now()
-	diffRes, err := compareEach(cases, b.cand, e.bin)
+	if e.note != "" {
+		fmt.Fprintf(w, "  %-12s %s\n", label, e.note)
+	}
+	if e.limit != DefaultLimit {
+		fmt.Fprintf(w, "  %-12s a run of the %s editor or its control may take %s (--limit), the C's and the Go's %s\n",
+			label, e.name, e.limit, DefaultLimit)
+	}
+	diffRes, err := compareEach(cases, b.cand, e.bin, DefaultLimit, e.limit)
 	if err != nil {
 		return err
 	}
-	seenRes, err := compareEach(cases, e.bin, e.ctl)
+	seenRes, err := compareEach(cases, e.bin, e.ctl, e.limit, e.limit)
 	if err != nil {
 		return err
 	}
@@ -249,6 +260,22 @@ func checkJVM(w io.Writer, label string, groups []string, cases []WideCase, b *b
 			strings.ToUpper(e.name), javaControlOld, javaControlNew, e.file, e.name)
 	}
 	return nil
+}
+
+// patchControl copies the program bin to dir/name with the control applied
+// to its bytes -- from, the control's literal as the program holds it,
+// changed to to -- and returns the copy's path; an error unless from is in
+// bin exactly once.
+func patchControl(bin, dir, name string, from, to []byte) (string, error) {
+	b, err := os.ReadFile(bin)
+	if err != nil {
+		return "", err
+	}
+	if n := bytes.Count(b, from); n != 1 {
+		return "", fmt.Errorf("suite: the control's literal %q is in %s %d times, not once", from, bin, n)
+	}
+	p := filepath.Join(dir, name)
+	return p, os.WriteFile(p, bytes.Replace(b, from, to, 1), 0o755)
 }
 
 // abbrev is names joined, the first n of them and a count of the rest.

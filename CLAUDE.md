@@ -214,7 +214,15 @@ slim-vim.c  --whim-->  whim-vim.c
   (`caprice/`, `doc/HASKELL.md`), the same way, its control `" INSERT"`
   changed in the generated `Editor.hs`; it answers all 80 and all 240 as the
   C does, its two builds kept in `.cache/caprice-suite/` between runs, since
-  its core is nine modules and two and a half minutes of GHC's time.
+  its core is nine modules and two and a half minutes of GHC's time;
+  `--haskell-bin P` runs a caprice built already instead (`make
+  caprice.hsl`'s, `doc/GHC-LISP.md`), its control P itself with its one
+  `" INSERT"` changed to `" INSERX"` in its bytes, so that what the control
+  moves is that program's own answers. **`--limit D`**, on either suite, is
+  how long one run of a case may take on the editors the flags add and on
+  their controls (10 s by default, and always for the C builds and the Go
+  editor, the oracle): the `-O0` ghc-lisp caprice takes 43 s on `par_mmp`,
+  and answers all 80 and all 240 as the C does with `--limit 2m`.
   **`--rust`** adds the RUST editor, whimsy (`whimsy/`, `doc/RUST.md`), the
   same way, its control `" INSERT"` changed in the generated `editor.rs`; it
   answers all 80 and all 240 as the C does, its two builds kept in
@@ -241,7 +249,9 @@ slim-vim.c  --whim-->  whim-vim.c
   case** (`internal/suite/heavy.go`), the one that times: 5,000 lines, three
   substitutions and a `:g`, run on every editor of the run one at a time,
   required to answer as the reference does, each time reported beside the
-  C's, and an editor over 25 times the C's time failing the run -- measured,
+  C's, and an editor over 25 times the C's time failing the run (one built
+  already, `--haskell-bin`'s, is timed but not held to it: the `-O0`
+  ghc-lisp caprice 81-84) -- measured,
   Rust 0.25-0.3, Go 0.5-0.6, Scheme 0.8-0.9, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
   its big functions were compiled sooner, `doc/CLOJURE-PROFILE.md`) since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
@@ -564,7 +574,7 @@ make bin/vijure       # the editor in Clojure: whim.editor generated, AOT-compil
 make whim-test-clj    # the quick suite with the Clojure editor too (whim test --clojure; --wide --clojure)
 make bin/caprice      # the editor in Haskell: Caprice.Editor generated, compiled by GHC (three minutes when the core moved; its time and peak printed)
 go tool whim caprice --lint  # the same, then ghc -Wall's warnings on the generated module, by flag (0 now)
-make whim-test-hs     # the quick suite with the Haskell editor too (whim test --haskell; --wide --haskell)
+make whim-test-hs     # the quick suite with the Haskell editor too (whim test --haskell; --wide --haskell; --haskell-bin P: a program built already)
 make bin/whimsy       # the editor in Rust: the module editor generated, compiled by cargo, offline (forty seconds when the core moved; its time and peak printed)
 go tool whim whimsy --lint  # the same, then rustc's warnings on the generated module, its #[allow]s and #[expect]s taken out, by lint (487 now: 482 the C's names, 5 dead stores the module expects)
 make whim-test-rs     # the quick suite with the Rust editor too (whim test --rust; --wide --rust)
@@ -572,7 +582,7 @@ make bin/whimsical    # the editor in Scheme: the library (whimsical editor) gen
 make whim-test-scm    # the quick suite with the Scheme editor too (whim test --scheme; --wide --scheme)
 go tool whim whimsical --debug  # its debugging build, bin/whimsical-debug: optimize-level 2, safe, inspectable (39 s, 1.1 GB)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
-make caprice.hsl      # the Haskell core as one ghc-lisp module, checked and compiled (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
+make caprice.hsl      # the Haskell core as one ghc-lisp module, checked, compiled, and the program run on the quick suite (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
 make whim-vim.lc      # the C product as s-expressions (C-lisp): back byte for byte, compiled to bin/whim-vim's bytes (7 s; doc/C-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary

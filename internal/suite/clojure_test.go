@@ -46,7 +46,7 @@ func TestClojureStandIn(t *testing.T) {
 		{Group: "keys", Name: "typed", Keys: []byte("ihello\x1b:q!\r")},
 		{Group: "keys", Name: "untyped", Keys: []byte("x")},
 	}
-	rs, err := compareEach(cases, e.bin, e.ctl)
+	rs, err := compareEach(cases, e.bin, e.ctl, DefaultLimit, DefaultLimit)
 	if err != nil {
 		t.Fatal(err)
 	}

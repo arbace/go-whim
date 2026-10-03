@@ -20,7 +20,7 @@ import (
 // the modes is how the keys arrive.  With pieces > 1 the keys go in that many
 // pieces, pause apart: the "trickle" control, for an editor that starts more
 // slowly than one write of the keys takes to land (whimsical: about 35 ms).
-func runPipe(bin string, args []string, keys []byte, pieces int, pause time.Duration) ([]byte, int, error) {
+func runPipe(bin string, args []string, keys []byte, pieces int, pause, limit time.Duration) ([]byte, int, error) {
 	r, w, err := os.Pipe()
 	if err != nil {
 		return nil, -1, err
@@ -57,7 +57,7 @@ func runPipe(bin string, args []string, keys []byte, pieces int, pause time.Dura
 			}
 		}
 	}()
-	code, err := reap(p.Pid, 10*time.Second)
+	code, err := reap(p.Pid, limit)
 	b, rerr := os.ReadFile(out.Name())
 	if err != nil {
 		return b, -1, err
@@ -69,16 +69,16 @@ func runPipe(bin string, args []string, keys []byte, pieces int, pause time.Dura
 // write, "trickle" in 16 pieces 10 ms apart, or "slow" in 16 pieces 100 ms
 // apart -- the control for the editors on the JVM, which start after the
 // trickle's 150 ms have passed and so find all its keys waiting.
-func once(bin, mode string, c WideCase) ([]byte, int, error) {
+func once(bin, mode string, c WideCase, limit time.Duration) ([]byte, int, error) {
 	switch mode {
 	case "file":
-		return runWide(bin, c)
+		return runWide(bin, c, limit)
 	case "pipe":
-		return runPipe(bin, c.Args, c.Keys, 1, 0)
+		return runPipe(bin, c.Args, c.Keys, 1, 0, limit)
 	case "trickle":
-		return runPipe(bin, c.Args, c.Keys, 16, 10*time.Millisecond)
+		return runPipe(bin, c.Args, c.Keys, 16, 10*time.Millisecond, limit)
 	case "slow":
-		return runPipe(bin, c.Args, c.Keys, 16, 100*time.Millisecond)
+		return runPipe(bin, c.Args, c.Keys, 16, 100*time.Millisecond, limit)
 	}
 	return nil, -1, fmt.Errorf("stress: no mode %q", mode)
 }
@@ -87,7 +87,7 @@ func once(bin, mode string, c WideCase) ([]byte, int, error) {
 // logs, by group, how many runs answered other than the case's first -- its
 // output or its exit status -- and which cases they were.  A terminal case is
 // run only from the file: through a pipe it would not be one.
-func stress(t *testing.T, bins []string, reps int, cases []WideCase, modes []string) {
+func stress(t *testing.T, bins []string, reps int, cases []WideCase, modes []string, limit time.Duration) {
 	for _, b := range bins {
 		for _, mode := range modes {
 			diff, runs := map[string]int{}, map[string]int{}
@@ -96,10 +96,10 @@ func stress(t *testing.T, bins []string, reps int, cases []WideCase, modes []str
 				if mode != "file" && c.pty != nil {
 					continue
 				}
-				first, fs, ferr := once(b, mode, c)
+				first, fs, ferr := once(b, mode, c, limit)
 				n := 0
 				for i := 1; i < reps; i++ {
-					out, s, err := once(b, mode, c)
+					out, s, err := once(b, mode, c, limit)
 					runs[c.Group]++
 					if s != fs || !bytes.Equal(out, first) {
 						diff[c.Group]++
@@ -152,10 +152,11 @@ func keep(t *testing.T, bin, mode string, c WideCase, which string, out []byte, 
 // stressArgs reads BINS (space-separated absolute paths of editors: the C
 // binary, the Go one, bin/braaam, bin/vijure, bin/caprice, bin/whimsy,
 // bin/whimsical or bin/whimsical-debug -- anything run as the suite runs an
-// editor), REPS (the runs of each case, default 40) and MODES (default "file
-// pipe"; "trickle" and "slow" too), or skips.  DIFFS, a directory, keeps
-// what differed (keep).
-func stressArgs(t *testing.T) ([]string, int, []string) {
+// editor), REPS (the runs of each case, default 40), MODES (default "file
+// pipe"; "trickle" and "slow" too), LIMIT (a run's limit, a Go duration,
+// default DefaultLimit), or skips.  DIFFS, a directory, keeps what differed
+// (keep).
+func stressArgs(t *testing.T) ([]string, int, []string, time.Duration) {
 	bins := strings.Fields(os.Getenv("BINS"))
 	if len(bins) == 0 {
 		t.Skip("BINS is not set")
@@ -168,7 +169,15 @@ func stressArgs(t *testing.T) ([]string, int, []string) {
 	if len(modes) == 0 {
 		modes = []string{"file", "pipe"}
 	}
-	return bins, reps, modes
+	limit := DefaultLimit
+	if s := os.Getenv("LIMIT"); s != "" {
+		d, err := time.ParseDuration(s)
+		if err != nil || d <= 0 {
+			t.Fatalf("LIMIT=%s is not a duration", s)
+		}
+		limit = d
+	}
+	return bins, reps, modes, limit
 }
 
 // TestStress runs every quick case REPS times on each of BINS, fed from a
@@ -184,7 +193,7 @@ func stressArgs(t *testing.T) ([]string, int, []string) {
 // on 64 cores: doc/RUST.md, doc/SCHEME.md, doc/JAVA.md, doc/CLOJURE.md and
 // doc/HASKELL.md, *Under load* -- 0 runs from a file differ on any of them.
 func TestStress(t *testing.T) {
-	bins, reps, modes := stressArgs(t)
+	bins, reps, modes, limit := stressArgs(t)
 	cases, err := Cases()
 	if err != nil {
 		t.Fatal(err)
@@ -193,7 +202,7 @@ func TestStress(t *testing.T) {
 	for _, c := range cases {
 		cs = append(cs, WideCase{Group: "quick", Name: c.Name, Keys: c.Keys})
 	}
-	stress(t, bins, reps, cs, modes)
+	stress(t, bins, reps, cs, modes, limit)
 }
 
 // TestWideStress is TestStress for the wide suite: every wide case REPS times
@@ -202,7 +211,7 @@ func TestStress(t *testing.T) {
 // src/whim-vim.c.  Measured on 2026-09-25 under 48 busy loops, 15 runs a case
 // from a file: 0 of 6,720 runs differ (the C and the Go editors).
 func TestWideStress(t *testing.T) {
-	bins, reps, modes := stressArgs(t)
+	bins, reps, modes, limit := stressArgs(t)
 	cases, err := WideCases()
 	if err != nil {
 		t.Fatal(err)
@@ -215,5 +224,5 @@ func TestWideStress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	stress(t, bins, reps, append(cases, ex...), modes)
+	stress(t, bins, reps, append(cases, ex...), modes, limit)
 }

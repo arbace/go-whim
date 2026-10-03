@@ -150,18 +150,18 @@ func exCases(srcs ...[]byte) ([]WideCase, error) {
 	return out, nil
 }
 
-// runWide runs one case on bin.
-func runWide(bin string, c WideCase) ([]byte, int, error) {
+// runWide runs one case on bin, killing it after limit.
+func runWide(bin string, c WideCase, limit time.Duration) ([]byte, int, error) {
 	if c.pty != nil {
-		return RunPty(bin, c.Args, c.Keys, *c.pty)
+		return runPty(bin, c.Args, c.Keys, *c.pty, limit)
 	}
-	return RunArgs(bin, c.Args, c.Keys)
+	return runLimit(bin, c.Args, c.Keys, limit)
 }
 
 // compareWide runs every case on a and b, as many at once as there are
 // cores, and returns the cases whose output or status differ, by group.
 func compareWide(cases []WideCase, a, b string) (map[string][]string, error) {
-	rs, err := compareEach(cases, a, b)
+	rs, err := compareEach(cases, a, b, DefaultLimit, DefaultLimit)
 	if err != nil {
 		return nil, err
 	}

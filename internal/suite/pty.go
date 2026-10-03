@@ -65,6 +65,11 @@ func openPty() (*os.File, string, error) {
 // real terminal.  What the terminal adds is the paths a file never reaches:
 // isatty, the window size asked of the terminal, the modes set and restored.
 func RunPty(bin string, args []string, keys []byte, spec ptySpec) ([]byte, int, error) {
+	return runPty(bin, args, keys, spec, DefaultLimit)
+}
+
+// runPty is RunPty with the time after which the editor is killed.
+func runPty(bin string, args []string, keys []byte, spec ptySpec, limit time.Duration) ([]byte, int, error) {
 	m, slaveName, err := openPty()
 	if err != nil {
 		return nil, -1, err
@@ -96,7 +101,7 @@ func RunPty(bin string, args []string, keys []byte, spec ptySpec) ([]byte, int, 
 		return nil, -1, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), limit)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
 	env := []string{"TERM=" + spec.term, "PATH=" + os.Getenv("PATH"), "HOME=" + os.TempDir(), pinnedTime}
@@ -117,7 +122,7 @@ func RunPty(bin string, args []string, keys []byte, spec ptySpec) ([]byte, int, 
 	werr := cmd.Wait()
 	<-done
 	if ctx.Err() != nil {
-		return out.Bytes(), -1, fmt.Errorf("no exit within 10 s")
+		return out.Bytes(), -1, fmt.Errorf("no exit within %s", limit)
 	}
 	code := 0
 	var ee *exec.ExitError

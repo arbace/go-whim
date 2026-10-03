@@ -122,8 +122,8 @@ var tools = map[string]tool{
 	"whimsical":   {runWhimsical, "whimsical [--debug] [--out DIR] [FILE]"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
 	"gocat":       {runGocat, "gocat <dir>"},
-	"hscat":       {runHscat, "hscat [--ghc GHC] [--hsl FILE] [--out DIR] [SRC]"},
-	"test":        {runTest, "test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--rust] [--scheme] [--scheme-debug] [--ref REV] [FILE]"},
+	"hscat":       {runHscat, "hscat [--ghc GHC] [--hsl FILE] [--out DIR] [--no-test] [SRC]"},
+	"test":        {runTest, "test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--limit DURATION] [--ref REV] [FILE]"},
 	"measure":     {runMeasure, "measure <dir of qNNN.c>"},
 	"reach":       {runReach, "reach <file.c> [--no-control]"},
 }
