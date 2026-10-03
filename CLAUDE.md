@@ -318,7 +318,9 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    graph snapshots read back, and the graph's verbs on the
                    snapshots -- an initialiser element replaced, phase 15
                    written on them, the include edits of phases 43, 73, 88
-                   and 99 and the line on every snapshot: GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
+                   and 99 and the line on every snapshot, B2b's rows,
+                   enumerators and renames held to argvfront, filefront and
+                   phase 51a: GRAPH_SNAPS), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
@@ -378,6 +380,16 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    the first include form as the line (Core, Host, InCore,
                    top-level forms moved across it), headers.go what one
                    header provides, parsed by cc alone;
+                   and B2b's:
+                   renum.go an enum's enumerators deleted, moved, inserted
+                   under a values policy (held, renumbered and reported,
+                   pinned as the sweep pins), initrow.go a table's rows
+                   deleted, inserted, reordered with every position the
+                   file names said again (subscripts by constants, the
+                   index enumerators and permutations a cut names),
+                   rename.go a declaration and its uses respelled by
+                   edge, a use retargeted to another spelling, a string
+                   literal respelled whole, named by the cut;
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go

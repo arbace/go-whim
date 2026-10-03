@@ -737,8 +737,14 @@ func exprType(e *Editor, n *Node) *Node {
 		return resultType(typeOf(args[0]))
 	case "addr":
 		return pointerTo(e.g, typeOf(args[0]))
-	case "deref", "index":
+	case "deref":
 		return pointee(typeOf(args[0]))
+	case "index": // a[i][j] is one form: what a points at, once a subscript
+		t := typeOf(args[0])
+		for range args[1:] {
+			t = pointee(t)
+		}
+		return t
 	case "comma":
 		return typeOf(args[len(args)-1])
 	case "post++", "post--", "pre++", "pre--":

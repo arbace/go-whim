@@ -89,9 +89,9 @@ The new ones, each a batch's job (B0 and B2 below):
 | FRAG | a C fragment -- an expression, statements, a declaration, a function, a body, an `editlit.go` or fenced `.md` literal -- made graph nodes in the context of its place: its names resolved to the graph's declarations (and to the externs: libc, builtins like `__builtin_setjmp`, macro invocations like `FD_SET`), typed, given fresh ids, its holes filled with existing nodes. The likely way: print the context's C view with the fragment in place, import that, and keep the new nodes with their edges retargeted to the graph's ids | ~70 |
 | CLONE | a subtree copied with fresh ids and the same refers edges, for a node used twice (0b's format argument, 89's tails, 42's `MIN(x, y)` operands) | 4 |
 | MACROX | an opaque `(macro "...")` invocation replaced by its expansion as nodes, its arguments taken from its text (42's `MIN`/`MAX`) | 1 |
-| RENAME | a declaration and its uses respelled (a member, a function, a typedef), a use retargeted to a target of another spelling, a string literal respelled (its array type changes) | ~25 |
-| INITROW | an initialiser element deleted (a table row: `cmdnames[]`, `options[]`, `key_names_table`, `nv_cmds`), found by its designator or its string; inserted; with positional arrays' indexes said | ~20 |
-| RENUM | an enumerator deleted with the implicit values after it moved, opted into (`CMD_index` must follow the rows the front cut) | 5 |
+| RENAME | **done (B2b)**: `Editor.Rename` -- a declaration, the entity it is one of (a function's prototypes and definition), and every use by edge respelled: a function, an object, a typedef, an enumerator, a local, a parameter, a member (selections and designators), a tag, a label -- refused where a name would change meaning; `RetargetAs`/`RetargetUses`, a use pointed at a target of another spelling; `RespellString`, a string literal written anew, each one named whole (*B2b as built*) | ~25 |
+| INITROW | **done (B2b)**: `Editor.ArrangeRows`/`DeleteRows`/`InsertRows`/`BuildRows`, a table's rows deleted, inserted, reordered, every position the file names said again -- subscripts by constants (by edge), the index enumerators and permutation arrays a cut names (`RowIndex`) -- and the table's typed edge resized; verbs `DeleteRows`, `DeleteRowsEach`, `InsertRows` | ~20 |
+| RENUM | **done (B2b)**: `Editor.ArrangeEnum`/`DeleteEnumerators`/`MoveEnumerators`/`InsertEnumerators` under a policy -- `HoldValues` (no value moves), `Renumber` (they move, reported: `CMD_index` following the rows the front cut), `PinValues` (the sweep's pin, byte for byte) -- and `BuildValue`, `EnumValues` | 5 |
 | PARAM | a parameter deleted with the argument at every call, in function-pointer types too; one argument of a variadic call deleted (with its format string) | ~20 |
 | RETYPE | a declaration's type changed (`int` to `bool`, `void *` to `T *`, a union member to its one member), the typed edges above it cleared and listed (`Untyped`) until step 6's checker re-derives them | ~20 |
 | MOVE | a node or a run of items moved elsewhere keeping their ids (an outlined block, a body inlined, a range wrapped in a loop, a definition moved below the boundary) | ~15 |
@@ -800,3 +800,171 @@ moved and refused below its names' use.
 - Each include edit computes the headers' state twice (about 0.5 s on
   whim-vim.c); a phase making many should batch them (`MoveForms*` takes
   many forms at once, `Missing` many includes).
+## B2b as built (2026-10-03)
+
+`crefactor/graph`'s `renum.go` (RENUM), `initrow.go` (INITROW) and
+`rename.go` (RENAME), generic, naming nothing in vim: 408, 579 and 420
+lines of Go, comments and blank lines aside. Two existing files changed,
+minimally: `edit.go`'s `splice` is split in two, `splice` computing the
+place and `spliceAs` doing the rest with the place given (what the rows and
+enumerators splice through, as items; no behaviour moves), and `build.go`'s
+`exprType` types `(index a i j)` -- `a[i][j]`, one form -- as what `a`
+points at once a subscript, where it took one level for any chain (a wrong
+typed edge, not an unknown one: B0's).
+
+### The API
+
+**RENUM.** `Editor.ArrangeEnum(enum, order, how)` makes an enum's
+enumerators `order`: its own kept (moved, their ids kept), those left out
+deleted (their uses left dangling, for the closure or the cut), new ones
+(`NewEnumerator(name, value)`, a value from `BuildValue(after, src)`, which
+sees the enumerators before it) inserted with fresh ids. `how` is a
+`Values`:
+
+- `HoldValues` refuses if any enumerator of the file would change its value
+  -- the editor's `Delete` rule, but for a set at once (a run and the
+  implicit ones after it, which `Delete` asks for last-first);
+- `Renumber` lets the implicit values move, as a text program's deleted
+  line moves them, and reports every value that moved, in this enum and
+  any other whose values name it (`Renumbered.Moved`);
+- `PinValues` writes a survivor with the value it had where its implicit
+  value would follow another enumerator than before -- after a deleted run,
+  the sweep's rule, even when the value would not move (`{A, B = 0, C}`
+  less B pins `C = 1`, as Prune does) -- or would move; spelled as Prune and
+  `Collect` spell it, decimal, hexadecimal from 65536 up. A value that
+  cannot be computed is refused, where the sweep keeps the run.
+
+The values are the sweep's: every enumerator outside function bodies, in
+the file's order, by name, through `evalForm` (`EnumValues`). Conveniences:
+`DeleteEnumerators(ens, how)` (several enums), `MoveEnumerators(ens, after,
+how)`, `InsertEnumerators(after, ens, how)`; `IsEnumerator`,
+`Enumerators`, `EnumeratorName`. Verbs: `DeleteEnumerators(names, how,
+what)`, `MoveEnumerators(names, after, how, what)`. One act, `renum`, its
+Moved the kept enumerators; a pin is an act `pin`.
+
+**INITROW.** `Editor.ArrangeRows(def, order, ix)` makes a table's rows
+`order` (kept, moved, deleted, inserted as above) and says again every
+position the file names. A row's position is its index in the array: one
+after the row before, or its designator's (`(at (idx K) ...)`, K evaluated
+as an enumerator's value; `[K ... L]`). What names a position:
+
+- every subscript of the table by a decimal constant, anywhere, found by
+  the edges (`&highlight_tab[6]`, `(index T 6)`): written with the new
+  position, refused when its row goes;
+- `RowIndex.Enumerators`, the enumerators the cut names as the table's
+  indexes (no edge says that `main_errors[]` is read at `ME_EXTRA_CMD`, a
+  parameter carries it): one with a constant value is written with the new
+  position; an implicit one must come out there by itself, every other
+  value held; one whose row goes is deleted with it, and its declaration
+  when it was its enum's only enumerator (untagged, a form of its own);
+- `RowIndex.Arrays`, the permutations the cut names (`nv_cmd_idx[]` for
+  `nv_cmds[]`): every element written anew, refused when its row goes.
+
+A row designated by a name keeps its place when another goes: nothing to
+say. An array whose size is written is refused; a struct's initialiser is
+not a table (no positions). The table's typed edge, an array of so many,
+is pointed at the type node of the new count when the graph holds one,
+else cleared and listed in `Untyped`. Everything is checked before
+anything changes. `DeleteRows(def, rows, ix)`, `InsertRows(def, before,
+rows, ix)`, `BuildRows(def, src, holes)` (rows from C-lisp: `(init E...)`,
+`(at .member V)`, `(at (idx K) V)`, an expression; members by the element
+type), `TableInit(def)`. Verbs, in `InTable`: `DeleteRows(pat, n, ix,
+what)` (rows the pattern matches, counted), `DeleteRowsEach(pats, ix,
+what)` (each pattern one row, all in one arrangement), `InsertRows(before,
+tmpl, ix, what)`. One act, `rows`.
+
+**RENAME.** `Editor.Rename(d, to)` respells a declaration, every
+declaration of its entity (a function's prototypes and definition, an
+object's declarations, a tag's forward declarations) and every use, found
+by the refers edges: a function, an object, a typedef, an enumerator, a
+local, a parameter, a member (its selections and designators `.m`, a
+member of an anonymous struct checked against its container's), a tag
+(every `(struct TAG)` that refers to it), a label. Refused: a name already
+declared where the new one would be (the file's ordinary names and
+externals, a member of the same struct, any tag, a label of the same
+function, a local of the same scope or a parameter); a use the new name
+would resolve elsewhere (`Resolve` at the use finds a local of that name);
+an outer declaration's use that a renamed local would capture; a
+block-scope `extern` declaration of the entity; an external (the
+headers': retarget its uses instead); a use inside a macro's text
+(`(macro "...")`). `RetargetAs(use, i, to)` points a use at a declaration
+of another spelling and respells it, checked to resolve there to `to` (to
+the first declaration of a function, the importer's edge);
+`RetargetUses(from, to)` every use at once, all or none (phase 36's
+`strlen` to `musl_strlen`, once FRAG has written the definitions). Verbs:
+`Rename(name, to, what)` (a local or parameter in `InFunction`, else the
+file's). Ids are kept: an act `rename` (or `retarget-as`) whose Moved are
+the nodes respelled in place.
+
+**Strings: the rule.** A string literal is never renamed because it
+contains a name, and nothing replaces text across literals.
+`RespellString(s, spelling)` writes ONE literal anew, the new spelling a
+whole literal token (checked: prefix, quotes, escapes); the verb
+`RespellString(old, new, n, what)` finds the scope's literals spelled
+exactly `old`, counts them against `n`, and respells each: the explicit
+opt-in list, each literal named whole. A typed edge above it that is an
+array is cleared (its length changed) -- none on the importer's graphs,
+which type a parenthesised literal as the pointer it decays to, as cc does.
+
+### What the tests prove
+
+`crefactor/graph`'s `renum_test.go`, `initrow_test.go` and
+`rename_test.go`, every case on a graph read back from its Lisp, the C
+view held to C written by hand and printed canonically (and read back
+again): the three policies and their refusals; `PinValues` against
+crefactor/sweep's `Prune` and the graph's `Collect` on four samples (after
+a run, the value it had already, the first enumerators, hexadecimal), byte
+for byte; moves and insertions with `BuildValue`; subscripts and a
+permutation renumbered, the table's type pointed at an existing array type
+or cleared; index enumerators, explicit (`main_errors[]`'s shape: three
+deleted with their declarations, one written anew) and implicit (renumbered
+by their enum, or refused), and a non-index value held; designated rows;
+rows built and inserted with designators resolved to members; every kind of
+rename and every refusal, a macro's text included (on a graph written by
+hand); `RetargetAs`/`RetargetUses` with a capture refused; string respells
+counted, the literal token checked.
+
+`internal/graphcheck`'s `renum_test.go`, on the snapshots (`GRAPH_SNAPS`),
+each graph imported, written as Lisp and read back, its C view held to the
+text program's result printed canonically:
+
+- **argvfront** (phase 1's D1, on q000): command_line_scan's new body
+  (`Body`, a 40-line template), the calls and the `--clean` prescan cut,
+  `main_errors[]`'s three rows with `RowIndex{Enumerators: ME_*}`, and
+  `mainerr_arg_missing` with its prototype -- **byte for byte**, nothing
+  dangling. The control: the same rows with no index said leave
+  `ME_EXTRA_CMD = 4` and the three enums, and the bytes move.
+- **phase 51a** (on q050): eight `builtin_terminals[]` rows, the
+  xterm-family clause of `find_builtin_term()`, the fallback `"xterm"` and
+  `report_term_error()`'s two messages respelled -- **byte for byte**.
+- **filefront** (phase 1's D4, on the text argvfront, exfront and extable
+  leave of q000): thirteen designated `cmdnames[]` rows deleted (no
+  position moves) and their enumerators moved after `CMD_SIZE` with
+  `Renumber`, 99 values moving -- **byte for byte**; the same move held is
+  refused.
+- **a rename by edges** (on q050): `find_builtin_term` (definition and
+  three calls) and `mparm_T.term`, one use among 125 mentions of `term`
+  that are other things -- against the replacement written out, byte for
+  byte.
+
+`cd crefactor && go test ./...`, `go test ./...`, gofmt, go vet and
+staticcheck clean; `make whim-build-check` (parallel) byte for byte.
+
+### Limits
+
+- Values are evaluated by name, as the sweep does: two enumerators of one
+  name in different scopes would share it. Enums inside function bodies
+  are not arranged (the sweep does not evaluate them either).
+- A position is named only by a decimal subscript, a named index
+  enumerator or a named permutation; a position computed otherwise (`T[i +
+  1]`, a `#define`'d constant gone to an integer elsewhere, a pointer
+  difference) is the cut's to know. An implicit index enumerator that would
+  not come out right is refused rather than written explicitly.
+- A rename does not reach into a macro's text, a string, or a comment
+  (there are none); a block-scope `extern` of the entity is refused rather
+  than respelled. Renaming a parameter respells the definition's, not a
+  prototype's (a name of its own).
+- `RespellString` respells; it does not re-derive a `sizeof` of the
+  literal elsewhere, which is the cut's to respell too.
+- No phase is converted: argvfront and filefront are B4's, 51a B3d's;
+  the tests are their conversions' proofs in advance.

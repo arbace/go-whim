@@ -447,19 +447,25 @@ func (e *Editor) Retarget(use *Node, i int, to *Node) error {
 
 // splice replaces the elements lo..hi of p with with, checked.
 func (e *Editor) splice(op string, p *Node, lo, hi int, with []*Node) error {
+	var pl int
+	if lo == hi {
+		pl = e.insertPlace(p, lo)
+	} else {
+		pl = e.place(p, lo)
+	}
+	return e.spliceAs(op, p, lo, hi, with, pl)
+}
+
+// spliceAs is splice with the place given: placeItem for the runs of
+// elements an operation that keeps its own invariants splices -- a table's
+// rows, an enum's enumerators (initrow.go, renum.go).
+func (e *Editor) spliceAs(op string, p *Node, lo, hi int, with []*Node, pl int) error {
 	ks := e.kids(p)
 	what := func() string {
 		if lo < hi {
 			return fmt.Sprintf("%s #%d (%s)", op, ks[lo].ID, label(ks[lo]))
 		}
 		return fmt.Sprintf("%s in #%d (%s)", op, p.ID, label(p))
-	}
-	// the place
-	var pl int
-	if lo == hi {
-		pl = e.insertPlace(p, lo)
-	} else {
-		pl = e.place(p, lo)
 	}
 	switch {
 	case pl == placeSection:
