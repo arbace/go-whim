@@ -187,6 +187,13 @@ Against go-whim `9fec73f`, on the 64-core machine:
   Scheme, `|` a symbol escape to Scheme, and a C string's escapes are not
   theirs. A consumer in a Lisp needs the dozen lines of `Read`, or a reader
   macro.
+- **It is a tree a program can edit.** `tree.go`, `pattern.go` and
+  `scope.go` make the forms searchable and editable in place -- cursors,
+  patterns written as forms, an atom index, and a resolver of C's name spaces
+  and scopes, without types -- and [C-LISP-TREE.md](C-LISP-TREE.md) is the
+  pilot that asked whether the pipeline's phases should edit it instead of
+  the text: DropLocal and phase 24 on the tree, byte for byte on their 14
+  phases, and measured. Its answer is not to migrate.
 - **It is a hard test of cemit.** A second printer that must give cemit's
   bytes on 104 texts of up to 173,000 lines checks that cemit's spelling is
   a function of the tree and the two source facts it exports, and nothing

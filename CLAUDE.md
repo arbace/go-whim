@@ -307,7 +307,8 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand>
                    (README.md: each tool, and what each retired script became)
 internal/          whim's Go: cut (the cutters), steps (every transformation a phase names, as
-                   one table), build (whim's pipeline: the plan -- what each
+                   one table), treepilot (doc/C-LISP-TREE.md's pilot,
+                   outside the plan), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
@@ -322,7 +323,10 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    parse, include lines and macro recovery, exported for
                    clisp). clisp/: C-lisp, C as s-expressions and back, byte
                    for byte on canonical text (`whim c2lisp`, `whim lisp2c`;
-                   SPEC.md, every form; doc/C-LISP.md). sweep/: the closure.
+                   SPEC.md, every form; doc/C-LISP.md), and a tree API on
+                   its forms (tree.go: cursors, edits, an atom index;
+                   pattern.go: patterns as forms; scope.go: a resolver of
+                   C's name spaces and scopes, untyped). sweep/: the closure.
                    reach/: what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing. ccx/: a core's pointer casts and evaluation order,
@@ -537,10 +541,13 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    measured on every editor, and what stands in the way), GO-LISP.md
                    (the Go editor in go-lisp syntax: an experiment, and make
                    editor.lgo), GHC-LISP.md (caprice's core as one ghc-lisp
-                   module, converted, checked and compiled: make caprice.hsl)
-                   and C-LISP.md (whim-vim.c as s-expressions, crefactor/clisp:
+                   module, converted, checked and compiled: make caprice.hsl),
+                   C-LISP.md (whim-vim.c as s-expressions, crefactor/clisp:
                    back byte for byte and compiled to the same binary: make
-                   whim-vim.lc)
+                   whim-vim.lc) and C-LISP-TREE.md (a pilot: phases editing
+                   that tree instead of the text -- DropLocal and phase 24
+                   rewritten in internal/treepilot, byte for byte on their
+                   14 phases, measured; not to migrate)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
