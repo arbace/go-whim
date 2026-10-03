@@ -13,7 +13,15 @@ Nothing queued.
 
 ## Known stale, not yet scoped
 
-Nothing known.
+- **Snapshots q004-q029 do not compile** (found 2026-10-03 by the C-lisp
+  tree pilot's resolver, `doc/C-LISP-TREE.md`; confirmed with gcc 15.2's
+  defaults, `-fsyntax-only`: q004 and q022 2 errors, q029 1, q003 and q030
+  on 0). Part 4d's literal body for `buflist_findpat()` calls `semsg`, gone
+  by then (q004-q022); phase 22 writes calls of `setfname()`, which phase
+  20's sweep removed (q022-q029). The product is not affected, and
+  `whim-build-check` proves bytes, not that a boundary compiles. A fix
+  moves the snapshots of phases 4-29: a plan change, with a check that
+  every boundary compiles to keep it fixed.
 
 
 ## Declined, with the reason recorded
