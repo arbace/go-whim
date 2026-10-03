@@ -95,11 +95,22 @@ func hscat(src, ghc, hsl, out string) error {
 		return err
 	}
 	// The boot file goes beside it as Editor.hsl-boot, where ghc-lisp's finder
-	// looks for a .hsl module's, but in Haskell: ghc-lisp's parser takes a
-	// file for Lisp only when its name ends in .hsl (GHC.Parser.Lisp's
-	// isLispFile), so it reads an .hsl-boot as Haskell.
+	// looks for a .hsl module's: in Lisp, converted and checked as the module
+	// is, where ghc-lisp reads an .hsl-boot as Lisp (arbace/ghc-lisp#1), and
+	// in Haskell before, when its parser took a file for Lisp only when the
+	// name ended in .hsl (GHC.Parser.Lisp's isLispFile).
 	if boot := hs + "-boot"; exists(boot) {
-		if err := os.Rename(boot, hs[:len(hs)-len(".hs")]+".hsl-boot"); err != nil {
+		to := hs[:len(hs)-len(".hs")] + ".hsl-boot"
+		lispBoot, err := lispBoots(ghc)
+		if err != nil {
+			return err
+		}
+		if lispBoot {
+			_, err = toLisp(ghc, boot, to)
+		} else {
+			err = os.Rename(boot, to)
+		}
+		if err != nil {
 			return err
 		}
 	}
@@ -136,6 +147,28 @@ func toLisp(ghc, hs, to string) ([]byte, error) {
 		return nil, err
 	}
 	return lisp, os.Remove(hs)
+}
+
+// lispBoots reports whether ghc reads an .hsl-boot as Lisp: it type-checks
+// two modules whose import cycle a boot file in Lisp breaks.
+func lispBoots(ghc string) (bool, error) {
+	dir, err := os.MkdirTemp("", "hslboot")
+	if err != nil {
+		return false, err
+	}
+	defer os.RemoveAll(dir)
+	for name, text := range map[string]string{
+		"A.hsl":      "(module A [a])\n\n(import :source B [b])\n\n(:: a Int)\n(= a b)\n",
+		"B.hsl":      "(module B [b])\n\n(import A [a])\n\n(:: b Int)\n(= b 1)\n",
+		"B.hsl-boot": "(module B [b])\n\n(:: b Int)\n",
+	} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(text), 0o644); err != nil {
+			return false, err
+		}
+	}
+	cmd := exec.Command(ghc, "--make", "-fno-code", "B.hsl")
+	cmd.Dir = dir
+	return cmd.Run() == nil, nil
 }
 
 func exists(path string) bool {

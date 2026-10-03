@@ -29,14 +29,23 @@ package database has every package caprice needs), against go-whim `4dc6392`:
    ghc-lisp's ghc in place of GHC): `-O0`, 425 s, 3.69 GB at the peak. At
    caprice's own `-O1` the one module took nine minutes and 22.6 GB before it
    failed (on the boot file, item 4); `-O0` is what `hscat` asks for.
-4. **The boot file stays Haskell, under an `.hsl-boot` name.** ghc-lisp looks
-   for `M.hsl-boot` beside `M.hsl`, but parses only names ending in `.hsl` as
-   s-expressions (`isLispFile` in `compiler/GHC/Parser/Lisp.hs`); a converted
-   boot file is read as Haskell and refused (*File name does not match module
-   name: Saw: `Main`*). So `hscat` renames `Editor.hs-boot` to
-   `Editor.hsl-boot` and leaves its 12 lines as they are. The fix belongs in
-   ghc-lisp: `isLispFile` accepting `.hsl-boot` too, and then the boot file
-   converts like the module.
+4. **The boot file is Lisp too, where ghc-lisp reads it.** ghc-lisp looks
+   for `M.hsl-boot` beside `M.hsl`, but at `f2691c43` parsed only names
+   ending in `.hsl` as s-expressions (`isLispFile` in
+   `compiler/GHC/Parser/Lisp.hs`), so a converted boot file was read as
+   Haskell and refused (*File name does not match module name: Saw:
+   `Main`*), and the boot file had to stay Haskell under the `.hsl-boot`
+   name. [arbace/ghc-lisp#1](https://github.com/arbace/ghc-lisp/pull/1),
+   merged as `1e4cb11c`, has `isLispFile` take `.hsl-boot` too, with a test
+   (`lisp012`: two mutually recursive `.hsl` modules through a Lisp boot
+   file); `db7adf93` after it lets `ghc -c` take one on its own (`lisp013`;
+   the ghclisp testsuite 13 of 13). `hscat` asks the compiler which it is --
+   it type-checks two modules whose cycle a Lisp boot file breaks -- and with
+   the fix converts and checks `Editor.hs-boot` as it does the module;
+   without it, renames the Haskell. Measured at `1e4cb11c`: the boot file
+   converted (its round trip OK), the whole run 970 s and 24.9 GB at the
+   peak, the compile 432 s and 3.70 GB, and the program again 320 of 320
+   cases as `bin/caprice` answers them (item 5).
 5. **It is the editor.** The program ghc-lisp built, beside `bin/caprice`, on
    every case of both suites, keys from a file (the 80 quick and the 240 wide,
    the pseudo-terminal's among them): **320 cases, 0 differ**. Only with the
@@ -53,7 +62,7 @@ package database has every package caprice needs), against go-whim `4dc6392`:
 - **It is a hard test of ghc-lisp.** One generated module of 90,000 lines,
   converted, checked, compiled and run against an independent oracle -- the C
   editor, through caprice -- is a corpus a compiler's own test suite does not
-  have; it found the boot-file gap of item 4.
+  have; it found the boot-file gap of item 4, fixed in ghc-lisp since.
 - **It costs.** Sixteen minutes and 25 GB, against caprice's three minutes in
   nine modules: not tracked, not part of `all`, and not run by `whim test`.
 
