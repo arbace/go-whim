@@ -59,23 +59,30 @@ package p038b
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).  The
 // input binary is kept because the check probes the exit statuses of BOTH.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3c).  The demotion is two edits of
+// the graph -- main's definition renamed vim_main by its edges (RENAME: the
+// declaration and every use, of which there is none) and given `static`
+// (SetStorage) -- and the launcher a fragment at the file's end (FRAG), its
+// call resolved to the renamed definition.  Every assertion is the text's,
+// on the C view, but the line count: the text counted its own output,
+// before the canonical print, and the graph has no lines to count.
 
 import (
 	"bytes"
 	"io"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim38b", Edit) }
+func init() { phase.RegisterGraph("whim38b", Edit) }
 
 // head is upstream's #ifdef'ed signature with the conditional gone: the name
 // sits on a line of its own because there was a directive between it and the
 // argument list, and slim's phase 5 took the conditional and left the break.
 const whim38bHead = "\n    int\nmain(int argc, char **argv)\n{\n"
-
-const whim38bNewHead = "\n    static int\nvim_main(int argc, char **argv)\n{\n"
 
 // The launcher.  Five lines, and every one of them is what GOALS.md II.4c
 // says the host file will hold: it calls the editor and it does nothing else.
@@ -89,28 +96,31 @@ const whim38bLaunch = "\n" +
 	"    return vim_main(argc, argv);\n" +
 	"}\n"
 
-// Whim38b demotes main() to a static vim_main() and appends a launcher, both
+// Edit demotes main() to a static vim_main() and appends a launcher, both
 // still in the one file.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 	p := edit.Ph{Tag: "demote", W: w}
-	linesBefore := p.Lines(text)
+	text, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
 
 	// ---- 1. the name is free, and `vim_main2` is not it ------------------
 	// C has no prefix collisions, but a reader greps, and so does this file's
 	// own machinery.
 	if k := p.Mentions(text, "vim_main"); k != 0 {
-		return nil, p.Die("`vim_main` already has %d mentions as a whole word -- the name this phase "+
+		return p.Die("`vim_main` already has %d mentions as a whole word -- the name this phase "+
 			"gives the editor is taken", k)
 	}
 	if k := p.Mentions(text, "vim_main2"); k != 2 {
-		return nil, p.Die("`vim_main2` has %d mentions, expected 2 -- its definition and the one call at "+
+		return p.Die("`vim_main2` has %d mentions, expected 2 -- its definition and the one call at "+
 			"the bottom of main().  It is upstream's second half of main(), it is NOT the "+
 			"name this phase introduces, and pinning it is what keeps a substring grep "+
 			"from confusing the two", k)
 	}
 	if err := p.AssertOnce(text, "    static int\nvim_main2(void)\n{\n", "vim_main2()'s definition",
 		"it is the function the new vim_main() ends by calling, and it does not move"); err != nil {
-		return nil, err
+		return err
 	}
 	p.Say("`vim_main` is free -- ZERO mentions as a whole word -- and `vim_main2` is the two " +
 		"it has always had: upstream's second half of main(), which this phase does not " +
@@ -121,16 +131,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"two lines, the shape every other function here has: the fossil break between "+
 			"the name and the argument list, which upstream put an #ifdef in, is one of "+
 			"the things the canonical text no longer writes"); err != nil {
-		return nil, err
+		return err
 	}
 	if k := p.Mentions(text, "main"); k != 1 {
-		return nil, p.Die("`main` as a whole word has %d mentions, expected 1 -- the definition below is "+
+		return p.Die("`main` as a whole word has %d mentions, expected 1 -- the definition below is "+
 			"the ONLY place this file writes the bare word.  `main_loop`, `main_errors`, "+
 			"`vim_main2` and `domain` are different words and \\b does not match inside "+
 			"them", k)
 	}
 	if !bytes.HasSuffix(text, []byte("    return vim_main2();\n}\n")) {
-		return nil, p.Die("whim-vim.c does not end with main()'s `return vim_main2();` and its closing " +
+		return p.Die("whim-vim.c does not end with main()'s `return vim_main2();` and its closing " +
 			"brace -- CLAUDE.md states that as the shape of this file, and this phase " +
 			"appends after it")
 	}
@@ -138,52 +148,60 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"`main` as a whole word occurs ONCE in 80,000 lines -- that one head.  " +
 		"`main_loop` and `main_errors` are different words")
 
-	// ---- 3. the demotion: one head rewritten, one function appended ------
-	text = bytes.Replace(text, []byte(whim38bHead), []byte(whim38bNewHead), 1)
-	text = append(text, []byte(whim38bLaunch)...)
+	// ---- 3. the demotion: one definition renamed, one function appended --
+	main := e.Defn("main")
+	if main == nil || e.Graph().Forms[len(e.Graph().Forms)-1] != main {
+		return p.Die("main() is not the file's last form")
+	}
+	if _, err := e.Rename(main, "vim_main"); err != nil {
+		return p.Die("main -> vim_main: %v", err)
+	}
+	if err := e.SetStorage(main, "static"); err != nil {
+		return p.Die("vim_main: %v", err)
+	}
+	if _, err := e.SpliceC(graph.Frag{At: e.SpotEnd(nil), Src: whim38bLaunch}); err != nil {
+		return p.Die("the launcher: %v", err)
+	}
 
 	// ---- 4. what the file is now -----------------------------------------
+	if text, err = e.Graph().C(); err != nil {
+		return err
+	}
 	if err := p.AssertOnce(text, "    static int\nvim_main(int argc, char **argv)\n{\n", "vim_main()'s head",
 		"the editor entry point, static, in the two-line shape every other function here "+
 			"uses"); err != nil {
-		return nil, err
+		return err
 	}
 	if err := p.AssertOnce(text, whim38bLaunch, "the launcher",
 		"it is appended once and it is the last thing in the file"); err != nil {
-		return nil, err
+		return err
 	}
 	if !bytes.HasSuffix(text, []byte(whim38bLaunch)) {
-		return nil, p.Die("the launcher is not the last thing in the file")
+		return p.Die("the launcher is not the last thing in the file")
 	}
 	if k := p.Mentions(text, "vim_main"); k != 2 {
-		return nil, p.Die("`vim_main` has %d mentions, expected 2 -- its definition and the one call from "+
+		return p.Die("`vim_main` has %d mentions, expected 2 -- its definition and the one call from "+
 			"main().  A third would be a prototype, and a prototype for a function defined "+
 			"above its only call is redundant", k)
 	}
 	if p.Mentions(text, "vim_main2") != 2 {
-		return nil, p.Die("`vim_main2` moved, and this phase does not touch it")
+		return p.Die("`vim_main2` moved, and this phase does not touch it")
 	}
 	if k := p.Mentions(text, "main"); k != 1 {
-		return nil, p.Die("`main` as a whole word has %d mentions after the demotion, expected 1 -- the "+
+		return p.Die("`main` as a whole word has %d mentions after the demotion, expected 1 -- the "+
 			"launcher's head and nothing else.  `vim_main` and `vim_main2` are different "+
 			"words", k)
 	}
 	// The old head was rewritten, not copied: `main(int argc` is the launcher's
-	// head and nothing else.  It replaces the assertion that the fossil head is
-	// gone, which the canonical text makes true before this phase begins and so
-	// could no longer fail.
+	// head and nothing else.
 	if k := bytes.Count(text, []byte("\nmain(int argc")); k != 1 {
-		return nil, p.Die("a head beginning `main(int argc` occurs %d times, expected 1 -- the "+
+		return p.Die("a head beginning `main(int argc` occurs %d times, expected 1 -- the "+
 			"launcher's.  The newline is what tells it from `vim_main(int argc`, which is "+
 			"the definition this phase just renamed", k)
-	}
-	if n := p.Lines(text); n != linesBefore+6 {
-		return nil, p.Die("the file gained %d lines, expected 6 -- the head keeps its two lines "+
-			"and the launcher is six", n-linesBefore)
 	}
 	p.Say("main() is now `static int vim_main(int argc, char **argv)` with the same body, and " +
 		"the last six lines of the file are a launcher whose whole content is `return " +
 		"vim_main(argc, argv);`.  +6 lines: the head is the shape it already had, the " +
 		"launcher added six")
-	return text, nil
+	return nil
 }

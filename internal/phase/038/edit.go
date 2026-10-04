@@ -92,17 +92,30 @@ package p038
 // `host_exit(`.  The assertion that works is `nm -u`.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3c).  The pointer is a fragment
+// before mch_exit()'s definition; the one line is the call `exit(r)`
+// rebuilt as `vim_host_exit(r)`, found as mch_exit()'s last statement after
+// `ml_close_all(TRUE)`; the callback is vim_main()'s third parameter
+// (PARAM's AddParam: the launcher's call passes `host_exit`) and its
+// installation a statement before the first of vim_main()'s body; the
+// launcher's other half -- host_jump, host_code and host_exit() -- a
+// fragment before main(), and main()'s body the setjmp landing.  The
+// assertions are the text's on the C view, but the line count, which
+// counted the text's own output before its canonical print.
 
 import (
 	"bytes"
 	"io"
 	"regexp"
 
+	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim38", Edit) }
+func init() { phase.RegisterGraph("whim38", Edit) }
 
 var whim38ExitCall = regexp.MustCompile(`(?m)^\s*exit\(`)
 
@@ -112,6 +125,7 @@ const whim38Old = "\n    int\nmain(int argc, char **argv)\n{\n" +
 	"    return vim_main(argc, argv);\n}\n"
 
 const whim38New = "\nstatic void *host_jump[5];\n" +
+	"\n" +
 	"static int host_code;\n" +
 	"\n" +
 	"    static void\n" +
@@ -131,16 +145,38 @@ const whim38New = "\nstatic void *host_jump[5];\n" +
 	"    return vim_main(argc, argv, host_exit);\n" +
 	"}\n"
 
-// Whim38 takes the core's last way of stopping the process: mch_exit()'s
+// whim38Host is the launcher's half that goes before main(); whim38Main is
+// main()'s new body.
+const whim38Host = `static void *host_jump[5];
+static int host_code;
+
+    static void
+host_exit(int r)
+{
+    host_code = r;
+    __builtin_longjmp(host_jump, 1);
+}
+`
+
+const whim38Main = `    if (__builtin_setjmp(host_jump) != 0)
+    {
+        return host_code;
+    }
+    return vim_main(argc, argv, host_exit);
+`
+
+// Edit takes the core's last way of stopping the process: mch_exit()'s
 // `exit(r);` becomes a call through a pointer the launcher installs.
 //
 // __builtin_setjmp rather than <setjmp.h> because this phase adds no header,
 // and the directive count is asserted at the end to say so.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 	p := edit.Ph{Tag: "hostexit", W: w}
-	linesBefore := p.Lines(text)
-	var err error
+	text, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
 
 	// ---- 1. there is exactly one way Out, and phase 38a is why ------------
 	// The counting trap first: `exit` is five words and one call.
@@ -154,23 +190,23 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"exit:\n", "a LABEL, in vim_regsub_both()"},
 	} {
 		if err = p.AssertOnce(text, f.s, "`"+trimSpace(f.s)+"`", f.why); err != nil {
-			return nil, err
+			return err
 		}
 	}
 	if k := p.Mentions(text, "exit"); k != 5 {
-		return nil, p.Die("`exit` as a word has %d mentions, expected the 5 named above", k)
+		return p.Die("`exit` as a word has %d mentions, expected the 5 named above", k)
 	}
 	if p.Mentions(text, "_exit") != 0 {
-		return nil, p.Die("`_exit` is back, and phase 38a took it to zero")
+		return p.Die("`_exit` is back, and phase 38a took it to zero")
 	}
 	if k := len(whim38ExitCall.FindAll(text, -1)); k != 1 {
-		return nil, p.Die("%d statements begin with `exit(`, expected exactly 1 -- phase 38a left "+
+		return p.Die("%d statements begin with `exit(`, expected exactly 1 -- phase 38a left "+
 			"mch_exit's `exit(r);` as the file's only one, which is what makes this phase "+
 			"ONE line in ONE function", k)
 	}
 	for _, name := range []string{"vim_host_exit", "host_exit", "host_jump", "host_code"} {
 		if k := p.Mentions(text, name); k != 0 {
-			return nil, p.Die("`%s` already has %d mentions -- a name this phase introduces is taken",
+			return p.Die("`%s` already has %d mentions -- a name this phase introduces is taken",
 				name, k)
 		}
 	}
@@ -183,53 +219,67 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// A file-scope OBJECT, not a prototype: objects do not inherit linkage
 	// from a declaration, so the keyword is written here and is the whole
 	// reason `nm --extern-only` still prints one name.
-	text, err = p.SwapOnce(text,
-		"    static void\nmch_exit(int r)\n{\n",
-		"static void (*vim_host_exit)(int);\n\n    static void\nmch_exit(int r)\n{\n",
-		"mch_exit()'s definition",
-		"the pointer is declared immediately above its one reader, which is the only "+
-			"function in the file that has ever ended the process")
-	if err != nil {
-		return nil, err
+	mch := e.Defn("mch_exit")
+	launcher := e.Defn("main")
+	if mch == nil {
+		return p.Die("mch_exit()'s definition is not in the file")
+	}
+	if !bytes.HasSuffix(text, []byte(whim38Old)) || launcher == nil {
+		return p.Die("whim-vim.c does not end with phase 38b's five-line launcher, so this is not " +
+			"the file this phase was written against")
+	}
+	// One import for the pointer and for the launcher's half that the call
+	// to vim_main() will pass (step 4).
+	if _, err := e.SpliceC(graph.Frag{At: e.SpotBefore(mch), Src: "static void (*vim_host_exit)(int);\n"},
+		graph.Frag{At: e.SpotBefore(launcher), Src: whim38Host}); err != nil {
+		return p.Die("mch_exit()'s definition and the launcher: %v", err)
 	}
 
 	// ---- 3. the one line -------------------------------------------------
-	text, err = p.SwapOnce(text,
-		"    ml_close_all(TRUE);\n    exit(r);\n}\n",
-		"    ml_close_all(TRUE);\n    vim_host_exit(r);\n}\n",
-		"mch_exit()'s tail",
-		"everything mch_exit does before it is unchanged -- the terminal is restored, the "+
-			"screen scrolled, the memfile closed -- and only the last statement moves")
-	if err != nil {
-		return nil, err
+	// everything mch_exit does before it is unchanged -- the terminal is
+	// restored, the screen scrolled, the memfile closed -- and only the last
+	// statement moves
+	body := graph.Body(mch)
+	if n := len(body); n < 2 || !graph.Matches(clisp.MustPattern("(call ml_close_all TRUE)"), body[n-2]) ||
+		!graph.Matches(clisp.MustPattern("(call exit r)"), body[n-1]) {
+		return p.Die("mch_exit()'s tail is not `ml_close_all(TRUE); exit(r);`")
+	}
+	v := graph.NewVerbs("hostexit", e, io.Discard)
+	v.InFunction("mch_exit", func(v *graph.Verbs) {
+		v.Rewrite("(call exit ?r)", "(call vim_host_exit ?r)", 1, "mch_exit()'s tail")
+	})
+	if v.Err != nil {
+		return v.Err
 	}
 
 	// ---- 4. the host installs it, through a parameter and not a global ---
-	text, err = p.SwapOnce(text,
-		"    static int\nvim_main(int argc, char **argv)\n{\n",
-		"    static int\nvim_main(int argc, char **argv, void (*exit_fn)(int))\n{\n"+
-			"    vim_host_exit = exit_fn;\n",
-		"vim_main()'s head, which phase 38b made",
-		"the pointer is installed by the caller and is not a global the host assigns, "+
-			"because \"nothing is global but main()\" is still the invariant")
-	if err != nil {
-		return nil, err
+	// the pointer is installed by the caller and is not a global the host
+	// assigns, because "nothing is global but main()" is still the invariant
+	vm := e.Defn("vim_main")
+	if vm == nil || !graph.Matches(clisp.MustPattern("(defn static vim_main (fn ((argc int) (argv (ptr (ptr char)))) int) _*)"), vm) {
+		return p.Die("vim_main()'s head, which phase 38b made, is not `static int vim_main(int argc, char **argv)`")
+	}
+	if _, err := e.AddParamC("vim_main", 2, "void (*exit_fn)(int)",
+		func(*graph.Node) (string, graph.Bindings) { return "host_exit", nil }); err != nil {
+		return p.Die("vim_main()'s third parameter: %v", err)
 	}
 
-	// ---- 5. the launcher -------------------------------------------------
-	if !bytes.HasSuffix(text, []byte(whim38Old)) {
-		return nil, p.Die("whim-vim.c does not end with phase 38b's five-line launcher, so this is not " +
-			"the file this phase was written against")
+	// ---- 5. the launcher, and the installation ---------------------------
+	if _, err := e.SpliceC(graph.Frag{At: e.SpotBefore(graph.Body(vm)[0]), Src: "vim_host_exit = exit_fn;"},
+		graph.Frag{At: e.SpotBody(launcher), Src: whim38Main}); err != nil {
+		return p.Die("vim_main()'s installation and the launcher: %v", err)
 	}
-	text = append(text[:len(text)-len(whim38Old)], []byte(whim38New)...)
 
 	// ---- 6. what the file is now -----------------------------------------
+	if text, err = e.Graph().C(); err != nil {
+		return err
+	}
 	if k := p.Mentions(text, "exit"); k != 4 {
-		return nil, p.Die("`exit` as a word has %d mentions after the swap, expected 4 -- the two string "+
+		return p.Die("`exit` as a word has %d mentions after the swap, expected 4 -- the two string "+
 			"literals and the goto with its label", k)
 	}
 	if len(whim38ExitCall.FindAll(text, -1)) != 0 {
-		return nil, p.Die("a statement still begins with `exit(`")
+		return p.Die("a statement still begins with `exit(`")
 	}
 	for _, inv := range []struct {
 		Name string
@@ -248,25 +298,23 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"main", 1, "the launcher's head, still the only bare `main` in the file"},
 	} {
 		if k := p.Mentions(text, inv.Name); k != inv.want {
-			return nil, p.Die("`%s` has %d mentions, expected %d -- %s", inv.Name, k, inv.want, inv.why)
+			return p.Die("`%s` has %d mentions, expected %d -- %s", inv.Name, k, inv.want, inv.why)
 		}
 	}
 	if err = p.AssertOnce(text, "    vim_host_exit(r);\n", "the one call through the pointer",
 		"mch_exit is the only function in the file that ends the editor"); err != nil {
-		return nil, err
+		return err
 	}
 	if err = p.AssertOnce(text, "    vim_host_exit = exit_fn;\n", "the one installation",
 		"vim_main is the only function that is handed the host callback"); err != nil {
-		return nil, err
+		return err
+	}
+	if err = p.AssertOnce(text, "    static int\nvim_main(int argc, char **argv, void (*exit_fn)(int))\n{\n    vim_host_exit = exit_fn;\n",
+		"vim_main()'s head", "the callback is its third parameter, installed first"); err != nil {
+		return err
 	}
 	if !bytes.HasSuffix(text, []byte(whim38New)) {
-		return nil, p.Die("the launcher is not the last thing in the file")
-	}
-	if n := p.Lines(text); n != linesBefore+17 {
-		return nil, p.Die("the file gained %d lines, expected 17 -- two for the pointer and its blank "+
-			"line, one for the installation -- the canonical text writes no blank line "+
-			"inside a function, so the host's inserted statements write none either -- "+
-			"and fourteen for the launcher growing from six lines to twenty", n-linesBefore)
+		return p.Die("the launcher is not the last thing in the file")
 	}
 	n := 0
 	for _, l := range bytes.Split(text, []byte{'\n'}) {
@@ -275,14 +323,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if n != nInc {
-		return nil, p.Die("the directive count moved, and the whole reason for __builtin_setjmp rather " +
+		return p.Die("the directive count moved, and the whole reason for __builtin_setjmp rather " +
 			"than <setjmp.h> is that this phase adds no header")
 	}
 	p.Say("mch_exit ends `vim_host_exit(r);`, vim_main takes the callback as its third " +
 		"parameter and installs it, and the launcher is twenty lines that land on " +
 		"__builtin_setjmp and RETURN the status.  `exit` is FOUR mentions and NONE is a " +
 		"call; the twelve #includes are untouched")
-	return text, nil
+	return nil
 }
 
 // trimSpace is Python's str.strip() for the one place these blocks use it: the

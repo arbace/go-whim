@@ -191,3 +191,5 @@ stage holding 96 and 97 holds them adjacent and every Part II phase is its own s
 it is the shape of the missing `apart 85 89`. **`apart 97 98` is phase 98's**, and it is
 the one that matters: this check pins `tolower` and `toupper` and requires both still
 undefined, and phase 98 takes them.
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3c as built*): its program is a graph step, its literals made by FRAG at the smallest node they change, its counts the text's on the C view.

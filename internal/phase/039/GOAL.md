@@ -473,3 +473,5 @@ third, and the second is what is left — `mch_write`'s `write(1, …)` and
 itself. What remains after that is the file split, and `tools/zhostonly.py` is the
 check that survives into it: when `editor.c` and `whim-vim.c` become two files, the
 host block becomes the second file and the tool becomes `grep` over the first.
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3c as built*): its program is a graph step, its literals made by FRAG at the smallest node they change, its counts the text's on the C view.

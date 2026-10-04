@@ -175,3 +175,5 @@ branch. Nothing was lost — the file is q108's boundary either way, and `make w
 reproduces it — but a merge whose diff holds the programs and not the thing they produce
 is easy to read as a phase that changed no source, and it is worth knowing that two of
 these four look like that in `git log`.
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3c as built*): its program is a graph step, its literals made by FRAG at the smallest node they change, its counts the text's on the C view.

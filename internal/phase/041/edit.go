@@ -73,6 +73,19 @@ package p041
 // THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and the check records from it.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3c).  The prototypes are still
+// built from the definitions' own lines, on the C view, and spliced after
+// musl_suspend()'s (FRAG); the two installations are cut and vim_main()'s
+// two parameters dropped with the launcher's two arguments (PARAM); the
+// nine calls through the pointers are their uses retargeted to the new
+// prototypes, so a call is renamed by its edge, not by its spelling.  The
+// counts are the text's, on the C view.  The C view prints a blank line
+// between top-level declarations, where the text wrote none until its
+// canonical print: so the two prototypes are the two declarations after
+// musl_suspend()'s rather than the two lines, the line numbers reported are
+// the view's before the collection, and the file is two lines longer, not
+// as long, when they are in.
 
 import (
 	"bytes"
@@ -81,11 +94,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim41", Edit) }
+func init() { phase.RegisterGraph("whim41", Edit) }
 
 var (
 	whim41IncLine  = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
@@ -95,11 +110,14 @@ var (
 // Whim41 makes the two host calls plain: the function pointers the launcher
 // installed become a forward declaration and a direct call, so vim_main is
 // phase 38b's signature again.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 	p := edit.Ph{Tag: "hostcall", W: w}
+	text, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
 	linesBefore := bytes.Count(text, []byte{'\n'})
-	var err error
 
 	// ---- 0. the file this edit was written against -----------------------
 	// ELEVEN DIRECTIVES on the first eleven lines.  This phase adds a
@@ -123,12 +141,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		for _, i := range dirIdx {
 			at = append(at, strconv.Itoa(i))
 		}
-		return nil, p.Die("the file does not have exactly eleven preprocessor directives on its first "+
+		return p.Die("the file does not have exactly eleven preprocessor directives on its first "+
 			"eleven lines: %d directives at lines %s", len(dirIdx), strings.Join(at, " "))
 	}
 	for _, i := range dirIdx {
 		if !whim41IncLine.Match(lines[i]) {
-			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
+			return p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
 				"add one")
 		}
 	}
@@ -154,14 +172,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"main", 1, "the launcher's head, still the only bare `main` in the file"},
 	} {
 		if k := p.Mentions(text, inv.Name); k != inv.want {
-			return nil, p.Die("`%s` has %d mentions, expected %d -- %s",
+			return p.Die("`%s` has %d mentions, expected %d -- %s",
 				inv.Name, k, inv.want, inv.why)
 		}
 	}
 	nExitCalls := len(edit.CallsNotAfterWord(text, "vim_host_exit"))
 	nMsgCalls := len(edit.CallsNotAfterWord(text, "vim_host_message"))
 	if nExitCalls != 1 || nMsgCalls != 8 {
-		return nil, p.Die("%d calls through vim_host_exit and %d through vim_host_message, expected 1 "+
+		return p.Die("%d calls through vim_host_exit and %d through vim_host_message, expected 1 "+
 			"and 8 -- the other two mentions of each are its declaration and its one "+
 			"assignment", nExitCalls, nMsgCalls)
 	}
@@ -180,12 +198,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		re := regexp.MustCompile(`(?m)^    (static \w+)\n(` + regexp.QuoteMeta(name) + `\([^\n]*\))\n\{\n`)
 		m := re.FindSubmatch(text)
 		if m == nil {
-			return nil, p.Die("`%s` is not defined in this file's shape -- `    static <type>` on one "+
+			return p.Die("`%s` is not defined in this file's shape -- `    static <type>` on one "+
 				"line, the declarator on the next and `{` on the third -- so the prototype "+
 				"cannot be built out of it", name)
 		}
 		if !bytes.HasPrefix(m[1], []byte("static ")) {
-			return nil, p.Die("`%s` is not defined `static`, and a non-static definition is an external "+
+			return p.Die("`%s` is not defined `static`, and a non-static definition is an external "+
 				"symbol", name)
 		}
 		protos = append(protos, string(m[1])+" "+string(m[2])+";")
@@ -197,62 +215,109 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// The boundary is one block.  `musl_suspend` is the last of phase 39's
 	// nine, and the order the two are added in is the order their definitions
 	// appear at the bottom.
-	text, err = p.SwapOnce(text,
-		"static void musl_suspend(void);\n",
-		"static void musl_suspend(void);\n"+strings.Join(protos, "\n")+"\n",
-		"the last of phase 39's nine musl_ prototypes",
+	if err := p.AssertOnce(text, "static void musl_suspend(void);\n", "the last of phase 39's nine musl_ prototypes",
 		"the core -> host boundary is ONE run of declarations, and these two belong in it "+
-			"rather than wherever an object happened to sit")
+			"rather than wherever an object happened to sit"); err != nil {
+		return err
+	}
+	var suspend *graph.Node
+	for _, d := range e.FileDecls("musl_suspend") {
+		if d.Is("def") && suspend == nil {
+			suspend = d
+		}
+	}
+	if suspend == nil {
+		return p.Die("musl_suspend()'s prototype is not a declaration of the file")
+	}
+	made, err := e.SpliceC(graph.Frag{At: e.SpotAfter(suspend), Src: strings.Join(protos, "\n")})
 	if err != nil {
-		return nil, err
+		return p.Die("the two prototypes: %v", err)
+	}
+	if len(made) != 1 || len(made[0]) != 2 {
+		return p.Die("the two prototypes are not two declarations")
 	}
 
-	// ---- 4. the two objects are the sweep's ------------------------------
+	// ---- 4. the two objects are the collection's -------------------------
 	// Once the two assignments and every call through them are gone, nothing
 	// names `vim_host_exit` or `vim_host_message` but its declaration.
 
 	// ---- 5. vim_main takes argc and argv, and nothing else ---------------
-	text, err = p.SwapOnce(text,
-		"    static int\n"+
-			"vim_main(int argc, char **argv, void (*exit_fn)(int), void (*message_fn)(const char *, int, int))\n"+
-			"{\n"+
-			"    vim_host_exit = exit_fn;\n"+
-			"    vim_host_message = message_fn;\n",
-		"    static int\nvim_main(int argc, char **argv)\n{\n",
-		"vim_main()'s head and the two installations",
-		"the signature goes back to the one phase 38b wrote, and the two assignments and "+
-			"the blank line that followed them go with the parameters they read")
-	if err != nil {
-		return nil, err
+	// the signature goes back to the one phase 38b wrote, and the two
+	// assignments go with the parameters they read; the launcher no longer
+	// hands the core anything but its command line
+	if err := p.AssertOnce(text, "    static int\n"+
+		"vim_main(int argc, char **argv, void (*exit_fn)(int), void (*message_fn)(const char *, int, int))\n"+
+		"{\n"+
+		"    vim_host_exit = exit_fn;\n"+
+		"    vim_host_message = message_fn;\n", "vim_main()'s head and the two installations",
+		"the signature goes back to the one phase 38b wrote"); err != nil {
+		return err
 	}
-	text, err = p.SwapOnce(text,
-		"    return vim_main(argc, argv, host_exit, host_message);\n",
-		"    return vim_main(argc, argv);\n",
-		"main()'s one statement",
-		"the launcher no longer hands the core anything but its command line")
-	if err != nil {
-		return nil, err
+	if err := p.AssertOnce(text, "    return vim_main(argc, argv, host_exit, host_message);\n", "main()'s one statement",
+		"the launcher no longer hands the core anything but its command line"); err != nil {
+		return err
+	}
+	vm := e.Defn("vim_main")
+	body := graph.Body(vm)
+	if len(body) < 2 || !graph.Matches(clisp.MustPattern("(= vim_host_exit exit_fn)"), body[0]) ||
+		!graph.Matches(clisp.MustPattern("(= vim_host_message message_fn)"), body[1]) {
+		return p.Die("vim_main() does not open with its two installations")
+	}
+	if err := e.ReplaceRun(body[0], body[1]); err != nil {
+		return p.Die("vim_main()'s two installations: %v", err)
+	}
+	if _, err := e.DropParams([]graph.ParamDrop{{Decl: vm, I: 2}, {Decl: vm, I: 3}}, graph.ParamOptions{}); err != nil {
+		return p.Die("vim_main()'s two parameters: %v", err)
 	}
 
 	// ---- 6. the nine call sites ------------------------------------------
-	text, a := edit.SubNotAfterWord(text, "vim_host_exit", "host_exit")
-	text, b := edit.SubNotAfterWord(text, "vim_host_message", "host_message")
+	// each a call through the pointer, now a call of the function: its use
+	// pointed at the prototype
+	a, b := 0, 0
+	for k, name := range []string{"vim_host_exit", "vim_host_message"} {
+		var obj *graph.Node
+		for _, d := range e.FileDecls(name) {
+			if d.Is("def") {
+				obj = d
+			}
+		}
+		if obj == nil {
+			return p.Die("`%s` is not an object of the file", name)
+		}
+		for _, u := range e.Uses(obj) {
+			c := e.Parent(u)
+			if c == nil || !c.Is("call") || c.Kids[1] != u {
+				continue
+			}
+			if err := e.RetargetAs(u, 0, made[0][k]); err != nil {
+				return p.Die("%s: %v", name, err)
+			}
+			if k == 0 {
+				a++
+			} else {
+				b++
+			}
+		}
+	}
 	if a != nExitCalls || b != nMsgCalls {
-		return nil, p.Die("the renames took %d and %d where %d and %d were counted",
+		return p.Die("the renames took %d and %d where %d and %d were counted",
 			a, b, nExitCalls, nMsgCalls)
 	}
 	p.Sayf("%d call site renamed to `host_exit` and %d to `host_message`, and vim_main is "+
 		"`vim_main(int argc, char **argv)` again -- two parameters, two "+
 		"assignments and two arguments gone, two prototypes arrived; the two objects are the "+
 		"sweep's", a, b)
+	if text, err = e.Graph().C(); err != nil {
+		return err
+	}
 
 	// ---- 7. what the file is now -----------------------------------------
 	L := bytes.Split(text, []byte{'\n'})
 	if p.Mentions(text, "vim_host_exit") != 1 || p.Mentions(text, "vim_host_message") != 1 {
-		return nil, p.Die("a `vim_host_*` name survives other than as its declaration")
+		return p.Die("a `vim_host_*` name survives other than as its declaration")
 	}
 	if p.Mentions(text, "exit_fn") > 0 || p.Mentions(text, "message_fn") > 0 {
-		return nil, p.Die("a parameter name survives the signature it was written for")
+		return p.Die("a parameter name survives the signature it was written for")
 	}
 	for _, inv := range []struct {
 		Name string
@@ -265,7 +330,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"main", 1, "still the only bare `main` in the file"},
 	} {
 		if k := p.Mentions(text, inv.Name); k != inv.want {
-			return nil, p.Die("`%s` has %d mentions after the edit, expected %d -- %s",
+			return p.Die("`%s` has %d mentions after the edit, expected %d -- %s",
 				inv.Name, k, inv.want, inv.why)
 		}
 	}
@@ -299,16 +364,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			uses = append(uses, i)
 		}
 		if len(proto) != 1 || len(defn) != 1 || len(uses) == 0 {
-			return nil, p.Die("`%s` has %d prototypes, %d definitions and %d call sites, and this phase "+
+			return p.Die("`%s` has %d prototypes, %d definitions and %d call sites, and this phase "+
 				"needs exactly one, one and at least one", name, len(proto), len(defn), len(uses))
 		}
 		minUse, maxUse := uses[0], uses[len(uses)-1]
 		if proto[0] >= minUse {
-			return nil, p.Die("`%s`'s prototype is at line %d and its first call at line %d -- a call "+
+			return p.Die("`%s`'s prototype is at line %d and its first call at line %d -- a call "+
 				"above its declaration", name, proto[0]+1, minUse+1)
 		}
 		if defn[0] <= maxUse {
-			return nil, p.Die("`%s`'s definition is at line %d and its last call at line %d -- the "+
+			return p.Die("`%s`'s definition is at line %d and its last call at line %d -- the "+
 				"definition must be below every call, which is what makes the prototype "+
 				"load-bearing", name, defn[0]+1, maxUse+1)
 		}
@@ -331,8 +396,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			block = append(block, i)
 		}
 	}
-	if len(block) != 1 || string(L[block[0]+1]) != protos[0] || string(L[block[0]+2]) != protos[1] {
-		return nil, p.Die("the two prototypes are not the two lines below `static void " +
+	next := func(i int) int { // the next line that is not blank
+		for i++; i < len(L) && len(L[i]) == 0; i++ {
+		}
+		return i
+	}
+	if len(block) != 1 || next(block[0]) >= len(L) || string(L[next(block[0])]) != protos[0] ||
+		next(next(block[0])) >= len(L) || string(L[next(next(block[0]))]) != protos[1] {
+		return p.Die("the two prototypes are not the two lines below `static void " +
 			"musl_suspend(void);` -- the core -> host boundary is one block")
 	}
 	nBoundary := 0
@@ -341,12 +412,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	nBoundary += 2
 	p.Sayf("the core -> host boundary is now ONE run of %d prototypes ending at line %d: "+
-		"phase 39's nine `musl_` and these two", nBoundary, block[0]+3)
+		"phase 39's nine `musl_` and these two", nBoundary, next(next(block[0]))+1)
 
-	if n := len(L) - 1; n != linesBefore {
-		return nil, p.Die("the file is %d lines and the input was %d -- expected the same: two "+
-			"prototypes in, and the two assignments out -- the canonical text writes no "+
-			"blank line inside a function, so there is none here to take with them", n, linesBefore)
+	if n := len(L) - 1; n != linesBefore+2 {
+		return p.Die("the file is %d lines and the input was %d -- expected two more: two "+
+			"prototypes in, each after a blank line, and the two assignments out -- the "+
+			"canonical text writes no blank line inside a function, so there is none here "+
+			"to take with them", n, linesBefore)
 	}
 	var d [][]byte
 	for _, l := range L {
@@ -366,11 +438,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if !ok {
-		return nil, p.Die("the output does not have exactly the eleven `#include` directives phase 40 " +
+		return p.Die("the output does not have exactly the eleven `#include` directives phase 40 " +
 			"left, on its first eleven lines -- this phase adds a DECLARATION and not a " +
 			"directive")
 	}
 	p.Sayf("%d -> %d lines, the eleven #includes untouched, and no run of two blank lines",
 		linesBefore, len(L)-1)
-	return text, nil
+	return nil
 }

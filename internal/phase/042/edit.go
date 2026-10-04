@@ -96,6 +96,21 @@ package p042
 // header actually defines; the edit turns that into its template by replacing the two
 // arguments.  If <sys/param.h> ever spelled MIN differently this phase would expand it
 // differently, which is the only honest meaning of "the exact text the header gives".
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3c).  Every count and partition is
+// the text's, on the C view; the edits are the graph's.  The nine libc
+// prototypes are a fragment after the usize typedef.  time_T is RETYPE'd to
+// long and the five other time_t uses retargeted to it; full_screen and
+// got_int RETYPE'd `volatile int`; the one uintptr_t cast's type name
+// retargeted to usize.  elapsed_T is a fragment in its typedef's place -- the
+// tagless struct, cc's own members for the uses that select from it --
+// and elapsed()'s prototype and definition the text's substitutions; each
+// `gettimeofday(&X, nullptr)` a call node rebuilt, X's C read from the node.
+// offsetof, MIN and MAX are MACROX's: each invocation of the macro, its
+// arguments read from its text, made the C the text made of it.  The
+// fragments are made in three imports.  What has no counterpart: the
+// count of lines the phase adds, which counted the text's own output
+// before its canonical print.
 
 import (
 	"bytes"
@@ -105,19 +120,18 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.RegisterArgs("whim42", Edit) }
+func init() { phase.RegisterGraph("whim42", Edit) }
 
 var (
 	w42Inc   = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
 	w42Names = regexp.MustCompile(`\b(?:time_t|sig_atomic_t|uintptr_t|MIN|MAX|offsetof|gettimeofday)\b|struct timeval\b`)
 	w42TV    = regexp.MustCompile(`struct timeval\b`)
-	w42TimeT = regexp.MustCompile(`\btime_t\b`)
-	w42Off   = regexp.MustCompile(`\boffsetof\b`)
-	w42GT    = regexp.MustCompile(`gettimeofday\(&(\(?[A-Za-z_][\w.]*(?:->[\w.]+)?\)?), nullptr\)`)
 	w42MM    = regexp.MustCompile(`\b(MIN|MAX)\(`)
 )
 
@@ -125,13 +139,16 @@ var (
 // sig_atomic_t, uintptr_t, struct timeval, MIN, MAX and offsetof become the
 // core's own and nine libc prototypes are written Out, WHILE THE HEADERS ARE
 // STILL ABOVE THEM to be cross-checked against.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	p := edit.Ph{Tag: "headers", W: w}
 	if len(args) != 1 {
-		return nil, p.Die("usage: edit whim42 <file> <minmax.txt>")
+		return p.Die("usage: edit whim42 <file> <minmax.txt>")
 	}
-	t := text
+	t, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	nInc := edit.IncludeCount(t) // the headers it was handed (phase 88 drops the unused)
 
 	lines := bytes.Split(t, []byte{'\n'})
 
@@ -160,14 +177,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		for _, i := range dIdx {
 			at = append(at, strconv.Itoa(i))
 		}
-		return nil, p.Die("the file does not have exactly eleven preprocessor directives on its "+
+		return p.Die("the file does not have exactly eleven preprocessor directives on its "+
 			"first eleven lines: %d directives at lines %s", len(dIdx), strings.Join(at, " "))
 	}
 	var headers []string
 	for _, l := range dLine {
 		m := w42Inc.FindSubmatch(l)
 		if m == nil {
-			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no " +
+			return p.Die("a directive is not an `#include <...>` of a system header, and no " +
 				"phase may add one")
 		}
 		headers = append(headers, string(m[1]))
@@ -175,7 +192,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	for _, want := range []string{"stdlib.h", "unistd.h", "sys/param.h", "time.h",
 		"signal.h", "stdint.h", "stddef.h"} {
 		if !edit.ContainsStr(headers, want) {
-			return nil, p.Die("<%s> is not among the eleven includes, and it is one of the headers "+
+			return p.Die("<%s> is not among the eleven includes, and it is one of the headers "+
 				"this phase replaces: the cross-check it depends on would not happen", want)
 		}
 	}
@@ -201,7 +218,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	if len(hb) != 1 {
-		return nil, p.Die("the host block does not begin exactly once with %s -- found %d.  "+
+		return p.Die("the host block does not begin exactly once with %s -- found %d.  "+
 			"Without it this phase cannot tell a core mention from a host one",
 			edit.PyRepr(host), len(hb))
 	}
@@ -225,14 +242,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		gc := len(re.FindAll(coreT, -1))
 		gh := len(re.FindAll(hostT, -1))
 		if gc != x.nCore || gh != x.nHost {
-			return nil, p.Die("`%s` occurs %d times in the core and %d in the host block, where "+
+			return p.Die("`%s` occurs %d times in the core and %d in the host block, where "+
 				"this phase was written against %d and %d", x.Name, gc, gh, x.nCore, x.nHost)
 		}
 	}
 	tvCore := len(w42TV.FindAll(coreT, -1))
 	tvHost := len(w42TV.FindAll(hostT, -1))
 	if tvCore != 4 || tvHost != 2 {
-		return nil, p.Die("`struct timeval` occurs %d times in the core and %d in the host block, "+
+		return p.Die("`struct timeval` occurs %d times in the core and %d in the host block, "+
 			"where this phase was written against 4 and 2", tvCore, tvHost)
 	}
 	p.Say("the core takes eight things from a header: time_t 6, sig_atomic_t 2, " +
@@ -246,7 +263,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// this phase substitutes.
 	spans, err := edit.LiteralSpans(p, t)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var bad []string
 	for _, s := range spans {
@@ -255,7 +272,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	if len(bad) > 0 {
-		return nil, p.Die("a literal holds a name this phase substitutes, and no substitution "+
+		return p.Die("a literal holds a name this phase substitutes, and no substitution "+
 			"below may reach inside a string: %s", strings.Join(bad, " / "))
 	}
 	p.Sayf("%d string and character literals, NONE holding any of the eight names or "+
@@ -265,7 +282,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// PLAIN, NEVER `static`.  A `static` prototype gives the core an internal
 	// function that is never defined; here that is `error: static declaration
 	// of 'malloc' follows non-static declaration` and after the move it is a
-	// link failure.  The check breaks it both ways.
+	// link failure.
 	//
 	// Their types are the core's statement of the ABI, and <stdlib.h>,
 	// <unistd.h> and <time.h> above them are what makes it a statement that
@@ -283,108 +300,78 @@ long labs(long n);
 int abs(int n);
 `
 	if edit.CountAnchorB(t, anchor) != 1 {
-		return nil, p.Die("`%s` is not in the file exactly once -- phase 0a put it directly below "+
+		return p.Die("`%s` is not in the file exactly once -- phase 0a put it directly below "+
 			"the last `#include` and this phase declares the libc calls beneath it",
 			strings.TrimSpace(anchor))
 	}
-	t = edit.ReplaceAnchorB(t, anchor, []byte(anchor+block), 1)
-	p.Say("nine plain prototypes below the usize typedef -- malloc realloc free time " +
-		"getpid kill write labs abs -- and NOT ONE of them `static`.  gettimeofday is " +
-		"the tenth and is the one that cannot stay: its argument is a struct")
-
-	// ---- 5. time_t -> time_T, and the core owns the width ----------------
-	const td = "typedef time_t time_T;"
-	if bytes.Count(t, []byte(td)) != 1 {
-		return nil, p.Die("`%s` is not in the file exactly once", td)
-	}
-	t = bytes.Replace(t, []byte(td), []byte("typedef long        time_T;"), 1)
-	nTime := len(w42TimeT.FindAll(t, -1))
-	t = w42TimeT.ReplaceAll(t, []byte("time_T"))
-	if nTime != 5 {
-		return nil, p.Die("%d further `time_t` were rewritten where 5 were counted", nTime)
-	}
-	p.Sayf("`typedef time_t time_T;` -> `typedef long time_T;` and %d further `time_t` "+
-		"-> `time_T`.  `long time(long *)` above is what pins the width against "+
-		"<time.h>", nTime)
-
-	// ---- 6. sig_atomic_t -> volatile int, in the core only ---------------
-	for _, x := range [][2]string{
-		{"static volatile sig_atomic_t full_screen ", "static volatile int full_screen "},
-		{"static volatile sig_atomic_t got_int ", "static volatile int got_int "},
-	} {
-		if bytes.Count(t, []byte(x[0])) != 1 {
-			return nil, p.Die("`%s` is not in the file exactly once", strings.TrimSpace(x[0]))
+	var usize *graph.Node
+	for _, d := range e.Decls("usize") {
+		if d.Is("typedef") {
+			usize = d
 		}
-		t = bytes.Replace(t, []byte(x[0]), []byte(x[1]), 1)
 	}
-	p.Say("the core's two `volatile sig_atomic_t` objects -- full_screen and got_int " +
-		"-- are spelled `volatile int`, and the host block's three are left alone")
-
-	// ---- 7. uintptr_t -> usize -------------------------------------------
-	const up = "(unsigned long long)(uintptr_t)p"
-	if bytes.Count(t, []byte(up)) != 1 {
-		return nil, p.Die("`%s` is not in the file exactly once -- it is the one cast that names "+
-			"uintptr_t", up)
-	}
-	t = bytes.Replace(t, []byte(up), []byte("(unsigned long long)(usize)p"), 1)
-	p.Say("the one `(uintptr_t)` cast, in musl_fmtptr, is `(usize)` -- the same type, " +
-		"and the check asserts that with _Generic against <stdint.h>")
-
-	// ---- 8. struct timeval -> a TAGLESS core struct ----------------------
+	// ---- 8a. struct timeval -> a TAGLESS core struct ---------------------
 	// TAGLESS IS MANDATORY.  A tag would be the core defining a libc name,
 	// and C23 would not even complain about it (measured; see the header of
 	// this file), so the layout equality has to be asserted instead -- which
-	// the check does, against the header that is still above.
+	// the check did, against the header that is still above.  The typedef is
+	// made first, with the prototypes, so that what selects from an
+	// elapsed_T below selects its own members.
 	const tv = "typedef struct timeval elapsed_T;"
 	if bytes.Count(t, []byte(tv)) != 1 {
-		return nil, p.Die("`%s` is not in the file exactly once", tv)
+		return p.Die("`%s` is not in the file exactly once", tv)
 	}
-	t = bytes.Replace(t, []byte(tv),
-		[]byte("typedef struct {\n    long        tv_sec;\n    long        tv_usec;\n} elapsed_T;"), 1)
-	for _, x := range [][2]string{
-		{"static long elapsed(struct timeval *start_tv);",
-			"static long elapsed(elapsed_T *start_tv);"},
-		{"elapsed(struct timeval *start_tv)\n{", "elapsed(elapsed_T *start_tv)\n{"},
-		{"    struct timeval now_tv;", "    elapsed_T       now_tv;"},
-	} {
-		if bytes.Count(t, []byte(x[0])) != 1 {
-			return nil, p.Die("`%s` is not in the file exactly once",
-				strings.ReplaceAll(x[0], "\n", "\\n"))
+	var elapsedT *graph.Node
+	for _, d := range e.Decls("elapsed_T") {
+		if d.Is("typedef") {
+			elapsedT = d
 		}
-		t = bytes.Replace(t, []byte(x[0]), []byte(x[1]), 1)
 	}
-
-	locs := w42GT.FindAllSubmatchIndex(t, -1)
-	nGt := len(locs)
-	if nGt != 5 {
-		return nil, p.Die("%d `gettimeofday(&X, nullptr)` calls were rewritten where 5 were "+
-			"counted", nGt)
+	if usize == nil || elapsedT == nil {
+		return p.Die("the usize or elapsed_T typedef is not a declaration of the file")
 	}
-	var Out []byte
-	last := 0
-	for _, m := range locs {
-		e := string(t[m[2]:m[3]])
-		if strings.HasPrefix(e, "(") && strings.HasSuffix(e, ")") {
-			e = e[1 : len(e)-1]
+	const td = "typedef time_t time_T;"
+	if bytes.Count(t, []byte(td)) != 1 {
+		return p.Die("`%s` is not in the file exactly once", td)
+	}
+	var timeT, timet *graph.Node
+	for _, d := range e.Decls("time_T") {
+		if d.Is("typedef") {
+			timeT = d
 		}
-		Out = append(Out, t[last:m[0]]...)
-		Out = append(Out, "musl_gettimeofday(&"+e+".tv_sec, &"+e+".tv_usec)"...)
-		last = m[1]
 	}
-	t = append(Out, t[last:]...)
-
+	for _, d := range e.Decls("time_t") {
+		if d.Is("extern-typedef") {
+			timet = d
+		}
+	}
+	if timeT == nil || timet == nil {
+		return p.Die("time_T or <time.h>'s time_t is not in the file")
+	}
+	// musl_gettimeofday's prototype and definition go in with them: the
+	// five calls below name it.
 	const proto = "static void musl_delay(long ms, int interruptible);\n"
 	if bytes.Count(t, []byte(proto)) != 1 {
-		return nil, p.Die("musl_delay's prototype is not in the file exactly once, so the new one " +
+		return p.Die("musl_delay's prototype is not in the file exactly once, so the new one " +
 			"has nowhere it belongs")
 	}
-	t = bytes.Replace(t, []byte(proto),
-		[]byte("static void musl_gettimeofday(long *sec, long *usec);\n"+proto), 1)
 	const def = "    static void\nmusl_delay(long ms, int interruptible)\n"
 	if bytes.Count(t, []byte(def)) != 1 {
-		return nil, p.Die("musl_delay's definition is not in the file exactly once")
+		return p.Die("musl_delay's definition is not in the file exactly once")
 	}
-	t = bytes.Replace(t, []byte(def), []byte(`    static void
+	var delayProto *graph.Node
+	for _, d := range e.FileDecls("musl_delay") {
+		if d.Is("def") && delayProto == nil {
+			delayProto = d
+		}
+	}
+	delay := e.Defn("musl_delay")
+	if delayProto == nil || delay == nil {
+		return p.Die("musl_delay is not declared and defined in the file")
+	}
+	gtFrags := []graph.Frag{
+		{At: e.SpotBefore(delayProto), Src: "static void musl_gettimeofday(long *sec, long *usec);"},
+		{At: e.SpotBefore(delay), Src: `    static void
 musl_gettimeofday(long *sec, long *usec)
 {
     struct timeval tv;
@@ -393,14 +380,200 @@ musl_gettimeofday(long *sec, long *usec)
     *sec = tv.tv_sec;
     *usec = tv.tv_usec;
 }
+`}}
 
-`+def), 1)
-	p.Sayf("`elapsed_T` is the core's own TAGLESS `struct { long tv_sec; long tv_usec; "+
-		"}`, the three other `struct timeval` in the core are it, and the %d "+
-		"`gettimeofday(&X, nullptr)` calls go through `musl_gettimeofday(long *, long "+
-		"*)` -- defined in the host block above musl_delay, which is inside the region "+
-		"zhostonly reads", nGt)
+	if _, err := e.SpliceC(append([]graph.Frag{{At: e.SpotAfter(usize), Src: block},
+		{At: e.SpotOf(elapsedT), Src: "typedef struct {\n    long        tv_sec;\n    long        tv_usec;\n} elapsed_T;"},
+		{At: e.SpotOf(timeT), Src: "typedef long        time_T;"}}, gtFrags...)...); err != nil {
+		return p.Die("the libc prototypes and elapsed_T: %v", err)
+	}
+	// what is declared an elapsed_T is typed again, the tagless struct now:
+	// each local, static and member whose type form names it
+	elapsedT = nil
+	for _, d := range e.Decls("elapsed_T") {
+		if d.Is("typedef") {
+			elapsedT = d
+		}
+	}
+	for _, u := range e.Uses(elapsedT) {
+		var d, form *graph.Node
+		for x := u; e.Parent(x) != nil && d == nil; x = e.Parent(x) {
+			q := e.Parent(x)
+			switch {
+			case q.Is("def") && graph.DeclType(q) == x:
+				d, form = q, x
+			case q.Is("struct") || q.Is("union"):
+				d, form = x, x.Kids[1] // a member, (NAME TYPE ...)
+			case q.Is("defn") || q.Is("fn"):
+				x = nil // a function's parameter or result: the substitutions below make them
+			}
+			if x == nil {
+				break
+			}
+		}
+		if d == nil {
+			continue
+		}
+		if _, err := e.Retype(d, graph.Lisp(form).String()); err != nil {
+			return p.Die("%s: %v", graph.Lisp(d), err)
+		}
+	}
+	// each call of the nine now names the core's prototype, as cc resolves
+	// it: the headers' declarations are no longer what the file's uses mean
+	for _, name := range []string{"malloc", "realloc", "free", "time", "getpid", "kill", "write", "labs", "abs"} {
+		var from, to *graph.Node
+		for _, d := range e.Decls(name) {
+			switch {
+			case d.Is("extern"):
+				from = d
+			case d.Is("def") && to == nil:
+				to = d
+			}
+		}
+		if to == nil {
+			return p.Die("%s's prototype is not in the file", name)
+		}
+		if from == nil {
+			continue
+		}
+		if _, err := e.RetargetUses(from, to); err != nil {
+			return p.Die("%s: %v", name, err)
+		}
+	}
+	p.Say("nine plain prototypes below the usize typedef -- malloc realloc free time " +
+		"getpid kill write labs abs -- and NOT ONE of them `static`.  gettimeofday is " +
+		"the tenth and is the one that cannot stay: its argument is a struct")
 
+	// ---- 5. time_t -> time_T, and the core owns the width ----------------
+	// the typedef was made in its own place with the prototypes (the forms
+	// that name time_T typed again as cc types them, which RETYPE would
+	// clear where it cannot say them, a function's result among them)
+	timeT = nil
+	for _, d := range e.Decls("time_T") {
+		if d.Is("typedef") {
+			timeT = d
+		}
+	}
+	nTime := 0
+	for _, u := range e.Uses(timet) {
+		if err := e.RetargetAs(u, 0, timeT); err != nil {
+			return p.Die("time_t -> time_T: %v", err)
+		}
+		nTime++
+	}
+	if nTime != 5 {
+		return p.Die("%d further `time_t` were rewritten where 5 were counted", nTime)
+	}
+	p.Sayf("`typedef time_t time_T;` -> `typedef long time_T;` and %d further `time_t` "+
+		"-> `time_T`.  `long time(long *)` above is what pins the width against "+
+		"<time.h>", nTime)
+
+	// ---- 6. sig_atomic_t -> volatile int, in the core only ---------------
+	for _, x := range []struct{ old, name string }{
+		{"static volatile sig_atomic_t full_screen ", "full_screen"},
+		{"static volatile sig_atomic_t got_int ", "got_int"},
+	} {
+		if bytes.Count(t, []byte(x.old)) != 1 {
+			return p.Die("`%s` is not in the file exactly once", strings.TrimSpace(x.old))
+		}
+		var d *graph.Node
+		for _, f := range e.FileDecls(x.name) {
+			if f.Is("def") && graph.Matches(clisp.MustPattern("(volatile sig_atomic_t)"), graph.DeclType(f)) {
+				d = f
+			}
+		}
+		if d == nil {
+			return p.Die("`%s` is not a `volatile sig_atomic_t` of the file", x.name)
+		}
+		if _, err := e.Retype(d, "(volatile int)"); err != nil {
+			return p.Die("%s: %v", x.name, err)
+		}
+	}
+	p.Say("the core's two `volatile sig_atomic_t` objects -- full_screen and got_int " +
+		"-- are spelled `volatile int`, and the host block's three are left alone")
+
+	// ---- 7. uintptr_t -> usize -------------------------------------------
+	const up = "(unsigned long long)(uintptr_t)p"
+	if bytes.Count(t, []byte(up)) != 1 {
+		return p.Die("`%s` is not in the file exactly once -- it is the one cast that names "+
+			"uintptr_t", up)
+	}
+	var ups []*graph.Node
+	for _, d := range e.Decls("uintptr_t") {
+		if d.Is("extern-typedef") {
+			ups = append(ups, e.Uses(d)...)
+		}
+	}
+	if len(ups) != 1 || e.Function(ups[0]) != e.Defn("musl_fmtptr") {
+		return p.Die("uintptr_t is named %d times, where the one cast in musl_fmtptr is its one use", len(ups))
+	}
+	if err := e.RetargetAs(ups[0], 0, usize); err != nil {
+		return p.Die("uintptr_t -> usize: %v", err)
+	}
+	e.Rederive(e.Parent(ups[0]))
+	p.Say("the one `(uintptr_t)` cast, in musl_fmtptr, is `(usize)` -- the same type, " +
+		"and the check asserts that with _Generic against <stdint.h>")
+
+	// ---- 8b. elapsed() takes an elapsed_T --------------------------------
+	for _, x := range []string{"static long elapsed(struct timeval *start_tv);",
+		"elapsed(struct timeval *start_tv)\n{", "    struct timeval now_tv;"} {
+		if bytes.Count(t, []byte(x)) != 1 {
+			return p.Die("`%s` is not in the file exactly once",
+				strings.ReplaceAll(x, "\n", "\\n"))
+		}
+	}
+	quiet := graph.NewVerbs("headers", e, io.Discard)
+	quiet.SubstituteC(
+		graph.Subst{Old: "static long elapsed(struct timeval *start_tv);",
+			New: "static long elapsed(elapsed_T *start_tv);", N: 1, What: "elapsed()'s prototype"},
+		graph.Subst{Old: "elapsed(struct timeval *start_tv)\n{\n    struct timeval now_tv;",
+			New: "elapsed(elapsed_T *start_tv)\n{\n    elapsed_T       now_tv;", N: 1, What: "elapsed()'s definition"})
+	if quiet.Err != nil {
+		return quiet.Err
+	}
+
+	// ---- 8c. the five gettimeofday calls, and musl_gettimeofday ----------
+	// One import for the rest: the five calls, musl_gettimeofday's prototype
+	// and definition, the nine offsetof and the twenty-three MIN and MAX.
+	var frags []graph.Frag
+	var gt *graph.Node
+	for _, d := range e.Decls("gettimeofday") {
+		if d.Is("extern") {
+			gt = d
+		}
+	}
+	nGt := 0
+	if gt != nil {
+		own := e.Defn("musl_gettimeofday") // the host's own call, which is what the five go through
+		for _, u := range e.Uses(gt) {
+			if e.Function(u) == own {
+				continue
+			}
+			c := e.Parent(u)
+			if c == nil || !c.Is("call") || c.Kids[1] != u || len(c.Kids) != 4 || !c.Kids[3].Is("nullptr") && c.Kids[3].Atom != "nullptr" ||
+				!c.Kids[2].Is("addr") {
+				return p.Die("a use of gettimeofday is not `gettimeofday(&X, nullptr)`")
+			}
+			x := c.Kids[2].Kids[1]
+			if x.Is("paren") {
+				x = x.Kids[1]
+			}
+			xc, err := clisp.PrintExpr(graph.Lisp(x))
+			if err != nil {
+				return err
+			}
+			src := "musl_gettimeofday(&" + xc + ".tv_sec, &" + xc + ".tv_usec)"
+			if e.Item(c) == c {
+				src += ";" // a statement of its own
+			}
+			frags = append(frags, graph.Frag{At: e.SpotOf(c), Src: src})
+			nGt++
+		}
+	}
+	if nGt != 5 {
+		return p.Die("%d `gettimeofday(&X, nullptr)` calls were rewritten where 5 were "+
+			"counted", nGt)
+	}
 	// ---- 9. offsetof -> __builtin_offsetof -------------------------------
 	// GOALS.md II.4c settled this.  The plain-C alternative
 	// `(usize)&(((T *)0)->m)` was measured to compile, to run, and to
@@ -409,18 +582,11 @@ musl_gettimeofday(long *sec, long *usec)
 	// None of these nine needs to be one, so it stays a real option and not a
 	// reason to change: one gcc extension in one construct is cheaper to
 	// explain than a UB-by-the-letter idiom in nine places.
-	nOff := len(w42Off.FindAll(t, -1))
-	t = w42Off.ReplaceAll(t, []byte("__builtin_offsetof"))
-	if nOff != 9 {
-		return nil, p.Die("%d `offsetof` were rewritten where 9 were counted", nOff)
-	}
-	p.Sayf("%d `offsetof` -> `__builtin_offsetof`, which is what <stddef.h> expands it "+
-		"to here.  The check asserts the two are equal at all six types", nOff)
-
+	//
 	// ---- 10. MIN and MAX, expanded to the text the header gives ----------
 	probe, err := os.ReadFile(args[0])
 	if err != nil {
-		return nil, p.Die("the preprocessed probe could not be read: %v", err)
+		return p.Die("the preprocessed probe could not be read: %v", err)
 	}
 	tmpl := map[string]string{}
 	for _, raw := range strings.Split(string(probe), "\n") {
@@ -429,7 +595,7 @@ musl_gettimeofday(long *sec, long *usec)
 			continue
 		}
 		if !strings.Contains(line, "ZZA") || !strings.Contains(line, "ZZB") {
-			return nil, p.Die("the preprocessed probe line %s does not mention both arguments -- "+
+			return p.Die("the preprocessed probe line %s does not mention both arguments -- "+
 				"the expansion could not be turned into a template", edit.PyRepr(line))
 		}
 		if strings.Contains(line, "<") {
@@ -439,97 +605,71 @@ musl_gettimeofday(long *sec, long *usec)
 		}
 	}
 	if len(tmpl) != 2 || tmpl["MIN"] == "" || tmpl["MAX"] == "" {
-		return nil, p.Die("the preprocessed probe gave %d templates and not one for MIN and one "+
+		return p.Die("the preprocessed probe gave %d templates and not one for MIN and one "+
 			"for MAX", len(tmpl))
 	}
-
-	// minmax_lines is counted BEFORE the expansion, because expanding moves
-	// every offset after the first act.
+	// minmax_lines is counted on the view before the expansion
 	seen := map[int]bool{}
 	for _, m := range w42MM.FindAllIndex(t, -1) {
 		seen[bytes.Count(t[:m[0]], []byte{'\n'})] = true
 	}
 	minmaxLines := len(seen)
-
-	nMin, nMax := 0, 0
-	for {
-		m := w42MM.FindSubmatchIndex(t)
-		if m == nil {
-			break
-		}
-		which := string(t[m[2]:m[3]])
-		lineNo := bytes.Count(t[:m[0]], []byte{'\n'}) + 1
-		i := m[1] - 1
-		d, j := 0, i
-		found := false
-		for j < len(t) {
-			if t[j] == '(' {
-				d++
-			} else if t[j] == ')' {
-				d--
-				if d == 0 {
-					found = true
-					break
+	nOff, nMin, nMax := 0, 0, 0
+	for _, f := range e.Graph().Forms {
+		var bad error
+		graph.Walk(f, func(x *graph.Node) bool {
+			name, margs, ok := graph.MacroCall(x)
+			if !ok || bad != nil {
+				return bad == nil
+			}
+			switch name {
+			case "offsetof":
+				frags = append(frags, graph.Frag{At: e.SpotOf(x), Src: "__builtin_offsetof(" + strings.Join(margs, ", ") + ")"})
+				nOff++
+			case "MIN", "MAX":
+				if len(margs) != 2 {
+					bad = p.Die("`%s` with %d arguments, so it is not the two-argument macro this phase expands", name, len(margs))
+					return false
+				}
+				frags = append(frags, graph.Frag{At: e.SpotOf(x),
+					Src: strings.ReplaceAll(strings.ReplaceAll(tmpl[name], "ZZA", strings.TrimSpace(margs[0])), "ZZB", strings.TrimSpace(margs[1]))})
+				if name == "MIN" {
+					nMin++
+				} else {
+					nMax++
 				}
 			}
-			j++
+			return true
+		})
+		if bad != nil {
+			return bad
 		}
-		if !found {
-			return nil, p.Die("an unbalanced `%s(` at line %d", which, lineNo)
-		}
-		Inner := string(t[i+1 : j])
-		d, k := 0, -1
-		for x := 0; x < len(Inner); x++ {
-			switch Inner[x] {
-			case '(':
-				d++
-			case ')':
-				d--
-			case ',':
-				if d == 0 {
-					k = x
-				}
-			}
-			if k >= 0 {
-				break
-			}
-		}
-		if k < 0 {
-			return nil, p.Die("`%s(%s)` at line %d has no top-level comma, so it is not the "+
-				"two-argument macro this phase expands", which, Inner, lineNo)
-		}
-		a := strings.TrimSpace(Inner[:k])
-		b := strings.TrimSpace(Inner[k+1:])
-		if strings.Contains(Inner, "\n") {
-			return nil, p.Die("a `%s(` at line %d spans a line break, which this file does not do "+
-				"(CLAUDE.md) and this expansion could not keep", which, lineNo)
-		}
-		rep := strings.ReplaceAll(strings.ReplaceAll(tmpl[which], "ZZA", a), "ZZB", b)
-		nt := append([]byte(nil), t[:m[0]]...)
-		nt = append(nt, rep...)
-		t = append(nt, t[j+1:]...)
-		if which == "MIN" {
-			nMin++
-		} else {
-			nMax++
-		}
+	}
+	if nOff != 9 {
+		return p.Die("%d `offsetof` were rewritten where 9 were counted", nOff)
 	}
 	if nMin != 7 || nMax != 16 {
-		return nil, p.Die("%d MIN and %d MAX were expanded where 7 and 16 were counted", nMin, nMax)
+		return p.Die("%d MIN and %d MAX were expanded where 7 and 16 were counted", nMin, nMax)
 	}
+	if _, err := e.SpliceC(frags...); err != nil {
+		return p.Die("the gettimeofday calls, musl_gettimeofday, offsetof, MIN and MAX: %v", err)
+	}
+	p.Sayf("`elapsed_T` is the core's own TAGLESS `struct { long tv_sec; long tv_usec; "+
+		"}`, the three other `struct timeval` in the core are it, and the %d "+
+		"`gettimeofday(&X, nullptr)` calls go through `musl_gettimeofday(long *, long "+
+		"*)` -- defined in the host block above musl_delay, which is inside the region "+
+		"zhostonly reads", nGt)
+	p.Sayf("%d `offsetof` -> `__builtin_offsetof`, which is what <stddef.h> expands it "+
+		"to here.  The check asserts the two are equal at all six types", nOff)
 	p.Sayf("%d MIN and %d MAX on %d lines expanded to the header's own text -- %s and "+
 		"%s, read back through the preprocessor and not written into this program",
 		nMin, nMax, minmaxLines, tmpl["MIN"], tmpl["MAX"])
+	if t, err = e.Graph().C(); err != nil {
+		return err
+	}
 
 	// ---- 11. what the file is now ----------------------------------------
 	L := bytes.Split(t, []byte{'\n'})
-	const added = 10 + 3 + 1 + 10
-	if len(L) != len(lines)+added {
-		return nil, p.Die("the file is %d lines and the input was %d -- this phase adds exactly "+
-			"%d: 10 for the prototype block, 3 for the tagless struct, 1 for "+
-			"musl_gettimeofday's prototype and 10 for its definition",
-			len(L)-1, len(lines)-1, added)
-	}
 	var host2 []int
 	for i, l := range L {
 		if bytes.HasPrefix(l, []byte(host)) {
@@ -537,7 +677,7 @@ musl_gettimeofday(long *sec, long *usec)
 		}
 	}
 	if len(host2) != 1 {
-		return nil, p.Die("the host block no longer begins exactly once with %s", edit.PyRepr(host))
+		return p.Die("the host block no longer begins exactly once with %s", edit.PyRepr(host))
 	}
 	ncore := bytes.Join(L[11:host2[0]], []byte{'\n'})
 	nhost := bytes.Join(L[host2[0]:], []byte{'\n'})
@@ -545,17 +685,17 @@ musl_gettimeofday(long *sec, long *usec)
 		"MIN", "MAX", "offsetof"} {
 		n := len(regexp.MustCompile(`\b`+name+`\b`).FindAll(ncore, -1))
 		if n > 0 {
-			return nil, p.Die("`%s` still occurs %d times in the core", name, n)
+			return p.Die("`%s` still occurs %d times in the core", name, n)
 		}
 	}
 	if w42TV.Match(ncore) {
-		return nil, p.Die("`struct timeval` still occurs in the core")
+		return p.Die("`struct timeval` still occurs in the core")
 	}
 	if len(regexp.MustCompile(`\bsig_atomic_t\b`).FindAll(nhost, -1)) != 3 {
-		return nil, p.Die("the host block no longer has its three `sig_atomic_t`")
+		return p.Die("the host block no longer has its three `sig_atomic_t`")
 	}
 	if k := len(w42TV.FindAll(nhost, -1)); k != 3 {
-		return nil, p.Die("the host block should have three `struct timeval` -- its two and "+
+		return p.Die("the host block should have three `struct timeval` -- its two and "+
 			"musl_gettimeofday's -- and has %d", k)
 	}
 	nd := 0
@@ -565,11 +705,11 @@ musl_gettimeofday(long *sec, long *usec)
 		}
 	}
 	if nd != nInc {
-		return nil, p.Die("the file no longer has exactly eleven directives")
+		return p.Die("the file no longer has exactly eleven directives")
 	}
 	p.Say("the core is clean: size_t, time_t, sig_atomic_t, uintptr_t, struct timeval, " +
 		"MIN, MAX and offsetof are ALL at 0 above the host block, the eleven directives " +
 		"are where they were, and the only header-supplied names left are the twelve " +
 		"constants phase 43 takes with the move")
-	return t, nil
+	return nil
 }

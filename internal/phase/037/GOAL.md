@@ -283,3 +283,5 @@ leaves it is **0**.
 `make whim-verify` reproduces every boundary in **110 s** of wall time over 863 s of
 phases -- sixteen, q83 to q98, when this phase was written, and seventeen since -- and
 all 107 whim and slim implementation keys are unchanged.
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3c as built*): its program is a graph step, its literals made by FRAG at the smallest node they change, its counts the text's on the C view.

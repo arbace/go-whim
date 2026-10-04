@@ -847,6 +847,17 @@ phase 53 | 53 | whim53 @state | 817 | 4723 | b | PARAM FOLDX FRAG | B3e | swap-f
 phase 54 | 54 | whim54 @state | 589 | 15478 | b | FRAG RETYPE RENAME PARAM | B3e | a block number becomes a reference; after 53
 phase 55 | 55 | whim55 @state | 665 | 4418 | b | FRAG PARAM MOVE | B3e | de-page the leaf; after 54
 phase 56 | 56 | whim56 @state | 791 | 4045 | b | FRAG RETYPE PARAM | B3e | fold the node types; after 55
+phase 34 | 34 | whim34, droplocal x2, whim34rows | 155 | 513 | b | PARAM(variadic arg) TEXTQ | B3b | W10 and [RO]; droplocal on the graph; 1 import today
+phase 35 | 35 | whim35 | 227 | 1854 | b | PARAM | B3b | the never-opened FILE*s
+phase 36 | 36 | whim36 | 242 | 12079 | done | - | B3c | 18 musl string functions; 610 uses retargeted (RetargetUses), 23 sites by SubstituteC
+phase 37 | 37 | whim37 + musl-*.md | 188 | 15400 | done | - | B3c | ctype, case tables in-file; calls retargeted, macro classifiers by MACROX
+38a | 38 | phase/038/a | 199 | - | done | - | B1b | begins phase 38 on the graph (q037.g), 38b and 38 text after it; deathtrap's ladder, the assertions the work
+38b | 38 | phase/038/b | 98 | - | done | - | B3c | main -> static vim_main (Rename, SetStorage), a launcher by FRAG
+phase 38 | 38 | whim38a, whim38b, whim38 | 164 | - | done | - | B3c | exit through the host; builtins; AddParamC; graph end to end
+phase 39 | 39 | whim39 | 254 | 20227 | done | - | B3c | the host block: its 47-act table by Substitutor, delfuncs as Delete
+phase 40 | 40 | whim40 | 330 | - | done | - | B3c | stream writes through vim_host_message; AddParamC
+phase 41 | 41 | whim41 | 255 | - | done | - | B3c | host calls direct: DropParams, RetargetAs
+phase 42 | 42 | whim42 @minmax | 400 | - | done | - | B3c | header types owned; MIN/MAX/offsetof by MACROX on the graph
 phase 43 | 43 | whim43 @state | 717 | - | d | (MOVE INCLUDE FRAG TEXTQ to drop gcc) | B3d | the first #include becomes the boundary; gcc-judged as built
 phase 44 | 44 | whim44 | 272 | - | b | RETYPE FRAG INCLUDE | B3d | the scalar clock
 phase 45 | 45 | whim45 | 287 | - | b | INITROW | B3d | case tables merged (rows read as values)
@@ -2310,3 +2321,108 @@ staticcheck on what changed: clean. In order beside main at the same hour
 phase 4 5 s (12 s), 5 4 s (10 s), 6, 9, 10, 21, 22 and 26 0-1 s (2-3 s):
 three imports and one C view fewer (before 4's onebuffer, 5's start and
 noconv, 16), and nine sweeps and canonical prints gone.
+## B3c as built (2026-10-04)
+
+Phases 36-42 run on the graph end to end -- 36's program, 37's, 38's three
+(38a was B1b's; 38b and 38 now), 39's, 40's, 41's and 42's, every one a
+graph step registered with `phase.RegisterGraph`, its text program
+replaced. Phase 36 imports while 35 ends on text (B3b's); 37-42 are
+handed the graph and import nothing; 43 (B3d's) begins on the text.
+42's MIN/MAX are not left a text step: with offsetof they are MACROX's,
+each invocation's arguments read from its text and the fragment the text
+made of them.
+
+**Library, in new files** (`crefactor/graph`; 687, 131 and 43 lines of Go,
+comments and blank lines aside, with tests):
+
+- `substc.go`, **SUBSTITUTE**: a text program's `sub(old, new, n)` on the
+  graph. `Verbs.SubstituteC(Subst{In|Near, Old, New, N, What}...)` finds
+  each place the old C stands (spaces aside, outside literals) as the
+  INNERMOST run of items holding it -- in a function (`In`), among the
+  top-level forms around a declaration (`Near`), or the scope -- then
+  narrows to the smallest node whose C holds every byte the substitution
+  changes (an expression, an item, a body; an insertion between two items,
+  or after a run, is new items there and the run keeps its ids), shows that
+  node stands where the old C stood (the run printed with a marker for it),
+  and replaces it by its C substituted, through FRAG, all places in one
+  synthesized import. `SubstituteSeq` and the `Substitutor` (`Add`,
+  `Flush`, `Pending`, `Touched`) make a table of literals in the text's
+  order, batching consecutive independent ones into one import: apart in
+  the C (one run may hold several), none whose old C another's new C
+  holds, none naming what another's new C declares and the graph does not
+  resolve yet. LiteralC took whole items only; most of B3c's ~110 literals
+  begin or end inside one.
+- `addparamc.go`, **AddParamC**: AddParam (B2c) with the parameter in C,
+  made by FRAG in each declaration's place -- a pointer to a function,
+  which BUILD does not make (`void (*exit_fn)(int)`, 38 and 40).
+- `storage.go`, **SetStorage**: a file-scope def's or defn's storage class
+  (`static`, `extern`, none) in every declaration of its entity (38b's
+  `main` -> `static vim_main`, after `Rename`).
+
+**The conversions.** Every count is the text's question on the C view;
+every edit the graph's: 36's thirteen sites and nine arms SUBSTITUTE, its
+eighteen definitions a top-level fragment, the 610-identifier rename
+`RetargetUses` from the sixteen externals to the musl_ definitions (a
+literal cannot be reached); 37's block and tables fragments, its calls
+`RetargetAs` + `Rederive` (towupper's wint_t result becomes int) and the
+five classifiers musl's <ctype.h> spells as macros MACROX'd; 38b `Rename`,
+`SetStorage` and a launcher fragment; 38 two fragments, a `Rewrite`,
+`AddParamC`, a body; 39's 47-act table through one `Substitutor`, its
+`delfunc`s `Delete`, its two index splices top-level forms (M1, the
+prototypes, made first: FRAG resolves names where it writes them, and the
+text wrote calls before their prototypes); 40 SUBSTITUTE, fragments and
+`AddParamC`; 41 a fragment, `ReplaceRun`, `DropParams` and nine calls
+`RetargetAs` the new prototypes; 42 fragments for the libc prototypes,
+`time_T`, `elapsed_T` and musl_gettimeofday, the nine libc calls'
+uses retargeted to the prototypes, `RetargetAs` for time_t and uintptr_t,
+`Retype` for full_screen, got_int and every elapsed_T object and member,
+the five gettimeofday calls rebuilt from their operand's C, and MACROX.
+The reports are the text's line for line but where the text counted its
+own lines before the canonical print (39, 40, 41's line numbers and
+counts, 42's "adds exactly 24 lines", 38b/38's line arithmetic: dropped
+or the view's), and "sweep" is "collect".
+
+**What holds them.** `internal/graphcheck`'s `TestB3cAsImported`: each of
+36-42 handed q(N-1)'s graph read back gives qN byte for byte AND a graph
+that is the import of its C view (`SameGraph`: every refers edge where
+cc's check puts it, every typed edge of the same structure) -- which is
+what found 37's call types, 42's typedef and members and the libc calls'
+edges, each fixed in the program rather than in the test.
+
+**The proof.** After rebasing on main `4f96189`: `rm -rf .cache/boundaries;
+make whim-build-check` in order, whim-vim.c byte for byte, 77,635 lines,
+every boundary compiling, 405 s at a load of 30-60. Again, in parallel:
+byte for byte, 77 s, 27 links begun on their graph snapshot. The control,
+five faults at once (36's %p arm, 38b's launcher, 38's call, 40's
+host_message, 42's offsetof), named phases 36, 40 and 42 and refused 38:
+`4 of 103 phases do not reproduce their snapshot`. `whim-editor-check`,
+`whim-test` (80 as HEAD, the Go editor all 80), `go test ./...` in both
+modules, gofmt, go vet and staticcheck on what changed: clean.
+
+**Measured** (`TestMeasureGraphPhases`, medians of 3; the text before at a
+load of 3-6, the graph after at 23-33, so the graph is the slower side):
+
+| phase | text, wall ms | imported, wall ms | handed the graph, wall ms |
+| --- | ---: | ---: | ---: |
+| 36 | 2,162 | 3,410 | 1,512 |
+| 37 | 2,061 | 3,402 | 1,504 |
+| 38 | 3,822 (38a on the graph) | 3,989 | 1,958 |
+| 39 | 2,868 | 5,745 | 3,928 |
+| 40 | 1,932 | 3,798 | 1,986 |
+| 41 | 2,372 | 3,118 | 1,117 |
+| 42 | 3,257 | 4,721 | 2,683 |
+
+Handed the graph, the seven take 14.7 s against the text's 18.5 s; 38 no
+longer pays B1b's import and C view. What they cost is FRAG's synthesized
+imports (0.25-0.4 s each: 39 makes eight, as its table's dependencies
+allow), not the edits. In a run in order 36 imports until 35 ends on the
+graph.
+
+**Refinements.** A text literal is not always items: SUBSTITUTE is the
+general form of LiteralC, and keeps ids outside what changed. FRAG's
+names resolve where a fragment is written, so a program whose text
+inserted a call above its callee's prototype must order its acts
+(39's M1). A call retargeted to a function of another result type needs
+`Rederive`; a typedef made anew needs the declarations naming it typed
+again (42); RETYPE on a typedef whose result is a function's leaves it
+untyped where a fragment in its place does not.

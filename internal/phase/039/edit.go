@@ -150,6 +150,21 @@ package p039
 // before, `t_CWS` is still emitted and the recording does not move by one byte.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3c).  The table of acts is the
+// text program's, and so is the order: each `sub` and `cut` is its literal
+// substitution made at the smallest node it changes (crefactor/graph's
+// Substitutor: consecutive independent ones in one synthesized import, the
+// rest after what they depend on), each `delfunc` the function's
+// definition deleted as a form, the two index splices top-level forms --
+// get_tty_fd() through the form before get_stty() deleted, RealWaitForChar()
+// replaced by its three lines -- and the host block a substitution in the
+// launcher region.  Every count is the text's, on the C view.  What has no
+// counterpart: the line count in the last report line is the C view's,
+// before the collection, where the text counted its own output before the
+// sweep's canonical print, and the check that the edit left a run of two
+// blank lines -- the text's sign that its deletions landed -- is gone with
+// the text.
 
 import (
 	"fmt"
@@ -158,10 +173,11 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim39", Edit) }
+func init() { phase.RegisterGraph("whim39", Edit) }
 
 // w39Before is counted on the INPUT, so a later phase that moved one of these
 // fails here and not in the middle of a cut.
@@ -174,113 +190,119 @@ var w39Before = []struct {
 	{"win_resize_enabled", 6}, {"got_tstp", 4}, {"do_resize", 6},
 }
 
-// Whim39 gives the signals and the terminal to the host: the five signal
+// Edit gives the signals and the terminal to the host: the five signal
 // handlers, mch_settmode's three-valued mode, mch_delay's sleep,
 // RealWaitForChar's select, mch_get_shellsize and all three isatty() calls move
 // into a 229-line host block at the bottom of the same file.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("host", e, w)
+	text, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
 	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	p := edit.Ph{Tag: "host", W: w}
 	t := string(text)
-
 	mentions := func(name string) int { return edit.MentionCount([]byte(t), name) }
-	blankRuns := func(s string) int {
-		L := strings.Split(s, "\n")
-		n := 0
-		for i := 1; i < len(L); i++ {
-			if L[i] == "" && L[i-1] == "" {
-				n++
-			}
-		}
-		return n
-	}
-	sub := func(old, new string, n int, tag string) error {
-		c := edit.CountAnchor(t, old)
-		if c != n {
-			return p.Die("%s: `%s` occurs %d times, expected %d",
-				tag, edit.CoreHead(strings.Split(strings.TrimSpace(old), "\n")[0], 70), c, n)
-		}
-		t = edit.ReplaceAnchor(t, old, new, -1)
-		return nil
-	}
-	// delfunc deletes a whole definition by brace matching from its name line.
-	delfunc := func(sigline, tag string) error {
-		if c := strings.Count(t, sigline); c != 1 {
-			return p.Die("%s: the definition line `%s` occurs %d times, expected 1",
-				tag, edit.CoreHead(strings.TrimSpace(sigline), 60), c)
-		}
-		i := strings.Index(t, sigline)
-		k := strings.Index(t[i:], "{") + i
-		d := 0
-		for {
-			if t[k] == '{' {
-				d++
-			} else if t[k] == '}' {
-				d--
-				if d == 0 {
-					break
-				}
-			}
-			k++
-		}
-		a := strings.LastIndex(t[:i], "\n")
-		st := strings.LastIndex(t[:a], "\n") + 1
-		t = t[:st] + t[strings.Index(t[k:], "\n")+k+1:]
-		return nil
-	}
-
 	linesBefore := len(strings.Split(t, "\n"))
+	input := t // the anchors of the acts that are not substitutions are read on it: no act before them reaches theirs
 
 	// ---- 0. this is the file the phase was written against -------------------
 	for _, b := range w39Before {
 		if k := mentions(b.Name); k != b.want {
-			return nil, p.Die("the input has %d mentions of `%s`, expected %d -- this is not the tree "+
+			v.Die("the input has %d mentions of `%s`, expected %d -- this is not the tree "+
 				"this phase was written against", k, b.Name, b.want)
+			return v.Done()
 		}
 	}
 	if strings.Contains(t, `\033[?2048$p`) || strings.Contains(t, "2048$p") {
-		return nil, p.Die("the DECRQM query for mode 2048 is in the file, so the negotiation this phase " +
+		v.Die("the DECRQM query for mode 2048 is in the file, so the negotiation this phase " +
 			"deletes as dead code is not dead")
+		return v.Done()
 	}
-	// The report line for this section is the FIRST ROW OF THE TABLE and is not
-	// written here: every say() the phase makes is lifted with its acts, and a
-	// second copy printed by hand is a duplicated line the tree cannot see.
-	// Measured -- it printed twice.
 
 	// ---- the acts, in the order the phase performs them ----------------------
-	// TWO ACTS ARE NOT IN THE TABLE, and missing the second one is what the
-	// first run of this port did.  Both are index splices rather than sub()
-	// calls -- one deletes from get_tty_fd()'s head to get_stty()'s, the other
-	// REPLACES RealWaitForChar()'s whole definition with a three-line one -- so
-	// neither has text to count and neither is a call the generator can lift.
-	// Each is performed by the TAG of the act that follows it and never by a
-	// line number, because a table keyed on line numbers is a dependency on
-	// every line above it (CLAUDE.md, `apart 107 108`).
-	//
-	// The way the omission showed was one mention short at the very end:
-	// `musl_wait_for_input has 2 mentions, expected 3 -- its prototype, its
-	// definition and RealWaitForChar()'s one call`.  The prototype and the
-	// definition had landed; the call had not, because the function that makes
-	// it had never been rewritten.
+	// The substitutions report nothing (the text's sub() did not); each
+	// `say` is the table's.  TWO ACTS ARE NOT IN THE TABLE: one deletes from
+	// get_tty_fd()'s head to get_stty()'s, the other REPLACES
+	// RealWaitForChar()'s whole definition with a three-line one.  Each is
+	// performed before the act whose TAG follows it, never by a line number.
+	quiet := graph.NewVerbs("host", e, io.Discard)
+	b := quiet.Substitutions()
+	forms := func(first, before string, what string) (lo, hi int) {
+		f, g := e.Defn(first), e.Defn(before)
+		lo, hi = -1, -1
+		for i, x := range e.Graph().Forms {
+			switch x {
+			case f:
+				lo = i
+			case g:
+				hi = i
+			}
+		}
+		if f == nil || g == nil || lo < 0 || lo >= hi {
+			v.Die("%s", what)
+			return -1, -1
+		}
+		return lo, hi
+	}
+	// M1 -- the prototypes of the functions this phase brings in -- is made
+	// FIRST: a fragment's names resolve where it is written (FRAG), and the
+	// text wrote the calls of musl_get_winsize() and term_enter() above
+	// their prototypes before it wrote the prototypes.  It is a substitution
+	// of one line no other act's literal reaches, so the order moves no byte.
+	ops := make([]w39Op, 0, len(w39Ops))
 	for _, op := range w39Ops {
+		if len(op.Args) > 0 && op.Args[len(op.Args)-1] == "M1" {
+			ops = append([]w39Op{op}, ops...)
+		} else {
+			ops = append(ops, op)
+		}
+	}
+	for _, op := range ops {
 		if len(op.Args) > 0 {
 			switch op.Args[len(op.Args)-1] {
 			case "K2":
-				i := strings.Index(t, "    static int\nget_tty_fd(int fd)")
-				j := strings.Index(t, "    static void\nget_stty(void)")
-				if i < 0 || j < 0 || i >= j {
-					return nil, p.Die("K1: get_tty_fd() and get_stty() are not the adjacent pair this phase " +
-						"cuts between")
+				what := "K1: get_tty_fd() and get_stty() are not the adjacent pair this phase cuts between"
+				if !strings.Contains(input, "    static int\nget_tty_fd(int fd)") ||
+					!strings.Contains(input, "    static void\nget_stty(void)") {
+					v.Die("%s", what)
+					return v.Done()
 				}
-				t = t[:i] + t[j:]
+				lo, hi := forms("get_tty_fd", "get_stty", what)
+				if lo < 0 {
+					return v.Done()
+				}
+				for _, x := range append([]*graph.Node(nil), e.Graph().Forms[lo:hi]...) {
+					if b.Pending(x) {
+						b.Flush()
+					}
+					if err := e.Delete(x); err != nil {
+						v.Die("K1: %v", err)
+						return v.Done()
+					}
+				}
 			case "T2":
-				i := strings.Index(t, "RealWaitForChar(int fd, long msec, int *check_for_gpm")
-				j := strings.Index(t, "    static int\nno_Magic(int x)")
-				if i < 0 || j < 0 || i >= j {
-					return nil, p.Die("K5: RealWaitForChar() and no_Magic() are not the adjacent pair " +
-						"this phase replaces between")
+				what := "K5: RealWaitForChar() and no_Magic() are not the adjacent pair this phase replaces between"
+				if !strings.Contains(input, "    static int\nRealWaitForChar(int fd, long msec, int *check_for_gpm") ||
+					!strings.Contains(input, "    static int\nno_Magic(int x)") {
+					v.Die("%s", what)
+					return v.Done()
 				}
-				t = t[:i] + w39RealWait + t[j:]
+				lo, hi := forms("RealWaitForChar", "no_Magic", what)
+				if lo < 0 {
+					return v.Done()
+				}
+				fs := e.Graph().Forms
+				for _, x := range fs[lo:hi] {
+					if b.Pending(x) {
+						b.Flush()
+					}
+				}
+				fs = e.Graph().Forms
+				if _, err := e.SpliceC(graph.Frag{At: e.SpotRun(fs[lo], fs[hi-1]), Src: "static int\n" + w39RealWait}); err != nil {
+					v.Die("K5: %v", err)
+					return v.Done()
+				}
 			}
 		}
 		switch op.kind {
@@ -288,7 +310,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			// The LAST say is computed by the phase and carries no literal, so
 			// it is written after the loop with the line counts it reports.
 			if op.Args != nil {
-				p.Say(op.Args[0])
+				v.Say(op.Args[0])
 			}
 		case "cut", "sub":
 			// cut(old, n, tag) is sub(old, "", n, tag); the defaults are n=1 and
@@ -300,11 +322,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				// region phase 38b created and phase 38 filled, immediately above
 				// `host_jump`, because that region is what becomes the second
 				// file at the split.
-				old := "\nstatic void *host_jump[5];\nstatic int host_code;\n"
-				if err := sub(old, "\n"+w39Host+"static void *host_jump[5];\nstatic int host_code;\n",
-					1, "H3"); err != nil {
-					return nil, err
-				}
+				b.Add(graph.Subst{Old: "\nstatic void *host_jump[5];\nstatic int host_code;\n",
+					New: "\n" + w39Host + "static void *host_jump[5];\nstatic int host_code;\n", N: 1, What: "H3"})
 				continue
 			}
 			old, new, rest := a[0], "", a[1:]
@@ -318,21 +337,44 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			if len(rest) > 1 {
 				tag = rest[1]
 			}
-			if err := sub(old, new, n, tag); err != nil {
-				return nil, err
-			}
+			b.Add(graph.Subst{Old: old, New: new, N: n, What: tag})
 		case "delfunc":
 			tag := ""
 			if len(op.Args) > 1 {
 				tag = op.Args[1]
 			}
-			if err := delfunc(op.Args[0], tag); err != nil {
-				return nil, err
+			// the definition whose head line it is, deleted whole: what the
+			// text's brace matching took
+			sig := strings.TrimLeft(op.Args[0], "\n")
+			name := sig[:strings.Index(sig, "(")]
+			d := e.Defn(name)
+			if k := strings.Count(input, op.Args[0]); k != 1 || d == nil {
+				v.Die("%s: the definition line `%s` occurs %d times, expected 1",
+					tag, edit.CoreHead(strings.TrimSpace(op.Args[0]), 60), k)
+				return v.Done()
+			}
+			if b.Pending(d) {
+				b.Flush()
+			}
+			if err := e.Delete(d); err != nil {
+				v.Die("%s: %v", tag, err)
+				return v.Done()
 			}
 		}
+		if quiet.Err != nil {
+			return quiet.Err
+		}
+	}
+	b.Flush()
+	if quiet.Err != nil {
+		return quiet.Err
 	}
 
 	// ---- what the file is now ------------------------------------------------
+	if text, err = e.Graph().C(); err != nil {
+		return err
+	}
+	t = string(text)
 	var left []string
 	for _, n := range w39Gone {
 		if mentions(n) > 0 {
@@ -340,11 +382,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if len(left) > 0 {
-		return nil, p.Die("these names should be at 0 mentions and are not: %s", strings.Join(left, " "))
+		v.Die("these names should be at 0 mentions and are not: %s", strings.Join(left, " "))
+		return v.Done()
 	}
 	for _, r := range w39Want {
 		if k := mentions(r.Name); k != r.want {
-			return nil, p.Die("`%s` has %d mentions, expected %d -- %s", r.Name, k, r.want, r.why)
+			v.Die("`%s` has %d mentions, expected %d -- %s", r.Name, k, r.want, r.why)
+			return v.Done()
 		}
 	}
 	n := 0
@@ -354,16 +398,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if n != nInc {
-		return nil, p.Die("the twelve #include directives moved, and this phase adds and removes none")
+		v.Die("the twelve #include directives moved, and this phase adds and removes none")
+		return v.Done()
 	}
-	if blankRuns(t) == 0 {
-		return nil, p.Die("the edit left no run of two blank lines at all, which means the deletions did " +
-			"not happen where they were expected -- the sweep's canon.sh is what takes " +
-			"them out, and the check asserts 0 AFTER the sweep")
-	}
-	p.Say(fmt.Sprintf("%d -> %d lines.  The core installs no handler, sets no terminal mode, runs no "+
+	v.Say(fmt.Sprintf("%d -> %d lines.  The core installs no handler, sets no terminal mode, runs no "+
 		"select and asks the kernel nothing about a window; the host block is %d lines at "+
 		"the bottom, inside the launcher region",
 		linesBefore, len(strings.Split(t, "\n")), strings.Count(w39Host, "\n")))
-	return []byte(t), nil
+	return v.Done()
 }

@@ -171,3 +171,5 @@ a phase that renames one function and adds another is entitled to move. `exit` i
 `mch_exit`'s single call site; the next phase in this package is the one that takes it.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 102, in the group 100-102, whose phases share one purpose. There is no boundary q101 of its own any more; everything above still says what the steps do and why.
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3c as built*): its program is a graph step, its literals made by FRAG at the smallest node they change, its counts the text's on the C view.

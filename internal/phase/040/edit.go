@@ -114,6 +114,16 @@ package p040
 // 13 -> 10, and `nm -u`.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3c).  The pointer and host_message()
+// are fragments beside the forms the text anchored them on; the four
+// msg_puts_printf/exit_scroll sites, report_term_error(), set_termname()'s
+// fflush and mainerr() the text's literal substitutions, each made at the
+// smallest node it changes (crefactor/graph's Substitutor), in one import;
+// vim_main()'s fourth parameter is PARAM's (AddParamC: the launcher's call
+// passes host_message), its installation a substitution beside the first.
+// The counts are the text's, on the C view; the line counts in the last
+// report line are the C view's before the collection.
 
 import (
 	"bytes"
@@ -122,10 +132,59 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim40", Edit) }
+func init() { phase.RegisterGraph("whim40", Edit) }
+
+// w40LaunchOld is phase 38's twenty-line launcher, as the file ends with it.
+const w40LaunchOld = `static void *host_jump[5];
+
+static int host_code;
+
+    static void
+host_exit(int r)
+{
+    host_code = r;
+    __builtin_longjmp(host_jump, 1);
+}
+
+    int
+main(int argc, char **argv)
+{
+    if (__builtin_setjmp(host_jump) != 0)
+    {
+        return host_code;
+    }
+    return vim_main(argc, argv, host_exit);
+}
+`
+
+// w40HostMessage is the host's half of the boundary, beside host_exit().
+const w40HostMessage = `    static void
+host_message(const char *msg, int len, int err)
+{
+    int         n = len;
+    int         off = 0;
+
+    if (n < 0)
+    {
+        n = (int)musl_strlen(msg);
+    }
+    while (off < n)
+    {
+        int w = (int)write(err ? 2 : 1, msg + off, (usize)(n - off));
+
+        if (w <= 0)
+        {
+            return;
+        }
+        off += w;
+    }
+}
+
+`
 
 var w40Stmt = regexp.MustCompile(`(?m)^\s*(?:printf|fprintf|fflush)\(`)
 
@@ -133,10 +192,15 @@ var w40Stmt = regexp.MustCompile(`(?m)^\s*(?:printf|fprintf|fflush)\(`)
 // output statements in five functions become eight calls through one
 // vim_host_message(msg, len, err) the launcher installs, with seven symbols
 // going with them and <stdio.h> left unused.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 	p := edit.Ph{Tag: "message", W: w}
-	t := text
+	t, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	nInc := edit.IncludeCount(t) // the headers it was handed (phase 88 drops the unused)
+	quiet := graph.NewVerbs("message", e, io.Discard)
+	b := quiet.Substitutions()
 
 	mentions := func(text []byte, name string) int {
 		return edit.WordPatternCount(text, name)
@@ -144,17 +208,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// sub is the heredoc's own, and its refusal quotes the needle's FIRST
 	// line stripped and truncated at 70 -- which is what makes a refusal
 	// readable when the needle is a fifteen-line function Body.
+	// sub is the heredoc's own: a literal substitution, made on the graph
+	// at the smallest node it changes, pending until Flush.  A count that is
+	// not n refuses there, naming the tag.
 	sub := func(old, new string, n int, tag string) error {
-		c := edit.CountAnchorB(t, old)
-		if c != n {
-			head := strings.SplitN(strings.TrimSpace(old), "\n", 2)[0]
-			if len(head) > 70 {
-				head = head[:70]
-			}
-			return p.Die("%s: `%s` occurs %d times, expected %d", tag, head, c, n)
-		}
-		t = edit.ReplaceAnchorB(t, old, []byte(new), -1)
-		return nil
+		b.Add(graph.Subst{Old: old, New: new, N: n, What: tag})
+		return quiet.Err
 	}
 
 	linesBefore := p.Lines(t)
@@ -174,23 +233,23 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"FILE", 0}, {"stdout", 0},
 	} {
 		if k := mentions(t, x.Name); k != x.want {
-			return nil, p.Die("the input has %d mentions of `%s`, expected %d -- this is not the "+
+			return p.Die("the input has %d mentions of `%s`, expected %d -- this is not the "+
 				"tree this phase was written against", k, x.Name, x.want)
 		}
 	}
 	for _, name := range []string{"vim_host_message", "host_message", "message_fn"} {
 		if k := mentions(t, name); k != 0 {
-			return nil, p.Die("`%s` already has %d mentions -- a name this phase introduces is "+
+			return p.Die("`%s` already has %d mentions -- a name this phase introduces is "+
 				"taken", name, k)
 		}
 	}
 	if k := len(w40Stmt.FindAll(t, -1)); k != 20 {
-		return nil, p.Die("%d statements begin with printf(, fprintf( or fflush(, expected the 20 "+
+		return p.Die("%d statements begin with printf(, fprintf( or fflush(, expected the 20 "+
 			"the inventory names -- 4 in msg_puts_printf, 2 in exit_scroll, 7 in "+
 			"report_term_error, 1 in set_termname and 6 in mainerr", k)
 	}
 	if bytes.Count(t, []byte("#include <stdio.h>\n")) != 1 {
-		return nil, p.Die("<stdio.h> is not included exactly once, so the header this phase " +
+		return p.Die("<stdio.h> is not included exactly once, so the header this phase " +
 			"stops needing is not the one it was written against")
 	}
 	p.Say("the input is r20: 20 statements put bytes on a stream -- `fprintf` 16, " +
@@ -204,11 +263,38 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// Phase 38 put `vim_host_exit` immediately above its one reader; this one
 	// has EIGHT, the earliest of them 37,000 lines up, so it goes with the
 	// two musl_ prototypes that are already the file's boundary declarations.
-	if err := sub("static int musl_towupper(int a);\nstatic int musl_towlower(int a);\n",
-		"static int musl_towupper(int a);\nstatic int musl_towlower(int a);\n\n"+
-			"static void (*vim_host_message)(const char *msg, int len, int err);\n",
-		1, "P1"); err != nil {
-		return nil, err
+	//
+	// host_message() goes beside host_exit(), which is where phase 38 put the
+	// other half of this boundary, and main() stays the last thing in the
+	// file (CLAUDE.md).  `len < 0` means NUL-terminated; every one of today's
+	// eight call sites passes -1, and the parameter is there because the host
+	// should not have to scan and because vim_snprintf returns the exact
+	// length for free at the two sites that assemble.  THE LAUNCHER MAY CALL
+	// musl_strlen: it is in the same translation unit, it is the host's own
+	// code, and at the split it goes into the host file with it.  Both are
+	// made first, in one import: the eight sites name the pointer, and the
+	// launcher's call passes host_message().
+	const protos = "static int musl_towupper(int a);\nstatic int musl_towlower(int a);\n"
+	if k := edit.CountAnchorB(t, protos); k != 1 {
+		return p.Die("P1: `%s` occurs %d times, expected 1", strings.SplitN(protos, "\n", 2)[0], k)
+	}
+	if !bytes.HasSuffix(t, []byte(w40LaunchOld)) {
+		return p.Die("whim-vim.c does not end with phase 38's twenty-line launcher, so this " +
+			"is not the file this phase was written against")
+	}
+	var proto *graph.Node
+	for _, d := range e.FileDecls("musl_towlower") {
+		if d.Is("def") && (proto == nil || e.Sibling(d, -1) != nil && graph.DeclName(e.Sibling(d, -1)) == "musl_towupper") {
+			proto = d
+		}
+	}
+	launcher := e.Defn("main")
+	if proto == nil || launcher == nil {
+		return p.Die("P1: musl_towlower()'s prototype or main() is not in the file")
+	}
+	if _, err := e.SpliceC(graph.Frag{At: e.SpotAfter(proto), Src: "static void (*vim_host_message)(const char *msg, int len, int err);"},
+		graph.Frag{At: e.SpotBefore(launcher), Src: w40HostMessage}); err != nil {
+		return p.Die("P1 and the launcher: %v", err)
 	}
 
 	// ---- 2. msg_puts_printf, four sites, one for one ---------------------
@@ -233,7 +319,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
                     vim_host_message((char *)buf, -1, TRUE);
                 }
 `, 1, "M1"); err != nil {
-		return nil, err
+		return err
 	}
 	if err := sub(`            if (info_message)
             {
@@ -252,7 +338,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
                 vim_host_message((char *)p, -1, TRUE);
             }
 `, 1, "M2"); err != nil {
-		return nil, err
+		return err
 	}
 
 	// ---- 3. exit_scroll, two sites, one for one --------------------------
@@ -273,7 +359,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
                 vim_host_message("\r\n", -1, TRUE);
             }
 `, 1, "E1"); err != nil {
-		return nil, err
+		return err
 	}
 
 	// ---- 4. report_term_error, seven statements into one -----------------
@@ -309,7 +395,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
     vim_host_message(buf, -1, TRUE);
 }
 `, 1, "R1"); err != nil {
-		return nil, err
+		return err
 	}
 
 	// ---- 5. the fflush, which is NOT where a reader expects it -----------
@@ -322,7 +408,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
             fflush(stderr);
 `, `            set_string_option_direct((char_u *)"term", -1, term, OPT_FREE, 0);
 `, 1, "F1"); err != nil {
-		return nil, err
+		return err
 	}
 
 	// ---- 6. mainerr, six statements into one -----------------------------
@@ -363,100 +449,33 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
     mch_exit(1);
 }
 `, 1, "A1"); err != nil {
-		return nil, err
+		return err
 	}
 
 	// ---- 7. the host installs it, through a parameter and not a global ---
-	if err := sub(`    static int
-vim_main(int argc, char **argv, void (*exit_fn)(int))
-{
-    vim_host_exit = exit_fn;
-`, `    static int
-vim_main(int argc, char **argv, void (*exit_fn)(int), void (*message_fn)(const char *, int, int))
-{
-    vim_host_exit = exit_fn;
-    vim_host_message = message_fn;
-`, 1, "V1"); err != nil {
-		return nil, err
+	const v1 = "    static int\nvim_main(int argc, char **argv, void (*exit_fn)(int))\n{\n    vim_host_exit = exit_fn;\n"
+	if k := edit.CountAnchorB(t, v1); k != 1 {
+		return p.Die("V1: `static int` occurs %d times, expected 1", k)
+	}
+	if _, err := e.AddParamC("vim_main", 3, "void (*message_fn)(const char *, int, int)",
+		func(*graph.Node) (string, graph.Bindings) { return "host_message", nil }); err != nil {
+		return p.Die("V1: %v", err)
+	}
+	if err := sub("    vim_host_exit = exit_fn;\n", "    vim_host_exit = exit_fn;\n    vim_host_message = message_fn;\n",
+		1, "V1"); err != nil {
+		return err
 	}
 
 	// ---- 8. the launcher -------------------------------------------------
-	// host_message() goes beside host_exit(), which is where phase 38 put the
-	// other half of this boundary, and main() stays the last thing in the
-	// file (CLAUDE.md).  `len < 0` means NUL-terminated; every one of today's
-	// eight call sites passes -1, and the parameter is there because the host
-	// should not have to scan and because vim_snprintf returns the exact
-	// length for free at the two sites that assemble.  THE LAUNCHER MAY CALL
-	// musl_strlen: it is in the same translation unit, it is the host's own
-	// code, and at the split it goes into the host file with it.
-	const old = `static void *host_jump[5];
-
-static int host_code;
-
-    static void
-host_exit(int r)
-{
-    host_code = r;
-    __builtin_longjmp(host_jump, 1);
-}
-
-    int
-main(int argc, char **argv)
-{
-    if (__builtin_setjmp(host_jump) != 0)
-    {
-        return host_code;
-    }
-    return vim_main(argc, argv, host_exit);
-}
-`
-	const new = `static void *host_jump[5];
-static int host_code;
-
-    static void
-host_exit(int r)
-{
-    host_code = r;
-    __builtin_longjmp(host_jump, 1);
-}
-
-    static void
-host_message(const char *msg, int len, int err)
-{
-    int         n = len;
-    int         off = 0;
-
-    if (n < 0)
-    {
-        n = (int)musl_strlen(msg);
-    }
-    while (off < n)
-    {
-        int w = (int)write(err ? 2 : 1, msg + off, (usize)(n - off));
-
-        if (w <= 0)
-        {
-            return;
-        }
-        off += w;
-    }
-}
-
-    int
-main(int argc, char **argv)
-{
-    if (__builtin_setjmp(host_jump) != 0)
-    {
-        return host_code;
-    }
-    return vim_main(argc, argv, host_exit, host_message);
-}
-`
-	if !bytes.HasSuffix(t, []byte(old)) {
-		return nil, p.Die("whim-vim.c does not end with phase 38's twenty-line launcher, so this " +
-			"is not the file this phase was written against")
+	// made with the pointer, above
+	b.Flush()
+	if quiet.Err != nil {
+		return quiet.Err
 	}
-	t = append(append([]byte(nil), t[:len(t)-len(old)]...), new...)
+
+	if t, err = e.Graph().C(); err != nil {
+		return err
+	}
 
 	// ---- 9. the header the symbols came from -----------------------------
 	// <stdio.h> is unused from here, and stays for phase 88, which drops every
@@ -465,11 +484,11 @@ main(int argc, char **argv)
 	// ---- what the file is now --------------------------------------------
 	for _, name := range []string{"fprintf", "stderr", "fflush"} {
 		if k := mentions(t, name); k != 0 {
-			return nil, p.Die("`%s` still has %d mentions", name, k)
+			return p.Die("`%s` still has %d mentions", name, k)
 		}
 	}
 	if len(w40Stmt.FindAll(t, -1)) > 0 {
-		return nil, p.Die("a statement still begins with printf(, fprintf( or fflush(")
+		return p.Die("a statement still begins with printf(, fprintf( or fflush(")
 	}
 	for _, x := range []struct {
 		Name string
@@ -504,7 +523,7 @@ main(int argc, char **argv)
 			"arm"},
 	} {
 		if k := mentions(t, x.Name); k != x.want {
-			return nil, p.Die("`%s` has %d mentions, expected %d -- %s", x.Name, k, x.want, x.why)
+			return p.Die("`%s` has %d mentions, expected %d -- %s", x.Name, k, x.want, x.why)
 		}
 	}
 	var d [][]byte
@@ -520,11 +539,11 @@ main(int argc, char **argv)
 		}
 	}
 	if !okInc {
-		return nil, p.Die("the output does not have the %d #include directives it was handed and "+
+		return p.Die("the output does not have the %d #include directives it was handed and "+
 			"nothing else -- this phase adds and removes none", nInc)
 	}
 	p.Sayf("%d -> %d lines.  Every byte that leaves this editor other than the screen "+
 		"goes through one `vim_host_message(msg, len, err)` the launcher installs; "+
 		"<stdio.h> is unused, for phase 88 to drop", linesBefore, p.Lines(t))
-	return t, nil
+	return nil
 }

@@ -248,3 +248,5 @@ declared delta    20 records + stderr-moved, from whim-vim
 here the **core** still does for itself as well as the host: `mch_write`'s
 `write(1, …)`, which with `musl_read_input`'s `read(0, …)` is all of `GOALS.md`
 §II.4c's remaining step.
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3c as built*): its program is a graph step, its literals made by FRAG at the smallest node they change, its counts the text's on the C view.

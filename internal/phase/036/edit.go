@@ -64,6 +64,17 @@ package p036
 // only reachable input on which this phase changes what the editor does.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3c).  The acts are the text
+// program's, made on the graph: the thirteen sites and the nine arms are its
+// literal substitutions, each made at the smallest node it changes
+// (crefactor/graph's SubstituteC, through FRAG); the eighteen definitions
+// are a top-level fragment after the usize typedef; and the rename is no
+// longer a regexp over the text but every use of the sixteen externals
+// retargeted to its musl_ definition (RetargetUses), so a string literal
+// cannot be reached by construction -- the literals are still read, and
+// the count of uses retargeted is the text's count of identifiers renamed.
+// The `\bname\b` counts are the text's, on the C view.
 
 import (
 	"fmt"
@@ -72,10 +83,11 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim36", Edit) }
+func init() { phase.RegisterGraph("whim36", Edit) }
 
 // w36Before is the seventeen as OCCURRENCES.  Nothing here is approximate: a
 // rename is only safe if the count of what is about to be renamed is known
@@ -107,25 +119,13 @@ var w36Names = []string{"memmove", "strlen", "memset", "strncmp", "strcmp", "str
 
 const w36Pad = "                                "
 
-// Whim36 vendors the sixteen mem*/str* of <string.h> as local `static musl_*`
+// Edit vendors the sixteen mem*/str* of <string.h> as local `static musl_*`
 // functions, with sprintf moved onto the editor's own vim_snprintf instead.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	p := edit.Ph{Tag: "strings", W: w}
-	t := string(text)
-
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("strings", e, w)
+	t := string(v.Text())
+	nInc := edit.IncludeCount([]byte(t)) // the headers it was handed (phase 88 drops the unused)
 	mentions := func(s, name string) int { return edit.MentionCount([]byte(s), name) }
-	// textEdit does NOT report: sections A and B each make many edits and then
-	// say one line about all of them.
-	textEdit := func(old, new, what string, n int) error {
-		k := edit.CountAnchor(t, old)
-		if k != n {
-			return p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
-		}
-		t = edit.ReplaceAnchor(t, old, new, -1)
-		return nil
-	}
 
 	// ---- 0. the input's counts, READ rather than remembered ---------------------
 	// w36Before was the input these anchors were first written against.  An
@@ -143,117 +143,148 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		sixteen += before[name]
 	}
 	if before["sprintf"] != 22 {
-		return nil, p.Die("sprintf has %d mentions, and this phase rewrites exactly 22: thirteen external "+
+		v.Die("sprintf has %d mentions, and this phase rewrites exactly 22: thirteen external "+
 			"call sites and nine inside vim_vsnprintf_typval", before["sprintf"])
+		return v.Done()
 	}
-	p.Say(fmt.Sprintf("the sixteen at %d occurrences and sprintf at 22, tolower at %d, vim_snprintf at %d -- "+
+	v.Say(fmt.Sprintf("the sixteen at %d occurrences and sprintf at 22, tolower at %d, vim_snprintf at %d -- "+
 		"read from this input", sixteen, before["tolower"], before["vim_snprintf"]))
 
 	// ---- THE SINGLE CALLER, COUNTED BEFORE THE BOUND IS CHOSEN ----------------
 	// highlight_arg_to_string takes a POINTER, so sizeof(buf) is 8 and the bound
 	// has to come from outside the call.
 	if k := mentions(t, "highlight_arg_to_string"); k != 2 {
-		return nil, p.Die("highlight_arg_to_string has %d mentions and not the definition plus ONE "+
+		v.Die("highlight_arg_to_string has %d mentions and not the definition plus ONE "+
 			"call: MAX_ATTR_LEN is only its buffer size while highlight_list_arg is its "+
 			"only caller", k)
+		return v.Done()
 	}
 	if strings.Count(t, w36lit5) != 1 {
-		return nil, p.Die("highlight_list_arg's `char_u buf[MAX_ATTR_LEN];` is not there exactly once, " +
+		v.Die("highlight_list_arg's `char_u buf[MAX_ATTR_LEN];` is not there exactly once, " +
 			"and it is where the bound for site 25443 comes from")
+		return v.Done()
 	}
 	if strings.Count(t, w36lit6) != 1 {
-		return nil, p.Die("MAX_ATTR_LEN is not the one enumerator this phase reads")
+		v.Die("MAX_ATTR_LEN is not the one enumerator this phase reads")
+		return v.Done()
 	}
-	p.Say("highlight_arg_to_string has ONE caller, highlight_list_arg, whose local is " +
+	v.Say("highlight_arg_to_string has ONE caller, highlight_list_arg, whose local is " +
 		"char_u buf[MAX_ATTR_LEN] with MAX_ATTR_LEN = 120 -- that, and nothing weaker, " +
 		"is why the size argument at site 25443 may be a constant from another function")
 
-	// ---- A. the thirteen external sprintf sites -------------------------------
-	for _, s := range w36Sites {
-		if err := textEdit(s.Old, s.New, s.What, 1); err != nil {
-			return nil, err
-		}
+	// textEdit did not report: sections A and B each make many edits and
+	// then say one line about all of them, so their acts are made quietly.
+	quiet := graph.NewVerbs("strings", e, io.Discard)
+
+	// ---- D. the definitions, after the includes and the seed's usize ----------
+	// Below the typedef the seed writes under the includes (whim0a, run in
+	// phase 0): the definitions name usize, so they follow it.  They go
+	// first: the arms below call two of them, and the rename points every
+	// use at them; defined ahead of
+	// every use, so no prototype is added and the prototype block is not
+	// touched.
+	quiet.TopAfterC("usize", w36Defs, "the eighteen definitions go after the #includes and the usize typedef")
+	if quiet.Err != nil {
+		return quiet.Err
 	}
-	p.Say("thirteen external sprintf call sites are vim_snprintf now, each with the size " +
+
+	// ---- A. the thirteen external sprintf sites -------------------------------
+	// ---- B. the nine inside vim_vsnprintf_typval ------------------------------
+	// One synthesized import for all twenty-three substitutions.  THE BLOCK
+	// GOES TOO: removing the calls and leaving `f` would draw
+	// -Wunused-but-set-variable, which is in -Wall.
+	var subs []graph.Subst
+	for _, s := range w36Sites {
+		subs = append(subs, graph.Subst{Old: s.Old, New: s.New, N: 1, What: s.What})
+	}
+	quiet.SubstituteC(subs...)
+	if quiet.Err != nil {
+		return quiet.Err
+	}
+	v.Say("thirteen external sprintf call sites are vim_snprintf now, each with the size " +
 		"its destination really has -- eight a sizeof() or the constant the buffer was " +
 		"allocated with, three the alloc() expression repeated, one MAX_ATTR_LEN from " +
 		"the single caller above, and term_font the one that could overflow")
-
-	// ---- B. the nine inside vim_vsnprintf_typval ------------------------------
-	// THE BLOCK GOES FIRST: removing the calls and leaving `f` would draw
-	// -Wunused-but-set-variable, which is in -Wall.
-	if err := textEdit(w36lit2, "",
-		"vim_vsnprintf_typval's `char f[6]`, the two-to-five character format "+
-			"string it built for the nine calls below", 1); err != nil {
-		return nil, err
-	}
-	if err := textEdit(w36lit3, w36lit4,
-		"%p, which musl's own printf renders as `0x` and sixteen zero-padded "+
-			"hex digits -- musl vfprintf does `p = MAX(p, 2*sizeof(void*)); t = "+
-			"'x'; fl |= ALT_FORM`, so musl_fmtptr reproduces that and not glibc's "+
-			"`(nil)`", 1); err != nil {
-		return nil, err
+	subs = []graph.Subst{
+		{In: "vim_vsnprintf_typval", Old: w36lit2, New: "", N: 1,
+			What: "vim_vsnprintf_typval's `char f[6]`, the two-to-five character format " +
+				"string it built for the nine calls below"},
+		{In: "vim_vsnprintf_typval", Old: w36lit3, New: w36lit4, N: 1,
+			What: "%p, which musl's own printf renders as `0x` and sixteen zero-padded " +
+				"hex digits -- musl vfprintf does `p = MAX(p, 2*sizeof(void*)); t = " +
+				"'x'; fl |= ALT_FORM`, so musl_fmtptr reproduces that and not glibc's " +
+				"`(nil)`"},
 	}
 	// The eight integer arms.  They differ in their argument and in their trailing
 	// indentation, which is why these are eight one-count patterns and not one
 	// pattern with a count of eight.
 	for _, a := range w36Arms {
-		if err := textEdit(w36Pad+"str_arg_l += sprintf(tmp + str_arg_l, f, "+a.arg,
-			w36Pad+"str_arg_l += musl_fmtnum(tmp + str_arg_l, "+a.call,
-			"the "+a.arg[:len(a.arg)-2]+" arm", 1); err != nil {
-			return nil, err
-		}
+		subs = append(subs, graph.Subst{In: "vim_vsnprintf_typval",
+			Old: w36Pad + "str_arg_l += sprintf(tmp + str_arg_l, f, " + a.arg,
+			New: w36Pad + "str_arg_l += musl_fmtnum(tmp + str_arg_l, " + a.call,
+			N:   1, What: "the " + a.arg[:len(a.arg)-2] + " arm"})
 	}
+	quiet.SubstituteSeq(subs...) // the arms are inside the chain the %p arm heads
+	if quiet.Err != nil {
+		return quiet.Err
+	}
+	t = string(v.Text())
 	if mentions(t, "sprintf") > 0 || mentions(t, "f_l") > 0 {
-		return nil, p.Die("sprintf has %d mentions and f_l %d after the nine went, and both must be 0",
+		v.Die("sprintf has %d mentions and f_l %d after the nine went, and both must be 0",
 			mentions(t, "sprintf"), mentions(t, "f_l"))
+		return v.Done()
 	}
-	p.Say("the nine calls inside vim_vsnprintf_typval are musl_fmtnum() and musl_fmtptr() " +
+	v.Say("the nine calls inside vim_vsnprintf_typval are musl_fmtnum() and musl_fmtptr() " +
 		"now, and the char f[6] that fed them is gone -- sprintf at 0 mentions and f_l " +
 		"at 0")
 
-	// ---- C. the rename, outside string and character literals -----------------
+	// ---- C. the rename, every use of the sixteen retargeted ---------------------
 	// MEASURED: not one literal in this file mentions any of the sixteen, so the
 	// literal awareness is belt and braces -- but a rename that did not have it
-	// would be a guess.
+	// would be a guess.  On the graph a literal is not a use and cannot be
+	// renamed; it is still read, so that a literal naming one is said.
 	pat := regexp.MustCompile(`\b(` + strings.Join(w36Names, "|") + `)\b`)
-	var pieces strings.Builder
-	renamed := 0
-	for _, r := range w36Runs(t) {
-		if r.lit {
-			if pat.MatchString(r.s) {
-				return nil, p.Die("a string literal mentions one of the sixteen and the rename would "+
-					"change what the editor PRINTS: %s", edit.PyRepr(edit.CoreHead(r.s, 60)))
-			}
-			pieces.WriteString(r.s)
-		} else {
-			renamed += len(pat.FindAllString(r.s, -1))
-			pieces.WriteString(pat.ReplaceAllString(r.s, "musl_$1"))
+	for _, s := range v.Strings() {
+		if pat.MatchString(s.Atom) {
+			v.Die("a string literal mentions one of the sixteen and the rename would "+
+				"change what the editor PRINTS: %s", edit.PyRepr(edit.CoreHead(s.Atom, 60)))
+			return v.Done()
 		}
 	}
-	t = pieces.String()
+	renamed := 0
+	for _, name := range w36Names {
+		var from *graph.Node
+		for _, d := range e.Decls(name) {
+			if d.Is("extern") {
+				from = d
+			}
+		}
+		to := e.Defn("musl_" + name)
+		if from == nil || to == nil {
+			v.Die("%s: no external to retarget from, or no musl_%s to retarget to", name, name)
+			return v.Done()
+		}
+		moved, err := e.RetargetUses(from, to)
+		if err != nil {
+			v.Die("%s -> musl_%s: %v", name, name, err)
+			return v.Done()
+		}
+		renamed += len(moved)
+	}
 	// 606 in the input + 4 that section A's size expressions introduced.  THE
 	// ORDER MATTERS: a phase that renamed first and edited sprintf afterwards
 	// would leave four bare strlen behind, which would compile and would keep the
 	// symbol.
 	if renamed != sixteen+4 {
-		return nil, p.Die("%d identifiers were renamed, expected %d -- %d in the input plus the four "+
+		v.Die("%d identifiers were renamed, expected %d -- %d in the input plus the four "+
 			"strlen the size expressions above introduce", renamed, sixteen+4, sixteen)
+		return v.Done()
 	}
-	p.Say(fmt.Sprintf("%d identifiers renamed to musl_*, none of them inside a literal -- %d of the "+
+	v.Say(fmt.Sprintf("%d identifiers renamed to musl_*, none of them inside a literal -- %d of the "+
 		"input and the four strlen the size arguments added", renamed, sixteen))
 
-	// ---- D. the definitions, after the includes and the seed's usize ----------
-	// Below the typedef the seed writes under the includes (whim0a, run in
-	// phase 0): the definitions name usize, so they follow it.
-	if err := textEdit(w36Anchor, w36Anchor+strings.TrimLeft(w36Defs, "\n")+"\n",
-		"the eighteen definitions go after the #includes and the usize typedef, "+
-			"before the first enum -- defined ahead of every use, so no prototype "+
-			"is added and the prototype block is not touched", 1); err != nil {
-		return nil, err
-	}
-
-	// ---- E. what the sweep is handed, as counts rather than as trust ----------
+	// ---- E. what the collection is handed, as counts rather than as trust -------
+	t = string(v.Text())
 	for _, name := range edit.SortedKeys(w36After) {
 		want := w36After[name]
 		base := strings.TrimPrefix(name, "musl_")
@@ -263,15 +294,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			want = before[name] + (w36After[name] - b)
 		}
 		if k := mentions(t, name); k != want {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, want)
+			v.Die("%s has %d mentions after the cut, expected %d", name, k, want)
+			return v.Done()
 		}
 	}
-	// The Python writes `(?<!_)\bname\b`, and the lookbehind never decides
-	// anything: `_` is a word character, so `\b` has already refused a match
-	// inside `musl_name`.  RE2 has no lookbehind and needs none here.
 	for _, name := range append(append([]string{}, w36Names...), "sprintf") {
-		if edit.WordPatternCount(t, name) > 0 {
-			return nil, p.Die("%s survives as a bare name somewhere", name)
+		if edit.WordPatternCount([]byte(t), name) > 0 {
+			v.Die("%s survives as a bare name somewhere", name)
+			return v.Done()
 		}
 	}
 	var directives, bad []string
@@ -284,53 +314,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if len(directives) != nInc || len(bad) > 0 {
-		return nil, p.Die("the file has %d lines starting with # and they must be the same eighteen "+
+		v.Die("the file has %d lines starting with # and they must be the same eighteen "+
 			"#includes: this phase adds no preprocessor syntax", len(directives))
+		return v.Done()
 	}
-	p.Say("the cut is done: sprintf and f_l at 0, tolower still at 2 -- the " +
+	v.Say("the cut is done: sprintf and f_l at 0, tolower still at 2 -- the " +
 		"character-class phase's and untouched -- vim_snprintf 55 -> 68, the sixteen " +
 		"musl_* at their source counts plus their own definitions, musl_fmtnum at 9 and " +
 		"musl_fmtptr at 2, and eighteen #include lines and no other directive")
-	return []byte(t), nil
-}
-
-type w36Run struct {
-	lit bool
-	s   string
-}
-
-// w36Runs is the heredoc's `runs()`: (is_literal, text) pairs.  It is the
-// phase's OWN scanner and not literals.go's, and the difference is deliberate --
-// this one does not refuse on an unterminated literal, it ends the run at the
-// newline, and a port held to its heredoc byte for byte may not swap one for the
-// other.
-func w36Runs(text string) []w36Run {
-	var Out []w36Run
-	i, n, start := 0, len(text), 0
-	for i < n {
-		c := text[i]
-		if c == '"' || c == '\'' {
-			Out = append(Out, w36Run{false, text[start:i]})
-			j := i + 1
-			for j < n {
-				if text[j] == '\\' {
-					j += 2
-					continue
-				}
-				if text[j] == c || text[j] == '\n' {
-					if text[j] == c {
-						j++
-					}
-					break
-				}
-				j++
-			}
-			Out = append(Out, w36Run{true, text[i:j]})
-			i, start = j, j
-		} else {
-			i++
-		}
-	}
-	Out = append(Out, w36Run{false, text[start:]})
-	return Out
+	return v.Done()
 }

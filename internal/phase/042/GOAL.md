@@ -213,3 +213,5 @@ if it is asked for.
 
 **Its product landed separately too**, like phase 108's: the branch and the merge hold the
 programs, and `whim-vim.c` came in the commit after.
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3c as built*): its program is a graph step, its literals made by FRAG at the smallest node they change, its counts the text's on the C view.

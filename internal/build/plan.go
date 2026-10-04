@@ -291,33 +291,33 @@ var Plan = []Phase{
 		}},
 	{N: 36, Block: "r01-libc", Name: "the strings are the editor's own",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim36"}},
+			{Op: "edit", Graph: true, Args: []string{"whim36"}},
 		}},
 	{N: 37, Name: "the character classes, the numbers and the sort",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim37"}},
+			{Op: "edit", Graph: true, Args: []string{"whim37"}},
 		}},
 	{N: 38, Block: "r02-host-chain", Name: "the deadly ladder, `vim_main`, and a core that cannot stop the process",
 		Steps: []Step{
 			{Op: "edit", Graph: true, Args: []string{"whim38a"}},
-			{Op: "edit", Args: []string{"whim38b"}},
-			{Op: "edit", Args: []string{"whim38"}},
+			{Op: "edit", Graph: true, Args: []string{"whim38b"}},
+			{Op: "edit", Graph: true, Args: []string{"whim38"}},
 		}},
 	{N: 39, Name: "the signals and the terminal are the host's",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim39"}},
+			{Op: "edit", Graph: true, Args: []string{"whim39"}},
 		}},
 	{N: 40, Name: "the messages are the editor's, the writing is the host's",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim40"}},
+			{Op: "edit", Graph: true, Args: []string{"whim40"}},
 		}},
 	{N: 41, Block: "r03-boundary", Name: "the plain host calls",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim41"}},
+			{Op: "edit", Graph: true, Args: []string{"whim41"}},
 		}},
 	{N: 42, Name: "the header types and macros the core can own",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim42", "@minmax"}},
+			{Op: "edit", Graph: true, Args: []string{"whim42", "@minmax"}},
 		}},
 	{N: 43, Name: "the move: the first `#include` becomes the boundary",
 		Steps: []Step{

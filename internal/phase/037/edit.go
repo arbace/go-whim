@@ -98,6 +98,17 @@ package p037
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).  The
 // check needs the binary this phase was HANDED, to run its probes on both sides.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3c).  The three anchors are the
+// graph's: the block goes after musl_fmtptr()'s definition, checked to be
+// phase 36's last with the enum wall after it; the tables after toUpper[]'s;
+// the dead `return iswupper(c);` is cut as a form.  Section D is no longer
+// a regexp over the text below the block: every call of the seventeen is a
+// use of a header's declaration, retargeted to its musl_ definition -- the
+// block's own bodies call musl_ names and cannot be reached -- and the five
+// classifiers musl's <ctype.h> spells as macros are invocations
+// `(macro "isupper (c)")`, each made the call `musl_isupper(c)` by MACROX.
+// The counts are the text's, on the C view.
 
 import (
 	_ "embed"
@@ -106,7 +117,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
@@ -135,7 +148,7 @@ func fenced(md string) (string, bool) {
 	return body[:j+1], true
 }
 
-func init() { phase.Register("whim37", Edit) }
+func init() { phase.RegisterGraph("whim37", Edit) }
 
 var w37Before = map[string]int{
 	"tolower": 2, "toupper": 2, "towlower": 2, "towupper": 2,
@@ -176,20 +189,11 @@ var w37Provided = strings.Fields(
 
 var w37Dead = regexp.MustCompile(`(?m)^ *return utf_is(?:upper|lower)\(c\);\n *if \(c >= 0x100\)$`)
 
-// Whim37 vendors the character classes, the two ato*, qsort and bsearch.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
+// Edit vendors the character classes, the two ato*, qsort and bsearch.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("vendor", e, w)
+	text := v.Text()
 	nInc := edit.IncludeCount(text) // the headers it was handed (phase 88 drops the unused)
-	p := edit.Ph{Tag: "vendor", W: w}
-	var err error
-	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
-		k := strings.Count(string(t), old)
-		if k != n {
-			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
-		}
-		p.Say(what)
-		return []byte(strings.ReplaceAll(string(t), old, new)), nil
-	}
 
 	// ---- 0. the input's calls, READ ---------------------------------------------
 	// iswupper's one call is a fact the phase depends on -- section C deletes
@@ -201,113 +205,165 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		shape = append(shape, fmt.Sprintf("%s %d", name, calls[name]))
 	}
 	if calls["iswupper"] != 1 || calls["isspace"] != 0 || calls["isprint"] != 0 {
-		return nil, p.Die("iswupper is called %d times, isspace %d and isprint %d: this phase deletes "+
+		v.Die("iswupper is called %d times, isspace %d and isprint %d: this phase deletes "+
 			"the one iswupper and adds nothing for the other two", calls["iswupper"],
 			calls["isspace"], calls["isprint"])
+		return v.Done()
 	}
-	p.Say("the input's calls: " + strings.Join(shape, ", "))
+	v.Say("the input's calls: " + strings.Join(shape, ", "))
 
 	for _, name := range w37Free {
 		if edit.WordPatternCount(text, name) > 0 {
-			return nil, p.Die("%s already exists in the file", name)
+			v.Die("%s already exists in the file", name)
+			return v.Done()
 		}
 	}
-	p.Say("the twenty musl_ names this phase defines are all free")
+	v.Say("the twenty musl_ names this phase defines are all free")
 
 	// ---- THE INVARIANT, COMPUTED BEFORE ANYTHING IS INSERTED ------------------
 	if k := len(w37Dead.FindAll(text, -1)); k != 2 {
-		return nil, p.Die("the two dead `if (c >= 0x100)` arms of vim_isupper/vim_islower are not "+
+		v.Die("the two dead `if (c >= 0x100)` arms of vim_isupper/vim_islower are not "+
 			"where this phase found them (%d)", k)
+		return v.Done()
 	}
-	p.Say("vim_isupper and vim_islower still open with `return utf_is*(c);` followed by an " +
+	v.Say("vim_isupper and vim_islower still open with `return utf_is*(c);` followed by an " +
 		"unreachable `if (c >= 0x100)` -- which is the shape that makes iswupper a name " +
 		"in the source and not a symbol in the object")
 
-	// ---- A. the eighteen functions, after NGETTEXT ---------------------------
+	// The calls section D rewrites, found before anything is inserted: the
+	// uses of the header's declarations that are callees, and the
+	// invocations of the classifiers that are macros.
+	rewrite := map[string]bool{}
+	for _, r := range w37Rewrite {
+		rewrite[r] = true
+	}
+	type w37Call struct {
+		use  *graph.Node
+		name string
+	}
+	var direct []w37Call
+	var macros []*graph.Node
+	found := map[string]int{}
+	for _, r := range w37Rewrite {
+		for _, d := range e.Decls(r) {
+			if !d.Is("extern") {
+				continue
+			}
+			for _, u := range e.Uses(d) {
+				if c := e.Parent(u); c != nil && c.Is("call") && c.Kids[1] == u {
+					direct = append(direct, w37Call{u, r})
+					found[r]++
+				}
+			}
+		}
+	}
+	for _, f := range e.Graph().Forms {
+		graph.Walk(f, func(x *graph.Node) bool {
+			if name, _, ok := graph.MacroCall(x); ok && rewrite[name] {
+				macros = append(macros, x)
+				found[name]++
+			}
+			return true
+		})
+	}
+
+	// ---- A. the eighteen functions, after phase 36's block ---------------------
 	block, ok := fenced(muslCtypeMD)
 	if !ok {
-		return nil, p.Die("musl-ctype.md does not hold exactly one fenced block")
+		v.Die("musl-ctype.md does not hold exactly one fenced block")
+		return v.Done()
 	}
 	// THE BLOCK JOINS PHASE 36'S RATHER THAN STARTING A SECOND ONE, so the anchor
 	// is that JUNCTION -- the end of its last definition and the first enum --
 	// and not a line of its own.
 	const w37Tail = "    dest[18] = '\\0';\n    return 18;\n}\n"
 	const w37Wall = "\nenum { BH_DIRTY = 1 };\n"
-	if text, err = textEdit(text, w37Tail+w37Wall, w37Tail+block+w37Wall,
-		"the eighteen functions go at the END OF PHASE 36's BLOCK, before the "+
-			"enum wall -- one vendored block and not two -- defined before every "+
-			"use, so only the two dead tow* mentions need a prototype", 1); err != nil {
-		return nil, err
+	what := "the eighteen functions go at the END OF PHASE 36's BLOCK, before the " +
+		"enum wall -- one vendored block and not two -- defined before every " +
+		"use, so only the two dead tow* mentions need a prototype"
+	last := e.Defn("musl_fmtptr")
+	if k := strings.Count(string(text), w37Tail+w37Wall); k != 1 || last == nil ||
+		!graph.Matches(clisp.MustPattern("(enum (BH_DIRTY 1))"), e.Sibling(last, 1)) {
+		v.Die("%s -- the text occurs %d times, expected 1: %s", what, k, edit.PyRepr(edit.CoreHead(w37Tail+w37Wall, 70)))
+		return v.Done()
 	}
+	if _, err := e.SpliceC(graph.Frag{At: e.SpotAfter(last), Src: block}); err != nil {
+		v.Die("%s -- %v", what, err)
+		return v.Done()
+	}
+	v.Say(what)
 
 	// ---- B. the two tables, beside vim's own ----------------------------------
 	caseB, ok := fenced(muslCaseMD)
 	if !ok {
-		return nil, p.Die("musl-case.md does not hold exactly one fenced block")
+		v.Die("musl-case.md does not hold exactly one fenced block")
+		return v.Done()
 	}
 	const w37ToUpperEnd = "    {0x1e922, 0x1e943, 1, -34},\n};\n"
-	if text, err = textEdit(text, w37ToUpperEnd, w37ToUpperEnd+caseB,
-		"musl's case mapping as 187 + 171 convertStruct rows, after vim's own "+
-			"toUpper[] -- the same shape, the same size, and read by the "+
-			"utf_convert() that is already declared above them", 1); err != nil {
-		return nil, err
+	what = "musl's case mapping as 187 + 171 convertStruct rows, after vim's own " +
+		"toUpper[] -- the same shape, the same size, and read by the " +
+		"utf_convert() that is already declared above them"
+	if k := strings.Count(string(text), w37ToUpperEnd); k != 1 {
+		v.Die("%s -- the text occurs %d times, expected 1: %s", what, k, edit.PyRepr(edit.CoreHead(w37ToUpperEnd, 70)))
+		return v.Done()
 	}
+	v.TopAfterC("toUpper", caseB, what)
 
 	// ---- C. the dead statement ------------------------------------------------
-	if text, err = textEdit(text, "            return iswupper(c);\n", "",
+	v.Cut("(return (call iswupper c))", 1,
 		"vim_isupper's `return iswupper(c);`, which cannot run and is "+
 			"<wctype.h>'s last user besides the two this phase vendors -- deleting "+
-			"it is byte-identical, measured with SOURCE_DATE_EPOCH=0", 1); err != nil {
-		return nil, err
+			"it is byte-identical, measured with SOURCE_DATE_EPOCH=0")
+	if v.Failed() {
+		return v.Done()
 	}
 
-	// ---- D. the call sites, counted, and only BELOW the block -----------------
-	// The rewrites are applied to the text AFTER the inserted functions so that
-	// the block's own bodies -- musl_ispunct calls musl_isalnum, musl_atoi calls
-	// musl_isdigit -- are never themselves rewritten.  A file-wide regex would
-	// have turned musl_tolower's Body into musl_musl_tolower.
-	cut := strings.Index(string(text), block) + len(block)
-	head, Body := string(text[:cut]), string(text[cut:])
+	// ---- D. the call sites, counted -------------------------------------------
+	// The block's own bodies -- musl_ispunct calls musl_isalnum, musl_atoi
+	// calls musl_isdigit -- name musl_ functions and are no use of a header's
+	// declaration, so nothing here can rewrite them: what the text got by
+	// rewriting only BELOW the block.
 	total := 0
 	for _, r := range w37Rewrite {
-		var idx [][]int
-		for _, m := range edit.CoreCallRe(r).FindAllStringIndex(Body, -1) {
-			if m[0] > 0 && edit.IsWordByte(Body[m[0]-1]) {
-				continue
-			}
-			idx = append(idx, m)
+		if found[r] != calls[r] {
+			v.Die("%s is called %d times below the inserted block, and %d times in the input",
+				r, found[r], calls[r])
+			return v.Done()
 		}
-		if len(idx) != calls[r] {
-			return nil, p.Die("%s is called %d times below the inserted block, and %d times in the input",
-				r, len(idx), calls[r])
-		}
-		total += len(idx)
-		// ONE PASS over the original text, in order, because a span is an OFFSET
-		// and every offset after a replacement is wrong -- CLAUDE.md's rule, and
-		// the reason whim0a left five of 437 size_t behind when it was two.
-		var Out strings.Builder
-		prev := 0
-		for _, m := range idx {
-			// THE WHOLE MATCH IS REPLACED, not prefixed.  The Python writes
-			// `re.sub(r'name\s*\(', 'musl_name(')`, so a call written
-			// `isupper (c)` loses its space; keeping the matched text and
-			// prefixing it leaves `musl_isupper (c)`, which is the same program
-			// and a different file -- measured, 6 lines of the tree.
-			Out.WriteString(Body[prev:m[0]])
-			Out.WriteString("musl_" + r + "(")
-			prev = m[1]
-		}
-		Out.WriteString(Body[prev:])
-		Body = Out.String()
+		total += found[r]
 	}
-	text = []byte(head + Body)
-	p.Say(fmt.Sprintf("seventeen names rewritten at the counts read above -- %d call sites, every one "+
+	for _, c := range direct {
+		to := e.Defn("musl_" + c.name)
+		if to == nil {
+			v.Die("musl_%s is not defined", c.name)
+			return v.Done()
+		}
+		if err := e.RetargetAs(c.use, 0, to); err != nil {
+			v.Die("%s: %v", c.name, err)
+			return v.Done()
+		}
+		// the call's type is the musl_ function's result now (int, where
+		// towupper's is wint_t): typed again, as an import types it
+		e.Rederive(e.Parent(c.use))
+	}
+	// THE WHOLE INVOCATION IS REPLACED, not prefixed: a call written
+	// `isupper (c)` is `musl_isupper(c)`, as the text's regexp wrote it.
+	quiet := graph.NewVerbs("vendor", e, io.Discard)
+	quiet.ExpandMacros(w37Rewrite, func(name string, args []string) (string, error) {
+		return "musl_" + name + "(" + strings.Join(args, ", ") + ")", nil
+	}, len(macros), "the classifiers <ctype.h> spells as macros")
+	if quiet.Err != nil {
+		return quiet.Err
+	}
+	v.Say(fmt.Sprintf("seventeen names rewritten at the counts read above -- %d call sites, every one "+
 		"of them BELOW the block, so no vendored body rewrites itself", total))
+	text = v.Text()
 	if k := edit.CoreCalls(text, "strtol"); k != 0 {
-		return nil, p.Die("strtol is still called %d times, and <stdlib.h> would keep providing it", k)
+		v.Die("strtol is still called %d times, and <stdlib.h> would keep providing it", k)
+		return v.Done()
 	}
 
-	// ---- what the sweep is handed, as a count rather than as trust ------------
+	// ---- what the collection is handed, as a count rather than as trust -------
 	var left []string
 	for _, n := range w37Provided {
 		if edit.CoreCalls(text, n) > 0 {
@@ -315,19 +371,22 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if len(left) > 0 {
-		return nil, p.Die("<ctype.h>/<wctype.h> still has a user and record 99 could not remove it: %s",
+		v.Die("<ctype.h>/<wctype.h> still has a user and record 99 could not remove it: %s",
 			strings.Join(left, " "))
+		return v.Done()
 	}
 	for _, tn := range []string{"wint_t", "wctype_t", "wctrans_t"} {
 		if regexp.MustCompile(`\b` + tn + `\b`).Match(text) {
-			return nil, p.Die("%s is still named, and it is <wctype.h>'s", tn)
+			v.Die("%s is still named, and it is <wctype.h>'s", tn)
+			return v.Done()
 		}
 	}
-	p.Say("nothing <ctype.h> or <wctype.h> provides is called anywhere, and no wint_t, " +
+	v.Say("nothing <ctype.h> or <wctype.h> provides is called anywhere, and no wint_t, " +
 		"wctype_t or wctrans_t is named -- which is the contract record 99 removes the " +
 		"two headers on, asserted here so that a miss fails THIS phase")
 	if edit.CoreCalls(text, "iswupper") > 0 || regexp.MustCompile(`\biswupper\b`).Match(text) {
-		return nil, p.Die("iswupper survives")
+		v.Die("iswupper survives")
+		return v.Done()
 	}
 	var directives, bad []string
 	for _, l := range strings.Split(string(text), "\n") {
@@ -339,10 +398,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if len(directives) != nInc || len(bad) > 0 {
-		return nil, p.Die("the directives are no longer 18 #includes of a system header: %d, %s",
+		v.Die("the directives are no longer 18 #includes of a system header: %d, %s",
 			len(directives), strings.Join(bad, " "))
+		return v.Done()
 	}
-	p.Say("18 directives, every one an #include of a system header -- this phase adds no " +
+	v.Say("18 directives, every one an #include of a system header -- this phase adds no " +
 		"preprocessor and removes none; the two it makes unnecessary are record 99's")
-	return text, nil
+	return v.Done()
 }

@@ -256,3 +256,5 @@ host boundary is a terminal, a clock, three allocations and eight signal calls โ
 together.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` ยง3d): this phase carries the group 100-102 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3c as built*): its program is a graph step, its literals made by FRAG at the smallest node they change, its counts the text's on the C view.

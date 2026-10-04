@@ -285,7 +285,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 15, 19-35, 43-56, 58, 60, 62, 64, 74 and 77 and parts 4a-4f, 5a-5d, 15a, 38a, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
+phase converted to the graph (phases 15, 19-56, 58, 60, 62, 64, 74 and 77 and parts 4a-4f, 5a-5d, 15a, 38a, 38b, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -922,7 +922,7 @@ was the input boundary's digest and the implementation's together, so a moved
   collected and printed by the C view, cemit's text byte for byte. The graph
   goes on to the next phase only when that phase begins on the graph, with a
   fresh editor, so a phase takes one path in order and in the check. On the
-  graph now: every `droplocal`, phases 24, 27-35, 58 and 64, phase 77's own
+  graph now: every `droplocal`, phases 24, 27-42 (B3c's 36-42: 38 with its parts 38a and 38b), 58 and 64, phase 77's own
   step, parts 38a and 86a, B3d's phases 43-52 end to end (43 imports, 44-52
   are each handed the graph the one before leaves), and B1a's -- the cutters nointro, optreaders,
   nostat, nobackup, lfonly, keepbytes, noinertopts, nofloat and noowner,
