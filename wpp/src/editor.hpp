@@ -7,31 +7,75 @@ namespace whimpp {
 class Editor;
 struct Glue;
 
-typedef void *__builtin_va_list;
+struct growarray;
+struct window_S;
+struct wininfo_S;
+struct frame_S;
+struct file_buffer;
+struct filemark;
+struct taggy;
+struct u_entry;
+struct u_header;
+struct block_hdr;
+struct pointer_block;
+struct data_block;
+struct buffblock;
+struct buffheader;
+struct expand;
+struct info_pointer;
+struct memline;
+struct attr_entry;
+struct hist_entry;
+struct mapblock;
+struct tabpage_S;
+struct w_line;
+struct matchitem;
+struct oparg_S;
+struct cmdarg_S;
+struct block_def;
+struct soffset;
+struct spat;
+struct exarg;
+struct cmdname;
+struct hl_overrides_S;
+struct initmap;
+struct interval;
+struct data_line;
+struct pointer_entry;
+struct msg_hist;
+struct msgchunk_S;
+struct modmasktable;
+struct key_name_entry;
+struct nv_cmd;
+struct vimoption;
+struct signalinfo;
+struct regengine_S;
+struct regbehind_S;
+struct regitem_S;
+struct regstar_S;
+struct backpos_S;
+struct charstab;
+struct searchstat;
+struct termcode;
+struct clinterval;
 
-typedef long unsigned int __predefined_size_t;
+using usize = decltype(sizeof(0));
 
-typedef int __predefined_wchar_t;
+constexpr int INT_MAX = static_cast<int>(~0u >> 1);
 
-typedef long int __predefined_ptrdiff_t;
+constexpr int INT_MIN = -static_cast<int>(~0u >> 1) - 1;
 
-typedef decltype(sizeof(0)) usize;
+constexpr long LONG_MAX = static_cast<long>(~0ul >> 1);
 
-constexpr int INT_MAX = (int)(~0u >> 1);
+constexpr long LONG_MIN = -static_cast<long>(~0ul >> 1) - 1;
 
-constexpr int INT_MIN = -(int)(~0u >> 1) - 1;
+constexpr long long LLONG_MAX = static_cast<long long>(~0ull >> 1);
 
-constexpr long LONG_MAX = (long)(~0ul >> 1);
-
-constexpr long LONG_MIN = -(long)(~0ul >> 1) - 1;
-
-constexpr long long LLONG_MAX = (long long)(~0ull >> 1);
-
-constexpr long long LLONG_MIN = -(long long)(~0ull >> 1) - 1;
+constexpr long long LLONG_MIN = -static_cast<long long>(~0ull >> 1) - 1;
 
 constexpr unsigned long long ULLONG_MAX = ~0ull;
 
-constexpr unsigned long SIZE_MAX = (usize)-1;
+constexpr unsigned long SIZE_MAX = static_cast<usize>(-1);
 
 constexpr int PATH_MAX = 4096;
 
@@ -107,21 +151,21 @@ constexpr int STR2NR_FORCE = 0x80;
 
 constexpr int STR2NR_QUOTE = 0x10;
 
-typedef unsigned char char_u;
+using char_u = unsigned char;
 
-typedef unsigned short short_u;
+using short_u = unsigned short;
 
-typedef unsigned long long_u;
+using long_u = unsigned long;
 
-typedef char_u schar_T;
+using schar_T = char_u;
 
-typedef unsigned short sattr_T;
+using sattr_T = unsigned short;
 
 constexpr int MAX_TYPENR = 65535;
 
-typedef unsigned int u8char_T;
+using u8char_T = unsigned int;
 
-typedef long long vimlong_T;
+using vimlong_T = long long;
 
 constexpr int NUL = '\000';
 
@@ -346,95 +390,99 @@ constexpr int MAX_KEY_NAME_LEN = 32;
 
 constexpr int MAX_KEY_CODE_LEN = 6;
 
-constexpr int KS_NAME = 0;
-constexpr int KS_CE = 1;
-constexpr int KS_AL = 2;
-constexpr int KS_CAL = 3;
-constexpr int KS_DL = 4;
-constexpr int KS_CDL = 5;
-constexpr int KS_CS = 6;
-constexpr int KS_CL = 7;
-constexpr int KS_CD = 8;
-constexpr int KS_UT = 9;
-constexpr int KS_DA = 10;
-constexpr int KS_DB = 11;
-constexpr int KS_VI = 12;
-constexpr int KS_VE = 13;
-constexpr int KS_VS = 14;
-constexpr int KS_CVS = 15;
-constexpr int KS_CSH = 16;
-constexpr int KS_CRC = 17;
-constexpr int KS_CRS = 18;
-constexpr int KS_ME = 19;
-constexpr int KS_MR = 20;
-constexpr int KS_MD = 21;
-constexpr int KS_SE = 22;
-constexpr int KS_SO = 23;
-constexpr int KS_CZH = 24;
-constexpr int KS_CZR = 25;
-constexpr int KS_UE = 26;
-constexpr int KS_US = 27;
-constexpr int KS_UCE = 28;
-constexpr int KS_UCS = 29;
-constexpr int KS_USS = 30;
-constexpr int KS_DS = 31;
-constexpr int KS_CDS = 32;
-constexpr int KS_STE = 33;
-constexpr int KS_STS = 34;
-constexpr int KS_MS = 35;
-constexpr int KS_CM = 36;
-constexpr int KS_SR = 37;
-constexpr int KS_CRI = 38;
-constexpr int KS_VB = 39;
-constexpr int KS_KS = 40;
-constexpr int KS_KE = 41;
-constexpr int KS_TI = 42;
-constexpr int KS_CTI = 43;
-constexpr int KS_CRK = 44;
-constexpr int KS_TE = 45;
-constexpr int KS_CTE = 46;
-constexpr int KS_BC = 47;
-constexpr int KS_CCS = 48;
-constexpr int KS_CCO = 49;
-constexpr int KS_CSF = 50;
-constexpr int KS_CSB = 51;
-constexpr int KS_XS = 52;
-constexpr int KS_XN = 53;
-constexpr int KS_MB = 54;
-constexpr int KS_CAF = 55;
-constexpr int KS_CAB = 56;
-constexpr int KS_CAU = 57;
-constexpr int KS_LE = 58;
-constexpr int KS_ND = 59;
-constexpr int KS_CIS = 60;
-constexpr int KS_CIE = 61;
-constexpr int KS_CSC = 62;
-constexpr int KS_CEC = 63;
-constexpr int KS_TS = 64;
-constexpr int KS_FS = 65;
-constexpr int KS_CWP = 66;
-constexpr int KS_CGP = 67;
-constexpr int KS_CWS = 68;
-constexpr int KS_CRV = 69;
-constexpr int KS_CXM = 70;
-constexpr int KS_RFG = 71;
-constexpr int KS_RBG = 72;
-constexpr int KS_CSV = 76;
-constexpr int KS_OP = 77;
-constexpr int KS_U7 = 78;
-constexpr int KS_8U = 81;
-constexpr int KS_CBE = 82;
-constexpr int KS_CBD = 83;
-constexpr int KS_CST = 84;
-constexpr int KS_CRT = 85;
-constexpr int KS_SSI = 86;
-constexpr int KS_SRI = 87;
-constexpr int KS_FD = 88;
-constexpr int KS_FE = 89;
-constexpr int KS_CF = 90;
-constexpr int KS_XON = 91;
-constexpr int KS_BSU = 92;
-constexpr int KS_ESU = 93;
+enum class SpecialKey : int
+{
+    KS_NAME = 0,
+    KS_CE,
+    KS_AL,
+    KS_CAL,
+    KS_DL,
+    KS_CDL,
+    KS_CS,
+    KS_CL,
+    KS_CD,
+    KS_UT,
+    KS_DA,
+    KS_DB,
+    KS_VI,
+    KS_VE,
+    KS_VS,
+    KS_CVS,
+    KS_CSH,
+    KS_CRC,
+    KS_CRS,
+    KS_ME,
+    KS_MR,
+    KS_MD,
+    KS_SE,
+    KS_SO,
+    KS_CZH,
+    KS_CZR,
+    KS_UE,
+    KS_US,
+    KS_UCE,
+    KS_UCS,
+    KS_USS,
+    KS_DS,
+    KS_CDS,
+    KS_STE,
+    KS_STS,
+    KS_MS,
+    KS_CM,
+    KS_SR,
+    KS_CRI,
+    KS_VB,
+    KS_KS,
+    KS_KE,
+    KS_TI,
+    KS_CTI,
+    KS_CRK,
+    KS_TE,
+    KS_CTE,
+    KS_BC,
+    KS_CCS,
+    KS_CCO,
+    KS_CSF,
+    KS_CSB,
+    KS_XS,
+    KS_XN,
+    KS_MB,
+    KS_CAF,
+    KS_CAB,
+    KS_CAU,
+    KS_LE,
+    KS_ND,
+    KS_CIS,
+    KS_CIE,
+    KS_CSC,
+    KS_CEC,
+    KS_TS,
+    KS_FS,
+    KS_CWP,
+    KS_CGP,
+    KS_CWS,
+    KS_CRV,
+    KS_CXM,
+    KS_RFG,
+    KS_RBG,
+    KS_CSV = 76,
+    KS_OP,
+    KS_U7,
+    KS_8U = 81,
+    KS_CBE,
+    KS_CBD,
+    KS_CST,
+    KS_CRT,
+    KS_SSI,
+    KS_SRI,
+    KS_FD,
+    KS_FE,
+    KS_CF,
+    KS_XON,
+    KS_BSU,
+    KS_ESU,
+};
+using enum SpecialKey;
 
 constexpr int UPD_VALID_NO_UPDATE = 5;
 
@@ -751,7 +799,7 @@ constexpr int HLF_MSG = 64;
 constexpr int HLF_WIN = 69;
 constexpr int HLF_COUNT = 70;
 
-typedef int hlf_T;
+using hlf_T = int;
 
 constexpr int FALSE = 0;
 
@@ -813,9 +861,9 @@ constexpr int MSG_BUF_LEN = 480;
 
 constexpr int MAXMAPLEN = 50;
 
-typedef long linenr_T;
+using linenr_T = long;
 
-typedef int colnr_T;
+using colnr_T = int;
 
 constexpr int MAXCOL = 0x7fffffffL;
 
@@ -825,7 +873,7 @@ constexpr int MAX_MCO = 6;
 
 constexpr int MB_MAXBYTES = 21;
 
-typedef long time_T;
+using time_T = long;
 
 constexpr int P_BOOL = 0x01;
 
@@ -1074,24 +1122,24 @@ constexpr int WV_WRAP = 19;
 
 constexpr int ERR_BUFLEN = 80;
 
-typedef struct
+struct string_T
 {
     char_u *string;
     usize length;
-} string_T;
+};
 
-typedef struct
+struct pos_T
 {
     linenr_T lnum;
     colnr_T col;
     colnr_T coladd;
-} pos_T;
+};
 
-typedef struct
+struct lpos_T
 {
     linenr_T lnum;
     colnr_T col;
-} lpos_T;
+};
 
 struct growarray
 {
@@ -1102,29 +1150,29 @@ struct growarray
     void *ga_data;
 };
 
-typedef struct growarray garray_T;
+using garray_T = growarray;
 
-typedef struct window_S win_T;
+using win_T = window_S;
 
-typedef struct wininfo_S wininfo_T;
+using wininfo_T = wininfo_S;
 
-typedef struct frame_S frame_T;
+using frame_T = frame_S;
 
-typedef int scid_T;
+using scid_T = int;
 
-typedef struct file_buffer buf_T;
+using buf_T = file_buffer;
 
-typedef struct
+struct sctx_T
 {
     int sc_version;
-} sctx_T;
+};
 
-typedef struct
+struct bufref_T
 {
     buf_T *br_buf;
     int br_fnum;
     int br_buf_free_count;
-} bufref_T;
+};
 
 constexpr int NSUBEXP = 10;
 
@@ -1143,18 +1191,18 @@ struct regprog
     char_u *program;
 };
 
-typedef struct regprog regprog_T;
+using regprog_T = struct regprog;
 
-typedef struct
+struct regmatch_T
 {
     regprog_T *regprog;
     char_u *startp[NSUBEXP];
     char_u *endp[NSUBEXP];
     colnr_T rm_matchcol;
     bool rm_ic;
-} regmatch_T;
+};
 
-typedef struct
+struct regmmatch_T
 {
     regprog_T *regprog;
     lpos_T startpos[NSUBEXP];
@@ -1162,7 +1210,7 @@ typedef struct
     colnr_T rmm_matchcol;
     int rmm_ic;
     colnr_T rmm_maxcol;
-} regmmatch_T;
+};
 
 constexpr int REGSUB_COPY = 1;
 
@@ -1180,16 +1228,16 @@ struct filemark
     int fnum;
 };
 
-typedef struct filemark fmark_T;
+using fmark_T = filemark;
 
 struct taggy
 {
     fmark_T fmark;
 };
 
-typedef struct taggy taggy_T;
+using taggy_T = taggy;
 
-typedef struct
+struct winopt_T
 {
     char_u *wo_wcr;
     int wo_list;
@@ -1207,7 +1255,7 @@ typedef struct
     long wo_sop;
     long_u wo_wrap_flags;
     char_u *wo_whl;
-} winopt_T;
+};
 
 struct wininfo_S
 {
@@ -1219,24 +1267,24 @@ struct wininfo_S
     bool wi_optset;
 };
 
-typedef struct
+struct visualinfo_T
 {
     pos_T vi_start;
     pos_T vi_end;
     int vi_mode;
     colnr_T vi_curswant;
-} visualinfo_T;
+};
 
-typedef struct
+struct undoline_T
 {
     char_u *ul_line;
     long ul_len;
     colnr_T ul_textlen;
-} undoline_T;
+};
 
-typedef struct u_entry u_entry_T;
+using u_entry_T = u_entry;
 
-typedef struct u_header u_header_T;
+using u_header_T = u_header;
 
 struct u_entry
 {
@@ -1271,18 +1319,18 @@ constexpr int UH_CHANGED = 0x01;
 
 constexpr int UH_EMPTYBUF = 0x02;
 
-typedef struct block_hdr bhdr_T;
+using bhdr_T = block_hdr;
 
 struct block_hdr
 {
     short_u bh_id;
-    struct pointer_block *bh_ptr;
-    struct data_block *bh_data;
+    pointer_block *bh_ptr;
+    data_block *bh_data;
 };
 
-typedef struct buffblock buffblock_T;
+using buffblock_T = buffblock;
 
-typedef struct buffheader buffheader_T;
+using buffheader_T = buffheader;
 
 struct buffblock
 {
@@ -1300,16 +1348,19 @@ struct buffheader
     int bh_create_newblock;
 };
 
-constexpr int XP_PREFIX_NONE = 0;
+enum class xp_prefix_T : int
+{
+    XP_PREFIX_NONE,
+};
+using enum xp_prefix_T;
 
-typedef int xp_prefix_T;
 
 constexpr int OP_NONE = 0;
 constexpr int OP_ADDING = 1;
 constexpr int OP_PREPENDING = 2;
 constexpr int OP_REMOVING = 3;
 
-typedef int set_op_T;
+using set_op_T = int;
 
 struct expand
 {
@@ -1327,11 +1378,11 @@ struct expand
     char_u **xp_files_info;
 };
 
-typedef struct expand expand_T;
+using expand_T = expand;
 
 constexpr int XP_BS_NONE = 0;
 
-typedef struct
+struct cmdline_info_T
 {
     char_u *cmdbuff;
     int cmdbufflen;
@@ -1346,9 +1397,9 @@ typedef struct
     expand_T *xpc;
     int xp_context;
     bool cmdbuff_replaced;
-} cmdline_info_T;
+};
 
-typedef struct
+struct cmdmod_T
 {
     int cmod_flags;
     regmatch_T cmod_filter_regmatch;
@@ -1358,7 +1409,7 @@ typedef struct
     int cmod_save_msg_silent;
     int cmod_save_msg_scroll;
     int cmod_did_esilent;
-} cmdmod_T;
+};
 
 struct info_pointer
 {
@@ -1368,7 +1419,7 @@ struct info_pointer
     int ip_index;
 };
 
-typedef struct info_pointer infoptr_T;
+using infoptr_T = info_pointer;
 
 struct memline
 {
@@ -1388,7 +1439,7 @@ struct memline
     int ml_locked_lineadd;
 };
 
-typedef struct memline memline_T;
+using memline_T = memline;
 
 constexpr int ML_DEL_MESSAGE = 1;
 
@@ -1418,9 +1469,9 @@ struct attr_entry
     } ae_u;
 };
 
-typedef struct attr_entry attrentry_T;
+using attrentry_T = attr_entry;
 
-typedef struct
+struct typebuf_T
 {
     char_u *tb_buf;
     char_u *tb_noremap;
@@ -1431,9 +1482,9 @@ typedef struct
     int tb_silent;
     int tb_no_abbr_cnt;
     int tb_change_cnt;
-} typebuf_T;
+};
 
-typedef struct
+struct tasave_T
 {
     typebuf_T save_typebuf;
     bool typebuf_valid;
@@ -1442,7 +1493,7 @@ typedef struct
     buffheader_T save_readbuf1;
     buffheader_T save_readbuf2;
     garray_T *save_inputbuf;
-} tasave_T;
+};
 
 struct hist_entry
 {
@@ -1453,9 +1504,9 @@ struct hist_entry
     time_T time_set;
 };
 
-typedef struct hist_entry histentry_T;
+using histentry_T = hist_entry;
 
-typedef struct mapblock mapblock_T;
+using mapblock_T = mapblock;
 
 struct mapblock
 {
@@ -1472,34 +1523,37 @@ struct mapblock
     char m_nowait;
 };
 
-typedef long long varnumber_T;
+using varnumber_T = long long;
 
-typedef unsigned long long uvarnumber_T;
+using uvarnumber_T = unsigned long long;
 
 constexpr int GETLINE_CONCAT_CONT = 1;
 
-typedef int getline_opt_T;
+using getline_opt_T = int;
 
-constexpr int ETYPE_TOP = 0;
-constexpr int ETYPE_ARGS = 6;
-constexpr int ETYPE_INTERNAL = 8;
+enum class etype_T : int
+{
+    ETYPE_TOP,
+    ETYPE_ARGS = 6,
+    ETYPE_INTERNAL = 8,
+};
+using enum etype_T;
 
-typedef int etype_T;
 
-typedef struct
+struct estack_T
 {
     long es_lnum;
     char_u *es_name;
     etype_T es_type;
-} estack_T;
+};
 
-typedef struct
+struct ttyinfo_T
 {
     int backspace;
     int enter;
     int interrupt;
     bool nl_does_cr;
-} ttyinfo_T;
+};
 
 struct file_buffer
 {
@@ -1578,7 +1632,7 @@ struct file_buffer
     int b_mapped_ctrl_c;
 };
 
-typedef struct tabpage_S tabpage_T;
+using tabpage_T = tabpage_S;
 
 struct tabpage_S
 {
@@ -1594,7 +1648,7 @@ struct w_line
     char wl_valid;
 };
 
-typedef struct w_line wline_T;
+using wline_T = w_line;
 
 struct frame_S
 {
@@ -1606,7 +1660,7 @@ struct frame_S
 
 constexpr int FR_LEAF = 0;
 
-typedef struct
+struct match_T
 {
     regmmatch_T rm;
     buf_T *buf;
@@ -1618,16 +1672,16 @@ typedef struct
     colnr_T endcol;
     char is_addpos;
     char has_cursor;
-} match_T;
+};
 
-typedef struct
+struct llpos_T
 {
     linenr_T lnum;
     colnr_T col;
     int len;
-} llpos_T;
+};
 
-typedef struct matchitem matchitem_T;
+using matchitem_T = matchitem;
 
 struct matchitem
 {
@@ -1645,7 +1699,7 @@ struct matchitem
     int mit_hlg_id;
 };
 
-typedef struct
+struct lcs_chars_T
 {
     int eol;
     int ext;
@@ -1662,9 +1716,9 @@ typedef struct
     int leadtab3;
     int *multispace;
     int *leadmultispace;
-} lcs_chars_T;
+};
 
-typedef struct
+struct fill_chars_T
 {
     int stl;
     int stlnc;
@@ -1679,13 +1733,13 @@ typedef struct
     int lastline;
     int trunc;
     int truncrl;
-} fill_chars_T;
+};
 
-typedef struct
+struct hl_override_T
 {
     int from;
     int to;
-} hl_override_T;
+};
 
 struct window_S
 {
@@ -1783,7 +1837,7 @@ struct oparg_S
     int excl_tr_ws;
 };
 
-typedef struct oparg_S oparg_T;
+using oparg_T = oparg_S;
 
 struct cmdarg_S
 {
@@ -1801,7 +1855,7 @@ struct cmdarg_S
     char_u *searchbuf;
 };
 
-typedef struct cmdarg_S cmdarg_T;
+using cmdarg_T = cmdarg_S;
 
 constexpr int CA_COMMAND_BUSY = 1;
 
@@ -1809,16 +1863,16 @@ constexpr int CA_NO_ADJ_OP_END = 2;
 
 constexpr int MAX_ARG_CMDS = 10;
 
-typedef struct
+struct mparm_T
 {
     int argc;
     char **argv;
     int n_commands;
     char_u *commands[MAX_ARG_CMDS];
     bool want_full_screen;
-} mparm_T;
+};
 
-typedef struct
+struct save_state_T
 {
     int save_msg_scroll;
     int save_restart_edit;
@@ -1831,7 +1885,7 @@ typedef struct
     bool save_pending_end_reg_executing;
     int save_script_version;
     tasave_T tabuf;
-} save_state_T;
+};
 
 constexpr int DELETION_REGISTER = 36;
 
@@ -1855,13 +1909,13 @@ struct block_def
     colnr_T start_char_vcols;
 };
 
-typedef struct
+struct yankreg_T
 {
     string_T *y_array;
     linenr_T y_size;
     char_u y_type;
     colnr_T y_width;
-} yankreg_T;
+};
 
 struct soffset
 {
@@ -1871,7 +1925,7 @@ struct soffset
     long off;
 };
 
-typedef struct soffset soffset_T;
+using soffset_T = soffset;
 
 struct spat
 {
@@ -1882,45 +1936,45 @@ struct spat
     soffset_T off;
 };
 
-typedef struct spat spat_T;
+using spat_T = spat;
 
-typedef struct
+struct searchit_arg_T
 {
     linenr_T sa_stop_lnum;
     bool sa_wrapped;
-} searchit_arg_T;
+};
 
 constexpr int OPTION_MAGIC_NOT_SET = 0;
 constexpr int OPTION_MAGIC_ON = 1;
 constexpr int OPTION_MAGIC_OFF = 2;
 
-typedef int optmagic_T;
+using optmagic_T = int;
 
 constexpr int MAGIC_NONE = 1;
 constexpr int MAGIC_OFF = 2;
 constexpr int MAGIC_ON = 3;
 constexpr int MAGIC_ALL = 4;
 
-typedef int magic_T;
+using magic_T = int;
 
-typedef struct
+struct chartabsize_T
 {
     win_T *cts_win;
     char_u *cts_line;
     char_u *cts_ptr;
     int cts_vcol;
     int cts_max_head_vcol;
-} chartabsize_T;
+};
 
-typedef struct
+struct optvar_T
 {
     int *ov_int;
     long *ov_long;
     char_u **ov_str;
     int ov_win;
-} optvar_T;
+};
 
-typedef struct
+struct optset_T
 {
     optvar_T os_varp;
     int os_idx;
@@ -1942,9 +1996,9 @@ typedef struct
     bool os_restore_chartab;
     char *os_errbuf;
     usize os_errbuflen;
-} optset_T;
+};
 
-typedef struct
+struct optexpand_T
 {
     char_u *oe_varp;
     char_u *oe_opt_value;
@@ -1953,13 +2007,13 @@ typedef struct
     regmatch_T *oe_regmatch;
     expand_T *oe_xp;
     char_u *oe_set_arg;
-} optexpand_T;
+};
 
-typedef struct
+struct keyvalue_T
 {
     int key;
     string_T value;
-} keyvalue_T;
+};
 
 constexpr int TERM_SYNC_OUTPUT_ENABLE = 1 << 0;
 constexpr int TERM_SYNC_OUTPUT_DISABLE = 1 << 1;
@@ -1968,32 +2022,44 @@ constexpr int TERM_SYNC_OUTPUT_FLUSH = 1 << 3;
 
 constexpr int TABSTOP_MAX = 9999;
 
-constexpr int PASTE_INSERT = 0;
-constexpr int PASTE_CMDLINE = 1;
-constexpr int PASTE_EX = 2;
-constexpr int PASTE_ONE_CHAR = 3;
+enum class paste_mode_T : int
+{
+    PASTE_INSERT,
+    PASTE_CMDLINE,
+    PASTE_EX,
+    PASTE_ONE_CHAR,
+};
+using enum paste_mode_T;
 
-typedef int paste_mode_T;
 
-constexpr int FLUSH_MINIMAL = 0;
-constexpr int FLUSH_INPUT = 2;
+enum class flush_buffers_T : int
+{
+    FLUSH_MINIMAL,
+    FLUSH_INPUT = 2,
+};
+using enum flush_buffers_T;
 
-typedef int flush_buffers_T;
 
-constexpr int ESTACK_NONE = 0;
+enum class estack_arg_T : int
+{
+    ESTACK_NONE,
+};
+using enum estack_arg_T;
 
-typedef int estack_arg_T;
 
-constexpr int KEYPROTOCOL_NONE = 0;
-constexpr int KEYPROTOCOL_MOK2 = 1;
-constexpr int KEYPROTOCOL_KITTY = 2;
-constexpr int KEYPROTOCOL_FAIL = 3;
+enum class keyprot_T : int
+{
+    KEYPROTOCOL_NONE,
+    KEYPROTOCOL_MOK2,
+    KEYPROTOCOL_KITTY,
+    KEYPROTOCOL_FAIL,
+};
+using enum keyprot_T;
 
-typedef int keyprot_T;
 
-typedef char *(Editor::*opt_did_set_cb_T)([[maybe_unused]] optset_T *args);
+using opt_did_set_cb_T = char *(Editor::*)([[maybe_unused]] optset_T *args);
 
-typedef int (Editor::*opt_expand_cb_T)([[maybe_unused]] optexpand_T *args, [[maybe_unused]] int *numMatches, [[maybe_unused]] char_u ***matches);
+using opt_expand_cb_T = int (Editor::*)([[maybe_unused]] optexpand_T *args, [[maybe_unused]] int *numMatches, [[maybe_unused]] char_u ***matches);
 
 constexpr int EX_RANGE = 0x001;
 
@@ -2035,15 +2101,18 @@ constexpr int EX_LOCK_OK = 0x1000000;
 
 constexpr int EX_NONWHITE_OK = 0x2000000;
 
-constexpr int ADDR_LINES = 0;
-constexpr int ADDR_WINDOWS = 1;
-constexpr int ADDR_UNSIGNED = 9;
-constexpr int ADDR_OTHER = 10;
-constexpr int ADDR_NONE = 11;
+enum class cmd_addr_T : int
+{
+    ADDR_LINES,
+    ADDR_WINDOWS,
+    ADDR_UNSIGNED = 9,
+    ADDR_OTHER,
+    ADDR_NONE,
+};
+using enum cmd_addr_T;
 
-typedef int cmd_addr_T;
 
-typedef struct exarg exarg_T;
+using exarg_T = exarg;
 
 constexpr int CMD_append = 0;
 constexpr int CMD_ascii = 1;
@@ -2145,7 +2214,7 @@ constexpr int CMD_tilde = 96;
 constexpr int CMD_Print = 97;
 constexpr int CMD_SIZE = 98;
 
-typedef int cmdidx_T;
+using cmdidx_T = int;
 
 struct exarg
 {
@@ -2174,88 +2243,88 @@ constexpr int EXFLAG_NR = 0x02;
 
 constexpr int EXFLAG_PRINT = 0x04;
 
-typedef struct
+struct get_list_range__out_T
 {
     bool r__;
     char_u *str;
     int num1;
     int num2;
-} get_list_range__out_T;
+};
 
-typedef struct
+struct prepare_search_hl_line__out_T
 {
     bool r__;
     char_u *line;
     int search_attr;
-} prepare_search_hl_line__out_T;
+};
 
-typedef struct
+struct update_search_hl__out_T
 {
     int r__;
     char_u *line;
     bool on_last_col;
-} update_search_hl__out_T;
+};
 
-typedef struct
+struct copy_option_part__out_T
 {
     int r__;
     char_u *option;
-} copy_option_part__out_T;
+};
 
-typedef struct
+struct find_special_key__out_T
 {
     int r__;
     int modp;
-} find_special_key__out_T;
+};
 
-typedef struct
+struct mb_cptr2char_adv__out_T
 {
     int r__;
     char_u *pp;
-} mb_cptr2char_adv__out_T;
+};
 
-typedef struct
+struct mb_copy_char__out_T
 {
     char_u *fp;
     char_u *tp;
-} mb_copy_char__out_T;
+};
 
-typedef struct
+struct regsearch_T
 {
     colnr_T col;
     long nmatch;
     colnr_T matchcol;
     int nsub;
     int pos;
-} regsearch_T;
+};
 
-typedef struct
+struct linefound_T
 {
     regsearch_T *searches;
     lpos_T *pos;
     int n;
     int next;
-} linefound_T;
+};
 
-typedef struct
+struct get_spec_reg__out_T
 {
     bool r__;
     bool allocated;
-} get_spec_reg__out_T;
+};
 
-typedef struct
+struct fillchar_status__out_T
 {
     int r__;
     int attr;
-} fillchar_status__out_T;
+};
 
-typedef struct
+struct fillchar_vsep__out_T
 {
     int r__;
     int attr;
-} fillchar_vsep__out_T;
+};
 
-typedef struct
+struct parse_search_pattern_offset__out_T
 {
     int r__;
     char_u *pat;
@@ -2263,13 +2332,13 @@ typedef struct
     char_u *searchstr;
     usize searchstrlen;
     char_u *dircp;
-} parse_search_pattern_offset__out_T;
+};
 
-typedef struct
+struct replace_termcodes__out_T
 {
     char_u *r__;
     char_u *bufp;
-} replace_termcodes__out_T;
+};
 
 constexpr int MOKS_INITIAL = 0;
 constexpr int MOKS_OFF = 1;
@@ -2277,15 +2346,18 @@ constexpr int MOKS_ENABLED = 2;
 constexpr int MOKS_DISABLED = 3;
 constexpr int MOKS_AFTER_T_TE = 4;
 
-typedef int mokstate_T;
+using mokstate_T = int;
 
-constexpr int KKPS_INITIAL = 0;
-constexpr int KKPS_OFF = 1;
-constexpr int KKPS_ENABLED = 2;
-constexpr int KKPS_DISABLED = 3;
-constexpr int KKPS_AFTER_T_TE = 4;
+enum class kkpstate_T : int
+{
+    KKPS_INITIAL,
+    KKPS_OFF,
+    KKPS_ENABLED,
+    KKPS_DISABLED,
+    KKPS_AFTER_T_TE,
+};
+using enum kkpstate_T;
 
-typedef int kkpstate_T;
 
 constexpr int VGR_GLOBAL = 1;
 
@@ -2341,7 +2413,7 @@ constexpr int CT_ID_CHAR = 0x20;
 
 constexpr int CT_FNAME_CHAR = 0x40;
 
-typedef struct
+struct winlinevars_T
 {
     int draw_state;
     linenr_T lnum;
@@ -2378,7 +2450,7 @@ typedef struct
     int saved_char_attr;
     char_u extra[NUMBUFLEN + MB_MAXBYTES];
     int filler_lines;
-} winlinevars_T;
+};
 
 constexpr int WL_START = 0;
 
@@ -2390,317 +2462,317 @@ constexpr int BACKSPACE_WORD_NOT_SPACE = 3;
 
 constexpr int BACKSPACE_LINE = 4;
 
-typedef struct
+struct ins_bs__out_T
 {
     bool r__;
     bool inserted_space_p;
-} ins_bs__out_T;
+};
 
-constexpr int K_PASTESTART = (-(('P') + ((int)('S') << 8)));
+constexpr int K_PASTESTART = (-(('P') + (static_cast<int>('S') << 8)));
 
-constexpr int K_CURSORHOLD = (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8)));
+constexpr int K_CURSORHOLD = (-((KS_EXTRA) + (static_cast<int>(KE_CURSORHOLD) << 8)));
 
-constexpr int K_COMPLETE_DELAY = (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8)));
+constexpr int K_COMPLETE_DELAY = (-((KS_EXTRA) + (static_cast<int>(KE_COMPLETE_DELAY) << 8)));
 
-constexpr int K_IGNORE = (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8)));
+constexpr int K_IGNORE = (-((KS_EXTRA) + (static_cast<int>(KE_IGNORE) << 8)));
 
-constexpr int K_NOP = (-((KS_EXTRA) + ((int)(KE_NOP) << 8)));
+constexpr int K_NOP = (-((KS_EXTRA) + (static_cast<int>(KE_NOP) << 8)));
 
-constexpr int K_INS = (-(('k') + ((int)('I') << 8)));
+constexpr int K_INS = (-(('k') + (static_cast<int>('I') << 8)));
 
-constexpr int K_KINS = (-((KS_EXTRA) + ((int)(KE_KINS) << 8)));
+constexpr int K_KINS = (-((KS_EXTRA) + (static_cast<int>(KE_KINS) << 8)));
 
-constexpr int K_HELP = (-(('%') + ((int)('1') << 8)));
+constexpr int K_HELP = (-(('%') + (static_cast<int>('1') << 8)));
 
-constexpr int K_F1 = (-(('k') + ((int)('1') << 8)));
+constexpr int K_F1 = (-(('k') + (static_cast<int>('1') << 8)));
 
-constexpr int K_XF1 = (-((KS_EXTRA) + ((int)(KE_XF1) << 8)));
+constexpr int K_XF1 = (-((KS_EXTRA) + (static_cast<int>(KE_XF1) << 8)));
 
-constexpr int K_DEL = (-(('k') + ((int)('D') << 8)));
+constexpr int K_DEL = (-(('k') + (static_cast<int>('D') << 8)));
 
-constexpr int K_KDEL = (-((KS_EXTRA) + ((int)(KE_KDEL) << 8)));
+constexpr int K_KDEL = (-((KS_EXTRA) + (static_cast<int>(KE_KDEL) << 8)));
 
-constexpr int K_BS = (-(('k') + ((int)('b') << 8)));
+constexpr int K_BS = (-(('k') + (static_cast<int>('b') << 8)));
 
-constexpr int K_S_BS = (-((KS_EXTRA) + ((int)(KE_S_BS) << 8)));
+constexpr int K_S_BS = (-((KS_EXTRA) + (static_cast<int>(KE_S_BS) << 8)));
 
-constexpr int K_PASTEEND = (-(('P') + ((int)('E') << 8)));
+constexpr int K_PASTEEND = (-(('P') + (static_cast<int>('E') << 8)));
 
-constexpr int K_COMMAND = (-((KS_EXTRA) + ((int)(KE_COMMAND) << 8)));
+constexpr int K_COMMAND = (-((KS_EXTRA) + (static_cast<int>(KE_COMMAND) << 8)));
 
-constexpr int K_SCRIPT_COMMAND = (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8)));
+constexpr int K_SCRIPT_COMMAND = (-((KS_EXTRA) + (static_cast<int>(KE_SCRIPT_COMMAND) << 8)));
 
-constexpr int K_HOME = (-(('k') + ((int)('h') << 8)));
+constexpr int K_HOME = (-(('k') + (static_cast<int>('h') << 8)));
 
-constexpr int K_KHOME = (-(('K') + ((int)('1') << 8)));
+constexpr int K_KHOME = (-(('K') + (static_cast<int>('1') << 8)));
 
-constexpr int K_TC_HASH_2 = (-(('#') + ((int)('2') << 8)));
+constexpr int K_TC_HASH_2 = (-(('#') + (static_cast<int>('2') << 8)));
 
-constexpr int K_C_HOME = (-((KS_EXTRA) + ((int)(KE_C_HOME) << 8)));
+constexpr int K_C_HOME = (-((KS_EXTRA) + (static_cast<int>(KE_C_HOME) << 8)));
 
-constexpr int K_END = (-(('@') + ((int)('7') << 8)));
+constexpr int K_END = (-(('@') + (static_cast<int>('7') << 8)));
 
-constexpr int K_KEND = (-(('K') + ((int)('4') << 8)));
+constexpr int K_KEND = (-(('K') + (static_cast<int>('4') << 8)));
 
-constexpr int K_TC_STAR_7 = (-(('*') + ((int)('7') << 8)));
+constexpr int K_TC_STAR_7 = (-(('*') + (static_cast<int>('7') << 8)));
 
-constexpr int K_C_END = (-((KS_EXTRA) + ((int)(KE_C_END) << 8)));
+constexpr int K_C_END = (-((KS_EXTRA) + (static_cast<int>(KE_C_END) << 8)));
 
-constexpr int K_LEFT = (-(('k') + ((int)('l') << 8)));
+constexpr int K_LEFT = (-(('k') + (static_cast<int>('l') << 8)));
 
-constexpr int K_TC_HASH_4 = (-(('#') + ((int)('4') << 8)));
+constexpr int K_TC_HASH_4 = (-(('#') + (static_cast<int>('4') << 8)));
 
-constexpr int K_C_LEFT = (-((KS_EXTRA) + ((int)(KE_C_LEFT) << 8)));
+constexpr int K_C_LEFT = (-((KS_EXTRA) + (static_cast<int>(KE_C_LEFT) << 8)));
 
-constexpr int K_RIGHT = (-(('k') + ((int)('r') << 8)));
+constexpr int K_RIGHT = (-(('k') + (static_cast<int>('r') << 8)));
 
-constexpr int K_TC_PCT_i = (-(('%') + ((int)('i') << 8)));
+constexpr int K_TC_PCT_i = (-(('%') + (static_cast<int>('i') << 8)));
 
-constexpr int K_C_RIGHT = (-((KS_EXTRA) + ((int)(KE_C_RIGHT) << 8)));
+constexpr int K_C_RIGHT = (-((KS_EXTRA) + (static_cast<int>(KE_C_RIGHT) << 8)));
 
-constexpr int K_UP = (-(('k') + ((int)('u') << 8)));
+constexpr int K_UP = (-(('k') + (static_cast<int>('u') << 8)));
 
-constexpr int K_S_UP = (-((KS_EXTRA) + ((int)(KE_S_UP) << 8)));
+constexpr int K_S_UP = (-((KS_EXTRA) + (static_cast<int>(KE_S_UP) << 8)));
 
-constexpr int K_PAGEUP = (-(('k') + ((int)('P') << 8)));
+constexpr int K_PAGEUP = (-(('k') + (static_cast<int>('P') << 8)));
 
-constexpr int K_KPAGEUP = (-(('K') + ((int)('3') << 8)));
+constexpr int K_KPAGEUP = (-(('K') + (static_cast<int>('3') << 8)));
 
-constexpr int K_DOWN = (-(('k') + ((int)('d') << 8)));
+constexpr int K_DOWN = (-(('k') + (static_cast<int>('d') << 8)));
 
-constexpr int K_S_DOWN = (-((KS_EXTRA) + ((int)(KE_S_DOWN) << 8)));
+constexpr int K_S_DOWN = (-((KS_EXTRA) + (static_cast<int>(KE_S_DOWN) << 8)));
 
-constexpr int K_PAGEDOWN = (-(('k') + ((int)('N') << 8)));
+constexpr int K_PAGEDOWN = (-(('k') + (static_cast<int>('N') << 8)));
 
-constexpr int K_KPAGEDOWN = (-(('K') + ((int)('5') << 8)));
+constexpr int K_KPAGEDOWN = (-(('K') + (static_cast<int>('5') << 8)));
 
-constexpr int K_TC_k_B = (-(('k') + ((int)('B') << 8)));
+constexpr int K_TC_k_B = (-(('k') + (static_cast<int>('B') << 8)));
 
-constexpr int K_KENTER = (-(('K') + ((int)('A') << 8)));
+constexpr int K_KENTER = (-(('K') + (static_cast<int>('A') << 8)));
 
-constexpr int K_FOCUSGAINED = (-((KS_EXTRA) + ((int)(KE_FOCUSGAINED) << 8)));
+constexpr int K_FOCUSGAINED = (-((KS_EXTRA) + (static_cast<int>(KE_FOCUSGAINED) << 8)));
 
-constexpr int K_FOCUSLOST = (-((KS_EXTRA) + ((int)(KE_FOCUSLOST) << 8)));
+constexpr int K_FOCUSLOST = (-((KS_EXTRA) + (static_cast<int>(KE_FOCUSLOST) << 8)));
 
-constexpr int K_OSC = (-((KS_EXTRA) + ((int)(KE_OSC) << 8)));
+constexpr int K_OSC = (-((KS_EXTRA) + (static_cast<int>(KE_OSC) << 8)));
 
-constexpr int K_ESC = (-((KS_EXTRA) + ((int)(KE_ESC) << 8)));
+constexpr int K_ESC = (-((KS_EXTRA) + (static_cast<int>(KE_ESC) << 8)));
 
-constexpr int K_KPLUS = (-(('K') + ((int)('6') << 8)));
+constexpr int K_KPLUS = (-(('K') + (static_cast<int>('6') << 8)));
 
-constexpr int K_KMINUS = (-(('K') + ((int)('7') << 8)));
+constexpr int K_KMINUS = (-(('K') + (static_cast<int>('7') << 8)));
 
-constexpr int K_KDIVIDE = (-(('K') + ((int)('8') << 8)));
+constexpr int K_KDIVIDE = (-(('K') + (static_cast<int>('8') << 8)));
 
-constexpr int K_KMULTIPLY = (-(('K') + ((int)('9') << 8)));
+constexpr int K_KMULTIPLY = (-(('K') + (static_cast<int>('9') << 8)));
 
-constexpr int K_KPOINT = (-(('K') + ((int)('B') << 8)));
+constexpr int K_KPOINT = (-(('K') + (static_cast<int>('B') << 8)));
 
-constexpr int K_K0 = (-(('K') + ((int)('C') << 8)));
+constexpr int K_K0 = (-(('K') + (static_cast<int>('C') << 8)));
 
-constexpr int K_K1 = (-(('K') + ((int)('D') << 8)));
+constexpr int K_K1 = (-(('K') + (static_cast<int>('D') << 8)));
 
-constexpr int K_K2 = (-(('K') + ((int)('E') << 8)));
+constexpr int K_K2 = (-(('K') + (static_cast<int>('E') << 8)));
 
-constexpr int K_K3 = (-(('K') + ((int)('F') << 8)));
+constexpr int K_K3 = (-(('K') + (static_cast<int>('F') << 8)));
 
-constexpr int K_K4 = (-(('K') + ((int)('G') << 8)));
+constexpr int K_K4 = (-(('K') + (static_cast<int>('G') << 8)));
 
-constexpr int K_K5 = (-(('K') + ((int)('H') << 8)));
+constexpr int K_K5 = (-(('K') + (static_cast<int>('H') << 8)));
 
-constexpr int K_K6 = (-(('K') + ((int)('I') << 8)));
+constexpr int K_K6 = (-(('K') + (static_cast<int>('I') << 8)));
 
-constexpr int K_K7 = (-(('K') + ((int)('J') << 8)));
+constexpr int K_K7 = (-(('K') + (static_cast<int>('J') << 8)));
 
-constexpr int K_K8 = (-(('K') + ((int)('K') << 8)));
+constexpr int K_K8 = (-(('K') + (static_cast<int>('K') << 8)));
 
-constexpr int K_K9 = (-(('K') + ((int)('L') << 8)));
+constexpr int K_K9 = (-(('K') + (static_cast<int>('L') << 8)));
 
-constexpr int K_XHOME = (-((KS_EXTRA) + ((int)(KE_XHOME) << 8)));
+constexpr int K_XHOME = (-((KS_EXTRA) + (static_cast<int>(KE_XHOME) << 8)));
 
-constexpr int K_ZHOME = (-((KS_EXTRA) + ((int)(KE_ZHOME) << 8)));
+constexpr int K_ZHOME = (-((KS_EXTRA) + (static_cast<int>(KE_ZHOME) << 8)));
 
-constexpr int K_XEND = (-((KS_EXTRA) + ((int)(KE_XEND) << 8)));
+constexpr int K_XEND = (-((KS_EXTRA) + (static_cast<int>(KE_XEND) << 8)));
 
-constexpr int K_ZEND = (-((KS_EXTRA) + ((int)(KE_ZEND) << 8)));
+constexpr int K_ZEND = (-((KS_EXTRA) + (static_cast<int>(KE_ZEND) << 8)));
 
-constexpr int K_XUP = (-((KS_EXTRA) + ((int)(KE_XUP) << 8)));
+constexpr int K_XUP = (-((KS_EXTRA) + (static_cast<int>(KE_XUP) << 8)));
 
-constexpr int K_XDOWN = (-((KS_EXTRA) + ((int)(KE_XDOWN) << 8)));
+constexpr int K_XDOWN = (-((KS_EXTRA) + (static_cast<int>(KE_XDOWN) << 8)));
 
-constexpr int K_XLEFT = (-((KS_EXTRA) + ((int)(KE_XLEFT) << 8)));
+constexpr int K_XLEFT = (-((KS_EXTRA) + (static_cast<int>(KE_XLEFT) << 8)));
 
-constexpr int K_XRIGHT = (-((KS_EXTRA) + ((int)(KE_XRIGHT) << 8)));
+constexpr int K_XRIGHT = (-((KS_EXTRA) + (static_cast<int>(KE_XRIGHT) << 8)));
 
-constexpr int K_MOUSEMOVE = (-((KS_EXTRA) + ((int)(KE_MOUSEMOVE) << 8)));
+constexpr int K_MOUSEMOVE = (-((KS_EXTRA) + (static_cast<int>(KE_MOUSEMOVE) << 8)));
 
-constexpr int K_CANCEL = (-((KS_EXTRA) + ((int)(KE_CANCEL) << 8)));
+constexpr int K_CANCEL = (-((KS_EXTRA) + (static_cast<int>(KE_CANCEL) << 8)));
 
-constexpr int K_SNR = (-((KS_EXTRA) + ((int)(KE_SNR) << 8)));
+constexpr int K_SNR = (-((KS_EXTRA) + (static_cast<int>(KE_SNR) << 8)));
 
-constexpr int K_LEFTDRAG = (-((KS_EXTRA) + ((int)(KE_LEFTDRAG) << 8)));
+constexpr int K_LEFTDRAG = (-((KS_EXTRA) + (static_cast<int>(KE_LEFTDRAG) << 8)));
 
-constexpr int K_LEFTRELEASE = (-((KS_EXTRA) + ((int)(KE_LEFTRELEASE) << 8)));
+constexpr int K_LEFTRELEASE = (-((KS_EXTRA) + (static_cast<int>(KE_LEFTRELEASE) << 8)));
 
-constexpr int K_MIDDLEDRAG = (-((KS_EXTRA) + ((int)(KE_MIDDLEDRAG) << 8)));
+constexpr int K_MIDDLEDRAG = (-((KS_EXTRA) + (static_cast<int>(KE_MIDDLEDRAG) << 8)));
 
-constexpr int K_MIDDLERELEASE = (-((KS_EXTRA) + ((int)(KE_MIDDLERELEASE) << 8)));
+constexpr int K_MIDDLERELEASE = (-((KS_EXTRA) + (static_cast<int>(KE_MIDDLERELEASE) << 8)));
 
-constexpr int K_RIGHTDRAG = (-((KS_EXTRA) + ((int)(KE_RIGHTDRAG) << 8)));
+constexpr int K_RIGHTDRAG = (-((KS_EXTRA) + (static_cast<int>(KE_RIGHTDRAG) << 8)));
 
-constexpr int K_RIGHTRELEASE = (-((KS_EXTRA) + ((int)(KE_RIGHTRELEASE) << 8)));
+constexpr int K_RIGHTRELEASE = (-((KS_EXTRA) + (static_cast<int>(KE_RIGHTRELEASE) << 8)));
 
-constexpr int K_MOUSELEFT = (-((KS_EXTRA) + ((int)(KE_MOUSELEFT) << 8)));
+constexpr int K_MOUSELEFT = (-((KS_EXTRA) + (static_cast<int>(KE_MOUSELEFT) << 8)));
 
-constexpr int K_MOUSERIGHT = (-((KS_EXTRA) + ((int)(KE_MOUSERIGHT) << 8)));
+constexpr int K_MOUSERIGHT = (-((KS_EXTRA) + (static_cast<int>(KE_MOUSERIGHT) << 8)));
 
-constexpr int K_MOUSEDOWN = (-((KS_EXTRA) + ((int)(KE_MOUSEDOWN) << 8)));
+constexpr int K_MOUSEDOWN = (-((KS_EXTRA) + (static_cast<int>(KE_MOUSEDOWN) << 8)));
 
-constexpr int K_MOUSEUP = (-((KS_EXTRA) + ((int)(KE_MOUSEUP) << 8)));
+constexpr int K_MOUSEUP = (-((KS_EXTRA) + (static_cast<int>(KE_MOUSEUP) << 8)));
 
-constexpr int K_LEFTMOUSE = (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8)));
+constexpr int K_LEFTMOUSE = (-((KS_EXTRA) + (static_cast<int>(KE_LEFTMOUSE) << 8)));
 
-constexpr int K_MIDDLEMOUSE = (-((KS_EXTRA) + ((int)(KE_MIDDLEMOUSE) << 8)));
+constexpr int K_MIDDLEMOUSE = (-((KS_EXTRA) + (static_cast<int>(KE_MIDDLEMOUSE) << 8)));
 
-constexpr int K_RIGHTMOUSE = (-((KS_EXTRA) + ((int)(KE_RIGHTMOUSE) << 8)));
+constexpr int K_RIGHTMOUSE = (-((KS_EXTRA) + (static_cast<int>(KE_RIGHTMOUSE) << 8)));
 
-constexpr int K_X1MOUSE = (-((KS_EXTRA) + ((int)(KE_X1MOUSE) << 8)));
+constexpr int K_X1MOUSE = (-((KS_EXTRA) + (static_cast<int>(KE_X1MOUSE) << 8)));
 
-constexpr int K_X2MOUSE = (-((KS_EXTRA) + ((int)(KE_X2MOUSE) << 8)));
+constexpr int K_X2MOUSE = (-((KS_EXTRA) + (static_cast<int>(KE_X2MOUSE) << 8)));
 
-constexpr int K_DROP = (-((KS_EXTRA) + ((int)(KE_DROP) << 8)));
+constexpr int K_DROP = (-((KS_EXTRA) + (static_cast<int>(KE_DROP) << 8)));
 
-constexpr int K_F10 = (-(('k') + ((int)(';') << 8)));
+constexpr int K_F10 = (-(('k') + (static_cast<int>(';') << 8)));
 
-constexpr int K_F11 = (-(('F') + ((int)('1') << 8)));
+constexpr int K_F11 = (-(('F') + (static_cast<int>('1') << 8)));
 
-constexpr int K_F12 = (-(('F') + ((int)('2') << 8)));
+constexpr int K_F12 = (-(('F') + (static_cast<int>('2') << 8)));
 
-constexpr int K_F13 = (-(('F') + ((int)('3') << 8)));
+constexpr int K_F13 = (-(('F') + (static_cast<int>('3') << 8)));
 
-constexpr int K_F14 = (-(('F') + ((int)('4') << 8)));
+constexpr int K_F14 = (-(('F') + (static_cast<int>('4') << 8)));
 
-constexpr int K_F15 = (-(('F') + ((int)('5') << 8)));
+constexpr int K_F15 = (-(('F') + (static_cast<int>('5') << 8)));
 
-constexpr int K_F16 = (-(('F') + ((int)('6') << 8)));
+constexpr int K_F16 = (-(('F') + (static_cast<int>('6') << 8)));
 
-constexpr int K_F17 = (-(('F') + ((int)('7') << 8)));
+constexpr int K_F17 = (-(('F') + (static_cast<int>('7') << 8)));
 
-constexpr int K_F18 = (-(('F') + ((int)('8') << 8)));
+constexpr int K_F18 = (-(('F') + (static_cast<int>('8') << 8)));
 
-constexpr int K_F19 = (-(('F') + ((int)('9') << 8)));
+constexpr int K_F19 = (-(('F') + (static_cast<int>('9') << 8)));
 
-constexpr int K_F2 = (-(('k') + ((int)('2') << 8)));
+constexpr int K_F2 = (-(('k') + (static_cast<int>('2') << 8)));
 
-constexpr int K_F20 = (-(('F') + ((int)('A') << 8)));
+constexpr int K_F20 = (-(('F') + (static_cast<int>('A') << 8)));
 
-constexpr int K_F21 = (-(('F') + ((int)('B') << 8)));
+constexpr int K_F21 = (-(('F') + (static_cast<int>('B') << 8)));
 
-constexpr int K_F22 = (-(('F') + ((int)('C') << 8)));
+constexpr int K_F22 = (-(('F') + (static_cast<int>('C') << 8)));
 
-constexpr int K_F23 = (-(('F') + ((int)('D') << 8)));
+constexpr int K_F23 = (-(('F') + (static_cast<int>('D') << 8)));
 
-constexpr int K_F24 = (-(('F') + ((int)('E') << 8)));
+constexpr int K_F24 = (-(('F') + (static_cast<int>('E') << 8)));
 
-constexpr int K_F25 = (-(('F') + ((int)('F') << 8)));
+constexpr int K_F25 = (-(('F') + (static_cast<int>('F') << 8)));
 
-constexpr int K_F26 = (-(('F') + ((int)('G') << 8)));
+constexpr int K_F26 = (-(('F') + (static_cast<int>('G') << 8)));
 
-constexpr int K_F27 = (-(('F') + ((int)('H') << 8)));
+constexpr int K_F27 = (-(('F') + (static_cast<int>('H') << 8)));
 
-constexpr int K_F28 = (-(('F') + ((int)('I') << 8)));
+constexpr int K_F28 = (-(('F') + (static_cast<int>('I') << 8)));
 
-constexpr int K_F29 = (-(('F') + ((int)('J') << 8)));
+constexpr int K_F29 = (-(('F') + (static_cast<int>('J') << 8)));
 
-constexpr int K_F3 = (-(('k') + ((int)('3') << 8)));
+constexpr int K_F3 = (-(('k') + (static_cast<int>('3') << 8)));
 
-constexpr int K_F30 = (-(('F') + ((int)('K') << 8)));
+constexpr int K_F30 = (-(('F') + (static_cast<int>('K') << 8)));
 
-constexpr int K_F31 = (-(('F') + ((int)('L') << 8)));
+constexpr int K_F31 = (-(('F') + (static_cast<int>('L') << 8)));
 
-constexpr int K_F32 = (-(('F') + ((int)('M') << 8)));
+constexpr int K_F32 = (-(('F') + (static_cast<int>('M') << 8)));
 
-constexpr int K_F33 = (-(('F') + ((int)('N') << 8)));
+constexpr int K_F33 = (-(('F') + (static_cast<int>('N') << 8)));
 
-constexpr int K_F34 = (-(('F') + ((int)('O') << 8)));
+constexpr int K_F34 = (-(('F') + (static_cast<int>('O') << 8)));
 
-constexpr int K_F35 = (-(('F') + ((int)('P') << 8)));
+constexpr int K_F35 = (-(('F') + (static_cast<int>('P') << 8)));
 
-constexpr int K_F36 = (-(('F') + ((int)('Q') << 8)));
+constexpr int K_F36 = (-(('F') + (static_cast<int>('Q') << 8)));
 
-constexpr int K_F37 = (-(('F') + ((int)('R') << 8)));
+constexpr int K_F37 = (-(('F') + (static_cast<int>('R') << 8)));
 
-constexpr int K_F4 = (-(('k') + ((int)('4') << 8)));
+constexpr int K_F4 = (-(('k') + (static_cast<int>('4') << 8)));
 
-constexpr int K_F5 = (-(('k') + ((int)('5') << 8)));
+constexpr int K_F5 = (-(('k') + (static_cast<int>('5') << 8)));
 
-constexpr int K_F6 = (-(('k') + ((int)('6') << 8)));
+constexpr int K_F6 = (-(('k') + (static_cast<int>('6') << 8)));
 
-constexpr int K_F7 = (-(('k') + ((int)('7') << 8)));
+constexpr int K_F7 = (-(('k') + (static_cast<int>('7') << 8)));
 
-constexpr int K_F8 = (-(('k') + ((int)('8') << 8)));
+constexpr int K_F8 = (-(('k') + (static_cast<int>('8') << 8)));
 
-constexpr int K_F9 = (-(('k') + ((int)('9') << 8)));
+constexpr int K_F9 = (-(('k') + (static_cast<int>('9') << 8)));
 
-constexpr int K_PLUG = (-((KS_EXTRA) + ((int)(KE_PLUG) << 8)));
+constexpr int K_PLUG = (-((KS_EXTRA) + (static_cast<int>(KE_PLUG) << 8)));
 
-constexpr int K_TAB = (-((KS_EXTRA) + ((int)(KE_TAB) << 8)));
+constexpr int K_TAB = (-((KS_EXTRA) + (static_cast<int>(KE_TAB) << 8)));
 
-constexpr int K_UNDO = (-(('&') + ((int)('8') << 8)));
+constexpr int K_UNDO = (-(('&') + (static_cast<int>('8') << 8)));
 
-constexpr int K_CSI = (-((KS_EXTRA) + ((int)(KE_CSI) << 8)));
+constexpr int K_CSI = (-((KS_EXTRA) + (static_cast<int>(KE_CSI) << 8)));
 
-constexpr int K_XF2 = (-((KS_EXTRA) + ((int)(KE_XF2) << 8)));
+constexpr int K_XF2 = (-((KS_EXTRA) + (static_cast<int>(KE_XF2) << 8)));
 
-constexpr int K_XF3 = (-((KS_EXTRA) + ((int)(KE_XF3) << 8)));
+constexpr int K_XF3 = (-((KS_EXTRA) + (static_cast<int>(KE_XF3) << 8)));
 
-constexpr int K_XF4 = (-((KS_EXTRA) + ((int)(KE_XF4) << 8)));
+constexpr int K_XF4 = (-((KS_EXTRA) + (static_cast<int>(KE_XF4) << 8)));
 
-constexpr int K_S_XF1 = (-((KS_EXTRA) + ((int)(KE_S_XF1) << 8)));
+constexpr int K_S_XF1 = (-((KS_EXTRA) + (static_cast<int>(KE_S_XF1) << 8)));
 
-constexpr int K_S_F1 = (-((KS_EXTRA) + ((int)(KE_S_F1) << 8)));
+constexpr int K_S_F1 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F1) << 8)));
 
-constexpr int K_S_XF2 = (-((KS_EXTRA) + ((int)(KE_S_XF2) << 8)));
+constexpr int K_S_XF2 = (-((KS_EXTRA) + (static_cast<int>(KE_S_XF2) << 8)));
 
-constexpr int K_S_F2 = (-((KS_EXTRA) + ((int)(KE_S_F2) << 8)));
+constexpr int K_S_F2 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F2) << 8)));
 
-constexpr int K_S_XF3 = (-((KS_EXTRA) + ((int)(KE_S_XF3) << 8)));
+constexpr int K_S_XF3 = (-((KS_EXTRA) + (static_cast<int>(KE_S_XF3) << 8)));
 
-constexpr int K_S_F3 = (-((KS_EXTRA) + ((int)(KE_S_F3) << 8)));
+constexpr int K_S_F3 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F3) << 8)));
 
-constexpr int K_S_XF4 = (-((KS_EXTRA) + ((int)(KE_S_XF4) << 8)));
+constexpr int K_S_XF4 = (-((KS_EXTRA) + (static_cast<int>(KE_S_XF4) << 8)));
 
-constexpr int K_S_F4 = (-((KS_EXTRA) + ((int)(KE_S_F4) << 8)));
+constexpr int K_S_F4 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F4) << 8)));
 
-constexpr int K_LEFTMOUSE_NM = (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE_NM) << 8)));
+constexpr int K_LEFTMOUSE_NM = (-((KS_EXTRA) + (static_cast<int>(KE_LEFTMOUSE_NM) << 8)));
 
-constexpr int K_LEFTRELEASE_NM = (-((KS_EXTRA) + ((int)(KE_LEFTRELEASE_NM) << 8)));
+constexpr int K_LEFTRELEASE_NM = (-((KS_EXTRA) + (static_cast<int>(KE_LEFTRELEASE_NM) << 8)));
 
-constexpr int K_X1DRAG = (-((KS_EXTRA) + ((int)(KE_X1DRAG) << 8)));
+constexpr int K_X1DRAG = (-((KS_EXTRA) + (static_cast<int>(KE_X1DRAG) << 8)));
 
-constexpr int K_X1RELEASE = (-((KS_EXTRA) + ((int)(KE_X1RELEASE) << 8)));
+constexpr int K_X1RELEASE = (-((KS_EXTRA) + (static_cast<int>(KE_X1RELEASE) << 8)));
 
-constexpr int K_X2DRAG = (-((KS_EXTRA) + ((int)(KE_X2DRAG) << 8)));
+constexpr int K_X2DRAG = (-((KS_EXTRA) + (static_cast<int>(KE_X2DRAG) << 8)));
 
-constexpr int K_X2RELEASE = (-((KS_EXTRA) + ((int)(KE_X2RELEASE) << 8)));
+constexpr int K_X2RELEASE = (-((KS_EXTRA) + (static_cast<int>(KE_X2RELEASE) << 8)));
 
-constexpr int K_TC_k_0 = (-(('k') + ((int)('0') << 8)));
+constexpr int K_TC_k_0 = (-(('k') + (static_cast<int>('0') << 8)));
 
-constexpr int K_S_F5 = (-((KS_EXTRA) + ((int)(KE_S_F5) << 8)));
+constexpr int K_S_F5 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F5) << 8)));
 
-constexpr int K_S_F6 = (-((KS_EXTRA) + ((int)(KE_S_F6) << 8)));
+constexpr int K_S_F6 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F6) << 8)));
 
-constexpr int K_S_F7 = (-((KS_EXTRA) + ((int)(KE_S_F7) << 8)));
+constexpr int K_S_F7 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F7) << 8)));
 
-constexpr int K_S_F8 = (-((KS_EXTRA) + ((int)(KE_S_F8) << 8)));
+constexpr int K_S_F8 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F8) << 8)));
 
-constexpr int K_S_F9 = (-((KS_EXTRA) + ((int)(KE_S_F9) << 8)));
+constexpr int K_S_F9 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F9) << 8)));
 
-constexpr int K_S_F10 = (-((KS_EXTRA) + ((int)(KE_S_F10) << 8)));
+constexpr int K_S_F10 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F10) << 8)));
 
-constexpr int K_S_F11 = (-((KS_EXTRA) + ((int)(KE_S_F11) << 8)));
+constexpr int K_S_F11 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F11) << 8)));
 
-constexpr int K_S_F12 = (-((KS_EXTRA) + ((int)(KE_S_F12) << 8)));
+constexpr int K_S_F12 = (-((KS_EXTRA) + (static_cast<int>(KE_S_F12) << 8)));
 
 constexpr int PC_STATUS_UNSET = 0;
 
@@ -2710,7 +2782,7 @@ constexpr int PC_STATUS_LEFT = 2;
 
 constexpr int PC_STATUS_SET = 3;
 
-typedef struct
+struct subflags_T
 {
     int do_all;
     int do_ask;
@@ -2720,9 +2792,9 @@ typedef struct
     int do_list;
     int do_number;
     int do_ic;
-} subflags_T;
+};
 
-typedef void (Editor::*ex_func_T)([[maybe_unused]] exarg_T *eap);
+using ex_func_T = void (Editor::*)([[maybe_unused]] exarg_T *eap);
 
 struct cmdname
 {
@@ -2733,11 +2805,11 @@ struct cmdname
     cmd_addr_T cmd_addr_type;
 };
 
-typedef struct
+struct one_letter_cmd__out_T
 {
     bool r__;
     cmdidx_T idx;
-} one_letter_cmd__out_T;
+};
 
 constexpr int CMDLINE_NOT_CHANGED = 1;
 
@@ -2747,7 +2819,7 @@ constexpr int GOTO_NORMAL_MODE = 3;
 
 constexpr int PROCESS_NEXT_KEY = 4;
 
-typedef struct
+struct viewstate_T
 {
     colnr_T vs_curswant;
     colnr_T vs_leftcol;
@@ -2755,9 +2827,9 @@ typedef struct
     linenr_T vs_topline;
     linenr_T vs_botline;
     linenr_T vs_empty_rows;
-} viewstate_T;
+};
 
-typedef struct
+struct incsearch_state_T
 {
     pos_T search_start;
     pos_T save_cursor;
@@ -2768,21 +2840,21 @@ typedef struct
     bool did_incsearch;
     bool incsearch_postponed;
     optmagic_T magic_overruled_save;
-} incsearch_state_T;
+};
 
-typedef struct
+struct may_add_char_to_search__out_T
 {
     bool r__;
     int c;
-} may_add_char_to_search__out_T;
+};
 
-typedef struct
+struct cmdline_browse_history__out_T
 {
     int r__;
     char_u *curcmdstr;
     usize curcmdstrlen;
     int hiscnt_p;
-} cmdline_browse_history__out_T;
+};
 
 constexpr int MINIMAL_SIZE = 20;
 
@@ -2796,35 +2868,35 @@ constexpr int RM_ABBR = 4;
 
 constexpr int RM_SIMPLIFIED = 8;
 
-typedef struct
+struct get_buffcont__out_T
 {
     char_u *r__;
     usize len;
-} get_buffcont__out_T;
+};
 
-typedef struct
+struct gotchars_state_T
 {
     char_u buf[MB_MAXBYTES * 3 + 4];
     int prev_c;
     usize buflen;
     unsigned pending_special;
     unsigned pending_mbyte;
-} gotchars_state_T;
+};
 
 constexpr int map_result_fail = 0;
 constexpr int map_result_get = 1;
 constexpr int map_result_retry = 2;
 constexpr int map_result_nomatch = 3;
 
-typedef int map_result_T;
+using map_result_T = int;
 
-typedef struct
+struct handle_mapping__out_T
 {
     int r__;
     int keylenp;
     bool timedout;
     int mapdepth;
-} handle_mapping__out_T;
+};
 
 constexpr int SG_TERM = 1;
 
@@ -2867,7 +2939,7 @@ constexpr int LIGHTYELLOW = 25;
 constexpr int WHITE = 26;
 constexpr int NONE = 27;
 
-typedef struct
+struct hl_group_T
 {
     char_u *sg_name;
     char_u *sg_name_u;
@@ -2886,9 +2958,9 @@ typedef struct
     int sg_link;
     int sg_deflink;
     int sg_set;
-} hl_group_T;
+};
 
-typedef struct hl_overrides_S hl_overrides_T;
+using hl_overrides_T = hl_overrides_S;
 
 struct hl_overrides_S
 {
@@ -2898,11 +2970,11 @@ struct hl_overrides_S
     int attr[HLF_COUNT];
 };
 
-typedef struct
+struct lookup_color__out_T
 {
     int r__;
     int boldp;
-} lookup_color__out_T;
+};
 
 constexpr int LIST_ATTR = 1;
 
@@ -2910,18 +2982,18 @@ constexpr int LIST_STRING = 2;
 
 constexpr int LIST_INT = 3;
 
-typedef struct
+struct parse_winhighlight__out_T
 {
     hl_override_T *r__;
     int len;
     char *errmsg;
-} parse_winhighlight__out_T;
+};
 
-typedef struct
+struct get_map_mode__out_T
 {
     int r__;
     char_u *cmdp;
-} get_map_mode__out_T;
+};
 
 struct initmap
 {
@@ -2931,17 +3003,17 @@ struct initmap
 
 constexpr int SEARCH_HL_PRIORITY = 0;
 
-typedef struct
+struct utf_ptr2char_and_len__out_T
 {
     int r__;
     int lenp;
-} utf_ptr2char_and_len__out_T;
+};
 
-typedef struct
+struct utf_ptr2char_and_len_len__out_T
 {
     int r__;
     int lenp;
-} utf_ptr2char_and_len_len__out_T;
+};
 
 struct interval
 {
@@ -2949,28 +3021,28 @@ struct interval
     long last;
 };
 
-typedef struct
+struct utf_safe_read_char_adv__out_T
 {
     int r__;
     char_u *s;
     usize n;
-} utf_safe_read_char_adv__out_T;
+};
 
-typedef struct
+struct convertStruct
 {
     int rangeStart;
     int rangeEnd;
     int step;
     int offset;
-} convertStruct;
+};
 
-typedef struct pointer_block PTR_BL;
+using PTR_BL = pointer_block;
 
-typedef struct data_block DATA_BL;
+using DATA_BL = data_block;
 
-typedef struct data_line DATA_LN;
+using DATA_LN = data_line;
 
-typedef struct pointer_entry PTR_EN;
+using PTR_EN = pointer_entry;
 
 struct pointer_entry
 {
@@ -3017,15 +3089,15 @@ constexpr int ML_FIND = 0x13;
 
 constexpr int ML_FLUSH = 0x02;
 
-typedef struct
+struct store_sb_text__out_T
 {
     char_u *sb_str;
     int sb_col;
-} store_sb_text__out_T;
+};
 
 struct msg_hist
 {
-    struct msg_hist *next;
+    msg_hist *next;
     char_u *msg;
     int attr;
 };
@@ -3036,7 +3108,7 @@ constexpr int MESSAGES_WAIT = 0x002;
 
 constexpr int MESSAGES_HISTORY = 0x004;
 
-typedef struct msgchunk_S msgchunk_T;
+using msgchunk_T = msgchunk_S;
 
 struct msgchunk_S
 {
@@ -3048,12 +3120,15 @@ struct msgchunk_S
     char_u *sb_text;
 };
 
-constexpr int SB_CLEAR_NONE = 0;
-constexpr int SB_CLEAR_ALL = 1;
-constexpr int SB_CLEAR_CMDLINE_BUSY = 2;
-constexpr int SB_CLEAR_CMDLINE_DONE = 3;
+enum class sb_clear_T : int
+{
+    SB_CLEAR_NONE = 0,
+    SB_CLEAR_ALL,
+    SB_CLEAR_CMDLINE_BUSY,
+    SB_CLEAR_CMDLINE_DONE,
+};
+using enum sb_clear_T;
 
-typedef int sb_clear_T;
 
 constexpr int URL_SLASH = 1;
 
@@ -3061,11 +3136,11 @@ constexpr int URL_BACKSLASH = 2;
 
 constexpr int BREAKCHECK_SKIP = 1000;
 
-typedef struct
+struct vim_append_digit_long__out_T
 {
     bool r__;
     long value;
-} vim_append_digit_long__out_T;
+};
 
 struct modmasktable
 {
@@ -3084,13 +3159,13 @@ struct key_name_entry
     int is_alt;
 };
 
-typedef struct
+struct lineoff_T
 {
     linenr_T lnum;
     int height;
-} lineoff_T;
+};
 
-typedef void (Editor::*nv_func_T)([[maybe_unused]] cmdarg_T *cap);
+using nv_func_T = void (Editor::*)([[maybe_unused]] cmdarg_T *cap);
 
 constexpr int NV_NCH = 0x01;
 
@@ -3116,44 +3191,44 @@ struct nv_cmd
     short cmd_arg;
 };
 
-typedef struct
+struct normal_cmd_get_count__out_T
 {
     int r__;
     bool ctrl_w;
     int need_flushbuf;
-} normal_cmd_get_count__out_T;
+};
 
-typedef struct
+struct normal_cmd_get_more_chars__out_T
 {
     int r__;
     int need_flushbuf;
-} normal_cmd_get_more_chars__out_T;
+};
 
-typedef struct
+struct find_is_eval_item__out_T
 {
     bool r__;
     int bnp;
-} find_is_eval_item__out_T;
+};
 
 constexpr int OPF_LINES = 1;
 
 constexpr int OPF_CHANGE = 2;
 
-typedef struct
+struct line_count_info__out_T
 {
     varnumber_T r__;
     varnumber_T wc;
     varnumber_T cc;
-} line_count_info__out_T;
+};
 
-typedef struct
+struct redo_VIsual_T
 {
     int rv_mode;
     linenr_T rv_line_count;
     colnr_T rv_vcol;
     long rv_count;
     int rv_arg;
-} redo_VIsual_T;
+};
 
 constexpr int PV_BOTH = 0x1000;
 
@@ -3163,7 +3238,7 @@ constexpr int PV_BUF = 0x4000;
 
 constexpr int PV_NONE = 0;
 
-typedef int idopt_T;
+using idopt_T = int;
 
 struct vimoption
 {
@@ -3186,31 +3261,31 @@ constexpr int PREFIX_NO = 0;
 constexpr int PREFIX_NONE = 1;
 constexpr int PREFIX_INV = 2;
 
-typedef int set_prefix_T;
+using set_prefix_T = int;
 
-typedef struct
+struct parse_option_name__out_T
 {
     bool r__;
     int opt_idxp;
     int lenp;
     int keyp;
-} parse_option_name__out_T;
+};
 
-typedef struct
+struct opt_backspace_nr2str__out_T
 {
     char_u *origval_p;
     char_u *origval_l_p;
     char_u *origval_g_p;
     char_u *oldval_p;
-} opt_backspace_nr2str__out_T;
+};
 
-typedef struct
+struct find_key_item__out_T
 {
     char_u *r__;
     int itemlenp;
-} find_key_item__out_T;
+};
 
-typedef struct
+struct stropt_get_newval__out_T
 {
     char_u *r__;
     char_u *argp;
@@ -3219,38 +3294,38 @@ typedef struct
     char_u *origval_g_arg;
     char_u *oldval_arg;
     set_op_T op_arg;
-} stropt_get_newval__out_T;
+};
 
-typedef struct
+struct do_set_option_string__out_T
 {
     bool r__;
     char_u *argp;
     char *errmsg;
-} do_set_option_string__out_T;
+};
 
-typedef struct
+struct do_set_option_numeric__out_T
 {
     char *r__;
     char_u *argp;
-} do_set_option_numeric__out_T;
+};
 
-typedef struct
+struct do_set_option_keycode__out_T
 {
     char *r__;
     char_u *argp;
-} do_set_option_keycode__out_T;
+};
 
-typedef struct
+struct do_set_option_value__out_T
 {
     char *r__;
     char_u *argp;
-} do_set_option_value__out_T;
+};
 
-typedef struct
+struct do_set_option__out_T
 {
     char *r__;
     bool did_show;
-} do_set_option__out_T;
+};
 
 struct signalinfo
 {
@@ -3333,22 +3408,22 @@ constexpr int REG_NPAREN = 3;
 
 constexpr int REG_MAX_PAREN_DEPTH = 1000;
 
-typedef struct regengine_S regengine_T;
+using regengine_T = regengine_S;
 
-typedef struct
+struct cstrncmp__out_T
 {
     int r__;
     int n;
-} cstrncmp__out_T;
+};
 
-typedef struct
+struct read_limits__out_T
 {
     int r__;
     long minval;
     long maxval;
-} read_limits__out_T;
+};
 
-typedef struct
+struct regexec_T
 {
     regmatch_T *reg_match;
     regmmatch_T *reg_mmatch;
@@ -3368,9 +3443,9 @@ typedef struct
     int reg_ic;
     bool reg_icombine;
     colnr_T reg_maxcol;
-} regexec_T;
+};
 
-typedef struct
+struct regsave_T
 {
     union
     {
@@ -3378,7 +3453,7 @@ typedef struct
         lpos_T pos;
     } rs_u;
     int rs_len;
-} regsave_T;
+};
 
 struct regengine_S
 {
@@ -3405,22 +3480,22 @@ struct regengine_S
 constexpr int RGLF_LINE = 0x01;
 constexpr int RGLF_LENGTH = 0x02;
 
-typedef int reg_getline_flags_T;
+using reg_getline_flags_T = int;
 
-typedef struct
+struct match_with_backref__out_T
 {
     int r__;
     int bytelen;
-} match_with_backref__out_T;
+};
 
-typedef struct
+struct decomp_T
 {
     int a;
     int b;
     int c;
-} decomp_T;
+};
 
-typedef void (Editor::*fptr_T)(int *, int);
+using fptr_T = void (Editor::*)(int *, int);
 
 constexpr int END = 0;
 
@@ -3613,16 +3688,16 @@ constexpr int RS_BEHIND2 = 9;
 constexpr int RS_STAR_LONG = 10;
 constexpr int RS_STAR_SHORT = 11;
 
-typedef int regstate_T;
+using regstate_T = int;
 
-typedef struct
+struct save_se_T
 {
     union
     {
         char_u *ptr;
         lpos_T pos;
     } se_u;
-} save_se_T;
+};
 
 struct regbehind_S
 {
@@ -3633,7 +3708,7 @@ struct regbehind_S
     save_se_T save_end[NSUBEXP];
 };
 
-typedef struct regbehind_S regbehind_T;
+using regbehind_T = regbehind_S;
 
 struct regitem_S
 {
@@ -3647,7 +3722,7 @@ struct regitem_S
     } rs_un;
 };
 
-typedef struct regitem_S regitem_T;
+using regitem_T = regitem_S;
 
 struct regstar_S
 {
@@ -3658,7 +3733,7 @@ struct regstar_S
     long maxval;
 };
 
-typedef struct regstar_S regstar_T;
+using regstar_T = regstar_S;
 
 struct backpos_S
 {
@@ -3666,41 +3741,41 @@ struct backpos_S
     regsave_T bp_pos;
 };
 
-typedef struct backpos_S backpos_T;
+using backpos_T = backpos_S;
 
 constexpr int REGSTACK_INITIAL = 2048;
 
 constexpr int BACKPOS_INITIAL = 64;
 
-typedef struct
+struct reg__out_T
 {
     char_u *r__;
     int flagp;
-} reg__out_T;
+};
 
-typedef struct
+struct regpiece__out_T
 {
     char_u *r__;
     int flagp;
-} regpiece__out_T;
+};
 
-typedef struct
+struct regconcat__out_T
 {
     char_u *r__;
     int flagp;
-} regconcat__out_T;
+};
 
-typedef struct
+struct regbranch__out_T
 {
     char_u *r__;
     int flagp;
-} regbranch__out_T;
+};
 
-typedef struct
+struct execreg_line_continuation__out_T
 {
     char_u *r__;
     long idx;
-} execreg_line_continuation__out_T;
+};
 
 constexpr int USE_T_CAL = 1;
 
@@ -3737,64 +3812,67 @@ struct searchstat
     int last_maxcount;
 };
 
-typedef struct searchstat searchstat_T;
+using searchstat_T = searchstat;
 
 constexpr int SEARCH_STAT_DEF_TIMEOUT = 40L;
 
 constexpr int SEARCH_STAT_BUF_LEN = 16;
 
-typedef struct
+struct find_mps_values__out_T
 {
     int initc;
     int findc;
     bool backwards;
-} find_mps_values__out_T;
+};
 
 constexpr int BT_EXTRA_KEYS = 0x101;
 
-typedef struct
+struct find_term_bykeys__out_T
 {
     int r__;
     int matchlen;
-} find_term_bykeys__out_T;
+};
 
-constexpr int STATUS_GET = 0;
-constexpr int STATUS_GOT = 2;
+enum class request_progress_T : int
+{
+    STATUS_GET,
+    STATUS_GOT = 2,
+};
+using enum request_progress_T;
 
-typedef int request_progress_T;
 
-typedef struct
+struct termrequest_T
 {
     request_progress_T tr_progress;
     time_T tr_start;
-} termrequest_T;
+};
 
-typedef struct
+struct oscstate_T
 {
     bool processing;
     char_u start_char;
     garray_T buf;
     long start_tv;
-} oscstate_T;
+};
 
-typedef struct
+struct tcap_entry_T
 {
     int bt_entry;
     char *bt_string;
-} tcap_entry_T;
+};
 
-typedef struct
+struct builtin_tcap_T
 {
     char *bitc_name;
     tcap_entry_T *bitc_table;
-} builtin_tcap_T;
+};
 
-typedef struct
+struct termprop_T
 {
     char *tpr_name;
     bool tpr_set_by_termresponse;
     int tpr_status;
-} termprop_T;
+};
 
 constexpr int TPR_UNKNOWN = 'u';
 
@@ -3838,37 +3916,37 @@ struct termcode
 
 constexpr int ATC_FROM_TERM = 55;
 
-typedef struct
+struct modifiers2keycode__out_T
 {
     int r__;
     int key;
-} modifiers2keycode__out_T;
+};
 
-typedef struct
+struct handle_csi__out_T
 {
     int r__;
     int slen;
-} handle_csi__out_T;
+};
 
-typedef struct
+struct handle_osc__out_T
 {
     bool r__;
     int slen;
-} handle_osc__out_T;
+};
 
-typedef struct
+struct handle_dcs__out_T
 {
     bool r__;
     int slen;
-} handle_dcs__out_T;
+};
 
 constexpr int INBUFLEN = 250;
 
-typedef struct
+struct frame_comp_pos__out_T
 {
     int row;
     int col;
-} frame_comp_pos__out_T;
+};
 
 constexpr int FRACTION_MULT = 16384L;
 
@@ -3879,6 +3957,18 @@ struct clinterval
     unsigned int class_;
 };
 
+// A string literal as the C's char * and unsigned char *, which the C
+// writes through none of: its const dropped where the C drops it.
+inline char *operator""_c(const char *s, decltype(sizeof 0))
+{
+    return const_cast<char *>(s);
+}
+
+inline unsigned char *operator""_uc(const char *s, decltype(sizeof 0))
+{
+    return const_cast<unsigned char *>(reinterpret_cast<const unsigned char *>(s));
+}
+
 
 // One editor: the core's file-scope objects and block-scope statics, and its functions.
 class Editor
@@ -3886,6 +3976,12 @@ class Editor
 public:
     // the host the editor runs on: the hand-written glue's, not the C's
     Glue *glue_ = nullptr;
+
+    // what the hand-written C++ calls
+    int vim_main(int argc, char **argv);
+
+private:
+    friend struct Printf;
 
     // the host's: hand-written
     void *host_alloc([[maybe_unused]] usize n);
@@ -3907,101 +4003,101 @@ public:
     int vim_snprintf(char *, usize, const char *, ...);
 
     // the core's
-    bool ascii_isupper(int c);
-    bool ascii_islower(int c);
-    bool ascii_isdigit(int c);
-    void *musl_memcpy(void *dest, const void *src, usize n);
-    void *musl_memmove(void *dest, const void *src, usize n);
-    void *musl_memset(void *dest, int c, usize n);
-    int musl_memcmp(const void *vl, const void *vr, usize n);
-    usize musl_strlen(const char *s);
-    char *musl_strcpy(char *dest, const char *src);
-    char *musl_strncpy(char *dest, const char *src, usize n);
-    char *musl_strcat(char *dest, const char *src);
-    int musl_strcmp(const char *l, const char *r);
-    int musl_strncmp(const char *ls, const char *rs, usize n);
-    int musl_strcasecmp(const char *ls, const char *rs);
-    int musl_strncasecmp(const char *ls, const char *rs, usize n);
-    char *musl_strchr(const char *s, int c);
-    char *musl_strstr(const char *h, const char *n);
-    char *musl_strpbrk(const char *s, const char *b);
-    bool musl_isdigit(int c);
-    bool musl_isalpha(int c);
-    bool musl_isupper(int c);
-    bool musl_islower(int c);
-    bool musl_isgraph(int c);
-    bool musl_isspace(int c);
-    bool musl_isalnum(int c);
-    bool musl_iscntrl(int c);
-    bool musl_ispunct(int c);
-    int musl_tolower(int c);
-    int musl_toupper(int c);
-    int musl_atoi(const char *s);
-    long musl_atol(const char *s);
-    long musl_strtol(const char *s, char **end, int base);
-    int musl_abs(int a);
-    long musl_labs(long a);
-    char *_(const char *x);
-    char *NGETTEXT(const char *x, const char *xs, unsigned long n);
-    optvar_T optvar_int(int *p);
-    optvar_T optvar_long(long *p);
-    optvar_T optvar_str(char_u **p);
-    optvar_T optvar_none(void);
-    bool optvar_is_null(optvar_T v);
-    void *alloc(usize size);
-    void *alloc_clear(usize size);
-    void *lalloc_clear(usize size, bool message);
-    void *lalloc(usize size, [[maybe_unused]] bool message);
+    [[nodiscard]] static bool ascii_isupper(int c);
+    [[nodiscard]] static bool ascii_islower(int c);
+    [[nodiscard]] static bool ascii_isdigit(int c);
+    static void *musl_memcpy(void *dest, const void *src, usize n);
+    static void *musl_memmove(void *dest, const void *src, usize n);
+    static void *musl_memset(void *dest, int c, usize n);
+    [[nodiscard]] static int musl_memcmp(const void *vl, const void *vr, usize n);
+    [[nodiscard]] static usize musl_strlen(const char *s);
+    static char *musl_strcpy(char *dest, const char *src);
+    static char *musl_strncpy(char *dest, const char *src, usize n);
+    static char *musl_strcat(char *dest, const char *src);
+    [[nodiscard]] static int musl_strcmp(const char *l, const char *r);
+    [[nodiscard]] static int musl_strncmp(const char *ls, const char *rs, usize n);
+    [[nodiscard]] static int musl_strcasecmp(const char *ls, const char *rs);
+    [[nodiscard]] static int musl_strncasecmp(const char *ls, const char *rs, usize n);
+    [[nodiscard]] static char *musl_strchr(const char *s, int c);
+    [[nodiscard]] static char *musl_strstr(const char *h, const char *n);
+    [[nodiscard]] static char *musl_strpbrk(const char *s, const char *b);
+    [[nodiscard]] static bool musl_isdigit(int c);
+    [[nodiscard]] static bool musl_isalpha(int c);
+    [[nodiscard]] static bool musl_isupper(int c);
+    [[nodiscard]] static bool musl_islower(int c);
+    [[nodiscard]] static bool musl_isgraph(int c);
+    [[nodiscard]] static bool musl_isspace(int c);
+    [[nodiscard]] static bool musl_isalnum(int c);
+    [[nodiscard]] static bool musl_iscntrl(int c);
+    [[nodiscard]] static bool musl_ispunct(int c);
+    [[nodiscard]] static int musl_tolower(int c);
+    [[nodiscard]] static int musl_toupper(int c);
+    [[nodiscard]] static int musl_atoi(const char *s);
+    [[nodiscard]] static long musl_atol(const char *s);
+    [[nodiscard]] static long musl_strtol(const char *s, char **end, int base);
+    [[nodiscard]] static int musl_abs(int a);
+    [[nodiscard]] static long musl_labs(long a);
+    [[nodiscard]] static char *_(const char *x);
+    [[nodiscard]] static char *NGETTEXT(const char *x, const char *xs, unsigned long n);
+    [[nodiscard]] static optvar_T optvar_int(int *p);
+    [[nodiscard]] static optvar_T optvar_long(long *p);
+    [[nodiscard]] static optvar_T optvar_str(char_u **p);
+    [[nodiscard]] static optvar_T optvar_none(void);
+    [[nodiscard]] static bool optvar_is_null(optvar_T v);
+    [[nodiscard]] void *alloc(usize size);
+    [[nodiscard]] void *alloc_clear(usize size);
+    [[nodiscard]] void *lalloc_clear(usize size, bool message);
+    [[nodiscard]] void *lalloc(usize size, [[maybe_unused]] bool message);
     void do_outofmem_msg(usize size);
-    char_u *vim_memsave(char_u *p, usize len);
-    void ga_clear(garray_T *gap);
-    void ga_clear_strings(garray_T *gap);
-    void ga_init(garray_T *gap);
-    void ga_init2(garray_T *gap, usize itemsize, int growsize);
+    [[nodiscard]] char_u *vim_memsave(char_u *p, usize len);
+    static void ga_clear(garray_T &gap);
+    static void ga_clear_strings(garray_T &gap);
+    static void ga_init(garray_T &gap);
+    static void ga_init2(garray_T &gap, usize itemsize, int growsize);
     bool ga_grow(garray_T *gap, int n);
-    bool ga_grow_inner(garray_T *gap, int n);
+    [[nodiscard]] bool ga_grow_inner(garray_T *gap, int n);
     void ga_concat(garray_T *gap, char_u *s);
     void ga_concat_len(garray_T *gap, char_u *s, usize len);
     bool ga_append(garray_T *gap, int c);
-    void block_autocmds(void);
-    void unblock_autocmds(void);
-    int calc_percentage(long part, long whole);
+    static void block_autocmds(void);
+    static void unblock_autocmds(void);
+    [[nodiscard]] static int calc_percentage(long part, long whole);
     bool open_buffer(void);
-    void set_bufref(bufref_T *bufref, buf_T *buf);
-    bool bufref_valid(bufref_T *bufref);
-    bool buf_valid(buf_T *buf);
-    bool can_unload_buffer(buf_T *buf);
+    void set_bufref(bufref_T &bufref, buf_T *buf);
+    [[nodiscard]] bool bufref_valid(bufref_T &bufref);
+    [[nodiscard]] bool buf_valid(buf_T *buf);
+    [[nodiscard]] bool can_unload_buffer(buf_T *buf);
     bool close_buffer(win_T *win, buf_T *buf, int action, bool abort_if_last, bool ignore_abort, bool set_context);
     void buf_clear_file(buf_T *buf);
     bool buf_freeall(buf_T *buf, int flags);
-    void init_changedtick(buf_T *buf);
+    static void init_changedtick(buf_T *buf);
     void clear_wininfo(buf_T *buf);
     void free_buffer_stuff(buf_T *buf, bool free_options);
     void free_wininfo(wininfo_T *wip);
-    bool curbuf_reusable(void);
-    buf_T *buflist_new(linenr_T lnum, int flags);
+    [[nodiscard]] bool curbuf_reusable(void);
+    [[nodiscard]] buf_T *buflist_new(linenr_T lnum, int flags);
     void free_buf_options(buf_T *buf, [[maybe_unused]] bool free_p_ff);
-    buf_T *buflist_findnr(int nr);
+    [[nodiscard]] buf_T *buflist_findnr(int nr);
     void buflist_setfpos(buf_T *buf, win_T *win, linenr_T lnum, colnr_T col, bool copy_options);
-    char_u *getaltfname(bool errmsg);
+    [[nodiscard]] char_u *getaltfname(bool errmsg);
     void fileinfo(int fullname, [[maybe_unused]] bool shorthelp, bool dont_truncate);
     int col_print(char_u *buf, usize buflen, int col, int vcol);
-    int get_rel_pos(win_T *wp, char_u *buf, int buflen);
-    bool bt_help(buf_T *buf);
-    char_u *buf_spname(buf_T *buf);
-    char_u *buf_get_fname([[maybe_unused]] buf_T *buf);
-    char *new_file_message(void);
+    [[nodiscard]] int get_rel_pos(win_T *wp, char_u *buf, int buflen);
+    [[nodiscard]] static bool bt_help(buf_T *buf);
+    [[nodiscard]] static char_u *buf_spname(buf_T *buf);
+    [[nodiscard]] static char_u *buf_get_fname([[maybe_unused]] buf_T *buf);
+    [[nodiscard]] char *new_file_message(void);
     void changed(void);
     void changed_internal(void);
     void changed_common(linenr_T lnum, colnr_T col, linenr_T lnume, long xtra);
-    void changedOneline(buf_T *buf, linenr_T lnum);
+    static void changedOneline(buf_T *buf, linenr_T lnum);
     void changed_bytes(linenr_T lnum, colnr_T col);
     void inserted_bytes(linenr_T lnum, colnr_T col, [[maybe_unused]] int added);
     void appended_lines(linenr_T lnum, long count);
     void appended_lines_mark(linenr_T lnum, long count);
     void deleted_lines(linenr_T lnum, long count);
     void deleted_lines_mark(linenr_T lnum, long count);
-    void changed_lines_buf(buf_T *buf, linenr_T lnum, linenr_T lnume, long xtra);
+    static void changed_lines_buf(buf_T *buf, linenr_T lnum, linenr_T lnume, long xtra);
     void changed_lines(linenr_T lnum, colnr_T col, linenr_T lnume, long xtra);
     void unchanged(buf_T *buf, [[maybe_unused]] bool ff, bool always_inc_changedtick);
     void ins_bytes(char_u *p);
@@ -4017,94 +4113,94 @@ public:
     void del_lines(long nlines, bool undo);
     bool init_chartab(void);
     bool buf_init_chartab(buf_T *buf, bool global);
-    bool check_isopt(char_u *var);
-    bool parse_isopt(char_u *var, buf_T *buf, bool only_check);
+    [[nodiscard]] bool check_isopt(char_u *var);
+    [[nodiscard]] bool parse_isopt(char_u *var, buf_T *buf, bool only_check);
     void trans_characters(char_u *buf, int bufsize);
-    char_u *transchar(int c);
-    char_u *transchar_buf(buf_T *buf, int c);
-    char_u *transchar_byte(int c);
-    char_u *transchar_byte_buf(buf_T *buf, int c);
+    [[nodiscard]] char_u *transchar(int c);
+    [[nodiscard]] char_u *transchar_buf(buf_T *buf, int c);
+    [[nodiscard]] char_u *transchar_byte(int c);
+    [[nodiscard]] char_u *transchar_byte_buf(buf_T *buf, int c);
     void transchar_nonprint([[maybe_unused]] buf_T *buf, char_u *charbuf, int c);
-    void transchar_hex(char_u *buf, int c);
-    unsigned nr2hex(unsigned c);
-    int byte2cells(int b);
-    int char2cells(int c);
-    int ptr2cells(char_u *p);
-    int vim_strsize(char_u *s);
-    int vim_strnsize(char_u *s, int len);
-    int chartabsize(char_u *p, colnr_T col);
-    int linetabsize_str(char_u *s);
-    int linetabsize_col(int startcol, char_u *s);
-    int win_linetabsize(win_T *wp, linenr_T lnum, char_u *line, colnr_T len);
-    int linetabsize(win_T *wp, linenr_T lnum);
-    int linetabsize_eol(win_T *wp, linenr_T lnum);
-    int linetabsize_no_outer(win_T *wp, linenr_T lnum);
-    void win_linetabsize_cts(chartabsize_T *cts, colnr_T len);
-    bool vim_isIDc(int c);
-    bool vim_isNormalIDc(int c);
-    bool vim_iswordc(int c);
-    bool vim_iswordc_buf(int c, buf_T *buf);
-    bool vim_iswordp(char_u *p);
-    bool vim_iswordp_buf(char_u *p, buf_T *buf);
-    bool vim_isfilec(int c);
-    bool vim_isprintc(int c);
-    bool vim_isprintc_strict(int c);
-    void init_chartabsize_arg(chartabsize_T *cts, win_T *wp, [[maybe_unused]] linenr_T lnum, colnr_T col, char_u *line, char_u *ptr);
-    int lbr_chartabsize(chartabsize_T *cts);
-    int lbr_chartabsize_adv(chartabsize_T *cts);
-    int win_lbr_chartabsize(chartabsize_T *cts, int *headp, [[maybe_unused]] int *tailp);
-    int win_nolbr_chartabsize(chartabsize_T *cts, int *headp);
-    bool in_win_border(win_T *wp, colnr_T vcol);
+    static void transchar_hex(char_u *buf, int c);
+    [[nodiscard]] static unsigned nr2hex(unsigned c);
+    [[nodiscard]] int byte2cells(int b);
+    [[nodiscard]] int char2cells(int c);
+    [[nodiscard]] int ptr2cells(char_u *p);
+    [[nodiscard]] int vim_strsize(char_u *s);
+    [[nodiscard]] int vim_strnsize(char_u *s, int len);
+    [[nodiscard]] int chartabsize(char_u *p, colnr_T col);
+    [[nodiscard]] int linetabsize_str(char_u *s);
+    [[nodiscard]] int linetabsize_col(int startcol, char_u *s);
+    [[nodiscard]] int win_linetabsize(win_T *wp, linenr_T lnum, char_u *line, colnr_T len);
+    [[nodiscard]] int linetabsize(win_T *wp, linenr_T lnum);
+    [[nodiscard]] int linetabsize_eol(win_T *wp, linenr_T lnum);
+    [[nodiscard]] int linetabsize_no_outer(win_T *wp, linenr_T lnum);
+    void win_linetabsize_cts(chartabsize_T &cts, colnr_T len);
+    [[nodiscard]] bool vim_isIDc(int c);
+    [[nodiscard]] static bool vim_isNormalIDc(int c);
+    [[nodiscard]] bool vim_iswordc(int c);
+    [[nodiscard]] bool vim_iswordc_buf(int c, buf_T *buf);
+    [[nodiscard]] bool vim_iswordp(char_u *p);
+    [[nodiscard]] bool vim_iswordp_buf(char_u *p, buf_T *buf);
+    [[nodiscard]] bool vim_isfilec(int c);
+    [[nodiscard]] bool vim_isprintc(int c);
+    [[nodiscard]] bool vim_isprintc_strict(int c);
+    static void init_chartabsize_arg(chartabsize_T *cts, win_T *wp, [[maybe_unused]] linenr_T lnum, colnr_T col, char_u *line, char_u *ptr);
+    [[nodiscard]] int lbr_chartabsize(chartabsize_T &cts);
+    [[nodiscard]] int lbr_chartabsize_adv(chartabsize_T &cts);
+    [[nodiscard]] int win_lbr_chartabsize(chartabsize_T &cts, int *headp, [[maybe_unused]] int *tailp);
+    [[nodiscard]] int win_nolbr_chartabsize(chartabsize_T &cts, int *headp);
+    [[nodiscard]] bool in_win_border(win_T *wp, colnr_T vcol);
     void getvcol(win_T *wp, pos_T *pos, colnr_T *start, colnr_T *cursor, colnr_T *end, int flags);
-    colnr_T getvcol_nolist(pos_T *posp);
+    [[nodiscard]] colnr_T getvcol_nolist(pos_T *posp);
     void getvvcol(win_T *wp, pos_T *pos, colnr_T *start, colnr_T *cursor, colnr_T *end, int flags);
-    void getvcols(win_T *wp, pos_T *pos1, pos_T *pos2, colnr_T *left, colnr_T *right, int flags);
-    char_u *skipwhite(char_u *q);
-    int getwhitecols_curline(void);
-    int getwhitecols(char_u *p);
-    char_u *skipdigits(char_u *q);
-    bool vim_isdigit(int c);
-    bool vim_isxdigit(int c);
-    bool vim_isbdigit(int c);
-    bool vim_isodigit(int c);
-    bool vim_islower(int c);
-    bool vim_isupper(int c);
-    int vim_toupper(int c);
-    int vim_tolower(int c);
-    char_u *skiptowhite(char_u *p);
-    long getdigits(char_u **pp);
-    long getdigits_quoted(char_u **pp);
-    int vim_str2nr(char_u *start, int *prep, int len, int what, varnumber_T *nptr, uvarnumber_T *unptr, int maxlen, bool strict, int *overflow);
-    int hex2nr(int c);
-    int hexhex2nr(char_u *p);
-    bool rem_backslash(char_u *str);
-    char_u *skip_string(char_u *p);
-    int check_linecomment(char_u *line);
-    void free_xp_files_extra(expand_T *xp, int numfiles);
-    void ExpandInit(expand_T *xp);
-    void ExpandCleanup(expand_T *xp);
+    void getvcols(win_T *wp, pos_T *pos1, pos_T *pos2, colnr_T &left, colnr_T &right, int flags);
+    [[nodiscard]] static char_u *skipwhite(char_u *q);
+    [[nodiscard]] int getwhitecols_curline(void);
+    [[nodiscard]] static int getwhitecols(char_u *p);
+    [[nodiscard]] static char_u *skipdigits(char_u *q);
+    [[nodiscard]] static bool vim_isdigit(int c);
+    [[nodiscard]] static bool vim_isxdigit(int c);
+    [[nodiscard]] static bool vim_isbdigit(int c);
+    [[nodiscard]] static bool vim_isodigit(int c);
+    [[nodiscard]] bool vim_islower(int c);
+    [[nodiscard]] bool vim_isupper(int c);
+    [[nodiscard]] int vim_toupper(int c);
+    [[nodiscard]] int vim_tolower(int c);
+    [[nodiscard]] static char_u *skiptowhite(char_u *p);
+    [[nodiscard]] static long getdigits(char_u **pp);
+    [[nodiscard]] static long getdigits_quoted(char_u **pp);
+    [[nodiscard]] static int vim_str2nr(char_u *start, int *prep, int len, int what, varnumber_T *nptr, uvarnumber_T *unptr, int maxlen, bool strict, int *overflow);
+    [[nodiscard]] static int hex2nr(int c);
+    [[nodiscard]] static int hexhex2nr(char_u *p);
+    [[nodiscard]] static bool rem_backslash(char_u *str);
+    [[nodiscard]] char_u *skip_string(char_u *p);
+    [[nodiscard]] int check_linecomment(char_u *line);
+    static void free_xp_files_extra(expand_T &xp, int numfiles);
+    static void ExpandInit(expand_T *xp);
+    static void ExpandCleanup(expand_T &xp);
     void clear_cmdline_orig(void);
-    int get_hislen(void);
-    histentry_T *get_histentry(int hist_type);
-    int *get_hisidx(int hist_type);
-    int hist_char2type(int c);
+    [[nodiscard]] int get_hislen(void);
+    [[nodiscard]] histentry_T *get_histentry(int hist_type);
+    [[nodiscard]] int *get_hisidx(int hist_type);
+    [[nodiscard]] static int hist_char2type(int c);
     void init_history(void);
-    void clear_hist_entry(histentry_T *hisptr);
-    bool in_history(int type, char_u *str, bool move_to_front, int sep, bool writing);
-    int get_histtype(char_u *name);
+    static void clear_hist_entry(histentry_T *hisptr);
+    [[nodiscard]] bool in_history(int type, char_u *str, bool move_to_front, int sep, bool writing);
+    [[nodiscard]] int get_histtype(char_u *name);
     void add_to_history(int histype, char_u *new_entry, usize new_entrylen, bool in_map, int sep);
     void ex_history(exarg_T *eap);
-    int get_lcs_ext(win_T *wp);
-    void handle_lnum_col(win_T *wp, winlinevars_T *wlv, [[maybe_unused]] bool sign_present, [[maybe_unused]] int num_attr);
-    void wlv_screen_line(win_T *wp, winlinevars_T *wlv, bool clear_end);
-    void draw_screen_line(win_T *wp, winlinevars_T *wlv);
-    void win_line_start([[maybe_unused]] win_T *wp, winlinevars_T *wlv, bool save_extra);
-    void win_line_continue(winlinevars_T *wlv);
-    int mb_ptr2char_adv__p_extra(winlinevars_T *s0__);
-    void get_search_match_hl__char_attr(win_T *wp, match_T *search_hl, long col, winlinevars_T *s3__);
+    [[nodiscard]] static int get_lcs_ext(win_T *wp);
+    void handle_lnum_col(win_T *wp, winlinevars_T &wlv, [[maybe_unused]] bool sign_present, [[maybe_unused]] int num_attr);
+    void wlv_screen_line(win_T *wp, winlinevars_T &wlv, bool clear_end);
+    void draw_screen_line(win_T *wp, winlinevars_T &wlv);
+    void win_line_start([[maybe_unused]] win_T *wp, winlinevars_T &wlv, bool save_extra);
+    static void win_line_continue(winlinevars_T &wlv);
+    [[nodiscard]] int mb_ptr2char_adv__p_extra(winlinevars_T &s0__);
+    static void get_search_match_hl__char_attr(win_T *wp, match_T *search_hl, long col, winlinevars_T &s3__);
     int win_line(win_T *wp, linenr_T lnum, int startrow, int endrow, int number_only);
     bool update_screen(int type_arg);
-    int statusline_row(win_T *wp);
+    [[nodiscard]] static int statusline_row(win_T *wp);
     void win_redr_status(win_T *wp, bool ignore_pum);
     void showruler(bool always);
     void win_redr_ruler(win_T *wp, bool always, [[maybe_unused]] bool ignore_pum);
@@ -4125,12 +4221,12 @@ public:
     void redraw_statuslines(void);
     void redrawWinline(win_T *wp, linenr_T lnum);
     void redraw_win_range_later(win_T *wp, linenr_T first, linenr_T last);
-    bool edit_esc(long *count, int cmdchar, bool nomove, linenr_T *o_lnum);
-    bool edit_normalchar(int c, bool inserted_space);
+    [[nodiscard]] bool edit_esc(long &count, int cmdchar, bool nomove, linenr_T &o_lnum);
+    [[nodiscard]] bool edit_normalchar(int c, bool inserted_space);
     bool edit(int cmdchar, bool startln, long count);
     void ins_redraw(bool ready);
     void ins_ctrl_v(void);
-    int decodeModifyOtherKeys(int c);
+    [[nodiscard]] int decodeModifyOtherKeys(int c);
     void edit_putchar(int c, bool highlight);
     void edit_unputchar(void);
     void display_dollar(colnr_T col_arg);
@@ -4138,30 +4234,30 @@ public:
     void truncate_spaces(char_u *line, usize len);
     void backspace_until_column(int col);
     bool del_char_after_col(int limit_col);
-    int get_literal(int noReduceKeys);
+    [[nodiscard]] int get_literal(int noReduceKeys);
     void insert_special(int c, bool allow_modmask, bool ctrlv);
     void insertchar(int c, int flags, int second_indent);
     void redo_literal(int c);
     void start_arrow(pos_T *end_insert_pos);
     void start_arrow_with_change(pos_T *end_insert_pos, bool end_change);
     void start_arrow_common(pos_T *end_insert_pos, bool end_change);
-    bool stop_arrow(void);
+    [[nodiscard]] bool stop_arrow(void);
     void stop_insert(pos_T *end_insert_pos, bool esc, bool nomove);
     void set_last_insert(int c);
-    char_u *add_char2buf(int c, char_u *s);
+    [[nodiscard]] static char_u *add_char2buf(int c, char_u *s);
     void beginline(int flags);
     bool oneright(void);
     bool oneleft(void);
-    void cursor_up_inner(win_T *wp, long n);
-    bool cursor_up(long n, bool upd_topline);
-    void cursor_down_inner(win_T *wp, long n);
+    static void cursor_up_inner(win_T *wp, long n);
+    [[nodiscard]] bool cursor_up(long n, bool upd_topline);
+    static void cursor_down_inner(win_T *wp, long n);
     bool cursor_down(long n, bool upd_topline);
     bool stuff_inserted(int c, long count, bool no_esc);
-    string_T get_last_insert(void);
-    char_u *get_last_insert_save(void);
+    [[nodiscard]] string_T get_last_insert(void);
+    [[nodiscard]] char_u *get_last_insert_save(void);
     void replace_push(int c);
-    int replace_push_mb(char_u *p);
-    int replace_pop(void);
+    [[nodiscard]] int replace_push_mb(char_u *p);
+    [[nodiscard]] int replace_pop(void);
     void replace_join(int off);
     void replace_pop_ins(void);
     void mb_replace_pop_ins(int cc);
@@ -4169,14 +4265,14 @@ public:
     void replace_do_bs(int limit_col);
     void ins_reg(void);
     void ins_ctrl_g(void);
-    bool ins_esc(long *count, int cmdchar, bool nomove);
-    bool ins_start_select(int c);
+    [[nodiscard]] bool ins_esc(long &count, int cmdchar, bool nomove);
+    [[nodiscard]] bool ins_start_select(int c);
     void ins_insert(int replaceState);
     void ins_ctrl_o(void);
     void ins_shift(int c, int lastc);
     void ins_del(void);
     void ins_bs_one(void);
-    ins_bs__out_T ins_bs(int c, int mode, bool inserted_space_p);
+    [[nodiscard]] ins_bs__out_T ins_bs(int c, int mode, bool inserted_space_p);
     int bracketed_paste(paste_mode_T mode, bool drop, garray_T *gap);
     void ins_left(void);
     void ins_home(int c);
@@ -4188,13 +4284,13 @@ public:
     void ins_pageup(void);
     void ins_down(bool startcol);
     void ins_pagedown(void);
-    bool ins_tab(void);
+    [[nodiscard]] bool ins_tab(void);
     bool ins_eol([[maybe_unused]] int c);
-    int ins_copychar(linenr_T lnum);
-    int ins_ctrl_ey(int tc);
-    colnr_T get_nolist_virtcol(void);
+    [[nodiscard]] int ins_copychar(linenr_T lnum);
+    [[nodiscard]] int ins_ctrl_ey(int tc);
+    [[nodiscard]] colnr_T get_nolist_virtcol(void);
     void do_ascii([[maybe_unused]] exarg_T *eap);
-    bool do_move(linenr_T line1, linenr_T line2, linenr_T dest);
+    [[nodiscard]] bool do_move(linenr_T line1, linenr_T line2, linenr_T dest);
     void ex_copy(linenr_T line1, linenr_T line2, linenr_T n);
     void do_fixdel([[maybe_unused]] exarg_T *eap);
     void print_line_no_prefix(linenr_T lnum, int use_number, int list);
@@ -4202,52 +4298,52 @@ public:
     void ex_append(exarg_T *eap);
     void ex_change(exarg_T *eap);
     void ex_z(exarg_T *eap);
-    char_u *skip_substitute(char_u *start, int delimiter);
-    bool check_regexp_delim(int c);
-    linefound_T *match_range(regmmatch_T *rmp, bool do_all, linenr_T line1, linenr_T line2);
-    long search_found(linefound_T *found, linenr_T line1, linenr_T count, regmmatch_T *rmp, linenr_T lnum, colnr_T col);
+    [[nodiscard]] char_u *skip_substitute(char_u *start, int delimiter);
+    [[nodiscard]] bool check_regexp_delim(int c);
+    [[nodiscard]] linefound_T *match_range(regmmatch_T *rmp, bool do_all, linenr_T line1, linenr_T line2);
+    [[nodiscard]] long search_found(linefound_T *found, linenr_T line1, linenr_T count, regmmatch_T *rmp, linenr_T lnum, colnr_T col);
     void ex_substitute(exarg_T *eap);
     bool do_sub_msg(int count_only);
     void global_exe_one(char_u *cmd, linenr_T lnum);
     void ex_global(exarg_T *eap);
     void global_exe(char_u *cmd);
-    char_u *skip_vimgrep_pat(char_u *p, char_u **s, int *flags);
-    char_u *skip_vimgrep_pat_ext(char_u *p, char_u **s, int *flags, char_u **nulp, int *cp);
+    [[nodiscard]] char_u *skip_vimgrep_pat(char_u *p, char_u **s, int *flags);
+    [[nodiscard]] char_u *skip_vimgrep_pat_ext(char_u *p, char_u **s, int *flags, char_u **nulp, int *cp);
     bool check_fname(void);
     void msg_verbose_cmd(linenr_T lnum, char_u *cmd);
     bool do_cmdline_cmd(char_u *cmd);
     bool do_cmdline(char_u *cmdline, char_u *(Editor::*fgetline)(int, int, getline_opt_T), int flags);
-    char_u *do_one_cmd(char_u **cmdlinep, int flags, char_u *(Editor::*fgetline)(int, int, getline_opt_T));
-    char *ex_errmsg(char *msg, char_u *arg);
-    char *ex_range_without_command(exarg_T *eap);
-    bool checkforcmd_opt(char_u **pp, char *cmd, int len, bool noparen);
-    bool checkforcmd_noparen(char_u **pp, char *cmd, int len);
-    bool parse_command_modifiers(exarg_T *eap, [[maybe_unused]] char **errormsg, cmdmod_T *cmod, bool skip_only);
-    void apply_cmdmod(cmdmod_T *cmod);
-    void undo_cmdmod(cmdmod_T *cmod);
+    [[nodiscard]] char_u *do_one_cmd(char_u **cmdlinep, int flags, char_u *(Editor::*fgetline)(int, int, getline_opt_T));
+    [[nodiscard]] char *ex_errmsg(char *msg, char_u *arg);
+    [[nodiscard]] char *ex_range_without_command(exarg_T &eap);
+    [[nodiscard]] static bool checkforcmd_opt(char_u **pp, char *cmd, int len, bool noparen);
+    [[nodiscard]] static bool checkforcmd_noparen(char_u **pp, char *cmd, int len);
+    bool parse_command_modifiers(exarg_T &eap, [[maybe_unused]] char **errormsg, cmdmod_T *cmod, bool skip_only);
+    void apply_cmdmod(cmdmod_T &cmod);
+    void undo_cmdmod(cmdmod_T &cmod);
     bool parse_cmd_address(exarg_T *eap, char **errormsg, bool silent);
     void append_command(char_u *cmd);
-    one_letter_cmd__out_T one_letter_cmd(char_u *p, cmdidx_T idx);
-    bool one_letter_cmd__cmdidx(char_u *p, exarg_T *s1__);
-    char_u *find_ex_command(exarg_T *eap, int *full);
-    char_u *skip_range(char_u *cmd_start, bool skip_star, int *ctx);
+    [[nodiscard]] static one_letter_cmd__out_T one_letter_cmd(char_u *p, cmdidx_T idx);
+    [[nodiscard]] static bool one_letter_cmd__cmdidx(char_u *p, exarg_T &s1__);
+    [[nodiscard]] char_u *find_ex_command(exarg_T &eap, int *full);
+    [[nodiscard]] char_u *skip_range(char_u *cmd_start, bool skip_star, int *ctx);
     void addr_error(cmd_addr_T addr_type);
-    linenr_T default_address(exarg_T *eap);
-    linenr_T get_address([[maybe_unused]] exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool silent, bool to_other_file, [[maybe_unused]] int address_count);
-    void address_default_all(exarg_T *eap);
+    [[nodiscard]] linenr_T default_address(exarg_T *eap);
+    [[nodiscard]] linenr_T get_address([[maybe_unused]] exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool silent, bool to_other_file, [[maybe_unused]] int address_count);
+    void address_default_all(exarg_T &eap);
     void get_flags(exarg_T *eap);
-    char *invalid_range(exarg_T *eap);
-    void correct_range(exarg_T *eap);
+    [[nodiscard]] char *invalid_range(exarg_T &eap);
+    static void correct_range(exarg_T &eap);
     void separate_nextcmd(exarg_T *eap, [[maybe_unused]] bool keep_backslash);
-    char_u *getargcmd(char_u **argp);
-    char_u *skip_cmd_arg(char_u *p, bool rembs);
-    bool ends_excmd(int c);
-    bool ends_excmd2([[maybe_unused]] char_u *cmd_start, char_u *cmd);
-    char_u *find_nextcmd(char_u *p);
-    char_u *check_nextcmd(char_u *p);
+    [[nodiscard]] char_u *getargcmd(char_u **argp);
+    [[nodiscard]] char_u *skip_cmd_arg(char_u *p, bool rembs);
+    [[nodiscard]] static bool ends_excmd(int c);
+    [[nodiscard]] static bool ends_excmd2([[maybe_unused]] char_u *cmd_start, char_u *cmd);
+    [[nodiscard]] static char_u *find_nextcmd(char_u *p);
+    [[nodiscard]] static char_u *check_nextcmd(char_u *p);
     void set_nextcmd(exarg_T *eap, char_u *arg);
     void ex_highlight(exarg_T *eap);
-    bool before_quit_autocmds(win_T *wp, [[maybe_unused]] bool quit_all, [[maybe_unused]] bool forceit);
+    [[nodiscard]] bool before_quit_autocmds(win_T *wp, [[maybe_unused]] bool quit_all, [[maybe_unused]] bool forceit);
     void ex_quit(exarg_T *eap);
     void ex_cquit(exarg_T *eap);
     void ex_stop([[maybe_unused]] exarg_T *eap);
@@ -4272,53 +4368,53 @@ public:
     void ex_redrawstatus(exarg_T *eap);
     void ex_mark(exarg_T *eap);
     void update_topline_cursor(void);
-    bool save_current_state(save_state_T *sst);
-    void restore_current_state(save_state_T *sst);
+    [[nodiscard]] bool save_current_state(save_state_T &sst);
+    void restore_current_state(save_state_T &sst);
     void ex_normal(exarg_T *eap);
     void exec_normal_cmd(char_u *cmd, int remap, bool silent);
     void exec_normal(bool was_typed, bool use_vpeekc, [[maybe_unused]] bool may_use_terminal_loop);
     void set_no_hlsearch(bool flag);
     void ex_nohlsearch([[maybe_unused]] exarg_T *eap);
     void abandon_cmdline(void);
-    bool empty_pattern(char_u *p, usize len, int delim);
-    bool empty_pattern_magic(char_u *p, usize len, magic_T magic_val);
-    void save_viewstate(viewstate_T *vs);
-    void restore_viewstate(viewstate_T *vs);
-    void init_incsearch_state(incsearch_state_T *is_state);
-    void set_search_match(pos_T *t);
-    bool parse_pattern_and_range(pos_T *incsearch_start, int *search_delim, int *skiplen, int *patlen);
-    bool do_incsearch_highlighting(int firstc, int *search_delim, incsearch_state_T *is_state, int *skiplen, int *patlen);
-    void finish_incsearch_highlighting(int gotesc, incsearch_state_T *is_state, bool call_update_screen);
-    void may_do_incsearch_highlighting(int firstc, long count, incsearch_state_T *is_state);
-    bool may_adjust_incsearch_highlighting(int firstc, long count, incsearch_state_T *is_state, int c);
-    may_add_char_to_search__out_T may_add_char_to_search(int firstc, int c, incsearch_state_T *is_state);
+    [[nodiscard]] bool empty_pattern(char_u *p, usize len, int delim);
+    [[nodiscard]] bool empty_pattern_magic(char_u *p, usize len, magic_T magic_val);
+    void save_viewstate(viewstate_T &vs);
+    void restore_viewstate(viewstate_T &vs);
+    void init_incsearch_state(incsearch_state_T &is_state);
+    void set_search_match(pos_T &t);
+    [[nodiscard]] bool parse_pattern_and_range(pos_T &incsearch_start, int &search_delim, int &skiplen, int &patlen);
+    [[nodiscard]] bool do_incsearch_highlighting(int firstc, int &search_delim, incsearch_state_T &is_state, int &skiplen, int &patlen);
+    void finish_incsearch_highlighting(int gotesc, incsearch_state_T &is_state, bool call_update_screen);
+    void may_do_incsearch_highlighting(int firstc, long count, incsearch_state_T &is_state);
+    [[nodiscard]] bool may_adjust_incsearch_highlighting(int firstc, long count, incsearch_state_T &is_state, int c);
+    [[nodiscard]] may_add_char_to_search__out_T may_add_char_to_search(int firstc, int c, incsearch_state_T &is_state);
     void cmdline_init(void);
-    int cmdline_handle_ctrl_bsl(int *gotesc);
-    int cmdline_erase_chars(int c, int indent, incsearch_state_T *isp);
-    int cmdline_insert_reg([[maybe_unused]] int *gotesc);
-    cmdline_browse_history__out_T cmdline_browse_history(int c, int firstc, char_u *curcmdstr, usize curcmdstrlen, int histype, int hiscnt_p, expand_T *xp);
-    bool init_ccline(int firstc, int indent);
-    char_u *getcmdline(int firstc, long count, int indent, [[maybe_unused]] getline_opt_T do_concat);
-    char_u *getcmdline_int(int firstc, long count, int indent, bool clear_ccline);
-    bool text_locked(void);
+    [[nodiscard]] int cmdline_handle_ctrl_bsl(int &gotesc);
+    [[nodiscard]] int cmdline_erase_chars(int c, int indent, incsearch_state_T &isp);
+    [[nodiscard]] int cmdline_insert_reg([[maybe_unused]] int &gotesc);
+    [[nodiscard]] cmdline_browse_history__out_T cmdline_browse_history(int c, int firstc, char_u *curcmdstr, usize curcmdstrlen, int histype, int hiscnt_p, expand_T &xp);
+    [[nodiscard]] bool init_ccline(int firstc, int indent);
+    [[nodiscard]] char_u *getcmdline(int firstc, long count, int indent, [[maybe_unused]] getline_opt_T do_concat);
+    [[nodiscard]] char_u *getcmdline_int(int firstc, long count, int indent, bool clear_ccline);
+    [[nodiscard]] bool text_locked(void);
     void text_locked_msg(void);
-    char *get_text_locked_msg(void);
-    bool curbuf_locked(void);
-    bool allbuf_locked(void);
-    int cmdline_charsize(int idx);
+    [[nodiscard]] char *get_text_locked_msg(void);
+    [[nodiscard]] bool curbuf_locked(void);
+    [[nodiscard]] bool allbuf_locked(void);
+    [[nodiscard]] int cmdline_charsize(int idx);
     void set_cmdspos(void);
     void set_cmdspos_cursor(void);
     void correct_cmdspos(int idx, int cells);
-    char_u *getexline(int c, int indent, getline_opt_T options);
+    [[nodiscard]] char_u *getexline(int c, int indent, getline_opt_T options);
     void dealloc_cmdbuff(void);
     void alloc_cmdbuff(usize len);
-    bool realloc_cmdbuff(int len);
+    [[nodiscard]] bool realloc_cmdbuff(int len);
     void draw_cmdline(int start, int len);
     void putcmdline(int c, bool shift);
     void unputcmdline(void);
     bool put_on_cmdline(char_u *str, int len, bool redraw);
-    void save_cmdline(cmdline_info_T *ccp);
-    void restore_cmdline(cmdline_info_T *ccp);
+    void save_cmdline(cmdline_info_T &ccp);
+    void restore_cmdline(cmdline_info_T &ccp);
     bool cmdline_paste(int regname, bool literally, bool remcr);
     void cmdline_paste_str(char_u *s, bool literally);
     void redrawcmdline(void);
@@ -4328,33 +4424,33 @@ public:
     void compute_cmdrow(void);
     void cursorcmd(void);
     void gotocmdline(bool clr);
-    cmdline_info_T *get_cmdline_info(void);
-    int get_cmdline_firstc(void);
-    get_list_range__out_T get_list_range(char_u *str, int num1, int num2);
+    [[nodiscard]] cmdline_info_T *get_cmdline_info(void);
+    [[nodiscard]] int get_cmdline_firstc(void);
+    [[nodiscard]] static get_list_range__out_T get_list_range(char_u *str, int num1, int num2);
     void shorten_fnames(void);
     void shorten_dir_len(char_u *str, int trim_len);
     void shorten_dir(char_u *str);
-    usize home_replace([[maybe_unused]] buf_T *buf, char_u *src, char_u *dst, int dstlen, [[maybe_unused]] bool one);
-    char_u *gettail(char_u *fname);
-    char_u *get_past_head(char_u *path);
-    bool vim_ispathsep(int c);
-    bool vim_ispathsep_nocolon(int c);
-    void FreeWild(int count, char_u **files);
-    char_u *file_name_at_cursor(int options, long count, linenr_T *file_lnum);
-    char_u *file_name_in_line(char_u *line, int col, int options, long count, char_u *rel_fname, linenr_T *file_lnum);
-    char_u *find_file_name_in_path(char_u *ptr, int len, [[maybe_unused]] int options, [[maybe_unused]] long count, [[maybe_unused]] char_u *rel_fname);
-    void free_buff(buffheader_T *buf);
-    get_buffcont__out_T get_buffcont(buffheader_T *buffer, bool dozero, usize len);
-    char_u *get_recorded(void);
-    string_T get_inserted(void);
-    void add_buff(buffheader_T *buf, char_u *s, long slen);
-    void delete_buff_tail(buffheader_T *buf, int slen);
-    void add_num_buff(buffheader_T *buf, long n);
-    void add_char_buff(buffheader_T *buf, int c);
-    int read_readbuffers(bool advance);
-    int read_readbuf(buffheader_T *buf, bool advance);
+    static usize home_replace([[maybe_unused]] buf_T *buf, char_u *src, char_u *dst, int dstlen, [[maybe_unused]] bool one);
+    [[nodiscard]] char_u *gettail(char_u *fname);
+    [[nodiscard]] static char_u *get_past_head(char_u *path);
+    [[nodiscard]] static bool vim_ispathsep(int c);
+    [[nodiscard]] static bool vim_ispathsep_nocolon(int c);
+    static void FreeWild(int count, char_u **files);
+    [[nodiscard]] char_u *file_name_at_cursor(int options, long count, linenr_T *file_lnum);
+    [[nodiscard]] char_u *file_name_in_line(char_u *line, int col, int options, long count, char_u *rel_fname, linenr_T *file_lnum);
+    [[nodiscard]] char_u *find_file_name_in_path(char_u *ptr, int len, [[maybe_unused]] int options, [[maybe_unused]] long count, [[maybe_unused]] char_u *rel_fname);
+    static void free_buff(buffheader_T &buf);
+    [[nodiscard]] get_buffcont__out_T get_buffcont(buffheader_T &buffer, bool dozero, usize len);
+    [[nodiscard]] char_u *get_recorded(void);
+    [[nodiscard]] string_T get_inserted(void);
+    void add_buff(buffheader_T &buf, char_u *s, long slen);
+    static void delete_buff_tail(buffheader_T &buf, int slen);
+    void add_num_buff(buffheader_T &buf, long n);
+    void add_char_buff(buffheader_T &buf, int c);
+    [[nodiscard]] int read_readbuffers(bool advance);
+    [[nodiscard]] static int read_readbuf(buffheader_T &buf, bool advance);
     void start_stuff(void);
-    bool stuff_empty(void);
+    [[nodiscard]] bool stuff_empty(void);
     void typeahead_noflush(int c);
     void flush_buffers(flush_buffers_T flush_typeahead);
     void ResetRedobuff(void);
@@ -4370,136 +4466,136 @@ public:
     void stuffcharReadbuff(int c);
     void stuffnumReadbuff(long n);
     void stuffescaped(char_u *arg, int literally);
-    int read_redo(bool init, bool old_redo);
+    [[nodiscard]] int read_redo(bool init, bool old_redo);
     void copy_redo(bool old_redo);
-    bool start_redo(long count, bool old_redo);
+    [[nodiscard]] bool start_redo(long count, bool old_redo);
     bool start_redo_ins(void);
     void stop_redo_ins(void);
     void init_typebuf(void);
     bool ins_typebuf(char_u *str, int noremap, int offset, bool nottyped, int silent);
     int ins_char_typebuf(int c, int modifiers);
-    bool typebuf_changed(int tb_change_cnt);
-    bool typebuf_typed(void);
-    int typebuf_maplen(void);
+    [[nodiscard]] bool typebuf_changed(int tb_change_cnt);
+    [[nodiscard]] bool typebuf_typed(void);
+    [[nodiscard]] int typebuf_maplen(void);
     void del_typebuf(int len, int offset);
-    bool gotchars_add_byte(gotchars_state_T *state, char_u byte);
+    [[nodiscard]] bool gotchars_add_byte(gotchars_state_T &state, char_u byte);
     void gotchars(char_u *chars, int len);
     void gotchars_ignore(void);
     void ungetchars(int len);
     void may_sync_undo(void);
-    bool alloc_typebuf(void);
+    [[nodiscard]] bool alloc_typebuf(void);
     void free_typebuf(void);
-    bool can_get_old_char(void);
-    void save_typeahead(tasave_T *tp);
-    void restore_typeahead(tasave_T *tp, bool overwrite);
-    int merge_modifyOtherKeys(int c_arg, int *modifiers);
+    [[nodiscard]] bool can_get_old_char(void);
+    void save_typeahead(tasave_T &tp);
+    void restore_typeahead(tasave_T &tp, bool overwrite);
+    [[nodiscard]] static int merge_modifyOtherKeys(int c_arg, int &modifiers);
     void add_byte_to_showcmd(char_u byte);
     int vgetc(void);
-    int safe_vgetc(void);
-    int plain_vgetc_nopaste(void);
-    int plain_vgetc(void);
+    [[nodiscard]] int safe_vgetc(void);
+    [[nodiscard]] int plain_vgetc_nopaste(void);
+    [[nodiscard]] int plain_vgetc(void);
     int vpeekc(void);
-    bool char_avail(void);
-    int check_simplify_modifier(int max_offset);
-    bool key_protocol_enabled(void);
-    handle_mapping__out_T handle_mapping(int keylenp, bool timedout, int mapdepth);
+    [[nodiscard]] bool char_avail(void);
+    [[nodiscard]] int check_simplify_modifier(int max_offset);
+    [[nodiscard]] bool key_protocol_enabled(void);
+    [[nodiscard]] handle_mapping__out_T handle_mapping(int keylenp, bool timedout, int mapdepth);
     void vungetc(int c);
     void check_end_reg_executing(bool advance);
-    int vgetorpeek(bool advance);
-    int inchar(char_u *buf, int maxlen, long wait_time);
-    int fix_input_buffer(char_u *buf, int len);
-    bool input_available(void);
-    char_u *getcmdkeycmd([[maybe_unused]] int promptc, [[maybe_unused]] int indent, [[maybe_unused]] getline_opt_T do_concat);
+    [[nodiscard]] int vgetorpeek(bool advance);
+    [[nodiscard]] int inchar(char_u *buf, int maxlen, long wait_time);
+    [[nodiscard]] static int fix_input_buffer(char_u *buf, int len);
+    [[nodiscard]] bool input_available(void);
+    [[nodiscard]] char_u *getcmdkeycmd([[maybe_unused]] int promptc, [[maybe_unused]] int indent, [[maybe_unused]] getline_opt_T do_concat);
     bool do_cmdkey_command([[maybe_unused]] int key, int flags);
     void init_highlight(bool both, bool reset);
-    lookup_color__out_T lookup_color(int idx, bool foreground, int boldp);
+    [[nodiscard]] lookup_color__out_T lookup_color(int idx, bool foreground, int boldp);
     void highlight_group_link(char_u *from_hg, int from_len, char_u *to_hg, int to_len, bool dodefault, bool forceit, bool init);
     void highlight_reset_all(void);
-    bool highlight_set_termgui_attr(int idx, char_u *key, char_u *arg, bool init);
+    [[nodiscard]] bool highlight_set_termgui_attr(int idx, char_u *key, char_u *arg, bool init);
     void hl_set_ctermfg_normal_group(int color, int bold);
     void highlight_set_ctermfg(int idx, int color, bool is_normal_group);
     void hl_set_ctermbg_normal_group(int color);
     void highlight_set_ctermbg(int idx, int color, bool is_normal_group);
     void hl_set_ctermul_normal_group(int color);
     void highlight_set_ctermul(int idx, int color, bool is_normal_group);
-    bool highlight_set_cterm_font(int idx, char_u *arg, bool init);
-    bool highlight_set_cterm_color(int idx, char_u *key, char_u *key_start, char_u *arg, bool is_normal_group, bool init);
-    bool highlight_set_startstop_termcode(int idx, char_u *key, char_u *arg, bool init);
+    [[nodiscard]] bool highlight_set_cterm_font(int idx, char_u *arg, bool init);
+    [[nodiscard]] bool highlight_set_cterm_color(int idx, char_u *key, char_u *key_start, char_u *arg, bool is_normal_group, bool init);
+    [[nodiscard]] bool highlight_set_startstop_termcode(int idx, char_u *key, char_u *arg, bool init);
     void do_highlight(char_u *line, bool forceit, bool init);
     void restore_cterm_colors(void);
-    bool hl_has_settings(int idx, bool check_link);
+    [[nodiscard]] bool hl_has_settings(int idx, bool check_link);
     void highlight_clear(int idx);
-    int get_attr_entry(garray_T *table, attrentry_T *aep);
+    [[nodiscard]] int get_attr_entry(garray_T *table, attrentry_T &aep);
     void clear_hl_tables(void);
-    int hl_combine_attr(int char_attr, int prim_attr);
-    void cterm_idx_to_rgb(int idx, int *r, int *g, int *b);
-    int rgb_to_cterm_idx(int r, int g, int b);
-    bool resolve_color_to_rgb(int cterm_c, [[maybe_unused]] long rgb, int *r, int *g, int *b);
-    long resolve_fallback_color(int cterm_c, long rgb, long default_rgb);
+    [[nodiscard]] int hl_combine_attr(int char_attr, int prim_attr);
+    void cterm_idx_to_rgb(int idx, int &r, int &g, int &b);
+    [[nodiscard]] int rgb_to_cterm_idx(int r, int g, int b);
+    [[nodiscard]] bool resolve_color_to_rgb(int cterm_c, [[maybe_unused]] long rgb, int &r, int &g, int &b);
+    [[nodiscard]] long resolve_fallback_color(int cterm_c, long rgb, long default_rgb);
     void resolve_fallback_fg_to_rgb(void);
     void resolve_fallback_bg_to_rgb(void);
-    int blend_cterm_colors(int popup_c, long popup_rgb, int under_c, long under_rgb, int default_rgb, int blend_val);
-    int hl_blend_attr_common(int char_attr, int popup_attr, int blend, bool blend_fg);
-    int hl_blend_attr(int char_attr, int popup_attr, int blend, bool blend_fg);
-    int hl_pum_blend_attr(int char_attr, int popup_attr, int blend);
-    int syn_attr2attr(int attr);
-    attrentry_T *syn_term_attr2entry(int attr);
-    attrentry_T *syn_cterm_attr2entry(int attr);
+    [[nodiscard]] int blend_cterm_colors(int popup_c, long popup_rgb, int under_c, long under_rgb, int default_rgb, int blend_val);
+    [[nodiscard]] int hl_blend_attr_common(int char_attr, int popup_attr, int blend, bool blend_fg);
+    [[nodiscard]] int hl_blend_attr(int char_attr, int popup_attr, int blend, bool blend_fg);
+    [[nodiscard]] int hl_pum_blend_attr(int char_attr, int popup_attr, int blend);
+    [[nodiscard]] int syn_attr2attr(int attr);
+    [[nodiscard]] attrentry_T *syn_term_attr2entry(int attr);
+    [[nodiscard]] attrentry_T *syn_cterm_attr2entry(int attr);
     void highlight_list_one(int id);
-    char_u *highlight_arg_to_string(int type, int iarg, char_u *sarg, char_u *buf);
+    [[nodiscard]] char_u *highlight_arg_to_string(int type, int iarg, char_u *sarg, char_u *buf);
     bool highlight_list_arg(int id, bool didh, int type, int iarg, char_u *sarg, char *name);
     bool syn_list_header(bool did_header, int outlen, int id);
     void set_hl_attr(int idx);
-    int syn_override(int id);
-    int syn_name2id_len(char_u *name, int len);
-    int syn_namen2id(char_u *linep, int len);
-    int syn_check_group(char_u *pp, int len);
-    int syn_add_group(char_u *name);
+    [[nodiscard]] int syn_override(int id);
+    [[nodiscard]] int syn_name2id_len(char_u *name, int len);
+    [[nodiscard]] int syn_namen2id(char_u *linep, int len);
+    [[nodiscard]] int syn_check_group(char_u *pp, int len);
+    [[nodiscard]] int syn_add_group(char_u *name);
     void syn_unadd_group(void);
-    int syn_id2attr(int hl_id);
-    int syn_get_final_id(int hl_id);
+    [[nodiscard]] int syn_id2attr(int hl_id);
+    [[nodiscard]] int syn_get_final_id(int hl_id);
     bool highlight_changed(void);
     void update_highlight_overrides(hl_override_T *old, hl_override_T *hl_new, int newlen);
     void set_highlight_attr(hl_override_T *arr, int len, bool update_ids);
-    bool push_highlight_overrides(hl_override_T *arr, int len);
+    [[nodiscard]] bool push_highlight_overrides(hl_override_T *arr, int len);
     void pop_highlight_overrides(void);
-    parse_winhighlight__out_T parse_winhighlight(char_u *opt, int len, char *errmsg);
-    char *update_winhighlight(win_T *wp, char_u *opt);
-    int hlf_get_id(win_T *wp, int hlf);
+    [[nodiscard]] parse_winhighlight__out_T parse_winhighlight(char_u *opt, int len, char *errmsg);
+    [[nodiscard]] char *update_winhighlight(win_T *wp, char_u *opt);
+    [[nodiscard]] int hlf_get_id(win_T *wp, int hlf);
     char *update_wincolor(win_T *wp, char_u *opt);
-    long get_sw_value(buf_T *buf);
-    long get_sw_value_pos(buf_T *buf, pos_T *pos, bool left);
-    long get_sw_value_indent(buf_T *buf, bool left);
-    long get_sw_value_col(buf_T *buf, [[maybe_unused]] colnr_T col, [[maybe_unused]] bool left);
-    long get_sts_value(void);
-    int get_indent(void);
-    int get_indent_lnum(linenr_T lnum);
-    int get_indent_str(char_u *ptr, int ts, bool no_ts);
+    [[nodiscard]] static long get_sw_value(buf_T *buf);
+    [[nodiscard]] long get_sw_value_pos(buf_T *buf, pos_T &pos, bool left);
+    [[nodiscard]] long get_sw_value_indent(buf_T *buf, bool left);
+    [[nodiscard]] static long get_sw_value_col(buf_T *buf, [[maybe_unused]] colnr_T col, [[maybe_unused]] bool left);
+    [[nodiscard]] long get_sts_value(void);
+    [[nodiscard]] int get_indent(void);
+    [[nodiscard]] int get_indent_lnum(linenr_T lnum);
+    [[nodiscard]] int get_indent_str(char_u *ptr, int ts, bool no_ts);
     bool set_indent(int size, int flags);
-    bool inindent(int extra);
-    int preprocs_left(void);
-    bool may_do_si(void);
+    [[nodiscard]] bool inindent(int extra);
+    [[nodiscard]] int preprocs_left(void);
+    [[nodiscard]] bool may_do_si(void);
     void ins_try_si(int c);
     void change_indent(int type, int amount, bool round, int replaced, bool call_changed_bytes);
     bool copy_indent(int size, char_u *src);
     void fix_indent(void);
-    bool ctrl_x_mode_scroll(void);
-    mapblock_T *get_maphash_list(int state, int c);
-    mapblock_T *get_buf_maphash_list(int state, int c);
-    bool is_maphash_valid(void);
+    [[nodiscard]] static bool ctrl_x_mode_scroll(void);
+    [[nodiscard]] mapblock_T *get_maphash_list(int state, int c);
+    [[nodiscard]] mapblock_T *get_buf_maphash_list(int state, int c);
+    [[nodiscard]] bool is_maphash_valid(void);
     void validate_maphash(void);
-    void map_free(mapblock_T **mpp);
-    char_u *map_mode_to_chars(int mode);
+    static void map_free(mapblock_T **mpp);
+    [[nodiscard]] char_u *map_mode_to_chars(int mode);
     void showmap(mapblock_T *mp, bool local);
-    mapblock_T *map_add(mapblock_T **map_table, mapblock_T **abbr_table, char_u *keys, char_u *rhs, char_u *orig_rhs, int noremap, bool nowait, bool silent, int mode, bool is_abbr, bool simplified);
-    bool list_mappings(int keyround, bool abbrev, bool haskey, char_u *keys, int keys_len, int mode, bool did_local);
+    [[nodiscard]] mapblock_T *map_add(mapblock_T **map_table, mapblock_T **abbr_table, char_u *keys, char_u *rhs, char_u *orig_rhs, int noremap, bool nowait, bool silent, int mode, bool is_abbr, bool simplified);
+    [[nodiscard]] bool list_mappings(int keyround, bool abbrev, bool haskey, char_u *keys, int keys_len, int mode, bool did_local);
     int do_map(int maptype, char_u *arg, int mode, bool abbrev);
-    get_map_mode__out_T get_map_mode(char_u *cmdp, bool forceit);
+    [[nodiscard]] static get_map_mode__out_T get_map_mode(char_u *cmdp, bool forceit);
     void map_clear(char_u *cmdp, char_u *arg, bool forceit, bool abbr);
-    bool is_map_locked(void);
+    [[nodiscard]] bool is_map_locked(void);
     void map_clear_mode(buf_T *buf, int mode, bool local, bool abbr);
-    char_u *vim_strsave_escape_csi(char_u *p);
-    usize vim_unescape_csi(char_u *p);
+    [[nodiscard]] char_u *vim_strsave_escape_csi(char_u *p);
+    static usize vim_unescape_csi(char_u *p);
     void check_map_keycodes(void);
     void init_mappings(void);
     void add_map(char_u *map, int mode, bool nore);
@@ -4508,154 +4604,154 @@ public:
     void ex_unmap(exarg_T *eap);
     void ex_mapclear(exarg_T *eap);
     int setmark(int c);
-    bool setmark_pos(int c, pos_T *pos, int fnum);
+    [[nodiscard]] bool setmark_pos(int c, pos_T *pos, int fnum);
     void setpcmark(void);
     void checkpcmark(void);
-    pos_T *movechangelist(int count);
-    pos_T *getmark_buf(buf_T *buf, int c, bool changefile);
-    pos_T *getmark(int c, bool changefile);
-    pos_T *getmark_buf_fnum(buf_T *buf, int c, [[maybe_unused]] bool changefile, [[maybe_unused]] int *fnum);
-    pos_T *getnextmark(pos_T *startpos, int dir, bool begin_line);
-    bool check_mark(pos_T *pos);
-    void clrallmarks(buf_T *buf);
-    char_u *mark_line(pos_T *mp, int lead_len);
+    [[nodiscard]] pos_T *movechangelist(int count);
+    [[nodiscard]] pos_T *getmark_buf(buf_T *buf, int c, bool changefile);
+    [[nodiscard]] pos_T *getmark(int c, bool changefile);
+    [[nodiscard]] pos_T *getmark_buf_fnum(buf_T *buf, int c, [[maybe_unused]] bool changefile, [[maybe_unused]] int *fnum);
+    [[nodiscard]] pos_T *getnextmark(pos_T *startpos, int dir, bool begin_line);
+    [[nodiscard]] bool check_mark(pos_T *pos);
+    static void clrallmarks(buf_T *buf);
+    [[nodiscard]] char_u *mark_line(pos_T *mp, int lead_len);
     void ex_marks(exarg_T *eap);
     void show_one_mark(int c, char_u *arg, pos_T *p, char_u *name_arg, bool current);
     void ex_delmarks(exarg_T *eap);
     void ex_changes([[maybe_unused]] exarg_T *eap);
     void mark_adjust(linenr_T line1, linenr_T line2, long amount, long amount_after);
     void mark_adjust_nofold(linenr_T line1, linenr_T line2, long amount, long amount_after);
-    linenr_T one_adjust(linenr_T lnum, linenr_T line1, linenr_T line2, long amount, long amount_after);
-    linenr_T one_adjust_nodel(linenr_T lnum, linenr_T line1, linenr_T line2, long amount, long amount_after);
+    [[nodiscard]] static linenr_T one_adjust(linenr_T lnum, linenr_T line1, linenr_T line2, long amount, long amount_after);
+    [[nodiscard]] static linenr_T one_adjust_nodel(linenr_T lnum, linenr_T line1, linenr_T line2, long amount, long amount_after);
     void mark_adjust_internal(linenr_T line1, linenr_T line2, long amount, long amount_after, [[maybe_unused]] bool adjust_folds);
     void mark_col_adjust(linenr_T lnum, colnr_T mincol, long lnum_amount, long col_amount, int spaces_removed);
-    void set_last_cursor(win_T *win);
+    static void set_last_cursor(win_T *win);
     int match_add(win_T *wp, char_u *grp, char_u *pat, int prio, int id, [[maybe_unused]] char_u *conceal_char);
     int match_delete(win_T *wp, int id, bool perr);
-    void init_search_hl(win_T *wp, match_T *search_hl);
-    int next_search_hl_pos(match_T *shl, linenr_T lnum, matchitem_T *match, colnr_T mincol);
+    void init_search_hl(win_T *wp, match_T &search_hl);
+    [[nodiscard]] static int next_search_hl_pos(match_T *shl, linenr_T lnum, matchitem_T *match, colnr_T mincol);
     void next_search_hl(win_T *win, match_T *search_hl, match_T *shl, linenr_T lnum, colnr_T mincol, matchitem_T *cur);
     void prepare_search_hl(win_T *wp, match_T *search_hl, linenr_T lnum);
-    void check_cur_search_hl(win_T *wp, match_T *shl);
-    prepare_search_hl_line__out_T prepare_search_hl_line(win_T *wp, linenr_T lnum, colnr_T mincol, char_u *line, match_T *search_hl, int search_attr);
-    update_search_hl__out_T update_search_hl(win_T *wp, linenr_T lnum, colnr_T col, char_u *line, match_T *search_hl, [[maybe_unused]] int *has_match_conc, [[maybe_unused]] int *match_conc, int did_line_attr, int lcs_eol_one, bool on_last_col);
-    bool get_prevcol_hl_flag(win_T *wp, match_T *search_hl, long curcol);
-    int get_search_match_hl(win_T *wp, match_T *search_hl, long col, int char_attr);
+    static void check_cur_search_hl(win_T *wp, match_T *shl);
+    [[nodiscard]] prepare_search_hl_line__out_T prepare_search_hl_line(win_T *wp, linenr_T lnum, colnr_T mincol, char_u *line, match_T *search_hl, int search_attr);
+    [[nodiscard]] update_search_hl__out_T update_search_hl(win_T *wp, linenr_T lnum, colnr_T col, char_u *line, match_T *search_hl, [[maybe_unused]] int &has_match_conc, [[maybe_unused]] int &match_conc, int did_line_attr, int lcs_eol_one, bool on_last_col);
+    [[nodiscard]] static bool get_prevcol_hl_flag(win_T *wp, match_T &search_hl, long curcol);
+    [[nodiscard]] static int get_search_match_hl(win_T *wp, match_T *search_hl, long col, int char_attr);
     void ex_match(exarg_T *eap);
     char *mb_init(void);
-    int mb_get_class(char_u *p);
-    int mb_get_class_buf(char_u *p, buf_T *buf);
-    bool intable(struct interval *table, usize size, int c);
-    int utf_char2cells(int c);
-    int utf_ptr2cells(char_u *p);
-    int mb_string2cells(char_u *p, int len);
-    int utf_off2cells(unsigned off, unsigned max_off);
-    utf_ptr2char_and_len__out_T utf_ptr2char_and_len(char_u *p);
-    utf_ptr2char_and_len_len__out_T utf_ptr2char_and_len_len(char_u *p, int size);
-    bool utf_iscomposinglike_char(int c1, int c2);
-    int utf_ptr2char(char_u *p);
-    utf_safe_read_char_adv__out_T utf_safe_read_char_adv(char_u *s, usize n);
-    int mb_ptr2char_adv(char_u **pp);
-    mb_cptr2char_adv__out_T mb_cptr2char_adv(char_u *pp);
+    [[nodiscard]] int mb_get_class(char_u *p);
+    [[nodiscard]] int mb_get_class_buf(char_u *p, buf_T *buf);
+    [[nodiscard]] static bool intable(interval *table, usize size, int c);
+    [[nodiscard]] int utf_char2cells(int c);
+    [[nodiscard]] int utf_ptr2cells(char_u *p);
+    [[nodiscard]] int mb_string2cells(char_u *p, int len);
+    [[nodiscard]] int utf_off2cells(unsigned off, unsigned max_off);
+    [[nodiscard]] utf_ptr2char_and_len__out_T utf_ptr2char_and_len(char_u *p);
+    [[nodiscard]] utf_ptr2char_and_len_len__out_T utf_ptr2char_and_len_len(char_u *p, int size);
+    [[nodiscard]] bool utf_iscomposinglike_char(int c1, int c2);
+    [[nodiscard]] int utf_ptr2char(char_u *p);
+    [[nodiscard]] utf_safe_read_char_adv__out_T utf_safe_read_char_adv(char_u *s, usize n);
+    [[nodiscard]] int mb_ptr2char_adv(char_u **pp);
+    [[nodiscard]] mb_cptr2char_adv__out_T mb_cptr2char_adv(char_u *pp);
     int utfc_ptr2char(char_u *p, int *pcc);
-    int utfc_ptr2char_len(char_u *p, int *pcc, int maxlen);
-    int utfc_char2bytes(int off, char_u *buf);
-    int utf_ptr2len(char_u *p);
-    int utfc_ptr2len(char_u *p);
-    int utfc_ptr2len_len(char_u *p, int size);
-    int utf_char2len(int c);
-    int utf_char2bytes(int c, char_u *buf);
-    bool utf_iscomposing(int c);
-    bool utf_printable(int c);
-    int utf_class(int c);
-    int utf_class_buf(int c, buf_T *buf);
-    bool utf_ambiguous_width(int c);
-    int utf_convert(int a, convertStruct table[], int tableSize);
-    int utf_fold(int a);
-    int musl_towupper(int a);
-    int musl_towlower(int a);
-    int utf_toupper(int a);
-    bool utf_islower(int a);
-    int utf_tolower(int a);
-    bool utf_isupper(int a);
-    int utf_strnicmp(char_u *s1, char_u *s2, usize n1, usize n2);
-    int mb_strnicmp2(char_u *s1, char_u *s2, usize n1, usize n2);
-    int mb_strnicmp(char_u *s1, char_u *s2, usize nn);
+    [[nodiscard]] int utfc_ptr2char_len(char_u *p, int *pcc, int maxlen);
+    [[nodiscard]] int utfc_char2bytes(int off, char_u *buf);
+    [[nodiscard]] int utf_ptr2len(char_u *p);
+    [[nodiscard]] int utfc_ptr2len(char_u *p);
+    [[nodiscard]] int utfc_ptr2len_len(char_u *p, int size);
+    [[nodiscard]] static int utf_char2len(int c);
+    static int utf_char2bytes(int c, char_u *buf);
+    [[nodiscard]] bool utf_iscomposing(int c);
+    [[nodiscard]] bool utf_printable(int c);
+    [[nodiscard]] int utf_class(int c);
+    [[nodiscard]] int utf_class_buf(int c, buf_T *buf);
+    [[nodiscard]] bool utf_ambiguous_width(int c);
+    [[nodiscard]] static int utf_convert(int a, convertStruct table[], int tableSize);
+    [[nodiscard]] int utf_fold(int a);
+    [[nodiscard]] int musl_towupper(int a);
+    [[nodiscard]] int musl_towlower(int a);
+    [[nodiscard]] int utf_toupper(int a);
+    [[nodiscard]] bool utf_islower(int a);
+    [[nodiscard]] int utf_tolower(int a);
+    [[nodiscard]] bool utf_isupper(int a);
+    [[nodiscard]] int utf_strnicmp(char_u *s1, char_u *s2, usize n1, usize n2);
+    [[nodiscard]] int mb_strnicmp2(char_u *s1, char_u *s2, usize n1, usize n2);
+    [[nodiscard]] int mb_strnicmp(char_u *s1, char_u *s2, usize nn);
     void show_utf8(void);
-    int utf_head_off(char_u *base, char_u *p);
-    mb_copy_char__out_T mb_copy_char(char_u *fp, char_u *tp);
-    int mb_off_next(char_u *base, char_u *p);
+    [[nodiscard]] int utf_head_off(char_u *base, char_u *p);
+    [[nodiscard]] mb_copy_char__out_T mb_copy_char(char_u *fp, char_u *tp);
+    [[nodiscard]] int mb_off_next(char_u *base, char_u *p);
     void utf_find_illegal(void);
     void mb_adjust_cursor(void);
     void mb_adjustpos(buf_T *buf, pos_T *lp);
-    char_u *mb_prevptr(char_u *line, char_u *p);
-    int mb_charlen(char_u *str);
-    char_u *mb_unescape(char_u **pp);
-    bool mb_lefthalve(int row, int col);
-    int mb_fix_col(int col, int row);
-    void ml_free_tree(bhdr_T *hp);
-    char_u *ml_alloc_line(char_u *line, colnr_T len);
-    bool ml_open(buf_T *buf);
-    void ml_close(buf_T *buf, [[maybe_unused]] bool del_file);
+    [[nodiscard]] char_u *mb_prevptr(char_u *line, char_u *p);
+    [[nodiscard]] int mb_charlen(char_u *str);
+    [[nodiscard]] char_u *mb_unescape(char_u **pp);
+    [[nodiscard]] bool mb_lefthalve(int row, int col);
+    [[nodiscard]] int mb_fix_col(int col, int row);
+    static void ml_free_tree(bhdr_T *hp);
+    [[nodiscard]] char_u *ml_alloc_line(char_u *line, colnr_T len);
+    [[nodiscard]] bool ml_open(buf_T *buf);
+    static void ml_close(buf_T *buf, [[maybe_unused]] bool del_file);
     void ml_close_all(bool del_file);
     void ml_close_notmod(void);
     char_u *ml_get(linenr_T lnum);
-    char_u *ml_get_pos(pos_T *pos);
-    char_u *ml_get_curline(void);
-    char_u *ml_get_cursor(void);
-    colnr_T ml_get_len(linenr_T lnum);
-    colnr_T ml_get_pos_len(pos_T *pos);
-    colnr_T ml_get_curline_len(void);
-    colnr_T ml_get_cursor_len(void);
-    colnr_T ml_get_buf_len(buf_T *buf, linenr_T lnum);
-    char_u *ml_get_invalid(buf_T *buf, linenr_T lnum);
-    char_u *ml_get_buf(buf_T *buf, linenr_T lnum, [[maybe_unused]] bool will_change);
-    int ml_line_alloced(void);
-    bool ml_append_int(buf_T *buf, linenr_T lnum, char_u *line_arg, colnr_T len_arg, [[maybe_unused]] int flags);
-    bool ml_append_flush(buf_T *buf, linenr_T lnum, char_u *line, colnr_T len, int flags);
+    [[nodiscard]] char_u *ml_get_pos(pos_T *pos);
+    [[nodiscard]] char_u *ml_get_curline(void);
+    [[nodiscard]] char_u *ml_get_cursor(void);
+    [[nodiscard]] colnr_T ml_get_len(linenr_T lnum);
+    [[nodiscard]] colnr_T ml_get_pos_len(pos_T &pos);
+    [[nodiscard]] colnr_T ml_get_curline_len(void);
+    [[nodiscard]] colnr_T ml_get_cursor_len(void);
+    [[nodiscard]] colnr_T ml_get_buf_len(buf_T *buf, linenr_T lnum);
+    [[nodiscard]] char_u *ml_get_invalid(buf_T *buf, linenr_T lnum);
+    [[nodiscard]] char_u *ml_get_buf(buf_T *buf, linenr_T lnum, [[maybe_unused]] bool will_change);
+    [[nodiscard]] int ml_line_alloced(void);
+    [[nodiscard]] bool ml_append_int(buf_T *buf, linenr_T lnum, char_u *line_arg, colnr_T len_arg, [[maybe_unused]] int flags);
+    [[nodiscard]] bool ml_append_flush(buf_T *buf, linenr_T lnum, char_u *line, colnr_T len, int flags);
     bool ml_append(linenr_T lnum, char_u *line, colnr_T len);
     bool ml_append_flags(linenr_T lnum, char_u *line, colnr_T len, int flags);
     bool ml_replace(linenr_T lnum, char_u *line, bool copy);
     bool ml_replace_len(linenr_T lnum, char_u *line_arg, colnr_T len_arg, bool has_props, bool copy);
-    bool ml_delete_int(buf_T *buf, linenr_T lnum, int flags);
+    [[nodiscard]] bool ml_delete_int(buf_T *buf, linenr_T lnum, int flags);
     bool ml_delete(linenr_T lnum);
     bool ml_delete_flags(linenr_T lnum, int flags);
     void ml_setmarked(linenr_T lnum);
-    linenr_T ml_firstmarked(void);
+    [[nodiscard]] linenr_T ml_firstmarked(void);
     void ml_clearmarked(void);
     void ml_flush_line(buf_T *buf);
-    bhdr_T *ml_new_data(void);
-    bhdr_T *ml_new_ptr(void);
+    [[nodiscard]] bhdr_T *ml_new_data(void);
+    [[nodiscard]] bhdr_T *ml_new_ptr(void);
     bhdr_T *ml_find_line(buf_T *buf, linenr_T lnum, int action);
-    int ml_add_stack(buf_T *buf);
+    [[nodiscard]] int ml_add_stack(buf_T *buf);
     void ml_lineadd(buf_T *buf, int count);
     int msg(char *s);
     int msg_attr(char *s, int attr);
     bool msg_attr_keep(char *s, int attr, bool keep);
-    char_u *msg_strtrunc(char_u *s, bool force);
+    [[nodiscard]] char_u *msg_strtrunc(char_u *s, bool force);
     void trunc_string(char_u *s, char_u *buf, int room_in, int buflen);
-    usize iobuff_room(void);
-    usize emsg_iobuff_room(void);
-    char *iobuff_or(const char *s);
-    usize safelen_result(char *str, usize str_m, int str_l);
-    usize append_room(char *str, usize str_m);
+    [[nodiscard]] usize iobuff_room(void);
+    [[nodiscard]] usize emsg_iobuff_room(void);
+    [[nodiscard]] char *iobuff_or(const char *s);
+    [[nodiscard]] static usize safelen_result(char *str, usize str_m, int str_l);
+    [[nodiscard]] static usize append_room(char *str, usize str_m);
     void reset_last_sourcing(void);
-    bool other_sourcing_name(void);
-    char_u *get_emsg_source(void);
-    char_u *get_emsg_lnum(void);
+    [[nodiscard]] bool other_sourcing_name(void);
+    [[nodiscard]] char_u *get_emsg_source(void);
+    [[nodiscard]] char_u *get_emsg_lnum(void);
     void msg_source(int attr);
-    bool emsg_not_now(void);
+    [[nodiscard]] bool emsg_not_now(void);
     int emsg_core(const char *s);
     int emsg(char *s);
     void iemsg(char *s);
     void internal_error(char *where);
     void emsg_invreg(int name);
-    char *msg_trunc_attr(char *s, bool force, int attr);
-    char_u *msg_may_trunc(bool force, char_u *s);
+    [[nodiscard]] char *msg_trunc_attr(char *s, bool force, int attr);
+    [[nodiscard]] char_u *msg_may_trunc(bool force, char_u *s);
     void add_msg_hist(char_u *s, int len, int attr);
     bool delete_first_msg(void);
     void check_msg_hist(void);
-    bool messagesopt_changed(void);
+    [[nodiscard]] bool messagesopt_changed(void);
     void ex_messages(exarg_T *eap);
     void wait_return(int redraw);
     void hit_return_msg(void);
@@ -4668,18 +4764,18 @@ public:
     int msg_outtrans(char_u *str);
     int msg_outtrans_attr(char_u *str, int attr);
     int msg_outtrans_len(char_u *str, int len);
-    int msg_outtrans_len_attr(char_u *msgstr, int len, int attr);
+    [[nodiscard]] int msg_outtrans_len_attr(char_u *msgstr, int len, int attr);
     int msg_outtrans_special(char_u *strstart, bool from, int maxlen);
-    char_u *str2special(char_u **sp, bool replace_spaces, bool replace_others);
+    [[nodiscard]] char_u *str2special(char_u **sp, bool replace_spaces, bool replace_others);
     void str2specialbuf(char_u *sp, char_u *buf, int len);
     void msg_prt_line(char_u *s, int list);
-    char_u *screen_puts_mbyte(char_u *s, int l, int attr);
+    [[nodiscard]] char_u *screen_puts_mbyte(char_u *s, int l, int attr);
     void msg_puts(char *s);
     void msg_puts_title(char *s);
     void msg_puts_attr(char *s, int attr);
     void msg_puts_attr_len(char *str, int maxlen, int attr);
     void msg_puts_display(char_u *str, int maxlen, int attr, bool recurse);
-    bool message_filtered(char_u *msg);
+    [[nodiscard]] bool message_filtered(char_u *msg);
     void msg_scroll_up(void);
     void inc_msg_scrolled(void);
     store_sb_text__out_T store_sb_text(char_u *sb_str, char_u *s, int attr, int sb_col, bool finish);
@@ -4689,16 +4785,16 @@ public:
     void sb_text_end_cmdline(void);
     void clear_sb_text(bool all);
     void show_sb_text(void);
-    msgchunk_T *msg_sb_start(msgchunk_T *mps);
+    [[nodiscard]] static msgchunk_T *msg_sb_start(msgchunk_T *mps);
     void msg_sb_eol(void);
     msgchunk_T *disp_sb_line(int row, msgchunk_T *smp, bool clear_to_eol);
     int t_puts(int t_col, char_u *t_s, char_u *s, int attr);
-    bool msg_use_printf(void);
+    [[nodiscard]] bool msg_use_printf(void);
     bool do_more_prompt(int typed_char);
     void msg_screen_putchar(int c, int attr);
     void msg_moremsg(bool full);
     void repeat_message(void);
-    bool msg_check_screen(void);
+    [[nodiscard]] bool msg_check_screen(void);
     void msg_clr_eos(void);
     void msg_clr_eos_force(void);
     void msg_clr_cmdline(void);
@@ -4710,45 +4806,45 @@ public:
     void give_warning_with_source(char_u *message, bool hl, bool with_source);
     void msg_advance(int col);
     void msg_warn_missing_clipboard(void);
-    int plines(linenr_T lnum);
-    int plines_win(win_T *wp, linenr_T lnum, bool limit_winheight);
-    int plines_win_nofold(win_T *wp, linenr_T lnum);
-    int plines_win_col(win_T *wp, linenr_T lnum, long column);
-    int plines_m_win(win_T *wp, linenr_T first, linenr_T last, int max);
-    int gchar_pos(pos_T *pos);
-    int gchar_cursor(void);
+    [[nodiscard]] int plines(linenr_T lnum);
+    [[nodiscard]] int plines_win(win_T *wp, linenr_T lnum, bool limit_winheight);
+    [[nodiscard]] int plines_win_nofold(win_T *wp, linenr_T lnum);
+    [[nodiscard]] int plines_win_col(win_T *wp, linenr_T lnum, long column);
+    [[nodiscard]] int plines_m_win(win_T *wp, linenr_T first, linenr_T last, int max);
+    [[nodiscard]] int gchar_pos(pos_T *pos);
+    [[nodiscard]] int gchar_cursor(void);
     void pchar_cursor(int c);
-    char_u *skip_to_option_part(char_u *p);
+    [[nodiscard]] static char_u *skip_to_option_part(char_u *p);
     void check_status(buf_T *buf);
-    int ask_yesno(char_u *str, bool direct);
-    int get_keystroke(void);
+    [[nodiscard]] int ask_yesno(char_u *str, bool direct);
+    [[nodiscard]] int get_keystroke(void);
     void msgmore(long n);
     void beep_flush(void);
     void vim_beep(unsigned val);
-    usize expand_env_esc(char_u *srcp, char_u *dst, int dstlen, [[maybe_unused]] char_u *esc_chars, [[maybe_unused]] bool one, [[maybe_unused]] char_u *startstr);
+    static usize expand_env_esc(char_u *srcp, char_u *dst, int dstlen, [[maybe_unused]] char_u *esc_chars, [[maybe_unused]] bool one, [[maybe_unused]] char_u *startstr);
     void prepare_to_exit(void);
     void preserve_exit(void);
     void line_breakcheck(void);
     void fast_breakcheck(void);
-    bool goto_im(void);
-    int path_is_url(char_u *p);
-    vim_append_digit_long__out_T vim_append_digit_long(long value, int digit);
-    int trim_to_int(vimlong_T x);
-    int virtual_active(void);
-    int getviscol(void);
+    [[nodiscard]] bool goto_im(void);
+    [[nodiscard]] static int path_is_url(char_u *p);
+    [[nodiscard]] static vim_append_digit_long__out_T vim_append_digit_long(long value, int digit);
+    [[nodiscard]] static int trim_to_int(vimlong_T x);
+    [[nodiscard]] int virtual_active(void);
+    [[nodiscard]] int getviscol(void);
     bool coladvance_force(colnr_T wcol);
-    int getviscol2(colnr_T col, colnr_T coladd);
+    [[nodiscard]] int getviscol2(colnr_T col, colnr_T coladd);
     bool coladvance(colnr_T wantcol);
     bool getvpos(pos_T *pos, colnr_T wantcol);
-    bool coladvance2(pos_T *pos, bool addspaces, int finetune, colnr_T wcol_arg);
+    [[nodiscard]] bool coladvance2(pos_T *pos, bool addspaces, int finetune, colnr_T wcol_arg);
     int inc_cursor(void);
     int inc(pos_T *lp);
     int incl(pos_T *lp);
     int dec_cursor(void);
-    int dec(pos_T *lp);
-    int decl(pos_T *lp);
-    linenr_T get_cursor_rel_lnum(win_T *wp, linenr_T lnum);
-    void check_pos(buf_T *buf, pos_T *pos);
+    int dec(pos_T &lp);
+    int decl(pos_T &lp);
+    [[nodiscard]] static linenr_T get_cursor_rel_lnum(win_T *wp, linenr_T lnum);
+    void check_pos(buf_T *buf, pos_T &pos);
     void check_cursor_lnum(void);
     void check_cursor_col(void);
     void check_cursor_col_win(win_T *win);
@@ -4756,66 +4852,66 @@ public:
     void check_visual_pos(void);
     void adjust_cursor_col(void);
     bool set_leftcol(colnr_T leftcol);
-    copy_option_part__out_T copy_option_part(char_u *option, char_u *buf, int maxlen, char *sep_chars);
-    bool vim_isspace(int x);
-    int name_to_mod_mask(int c);
-    int simplify_key(int key, int *modifiers);
-    int handle_x_keys(int key);
-    char_u *get_special_key_name(int c, int modifiers);
-    int trans_special(char_u **srcp, char_u *dst, int flags, bool escape_ks, int *did_simplify);
-    int special_to_buf(int key, int modifiers, bool escape_ks, char_u *dst);
-    find_special_key__out_T find_special_key(char_u **srcp, int modp, int flags, int *did_simplify);
-    int may_adjust_key_for_ctrl(int modifiers, int key);
-    int may_remove_shift_modifier(int modifiers, int key);
-    int extract_modifiers(int key, int *modp, int simplify, int *did_simplify);
-    int find_special_key_in_table(int c);
-    int cmp_key_name_entry(struct key_name_entry *a, struct key_name_entry *b);
-    struct key_name_entry *key_name_bsearch(struct key_name_entry *key, struct key_name_entry *base, usize nel, int (Editor::*cmp)(struct key_name_entry *, struct key_name_entry *));
-    int get_special_key_code(char_u *name);
-    int get_real_state(void);
-    int cmp_keyvalue_value_n(keyvalue_T *kv1, keyvalue_T *kv2);
-    int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);
-    int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);
-    keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (Editor::*cmp)(keyvalue_T *, keyvalue_T *));
-    int adjust_plines_for_skipcol(win_T *wp);
-    int plines_correct_topline(win_T *wp, linenr_T lnum, bool limit_winheight);
+    [[nodiscard]] copy_option_part__out_T copy_option_part(char_u *option, char_u *buf, int maxlen, char *sep_chars);
+    [[nodiscard]] static bool vim_isspace(int x);
+    [[nodiscard]] int name_to_mod_mask(int c);
+    [[nodiscard]] int simplify_key(int key, int &modifiers);
+    [[nodiscard]] static int handle_x_keys(int key);
+    [[nodiscard]] char_u *get_special_key_name(int c, int modifiers);
+    [[nodiscard]] int trans_special(char_u **srcp, char_u *dst, int flags, bool escape_ks, int *did_simplify);
+    [[nodiscard]] static int special_to_buf(int key, int modifiers, bool escape_ks, char_u *dst);
+    [[nodiscard]] find_special_key__out_T find_special_key(char_u **srcp, int modp, int flags, int *did_simplify);
+    [[nodiscard]] int may_adjust_key_for_ctrl(int modifiers, int key);
+    [[nodiscard]] static int may_remove_shift_modifier(int modifiers, int key);
+    [[nodiscard]] static int extract_modifiers(int key, int &modp, int simplify, int *did_simplify);
+    [[nodiscard]] int find_special_key_in_table(int c);
+    [[nodiscard]] int cmp_key_name_entry(key_name_entry *a, key_name_entry *b);
+    [[nodiscard]] key_name_entry *key_name_bsearch(key_name_entry *key, key_name_entry *base, usize nel, int (Editor::*cmp)(key_name_entry *, key_name_entry *));
+    [[nodiscard]] int get_special_key_code(char_u *name);
+    [[nodiscard]] int get_real_state(void);
+    [[nodiscard]] int cmp_keyvalue_value_n(keyvalue_T *kv1, keyvalue_T *kv2);
+    [[nodiscard]] int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);
+    [[nodiscard]] int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);
+    [[nodiscard]] keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (Editor::*cmp)(keyvalue_T *, keyvalue_T *));
+    [[nodiscard]] int adjust_plines_for_skipcol(win_T *wp);
+    [[nodiscard]] int plines_correct_topline(win_T *wp, linenr_T lnum, bool limit_winheight);
     void comp_botline(win_T *wp);
     void redraw_for_cursorline(win_T *wp);
-    void set_valid_virtcol(win_T *wp, colnr_T vcol);
-    int sms_marker_overlap(win_T *wp, int extra2);
-    int skipcol_from_plines(win_T *wp, int plines_off);
+    static void set_valid_virtcol(win_T *wp, colnr_T vcol);
+    [[nodiscard]] int sms_marker_overlap(win_T *wp, int extra2);
+    [[nodiscard]] int skipcol_from_plines(win_T *wp, int plines_off);
     void reset_skipcol(void);
     void update_topline_redraw(void);
-    bool use_scrolloffpad(void);
-    bool scrolloffpad_eof_pressure(linenr_T lnum, long so);
+    [[nodiscard]] bool use_scrolloffpad(void);
+    [[nodiscard]] bool scrolloffpad_eof_pressure(linenr_T lnum, long so);
     void update_topline(void);
-    int scrolljump_value(void);
-    bool check_top_offset(void);
+    [[nodiscard]] int scrolljump_value(void);
+    [[nodiscard]] bool check_top_offset(void);
     void update_curswant_force(void);
     void update_curswant(void);
-    void check_cursor_moved(win_T *wp);
+    static void check_cursor_moved(win_T *wp);
     void changed_window_setting(void);
     void changed_window_setting_win(win_T *wp);
     void set_topline(win_T *wp, linenr_T lnum);
     void changed_cline_bef_curs(void);
-    void changed_cline_bef_curs_win(win_T *wp);
+    static void changed_cline_bef_curs_win(win_T *wp);
     void changed_line_abv_curs(void);
-    void changed_line_abv_curs_win(win_T *wp);
+    static void changed_line_abv_curs_win(win_T *wp);
     void validate_botline(void);
     void validate_botline_win(win_T *wp);
     void invalidate_botline(void);
-    void invalidate_botline_win(win_T *wp);
-    void approximate_botline_win(win_T *wp);
+    static void invalidate_botline_win(win_T *wp);
+    static void approximate_botline_win(win_T *wp);
     void validate_cursor(void);
     void curs_rows(win_T *wp);
     void validate_virtcol(void);
     void validate_virtcol_win(win_T *wp);
     void validate_cheight(void);
     void validate_cursor_col(void);
-    int win_col_off(win_T *wp);
-    int curwin_col_off(void);
-    int win_col_off2(win_T *wp);
-    int curwin_col_off2(void);
+    [[nodiscard]] static int win_col_off(win_T *wp);
+    [[nodiscard]] int curwin_col_off(void);
+    [[nodiscard]] int win_col_off2(win_T *wp);
+    [[nodiscard]] int curwin_col_off2(void);
     void curs_columns(bool may_scroll);
     void cursor_correct_sms(void);
     void scroll_redraw(int up, long count);
@@ -4824,33 +4920,33 @@ public:
     void adjust_skipcol(void);
     void scrolldown_clamp(void);
     void scrollup_clamp(void);
-    void topline_back_winheight(lineoff_T *lp, bool winheight);
-    void topline_back(lineoff_T *lp);
-    void botline_forw(lineoff_T *lp);
+    void topline_back_winheight(lineoff_T &lp, bool winheight);
+    void topline_back(lineoff_T &lp);
+    void botline_forw(lineoff_T &lp);
     void scroll_cursor_top(int min_scroll, bool always);
-    void set_empty_rows(win_T *wp, int used);
+    static void set_empty_rows(win_T *wp, int used);
     void scroll_cursor_bot(int min_scroll, bool set_topbot);
     void scroll_cursor_halfway(int atend, int prefer_above);
     void cursor_correct(void);
-    int get_scroll_overlap(int dir);
-    bool scroll_with_sms(int dir, long count, long *curscount);
+    [[nodiscard]] int get_scroll_overlap(int dir);
+    [[nodiscard]] bool scroll_with_sms(int dir, long count, long &curscount);
     bool pagescroll(int dir, long count, bool half);
-    int find_command(int cmdchar);
-    bool check_text_locked(oparg_T *oap);
-    bool check_text_or_curbuf_locked(oparg_T *oap);
-    normal_cmd_get_count__out_T normal_cmd_get_count(cmdarg_T *cap, int c, [[maybe_unused]] bool toplevel, [[maybe_unused]] bool set_prevcount, bool ctrl_w, int need_flushbuf);
-    bool normal_cmd_needs_more_chars(cmdarg_T *cap, short_u cmd_flags);
-    normal_cmd_get_more_chars__out_T normal_cmd_get_more_chars(int idx_arg, cmdarg_T *cap, int need_flushbuf);
-    bool normal_cmd_need_to_wait_for_msg(cmdarg_T *cap, pos_T *old_pos);
+    [[nodiscard]] int find_command(int cmdchar);
+    [[nodiscard]] bool check_text_locked(oparg_T *oap);
+    [[nodiscard]] bool check_text_or_curbuf_locked(oparg_T *oap);
+    [[nodiscard]] normal_cmd_get_count__out_T normal_cmd_get_count(cmdarg_T &cap, int c, [[maybe_unused]] bool toplevel, [[maybe_unused]] bool set_prevcount, bool ctrl_w, int need_flushbuf);
+    [[nodiscard]] bool normal_cmd_needs_more_chars(cmdarg_T &cap, short_u cmd_flags);
+    [[nodiscard]] normal_cmd_get_more_chars__out_T normal_cmd_get_more_chars(int idx_arg, cmdarg_T &cap, int need_flushbuf);
+    [[nodiscard]] bool normal_cmd_need_to_wait_for_msg(cmdarg_T &cap, pos_T &old_pos);
     void normal_cmd_wait_for_msg(void);
     void normal_cmd(oparg_T *oap, bool toplevel);
     void check_visual_highlight(void);
     void end_visual_mode(void);
     void end_visual_mode_keep_button(void);
     void restore_visual_mode(void);
-    find_is_eval_item__out_T find_is_eval_item(char_u *ptr, int *colp, int bnp, int dir);
-    int find_ident_under_cursor(char_u **text, int find_type);
-    int find_ident_at_pos(win_T *wp, linenr_T lnum, colnr_T startcol, char_u **text, int *textcol, int find_type);
+    [[nodiscard]] static find_is_eval_item__out_T find_is_eval_item(char_u *ptr, int &colp, int bnp, int dir);
+    [[nodiscard]] int find_ident_under_cursor(char_u **text, int find_type);
+    [[nodiscard]] int find_ident_at_pos(win_T *wp, linenr_T lnum, colnr_T startcol, char_u **text, int *textcol, int find_type);
     void prep_redo_cmd(cmdarg_T *cap);
     void prep_redo(int regname, long num, int cmd1, int cmd2, int cmd3, int cmd4, int cmd5);
     void prep_redo_num2(int regname, long num1, int cmd1, int cmd2, long num2, int cmd3, int cmd4, int cmd5);
@@ -4858,7 +4954,7 @@ public:
     bool checkclearopq(oparg_T *oap);
     void clearop(oparg_T *oap);
     void clearopbeep(oparg_T *oap);
-    void unshift_special(cmdarg_T *cap);
+    void unshift_special(cmdarg_T &cap);
     void may_clear_cmdline(void);
     void clear_showcmd(void);
     bool add_to_showcmd(int c);
@@ -4876,7 +4972,7 @@ public:
     void nv_page(cmdarg_T *cap);
     bool nv_screengo(oparg_T *oap, int dir, long dist);
     void nv_scroll_line(cmdarg_T *cap);
-    bool nv_z_get_count(cmdarg_T *cap, int *nchar_arg);
+    [[nodiscard]] bool nv_z_get_count(cmdarg_T *cap, int &nchar_arg);
     void nv_zet(cmdarg_T *cap);
     void nv_colon(cmdarg_T *cap);
     void nv_ctrlg(cmdarg_T *cap);
@@ -4897,7 +4993,7 @@ public:
     void nv_next(cmdarg_T *cap);
     int normal_search(cmdarg_T *cap, int dir, char_u *pat, usize patlen, int opt, int *wrapped);
     void nv_csearch(cmdarg_T *cap);
-    void nv_bracket_block(cmdarg_T *cap, pos_T *old_pos);
+    void nv_bracket_block(cmdarg_T *cap, pos_T &old_pos);
     void nv_brackets(cmdarg_T *cap);
     void nv_percent(cmdarg_T *cap);
     void nv_mark(cmdarg_T *cap);
@@ -4942,7 +5038,7 @@ public:
     void nv_beginline(cmdarg_T *cap);
     void adjust_for_sel(cmdarg_T *cap);
     bool unadjust_for_sel(void);
-    bool unadjust_for_sel_inner(pos_T *pp);
+    [[nodiscard]] bool unadjust_for_sel_inner(pos_T *pp);
     void nv_select(cmdarg_T *cap);
     void nv_goto(cmdarg_T *cap);
     void nv_normal(cmdarg_T *cap);
@@ -4959,36 +5055,36 @@ public:
     void nv_put_opt(cmdarg_T *cap, bool fix_indent);
     void nv_open(cmdarg_T *cap);
     void nv_cursorhold(cmdarg_T *cap);
-    int get_op_type(int char1, int char2);
-    int op_on_lines(int op);
-    int get_op_char(int optype);
-    int get_extra_op_char(int optype);
+    [[nodiscard]] int get_op_type(int char1, int char2);
+    [[nodiscard]] int op_on_lines(int op);
+    [[nodiscard]] int get_op_char(int optype);
+    [[nodiscard]] int get_extra_op_char(int optype);
     void op_shift(oparg_T *oap, bool curs_top, int amount);
-    vimlong_T get_new_sw_indent(bool left, int round, vimlong_T amount, vimlong_T sw_val);
+    [[nodiscard]] vimlong_T get_new_sw_indent(bool left, int round, vimlong_T amount, vimlong_T sw_val);
     void shift_line(bool left, int round, int amount, bool call_changed_bytes);
     void shift_block(oparg_T *oap, int amount);
-    void block_insert(oparg_T *oap, char_u *s, usize slen, bool b_insert, struct block_def *bdp);
+    void block_insert(oparg_T *oap, char_u *s, usize slen, bool b_insert, block_def &bdp);
     bool op_delete(oparg_T *oap);
     void mb_adjust_opend(oparg_T *oap);
     void replace_character(int c);
     bool op_replace(oparg_T *oap, int c);
     void op_tilde(oparg_T *oap);
-    int swapchars(int op_type, pos_T *pos, int length);
-    bool swapchar(int op_type, pos_T *pos);
+    [[nodiscard]] int swapchars(int op_type, pos_T *pos, int length);
+    [[nodiscard]] bool swapchar(int op_type, pos_T *pos);
     void op_insert(oparg_T *oap, long count1);
-    bool op_change(oparg_T *oap);
+    [[nodiscard]] bool op_change(oparg_T *oap);
     void adjust_cursor_eol(void);
     bool do_join(long count, bool insert_space, bool save_undo, [[maybe_unused]] bool use_formatoptions, bool setmark);
-    void block_prep(oparg_T *oap, struct block_def *bdp, linenr_T lnum, int is_del);
-    void charwise_block_prep(pos_T start, pos_T end, struct block_def *bdp, linenr_T lnum, int inclusive);
+    void block_prep(oparg_T *oap, block_def &bdp, linenr_T lnum, int is_del);
+    void charwise_block_prep(pos_T start, pos_T end, block_def &bdp, linenr_T lnum, int inclusive);
     void op_addsub(oparg_T *oap, linenr_T Prenum1, int g_cmd);
-    bool do_addsub(int op_type, pos_T *pos, int length, linenr_T Prenum1);
-    void clear_oparg(oparg_T *oap);
-    line_count_info__out_T line_count_info(char_u *line, varnumber_T wc, varnumber_T cc, varnumber_T limit, int eol_size);
+    [[nodiscard]] bool do_addsub(int op_type, pos_T &pos, int length, linenr_T Prenum1);
+    static void clear_oparg(oparg_T *oap);
+    [[nodiscard]] line_count_info__out_T line_count_info(char_u *line, varnumber_T wc, varnumber_T cc, varnumber_T limit, int eol_size);
     void cursor_pos_info(void);
     void op_colon(oparg_T *oap);
     void get_op_vcol(oparg_T *oap, colnr_T redo_VIsual_vcol, bool initial);
-    bool is_ex_cmdchar(cmdarg_T *cap);
+    [[nodiscard]] static bool is_ex_cmdchar(cmdarg_T *cap);
     void do_pending_operator(cmdarg_T *cap, int old_col, bool gui_yank);
     void pbyte(pos_T lp, int c);
     void set_init_expand_env(void);
@@ -4997,302 +5093,302 @@ public:
     void set_options_default(int opt_flags);
     void set_string_default_esc(char *name, char_u *val, bool escape);
     void set_string_default(char *name, char_u *val);
-    char_u *find_dup_item(char_u *origval, char_u *newval, usize newvallen, long_u flags);
+    [[nodiscard]] static char_u *find_dup_item(char_u *origval, char_u *newval, usize newvallen, long_u flags);
     void set_number_default(char *name, long val);
     void set_init_2(void);
     void ex_set(exarg_T *eap);
-    set_prefix_T get_option_prefix(char_u **argp);
-    parse_option_name__out_T parse_option_name(char_u *arg, int opt_idxp, int lenp, int keyp);
-    set_op_T get_opt_op(char_u *arg);
-    bool validate_opt_idx(int opt_idx, int opt_flags, [[maybe_unused]] long_u flags, [[maybe_unused]] char **errmsg, [[maybe_unused]] set_prefix_T prefix);
-    char_u *stropt_get_default_val(int opt_idx, optvar_T varp, int flags, int cp_val);
-    opt_backspace_nr2str__out_T opt_backspace_nr2str(optvar_T varp, char_u *origval_p, char_u *origval_l_p, char_u *origval_g_p, char_u *oldval_p);
-    char_u *opt_whichwrap_nr2str(char_u **argp, char_u *whichwrap);
-    char_u *stropt_copy_value(char_u *origval, char_u **argp, set_op_T op, [[maybe_unused]] int flags);
-    char_u *stropt_expand_envvar(int opt_idx, char_u *origval, char_u *newval, set_op_T op);
-    void stropt_concat_with_comma(char_u *origval, char_u *newval, set_op_T op, int flags);
-    void stropt_remove_val(char_u *origval, char_u *newval, int flags, char_u *strval, int len);
-    find_key_item__out_T find_key_item(char_u *src, char_u *key, int keylen, int itemlenp);
-    void remove_comma_item(char_u *str, char_u *item, int itemlen);
+    [[nodiscard]] static set_prefix_T get_option_prefix(char_u **argp);
+    [[nodiscard]] parse_option_name__out_T parse_option_name(char_u *arg, int opt_idxp, int lenp, int keyp);
+    [[nodiscard]] static set_op_T get_opt_op(char_u *arg);
+    [[nodiscard]] bool validate_opt_idx(int opt_idx, int opt_flags, [[maybe_unused]] long_u flags, [[maybe_unused]] char **errmsg, [[maybe_unused]] set_prefix_T prefix);
+    [[nodiscard]] char_u *stropt_get_default_val(int opt_idx, optvar_T varp, int flags, int cp_val);
+    [[nodiscard]] opt_backspace_nr2str__out_T opt_backspace_nr2str(optvar_T varp, char_u *origval_p, char_u *origval_l_p, char_u *origval_g_p, char_u *oldval_p);
+    [[nodiscard]] static char_u *opt_whichwrap_nr2str(char_u **argp, char_u *whichwrap);
+    [[nodiscard]] char_u *stropt_copy_value(char_u *origval, char_u **argp, set_op_T op, [[maybe_unused]] int flags);
+    [[nodiscard]] char_u *stropt_expand_envvar(int opt_idx, char_u *origval, char_u *newval, set_op_T op);
+    static void stropt_concat_with_comma(char_u *origval, char_u *newval, set_op_T op, int flags);
+    static void stropt_remove_val(char_u *origval, char_u *newval, int flags, char_u *strval, int len);
+    [[nodiscard]] find_key_item__out_T find_key_item(char_u *src, char_u *key, int keylen, int itemlenp);
+    static void remove_comma_item(char_u *str, char_u *item, int itemlen);
     void remove_key_item(char_u *str, char_u *key, int keylen, char_u *skip);
-    void append_item(char_u *str, char_u *item, int item_len);
-    void prepend_item(char_u *str, char_u *item, int item_len);
-    bool stropt_handle_keymatch(char_u *origval, char_u *newval, set_op_T op, [[maybe_unused]] int flags);
+    static void append_item(char_u *str, char_u *item, int item_len);
+    static void prepend_item(char_u *str, char_u *item, int item_len);
+    [[nodiscard]] bool stropt_handle_keymatch(char_u *origval, char_u *newval, set_op_T op, [[maybe_unused]] int flags);
     void stropt_remove_dupflags(char_u *newval, int flags);
-    stropt_get_newval__out_T stropt_get_newval(int nextchar, int opt_idx, char_u *argp, optvar_T varp, char_u *origval_arg, char_u *origval_l_arg, char_u *origval_g_arg, char_u *oldval_arg, set_op_T op_arg, int flags, int cp_val);
-    do_set_option_string__out_T do_set_option_string(int opt_idx, int opt_flags, char_u *argp, int nextchar, set_op_T op_arg, long_u flags, int cp_val, optvar_T varp_arg, char *errbuf, usize errbuflen, int *value_checked);
-    char *do_set_option_bool(int opt_idx, int opt_flags, set_prefix_T prefix, long_u flags, optvar_T varp, int nextchar, int afterchar, int cp_val);
-    do_set_option_numeric__out_T do_set_option_numeric(int opt_idx, int opt_flags, char_u *argp, int nextchar, set_op_T op, long_u flags, int cp_val, optvar_T varp, char *errbuf, usize errbuflen);
-    do_set_option_keycode__out_T do_set_option_keycode(char_u *argp, char_u *key_name, int nextchar);
-    do_set_option_value__out_T do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefix, set_op_T op, long_u flags, optvar_T varp, char_u *key_name, int nextchar, int afterchar, int cp_val, int *stopopteval, char *errbuf, usize errbuflen);
-    do_set_option__out_T do_set_option(int opt_flags, char_u **argp, [[maybe_unused]] char_u *arg_start, [[maybe_unused]] char_u **startarg, bool did_show, int *stopopteval, char *errbuf, usize errbuflen);
+    [[nodiscard]] stropt_get_newval__out_T stropt_get_newval(int nextchar, int opt_idx, char_u *argp, optvar_T varp, char_u *origval_arg, char_u *origval_l_arg, char_u *origval_g_arg, char_u *oldval_arg, set_op_T op_arg, int flags, int cp_val);
+    [[nodiscard]] do_set_option_string__out_T do_set_option_string(int opt_idx, int opt_flags, char_u *argp, int nextchar, set_op_T op_arg, long_u flags, int cp_val, optvar_T varp_arg, char *errbuf, usize errbuflen, int &value_checked);
+    [[nodiscard]] char *do_set_option_bool(int opt_idx, int opt_flags, set_prefix_T prefix, long_u flags, optvar_T varp, int nextchar, int afterchar, int cp_val);
+    [[nodiscard]] do_set_option_numeric__out_T do_set_option_numeric(int opt_idx, int opt_flags, char_u *argp, int nextchar, set_op_T op, long_u flags, int cp_val, optvar_T varp, char *errbuf, usize errbuflen);
+    [[nodiscard]] do_set_option_keycode__out_T do_set_option_keycode(char_u *argp, char_u *key_name, int nextchar);
+    [[nodiscard]] do_set_option_value__out_T do_set_option_value(int opt_idx, int opt_flags, char_u *argp, set_prefix_T prefix, set_op_T op, long_u flags, optvar_T varp, char_u *key_name, int nextchar, int afterchar, int cp_val, int &stopopteval, char *errbuf, usize errbuflen);
+    [[nodiscard]] do_set_option__out_T do_set_option(int opt_flags, char_u **argp, [[maybe_unused]] char_u *arg_start, [[maybe_unused]] char_u **startarg, bool did_show, int &stopopteval, char *errbuf, usize errbuflen);
     bool do_set(char_u *arg_start, int opt_flags);
     void did_set_option(int opt_idx, int opt_flags, bool new_value, int value_checked);
-    char_u *option_expand(int opt_idx, char_u *val);
+    [[nodiscard]] char_u *option_expand(int opt_idx, char_u *val);
     void didset_options(void);
     void didset_options2(void);
     void check_options(void);
-    int get_term_opt_idx(char_u **p);
+    [[nodiscard]] int get_term_opt_idx(char_u **p);
     int set_term_option_alloced(char_u **p);
     void redraw_titles(void);
-    char *did_set_cmdheight(optset_T *args);
-    char *did_set_compatible([[maybe_unused]] optset_T *args);
-    char *did_set_hlsearch([[maybe_unused]] optset_T *args);
-    char *did_set_ignorecase([[maybe_unused]] optset_T *args);
-    char *did_set_insertmode(optset_T *args);
-    char *did_set_laststatus([[maybe_unused]] optset_T *args);
-    char *did_set_maxcombine([[maybe_unused]] optset_T *args);
-    char *did_set_modifiable([[maybe_unused]] optset_T *args);
-    char *did_set_modified(optset_T *args);
-    char *did_set_number_relativenumber([[maybe_unused]] optset_T *args);
-    char *did_set_osctimeoutlen(optset_T *args);
-    char *did_set_paste([[maybe_unused]] optset_T *args);
-    char *did_set_maxsearchcount([[maybe_unused]] optset_T *args);
-    char *did_set_shiftwidth_tabstop([[maybe_unused]] optset_T *args);
-    char *did_set_smoothscroll([[maybe_unused]] optset_T *args);
-    char *did_set_termsync([[maybe_unused]] optset_T *args);
-    char *did_set_terse([[maybe_unused]] optset_T *args);
-    char *did_set_textwidth([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_cmdheight(optset_T *args);
+    [[nodiscard]] char *did_set_compatible([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_hlsearch([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_ignorecase([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_insertmode(optset_T *args);
+    [[nodiscard]] char *did_set_laststatus([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_maxcombine([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_modifiable([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_modified(optset_T *args);
+    [[nodiscard]] char *did_set_number_relativenumber([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_osctimeoutlen(optset_T *args);
+    [[nodiscard]] char *did_set_paste([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_maxsearchcount([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_shiftwidth_tabstop([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_smoothscroll([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_termsync([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_terse([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_textwidth([[maybe_unused]] optset_T *args);
     void update_global_undolevels(long value, long old_value);
     void update_buflocal_undolevels(long value, long old_value);
-    char *did_set_undolevels(optset_T *args);
-    char *did_set_weirdinvert(optset_T *args);
-    char *did_set_window([[maybe_unused]] optset_T *args);
-    char *did_set_wrap([[maybe_unused]] optset_T *args);
-    char *set_bool_option(int opt_idx, optvar_T varp, int value, int opt_flags);
-    char *check_num_option_bounds(long *pp, long old_value, long old_Rows, long old_Columns, char *errbuf, usize errbuflen, char *errmsg);
-    char *set_num_option(int opt_idx, optvar_T varp, long value, char *errbuf, usize errbuflen, int opt_flags);
+    [[nodiscard]] char *did_set_undolevels(optset_T *args);
+    [[nodiscard]] char *did_set_weirdinvert(optset_T *args);
+    [[nodiscard]] char *did_set_window([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_wrap([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *set_bool_option(int opt_idx, optvar_T varp, int value, int opt_flags);
+    [[nodiscard]] char *check_num_option_bounds(long *pp, long old_value, long old_Rows, long old_Columns, char *errbuf, usize errbuflen, char *errmsg);
+    [[nodiscard]] char *set_num_option(int opt_idx, optvar_T varp, long value, char *errbuf, usize errbuflen, int opt_flags);
     void check_redraw(long_u flags);
-    int findoption(char_u *arg);
-    long_u get_option_flags(int opt_idx);
+    [[nodiscard]] int findoption(char_u *arg);
+    [[nodiscard]] long_u get_option_flags(int opt_idx);
     void set_option_flag(int opt_idx, long_u flag);
-    bool is_global_option(int opt_idx);
-    int is_global_local_option(int opt_idx);
-    int is_window_local_option(int opt_idx);
-    bool is_hidden_option(int opt_idx);
+    [[nodiscard]] bool is_global_option(int opt_idx);
+    [[nodiscard]] int is_global_local_option(int opt_idx);
+    [[nodiscard]] int is_window_local_option(int opt_idx);
+    [[nodiscard]] bool is_hidden_option(int opt_idx);
     char *set_option_value(char_u *name, long number, char_u *string, int opt_flags);
     void set_option_value_give_err(char_u *name, long number, char_u *string, int opt_flags);
-    char_u *get_term_code(char_u *tname);
-    char_u *get_highlight_default(void);
-    int find_key_option(char_u *arg_arg, bool has_lt);
+    [[nodiscard]] char_u *get_term_code(char_u *tname);
+    [[nodiscard]] char_u *get_highlight_default(void);
+    [[nodiscard]] int find_key_option(char_u *arg_arg, bool has_lt);
     void showoptions(int all, int opt_flags);
-    bool optval_default(struct vimoption *p, optvar_T varp, int compatible);
-    void showoneopt(struct vimoption *p, int opt_flags);
+    [[nodiscard]] static bool optval_default(vimoption *p, optvar_T varp, int compatible);
+    void showoneopt(vimoption *p, int opt_flags);
     void clear_termoptions(void);
     void free_termoptions(void);
     void set_term_defaults(void);
-    bool istermoption(struct vimoption *p);
-    bool istermoption_idx(int opt_idx);
-    optvar_T get_varp_allbuf(struct vimoption *p);
-    optvar_T get_varp_scope(struct vimoption *p, int scope);
-    optvar_T get_option_varp_scope(int opt_idx, int scope);
-    optvar_T get_varp(struct vimoption *p);
-    char_u **get_option_var(int opt_idx);
-    opt_did_set_cb_T get_option_did_set_cb(int opt_idx);
+    [[nodiscard]] static bool istermoption(vimoption *p);
+    [[nodiscard]] bool istermoption_idx(int opt_idx);
+    [[nodiscard]] optvar_T get_varp_allbuf(vimoption *p);
+    [[nodiscard]] optvar_T get_varp_scope(vimoption *p, int scope);
+    [[nodiscard]] optvar_T get_option_varp_scope(int opt_idx, int scope);
+    [[nodiscard]] optvar_T get_varp(vimoption *p);
+    [[nodiscard]] char_u **get_option_var(int opt_idx);
+    [[nodiscard]] opt_did_set_cb_T get_option_did_set_cb(int opt_idx);
     void after_copy_winopt(win_T *wp);
-    char_u *copy_option_val(char_u *val);
-    void copy_winopt(winopt_T *from, winopt_T *to);
+    [[nodiscard]] char_u *copy_option_val(char_u *val);
+    void copy_winopt(winopt_T &from, winopt_T &to);
     void check_win_options(win_T *win);
-    void check_winopt(winopt_T *wop);
-    void clear_winopt(winopt_T *wop);
+    void check_winopt(winopt_T &wop);
+    void clear_winopt(winopt_T &wop);
     void buf_copy_options(buf_T *buf, int flags);
-    void option_value2string(struct vimoption *opp, int scope);
-    bool shortmess(int x);
-    bool option_was_set(char_u *name);
+    void option_value2string(vimoption *opp, int scope);
+    [[nodiscard]] bool shortmess(int x);
+    [[nodiscard]] bool option_was_set(char_u *name);
     bool reset_option_was_set(char_u *name);
     void compatible_set(void);
-    bool can_bs(int what);
-    long get_scrolloff_value(void);
-    long get_scrolloffpad_value(void);
-    long get_sidescrolloff_value(void);
-    unsigned int get_ve_flags(void);
-    int magic_isset(void);
+    [[nodiscard]] bool can_bs(int what);
+    [[nodiscard]] long get_scrolloff_value(void);
+    [[nodiscard]] long get_scrolloffpad_value(void);
+    [[nodiscard]] long get_sidescrolloff_value(void);
+    [[nodiscard]] unsigned int get_ve_flags(void);
+    [[nodiscard]] int magic_isset(void);
     void didset_string_options(void);
-    char *illegal_char(char *errbuf, usize errbuflen, int c);
+    [[nodiscard]] char *illegal_char(char *errbuf, usize errbuflen, int c);
     void check_buf_options(buf_T *buf);
-    void free_string_option([[maybe_unused]] char_u *p);
+    static void free_string_option([[maybe_unused]] char_u *p);
     void clear_string_option(char_u **pp);
     void check_string_option(char_u **pp);
     void set_string_option_global(int opt_idx, char_u **varp);
     void set_string_option_direct(char_u *name, int opt_idx, char_u *val, int opt_flags, [[maybe_unused]] int set_sid);
     void set_string_option_direct_in_win(win_T *wp, char_u *name, int opt_idx, char_u *val, int opt_flags, int set_sid);
-    char *set_string_option(int opt_idx, char_u *value, int opt_flags, char *errbuf, usize errbuflen);
-    bool check_illegal_path_names(int opt_idx, char_u **varp);
-    char *did_set_opt_flags(char_u *val, char **values, unsigned *flagp, bool list);
-    char *did_set_opt_strings(char_u *val, char **values, bool list);
-    char *did_set_option_listflag(char_u *val, char_u *flags, char *errbuf, usize errbuflen);
-    char *did_set_ambiwidth([[maybe_unused]] optset_T *args);
-    char *did_set_background(optset_T *args);
-    char *did_set_backspace([[maybe_unused]] optset_T *args);
-    char *did_set_belloff([[maybe_unused]] optset_T *args);
-    char *did_set_casemap([[maybe_unused]] optset_T *args);
-    char *did_set_global_listfillchars(char_u *val, bool opt_lcs, int opt_flags, char *errbuf, usize errbuflen);
-    char *did_set_chars_option(optset_T *args);
-    char *did_set_cpoptions(optset_T *args);
-    char *did_set_display([[maybe_unused]] optset_T *args);
-    char *did_set_highlight([[maybe_unused]] optset_T *args);
-    char *did_set_iskeyword(optset_T *args);
-    char *did_set_isopt(optset_T *args);
-    char *did_set_keymodel([[maybe_unused]] optset_T *args);
-    char *did_set_keyprotocol([[maybe_unused]] optset_T *args);
-    char *did_set_matchpairs(optset_T *args);
-    char *did_set_messagesopt([[maybe_unused]] optset_T *args);
-    char *did_set_nrformats(optset_T *args);
-    char *did_set_pastetoggle([[maybe_unused]] optset_T *args);
-    char *did_set_selection([[maybe_unused]] optset_T *args);
-    char *did_set_selectmode([[maybe_unused]] optset_T *args);
-    char *did_set_shortmess(optset_T *args);
-    char *did_set_showcmdloc([[maybe_unused]] optset_T *args);
-    char *did_set_term([[maybe_unused]] optset_T *args);
-    char *did_set_term_option(optset_T *args);
-    char *did_set_virtualedit(optset_T *args);
-    char *did_set_whichwrap(optset_T *args);
-    char *did_set_wincolor(optset_T *args);
-    char *did_set_winhighlight(optset_T *args);
-    char *did_set_string_option(int opt_idx, char_u **varp, char_u *oldval, char_u *value, char *errbuf, usize errbuflen, int opt_flags, set_op_T op, int *value_checked);
-    bool check_opt_strings(char_u *val, char **values, bool list);
-    bool opt_strings_flags(char_u *val, char **values, unsigned *flagp, bool list);
+    [[nodiscard]] char *set_string_option(int opt_idx, char_u *value, int opt_flags, char *errbuf, usize errbuflen);
+    [[nodiscard]] bool check_illegal_path_names(int opt_idx, char_u **varp);
+    [[nodiscard]] char *did_set_opt_flags(char_u *val, char **values, unsigned *flagp, bool list);
+    [[nodiscard]] char *did_set_opt_strings(char_u *val, char **values, bool list);
+    [[nodiscard]] char *did_set_option_listflag(char_u *val, char_u *flags, char *errbuf, usize errbuflen);
+    [[nodiscard]] char *did_set_ambiwidth([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_background(optset_T *args);
+    [[nodiscard]] char *did_set_backspace([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_belloff([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_casemap([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_global_listfillchars(char_u *val, bool opt_lcs, int opt_flags, char *errbuf, usize errbuflen);
+    [[nodiscard]] char *did_set_chars_option(optset_T *args);
+    [[nodiscard]] char *did_set_cpoptions(optset_T *args);
+    [[nodiscard]] char *did_set_display([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_highlight([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_iskeyword(optset_T *args);
+    [[nodiscard]] char *did_set_isopt(optset_T *args);
+    [[nodiscard]] char *did_set_keymodel([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_keyprotocol([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_matchpairs(optset_T *args);
+    [[nodiscard]] char *did_set_messagesopt([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_nrformats(optset_T *args);
+    [[nodiscard]] char *did_set_pastetoggle([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_selection([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_selectmode([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_shortmess(optset_T *args);
+    [[nodiscard]] char *did_set_showcmdloc([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_term([[maybe_unused]] optset_T *args);
+    [[nodiscard]] char *did_set_term_option(optset_T *args);
+    [[nodiscard]] char *did_set_virtualedit(optset_T *args);
+    [[nodiscard]] char *did_set_whichwrap(optset_T *args);
+    [[nodiscard]] char *did_set_wincolor(optset_T *args);
+    [[nodiscard]] char *did_set_winhighlight(optset_T *args);
+    [[nodiscard]] char *did_set_string_option(int opt_idx, char_u **varp, char_u *oldval, char_u *value, char *errbuf, usize errbuflen, int opt_flags, set_op_T op, int &value_checked);
+    [[nodiscard]] static bool check_opt_strings(char_u *val, char **values, bool list);
+    static bool opt_strings_flags(char_u *val, char **values, unsigned *flagp, bool list);
     void mch_write(char_u *s, int len);
-    int mch_inchar(char_u *buf, int maxlen, long wtime, int tb_change_cnt);
+    [[nodiscard]] int mch_inchar(char_u *buf, int maxlen, long wtime, int tb_change_cnt);
     void mch_delay(long msec, int flags);
     void deathtrap(int sigarg);
     void mch_suspend(void);
     void mch_init(void);
     bool vim_handle_signal(int sig);
-    bool vim_is_xterm(char_u *name);
+    [[nodiscard]] static bool vim_is_xterm(char_u *name);
     void exit_scroll(void);
     void mch_exit(int r);
     void get_stty(void);
-    bool get_tty_info(int fd, ttyinfo_T *info);
+    [[nodiscard]] bool get_tty_info(int fd, ttyinfo_T &info);
     void mch_set_shellsize(void);
     void mch_breakcheck(bool force);
     int WaitForChar(long msec, int *interrupted, int ignore_input);
     int RealWaitForChar([[maybe_unused]] int fd, long msec, [[maybe_unused]] int *check_for_gpm, [[maybe_unused]] int *interrupted);
-    int no_Magic(int x);
-    int toggle_Magic(int x);
-    int re_multi_type(int c);
-    int backslash_trans(int c);
-    int get_char_class(char_u **pp);
+    [[nodiscard]] static int no_Magic(int x);
+    [[nodiscard]] static int toggle_Magic(int x);
+    [[nodiscard]] static int re_multi_type(int c);
+    [[nodiscard]] static int backslash_trans(int c);
+    [[nodiscard]] int get_char_class(char_u **pp);
     void init_class_tab(void);
-    int re_multiline(regprog_T *prog);
-    int get_coll_element(char_u **pp);
+    [[nodiscard]] static int re_multiline(regprog_T *prog);
+    [[nodiscard]] int get_coll_element(char_u **pp);
     void get_cpo_flags(void);
-    char_u *skip_anyof(char_u *p);
-    char_u *skip_regexp(char_u *startp, int delim, int magic);
+    [[nodiscard]] char_u *skip_anyof(char_u *p);
+    [[nodiscard]] char_u *skip_regexp(char_u *startp, int delim, int magic);
     char_u *skip_regexp_ex(char_u *startp, int dirc, int magic, char_u **newp, int *dropped, magic_T *magic_val);
     void initchr(char_u *str);
     int peekchr(void);
     void skipchr(void);
     void skipchr_keepstart(void);
-    int getchr(void);
+    [[nodiscard]] int getchr(void);
     void ungetchr(void);
-    vimlong_T gethexchrs(int maxinputlen);
-    vimlong_T getdecchrs(void);
-    long getoctchrs(void);
-    read_limits__out_T read_limits(void);
-    bool reg_iswordc(regengine_T *re, int c);
+    [[nodiscard]] vimlong_T gethexchrs(int maxinputlen);
+    [[nodiscard]] vimlong_T getdecchrs(void);
+    [[nodiscard]] long getoctchrs(void);
+    [[nodiscard]] read_limits__out_T read_limits(void);
+    [[nodiscard]] bool reg_iswordc(regengine_T *re, int c);
     void reg_getline_common(regengine_T *re, linenr_T lnum, reg_getline_flags_T flags, char_u **line, colnr_T *length);
-    char_u *reg_getline(regengine_T *re, linenr_T lnum);
-    colnr_T reg_getline_len(regengine_T *re, linenr_T lnum);
-    int reg_prev_class(regengine_T *re);
-    bool reg_match_visual(regengine_T *re);
-    bool prog_magic_wrong(regengine_T *re);
-    void cleanup_subexpr(regengine_T *re);
+    [[nodiscard]] char_u *reg_getline(regengine_T *re, linenr_T lnum);
+    [[nodiscard]] colnr_T reg_getline_len(regengine_T *re, linenr_T lnum);
+    [[nodiscard]] int reg_prev_class(regengine_T *re);
+    [[nodiscard]] bool reg_match_visual(regengine_T *re);
+    [[nodiscard]] bool prog_magic_wrong(regengine_T *re);
+    static void cleanup_subexpr(regengine_T *re);
     void reg_nextline(regengine_T *re);
-    match_with_backref__out_T match_with_backref(regengine_T *re, linenr_T start_lnum, colnr_T start_col, linenr_T end_lnum, colnr_T end_col, int bytelen);
-    bool re_mult_next(char *what);
-    int mb_decompose(int c, int *c2, int *c3);
-    cstrncmp__out_T cstrncmp(regengine_T *re, char_u *s1, char_u *s2, int n);
-    char_u *cstrchr(regengine_T *re, char_u *s, int c);
+    [[nodiscard]] match_with_backref__out_T match_with_backref(regengine_T *re, linenr_T start_lnum, colnr_T start_col, linenr_T end_lnum, colnr_T end_col, int bytelen);
+    [[nodiscard]] bool re_mult_next(char *what);
+    [[nodiscard]] int mb_decompose(int c, int &c2, int &c3);
+    [[nodiscard]] cstrncmp__out_T cstrncmp(regengine_T *re, char_u *s1, char_u *s2, int n);
+    [[nodiscard]] char_u *cstrchr(regengine_T *re, char_u *s, int c);
     void do_upper(int *d, int c);
     void do_lower(int *d, int c);
-    char_u *regtilde(char_u *source, int magic);
-    int vim_regsub_multi(regmmatch_T *rmp, linenr_T lnum, char_u *source, char_u *dest, int destlen, int flags);
-    int vim_regsub_both(regengine_T *re, char_u *source, char_u *dest, int destlen, int flags);
-    void init_regexec_multi(regengine_T *re, regmmatch_T *rmp, win_T *win, buf_T *buf, linenr_T lnum);
+    [[nodiscard]] char_u *regtilde(char_u *source, int magic);
+    [[nodiscard]] int vim_regsub_multi(regmmatch_T *rmp, linenr_T lnum, char_u *source, char_u *dest, int destlen, int flags);
+    [[nodiscard]] int vim_regsub_both(regengine_T *re, char_u *source, char_u *dest, int destlen, int flags);
+    static void init_regexec_multi(regengine_T *re, regmmatch_T *rmp, win_T *win, buf_T *buf, linenr_T lnum);
     void regcomp_start(regengine_T *re, char_u *expr, int re_flags);
-    bool use_multibytecode(int c);
+    [[nodiscard]] bool use_multibytecode(int c);
     void regc(int b);
     void regmbc(int c);
-    char_u *regnode(int op);
-    char_u *re_put_long(char_u *p, long_u val);
-    char_u *regnext(regengine_T *re, char_u *p);
+    [[nodiscard]] char_u *regnode(int op);
+    static char_u *re_put_long(char_u *p, long_u val);
+    [[nodiscard]] char_u *regnext(regengine_T *re, char_u *p);
     void regtail(regengine_T *re, char_u *p, char_u *val);
     void regoptail(regengine_T *re, char_u *p, char_u *val);
     void reginsert(int op, char_u *opnd);
     void reginsert_nr(int op, long val, char_u *opnd);
     void reginsert_limits(regengine_T *re, int op, long minval, long maxval, char_u *opnd);
-    bool seen_endbrace(int refnum);
-    char_u *regatom_delim(int c, bool delim_nl, int *flagp);
-    char_u *regatom(regengine_T *re, int *flagp);
-    regpiece__out_T regpiece(regengine_T *re, int flagp);
-    regconcat__out_T regconcat(regengine_T *re);
-    regbranch__out_T regbranch(regengine_T *re);
-    reg__out_T reg(regengine_T *re, int paren);
-    regprog_T *bt_regcomp(regengine_T *re, char_u *expr, int re_flags);
-    int coll_get_char(void);
-    void bt_regfree([[maybe_unused]] regprog_T *prog);
-    void reg_save(regengine_T *re, regsave_T *save, garray_T *gap);
-    void reg_restore(regengine_T *re, regsave_T *save, garray_T *gap);
-    bool reg_save_equal(regengine_T *re, regsave_T *save);
-    void save_se_multi(regengine_T *re, save_se_T *savep, lpos_T *posp);
-    void save_se_one(regengine_T *re, save_se_T *savep, char_u **pp);
-    int regrepeat(regengine_T *re, char_u *p, long maxcount);
-    regstar_T *regstack_star_top(regengine_T *re);
-    regbehind_T *regstack_behind_top(regengine_T *re);
-    regitem_T *regstack_push(regengine_T *re, regstate_T state, char_u *scan);
-    char_u *regstack_pop(regengine_T *re);
-    void save_subexpr(regengine_T *re, regbehind_T *bp);
-    void restore_subexpr(regengine_T *re, regbehind_T *bp);
-    int regmatch(regengine_T *re, char_u *scan, [[maybe_unused]] int *timed_out);
-    long regtry(regengine_T *re, regprog_T *prog, colnr_T col, int *timed_out);
-    long bt_regexec_both(regengine_T *re, char_u *line, colnr_T startcol, int *timed_out);
-    int bt_regexec_nl(regengine_T *re, regmatch_T *rmp, char_u *line, colnr_T col, bool line_lbr);
-    long bt_regexec_multi(regengine_T *re, regmmatch_T *rmp, win_T *win, buf_T *buf, linenr_T lnum, colnr_T col, int *timed_out);
-    bool re_num_cmp(long_u val, char_u *scan);
-    regprog_T *vim_regcomp(char_u *expr_arg, int re_flags);
-    void vim_regfree(regprog_T *prog);
-    bool vim_regexec_string(regmatch_T *rmp, char_u *line, colnr_T col, bool nl);
-    bool vim_regexec(regmatch_T *rmp, char_u *line, colnr_T col);
+    [[nodiscard]] bool seen_endbrace(int refnum);
+    [[nodiscard]] char_u *regatom_delim(int c, bool delim_nl, int &flagp);
+    [[nodiscard]] char_u *regatom(regengine_T *re, int &flagp);
+    [[nodiscard]] regpiece__out_T regpiece(regengine_T *re, int flagp);
+    [[nodiscard]] regconcat__out_T regconcat(regengine_T *re);
+    [[nodiscard]] regbranch__out_T regbranch(regengine_T *re);
+    [[nodiscard]] reg__out_T reg(regengine_T *re, int paren);
+    [[nodiscard]] regprog_T *bt_regcomp(regengine_T *re, char_u *expr, int re_flags);
+    [[nodiscard]] int coll_get_char(void);
+    static void bt_regfree([[maybe_unused]] regprog_T *prog);
+    static void reg_save(regengine_T *re, regsave_T &save, garray_T &gap);
+    void reg_restore(regengine_T *re, regsave_T &save, garray_T &gap);
+    [[nodiscard]] static bool reg_save_equal(regengine_T *re, regsave_T &save);
+    static void save_se_multi(regengine_T *re, save_se_T &savep, lpos_T &posp);
+    static void save_se_one(regengine_T *re, save_se_T &savep, char_u **pp);
+    [[nodiscard]] int regrepeat(regengine_T *re, char_u *p, long maxcount);
+    [[nodiscard]] static regstar_T *regstack_star_top(regengine_T *re);
+    [[nodiscard]] static regbehind_T *regstack_behind_top(regengine_T *re);
+    [[nodiscard]] regitem_T *regstack_push(regengine_T *re, regstate_T state, char_u *scan);
+    [[nodiscard]] static char_u *regstack_pop(regengine_T *re);
+    static void save_subexpr(regengine_T *re, regbehind_T *bp);
+    static void restore_subexpr(regengine_T *re, regbehind_T *bp);
+    [[nodiscard]] int regmatch(regengine_T *re, char_u *scan, [[maybe_unused]] int *timed_out);
+    [[nodiscard]] long regtry(regengine_T *re, regprog_T *prog, colnr_T col, int *timed_out);
+    [[nodiscard]] long bt_regexec_both(regengine_T *re, char_u *line, colnr_T startcol, int *timed_out);
+    [[nodiscard]] int bt_regexec_nl(regengine_T *re, regmatch_T *rmp, char_u *line, colnr_T col, bool line_lbr);
+    [[nodiscard]] long bt_regexec_multi(regengine_T *re, regmmatch_T *rmp, win_T *win, buf_T *buf, linenr_T lnum, colnr_T col, int *timed_out);
+    [[nodiscard]] static bool re_num_cmp(long_u val, char_u *scan);
+    [[nodiscard]] regprog_T *vim_regcomp(char_u *expr_arg, int re_flags);
+    static void vim_regfree(regprog_T *prog);
+    [[nodiscard]] bool vim_regexec_string(regmatch_T *rmp, char_u *line, colnr_T col, bool nl);
+    [[nodiscard]] bool vim_regexec(regmatch_T *rmp, char_u *line, colnr_T col);
     void match_chunk(regengine_T *re, regmmatch_T *rmp, bool do_all, buf_T *buf, string_T *lines, linenr_T line1, linenr_T from, linenr_T to, linefound_T *found);
-    bool match_lines(regmmatch_T *rmp, bool do_all, buf_T *buf, string_T *lines, linenr_T line1, linenr_T n, linefound_T *found);
-    long vim_regexec_multi(regmmatch_T *rmp, win_T *win, buf_T *buf, linenr_T lnum, colnr_T col, int *timed_out);
+    [[nodiscard]] bool match_lines(regmmatch_T *rmp, bool do_all, buf_T *buf, string_T *lines, linenr_T line1, linenr_T n, linefound_T *found);
+    [[nodiscard]] long vim_regexec_multi(regmmatch_T *rmp, win_T *win, buf_T *buf, linenr_T lnum, colnr_T col, int *timed_out);
     void reset_y_append(void);
-    bool valid_yank_reg(int regname, bool writing);
+    [[nodiscard]] bool valid_yank_reg(int regname, bool writing);
     bool get_yank_register(int regname, int writing);
-    yankreg_T *get_register(int name, bool copy);
+    [[nodiscard]] yankreg_T *get_register(int name, bool copy);
     void put_register(int name, yankreg_T *reg);
-    bool do_record(int c);
-    bool stuff_yank(int regname, char_u *p);
-    execreg_line_continuation__out_T execreg_line_continuation(string_T *lines, long idx);
-    bool do_execreg(int regname, bool colon, bool addcr, bool silent);
+    [[nodiscard]] bool do_record(int c);
+    [[nodiscard]] bool stuff_yank(int regname, char_u *p);
+    [[nodiscard]] execreg_line_continuation__out_T execreg_line_continuation(string_T *lines, long idx);
+    [[nodiscard]] bool do_execreg(int regname, bool colon, bool addcr, bool silent);
     void put_reedit_in_typebuf(bool silent);
-    bool put_in_typebuf(char_u *s, bool esc, bool colon, bool silent);
-    bool insert_reg(int regname, int literally_arg);
-    get_spec_reg__out_T get_spec_reg(int regname, char_u **argp, bool errmsg);
-    bool cmdline_paste_reg(int regname, bool literally_arg, bool remcr);
+    [[nodiscard]] bool put_in_typebuf(char_u *s, bool esc, bool colon, bool silent);
+    [[nodiscard]] bool insert_reg(int regname, int literally_arg);
+    [[nodiscard]] get_spec_reg__out_T get_spec_reg(int regname, char_u **argp, bool errmsg);
+    [[nodiscard]] bool cmdline_paste_reg(int regname, bool literally_arg, bool remcr);
     void shift_delete_registers(void);
     void init_yank(void);
     void free_yank(long n);
     void free_yank_all(void);
     bool op_yank(oparg_T *oap, bool deleting, bool mess);
-    bool yank_copy_line(struct block_def *bd, long y_idx, int exclude_trailing_space);
+    [[nodiscard]] bool yank_copy_line(block_def &bd, long y_idx, int exclude_trailing_space);
     void do_put(int regname, char_u *expr_result, int dir, long count, int flags);
-    int get_register_name(int num);
+    [[nodiscard]] static int get_register_name(int num);
     void ex_display(exarg_T *eap);
     void dis_msg(char_u *p, bool skip_esc);
-    char_u get_reg_type(int regname, long *reglen);
-    int get_win_attr(win_T *wp);
-    int screen_fill_end(win_T *wp, int c1, int c2, int off, int width, int row, int endrow, int attr);
+    [[nodiscard]] char_u get_reg_type(int regname, long *reglen);
+    [[nodiscard]] int get_win_attr(win_T *wp);
+    [[nodiscard]] int screen_fill_end(win_T *wp, int c1, int c2, int off, int width, int row, int endrow, int attr);
     void win_draw_end(win_T *wp, int c1, int c2, bool draw_margin, int row, int endrow, hlf_T hl);
-    bool comp_char_differs(int off_from, int off_to);
-    bool char_needs_redraw(int off_from, int off_to, int cols);
+    [[nodiscard]] bool comp_char_differs(int off_from, int off_to);
+    [[nodiscard]] bool char_needs_redraw(int off_from, int off_to, int cols);
     void reset_screen_attr(void);
     void screen_line(win_T *wp, int row, int coloff, int endcol, int clear_width, colnr_T last_vcol, int flags);
     void draw_vsep_win(win_T *wp, int row);
     void screen_putchar(int c, int row, int col, int attr);
     void screen_getbytes(int row, int col, char_u *bytes, int *attrp);
-    bool screen_comp_differs(int off, int *u8cc);
+    [[nodiscard]] bool screen_comp_differs(int off, int *u8cc);
     void screen_puts(char_u *text, int row, int col, int attr);
     void screen_puts_len(char_u *text, int textlen, int row, int col, int attr_arg);
     void start_search_hl(void);
@@ -5307,7 +5403,7 @@ public:
     void screen_fill(int start_row, int end_row, int start_col, int end_col, int c1, int c2, int attr);
     void check_for_delay(bool check_msg_scroll);
     void clear_TabPageIdxs(void);
-    bool screen_valid(bool doclear);
+    [[nodiscard]] bool screen_valid(bool doclear);
     void screenalloc(bool doclear);
     void free_screenlines(void);
     bool screenclear(void);
@@ -5316,18 +5412,18 @@ public:
     void lineclear(unsigned off, int width, int attr);
     void lineinvalid(unsigned off, int width);
     void linecopy(int to, int from, win_T *wp);
-    bool can_clear(char_u *p);
+    [[nodiscard]] bool can_clear(char_u *p);
     void screen_start(void);
     void windgoto(int row, int col);
     void setcursor(void);
     void setcursor_mayforce(bool force);
     int win_ins_lines(win_T *wp, int row, int line_count, bool invalid, bool mayclear);
     int win_del_lines(win_T *wp, int row, int line_count, bool invalid, bool mayclear, int clear_attr);
-    int win_do_lines(win_T *wp, int row, int line_count, bool mayclear, bool del, int clear_attr);
+    [[nodiscard]] int win_do_lines(win_T *wp, int row, int line_count, bool mayclear, bool del, int clear_attr);
     void win_rest_invalid(win_T *wp);
-    bool screen_ins_lines(int off, int row, int line_count, int end, int clear_attr, win_T *wp);
+    [[nodiscard]] bool screen_ins_lines(int off, int row, int line_count, int end, int clear_attr, win_T *wp);
     bool screen_del_lines(int off, int row, int line_count, int end, bool force, int clear_attr, win_T *wp);
-    bool skip_showmode(void);
+    [[nodiscard]] bool skip_showmode(void);
     int showmode(void);
     void msg_pos_mode(void);
     void unshowmode(bool force);
@@ -5335,81 +5431,81 @@ public:
     void recording_mode(int attr);
     void draw_tabline(void);
     void get_trans_bufname(buf_T *buf);
-    fillchar_status__out_T fillchar_status(win_T *wp);
-    bool vsep_row_is_curwin(win_T *wp, int row);
-    fillchar_vsep__out_T fillchar_vsep(win_T *wp, int row);
-    bool typed_ahead(void);
-    bool redrawing(void);
-    bool messaging(void);
+    [[nodiscard]] fillchar_status__out_T fillchar_status(win_T *wp);
+    [[nodiscard]] bool vsep_row_is_curwin(win_T *wp, int row);
+    [[nodiscard]] fillchar_vsep__out_T fillchar_vsep(win_T *wp, int row);
+    [[nodiscard]] bool typed_ahead(void);
+    [[nodiscard]] bool redrawing(void);
+    [[nodiscard]] bool messaging(void);
     void comp_col(void);
-    int get_encoded_char_adv(char_u **p);
-    char *field_value_err(char *errbuf, usize errbuflen, char *fmt, char_u *field);
-    char *set_chars_option(win_T *wp, char_u *value, bool is_listchars, bool apply, char *errbuf, usize errbuflen);
+    [[nodiscard]] int get_encoded_char_adv(char_u **p);
+    [[nodiscard]] char *field_value_err(char *errbuf, usize errbuflen, char *fmt, char_u *field);
+    [[nodiscard]] char *set_chars_option(win_T *wp, char_u *value, bool is_listchars, bool apply, char *errbuf, usize errbuflen);
     char *set_fillchars_option(win_T *wp, char_u *val, bool apply, char *errbuf, usize errbuflen);
     char *set_listchars_option(win_T *wp, char_u *val, bool apply, char *errbuf, usize errbuflen);
-    char *check_chars_options(void);
+    [[nodiscard]] char *check_chars_options(void);
     void estack_init(void);
     estack_T *estack_push(etype_T type, char_u *name, long lnum);
     estack_T *estack_pop(void);
-    char_u *estack_sfile([[maybe_unused]] estack_arg_T which);
-    bool search_regcomp(char_u *pat, usize patlen, char_u **used_pat, int pat_save, int pat_use, int options, regmmatch_T *regmatch);
-    char_u *get_search_pat(void);
+    [[nodiscard]] char_u *estack_sfile([[maybe_unused]] estack_arg_T which);
+    bool search_regcomp(char_u *pat, usize patlen, char_u **used_pat, int pat_save, int pat_use, int options, regmmatch_T &regmatch);
+    [[nodiscard]] char_u *get_search_pat(void);
     void save_re_pat(int idx, char_u *pat, usize patlen, int magic);
     void save_last_search_pattern(void);
     void restore_last_search_pattern(void);
-    int ignorecase(char_u *pat);
-    int ignorecase_opt(char_u *pat, int ic_in, int scs);
-    bool pat_has_uppercase(char_u *pat);
+    [[nodiscard]] int ignorecase(char_u *pat);
+    [[nodiscard]] int ignorecase_opt(char_u *pat, int ic_in, int scs);
+    [[nodiscard]] bool pat_has_uppercase(char_u *pat);
     void set_csearch_direction(int cdir);
     void set_csearch_until(bool t_cmd);
-    char_u *last_search_pat(void);
-    void last_pat_prog(regmmatch_T *regmatch);
-    int searchit(win_T *win, buf_T *buf, pos_T *pos, pos_T *end_pos, int dir, char_u *pat, usize patlen, long count, int options, int pat_use, searchit_arg_T *extra_arg);
-    parse_search_pattern_offset__out_T parse_search_pattern_offset(char_u *pat, usize patlen, int search_delim, int options, char_u **strcopy, char_u *searchstr, usize searchstrlen, char_u *dircp, soffset_T *offset);
-    int do_search(oparg_T *oap, int dirc, int search_delim, char_u *pat, usize patlen, long count, int options, searchit_arg_T *sia);
-    bool searchc(cmdarg_T *cap, bool t_cmd);
-    pos_T *findmatch(oparg_T *oap, int initc);
-    bool check_prevcol(char_u *linep, int col, int ch, int *prevcol);
-    bool find_rawstring_end(char_u *linep, pos_T *startpos, pos_T *endpos);
-    find_mps_values__out_T find_mps_values(int initc, int findc, bool backwards, bool switchit);
-    pos_T *findmatchlimit(oparg_T *oap, int initc, int flags, int maxtravel);
+    [[nodiscard]] char_u *last_search_pat(void);
+    void last_pat_prog(regmmatch_T &regmatch);
+    [[nodiscard]] int searchit(win_T *win, buf_T *buf, pos_T &pos, pos_T *end_pos, int dir, char_u *pat, usize patlen, long count, int options, int pat_use, searchit_arg_T *extra_arg);
+    [[nodiscard]] parse_search_pattern_offset__out_T parse_search_pattern_offset(char_u *pat, usize patlen, int search_delim, int options, char_u **strcopy, char_u *searchstr, usize searchstrlen, char_u *dircp, soffset_T &offset);
+    [[nodiscard]] int do_search(oparg_T *oap, int dirc, int search_delim, char_u *pat, usize patlen, long count, int options, searchit_arg_T *sia);
+    [[nodiscard]] bool searchc(cmdarg_T *cap, bool t_cmd);
+    [[nodiscard]] pos_T *findmatch(oparg_T *oap, int initc);
+    [[nodiscard]] bool check_prevcol(char_u *linep, int col, int ch, int *prevcol);
+    [[nodiscard]] bool find_rawstring_end(char_u *linep, pos_T &startpos, pos_T *endpos);
+    [[nodiscard]] find_mps_values__out_T find_mps_values(int initc, int findc, bool backwards, bool switchit);
+    [[nodiscard]] pos_T *findmatchlimit(oparg_T *oap, int initc, int flags, int maxtravel);
     void showmatch(int c);
-    int is_zero_width(char_u *pattern, usize patternlen, bool move, pos_T *cur, int direction);
-    bool current_search(long count, bool forward);
-    void cmdline_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, bool show_top_bot_msg, char_u *msgbuf, usize msgbuflen, bool recompute, int maxcount, long timeout);
-    void update_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, searchstat_T *stat, bool recompute, int maxcount, [[maybe_unused]] long timeout);
-    char_u *vim_strsave(char_u *string);
-    char_u *vim_strnsave(char_u *string, usize len);
-    char_u *vim_strsave_escaped(char_u *string, char_u *esc_chars);
-    char_u *vim_strsave_escaped_ext(char_u *string, char_u *esc_chars, int cc, bool bsl);
-    char_u *vim_strnsave_up(char_u *string, usize len);
-    void vim_strup(char_u *p);
-    void del_trailing_spaces(char_u *ptr);
-    void vim_strncpy(char_u *to, char_u *from, usize len);
-    void vim_strcat(char_u *to, char_u *from, usize tosize);
-    int vim_strnicmp_asc(char *s1, char *s2, usize len);
-    char_u *vim_strchr(char_u *string, int c);
-    char_u *vim_strbyte(char_u *string, int c);
-    void sort_strings(char_u **files, int count);
-    char_u *concat_str(char_u *str1, char_u *str2);
+    [[nodiscard]] int is_zero_width(char_u *pattern, usize patternlen, bool move, pos_T &cur, int direction);
+    [[nodiscard]] bool current_search(long count, bool forward);
+    void cmdline_search_stat(int dirc, pos_T &pos, pos_T &cursor_pos, bool show_top_bot_msg, char_u *msgbuf, usize msgbuflen, bool recompute, int maxcount, long timeout);
+    void update_search_stat(int dirc, pos_T &pos, pos_T &cursor_pos, searchstat_T *stat, bool recompute, int maxcount, [[maybe_unused]] long timeout);
+    [[nodiscard]] char_u *vim_strsave(char_u *string);
+    [[nodiscard]] char_u *vim_strnsave(char_u *string, usize len);
+    [[nodiscard]] char_u *vim_strsave_escaped(char_u *string, char_u *esc_chars);
+    [[nodiscard]] char_u *vim_strsave_escaped_ext(char_u *string, char_u *esc_chars, int cc, bool bsl);
+    [[nodiscard]] char_u *vim_strnsave_up(char_u *string, usize len);
+    static void vim_strup(char_u *p);
+    static void del_trailing_spaces(char_u *ptr);
+    static void vim_strncpy(char_u *to, char_u *from, usize len);
+    static void vim_strcat(char_u *to, char_u *from, usize tosize);
+    [[nodiscard]] static int vim_strnicmp_asc(char *s1, char *s2, usize len);
+    [[nodiscard]] char_u *vim_strchr(char_u *string, int c);
+    [[nodiscard]] static char_u *vim_strbyte(char_u *string, int c);
+    static void sort_strings(char_u **files, int count);
+    [[nodiscard]] char_u *concat_str(char_u *str1, char_u *str2);
     void set_rgb_term_prop(void);
     void init_term_props(bool all);
-    tcap_entry_T *find_builtin_term(char_u *term);
+    [[nodiscard]] tcap_entry_T *find_builtin_term(char_u *term);
     void apply_builtin_tcap(char_u *term, tcap_entry_T *entries, bool overwrite);
     void apply_keyprotocol(char_u *term, keyprot_T prot);
     void parse_builtin_tcap(char_u *term);
     void set_color_count(int nr);
     void may_adjust_color_count(int val);
-    bool term_strings_not_set(int idx);
+    [[nodiscard]] bool term_strings_not_set(SpecialKey idx);
     void report_term_error(char *error_msg, char_u *term);
-    keyprot_T match_keyprotocol(char_u *term);
+    [[nodiscard]] keyprot_T match_keyprotocol(char_u *term);
     bool set_termname(char_u *term);
     bool add_termcap_entry(char_u *name, bool force);
-    bool term_is_builtin(char_u *name);
-    bool term_is_8bit(char_u *name);
-    int term_7to8bit(char_u *p);
-    char_u *tltoa(unsigned long i);
-    char *tgoto(char *cm, int x, int y);
+    [[nodiscard]] static bool term_is_builtin(char_u *name);
+    [[nodiscard]] bool term_is_8bit(char_u *name);
+    [[nodiscard]] static int term_7to8bit(char_u *p);
+    [[nodiscard]] char_u *tltoa(unsigned long i);
+    [[nodiscard]] char *tgoto(char *cm, int x, int y);
     void termcapinit(void);
     void out_flush(void);
     void out_flush_cursor([[maybe_unused]] bool force, [[maybe_unused]] bool clear_selection);
@@ -5428,7 +5524,7 @@ public:
     void term_fg_color(int n);
     void term_bg_color(int n);
     void term_ul_color(int n);
-    char_u *term_bg_default(void);
+    [[nodiscard]] char_u *term_bg_default(void);
     void ttest(bool pairs);
     void check_shellsize(void);
     void limit_screen_size(void);
@@ -5444,7 +5540,7 @@ public:
     void term_leave(void);
     void starttermcap(void);
     void stoptermcap(void);
-    bool swapping_screen(void);
+    [[nodiscard]] bool swapping_screen(void);
     void scroll_start(void);
     void cursor_on_force(void);
     void cursor_on(void);
@@ -5457,81 +5553,81 @@ public:
     void adjust_modlen(int idx);
     void add_termcode(char_u *name, char_u *string, int flags);
     void accept_modifiers_for_function_keys(void);
-    int termcode_star(char_u *code, int len);
-    char_u *find_termcode(char_u *name);
+    [[nodiscard]] static int termcode_star(char_u *code, int len);
+    [[nodiscard]] char_u *find_termcode(char_u *name);
     void del_termcode(char_u *name);
     void del_termcode_idx(int idx);
     void switch_to_8bit(void);
-    bool put_string_in_typebuf(int offset, int slen, char_u *string, int new_slen, char_u *buf, int bufsize, int *buflen);
-    int decode_modifiers(int n);
-    modifiers2keycode__out_T modifiers2keycode(int modifiers, int key, char_u *string);
+    [[nodiscard]] bool put_string_in_typebuf(int offset, int slen, char_u *string, int new_slen, char_u *buf, int bufsize, int *buflen);
+    [[nodiscard]] static int decode_modifiers(int n);
+    [[nodiscard]] modifiers2keycode__out_T modifiers2keycode(int modifiers, int key, char_u *string);
     void handle_u7_response(int *arg, [[maybe_unused]] char_u *tp, [[maybe_unused]] int csi_len);
     void handle_version_response(int first, int *arg, int argc, char_u *tp);
-    int add_key_to_buf(int key, char_u *buf);
+    [[nodiscard]] static int add_key_to_buf(int key, char_u *buf);
     int put_key_modifiers_in_typebuf(int key_arg, int modifiers_arg, int csi_len, int offset, char_u *buf, int bufsize, int *buflen);
-    int parse_csi_f_keys(int arg);
-    int handle_key_with_modifier(int *arg, int csi_len, int offset, char_u *buf, int bufsize, int *buflen, bool iskitty, int trail);
-    int handle_key_without_modifier(int *arg, int csi_len, int offset, char_u *buf, int bufsize, int *buflen, int trail);
-    int handle_csi_function_key(int argc, int *arg, int trail, int csi_len, char_u *key_name, int offset, char_u *buf, int bufsize, int *buflen);
-    handle_csi__out_T handle_csi(char_u *tp, int len, char_u *argp, int offset, char_u *buf, int bufsize, int *buflen, char_u *key_name, int slen);
+    [[nodiscard]] static int parse_csi_f_keys(int arg);
+    [[nodiscard]] int handle_key_with_modifier(int *arg, int csi_len, int offset, char_u *buf, int bufsize, int *buflen, bool iskitty, int trail);
+    [[nodiscard]] int handle_key_without_modifier(int *arg, int csi_len, int offset, char_u *buf, int bufsize, int *buflen, int trail);
+    [[nodiscard]] int handle_csi_function_key(int argc, int *arg, int trail, int csi_len, char_u *key_name, int offset, char_u *buf, int bufsize, int *buflen);
+    [[nodiscard]] handle_csi__out_T handle_csi(char_u *tp, int len, char_u *argp, int offset, char_u *buf, int bufsize, int *buflen, char_u *key_name, int slen);
     void check_for_color_response(char_u *resp, int len);
-    bool in_osc_sequence(void);
-    handle_osc__out_T handle_osc(char_u *tp, int len, char_u *key_name, int slen);
-    handle_dcs__out_T handle_dcs(char_u *tp, char_u *argp, int len, char_u *key_name, int slen);
-    int check_termcode(int max_offset, char_u *buf, int bufsize, int *buflen);
-    replace_termcodes__out_T replace_termcodes(char_u *from, [[maybe_unused]] scid_T sid_arg, int flags, int *did_simplify);
-    find_term_bykeys__out_T find_term_bykeys(char_u *src, int matchlen);
+    [[nodiscard]] bool in_osc_sequence(void);
+    [[nodiscard]] handle_osc__out_T handle_osc(char_u *tp, int len, char_u *key_name, int slen);
+    [[nodiscard]] static handle_dcs__out_T handle_dcs(char_u *tp, char_u *argp, int len, char_u *key_name, int slen);
+    [[nodiscard]] int check_termcode(int max_offset, char_u *buf, int bufsize, int *buflen);
+    [[nodiscard]] replace_termcodes__out_T replace_termcodes(char_u *from, [[maybe_unused]] scid_T sid_arg, int flags, int *did_simplify);
+    [[nodiscard]] find_term_bykeys__out_T find_term_bykeys(char_u *src, int matchlen);
     void gather_termleader(void);
     void show_termcodes(int flags);
     int show_one_termcode(char_u *name, char_u *code, bool printit);
     void term_disable_dec(void);
-    bool sync_output_active(void);
+    [[nodiscard]] bool sync_output_active(void);
     void term_set_sync_output(int flags);
     void internal_format(int textwidth, [[maybe_unused]] int second_indent, [[maybe_unused]] int flags, [[maybe_unused]] bool format_only, int c);
-    int comp_textwidth(void);
-    int cls(void);
+    [[nodiscard]] int comp_textwidth(void);
+    [[nodiscard]] int cls(void);
     bool fwd_word(long count, int bigword, int eol);
     bool bck_word(long count, int bigword, bool stop);
-    bool end_word(long count, int bigword, bool stop, bool empty);
-    bool bckend_word(long count, bool bigword, bool eol);
-    bool skip_chars(int cclass, int dir);
+    [[nodiscard]] bool end_word(long count, int bigword, bool stop, bool empty);
+    [[nodiscard]] bool bckend_word(long count, bool bigword, bool eol);
+    [[nodiscard]] bool skip_chars(int cclass, int dir);
     void back_in_line(void);
-    bool current_word(oparg_T *oap, long count, bool include, bool bigword);
-    bool current_block(oparg_T *oap, long count, bool include, int what, int other);
-    int find_next_quote(char_u *line, int col, int quotechar, char_u *escape);
-    int find_prev_quote(char_u *line, int col_start, int quotechar, char_u *escape);
-    bool current_quote(oparg_T *oap, long count, bool include, int quotechar);
+    [[nodiscard]] bool current_word(oparg_T *oap, long count, bool include, bool bigword);
+    [[nodiscard]] bool current_block(oparg_T *oap, long count, bool include, int what, int other);
+    [[nodiscard]] int find_next_quote(char_u *line, int col, int quotechar, char_u *escape);
+    [[nodiscard]] int find_prev_quote(char_u *line, int col_start, int quotechar, char_u *escape);
+    [[nodiscard]] bool current_quote(oparg_T *oap, long count, bool include, int quotechar);
     void add_time(char_u *buf, usize buflen, time_T tt);
     void ui_write(char_u *s, int len);
-    int ui_inchar(char_u *buf, int maxlen, long wtime, int tb_change_cnt);
-    int inchar_loop(char_u *buf, int maxlen, long wtime, int tb_change_cnt, int (Editor::*wait_func)([[maybe_unused]] long wtime, [[maybe_unused]] int *interrupted, [[maybe_unused]] int ignore_input), int (Editor::*resize_func)([[maybe_unused]] int check_only));
+    [[nodiscard]] int ui_inchar(char_u *buf, int maxlen, long wtime, int tb_change_cnt);
+    [[nodiscard]] int inchar_loop(char_u *buf, int maxlen, long wtime, int tb_change_cnt, int (Editor::*wait_func)([[maybe_unused]] long wtime, [[maybe_unused]] int *interrupted, [[maybe_unused]] int ignore_input), int (Editor::*resize_func)([[maybe_unused]] int check_only));
     void ui_delay(long msec_arg, bool ignoreinput);
     void ui_suspend(void);
     bool ui_get_shellsize(void);
     void ui_set_shellsize([[maybe_unused]] int mustset);
-    void ui_new_shellsize(void);
+    static void ui_new_shellsize(void);
     void ui_breakcheck(void);
     void ui_breakcheck_force(bool force);
-    bool vim_is_input_buf_full(void);
-    bool vim_is_input_buf_empty(void);
-    garray_T *get_input_buf(void);
+    [[nodiscard]] bool vim_is_input_buf_full(void);
+    [[nodiscard]] bool vim_is_input_buf_empty(void);
+    [[nodiscard]] garray_T *get_input_buf(void);
     void set_input_buf(garray_T *gap, bool overwrite);
     void trash_input_buf(void);
-    int read_from_input_buf(char_u *buf, long maxlen);
+    [[nodiscard]] int read_from_input_buf(char_u *buf, long maxlen);
     void fill_input_buf(bool exit_on_error);
     void read_error_exit(void);
-    int check_col(int col);
-    int check_row(int row);
+    [[nodiscard]] int check_col(int col);
+    [[nodiscard]] int check_row(int row);
     void ui_focus_change(bool in_focus);
     bool u_save_cursor(void);
-    bool u_save(linenr_T top, linenr_T bot);
-    bool u_savesub(linenr_T lnum);
-    bool u_inssub(linenr_T lnum);
-    bool u_savedel(linenr_T lnum, long nlines);
-    bool undo_allowed(void);
-    long get_undolevel(void);
-    bool u_save_line(undoline_T *ul, linenr_T lnum);
-    bool u_savecommon(linenr_T top, linenr_T bot, linenr_T newbot, bool reload);
+    [[nodiscard]] bool u_save(linenr_T top, linenr_T bot);
+    [[nodiscard]] bool u_savesub(linenr_T lnum);
+    [[nodiscard]] bool u_inssub(linenr_T lnum);
+    [[nodiscard]] bool u_savedel(linenr_T lnum, long nlines);
+    [[nodiscard]] bool undo_allowed(void);
+    [[nodiscard]] long get_undolevel(void);
+    [[nodiscard]] bool u_save_line(undoline_T &ul, linenr_T lnum);
+    [[nodiscard]] bool u_savecommon(linenr_T top, linenr_T bot, linenr_T newbot, bool reload);
     void u_undo(int count);
     void u_redo(int count);
     void u_doit(int startcount);
@@ -5541,42 +5637,42 @@ public:
     void u_sync(bool force);
     void ex_undolist([[maybe_unused]] exarg_T *eap);
     void ex_undojoin([[maybe_unused]] exarg_T *eap);
-    u_entry_T *u_get_headentry(void);
+    [[nodiscard]] u_entry_T *u_get_headentry(void);
     void u_getbot(void);
-    void u_freeheader(buf_T *buf, u_header_T *uhp, u_header_T **uhpp);
-    void u_freebranch(buf_T *buf, u_header_T *uhp, u_header_T **uhpp);
-    void u_freeentries(buf_T *buf, u_header_T *uhp, u_header_T **uhpp);
-    void u_freeentry([[maybe_unused]] u_entry_T *uep, long n);
-    void u_clearall(buf_T *buf);
-    void u_blockfree(buf_T *buf);
-    void u_clearallandblockfree(buf_T *buf);
+    static void u_freeheader(buf_T *buf, u_header_T *uhp, u_header_T **uhpp);
+    static void u_freebranch(buf_T *buf, u_header_T *uhp, u_header_T **uhpp);
+    static void u_freeentries(buf_T *buf, u_header_T *uhp, u_header_T **uhpp);
+    static void u_freeentry([[maybe_unused]] u_entry_T *uep, long n);
+    static void u_clearall(buf_T *buf);
+    static void u_blockfree(buf_T *buf);
+    static void u_clearallandblockfree(buf_T *buf);
     void u_saveline(linenr_T lnum);
     void u_clearline(void);
     void u_undoline(void);
-    int bufIsChanged(buf_T *buf);
-    int anyBufIsChanged(void);
-    int bufIsChangedNotTerm(buf_T *buf);
-    int curbufIsChanged(void);
-    char *uc_fun_cmd(void);
+    [[nodiscard]] static int bufIsChanged(buf_T *buf);
+    [[nodiscard]] int anyBufIsChanged(void);
+    [[nodiscard]] static int bufIsChangedNotTerm(buf_T *buf);
+    [[nodiscard]] int curbufIsChanged(void);
+    [[nodiscard]] char *uc_fun_cmd(void);
     void init_longVersion(void);
-    int win_valid(win_T *win);
-    bool win_valid_any_tab(win_T *win);
+    [[nodiscard]] int win_valid(win_T *win);
+    [[nodiscard]] bool win_valid_any_tab(win_T *win);
     void win_init_empty(win_T *wp);
     void curwin_init(void);
     void snapshot_windows_scroll_size(void);
     void may_make_initial_scroll_size_snapshot(void);
     void frame_new_height(frame_T *topfrp, int height, [[maybe_unused]] bool topfirst, [[maybe_unused]] bool wfh, bool set_ch);
     void frame_new_width(frame_T *topfrp, int width, [[maybe_unused]] bool leftfirst, [[maybe_unused]] bool wfw);
-    int frame_minheight(frame_T *topfrp, win_T *next_curwin);
+    [[nodiscard]] int frame_minheight(frame_T *topfrp, win_T *next_curwin);
     void unuse_tabpage(tabpage_T *tp);
-    bool win_alloc_first(void);
-    bool win_alloc_firstwin([[maybe_unused]] win_T *oldwin);
+    [[nodiscard]] bool win_alloc_first(void);
+    [[nodiscard]] bool win_alloc_firstwin([[maybe_unused]] win_T *oldwin);
     void new_frame(win_T *wp);
     void win_init_size(void);
-    tabpage_T *alloc_tabpage(void);
-    win_T *win_alloc([[maybe_unused]] win_T *after, [[maybe_unused]] bool hidden);
-    bool win_alloc_lines(win_T *wp);
-    void win_free_lsize(win_T *wp);
+    [[nodiscard]] tabpage_T *alloc_tabpage(void);
+    [[nodiscard]] win_T *win_alloc([[maybe_unused]] win_T *after, [[maybe_unused]] bool hidden);
+    [[nodiscard]] bool win_alloc_lines(win_T *wp);
+    static void win_free_lsize(win_T *wp);
     void shell_new_rows(void);
     void shell_new_columns(void);
     void win_comp_pos(void);
@@ -5587,39 +5683,38 @@ public:
     void frame_setheight(frame_T *curfrp, int height);
     void win_setwidth(int width);
     void win_setwidth_win(int width, win_T *wp);
-    void frame_setwidth(frame_T *curfrp, int width);
-    void set_fraction(win_T *wp);
+    static void frame_setwidth(frame_T *curfrp, int width);
+    static void set_fraction(win_T *wp);
     void win_fix_scroll(int resize);
     void win_fix_cursor(bool normal);
     void win_new_height(win_T *wp, int height);
     void scroll_to_fraction(win_T *wp, int prev_height);
     void win_new_width(win_T *wp, int width);
-    void win_comp_scroll(win_T *wp);
+    static void win_comp_scroll(win_T *wp);
     void command_height(void);
     void frame_add_height(frame_T *frp, int n);
     void last_status(bool morewin);
     void last_status_rec(frame_T *fr, bool statusline);
-    int statusline_height([[maybe_unused]] win_T *wp);
-    int last_stl_height(bool morewin);
-    int min_rows(void);
-    int min_rows_for_all_tabpages(void);
-    bool frame_check_height(frame_T *topfrp, int height);
-    bool frame_check_width(frame_T *topfrp, int width);
-    int vim_main2(void);
+    [[nodiscard]] static int statusline_height([[maybe_unused]] win_T *wp);
+    [[nodiscard]] int last_stl_height(bool morewin);
+    [[nodiscard]] int min_rows(void);
+    [[nodiscard]] int min_rows_for_all_tabpages(void);
+    [[nodiscard]] static bool frame_check_height(frame_T *topfrp, int height);
+    [[nodiscard]] static bool frame_check_width(frame_T *topfrp, int width);
+    [[nodiscard]] int vim_main2(void);
     void common_init_1(void);
-    void common_init_2([[maybe_unused]] mparm_T *paramp);
-    bool op_pending(void);
-    bool is_safe_now(void);
-    void may_trigger_safestate([[maybe_unused]] bool safe);
-    bool work_pending(void);
+    void common_init_2([[maybe_unused]] mparm_T &paramp);
+    [[nodiscard]] bool op_pending(void);
+    [[nodiscard]] bool is_safe_now(void);
+    static void may_trigger_safestate([[maybe_unused]] bool safe);
+    [[nodiscard]] bool work_pending(void);
     void may_trigger_deferred_events(void);
     void main_loop(bool cmdwin);
     void getout(int exitval);
-    void command_line_scan(mparm_T *parmp);
-    void create_windows([[maybe_unused]] mparm_T *parmp);
-    void exe_commands(mparm_T *parmp);
+    void command_line_scan(mparm_T &parmp);
+    void create_windows([[maybe_unused]] mparm_T &parmp);
+    void exe_commands(mparm_T &parmp);
     void mainerr(int n, char_u *str);
-    int vim_main(int argc, char **argv);
 
     // the objects
     char_u complit__1[1] = {NUL};
@@ -5627,7 +5722,7 @@ public:
     char_u complit__3[1] = {NUL};
     char_u complit__4[1] = {NUL};
     char_u complit__5[1] = {NUL};
-    char_u *term_strings[(int)KS_ESU + 1];
+    char_u *term_strings[static_cast<int>(KS_ESU) + 1];
     char_u *p_ambw;
     int p_ai;
     int p_ci;
@@ -5705,7 +5800,7 @@ public:
     int p_sta;
     long p_sts;
     int p_sol;
-    char_u *p_spk = (char_u *)"cursor";
+    char_u *p_spk = "cursor"_uc;
     long p_ts;
     int p_tsy;
     int p_terse;
@@ -5829,8 +5924,8 @@ public:
     int cterm_normal_fg_bold = 0;
     int cterm_normal_bg_color = 0;
     int cterm_normal_ul_color = 0;
-    long fallback_fg_rgb = ((long)0x1ffffff);
-    long fallback_bg_rgb = ((long)0x1ffffff);
+    long fallback_fg_rgb = (static_cast<long>(0x1ffffff));
+    long fallback_bg_rgb = (static_cast<long>(0x1ffffff));
     int mouse_dragging = 0;
     int updating_screen = FALSE;
     bool redraw_not_allowed = FALSE;
@@ -5958,7 +6053,7 @@ public:
         0,
     };
     int replace_offset = 0;
-    char_u *empty_option = (char_u *)"";
+    char_u *empty_option = ""_uc;
     char *longVersion = nullptr;
     bool km_stopsel = FALSE;
     bool km_startsel = FALSE;
@@ -6159,8 +6254,8 @@ public:
     char e_leadtab_requires_tab[66] = "E1572: 'listchars' field \"leadtab\" requires \"tab\" to be specified";
     int buf_free_count = 0;
     int top_file_num = 1;
-    static inline const char VIM_VERSION_DATE_ONLY[12] = "2026 Feb 14";
-    static inline const char VIM_VERSION_LONG_ONLY[22] =
+    static constexpr const char VIM_VERSION_DATE_ONLY[12] = "2026 Feb 14";
+    static constexpr const char VIM_VERSION_LONG_ONLY[22] =
     {
         'V',
         'I',
@@ -6220,10 +6315,10 @@ public:
     int hislen = 0;
     char *history_names[5] =
     {
-        (char *)"cmd",
-        (char *)"search",
-        (char *)"expr",
-        (char *)"input",
+        "cmd"_c,
+        "search"_c,
+        "expr"_c,
+        "input"_c,
         nullptr,
     };
     int last_maptick = -1;
@@ -6251,106 +6346,106 @@ public:
     char_u *old_sub = nullptr;
     bool global_need_beginline;
     int quitmore = 0;
-    struct cmdname cmdnames[98] =
+    cmdname cmdnames[98] =
     {
-        {(char_u *)"append", 1, &Editor::ex_append, (long_u)(EX_BANG | EX_RANGE | EX_ZEROR | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"ascii", 2, &Editor::do_ascii, (long_u)(EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"change", 1, &Editor::ex_change, (long_u)(EX_BANG | EX_WHOLEFOLD | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"changes", 7, &Editor::ex_changes, (long_u)(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"cmap", 2, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"cmapclear", 5, &Editor::ex_mapclear, (long_u)(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"cnoremap", 3, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"copy", 2, &Editor::ex_copymove, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"cquit", 2, &Editor::ex_cquit, (long_u)(EX_RANGE | EX_COUNT | EX_ZEROR | EX_TRLBAR | EX_BANG), ADDR_UNSIGNED},
-        {(char_u *)"cunmap", 2, &Editor::ex_unmap, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"delete", 1, &Editor::ex_operators, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"delmarks", 4, &Editor::ex_delmarks, (long_u)(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"display", 2, &Editor::ex_display, (long_u)(EX_EXTRA | EX_NOTRLCOM | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"earlier", 2, &Editor::ex_later, (long_u)(EX_TRLBAR | EX_EXTRA | EX_NOSPC | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"filter", 4, &Editor::ex_wrongmodifier, (long_u)(EX_BANG | EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
-        {(char_u *)"fixdel", 3, &Editor::do_fixdel, (long_u)(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"global", 1, &Editor::ex_global, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_DFLALL | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"highlight", 2, &Editor::ex_highlight, (long_u)(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"history", 3, &Editor::ex_history, (long_u)(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"insert", 1, &Editor::ex_append, (long_u)(EX_BANG | EX_RANGE | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"imap", 2, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"imapclear", 5, &Editor::ex_mapclear, (long_u)(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"inoremap", 3, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"iput", 2, &Editor::ex_iput, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_REGSTR | EX_TRLBAR | EX_ZEROR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"iunmap", 2, &Editor::ex_unmap, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"join", 1, &Editor::ex_join, (long_u)(EX_BANG | EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"k", 1, &Editor::ex_mark, (long_u)(EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"keepmarks", 2, &Editor::ex_wrongmodifier, (long_u)(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
-        {(char_u *)"keepjumps", 5, &Editor::ex_wrongmodifier, (long_u)(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
-        {(char_u *)"keeppatterns", 5, &Editor::ex_wrongmodifier, (long_u)(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
-        {(char_u *)"list", 1, &Editor::ex_print, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
-        {(char_u *)"later", 3, &Editor::ex_later, (long_u)(EX_TRLBAR | EX_EXTRA | EX_NOSPC | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"lockmarks", 3, &Editor::ex_wrongmodifier, (long_u)(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
-        {(char_u *)"move", 1, &Editor::ex_copymove, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"mark", 2, &Editor::ex_mark, (long_u)(EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
-        {(char_u *)"map", 3, &Editor::ex_map, (long_u)(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"mapclear", 4, &Editor::ex_mapclear, (long_u)(EX_EXTRA | EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"marks", 5, &Editor::ex_marks, (long_u)(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"match", 3, &Editor::ex_match, (long_u)(EX_RANGE | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK), ADDR_OTHER},
-        {(char_u *)"messages", 3, &Editor::ex_messages, (long_u)(EX_EXTRA | EX_TRLBAR | EX_RANGE | EX_CMDWIN | EX_LOCK_OK), ADDR_OTHER},
-        {(char_u *)"nmap", 2, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"nmapclear", 5, &Editor::ex_mapclear, (long_u)(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"nnoremap", 2, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"noremap", 2, &Editor::ex_map, (long_u)(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"nohlsearch", 3, &Editor::ex_nohlsearch, (long_u)(EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"normal", 4, &Editor::ex_normal, (long_u)(EX_RANGE | EX_BANG | EX_EXTRA | EX_NEEDARG | EX_NOTRLCOM | EX_CTRLV | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
-        {(char_u *)"number", 2, &Editor::ex_print, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
-        {(char_u *)"nunmap", 3, &Editor::ex_unmap, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"omap", 2, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"omapclear", 5, &Editor::ex_mapclear, (long_u)(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"onoremap", 3, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"ounmap", 2, &Editor::ex_unmap, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"print", 1, &Editor::ex_print, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK), ADDR_LINES},
-        {(char_u *)"put", 2, &Editor::ex_put, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_REGSTR | EX_TRLBAR | EX_ZEROR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"quit", 1, &Editor::ex_quit, (long_u)(EX_BANG | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_WINDOWS},
-        {(char_u *)"redo", 3, &Editor::ex_redo, (long_u)(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"redraw", 4, &Editor::ex_redraw, (long_u)(EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"redrawstatus", 7, &Editor::ex_redrawstatus, (long_u)(EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"registers", 3, &Editor::ex_display, (long_u)(EX_EXTRA | EX_NOTRLCOM | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"substitute", 1, &Editor::ex_substitute, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"set", 2, &Editor::ex_set, (long_u)(EX_BANG | EX_TRLBAR | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK), ADDR_NONE},
-        {(char_u *)"silent", 3, &Editor::ex_wrongmodifier, (long_u)(EX_NEEDARG | EX_EXTRA | EX_BANG | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"smagic", 2, &Editor::ex_submagic, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"smap", 4, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"smapclear", 5, &Editor::ex_mapclear, (long_u)(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"snomagic", 3, &Editor::ex_submagic, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"snoremap", 4, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"stop", 2, &Editor::ex_stop, (long_u)(EX_TRLBAR | EX_BANG | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"sunmap", 4, &Editor::ex_unmap, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"suspend", 3, &Editor::ex_stop, (long_u)(EX_TRLBAR | EX_BANG | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"t", 1, &Editor::ex_copymove, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"undo", 1, &Editor::ex_undo, (long_u)(EX_RANGE | EX_COUNT | EX_ZEROR | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_OTHER},
-        {(char_u *)"undojoin", 5, &Editor::ex_undojoin, (long_u)(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"undolist", 5, &Editor::ex_undolist, (long_u)(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"unmap", 3, &Editor::ex_unmap, (long_u)(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"unsilent", 3, &Editor::ex_wrongmodifier, (long_u)(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"vglobal", 1, &Editor::ex_global, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_DFLALL | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"verbose", 4, &Editor::ex_wrongmodifier, (long_u)(EX_NEEDARG | EX_RANGE | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_OTHER},
-        {(char_u *)"vmap", 2, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"vmapclear", 5, &Editor::ex_mapclear, (long_u)(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"vnoremap", 2, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"vunmap", 2, &Editor::ex_unmap, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"winsize", 2, &Editor::ex_winsize, (long_u)(EX_EXTRA | EX_NEEDARG | EX_TRLBAR), ADDR_NONE},
-        {(char_u *)"xmap", 2, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"xmapclear", 5, &Editor::ex_mapclear, (long_u)(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"xnoremap", 2, &Editor::ex_map, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"xunmap", 2, &Editor::ex_unmap, (long_u)(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
-        {(char_u *)"yank", 1, &Editor::ex_operators, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
-        {(char_u *)"z", 1, &Editor::ex_z, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
-        {(char_u *)"#", 1, &Editor::ex_print, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
-        {(char_u *)"&", 1, &Editor::ex_substitute, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"*", 1, &Editor::ex_at, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"<", 1, &Editor::ex_operators, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"=", 1, &Editor::ex_equal, (long_u)(EX_RANGE | EX_TRLBAR | EX_DFLALL | EX_FLAGS | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
-        {(char_u *)">", 1, &Editor::ex_operators, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
-        {(char_u *)"@", 1, &Editor::ex_at, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"~", 1, &Editor::ex_substitute, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK), ADDR_LINES},
-        {(char_u *)"Print", 1, &Editor::ex_print, (long_u)(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
+        {"append"_uc, 1, &Editor::ex_append, static_cast<long_u>(EX_BANG | EX_RANGE | EX_ZEROR | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"ascii"_uc, 2, &Editor::do_ascii, static_cast<long_u>(EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"change"_uc, 1, &Editor::ex_change, static_cast<long_u>(EX_BANG | EX_WHOLEFOLD | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"changes"_uc, 7, &Editor::ex_changes, static_cast<long_u>(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"cmap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"cmapclear"_uc, 5, &Editor::ex_mapclear, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"cnoremap"_uc, 3, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"copy"_uc, 2, &Editor::ex_copymove, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"cquit"_uc, 2, &Editor::ex_cquit, static_cast<long_u>(EX_RANGE | EX_COUNT | EX_ZEROR | EX_TRLBAR | EX_BANG), ADDR_UNSIGNED},
+        {"cunmap"_uc, 2, &Editor::ex_unmap, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"delete"_uc, 1, &Editor::ex_operators, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"delmarks"_uc, 4, &Editor::ex_delmarks, static_cast<long_u>(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"display"_uc, 2, &Editor::ex_display, static_cast<long_u>(EX_EXTRA | EX_NOTRLCOM | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"earlier"_uc, 2, &Editor::ex_later, static_cast<long_u>(EX_TRLBAR | EX_EXTRA | EX_NOSPC | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"filter"_uc, 4, &Editor::ex_wrongmodifier, static_cast<long_u>(EX_BANG | EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
+        {"fixdel"_uc, 3, &Editor::do_fixdel, static_cast<long_u>(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"global"_uc, 1, &Editor::ex_global, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_DFLALL | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
+        {"highlight"_uc, 2, &Editor::ex_highlight, static_cast<long_u>(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"history"_uc, 3, &Editor::ex_history, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"insert"_uc, 1, &Editor::ex_append, static_cast<long_u>(EX_BANG | EX_RANGE | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"imap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"imapclear"_uc, 5, &Editor::ex_mapclear, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"inoremap"_uc, 3, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"iput"_uc, 2, &Editor::ex_iput, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_REGSTR | EX_TRLBAR | EX_ZEROR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"iunmap"_uc, 2, &Editor::ex_unmap, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"join"_uc, 1, &Editor::ex_join, static_cast<long_u>(EX_BANG | EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"k"_uc, 1, &Editor::ex_mark, static_cast<long_u>(EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
+        {"keepmarks"_uc, 2, &Editor::ex_wrongmodifier, static_cast<long_u>(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
+        {"keepjumps"_uc, 5, &Editor::ex_wrongmodifier, static_cast<long_u>(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
+        {"keeppatterns"_uc, 5, &Editor::ex_wrongmodifier, static_cast<long_u>(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
+        {"list"_uc, 1, &Editor::ex_print, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
+        {"later"_uc, 3, &Editor::ex_later, static_cast<long_u>(EX_TRLBAR | EX_EXTRA | EX_NOSPC | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"lockmarks"_uc, 3, &Editor::ex_wrongmodifier, static_cast<long_u>(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM), ADDR_NONE},
+        {"move"_uc, 1, &Editor::ex_copymove, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"mark"_uc, 2, &Editor::ex_mark, static_cast<long_u>(EX_RANGE | (EX_EXTRA | EX_NOSPC) | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
+        {"map"_uc, 3, &Editor::ex_map, static_cast<long_u>(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"mapclear"_uc, 4, &Editor::ex_mapclear, static_cast<long_u>(EX_EXTRA | EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"marks"_uc, 5, &Editor::ex_marks, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"match"_uc, 3, &Editor::ex_match, static_cast<long_u>(EX_RANGE | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK), ADDR_OTHER},
+        {"messages"_uc, 3, &Editor::ex_messages, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_RANGE | EX_CMDWIN | EX_LOCK_OK), ADDR_OTHER},
+        {"nmap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"nmapclear"_uc, 5, &Editor::ex_mapclear, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"nnoremap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"noremap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"nohlsearch"_uc, 3, &Editor::ex_nohlsearch, static_cast<long_u>(EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"normal"_uc, 4, &Editor::ex_normal, static_cast<long_u>(EX_RANGE | EX_BANG | EX_EXTRA | EX_NEEDARG | EX_NOTRLCOM | EX_CTRLV | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
+        {"number"_uc, 2, &Editor::ex_print, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
+        {"nunmap"_uc, 3, &Editor::ex_unmap, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"omap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"omapclear"_uc, 5, &Editor::ex_mapclear, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"onoremap"_uc, 3, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"ounmap"_uc, 2, &Editor::ex_unmap, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"print"_uc, 1, &Editor::ex_print, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK), ADDR_LINES},
+        {"put"_uc, 2, &Editor::ex_put, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_REGSTR | EX_TRLBAR | EX_ZEROR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"quit"_uc, 1, &Editor::ex_quit, static_cast<long_u>(EX_BANG | EX_RANGE | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_WINDOWS},
+        {"redo"_uc, 3, &Editor::ex_redo, static_cast<long_u>(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"redraw"_uc, 4, &Editor::ex_redraw, static_cast<long_u>(EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"redrawstatus"_uc, 7, &Editor::ex_redrawstatus, static_cast<long_u>(EX_BANG | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"registers"_uc, 3, &Editor::ex_display, static_cast<long_u>(EX_EXTRA | EX_NOTRLCOM | EX_TRLBAR | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"substitute"_uc, 1, &Editor::ex_substitute, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
+        {"set"_uc, 2, &Editor::ex_set, static_cast<long_u>(EX_BANG | EX_TRLBAR | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_SBOXOK), ADDR_NONE},
+        {"silent"_uc, 3, &Editor::ex_wrongmodifier, static_cast<long_u>(EX_NEEDARG | EX_EXTRA | EX_BANG | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"smagic"_uc, 2, &Editor::ex_submagic, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
+        {"smap"_uc, 4, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"smapclear"_uc, 5, &Editor::ex_mapclear, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"snomagic"_uc, 3, &Editor::ex_submagic, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
+        {"snoremap"_uc, 4, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"stop"_uc, 2, &Editor::ex_stop, static_cast<long_u>(EX_TRLBAR | EX_BANG | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"sunmap"_uc, 4, &Editor::ex_unmap, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"suspend"_uc, 3, &Editor::ex_stop, static_cast<long_u>(EX_TRLBAR | EX_BANG | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"t"_uc, 1, &Editor::ex_copymove, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"undo"_uc, 1, &Editor::ex_undo, static_cast<long_u>(EX_RANGE | EX_COUNT | EX_ZEROR | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_OTHER},
+        {"undojoin"_uc, 5, &Editor::ex_undojoin, static_cast<long_u>(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"undolist"_uc, 5, &Editor::ex_undolist, static_cast<long_u>(EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"unmap"_uc, 3, &Editor::ex_unmap, static_cast<long_u>(EX_BANG | EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"unsilent"_uc, 3, &Editor::ex_wrongmodifier, static_cast<long_u>(EX_NEEDARG | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"vglobal"_uc, 1, &Editor::ex_global, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_DFLALL | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
+        {"verbose"_uc, 4, &Editor::ex_wrongmodifier, static_cast<long_u>(EX_NEEDARG | EX_RANGE | EX_EXTRA | EX_NOTRLCOM | EX_SBOXOK | EX_CMDWIN | EX_LOCK_OK), ADDR_OTHER},
+        {"vmap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"vmapclear"_uc, 5, &Editor::ex_mapclear, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"vnoremap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"vunmap"_uc, 2, &Editor::ex_unmap, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"winsize"_uc, 2, &Editor::ex_winsize, static_cast<long_u>(EX_EXTRA | EX_NEEDARG | EX_TRLBAR), ADDR_NONE},
+        {"xmap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"xmapclear"_uc, 5, &Editor::ex_mapclear, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"xnoremap"_uc, 2, &Editor::ex_map, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"xunmap"_uc, 2, &Editor::ex_unmap, static_cast<long_u>(EX_EXTRA | EX_TRLBAR | EX_NOTRLCOM | EX_CTRLV | EX_CMDWIN | EX_LOCK_OK), ADDR_NONE},
+        {"yank"_uc, 1, &Editor::ex_operators, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_REGSTR | EX_COUNT | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
+        {"z"_uc, 1, &Editor::ex_z, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_BANG | EX_EXTRA | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
+        {"#"_uc, 1, &Editor::ex_print, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
+        {"&"_uc, 1, &Editor::ex_substitute, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK), ADDR_LINES},
+        {"*"_uc, 1, &Editor::ex_at, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
+        {"<"_uc, 1, &Editor::ex_operators, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"="_uc, 1, &Editor::ex_equal, static_cast<long_u>(EX_RANGE | EX_TRLBAR | EX_DFLALL | EX_FLAGS | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
+        {">"_uc, 1, &Editor::ex_operators, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY), ADDR_LINES},
+        {"@"_uc, 1, &Editor::ex_at, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK | EX_NONWHITE_OK), ADDR_LINES},
+        {"~"_uc, 1, &Editor::ex_substitute, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_EXTRA | EX_CMDWIN | EX_LOCK_OK | EX_MODIFY | EX_NONWHITE_OK), ADDR_LINES},
+        {"Print"_uc, 1, &Editor::ex_print, static_cast<long_u>(EX_RANGE | EX_WHOLEFOLD | EX_COUNT | EX_FLAGS | EX_TRLBAR | EX_CMDWIN | EX_LOCK_OK), ADDR_LINES},
     };
     char_u dollar_command[2] =
     {
@@ -6414,19 +6509,19 @@ public:
     bool old_KeyStuffed;
     keyvalue_T highlight_tab[13] =
     {
-        {(HL_BOLD), {((char_u *)"bold"), (sizeof("bold") - 1)}},
-        {(HL_INVERSE), {((char_u *)"inverse"), (sizeof("inverse") - 1)}},
-        {(HL_ITALIC), {((char_u *)"italic"), (sizeof("italic") - 1)}},
-        {(HL_NOCOMBINE), {((char_u *)"nocombine"), (sizeof("nocombine") - 1)}},
-        {(HL_NORMAL), {((char_u *)"NONE"), (sizeof("NONE") - 1)}},
-        {(HL_INVERSE), {((char_u *)"reverse"), (sizeof("reverse") - 1)}},
-        {(HL_STANDOUT), {((char_u *)"standout"), (sizeof("standout") - 1)}},
-        {(HL_STRIKETHROUGH), {((char_u *)"strikethrough"), (sizeof("strikethrough") - 1)}},
-        {(HL_UNDERCURL), {((char_u *)"undercurl"), (sizeof("undercurl") - 1)}},
-        {(HL_UNDERDASHED), {((char_u *)"underdashed"), (sizeof("underdashed") - 1)}},
-        {(HL_UNDERDOTTED), {((char_u *)"underdotted"), (sizeof("underdotted") - 1)}},
-        {(HL_UNDERDOUBLE), {((char_u *)"underdouble"), (sizeof("underdouble") - 1)}},
-        {(HL_UNDERLINE), {((char_u *)"underline"), (sizeof("underline") - 1)}},
+        {(HL_BOLD), {("bold"_uc), (sizeof("bold") - 1)}},
+        {(HL_INVERSE), {("inverse"_uc), (sizeof("inverse") - 1)}},
+        {(HL_ITALIC), {("italic"_uc), (sizeof("italic") - 1)}},
+        {(HL_NOCOMBINE), {("nocombine"_uc), (sizeof("nocombine") - 1)}},
+        {(HL_NORMAL), {("NONE"_uc), (sizeof("NONE") - 1)}},
+        {(HL_INVERSE), {("reverse"_uc), (sizeof("reverse") - 1)}},
+        {(HL_STANDOUT), {("standout"_uc), (sizeof("standout") - 1)}},
+        {(HL_STRIKETHROUGH), {("strikethrough"_uc), (sizeof("strikethrough") - 1)}},
+        {(HL_UNDERCURL), {("undercurl"_uc), (sizeof("undercurl") - 1)}},
+        {(HL_UNDERDASHED), {("underdashed"_uc), (sizeof("underdashed") - 1)}},
+        {(HL_UNDERDOTTED), {("underdotted"_uc), (sizeof("underdotted") - 1)}},
+        {(HL_UNDERDOUBLE), {("underdouble"_uc), (sizeof("underdouble") - 1)}},
+        {(HL_UNDERLINE), {("underline"_uc), (sizeof("underline") - 1)}},
     };
     keyvalue_T *highlight_index_tab[13] =
     {
@@ -6446,34 +6541,34 @@ public:
     };
     keyvalue_T color_name_tab[28] =
     {
-        {(BLACK), {((char_u *)"Black"), (sizeof("Black") - 1)}},
-        {(BLUE), {((char_u *)"Blue"), (sizeof("Blue") - 1)}},
-        {(BROWN), {((char_u *)"Brown"), (sizeof("Brown") - 1)}},
-        {(CYAN), {((char_u *)"Cyan"), (sizeof("Cyan") - 1)}},
-        {(DARKBLUE), {((char_u *)"DarkBlue"), (sizeof("DarkBlue") - 1)}},
-        {(DARKCYAN), {((char_u *)"DarkCyan"), (sizeof("DarkCyan") - 1)}},
-        {(DARKGRAY), {((char_u *)"DarkGray"), (sizeof("DarkGray") - 1)}},
-        {(DARKGREEN), {((char_u *)"DarkGreen"), (sizeof("DarkGreen") - 1)}},
-        {(DARKGREY), {((char_u *)"DarkGrey"), (sizeof("DarkGrey") - 1)}},
-        {(DARKMAGENTA), {((char_u *)"DarkMagenta"), (sizeof("DarkMagenta") - 1)}},
-        {(DARKRED), {((char_u *)"DarkRed"), (sizeof("DarkRed") - 1)}},
-        {(DARKYELLOW), {((char_u *)"DarkYellow"), (sizeof("DarkYellow") - 1)}},
-        {(GRAY), {((char_u *)"Gray"), (sizeof("Gray") - 1)}},
-        {(GREEN), {((char_u *)"Green"), (sizeof("Green") - 1)}},
-        {(GREY), {((char_u *)"Grey"), (sizeof("Grey") - 1)}},
-        {(LIGHTBLUE), {((char_u *)"LightBlue"), (sizeof("LightBlue") - 1)}},
-        {(LIGHTCYAN), {((char_u *)"LightCyan"), (sizeof("LightCyan") - 1)}},
-        {(LIGHTGRAY), {((char_u *)"LightGray"), (sizeof("LightGray") - 1)}},
-        {(LIGHTGREEN), {((char_u *)"LightGreen"), (sizeof("LightGreen") - 1)}},
-        {(LIGHTGREY), {((char_u *)"LightGrey"), (sizeof("LightGrey") - 1)}},
-        {(LIGHTMAGENTA), {((char_u *)"LightMagenta"), (sizeof("LightMagenta") - 1)}},
-        {(LIGHTRED), {((char_u *)"LightRed"), (sizeof("LightRed") - 1)}},
-        {(LIGHTYELLOW), {((char_u *)"LightYellow"), (sizeof("LightYellow") - 1)}},
-        {(MAGENTA), {((char_u *)"Magenta"), (sizeof("Magenta") - 1)}},
-        {(NONE), {((char_u *)"NONE"), (sizeof("NONE") - 1)}},
-        {(RED), {((char_u *)"Red"), (sizeof("Red") - 1)}},
-        {(WHITE), {((char_u *)"White"), (sizeof("White") - 1)}},
-        {(YELLOW), {((char_u *)"Yellow"), (sizeof("Yellow") - 1)}},
+        {(BLACK), {("Black"_uc), (sizeof("Black") - 1)}},
+        {(BLUE), {("Blue"_uc), (sizeof("Blue") - 1)}},
+        {(BROWN), {("Brown"_uc), (sizeof("Brown") - 1)}},
+        {(CYAN), {("Cyan"_uc), (sizeof("Cyan") - 1)}},
+        {(DARKBLUE), {("DarkBlue"_uc), (sizeof("DarkBlue") - 1)}},
+        {(DARKCYAN), {("DarkCyan"_uc), (sizeof("DarkCyan") - 1)}},
+        {(DARKGRAY), {("DarkGray"_uc), (sizeof("DarkGray") - 1)}},
+        {(DARKGREEN), {("DarkGreen"_uc), (sizeof("DarkGreen") - 1)}},
+        {(DARKGREY), {("DarkGrey"_uc), (sizeof("DarkGrey") - 1)}},
+        {(DARKMAGENTA), {("DarkMagenta"_uc), (sizeof("DarkMagenta") - 1)}},
+        {(DARKRED), {("DarkRed"_uc), (sizeof("DarkRed") - 1)}},
+        {(DARKYELLOW), {("DarkYellow"_uc), (sizeof("DarkYellow") - 1)}},
+        {(GRAY), {("Gray"_uc), (sizeof("Gray") - 1)}},
+        {(GREEN), {("Green"_uc), (sizeof("Green") - 1)}},
+        {(GREY), {("Grey"_uc), (sizeof("Grey") - 1)}},
+        {(LIGHTBLUE), {("LightBlue"_uc), (sizeof("LightBlue") - 1)}},
+        {(LIGHTCYAN), {("LightCyan"_uc), (sizeof("LightCyan") - 1)}},
+        {(LIGHTGRAY), {("LightGray"_uc), (sizeof("LightGray") - 1)}},
+        {(LIGHTGREEN), {("LightGreen"_uc), (sizeof("LightGreen") - 1)}},
+        {(LIGHTGREY), {("LightGrey"_uc), (sizeof("LightGrey") - 1)}},
+        {(LIGHTMAGENTA), {("LightMagenta"_uc), (sizeof("LightMagenta") - 1)}},
+        {(LIGHTRED), {("LightRed"_uc), (sizeof("LightRed") - 1)}},
+        {(LIGHTYELLOW), {("LightYellow"_uc), (sizeof("LightYellow") - 1)}},
+        {(MAGENTA), {("Magenta"_uc), (sizeof("Magenta") - 1)}},
+        {(NONE), {("NONE"_uc), (sizeof("NONE") - 1)}},
+        {(RED), {("Red"_uc), (sizeof("Red") - 1)}},
+        {(WHITE), {("White"_uc), (sizeof("White") - 1)}},
+        {(YELLOW), {("Yellow"_uc), (sizeof("Yellow") - 1)}},
     };
     hl_overrides_T *overrides = nullptr;
     int highlight_ids[HLF_COUNT];
@@ -6554,82 +6649,82 @@ public:
     garray_T highlight_ga;
     char *highlight_init_both[35] =
     {
-        (char *)"ErrorMsg term=standout ctermbg=DarkRed ctermfg=White",
-        (char *)"IncSearch term=reverse,bold,underline cterm=reverse",
-        (char *)"ModeMsg term=bold cterm=bold",
-        (char *)"NonText term=bold ctermfg=Blue",
-        (char *)"StatusLine term=reverse,bold cterm=reverse,bold",
-        (char *)"StatusLineNC term=reverse cterm=reverse",
-        (char *)"default link EndOfBuffer NonText",
-        (char *)"VertSplit term=reverse cterm=reverse",
-        (char *)"default link VertSplitNC VertSplit",
-        (char *)"PmenuSbar term=NONE ctermbg=Grey",
-        (char *)"TabLineSel term=bold cterm=bold",
-        (char *)"TabLineFill term=reverse cterm=reverse",
-        (char *)"default link TabPanel TabLine",
-        (char *)"default link TabPanelSel TabLineSel",
-        (char *)"default link TabPanelFill TabLineFill",
-        (char *)"default link QuickFixLine Search",
-        (char *)"default link CursorLineSign SignColumn",
-        (char *)"default link CursorLineFold FoldColumn",
-        (char *)"default link CurSearch Search",
-        (char *)"default link PmenuKind Pmenu",
-        (char *)"default link PmenuKindSel PmenuSel",
-        (char *)"default link PmenuMatch Pmenu",
-        (char *)"default link PmenuMatchSel PmenuSel",
-        (char *)"default link PmenuExtra Pmenu",
-        (char *)"default link PmenuExtraSel PmenuSel",
-        (char *)"default link PmenuBorder Pmenu",
-        (char *)"default link PopupSelected PmenuSel",
-        (char *)"default link Popup Pmenu",
-        (char *)"default link PopupBorder Pmenu",
-        (char *)"default link PopupTitle Pmenu",
-        (char *)"default link MessageWindow WarningMsg",
-        (char *)"default link PopupNotification WarningMsg",
-        (char *)"default link PreInsert Added",
-        (char *)"Normal cterm=NONE",
+        "ErrorMsg term=standout ctermbg=DarkRed ctermfg=White"_c,
+        "IncSearch term=reverse,bold,underline cterm=reverse"_c,
+        "ModeMsg term=bold cterm=bold"_c,
+        "NonText term=bold ctermfg=Blue"_c,
+        "StatusLine term=reverse,bold cterm=reverse,bold"_c,
+        "StatusLineNC term=reverse cterm=reverse"_c,
+        "default link EndOfBuffer NonText"_c,
+        "VertSplit term=reverse cterm=reverse"_c,
+        "default link VertSplitNC VertSplit"_c,
+        "PmenuSbar term=NONE ctermbg=Grey"_c,
+        "TabLineSel term=bold cterm=bold"_c,
+        "TabLineFill term=reverse cterm=reverse"_c,
+        "default link TabPanel TabLine"_c,
+        "default link TabPanelSel TabLineSel"_c,
+        "default link TabPanelFill TabLineFill"_c,
+        "default link QuickFixLine Search"_c,
+        "default link CursorLineSign SignColumn"_c,
+        "default link CursorLineFold FoldColumn"_c,
+        "default link CurSearch Search"_c,
+        "default link PmenuKind Pmenu"_c,
+        "default link PmenuKindSel PmenuSel"_c,
+        "default link PmenuMatch Pmenu"_c,
+        "default link PmenuMatchSel PmenuSel"_c,
+        "default link PmenuExtra Pmenu"_c,
+        "default link PmenuExtraSel PmenuSel"_c,
+        "default link PmenuBorder Pmenu"_c,
+        "default link PopupSelected PmenuSel"_c,
+        "default link Popup Pmenu"_c,
+        "default link PopupBorder Pmenu"_c,
+        "default link PopupTitle Pmenu"_c,
+        "default link MessageWindow WarningMsg"_c,
+        "default link PopupNotification WarningMsg"_c,
+        "default link PreInsert Added"_c,
+        "Normal cterm=NONE"_c,
         nullptr,
     };
     char *highlight_init_light[18] =
     {
-        (char *)"Directory term=bold ctermfg=DarkBlue",
-        (char *)"LineNr term=NONE ctermfg=Brown",
-        (char *)"CursorLineNr term=bold cterm=underline ctermfg=Brown",
-        (char *)"MoreMsg term=bold ctermfg=DarkGreen",
-        (char *)"Question term=standout ctermfg=DarkGreen",
-        (char *)"Search term=reverse ctermbg=Yellow ctermfg=NONE",
-        (char *)"PmenuThumb term=reverse ctermbg=Black",
-        (char *)"PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey",
-        (char *)"Pmenu term=reverse ctermbg=LightMagenta ctermfg=Black",
-        (char *)"PmenuSel term=underline ctermbg=LightGrey ctermfg=Black",
-        (char *)"SpecialKey term=NONE ctermfg=DarkBlue",
-        (char *)"Title term=bold ctermfg=DarkMagenta",
-        (char *)"WarningMsg term=standout ctermfg=DarkRed",
-        (char *)"WildMenu term=underline ctermbg=Yellow ctermfg=Black",
-        (char *)"Visual ctermbg=Grey ctermfg=Black",
-        (char *)"TabLine term=underline cterm=underline ctermfg=black ctermbg=LightGrey",
-        (char *)"MatchParen term=reverse ctermbg=Cyan",
+        "Directory term=bold ctermfg=DarkBlue"_c,
+        "LineNr term=NONE ctermfg=Brown"_c,
+        "CursorLineNr term=bold cterm=underline ctermfg=Brown"_c,
+        "MoreMsg term=bold ctermfg=DarkGreen"_c,
+        "Question term=standout ctermfg=DarkGreen"_c,
+        "Search term=reverse ctermbg=Yellow ctermfg=NONE"_c,
+        "PmenuThumb term=reverse ctermbg=Black"_c,
+        "PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey"_c,
+        "Pmenu term=reverse ctermbg=LightMagenta ctermfg=Black"_c,
+        "PmenuSel term=underline ctermbg=LightGrey ctermfg=Black"_c,
+        "SpecialKey term=NONE ctermfg=DarkBlue"_c,
+        "Title term=bold ctermfg=DarkMagenta"_c,
+        "WarningMsg term=standout ctermfg=DarkRed"_c,
+        "WildMenu term=underline ctermbg=Yellow ctermfg=Black"_c,
+        "Visual ctermbg=Grey ctermfg=Black"_c,
+        "TabLine term=underline cterm=underline ctermfg=black ctermbg=LightGrey"_c,
+        "MatchParen term=reverse ctermbg=Cyan"_c,
         nullptr,
     };
     char *highlight_init_dark[18] =
     {
-        (char *)"Directory term=bold ctermfg=LightCyan",
-        (char *)"LineNr term=NONE ctermfg=Yellow",
-        (char *)"CursorLineNr term=bold cterm=underline ctermfg=Yellow",
-        (char *)"MoreMsg term=bold ctermfg=LightGreen",
-        (char *)"Question term=standout ctermfg=LightGreen",
-        (char *)"Search term=reverse ctermbg=Yellow ctermfg=Black",
-        (char *)"SpecialKey term=NONE ctermfg=LightBlue",
-        (char *)"PmenuThumb term=reverse ctermbg=White",
-        (char *)"PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey",
-        (char *)"Pmenu term=reverse ctermbg=Magenta ctermfg=Black",
-        (char *)"PmenuSel term=underline ctermbg=Black ctermfg=DarkGrey",
-        (char *)"Title term=bold ctermfg=LightMagenta",
-        (char *)"WarningMsg term=standout ctermfg=LightRed",
-        (char *)"WildMenu term=underline ctermbg=Yellow ctermfg=Black",
-        (char *)"Visual ctermbg=Grey ctermfg=Black",
-        (char *)"TabLine term=underline cterm=underline ctermfg=white ctermbg=DarkGrey",
-        (char *)"MatchParen term=reverse ctermbg=DarkCyan",
+        "Directory term=bold ctermfg=LightCyan"_c,
+        "LineNr term=NONE ctermfg=Yellow"_c,
+        "CursorLineNr term=bold cterm=underline ctermfg=Yellow"_c,
+        "MoreMsg term=bold ctermfg=LightGreen"_c,
+        "Question term=standout ctermfg=LightGreen"_c,
+        "Search term=reverse ctermbg=Yellow ctermfg=Black"_c,
+        "SpecialKey term=NONE ctermfg=LightBlue"_c,
+        "PmenuThumb term=reverse ctermbg=White"_c,
+        "PmenuShadow term=NONE ctermbg=Black ctermfg=DarkGrey"_c,
+        "Pmenu term=reverse ctermbg=Magenta ctermfg=Black"_c,
+        "PmenuSel term=underline ctermbg=Black ctermfg=DarkGrey"_c,
+        "Title term=bold ctermfg=LightMagenta"_c,
+        "WarningMsg term=standout ctermfg=LightRed"_c,
+        "WildMenu term=underline ctermbg=Yellow ctermfg=Black"_c,
+        "Visual ctermbg=Grey ctermfg=Black"_c,
+        "TabLine term=underline cterm=underline ctermfg=white ctermbg=DarkGrey"_c,
+        "MatchParen term=reverse ctermbg=DarkCyan"_c,
         nullptr,
     };
     int color_numbers_16[28] =
@@ -6772,7 +6867,7 @@ public:
         0,
         nullptr,
     };
-    static inline const long_u cterm_color_16[16] =
+    static constexpr const long_u cterm_color_16[16] =
     {
         0x000000,
         0xc00000,
@@ -6795,12 +6890,12 @@ public:
     mapblock_T *maphash[256];
     bool maphash_valid = FALSE;
     int map_locked = 0;
-    struct initmap vimrc_mappings[4] =
+    initmap vimrc_mappings[4] =
     {
-        {(char_u *)"<Tab> %", MODE_NORMAL | MODE_VISUAL | MODE_SELECT | MODE_OP_PENDING},
-        {(char_u *)"\u00a7 <C-_>", MODE_INSERT | MODE_CMDLINE},
-        {(char_u *)"\u00e9 u", MODE_NORMAL},
-        {(char_u *)"\u00e1 <C-R>", MODE_NORMAL},
+        {"<Tab> %"_uc, MODE_NORMAL | MODE_VISUAL | MODE_SELECT | MODE_OP_PENDING},
+        {"\u00a7 <C-_>"_uc, MODE_INSERT | MODE_CMDLINE},
+        {"\u00e9 u"_uc, MODE_NORMAL},
+        {"\u00e1 <C-R>"_uc, MODE_NORMAL},
     };
     char utf8len_tab[256] =
     {
@@ -7320,7 +7415,7 @@ public:
         0,
         0,
     };
-    struct interval ambiguous[179] =
+    interval ambiguous[179] =
     {
         {0x00a1, 0x00a1},
         {0x00a4, 0x00a4},
@@ -7502,7 +7597,7 @@ public:
         {0xf0000, 0xffffd},
         {0x100000, 0x10fffd},
     };
-    struct interval emoji_all[146] =
+    interval emoji_all[146] =
     {
         {0x203c, 0x203c},
         {0x2049, 0x2049},
@@ -8249,8 +8344,8 @@ public:
         {0x1e922, 0x1e943, 1, -34},
     };
     linenr_T lowest_marked = 0;
-    struct msg_hist *first_msg_hist = nullptr;
-    struct msg_hist *last_msg_hist = nullptr;
+    msg_hist *first_msg_hist = nullptr;
+    msg_hist *last_msg_hist = nullptr;
     int msg_hist_len = 0;
     int msg_hist_max = 500;
     int msg_flags = MESSAGES_HIT_ENTER | MESSAGES_HISTORY;
@@ -8260,16 +8355,16 @@ public:
     msgchunk_T *last_msgchunk = nullptr;
     sb_clear_T do_clear_sb_text = SB_CLEAR_NONE;
     int breakcheck_count = 0;
-    struct modmasktable mod_mask_table[9] =
+    modmasktable mod_mask_table[9] =
     {
-        {MOD_MASK_ALT, MOD_MASK_ALT, (char_u)'M'},
-        {MOD_MASK_META, MOD_MASK_META, (char_u)'T'},
-        {MOD_MASK_CTRL, MOD_MASK_CTRL, (char_u)'C'},
-        {MOD_MASK_SHIFT, MOD_MASK_SHIFT, (char_u)'S'},
-        {(MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK), MOD_MASK_2CLICK, (char_u)'2'},
-        {(MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK), MOD_MASK_3CLICK, (char_u)'3'},
-        {(MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK), MOD_MASK_4CLICK, (char_u)'4'},
-        {MOD_MASK_ALT, MOD_MASK_ALT, (char_u)'A'},
+        {MOD_MASK_ALT, MOD_MASK_ALT, static_cast<char_u>('M')},
+        {MOD_MASK_META, MOD_MASK_META, static_cast<char_u>('T')},
+        {MOD_MASK_CTRL, MOD_MASK_CTRL, static_cast<char_u>('C')},
+        {MOD_MASK_SHIFT, MOD_MASK_SHIFT, static_cast<char_u>('S')},
+        {(MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK), MOD_MASK_2CLICK, static_cast<char_u>('2')},
+        {(MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK), MOD_MASK_3CLICK, static_cast<char_u>('3')},
+        {(MOD_MASK_2CLICK | MOD_MASK_3CLICK | MOD_MASK_4CLICK), MOD_MASK_4CLICK, static_cast<char_u>('4')},
+        {MOD_MASK_ALT, MOD_MASK_ALT, static_cast<char_u>('A')},
         {0, 0, NUL},
     };
     char_u modifier_keys_table[376] =
@@ -8316,7 +8411,7 @@ public:
         '7',
         MOD_MASK_CTRL,
         KS_EXTRA,
-        (int)KE_C_END,
+        static_cast<int>(KE_C_END),
         '@',
         '7',
         MOD_MASK_SHIFT,
@@ -8341,7 +8436,7 @@ public:
         'h',
         MOD_MASK_CTRL,
         KS_EXTRA,
-        (int)KE_C_HOME,
+        static_cast<int>(KE_C_HOME),
         'k',
         'h',
         MOD_MASK_SHIFT,
@@ -8356,7 +8451,7 @@ public:
         'l',
         MOD_MASK_CTRL,
         KS_EXTRA,
-        (int)KE_C_LEFT,
+        static_cast<int>(KE_C_LEFT),
         'k',
         'l',
         MOD_MASK_SHIFT,
@@ -8406,7 +8501,7 @@ public:
         'r',
         MOD_MASK_CTRL,
         KS_EXTRA,
-        (int)KE_C_RIGHT,
+        static_cast<int>(KE_C_RIGHT),
         'k',
         'r',
         MOD_MASK_SHIFT,
@@ -8431,348 +8526,348 @@ public:
         '8',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_UP,
+        static_cast<int>(KE_S_UP),
         'k',
         'u',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_DOWN,
+        static_cast<int>(KE_S_DOWN),
         'k',
         'd',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_XF1,
+        static_cast<int>(KE_S_XF1),
         KS_EXTRA,
-        (int)KE_XF1,
+        static_cast<int>(KE_XF1),
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_XF2,
+        static_cast<int>(KE_S_XF2),
         KS_EXTRA,
-        (int)KE_XF2,
+        static_cast<int>(KE_XF2),
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_XF3,
+        static_cast<int>(KE_S_XF3),
         KS_EXTRA,
-        (int)KE_XF3,
+        static_cast<int>(KE_XF3),
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_XF4,
+        static_cast<int>(KE_S_XF4),
         KS_EXTRA,
-        (int)KE_XF4,
+        static_cast<int>(KE_XF4),
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F1,
+        static_cast<int>(KE_S_F1),
         'k',
         '1',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F2,
+        static_cast<int>(KE_S_F2),
         'k',
         '2',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F3,
+        static_cast<int>(KE_S_F3),
         'k',
         '3',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F4,
+        static_cast<int>(KE_S_F4),
         'k',
         '4',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F5,
+        static_cast<int>(KE_S_F5),
         'k',
         '5',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F6,
+        static_cast<int>(KE_S_F6),
         'k',
         '6',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F7,
+        static_cast<int>(KE_S_F7),
         'k',
         '7',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F8,
+        static_cast<int>(KE_S_F8),
         'k',
         '8',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F9,
+        static_cast<int>(KE_S_F9),
         'k',
         '9',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F10,
+        static_cast<int>(KE_S_F10),
         'k',
         ';',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F11,
+        static_cast<int>(KE_S_F11),
         'F',
         '1',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F12,
+        static_cast<int>(KE_S_F12),
         'F',
         '2',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F13,
+        static_cast<int>(KE_S_F13),
         'F',
         '3',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F14,
+        static_cast<int>(KE_S_F14),
         'F',
         '4',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F15,
+        static_cast<int>(KE_S_F15),
         'F',
         '5',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F16,
+        static_cast<int>(KE_S_F16),
         'F',
         '6',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F17,
+        static_cast<int>(KE_S_F17),
         'F',
         '7',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F18,
+        static_cast<int>(KE_S_F18),
         'F',
         '8',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F19,
+        static_cast<int>(KE_S_F19),
         'F',
         '9',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F20,
+        static_cast<int>(KE_S_F20),
         'F',
         'A',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F21,
+        static_cast<int>(KE_S_F21),
         'F',
         'B',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F22,
+        static_cast<int>(KE_S_F22),
         'F',
         'C',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F23,
+        static_cast<int>(KE_S_F23),
         'F',
         'D',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F24,
+        static_cast<int>(KE_S_F24),
         'F',
         'E',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F25,
+        static_cast<int>(KE_S_F25),
         'F',
         'F',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F26,
+        static_cast<int>(KE_S_F26),
         'F',
         'G',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F27,
+        static_cast<int>(KE_S_F27),
         'F',
         'H',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F28,
+        static_cast<int>(KE_S_F28),
         'F',
         'I',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F29,
+        static_cast<int>(KE_S_F29),
         'F',
         'J',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F30,
+        static_cast<int>(KE_S_F30),
         'F',
         'K',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F31,
+        static_cast<int>(KE_S_F31),
         'F',
         'L',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F32,
+        static_cast<int>(KE_S_F32),
         'F',
         'M',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F33,
+        static_cast<int>(KE_S_F33),
         'F',
         'N',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F34,
+        static_cast<int>(KE_S_F34),
         'F',
         'O',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F35,
+        static_cast<int>(KE_S_F35),
         'F',
         'P',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F36,
+        static_cast<int>(KE_S_F36),
         'F',
         'Q',
         MOD_MASK_SHIFT,
         KS_EXTRA,
-        (int)KE_S_F37,
+        static_cast<int>(KE_S_F37),
         'F',
         'R',
         MOD_MASK_SHIFT,
         'k',
         'B',
         KS_EXTRA,
-        (int)KE_TAB,
+        static_cast<int>(KE_TAB),
         NUL,
     };
-    struct key_name_entry key_names_table[117] =
+    key_name_entry key_names_table[117] =
     {
-        {TRUE, K_BS, {(char_u *)("BackSpace"), (sizeof("BackSpace") - 1)}, TRUE},
-        {TRUE, '|', {(char_u *)("Bar"), (sizeof("Bar") - 1)}, FALSE},
-        {TRUE, K_BS, {(char_u *)("BS"), (sizeof("BS") - 1)}, FALSE},
-        {TRUE, '\\', {(char_u *)("Bslash"), (sizeof("Bslash") - 1)}, FALSE},
-        {TRUE, K_COMMAND, {(char_u *)("Cmd"), (sizeof("Cmd") - 1)}, FALSE},
-        {TRUE, CAR, {(char_u *)("CR"), (sizeof("CR") - 1)}, FALSE},
-        {TRUE, CSI, {(char_u *)("CSI"), (sizeof("CSI") - 1)}, FALSE},
-        {TRUE, K_CURSORHOLD, {(char_u *)("CursorHold"), (sizeof("CursorHold") - 1)}, FALSE},
-        {TRUE, K_DEL, {(char_u *)("Del"), (sizeof("Del") - 1)}, FALSE},
-        {TRUE, K_DEL, {(char_u *)("Delete"), (sizeof("Delete") - 1)}, TRUE},
-        {TRUE, K_DOWN, {(char_u *)("Down"), (sizeof("Down") - 1)}, FALSE},
-        {TRUE, K_DROP, {(char_u *)("Drop"), (sizeof("Drop") - 1)}, FALSE},
-        {TRUE, K_END, {(char_u *)("End"), (sizeof("End") - 1)}, FALSE},
-        {TRUE, CAR, {(char_u *)("Enter"), (sizeof("Enter") - 1)}, TRUE},
-        {TRUE, ESC, {(char_u *)("Esc"), (sizeof("Esc") - 1)}, FALSE},
-        {TRUE, K_F1, {(char_u *)("F1"), (sizeof("F1") - 1)}, FALSE},
-        {TRUE, K_F10, {(char_u *)("F10"), (sizeof("F10") - 1)}, FALSE},
-        {TRUE, K_F11, {(char_u *)("F11"), (sizeof("F11") - 1)}, FALSE},
-        {TRUE, K_F12, {(char_u *)("F12"), (sizeof("F12") - 1)}, FALSE},
-        {TRUE, K_F13, {(char_u *)("F13"), (sizeof("F13") - 1)}, FALSE},
-        {TRUE, K_F14, {(char_u *)("F14"), (sizeof("F14") - 1)}, FALSE},
-        {TRUE, K_F15, {(char_u *)("F15"), (sizeof("F15") - 1)}, FALSE},
-        {TRUE, K_F16, {(char_u *)("F16"), (sizeof("F16") - 1)}, FALSE},
-        {TRUE, K_F17, {(char_u *)("F17"), (sizeof("F17") - 1)}, FALSE},
-        {TRUE, K_F18, {(char_u *)("F18"), (sizeof("F18") - 1)}, FALSE},
-        {TRUE, K_F19, {(char_u *)("F19"), (sizeof("F19") - 1)}, FALSE},
-        {TRUE, K_F2, {(char_u *)("F2"), (sizeof("F2") - 1)}, FALSE},
-        {TRUE, K_F20, {(char_u *)("F20"), (sizeof("F20") - 1)}, FALSE},
-        {TRUE, K_F21, {(char_u *)("F21"), (sizeof("F21") - 1)}, FALSE},
-        {TRUE, K_F22, {(char_u *)("F22"), (sizeof("F22") - 1)}, FALSE},
-        {TRUE, K_F23, {(char_u *)("F23"), (sizeof("F23") - 1)}, FALSE},
-        {TRUE, K_F24, {(char_u *)("F24"), (sizeof("F24") - 1)}, FALSE},
-        {TRUE, K_F25, {(char_u *)("F25"), (sizeof("F25") - 1)}, FALSE},
-        {TRUE, K_F26, {(char_u *)("F26"), (sizeof("F26") - 1)}, FALSE},
-        {TRUE, K_F27, {(char_u *)("F27"), (sizeof("F27") - 1)}, FALSE},
-        {TRUE, K_F28, {(char_u *)("F28"), (sizeof("F28") - 1)}, FALSE},
-        {TRUE, K_F29, {(char_u *)("F29"), (sizeof("F29") - 1)}, FALSE},
-        {TRUE, K_F3, {(char_u *)("F3"), (sizeof("F3") - 1)}, FALSE},
-        {TRUE, K_F30, {(char_u *)("F30"), (sizeof("F30") - 1)}, FALSE},
-        {TRUE, K_F31, {(char_u *)("F31"), (sizeof("F31") - 1)}, FALSE},
-        {TRUE, K_F32, {(char_u *)("F32"), (sizeof("F32") - 1)}, FALSE},
-        {TRUE, K_F33, {(char_u *)("F33"), (sizeof("F33") - 1)}, FALSE},
-        {TRUE, K_F34, {(char_u *)("F34"), (sizeof("F34") - 1)}, FALSE},
-        {TRUE, K_F35, {(char_u *)("F35"), (sizeof("F35") - 1)}, FALSE},
-        {TRUE, K_F36, {(char_u *)("F36"), (sizeof("F36") - 1)}, FALSE},
-        {TRUE, K_F37, {(char_u *)("F37"), (sizeof("F37") - 1)}, FALSE},
-        {TRUE, K_F4, {(char_u *)("F4"), (sizeof("F4") - 1)}, FALSE},
-        {TRUE, K_F5, {(char_u *)("F5"), (sizeof("F5") - 1)}, FALSE},
-        {TRUE, K_F6, {(char_u *)("F6"), (sizeof("F6") - 1)}, FALSE},
-        {TRUE, K_F7, {(char_u *)("F7"), (sizeof("F7") - 1)}, FALSE},
-        {TRUE, K_F8, {(char_u *)("F8"), (sizeof("F8") - 1)}, FALSE},
-        {TRUE, K_F9, {(char_u *)("F9"), (sizeof("F9") - 1)}, FALSE},
-        {TRUE, K_FOCUSGAINED, {(char_u *)("FocusGained"), (sizeof("FocusGained") - 1)}, FALSE},
-        {TRUE, K_FOCUSLOST, {(char_u *)("FocusLost"), (sizeof("FocusLost") - 1)}, FALSE},
-        {TRUE, K_HELP, {(char_u *)("Help"), (sizeof("Help") - 1)}, FALSE},
-        {TRUE, K_HOME, {(char_u *)("Home"), (sizeof("Home") - 1)}, FALSE},
-        {TRUE, K_IGNORE, {(char_u *)("Ignore"), (sizeof("Ignore") - 1)}, FALSE},
-        {TRUE, K_INS, {(char_u *)("Ins"), (sizeof("Ins") - 1)}, TRUE},
-        {TRUE, K_INS, {(char_u *)("Insert"), (sizeof("Insert") - 1)}, FALSE},
-        {TRUE, K_K0, {(char_u *)("k0"), (sizeof("k0") - 1)}, FALSE},
-        {TRUE, K_K1, {(char_u *)("k1"), (sizeof("k1") - 1)}, FALSE},
-        {TRUE, K_K2, {(char_u *)("k2"), (sizeof("k2") - 1)}, FALSE},
-        {TRUE, K_K3, {(char_u *)("k3"), (sizeof("k3") - 1)}, FALSE},
-        {TRUE, K_K4, {(char_u *)("k4"), (sizeof("k4") - 1)}, FALSE},
-        {TRUE, K_K5, {(char_u *)("k5"), (sizeof("k5") - 1)}, FALSE},
-        {TRUE, K_K6, {(char_u *)("k6"), (sizeof("k6") - 1)}, FALSE},
-        {TRUE, K_K7, {(char_u *)("k7"), (sizeof("k7") - 1)}, FALSE},
-        {TRUE, K_K8, {(char_u *)("k8"), (sizeof("k8") - 1)}, FALSE},
-        {TRUE, K_K9, {(char_u *)("k9"), (sizeof("k9") - 1)}, FALSE},
-        {TRUE, K_KDEL, {(char_u *)("kDel"), (sizeof("kDel") - 1)}, FALSE},
-        {TRUE, K_KDIVIDE, {(char_u *)("kDivide"), (sizeof("kDivide") - 1)}, FALSE},
-        {TRUE, K_KEND, {(char_u *)("kEnd"), (sizeof("kEnd") - 1)}, FALSE},
-        {TRUE, K_KENTER, {(char_u *)("kEnter"), (sizeof("kEnter") - 1)}, FALSE},
-        {TRUE, K_KHOME, {(char_u *)("kHome"), (sizeof("kHome") - 1)}, FALSE},
-        {TRUE, K_KINS, {(char_u *)("kInsert"), (sizeof("kInsert") - 1)}, FALSE},
-        {TRUE, K_KMINUS, {(char_u *)("kMinus"), (sizeof("kMinus") - 1)}, FALSE},
-        {TRUE, K_KMULTIPLY, {(char_u *)("kMultiply"), (sizeof("kMultiply") - 1)}, FALSE},
-        {TRUE, K_KPAGEDOWN, {(char_u *)("kPageDown"), (sizeof("kPageDown") - 1)}, FALSE},
-        {TRUE, K_KPAGEUP, {(char_u *)("kPageUp"), (sizeof("kPageUp") - 1)}, FALSE},
-        {TRUE, K_KPLUS, {(char_u *)("kPlus"), (sizeof("kPlus") - 1)}, FALSE},
-        {TRUE, K_KPOINT, {(char_u *)("kPoint"), (sizeof("kPoint") - 1)}, FALSE},
-        {TRUE, K_LEFT, {(char_u *)("Left"), (sizeof("Left") - 1)}, FALSE},
-        {TRUE, NL, {(char_u *)("LF"), (sizeof("LF") - 1)}, TRUE},
-        {TRUE, NL, {(char_u *)("LineFeed"), (sizeof("LineFeed") - 1)}, TRUE},
-        {TRUE, '<', {(char_u *)("lt"), (sizeof("lt") - 1)}, FALSE},
-        {TRUE, NL, {(char_u *)("NewLine"), (sizeof("NewLine") - 1)}, TRUE},
-        {TRUE, NL, {(char_u *)("NL"), (sizeof("NL") - 1)}, FALSE},
-        {TRUE, (-((KS_ZERO) + ((int)(('X')) << 8))), {(char_u *)("Nul"), (sizeof("Nul") - 1)}, FALSE},
-        {TRUE, OSC, {(char_u *)("OSC"), (sizeof("OSC") - 1)}, FALSE},
-        {TRUE, K_PAGEDOWN, {(char_u *)("PageDown"), (sizeof("PageDown") - 1)}, FALSE},
-        {TRUE, K_PAGEUP, {(char_u *)("PageUp"), (sizeof("PageUp") - 1)}, FALSE},
-        {TRUE, K_PASTEEND, {(char_u *)("PasteEnd"), (sizeof("PasteEnd") - 1)}, FALSE},
-        {TRUE, K_PASTESTART, {(char_u *)("PasteStart"), (sizeof("PasteStart") - 1)}, FALSE},
-        {TRUE, K_PLUG, {(char_u *)("Plug"), (sizeof("Plug") - 1)}, FALSE},
-        {TRUE, CAR, {(char_u *)("Return"), (sizeof("Return") - 1)}, TRUE},
-        {TRUE, K_RIGHT, {(char_u *)("Right"), (sizeof("Right") - 1)}, FALSE},
-        {TRUE, K_SCRIPT_COMMAND, {(char_u *)("ScriptCmd"), (sizeof("ScriptCmd") - 1)}, FALSE},
-        {FALSE, K_SNR, {(char_u *)("SNR"), (sizeof("SNR") - 1)}, FALSE},
-        {TRUE, ' ', {(char_u *)("Space"), (sizeof("Space") - 1)}, FALSE},
-        {TRUE, TAB, {(char_u *)("Tab"), (sizeof("Tab") - 1)}, FALSE},
-        {TRUE, K_TAB, {(char_u *)("Tab"), (sizeof("Tab") - 1)}, FALSE},
-        {TRUE, K_UNDO, {(char_u *)("Undo"), (sizeof("Undo") - 1)}, FALSE},
-        {TRUE, K_UP, {(char_u *)("Up"), (sizeof("Up") - 1)}, FALSE},
-        {TRUE, K_CSI, {(char_u *)("xCSI"), (sizeof("xCSI") - 1)}, FALSE},
-        {TRUE, K_XDOWN, {(char_u *)("xDown"), (sizeof("xDown") - 1)}, FALSE},
-        {TRUE, K_XEND, {(char_u *)("xEnd"), (sizeof("xEnd") - 1)}, FALSE},
-        {TRUE, K_XF1, {(char_u *)("xF1"), (sizeof("xF1") - 1)}, FALSE},
-        {TRUE, K_XF2, {(char_u *)("xF2"), (sizeof("xF2") - 1)}, FALSE},
-        {TRUE, K_XF3, {(char_u *)("xF3"), (sizeof("xF3") - 1)}, FALSE},
-        {TRUE, K_XF4, {(char_u *)("xF4"), (sizeof("xF4") - 1)}, FALSE},
-        {TRUE, K_XHOME, {(char_u *)("xHome"), (sizeof("xHome") - 1)}, FALSE},
-        {TRUE, K_XLEFT, {(char_u *)("xLeft"), (sizeof("xLeft") - 1)}, FALSE},
-        {TRUE, K_OSC, {(char_u *)("xOSC"), (sizeof("xOSC") - 1)}, FALSE},
-        {TRUE, K_XRIGHT, {(char_u *)("xRight"), (sizeof("xRight") - 1)}, FALSE},
-        {TRUE, K_XUP, {(char_u *)("xUp"), (sizeof("xUp") - 1)}, FALSE},
-        {TRUE, K_ZEND, {(char_u *)("zEnd"), (sizeof("zEnd") - 1)}, FALSE},
-        {TRUE, K_ZHOME, {(char_u *)("zHome"), (sizeof("zHome") - 1)}, FALSE},
+        {TRUE, K_BS, {"BackSpace"_uc, (sizeof("BackSpace") - 1)}, TRUE},
+        {TRUE, '|', {"Bar"_uc, (sizeof("Bar") - 1)}, FALSE},
+        {TRUE, K_BS, {"BS"_uc, (sizeof("BS") - 1)}, FALSE},
+        {TRUE, '\\', {"Bslash"_uc, (sizeof("Bslash") - 1)}, FALSE},
+        {TRUE, K_COMMAND, {"Cmd"_uc, (sizeof("Cmd") - 1)}, FALSE},
+        {TRUE, CAR, {"CR"_uc, (sizeof("CR") - 1)}, FALSE},
+        {TRUE, CSI, {"CSI"_uc, (sizeof("CSI") - 1)}, FALSE},
+        {TRUE, K_CURSORHOLD, {"CursorHold"_uc, (sizeof("CursorHold") - 1)}, FALSE},
+        {TRUE, K_DEL, {"Del"_uc, (sizeof("Del") - 1)}, FALSE},
+        {TRUE, K_DEL, {"Delete"_uc, (sizeof("Delete") - 1)}, TRUE},
+        {TRUE, K_DOWN, {"Down"_uc, (sizeof("Down") - 1)}, FALSE},
+        {TRUE, K_DROP, {"Drop"_uc, (sizeof("Drop") - 1)}, FALSE},
+        {TRUE, K_END, {"End"_uc, (sizeof("End") - 1)}, FALSE},
+        {TRUE, CAR, {"Enter"_uc, (sizeof("Enter") - 1)}, TRUE},
+        {TRUE, ESC, {"Esc"_uc, (sizeof("Esc") - 1)}, FALSE},
+        {TRUE, K_F1, {"F1"_uc, (sizeof("F1") - 1)}, FALSE},
+        {TRUE, K_F10, {"F10"_uc, (sizeof("F10") - 1)}, FALSE},
+        {TRUE, K_F11, {"F11"_uc, (sizeof("F11") - 1)}, FALSE},
+        {TRUE, K_F12, {"F12"_uc, (sizeof("F12") - 1)}, FALSE},
+        {TRUE, K_F13, {"F13"_uc, (sizeof("F13") - 1)}, FALSE},
+        {TRUE, K_F14, {"F14"_uc, (sizeof("F14") - 1)}, FALSE},
+        {TRUE, K_F15, {"F15"_uc, (sizeof("F15") - 1)}, FALSE},
+        {TRUE, K_F16, {"F16"_uc, (sizeof("F16") - 1)}, FALSE},
+        {TRUE, K_F17, {"F17"_uc, (sizeof("F17") - 1)}, FALSE},
+        {TRUE, K_F18, {"F18"_uc, (sizeof("F18") - 1)}, FALSE},
+        {TRUE, K_F19, {"F19"_uc, (sizeof("F19") - 1)}, FALSE},
+        {TRUE, K_F2, {"F2"_uc, (sizeof("F2") - 1)}, FALSE},
+        {TRUE, K_F20, {"F20"_uc, (sizeof("F20") - 1)}, FALSE},
+        {TRUE, K_F21, {"F21"_uc, (sizeof("F21") - 1)}, FALSE},
+        {TRUE, K_F22, {"F22"_uc, (sizeof("F22") - 1)}, FALSE},
+        {TRUE, K_F23, {"F23"_uc, (sizeof("F23") - 1)}, FALSE},
+        {TRUE, K_F24, {"F24"_uc, (sizeof("F24") - 1)}, FALSE},
+        {TRUE, K_F25, {"F25"_uc, (sizeof("F25") - 1)}, FALSE},
+        {TRUE, K_F26, {"F26"_uc, (sizeof("F26") - 1)}, FALSE},
+        {TRUE, K_F27, {"F27"_uc, (sizeof("F27") - 1)}, FALSE},
+        {TRUE, K_F28, {"F28"_uc, (sizeof("F28") - 1)}, FALSE},
+        {TRUE, K_F29, {"F29"_uc, (sizeof("F29") - 1)}, FALSE},
+        {TRUE, K_F3, {"F3"_uc, (sizeof("F3") - 1)}, FALSE},
+        {TRUE, K_F30, {"F30"_uc, (sizeof("F30") - 1)}, FALSE},
+        {TRUE, K_F31, {"F31"_uc, (sizeof("F31") - 1)}, FALSE},
+        {TRUE, K_F32, {"F32"_uc, (sizeof("F32") - 1)}, FALSE},
+        {TRUE, K_F33, {"F33"_uc, (sizeof("F33") - 1)}, FALSE},
+        {TRUE, K_F34, {"F34"_uc, (sizeof("F34") - 1)}, FALSE},
+        {TRUE, K_F35, {"F35"_uc, (sizeof("F35") - 1)}, FALSE},
+        {TRUE, K_F36, {"F36"_uc, (sizeof("F36") - 1)}, FALSE},
+        {TRUE, K_F37, {"F37"_uc, (sizeof("F37") - 1)}, FALSE},
+        {TRUE, K_F4, {"F4"_uc, (sizeof("F4") - 1)}, FALSE},
+        {TRUE, K_F5, {"F5"_uc, (sizeof("F5") - 1)}, FALSE},
+        {TRUE, K_F6, {"F6"_uc, (sizeof("F6") - 1)}, FALSE},
+        {TRUE, K_F7, {"F7"_uc, (sizeof("F7") - 1)}, FALSE},
+        {TRUE, K_F8, {"F8"_uc, (sizeof("F8") - 1)}, FALSE},
+        {TRUE, K_F9, {"F9"_uc, (sizeof("F9") - 1)}, FALSE},
+        {TRUE, K_FOCUSGAINED, {"FocusGained"_uc, (sizeof("FocusGained") - 1)}, FALSE},
+        {TRUE, K_FOCUSLOST, {"FocusLost"_uc, (sizeof("FocusLost") - 1)}, FALSE},
+        {TRUE, K_HELP, {"Help"_uc, (sizeof("Help") - 1)}, FALSE},
+        {TRUE, K_HOME, {"Home"_uc, (sizeof("Home") - 1)}, FALSE},
+        {TRUE, K_IGNORE, {"Ignore"_uc, (sizeof("Ignore") - 1)}, FALSE},
+        {TRUE, K_INS, {"Ins"_uc, (sizeof("Ins") - 1)}, TRUE},
+        {TRUE, K_INS, {"Insert"_uc, (sizeof("Insert") - 1)}, FALSE},
+        {TRUE, K_K0, {"k0"_uc, (sizeof("k0") - 1)}, FALSE},
+        {TRUE, K_K1, {"k1"_uc, (sizeof("k1") - 1)}, FALSE},
+        {TRUE, K_K2, {"k2"_uc, (sizeof("k2") - 1)}, FALSE},
+        {TRUE, K_K3, {"k3"_uc, (sizeof("k3") - 1)}, FALSE},
+        {TRUE, K_K4, {"k4"_uc, (sizeof("k4") - 1)}, FALSE},
+        {TRUE, K_K5, {"k5"_uc, (sizeof("k5") - 1)}, FALSE},
+        {TRUE, K_K6, {"k6"_uc, (sizeof("k6") - 1)}, FALSE},
+        {TRUE, K_K7, {"k7"_uc, (sizeof("k7") - 1)}, FALSE},
+        {TRUE, K_K8, {"k8"_uc, (sizeof("k8") - 1)}, FALSE},
+        {TRUE, K_K9, {"k9"_uc, (sizeof("k9") - 1)}, FALSE},
+        {TRUE, K_KDEL, {"kDel"_uc, (sizeof("kDel") - 1)}, FALSE},
+        {TRUE, K_KDIVIDE, {"kDivide"_uc, (sizeof("kDivide") - 1)}, FALSE},
+        {TRUE, K_KEND, {"kEnd"_uc, (sizeof("kEnd") - 1)}, FALSE},
+        {TRUE, K_KENTER, {"kEnter"_uc, (sizeof("kEnter") - 1)}, FALSE},
+        {TRUE, K_KHOME, {"kHome"_uc, (sizeof("kHome") - 1)}, FALSE},
+        {TRUE, K_KINS, {"kInsert"_uc, (sizeof("kInsert") - 1)}, FALSE},
+        {TRUE, K_KMINUS, {"kMinus"_uc, (sizeof("kMinus") - 1)}, FALSE},
+        {TRUE, K_KMULTIPLY, {"kMultiply"_uc, (sizeof("kMultiply") - 1)}, FALSE},
+        {TRUE, K_KPAGEDOWN, {"kPageDown"_uc, (sizeof("kPageDown") - 1)}, FALSE},
+        {TRUE, K_KPAGEUP, {"kPageUp"_uc, (sizeof("kPageUp") - 1)}, FALSE},
+        {TRUE, K_KPLUS, {"kPlus"_uc, (sizeof("kPlus") - 1)}, FALSE},
+        {TRUE, K_KPOINT, {"kPoint"_uc, (sizeof("kPoint") - 1)}, FALSE},
+        {TRUE, K_LEFT, {"Left"_uc, (sizeof("Left") - 1)}, FALSE},
+        {TRUE, NL, {"LF"_uc, (sizeof("LF") - 1)}, TRUE},
+        {TRUE, NL, {"LineFeed"_uc, (sizeof("LineFeed") - 1)}, TRUE},
+        {TRUE, '<', {"lt"_uc, (sizeof("lt") - 1)}, FALSE},
+        {TRUE, NL, {"NewLine"_uc, (sizeof("NewLine") - 1)}, TRUE},
+        {TRUE, NL, {"NL"_uc, (sizeof("NL") - 1)}, FALSE},
+        {TRUE, (-((KS_ZERO) + (static_cast<int>(('X')) << 8))), {"Nul"_uc, (sizeof("Nul") - 1)}, FALSE},
+        {TRUE, OSC, {"OSC"_uc, (sizeof("OSC") - 1)}, FALSE},
+        {TRUE, K_PAGEDOWN, {"PageDown"_uc, (sizeof("PageDown") - 1)}, FALSE},
+        {TRUE, K_PAGEUP, {"PageUp"_uc, (sizeof("PageUp") - 1)}, FALSE},
+        {TRUE, K_PASTEEND, {"PasteEnd"_uc, (sizeof("PasteEnd") - 1)}, FALSE},
+        {TRUE, K_PASTESTART, {"PasteStart"_uc, (sizeof("PasteStart") - 1)}, FALSE},
+        {TRUE, K_PLUG, {"Plug"_uc, (sizeof("Plug") - 1)}, FALSE},
+        {TRUE, CAR, {"Return"_uc, (sizeof("Return") - 1)}, TRUE},
+        {TRUE, K_RIGHT, {"Right"_uc, (sizeof("Right") - 1)}, FALSE},
+        {TRUE, K_SCRIPT_COMMAND, {"ScriptCmd"_uc, (sizeof("ScriptCmd") - 1)}, FALSE},
+        {FALSE, K_SNR, {"SNR"_uc, (sizeof("SNR") - 1)}, FALSE},
+        {TRUE, ' ', {"Space"_uc, (sizeof("Space") - 1)}, FALSE},
+        {TRUE, TAB, {"Tab"_uc, (sizeof("Tab") - 1)}, FALSE},
+        {TRUE, K_TAB, {"Tab"_uc, (sizeof("Tab") - 1)}, FALSE},
+        {TRUE, K_UNDO, {"Undo"_uc, (sizeof("Undo") - 1)}, FALSE},
+        {TRUE, K_UP, {"Up"_uc, (sizeof("Up") - 1)}, FALSE},
+        {TRUE, K_CSI, {"xCSI"_uc, (sizeof("xCSI") - 1)}, FALSE},
+        {TRUE, K_XDOWN, {"xDown"_uc, (sizeof("xDown") - 1)}, FALSE},
+        {TRUE, K_XEND, {"xEnd"_uc, (sizeof("xEnd") - 1)}, FALSE},
+        {TRUE, K_XF1, {"xF1"_uc, (sizeof("xF1") - 1)}, FALSE},
+        {TRUE, K_XF2, {"xF2"_uc, (sizeof("xF2") - 1)}, FALSE},
+        {TRUE, K_XF3, {"xF3"_uc, (sizeof("xF3") - 1)}, FALSE},
+        {TRUE, K_XF4, {"xF4"_uc, (sizeof("xF4") - 1)}, FALSE},
+        {TRUE, K_XHOME, {"xHome"_uc, (sizeof("xHome") - 1)}, FALSE},
+        {TRUE, K_XLEFT, {"xLeft"_uc, (sizeof("xLeft") - 1)}, FALSE},
+        {TRUE, K_OSC, {"xOSC"_uc, (sizeof("xOSC") - 1)}, FALSE},
+        {TRUE, K_XRIGHT, {"xRight"_uc, (sizeof("xRight") - 1)}, FALSE},
+        {TRUE, K_XUP, {"xUp"_uc, (sizeof("xUp") - 1)}, FALSE},
+        {TRUE, K_ZEND, {"zEnd"_uc, (sizeof("zEnd") - 1)}, FALSE},
+        {TRUE, K_ZHOME, {"zHome"_uc, (sizeof("zHome") - 1)}, FALSE},
     };
     int VIsual_mode_orig = NUL;
-    static inline const struct nv_cmd nv_cmds[194] =
+    static constexpr const nv_cmd nv_cmds[194] =
     {
         {NUL, &Editor::nv_error, 0, 0},
         {Ctrl_A, &Editor::nv_addsub, 0, 0},
@@ -8957,11 +9052,11 @@ public:
         {K_HELP, &Editor::nv_help, NV_NCW, 0},
         {K_F1, &Editor::nv_help, NV_NCW, 0},
         {K_XF1, &Editor::nv_help, NV_NCW, 0},
-        {(-((KS_SELECT) + ((int)(('X')) << 8))), &Editor::nv_select, 0, 0},
-        {(-((KS_VER_SCROLLBAR) + ((int)(('X')) << 8))), &Editor::nv_error, 0, 0},
-        {(-((KS_HOR_SCROLLBAR) + ((int)(('X')) << 8))), &Editor::nv_error, 0, 0},
-        {(-((KS_TABLINE) + ((int)(('X')) << 8))), &Editor::nv_error, 0, 0},
-        {(-((KS_TABMENU) + ((int)(('X')) << 8))), &Editor::nv_error, 0, 0},
+        {(-((KS_SELECT) + (static_cast<int>(('X')) << 8))), &Editor::nv_select, 0, 0},
+        {(-((KS_VER_SCROLLBAR) + (static_cast<int>(('X')) << 8))), &Editor::nv_error, 0, 0},
+        {(-((KS_HOR_SCROLLBAR) + (static_cast<int>(('X')) << 8))), &Editor::nv_error, 0, 0},
+        {(-((KS_TABLINE) + (static_cast<int>(('X')) << 8))), &Editor::nv_error, 0, 0},
+        {(-((KS_TABMENU) + (static_cast<int>(('X')) << 8))), &Editor::nv_error, 0, 0},
         {K_F21, &Editor::nv_error, (0x04 | NV_NCH), 0},
         {K_DROP, &Editor::nv_error, NV_STS, 0},
         {K_CURSORHOLD, &Editor::nv_cursorhold, NV_KEEPREG, 0},
@@ -8969,7 +9064,7 @@ public:
         {K_COMMAND, &Editor::nv_colon, 0, 0},
         {K_SCRIPT_COMMAND, &Editor::nv_colon, 0, 0},
     };
-    static inline const unsigned short nv_cmd_idx[194] =
+    static constexpr const unsigned short nv_cmd_idx[194] =
     {
         0,
         1,
@@ -9166,11 +9261,11 @@ public:
         162,
         155,
     };
-    static inline const int nv_max_linear = 126;
+    static constexpr const int nv_max_linear = 126;
     char_u old_showcmd_buf[(SHOWCMD_COLS + 1 + 30)];
     bool showcmd_is_clear = TRUE;
     bool showcmd_visual = FALSE;
-    static inline const char opchars[][3] =
+    static constexpr const char opchars[][3] =
     {
         {NUL, NUL, 0},
         {'d', NUL, OPF_CHANGE},
@@ -9208,295 +9303,295 @@ public:
     long p_sts_nopaste;
     long p_tw_nopaste;
     long p_wm_nopaste;
-    struct vimoption options[185] =
+    vimoption options[185] =
     {
-        {(char *)"ambiwidth", (char *)"ambw", P_STRING | P_VI_DEF | P_RCLR, {nullptr, nullptr, &p_ambw, 0}, PV_NONE, &Editor::did_set_ambiwidth, nullptr, {(char_u *)"single", nullptr}, {0L, 0L}},
-        {(char *)"autoindent", (char *)"ai", P_BOOL | P_VI_DEF, {&p_ai, nullptr, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_AI)), nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"background", (char *)"bg", P_STRING | P_VI_DEF | P_RCLR | P_HLONLY, {nullptr, nullptr, &p_bg, 0}, PV_NONE, &Editor::did_set_background, nullptr, {(char_u *)"light", nullptr}, {0L, 0L}},
-        {(char *)"backspace", (char *)"bs", P_STRING | P_VIM | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_bs, 0}, PV_NONE, &Editor::did_set_backspace, nullptr, {(char_u *)"", (char_u *)"indent,eol,start"}, {0L, 0L}},
-        {(char *)"belloff", (char *)"bo", P_STRING | P_VI_DEF | P_COMMA | P_NODUP, {nullptr, nullptr, &p_bo, 0}, PV_NONE, &Editor::did_set_belloff, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"casemap", (char *)"cmp", P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_cmp, 0}, PV_NONE, &Editor::did_set_casemap, nullptr, {(char_u *)"internal,keepascii", nullptr}, {0L, 0L}},
-        {(char *)"cmdheight", (char *)"ch", P_NUM | P_VI_DEF | P_RALL, {nullptr, &p_ch, nullptr, 0}, PV_NONE, &Editor::did_set_cmdheight, nullptr, {nullptr, nullptr}, {1L, 0L}},
-        {(char *)"columns", (char *)"co", P_NUM | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RCLR, {nullptr, &Columns, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {80L, 0L}},
-        {(char *)"compatible", (char *)"cp", P_BOOL | P_RALL, {&p_cp, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_compatible, nullptr, {nullptr, nullptr}, {FALSE, FALSE}},
-        {(char *)"copyindent", (char *)"ci", P_BOOL | P_VI_DEF | P_VIM, {&p_ci, nullptr, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_CI)), nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"cpoptions", (char *)"cpo", P_STRING | P_VIM | P_RALL | P_FLAGLIST, {nullptr, nullptr, &p_cpo, 0}, PV_NONE, &Editor::did_set_cpoptions, nullptr, {(char_u *)"aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;", (char_u *)"aABceFsz"}, {0L, 0L}},
-        {(char *)"delcombine", (char *)"deco", P_BOOL | P_VI_DEF | P_VIM, {&p_deco, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"display", (char *)"dy", P_STRING | P_VI_DEF | P_ONECOMMA | P_RALL | P_NODUP, {nullptr, nullptr, &p_dy, 0}, PV_NONE, &Editor::did_set_display, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"edcompatible", (char *)"ed", P_BOOL | P_VI_DEF, {&p_ed, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"emoji", (char *)"emo", P_BOOL | P_VI_DEF | P_RCLR, {&p_emoji, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_ambiwidth, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"errorbells", (char *)"eb", P_BOOL | P_VI_DEF, {&p_eb, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"esckeys", (char *)"ek", P_BOOL | P_VIM, {&p_ek, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, TRUE}},
-        {(char *)"expandtab", (char *)"et", P_BOOL | P_VI_DEF | P_VIM, {&p_et, nullptr, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_ET)), nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"fillchars", (char *)"fcs", P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, &p_fcs, 0}, (idopt_T)(PV_BOTH + (int)((idopt_T)(PV_WIN + (int)(WV_FCS)))), &Editor::did_set_chars_option, nullptr, {(char_u *)"vert:|,fold:-,eob:~,lastline:@", nullptr}, {0L, 0L}},
-        {(char *)"gdefault", (char *)"gd", P_BOOL | P_VI_DEF | P_VIM, {&p_gd, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"highlight", (char *)"hl", P_STRING | P_VI_DEF | P_RCLR | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, &p_hl, 0}, PV_NONE, &Editor::did_set_highlight, nullptr, {(char_u *)"8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert", nullptr}, {0L, 0L}},
-        {(char *)"history", (char *)"hi", P_NUM | P_VIM, {nullptr, &p_hi, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {9999L, 9999L}},
-        {(char *)"hlsearch", (char *)"hls", P_BOOL | P_VI_DEF | P_VIM | P_RALL | P_HLONLY, {&p_hls, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_hlsearch, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"ignorecase", (char *)"ic", P_BOOL | P_VI_DEF, {&p_ic, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_ignorecase, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"incsearch", (char *)"is", P_BOOL | P_VI_DEF | P_VIM, {&p_is, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"insertmode", (char *)"im", P_BOOL | P_VI_DEF | P_VIM, {&p_im, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_insertmode, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"isfname", (char *)"isf", P_STRING | P_VI_DEF | P_COMMA | P_NODUP, {nullptr, nullptr, &p_isf, 0}, PV_NONE, &Editor::did_set_isopt, nullptr, {(char_u *)"@,48-57,/,.,-,_,+,,,#,$,%,~,=", nullptr}, {0L, 0L}},
-        {(char *)"isident", (char *)"isi", P_STRING | P_VI_DEF | P_COMMA | P_NODUP, {nullptr, nullptr, &p_isi, 0}, PV_NONE, &Editor::did_set_isopt, nullptr, {(char_u *)"@,48-57,_,192-255", nullptr}, {0L, 0L}},
-        {(char *)"iskeyword", (char *)"isk", P_STRING | P_ALLOCED | P_VIM | P_COMMA | P_NODUP, {nullptr, nullptr, &p_isk, 0}, (idopt_T)(PV_BUF + (int)(BV_ISK)), &Editor::did_set_iskeyword, nullptr, {(char_u *)"@,48-57,_", (char_u *)"@,48-57,_,192-255"}, {0L, 0L}},
-        {(char *)"isprint", (char *)"isp", P_STRING | P_VI_DEF | P_RALL | P_COMMA | P_NODUP, {nullptr, nullptr, &p_isp, 0}, PV_NONE, &Editor::did_set_isopt, nullptr, {(char_u *)"@,161-255", nullptr}, {0L, 0L}},
-        {(char *)"joinspaces", (char *)"js", P_BOOL | P_VI_DEF | P_VIM, {&p_js, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"keymodel", (char *)"km", P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_km, 0}, PV_NONE, &Editor::did_set_keymodel, nullptr, {(char_u *)"startsel", nullptr}, {0L, 0L}},
-        {(char *)"keyprotocol", (char *)"kpc", P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, &p_kpc, 0}, PV_NONE, &Editor::did_set_keyprotocol, nullptr, {(char_u *)"kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2", nullptr}, {0L, 0L}},
-        {(char *)"laststatus", (char *)"ls", P_NUM | P_VI_DEF | P_RALL, {nullptr, &p_ls, nullptr, 0}, PV_NONE, &Editor::did_set_laststatus, nullptr, {nullptr, nullptr}, {1L, 0L}},
-        {(char *)"lazyredraw", (char *)"lz", P_BOOL | P_VI_DEF, {&p_lz, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"lines", nullptr, P_NUM | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RCLR, {nullptr, &Rows, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {24L, 0L}},
-        {(char *)"list", nullptr, P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, (idopt_T)(PV_WIN + (int)(WV_LIST)), nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"listchars", (char *)"lcs", P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, &p_lcs, 0}, (idopt_T)(PV_BOTH + (int)((idopt_T)(PV_WIN + (int)(WV_LCS)))), &Editor::did_set_chars_option, nullptr, {(char_u *)"eol:$", nullptr}, {0L, 0L}},
-        {(char *)"magic", nullptr, P_BOOL | P_VI_DEF, {&p_magic, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"matchpairs", (char *)"mps", P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_mps, 0}, (idopt_T)(PV_BUF + (int)(BV_MPS)), &Editor::did_set_matchpairs, nullptr, {(char_u *)"(:),{:},[:]", nullptr}, {0L, 0L}},
-        {(char *)"matchtime", (char *)"mat", P_NUM | P_VI_DEF, {nullptr, &p_mat, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {5L, 0L}},
-        {(char *)"maxcombine", (char *)"mco", P_NUM | P_VI_DEF | P_CURSWANT, {nullptr, &p_mco, nullptr, 0}, PV_NONE, &Editor::did_set_maxcombine, nullptr, {nullptr, nullptr}, {2, 0L}},
-        {(char *)"maxmapdepth", (char *)"mmd", P_NUM | P_VI_DEF, {nullptr, &p_mmd, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {1000L, 0L}},
-        {(char *)"maxmempattern", (char *)"mmp", P_NUM | P_VI_DEF, {nullptr, &p_mmp, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {1000L, 0L}},
-        {(char *)"maxsearchcount", (char *)"msc", P_NUM | P_VI_DEF, {nullptr, &p_msc, nullptr, 0}, PV_NONE, &Editor::did_set_maxsearchcount, nullptr, {nullptr, nullptr}, {99L, 0L}},
-        {(char *)"messagesopt", (char *)"mopt", P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_COLON | P_NODUP, {nullptr, nullptr, &p_mopt, 0}, PV_NONE, &Editor::did_set_messagesopt, nullptr, {(char_u *)"hit-enter,history:500", (char_u *)nullptr}, {0L, 0L}},
-        {(char *)"modifiable", (char *)"ma", P_BOOL | P_VI_DEF | P_NOGLOB, {&p_ma, nullptr, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_MA)), &Editor::did_set_modifiable, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"modified", (char *)"mod", P_BOOL | P_NO_MKRC | P_VI_DEF | P_RSTAT, {&p_mod, nullptr, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_MOD)), &Editor::did_set_modified, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"more", nullptr, P_BOOL | P_VIM, {&p_more, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, TRUE}},
-        {(char *)"nrformats", (char *)"nf", P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_nf, 0}, (idopt_T)(PV_BUF + (int)(BV_NF)), &Editor::did_set_nrformats, nullptr, {(char_u *)"bin,octal,hex", nullptr}, {0L, 0L}},
-        {(char *)"number", (char *)"nu", P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, (idopt_T)(PV_WIN + (int)(WV_NU)), &Editor::did_set_number_relativenumber, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"osctimeoutlen", (char *)"ost", P_NUM | P_VI_DEF, {nullptr, &p_ost, nullptr, 0}, PV_NONE, &Editor::did_set_osctimeoutlen, nullptr, {nullptr, nullptr}, {1000, 0L}},
-        {(char *)"paste", nullptr, P_BOOL | P_VI_DEF | P_PRI_MKRC, {&p_paste, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_paste, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"pastetoggle", (char *)"pt", P_STRING | P_VI_DEF, {nullptr, nullptr, &p_pt, 0}, PV_NONE, &Editor::did_set_pastetoggle, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"preserveindent", (char *)"pi", P_BOOL | P_VI_DEF | P_VIM, {&p_pi, nullptr, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_PI)), nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"quoteescape", (char *)"qe", P_STRING | P_ALLOCED | P_VI_DEF, {nullptr, nullptr, &p_qe, 0}, (idopt_T)(PV_BUF + (int)(BV_QE)), nullptr, nullptr, {(char_u *)"\\", nullptr}, {0L, 0L}},
-        {(char *)"relativenumber", (char *)"rnu", P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, (idopt_T)(PV_WIN + (int)(WV_RNU)), &Editor::did_set_number_relativenumber, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"remap", nullptr, P_BOOL | P_VI_DEF, {&p_remap, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"report", nullptr, P_NUM | P_VI_DEF, {nullptr, &p_report, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {2L, 0L}},
-        {(char *)"ruler", (char *)"ru", P_BOOL | P_VIM | P_RSTAT, {&p_ru, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, TRUE}},
-        {(char *)"scroll", (char *)"scr", P_NUM | P_NO_MKRC | P_VI_DEF, {nullptr, nullptr, nullptr, 1}, (idopt_T)(PV_WIN + (int)(WV_SCROLL)), nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
-        {(char *)"scrolljump", (char *)"sj", P_NUM | P_VI_DEF | P_VIM, {nullptr, &p_sj, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {1L, 0L}},
-        {(char *)"scrolloff", (char *)"so", P_NUM | P_VI_DEF | P_VIM | P_RALL, {nullptr, &p_so, nullptr, 0}, (idopt_T)(PV_BOTH + (int)((idopt_T)(PV_WIN + (int)(WV_SO)))), nullptr, nullptr, {nullptr, nullptr}, {1L, 0L}},
-        {(char *)"scrolloffpad", (char *)"sop", P_NUM | P_VI_DEF | P_VIM | P_RALL, {nullptr, &p_sop, nullptr, 0}, (idopt_T)(PV_BOTH + (int)((idopt_T)(PV_WIN + (int)(WV_SOP)))), nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
-        {(char *)"selection", (char *)"sel", P_STRING | P_VI_DEF, {nullptr, nullptr, &p_sel, 0}, PV_NONE, &Editor::did_set_selection, nullptr, {(char_u *)"inclusive", nullptr}, {0L, 0L}},
-        {(char *)"selectmode", (char *)"slm", P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_slm, 0}, PV_NONE, &Editor::did_set_selectmode, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"shiftround", (char *)"sr", P_BOOL | P_VI_DEF | P_VIM, {&p_sr, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"shiftwidth", (char *)"sw", P_NUM | P_VI_DEF, {nullptr, &p_sw, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_SW)), &Editor::did_set_shiftwidth_tabstop, nullptr, {nullptr, nullptr}, {4L, 0L}},
-        {(char *)"shortmess", (char *)"shm", P_STRING | P_VIM | P_FLAGLIST, {nullptr, nullptr, &p_shm, 0}, PV_NONE, &Editor::did_set_shortmess, nullptr, {(char_u *)"S", (char_u *)"filnxtToOS"}, {0L, 0L}},
-        {(char *)"showcmd", (char *)"sc", P_BOOL | P_VIM, {&p_sc, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, TRUE}},
-        {(char *)"showcmdloc", (char *)"sloc", P_STRING | P_RSTAT, {nullptr, nullptr, &p_sloc, 0}, PV_NONE, &Editor::did_set_showcmdloc, nullptr, {(char_u *)"last", (char_u *)"last"}, {0L, 0L}},
-        {(char *)"showmatch", (char *)"sm", P_BOOL | P_VI_DEF, {&p_sm, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"showmode", (char *)"smd", P_BOOL | P_VIM, {&p_smd, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, TRUE}},
-        {(char *)"sidescroll", (char *)"ss", P_NUM | P_VI_DEF, {nullptr, &p_ss, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
-        {(char *)"sidescrolloff", (char *)"siso", P_NUM | P_VI_DEF | P_VIM | P_RBUF, {nullptr, &p_siso, nullptr, 0}, (idopt_T)(PV_BOTH + (int)((idopt_T)(PV_WIN + (int)(WV_SISO)))), nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
-        {(char *)"smartcase", (char *)"scs", P_BOOL | P_VI_DEF | P_VIM, {&p_scs, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"smartindent", (char *)"si", P_BOOL | P_VI_DEF | P_VIM, {&p_si, nullptr, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_SI)), nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"smarttab", (char *)"sta", P_BOOL | P_VI_DEF | P_VIM, {&p_sta, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"smoothscroll", (char *)"sms", P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, (idopt_T)(PV_WIN + (int)(WV_SMS)), &Editor::did_set_smoothscroll, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"softtabstop", (char *)"sts", P_NUM | P_VI_DEF | P_VIM, {nullptr, &p_sts, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_STS)), nullptr, nullptr, {nullptr, nullptr}, {4L, 0L}},
-        {(char *)"startofline", (char *)"sol", P_BOOL | P_VI_DEF | P_VIM, {&p_sol, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"tabstop", (char *)"ts", P_NUM | P_VI_DEF | P_RBUF, {nullptr, &p_ts, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_TS)), &Editor::did_set_shiftwidth_tabstop, nullptr, {nullptr, nullptr}, {4L, 0L}},
-        {(char *)"term", nullptr, P_STRING | P_EXPAND | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RALL, {nullptr, nullptr, &(term_strings[(int)(KS_NAME)]), 0}, PV_NONE, &Editor::did_set_term, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"termsync", (char *)"tsy", P_BOOL | P_VI_DEF, {&p_tsy, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_termsync, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"terse", nullptr, P_BOOL | P_VI_DEF, {&p_terse, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_terse, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"textwidth", (char *)"tw", P_NUM | P_VI_DEF | P_VIM | P_RBUF | P_HLONLY, {nullptr, &p_tw, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_TW)), &Editor::did_set_textwidth, nullptr, {nullptr, nullptr}, {0L, 0L}},
-        {(char *)"tildeop", (char *)"top", P_BOOL | P_VI_DEF | P_VIM, {&p_to, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"timeout", (char *)"to", P_BOOL | P_VI_DEF, {&p_timeout, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"timeoutlen", (char *)"tm", P_NUM | P_VI_DEF, {nullptr, &p_tm, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {1000L, 0L}},
-        {(char *)"ttimeout", nullptr, P_BOOL | P_VI_DEF | P_VIM, {&p_ttimeout, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"ttimeoutlen", (char *)"ttm", P_NUM | P_VI_DEF, {nullptr, &p_ttm, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {-1L, 0L}},
-        {(char *)"ttyfast", (char *)"tf", P_BOOL | P_NO_MKRC | P_VI_DEF, {&p_tf, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"ttyscroll", (char *)"tsl", P_NUM | P_VI_DEF, {nullptr, &p_ttyscroll, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {999L, 0L}},
-        {(char *)"ttytype", (char *)"tty", P_STRING | P_EXPAND | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RALL, {nullptr, nullptr, &(term_strings[(int)(KS_NAME)]), 0}, PV_NONE, &Editor::did_set_term, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"undolevels", (char *)"ul", P_NUM | P_VI_DEF, {nullptr, &p_ul, nullptr, 0}, (idopt_T)(PV_BOTH + (int)((idopt_T)(PV_BUF + (int)(BV_UL)))), &Editor::did_set_undolevels, nullptr, {nullptr, nullptr}, {9999L, 0L}},
-        {(char *)"verbose", (char *)"vbs", P_NUM | P_VI_DEF, {nullptr, &p_verbose, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
-        {(char *)"virtualedit", (char *)"ve", P_STRING | P_ONECOMMA | P_NODUP | P_VI_DEF | P_VIM | P_CURSWANT, {nullptr, nullptr, &p_ve, 0}, (idopt_T)(PV_BOTH + (int)((idopt_T)(PV_WIN + (int)(WV_VE)))), &Editor::did_set_virtualedit, nullptr, {(char_u *)"", (char_u *)""}, {0L, 0L}},
-        {(char *)"visualbell", (char *)"vb", P_BOOL | P_VI_DEF, {&p_vb, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"weirdinvert", (char *)"wiv", P_BOOL | P_VI_DEF | P_RCLR, {&p_wiv, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_weirdinvert, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
-        {(char *)"whichwrap", (char *)"ww", P_STRING | P_VIM | P_ONECOMMA | P_FLAGLIST, {nullptr, nullptr, &p_ww, 0}, PV_NONE, &Editor::did_set_whichwrap, nullptr, {(char_u *)"", (char_u *)"b,s"}, {0L, 0L}},
-        {(char *)"wincolor", (char *)"wcr", P_STRING | P_ALLOCED | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, (idopt_T)(PV_WIN + (int)(WV_WCR)), &Editor::did_set_wincolor, nullptr, {(char_u *)"", (char_u *)nullptr}, {0L, 0L}},
-        {(char *)"window", (char *)"wi", P_NUM | P_VI_DEF, {nullptr, &p_window, nullptr, 0}, PV_NONE, &Editor::did_set_window, nullptr, {nullptr, nullptr}, {0L, 0L}},
-        {(char *)"winhighlight", (char *)"whl", P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, nullptr, 1}, (idopt_T)(PV_WIN + (int)(WV_WHL)), &Editor::did_set_winhighlight, nullptr, {(char_u *)"", (char_u *)nullptr}, {0L, 0L}},
-        {(char *)"wrap", nullptr, P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, (idopt_T)(PV_WIN + (int)(WV_WRAP)), &Editor::did_set_wrap, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"wrapmargin", (char *)"wm", P_NUM | P_VI_DEF, {nullptr, &p_wm, nullptr, 0}, (idopt_T)(PV_BUF + (int)(BV_WM)), nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
-        {(char *)"wrapscan", (char *)"ws", P_BOOL | P_VI_DEF, {&p_ws, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
-        {(char *)"writedelay", (char *)"wd", P_NUM | P_VI_DEF, {nullptr, &p_wd, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
-        {(char *)"t_AB", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CAB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_AF", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CAF)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_AU", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CAU)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_AL", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CAL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_al", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_AL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_bc", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_BC)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_BE", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CBE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_BD", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CBD)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_cd", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CD)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ce", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Ce", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_UCE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_CF", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CF)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_cl", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_cm", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CM)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Co", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CCO)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_CS", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CCS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Cs", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_UCS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_cs", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_CV", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CSV)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_da", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_DA)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_db", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_DB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_DL", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CDL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_dl", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_DL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ds", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_DS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Ds", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CDS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_fs", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_FS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_fd", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_FD)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_fe", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_FE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_IE", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CIE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_IS", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CIS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ke", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_KE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ks", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_KS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_le", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_LE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_mb", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_MB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_md", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_MD)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_me", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_ME)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_mr", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_MR)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ms", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_MS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_nd", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_ND)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_op", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_OP)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_RI", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CRI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Ri", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_SRI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_RK", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CRK)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_RT", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CRT)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_RV", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CRV)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Sb", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CSB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_se", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_SE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Sf", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CSF)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Si", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_SSI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_so", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_SO)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_sr", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_SR)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ST", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CST)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Te", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_STE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_te", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_TE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_TE", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CTE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ti", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_TI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_TI", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CTI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Ts", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_STS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ts", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_TS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ue", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_UE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_us", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_US)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_Us", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_USS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ut", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_UT)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_vb", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_VB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ve", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_VE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_vi", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_VI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_VS", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CVS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_vs", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_VS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_WS", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CWS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_xn", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_XN)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_xs", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_XS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ZH", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CZH)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ZR", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_CZR)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_8u", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_8U)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_xo", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_XON)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_BS", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_BSU)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
-        {(char *)"t_ES", nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[(int)(KS_ESU)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {(char_u *)"", nullptr}, {0L, 0L}},
+        {"ambiwidth"_c, "ambw"_c, P_STRING | P_VI_DEF | P_RCLR, {nullptr, nullptr, &p_ambw, 0}, PV_NONE, &Editor::did_set_ambiwidth, nullptr, {"single"_uc, nullptr}, {0L, 0L}},
+        {"autoindent"_c, "ai"_c, P_BOOL | P_VI_DEF, {&p_ai, nullptr, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_AI)), nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"background"_c, "bg"_c, P_STRING | P_VI_DEF | P_RCLR | P_HLONLY, {nullptr, nullptr, &p_bg, 0}, PV_NONE, &Editor::did_set_background, nullptr, {"light"_uc, nullptr}, {0L, 0L}},
+        {"backspace"_c, "bs"_c, P_STRING | P_VIM | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_bs, 0}, PV_NONE, &Editor::did_set_backspace, nullptr, {""_uc, "indent,eol,start"_uc}, {0L, 0L}},
+        {"belloff"_c, "bo"_c, P_STRING | P_VI_DEF | P_COMMA | P_NODUP, {nullptr, nullptr, &p_bo, 0}, PV_NONE, &Editor::did_set_belloff, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"casemap"_c, "cmp"_c, P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_cmp, 0}, PV_NONE, &Editor::did_set_casemap, nullptr, {"internal,keepascii"_uc, nullptr}, {0L, 0L}},
+        {"cmdheight"_c, "ch"_c, P_NUM | P_VI_DEF | P_RALL, {nullptr, &p_ch, nullptr, 0}, PV_NONE, &Editor::did_set_cmdheight, nullptr, {nullptr, nullptr}, {1L, 0L}},
+        {"columns"_c, "co"_c, P_NUM | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RCLR, {nullptr, &Columns, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {80L, 0L}},
+        {"compatible"_c, "cp"_c, P_BOOL | P_RALL, {&p_cp, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_compatible, nullptr, {nullptr, nullptr}, {FALSE, FALSE}},
+        {"copyindent"_c, "ci"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_ci, nullptr, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_CI)), nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"cpoptions"_c, "cpo"_c, P_STRING | P_VIM | P_RALL | P_FLAGLIST, {nullptr, nullptr, &p_cpo, 0}, PV_NONE, &Editor::did_set_cpoptions, nullptr, {"aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;"_uc, "aABceFsz"_uc}, {0L, 0L}},
+        {"delcombine"_c, "deco"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_deco, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"display"_c, "dy"_c, P_STRING | P_VI_DEF | P_ONECOMMA | P_RALL | P_NODUP, {nullptr, nullptr, &p_dy, 0}, PV_NONE, &Editor::did_set_display, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"edcompatible"_c, "ed"_c, P_BOOL | P_VI_DEF, {&p_ed, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"emoji"_c, "emo"_c, P_BOOL | P_VI_DEF | P_RCLR, {&p_emoji, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_ambiwidth, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"errorbells"_c, "eb"_c, P_BOOL | P_VI_DEF, {&p_eb, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"esckeys"_c, "ek"_c, P_BOOL | P_VIM, {&p_ek, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, TRUE}},
+        {"expandtab"_c, "et"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_et, nullptr, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_ET)), nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"fillchars"_c, "fcs"_c, P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, &p_fcs, 0}, static_cast<idopt_T>(PV_BOTH + static_cast<int>(static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_FCS)))), &Editor::did_set_chars_option, nullptr, {"vert:|,fold:-,eob:~,lastline:@"_uc, nullptr}, {0L, 0L}},
+        {"gdefault"_c, "gd"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_gd, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"highlight"_c, "hl"_c, P_STRING | P_VI_DEF | P_RCLR | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, &p_hl, 0}, PV_NONE, &Editor::did_set_highlight, nullptr, {"8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert"_uc, nullptr}, {0L, 0L}},
+        {"history"_c, "hi"_c, P_NUM | P_VIM, {nullptr, &p_hi, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {9999L, 9999L}},
+        {"hlsearch"_c, "hls"_c, P_BOOL | P_VI_DEF | P_VIM | P_RALL | P_HLONLY, {&p_hls, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_hlsearch, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"ignorecase"_c, "ic"_c, P_BOOL | P_VI_DEF, {&p_ic, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_ignorecase, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"incsearch"_c, "is"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_is, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"insertmode"_c, "im"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_im, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_insertmode, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"isfname"_c, "isf"_c, P_STRING | P_VI_DEF | P_COMMA | P_NODUP, {nullptr, nullptr, &p_isf, 0}, PV_NONE, &Editor::did_set_isopt, nullptr, {"@,48-57,/,.,-,_,+,,,#,$,%,~,="_uc, nullptr}, {0L, 0L}},
+        {"isident"_c, "isi"_c, P_STRING | P_VI_DEF | P_COMMA | P_NODUP, {nullptr, nullptr, &p_isi, 0}, PV_NONE, &Editor::did_set_isopt, nullptr, {"@,48-57,_,192-255"_uc, nullptr}, {0L, 0L}},
+        {"iskeyword"_c, "isk"_c, P_STRING | P_ALLOCED | P_VIM | P_COMMA | P_NODUP, {nullptr, nullptr, &p_isk, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_ISK)), &Editor::did_set_iskeyword, nullptr, {"@,48-57,_"_uc, "@,48-57,_,192-255"_uc}, {0L, 0L}},
+        {"isprint"_c, "isp"_c, P_STRING | P_VI_DEF | P_RALL | P_COMMA | P_NODUP, {nullptr, nullptr, &p_isp, 0}, PV_NONE, &Editor::did_set_isopt, nullptr, {"@,161-255"_uc, nullptr}, {0L, 0L}},
+        {"joinspaces"_c, "js"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_js, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"keymodel"_c, "km"_c, P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_km, 0}, PV_NONE, &Editor::did_set_keymodel, nullptr, {"startsel"_uc, nullptr}, {0L, 0L}},
+        {"keyprotocol"_c, "kpc"_c, P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, &p_kpc, 0}, PV_NONE, &Editor::did_set_keyprotocol, nullptr, {"kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2"_uc, nullptr}, {0L, 0L}},
+        {"laststatus"_c, "ls"_c, P_NUM | P_VI_DEF | P_RALL, {nullptr, &p_ls, nullptr, 0}, PV_NONE, &Editor::did_set_laststatus, nullptr, {nullptr, nullptr}, {1L, 0L}},
+        {"lazyredraw"_c, "lz"_c, P_BOOL | P_VI_DEF, {&p_lz, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"lines"_c, nullptr, P_NUM | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RCLR, {nullptr, &Rows, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {24L, 0L}},
+        {"list"_c, nullptr, P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_LIST)), nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"listchars"_c, "lcs"_c, P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, &p_lcs, 0}, static_cast<idopt_T>(PV_BOTH + static_cast<int>(static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_LCS)))), &Editor::did_set_chars_option, nullptr, {"eol:$"_uc, nullptr}, {0L, 0L}},
+        {"magic"_c, nullptr, P_BOOL | P_VI_DEF, {&p_magic, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"matchpairs"_c, "mps"_c, P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_mps, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_MPS)), &Editor::did_set_matchpairs, nullptr, {"(:),{:},[:]"_uc, nullptr}, {0L, 0L}},
+        {"matchtime"_c, "mat"_c, P_NUM | P_VI_DEF, {nullptr, &p_mat, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {5L, 0L}},
+        {"maxcombine"_c, "mco"_c, P_NUM | P_VI_DEF | P_CURSWANT, {nullptr, &p_mco, nullptr, 0}, PV_NONE, &Editor::did_set_maxcombine, nullptr, {nullptr, nullptr}, {2, 0L}},
+        {"maxmapdepth"_c, "mmd"_c, P_NUM | P_VI_DEF, {nullptr, &p_mmd, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {1000L, 0L}},
+        {"maxmempattern"_c, "mmp"_c, P_NUM | P_VI_DEF, {nullptr, &p_mmp, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {1000L, 0L}},
+        {"maxsearchcount"_c, "msc"_c, P_NUM | P_VI_DEF, {nullptr, &p_msc, nullptr, 0}, PV_NONE, &Editor::did_set_maxsearchcount, nullptr, {nullptr, nullptr}, {99L, 0L}},
+        {"messagesopt"_c, "mopt"_c, P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_COLON | P_NODUP, {nullptr, nullptr, &p_mopt, 0}, PV_NONE, &Editor::did_set_messagesopt, nullptr, {"hit-enter,history:500"_uc, static_cast<char_u *>(nullptr)}, {0L, 0L}},
+        {"modifiable"_c, "ma"_c, P_BOOL | P_VI_DEF | P_NOGLOB, {&p_ma, nullptr, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_MA)), &Editor::did_set_modifiable, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"modified"_c, "mod"_c, P_BOOL | P_NO_MKRC | P_VI_DEF | P_RSTAT, {&p_mod, nullptr, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_MOD)), &Editor::did_set_modified, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"more"_c, nullptr, P_BOOL | P_VIM, {&p_more, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, TRUE}},
+        {"nrformats"_c, "nf"_c, P_STRING | P_ALLOCED | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_nf, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_NF)), &Editor::did_set_nrformats, nullptr, {"bin,octal,hex"_uc, nullptr}, {0L, 0L}},
+        {"number"_c, "nu"_c, P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_NU)), &Editor::did_set_number_relativenumber, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"osctimeoutlen"_c, "ost"_c, P_NUM | P_VI_DEF, {nullptr, &p_ost, nullptr, 0}, PV_NONE, &Editor::did_set_osctimeoutlen, nullptr, {nullptr, nullptr}, {1000, 0L}},
+        {"paste"_c, nullptr, P_BOOL | P_VI_DEF | P_PRI_MKRC, {&p_paste, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_paste, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"pastetoggle"_c, "pt"_c, P_STRING | P_VI_DEF, {nullptr, nullptr, &p_pt, 0}, PV_NONE, &Editor::did_set_pastetoggle, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"preserveindent"_c, "pi"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_pi, nullptr, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_PI)), nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"quoteescape"_c, "qe"_c, P_STRING | P_ALLOCED | P_VI_DEF, {nullptr, nullptr, &p_qe, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_QE)), nullptr, nullptr, {"\\"_uc, nullptr}, {0L, 0L}},
+        {"relativenumber"_c, "rnu"_c, P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_RNU)), &Editor::did_set_number_relativenumber, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"remap"_c, nullptr, P_BOOL | P_VI_DEF, {&p_remap, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"report"_c, nullptr, P_NUM | P_VI_DEF, {nullptr, &p_report, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {2L, 0L}},
+        {"ruler"_c, "ru"_c, P_BOOL | P_VIM | P_RSTAT, {&p_ru, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, TRUE}},
+        {"scroll"_c, "scr"_c, P_NUM | P_NO_MKRC | P_VI_DEF, {nullptr, nullptr, nullptr, 1}, static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_SCROLL)), nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
+        {"scrolljump"_c, "sj"_c, P_NUM | P_VI_DEF | P_VIM, {nullptr, &p_sj, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {1L, 0L}},
+        {"scrolloff"_c, "so"_c, P_NUM | P_VI_DEF | P_VIM | P_RALL, {nullptr, &p_so, nullptr, 0}, static_cast<idopt_T>(PV_BOTH + static_cast<int>(static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_SO)))), nullptr, nullptr, {nullptr, nullptr}, {1L, 0L}},
+        {"scrolloffpad"_c, "sop"_c, P_NUM | P_VI_DEF | P_VIM | P_RALL, {nullptr, &p_sop, nullptr, 0}, static_cast<idopt_T>(PV_BOTH + static_cast<int>(static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_SOP)))), nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
+        {"selection"_c, "sel"_c, P_STRING | P_VI_DEF, {nullptr, nullptr, &p_sel, 0}, PV_NONE, &Editor::did_set_selection, nullptr, {"inclusive"_uc, nullptr}, {0L, 0L}},
+        {"selectmode"_c, "slm"_c, P_STRING | P_VI_DEF | P_ONECOMMA | P_NODUP, {nullptr, nullptr, &p_slm, 0}, PV_NONE, &Editor::did_set_selectmode, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"shiftround"_c, "sr"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_sr, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"shiftwidth"_c, "sw"_c, P_NUM | P_VI_DEF, {nullptr, &p_sw, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_SW)), &Editor::did_set_shiftwidth_tabstop, nullptr, {nullptr, nullptr}, {4L, 0L}},
+        {"shortmess"_c, "shm"_c, P_STRING | P_VIM | P_FLAGLIST, {nullptr, nullptr, &p_shm, 0}, PV_NONE, &Editor::did_set_shortmess, nullptr, {"S"_uc, "filnxtToOS"_uc}, {0L, 0L}},
+        {"showcmd"_c, "sc"_c, P_BOOL | P_VIM, {&p_sc, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, TRUE}},
+        {"showcmdloc"_c, "sloc"_c, P_STRING | P_RSTAT, {nullptr, nullptr, &p_sloc, 0}, PV_NONE, &Editor::did_set_showcmdloc, nullptr, {"last"_uc, "last"_uc}, {0L, 0L}},
+        {"showmatch"_c, "sm"_c, P_BOOL | P_VI_DEF, {&p_sm, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"showmode"_c, "smd"_c, P_BOOL | P_VIM, {&p_smd, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, TRUE}},
+        {"sidescroll"_c, "ss"_c, P_NUM | P_VI_DEF, {nullptr, &p_ss, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
+        {"sidescrolloff"_c, "siso"_c, P_NUM | P_VI_DEF | P_VIM | P_RBUF, {nullptr, &p_siso, nullptr, 0}, static_cast<idopt_T>(PV_BOTH + static_cast<int>(static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_SISO)))), nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
+        {"smartcase"_c, "scs"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_scs, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"smartindent"_c, "si"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_si, nullptr, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_SI)), nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"smarttab"_c, "sta"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_sta, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"smoothscroll"_c, "sms"_c, P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_SMS)), &Editor::did_set_smoothscroll, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"softtabstop"_c, "sts"_c, P_NUM | P_VI_DEF | P_VIM, {nullptr, &p_sts, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_STS)), nullptr, nullptr, {nullptr, nullptr}, {4L, 0L}},
+        {"startofline"_c, "sol"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_sol, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"tabstop"_c, "ts"_c, P_NUM | P_VI_DEF | P_RBUF, {nullptr, &p_ts, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_TS)), &Editor::did_set_shiftwidth_tabstop, nullptr, {nullptr, nullptr}, {4L, 0L}},
+        {"term"_c, nullptr, P_STRING | P_EXPAND | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RALL, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_NAME)]), 0}, PV_NONE, &Editor::did_set_term, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"termsync"_c, "tsy"_c, P_BOOL | P_VI_DEF, {&p_tsy, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_termsync, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"terse"_c, nullptr, P_BOOL | P_VI_DEF, {&p_terse, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_terse, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"textwidth"_c, "tw"_c, P_NUM | P_VI_DEF | P_VIM | P_RBUF | P_HLONLY, {nullptr, &p_tw, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_TW)), &Editor::did_set_textwidth, nullptr, {nullptr, nullptr}, {0L, 0L}},
+        {"tildeop"_c, "top"_c, P_BOOL | P_VI_DEF | P_VIM, {&p_to, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"timeout"_c, "to"_c, P_BOOL | P_VI_DEF, {&p_timeout, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"timeoutlen"_c, "tm"_c, P_NUM | P_VI_DEF, {nullptr, &p_tm, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {1000L, 0L}},
+        {"ttimeout"_c, nullptr, P_BOOL | P_VI_DEF | P_VIM, {&p_ttimeout, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"ttimeoutlen"_c, "ttm"_c, P_NUM | P_VI_DEF, {nullptr, &p_ttm, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {-1L, 0L}},
+        {"ttyfast"_c, "tf"_c, P_BOOL | P_NO_MKRC | P_VI_DEF, {&p_tf, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"ttyscroll"_c, "tsl"_c, P_NUM | P_VI_DEF, {nullptr, &p_ttyscroll, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {999L, 0L}},
+        {"ttytype"_c, "tty"_c, P_STRING | P_EXPAND | P_NODEFAULT | P_NO_MKRC | P_VI_DEF | P_RALL, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_NAME)]), 0}, PV_NONE, &Editor::did_set_term, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"undolevels"_c, "ul"_c, P_NUM | P_VI_DEF, {nullptr, &p_ul, nullptr, 0}, static_cast<idopt_T>(PV_BOTH + static_cast<int>(static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_UL)))), &Editor::did_set_undolevels, nullptr, {nullptr, nullptr}, {9999L, 0L}},
+        {"verbose"_c, "vbs"_c, P_NUM | P_VI_DEF, {nullptr, &p_verbose, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
+        {"virtualedit"_c, "ve"_c, P_STRING | P_ONECOMMA | P_NODUP | P_VI_DEF | P_VIM | P_CURSWANT, {nullptr, nullptr, &p_ve, 0}, static_cast<idopt_T>(PV_BOTH + static_cast<int>(static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_VE)))), &Editor::did_set_virtualedit, nullptr, {""_uc, ""_uc}, {0L, 0L}},
+        {"visualbell"_c, "vb"_c, P_BOOL | P_VI_DEF, {&p_vb, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"weirdinvert"_c, "wiv"_c, P_BOOL | P_VI_DEF | P_RCLR, {&p_wiv, nullptr, nullptr, 0}, PV_NONE, &Editor::did_set_weirdinvert, nullptr, {nullptr, nullptr}, {FALSE, 0L}},
+        {"whichwrap"_c, "ww"_c, P_STRING | P_VIM | P_ONECOMMA | P_FLAGLIST, {nullptr, nullptr, &p_ww, 0}, PV_NONE, &Editor::did_set_whichwrap, nullptr, {""_uc, "b,s"_uc}, {0L, 0L}},
+        {"wincolor"_c, "wcr"_c, P_STRING | P_ALLOCED | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_WCR)), &Editor::did_set_wincolor, nullptr, {""_uc, static_cast<char_u *>(nullptr)}, {0L, 0L}},
+        {"window"_c, "wi"_c, P_NUM | P_VI_DEF, {nullptr, &p_window, nullptr, 0}, PV_NONE, &Editor::did_set_window, nullptr, {nullptr, nullptr}, {0L, 0L}},
+        {"winhighlight"_c, "whl"_c, P_STRING | P_VI_DEF | P_RALL | P_ONECOMMA | P_NODUP | P_COLON, {nullptr, nullptr, nullptr, 1}, static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_WHL)), &Editor::did_set_winhighlight, nullptr, {""_uc, static_cast<char_u *>(nullptr)}, {0L, 0L}},
+        {"wrap"_c, nullptr, P_BOOL | P_VI_DEF | P_RWIN, {nullptr, nullptr, nullptr, 1}, static_cast<idopt_T>(PV_WIN + static_cast<int>(WV_WRAP)), &Editor::did_set_wrap, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"wrapmargin"_c, "wm"_c, P_NUM | P_VI_DEF, {nullptr, &p_wm, nullptr, 0}, static_cast<idopt_T>(PV_BUF + static_cast<int>(BV_WM)), nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
+        {"wrapscan"_c, "ws"_c, P_BOOL | P_VI_DEF, {&p_ws, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {TRUE, 0L}},
+        {"writedelay"_c, "wd"_c, P_NUM | P_VI_DEF, {nullptr, &p_wd, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
+        {"t_AB"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CAB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_AF"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CAF)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_AU"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CAU)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_AL"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CAL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_al"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_AL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_bc"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_BC)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_BE"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CBE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_BD"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CBD)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_cd"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CD)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ce"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Ce"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_UCE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_CF"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CF)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_cl"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_cm"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CM)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Co"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CCO)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_CS"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CCS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Cs"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_UCS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_cs"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_CV"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CSV)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_da"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_DA)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_db"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_DB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_DL"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CDL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_dl"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_DL)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ds"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_DS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Ds"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CDS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_fs"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_FS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_fd"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_FD)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_fe"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_FE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_IE"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CIE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_IS"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CIS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ke"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_KE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ks"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_KS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_le"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_LE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_mb"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_MB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_md"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_MD)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_me"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_ME)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_mr"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_MR)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ms"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_MS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_nd"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_ND)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_op"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_OP)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_RI"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CRI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Ri"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_SRI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_RK"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CRK)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_RT"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CRT)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_RV"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CRV)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Sb"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CSB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_se"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_SE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Sf"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CSF)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Si"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_SSI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_so"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_SO)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_sr"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_SR)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ST"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CST)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Te"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_STE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_te"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_TE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_TE"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CTE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ti"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_TI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_TI"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CTI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Ts"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_STS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ts"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_TS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ue"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_UE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_us"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_US)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_Us"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_USS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ut"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_UT)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_vb"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_VB)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ve"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_VE)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_vi"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_VI)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_VS"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CVS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_vs"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_VS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_WS"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CWS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_xn"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_XN)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_xs"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_XS)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ZH"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CZH)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ZR"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_CZR)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_8u"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_8U)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_xo"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_XON)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_BS"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_BSU)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
+        {"t_ES"_c, nullptr, P_STRING | P_VI_DEF | P_RALL | P_SECURE, {nullptr, nullptr, &(term_strings[static_cast<int>(KS_ESU)]), 0}, PV_NONE, &Editor::did_set_term_option, nullptr, {""_uc, nullptr}, {0L, 0L}},
         {nullptr, nullptr, 0, {nullptr, nullptr, nullptr, 0}, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}},
     };
     char *p_ambw_values[3] =
     {
-        (char *)"single",
-        (char *)"double",
+        "single"_c,
+        "double"_c,
         nullptr,
     };
     char *p_bg_values[3] =
     {
-        (char *)"light",
-        (char *)"dark",
+        "light"_c,
+        "dark"_c,
         nullptr,
     };
     char *p_bo_values[17] =
     {
-        (char *)"all",
-        (char *)"backspace",
-        (char *)"cursor",
-        (char *)"copy",
-        (char *)"ctrlg",
-        (char *)"error",
-        (char *)"esc",
-        (char *)"ex",
-        (char *)"hangul",
-        (char *)"insertmode",
-        (char *)"lang",
-        (char *)"mess",
-        (char *)"showmatch",
-        (char *)"operator",
-        (char *)"register",
-        (char *)"term",
+        "all"_c,
+        "backspace"_c,
+        "cursor"_c,
+        "copy"_c,
+        "ctrlg"_c,
+        "error"_c,
+        "esc"_c,
+        "ex"_c,
+        "hangul"_c,
+        "insertmode"_c,
+        "lang"_c,
+        "mess"_c,
+        "showmatch"_c,
+        "operator"_c,
+        "register"_c,
+        "term"_c,
         nullptr,
     };
     char *p_nf_values[7] =
     {
-        (char *)"bin",
-        (char *)"octal",
-        (char *)"hex",
-        (char *)"alpha",
-        (char *)"unsigned",
-        (char *)"blank",
+        "bin"_c,
+        "octal"_c,
+        "hex"_c,
+        "alpha"_c,
+        "unsigned"_c,
+        "blank"_c,
         nullptr,
     };
     char *p_cmp_values[3] =
     {
-        (char *)"internal",
-        (char *)"keepascii",
+        "internal"_c,
+        "keepascii"_c,
         nullptr,
     };
     char *p_dy_values[4] =
     {
-        (char *)"lastline",
-        (char *)"truncate",
-        (char *)"uhex",
+        "lastline"_c,
+        "truncate"_c,
+        "uhex"_c,
         nullptr,
     };
     char *p_ve_values[7] =
     {
-        (char *)"block",
-        (char *)"insert",
-        (char *)"all",
-        (char *)"onemore",
-        (char *)"none",
-        (char *)"NONE",
+        "block"_c,
+        "insert"_c,
+        "all"_c,
+        "onemore"_c,
+        "none"_c,
+        "NONE"_c,
         nullptr,
     };
     char *p_sel_values[4] =
     {
-        (char *)"inclusive",
-        (char *)"exclusive",
-        (char *)"old",
+        "inclusive"_c,
+        "exclusive"_c,
+        "old"_c,
         nullptr,
     };
     char *p_slm_values[2] =
     {
-        (char *)"cmd",
+        "cmd"_c,
         nullptr,
     };
     char *p_km_values[3] =
     {
-        (char *)"startsel",
-        (char *)"stopsel",
+        "startsel"_c,
+        "stopsel"_c,
         nullptr,
     };
     char *p_bs_values[5] =
     {
-        (char *)"indent",
-        (char *)"eol",
-        (char *)"start",
-        (char *)"nostop",
+        "indent"_c,
+        "eol"_c,
+        "start"_c,
+        "nostop"_c,
         nullptr,
     };
     char *p_sloc_values[2] =
     {
-        (char *)"last",
+        "last"_c,
         nullptr,
     };
-    struct signalinfo signal_info[3] =
+    signalinfo signal_info[3] =
     {
-        {SIGHUP, (char *)"HUP"},
-        {SIGTERM, (char *)"TERM"},
-        {-1, (char *)"Unknown!"},
+        {SIGHUP, "HUP"_c},
+        {SIGTERM, "TERM"_c},
+        {-1, "Unknown!"_c},
     };
     char_u *reg_prev_sub = nullptr;
     usize reg_prev_sublen = 0;
@@ -9509,7 +9604,7 @@ public:
     magic_T reg_magic;
     int reg_string;
     int reg_strict;
-    static inline const char_u META_flags[127] =
+    static constexpr const char_u META_flags[127] =
     {
         0,
         0,
@@ -9707,8 +9802,8 @@ public:
     int bt_reg_parse_depth;
     char_u had_endbrace[NSUBEXP];
     bool one_exactly = FALSE;
-    char_u *classchars = (char_u *)".iIkKfFpPsSdDxXoOwWhHaAlLuU";
-    static inline const int classcodes[27] =
+    char_u *classchars = ".iIkKfFpPsSdDxXoOwWhHaAlLuU"_uc;
+    static constexpr const int classcodes[27] =
     {
         ANY,
         IDENT,
@@ -9746,37 +9841,37 @@ public:
     int screen_attr = 0;
     int screen_char_attr = 0;
     fill_chars_T fill_chars;
-    struct charstab filltab[13] =
+    charstab filltab[13] =
     {
-        {(&fill_chars.stl), {(char_u *)("stl"), (sizeof("stl") - 1)}},
-        {(&fill_chars.stlnc), {(char_u *)("stlnc"), (sizeof("stlnc") - 1)}},
-        {(&fill_chars.vert), {(char_u *)("vert"), (sizeof("vert") - 1)}},
-        {(&fill_chars.fold), {(char_u *)("fold"), (sizeof("fold") - 1)}},
-        {(&fill_chars.foldopen), {(char_u *)("foldopen"), (sizeof("foldopen") - 1)}},
-        {(&fill_chars.foldclosed), {(char_u *)("foldclose"), (sizeof("foldclose") - 1)}},
-        {(&fill_chars.foldsep), {(char_u *)("foldsep"), (sizeof("foldsep") - 1)}},
-        {(&fill_chars.foldinner), {(char_u *)("foldinner"), (sizeof("foldinner") - 1)}},
-        {(&fill_chars.diff), {(char_u *)("diff"), (sizeof("diff") - 1)}},
-        {(&fill_chars.eob), {(char_u *)("eob"), (sizeof("eob") - 1)}},
-        {(&fill_chars.lastline), {(char_u *)("lastline"), (sizeof("lastline") - 1)}},
-        {(&fill_chars.trunc), {(char_u *)("trunc"), (sizeof("trunc") - 1)}},
-        {(&fill_chars.truncrl), {(char_u *)("truncrl"), (sizeof("truncrl") - 1)}},
+        {(&fill_chars.stl), {"stl"_uc, (sizeof("stl") - 1)}},
+        {(&fill_chars.stlnc), {"stlnc"_uc, (sizeof("stlnc") - 1)}},
+        {(&fill_chars.vert), {"vert"_uc, (sizeof("vert") - 1)}},
+        {(&fill_chars.fold), {"fold"_uc, (sizeof("fold") - 1)}},
+        {(&fill_chars.foldopen), {"foldopen"_uc, (sizeof("foldopen") - 1)}},
+        {(&fill_chars.foldclosed), {"foldclose"_uc, (sizeof("foldclose") - 1)}},
+        {(&fill_chars.foldsep), {"foldsep"_uc, (sizeof("foldsep") - 1)}},
+        {(&fill_chars.foldinner), {"foldinner"_uc, (sizeof("foldinner") - 1)}},
+        {(&fill_chars.diff), {"diff"_uc, (sizeof("diff") - 1)}},
+        {(&fill_chars.eob), {"eob"_uc, (sizeof("eob") - 1)}},
+        {(&fill_chars.lastline), {"lastline"_uc, (sizeof("lastline") - 1)}},
+        {(&fill_chars.trunc), {"trunc"_uc, (sizeof("trunc") - 1)}},
+        {(&fill_chars.truncrl), {"truncrl"_uc, (sizeof("truncrl") - 1)}},
     };
     lcs_chars_T lcs_chars;
-    struct charstab lcstab[12] =
+    charstab lcstab[12] =
     {
-        {(&lcs_chars.eol), {(char_u *)("eol"), (sizeof("eol") - 1)}},
-        {(&lcs_chars.ext), {(char_u *)("extends"), (sizeof("extends") - 1)}},
-        {(&lcs_chars.nbsp), {(char_u *)("nbsp"), (sizeof("nbsp") - 1)}},
-        {(&lcs_chars.prec), {(char_u *)("precedes"), (sizeof("precedes") - 1)}},
-        {(&lcs_chars.space), {(char_u *)("space"), (sizeof("space") - 1)}},
-        {(&lcs_chars.tab2), {(char_u *)("tab"), (sizeof("tab") - 1)}},
-        {(&lcs_chars.leadtab2), {(char_u *)("leadtab"), (sizeof("leadtab") - 1)}},
-        {(&lcs_chars.trail), {(char_u *)("trail"), (sizeof("trail") - 1)}},
-        {(&lcs_chars.lead), {(char_u *)("lead"), (sizeof("lead") - 1)}},
-        {(nullptr), {(char_u *)("conceal"), (sizeof("conceal") - 1)}},
-        {(nullptr), {(char_u *)("multispace"), (sizeof("multispace") - 1)}},
-        {(nullptr), {(char_u *)("leadmultispace"), (sizeof("leadmultispace") - 1)}},
+        {(&lcs_chars.eol), {"eol"_uc, (sizeof("eol") - 1)}},
+        {(&lcs_chars.ext), {"extends"_uc, (sizeof("extends") - 1)}},
+        {(&lcs_chars.nbsp), {"nbsp"_uc, (sizeof("nbsp") - 1)}},
+        {(&lcs_chars.prec), {"precedes"_uc, (sizeof("precedes") - 1)}},
+        {(&lcs_chars.space), {"space"_uc, (sizeof("space") - 1)}},
+        {(&lcs_chars.tab2), {"tab"_uc, (sizeof("tab") - 1)}},
+        {(&lcs_chars.leadtab2), {"leadtab"_uc, (sizeof("leadtab") - 1)}},
+        {(&lcs_chars.trail), {"trail"_uc, (sizeof("trail") - 1)}},
+        {(&lcs_chars.lead), {"lead"_uc, (sizeof("lead") - 1)}},
+        {(nullptr), {"conceal"_uc, (sizeof("conceal") - 1)}},
+        {(nullptr), {"multispace"_uc, (sizeof("multispace") - 1)}},
+        {(nullptr), {"leadmultispace"_uc, (sizeof("leadmultispace") - 1)}},
     };
     spat_T spats[2] =
     {
@@ -9819,323 +9914,323 @@ public:
     int sync_output_state = 0;
     tcap_entry_T builtin_xterm[139] =
     {
-        {(int)KS_CE, (char *)"\033[K"},
-        {(int)KS_AL, (char *)"\033[L"},
-        {(int)KS_CAL, (char *)"\033[%dL"},
-        {(int)KS_DL, (char *)"\033[M"},
-        {(int)KS_CDL, (char *)"\033[%dM"},
-        {(int)KS_CS, (char *)"\033[%i%d;%dr"},
-        {(int)KS_CL, (char *)"\033[H\033[2J"},
-        {(int)KS_CD, (char *)"\033[J"},
-        {(int)KS_ME, (char *)"\033[m"},
-        {(int)KS_MR, (char *)"\033[7m"},
-        {(int)KS_MD, (char *)"\033[1m"},
-        {(int)KS_UE, (char *)"\033[m"},
-        {(int)KS_US, (char *)"\033[4m"},
-        {(int)KS_STE, (char *)"\033[29m"},
-        {(int)KS_STS, (char *)"\033[9m"},
-        {(int)KS_MS, (char *)"y"},
-        {(int)KS_UT, (char *)"y"},
-        {(int)KS_LE, (char *)"\b"},
-        {(int)KS_VI, (char *)"\033[?25l"},
-        {(int)KS_VE, (char *)"\033[?25h"},
-        {(int)KS_VS, (char *)"\033[?12h"},
-        {(int)KS_CVS, (char *)"\033[?12l"},
-        {(int)KS_CSH, (char *)"\033[%d q"},
-        {(int)KS_CRC, (char *)"\033[?12$p"},
-        {(int)KS_CRS, (char *)"\033P$q q\033\\"},
-        {(int)KS_CM, (char *)"\033[%i%d;%dH"},
-        {(int)KS_SR, (char *)"\033M"},
-        {(int)KS_CRI, (char *)"\033[%dC"},
-        {(int)KS_KS, (char *)"\033[?1h\033="},
-        {(int)KS_KE, (char *)"\033[?1l\033>"},
-        {(int)KS_CIS, (char *)"\033]1;"},
-        {(int)KS_CIE, (char *)"\007"},
-        {(int)KS_TS, (char *)"\033]2;"},
-        {(int)KS_FS, (char *)"\007"},
-        {(int)KS_CSC, (char *)"\033]12;"},
-        {(int)KS_CEC, (char *)"\007"},
-        {(int)KS_CWS, (char *)"\033[8;%d;%dt"},
-        {(int)KS_CWP, (char *)"\033[3;%d;%dt"},
-        {(int)KS_CGP, (char *)"\033[13t"},
-        {(int)KS_CRV, (char *)"\033[>c"},
-        {(int)KS_CXM, (char *)"\033[?1006;1000%?%p1%{1}%=%th%el%;"},
-        {(int)KS_RFG, (char *)"\033]10;?\007"},
-        {(int)KS_RBG, (char *)"\033]11;?\007"},
-        {(int)KS_U7, (char *)"\033[6n"},
-        {(int)KS_CAU, (char *)"\033[58;5;%dm"},
-        {(int)KS_CBD, (char *)"\033[?2004l"},
-        {(int)KS_CST, (char *)"\033[22;2t"},
-        {(int)KS_CRT, (char *)"\033[23;2t"},
-        {(int)KS_SSI, (char *)"\033[22;1t"},
-        {(int)KS_SRI, (char *)"\033[23;1t"},
-        {(int)KS_FD, (char *)"\033[?1004l"},
-        {(int)KS_FE, (char *)"\033[?1004h"},
-        {K_UP, (char *)"\033O*A"},
-        {K_DOWN, (char *)"\033O*B"},
-        {K_RIGHT, (char *)"\033O*C"},
-        {K_LEFT, (char *)"\033O*D"},
-        {K_XUP, (char *)"\033[@;*A"},
-        {K_XDOWN, (char *)"\033[@;*B"},
-        {K_XRIGHT, (char *)"\033[@;*C"},
-        {K_XLEFT, (char *)"\033[@;*D"},
-        {K_XF1, (char *)"\033O*P"},
-        {K_XF2, (char *)"\033O*Q"},
-        {K_XF3, (char *)"\033O*R"},
-        {K_XF4, (char *)"\033O*S"},
-        {K_F1, (char *)"\033[11;*~"},
-        {K_F2, (char *)"\033[12;*~"},
-        {K_F3, (char *)"\033[13;*~"},
-        {K_F4, (char *)"\033[14;*~"},
-        {K_F5, (char *)"\033[15;*~"},
-        {K_F6, (char *)"\033[17;*~"},
-        {K_F7, (char *)"\033[18;*~"},
-        {K_F8, (char *)"\033[19;*~"},
-        {K_F9, (char *)"\033[20;*~"},
-        {K_F10, (char *)"\033[21;*~"},
-        {K_F11, (char *)"\033[23;*~"},
-        {K_F12, (char *)"\033[24;*~"},
-        {K_TC_k_B, (char *)"\033[Z"},
-        {K_HELP, (char *)"\033[28;*~"},
-        {K_UNDO, (char *)"\033[26;*~"},
-        {K_INS, (char *)"\033[2;*~"},
-        {K_HOME, (char *)"\033[@;*H"},
-        {K_KHOME, (char *)"\033[1;*~"},
-        {K_XHOME, (char *)"\033O*H"},
-        {K_ZHOME, (char *)"\033[7;*~"},
-        {K_END, (char *)"\033[@;*F"},
-        {K_KEND, (char *)"\033[4;*~"},
-        {K_XEND, (char *)"\033O*F"},
-        {K_ZEND, (char *)"\033[8;*~"},
-        {K_PAGEUP, (char *)"\033[5;*~"},
-        {K_PAGEDOWN, (char *)"\033[6;*~"},
-        {K_KPLUS, (char *)"\033O*k"},
-        {K_KMINUS, (char *)"\033O*m"},
-        {K_KDIVIDE, (char *)"\033O*o"},
-        {K_KMULTIPLY, (char *)"\033O*j"},
-        {K_KENTER, (char *)"\033O*M"},
-        {K_KPOINT, (char *)"\033O*n"},
-        {K_K0, (char *)"\033O*p"},
-        {K_K1, (char *)"\033O*q"},
-        {K_K2, (char *)"\033O*r"},
-        {K_K3, (char *)"\033O*s"},
-        {K_K4, (char *)"\033O*t"},
-        {K_K5, (char *)"\033O*u"},
-        {K_K6, (char *)"\033O*v"},
-        {K_K7, (char *)"\033O*w"},
-        {K_K8, (char *)"\033O*x"},
-        {K_K9, (char *)"\033O*y"},
-        {K_KDEL, (char *)"\033[3;*~"},
-        {K_PASTESTART, (char *)"\033[200~"},
-        {K_PASTEEND, (char *)"\033[201~"},
-        {(int)KS_CCO, (char *)"8"},
-        {(int)KS_CAB, (char *)"\033[4%dm"},
-        {(int)KS_CAF, (char *)"\033[3%dm"},
-        {(int)KS_OP, (char *)"\033[0m"},
-        {BT_EXTRA_KEYS, (char *)""},
-        {K_TC_k_0, (char *)"\033[10;*~"},
-        {K_F13, (char *)"\033[25;*~"},
-        {K_F16, (char *)"\033[29;*~"},
-        {K_F17, (char *)"\033[31;*~"},
-        {K_F18, (char *)"\033[32;*~"},
-        {K_F19, (char *)"\033[33;*~"},
-        {K_F20, (char *)"\033[34;*~"},
-        {K_F21, (char *)"\033[42;*~"},
-        {K_F22, (char *)"\033[43;*~"},
-        {K_F23, (char *)"\033[44;*~"},
-        {K_F24, (char *)"\033[45;*~"},
-        {K_F25, (char *)"\033[46;*~"},
-        {K_F26, (char *)"\033[47;*~"},
-        {K_F27, (char *)"\033[48;*~"},
-        {K_F28, (char *)"\033[49;*~"},
-        {K_F29, (char *)"\033[50;*~"},
-        {K_F30, (char *)"\033[51;*~"},
-        {K_F31, (char *)"\033[52;*~"},
-        {K_F32, (char *)"\033[53;*~"},
-        {K_F33, (char *)"\033[54;*~"},
-        {K_F34, (char *)"\033[55;*~"},
-        {K_F35, (char *)"\033[56;*~"},
-        {K_F36, (char *)"\033[57;*~"},
-        {K_F37, (char *)"\033[58;*~"},
-        {(int)KS_NAME, nullptr},
+        {static_cast<int>(KS_CE), "\033[K"_c},
+        {static_cast<int>(KS_AL), "\033[L"_c},
+        {static_cast<int>(KS_CAL), "\033[%dL"_c},
+        {static_cast<int>(KS_DL), "\033[M"_c},
+        {static_cast<int>(KS_CDL), "\033[%dM"_c},
+        {static_cast<int>(KS_CS), "\033[%i%d;%dr"_c},
+        {static_cast<int>(KS_CL), "\033[H\033[2J"_c},
+        {static_cast<int>(KS_CD), "\033[J"_c},
+        {static_cast<int>(KS_ME), "\033[m"_c},
+        {static_cast<int>(KS_MR), "\033[7m"_c},
+        {static_cast<int>(KS_MD), "\033[1m"_c},
+        {static_cast<int>(KS_UE), "\033[m"_c},
+        {static_cast<int>(KS_US), "\033[4m"_c},
+        {static_cast<int>(KS_STE), "\033[29m"_c},
+        {static_cast<int>(KS_STS), "\033[9m"_c},
+        {static_cast<int>(KS_MS), "y"_c},
+        {static_cast<int>(KS_UT), "y"_c},
+        {static_cast<int>(KS_LE), "\b"_c},
+        {static_cast<int>(KS_VI), "\033[?25l"_c},
+        {static_cast<int>(KS_VE), "\033[?25h"_c},
+        {static_cast<int>(KS_VS), "\033[?12h"_c},
+        {static_cast<int>(KS_CVS), "\033[?12l"_c},
+        {static_cast<int>(KS_CSH), "\033[%d q"_c},
+        {static_cast<int>(KS_CRC), "\033[?12$p"_c},
+        {static_cast<int>(KS_CRS), "\033P$q q\033\\"_c},
+        {static_cast<int>(KS_CM), "\033[%i%d;%dH"_c},
+        {static_cast<int>(KS_SR), "\033M"_c},
+        {static_cast<int>(KS_CRI), "\033[%dC"_c},
+        {static_cast<int>(KS_KS), "\033[?1h\033="_c},
+        {static_cast<int>(KS_KE), "\033[?1l\033>"_c},
+        {static_cast<int>(KS_CIS), "\033]1;"_c},
+        {static_cast<int>(KS_CIE), "\007"_c},
+        {static_cast<int>(KS_TS), "\033]2;"_c},
+        {static_cast<int>(KS_FS), "\007"_c},
+        {static_cast<int>(KS_CSC), "\033]12;"_c},
+        {static_cast<int>(KS_CEC), "\007"_c},
+        {static_cast<int>(KS_CWS), "\033[8;%d;%dt"_c},
+        {static_cast<int>(KS_CWP), "\033[3;%d;%dt"_c},
+        {static_cast<int>(KS_CGP), "\033[13t"_c},
+        {static_cast<int>(KS_CRV), "\033[>c"_c},
+        {static_cast<int>(KS_CXM), "\033[?1006;1000%?%p1%{1}%=%th%el%;"_c},
+        {static_cast<int>(KS_RFG), "\033]10;?\007"_c},
+        {static_cast<int>(KS_RBG), "\033]11;?\007"_c},
+        {static_cast<int>(KS_U7), "\033[6n"_c},
+        {static_cast<int>(KS_CAU), "\033[58;5;%dm"_c},
+        {static_cast<int>(KS_CBD), "\033[?2004l"_c},
+        {static_cast<int>(KS_CST), "\033[22;2t"_c},
+        {static_cast<int>(KS_CRT), "\033[23;2t"_c},
+        {static_cast<int>(KS_SSI), "\033[22;1t"_c},
+        {static_cast<int>(KS_SRI), "\033[23;1t"_c},
+        {static_cast<int>(KS_FD), "\033[?1004l"_c},
+        {static_cast<int>(KS_FE), "\033[?1004h"_c},
+        {K_UP, "\033O*A"_c},
+        {K_DOWN, "\033O*B"_c},
+        {K_RIGHT, "\033O*C"_c},
+        {K_LEFT, "\033O*D"_c},
+        {K_XUP, "\033[@;*A"_c},
+        {K_XDOWN, "\033[@;*B"_c},
+        {K_XRIGHT, "\033[@;*C"_c},
+        {K_XLEFT, "\033[@;*D"_c},
+        {K_XF1, "\033O*P"_c},
+        {K_XF2, "\033O*Q"_c},
+        {K_XF3, "\033O*R"_c},
+        {K_XF4, "\033O*S"_c},
+        {K_F1, "\033[11;*~"_c},
+        {K_F2, "\033[12;*~"_c},
+        {K_F3, "\033[13;*~"_c},
+        {K_F4, "\033[14;*~"_c},
+        {K_F5, "\033[15;*~"_c},
+        {K_F6, "\033[17;*~"_c},
+        {K_F7, "\033[18;*~"_c},
+        {K_F8, "\033[19;*~"_c},
+        {K_F9, "\033[20;*~"_c},
+        {K_F10, "\033[21;*~"_c},
+        {K_F11, "\033[23;*~"_c},
+        {K_F12, "\033[24;*~"_c},
+        {K_TC_k_B, "\033[Z"_c},
+        {K_HELP, "\033[28;*~"_c},
+        {K_UNDO, "\033[26;*~"_c},
+        {K_INS, "\033[2;*~"_c},
+        {K_HOME, "\033[@;*H"_c},
+        {K_KHOME, "\033[1;*~"_c},
+        {K_XHOME, "\033O*H"_c},
+        {K_ZHOME, "\033[7;*~"_c},
+        {K_END, "\033[@;*F"_c},
+        {K_KEND, "\033[4;*~"_c},
+        {K_XEND, "\033O*F"_c},
+        {K_ZEND, "\033[8;*~"_c},
+        {K_PAGEUP, "\033[5;*~"_c},
+        {K_PAGEDOWN, "\033[6;*~"_c},
+        {K_KPLUS, "\033O*k"_c},
+        {K_KMINUS, "\033O*m"_c},
+        {K_KDIVIDE, "\033O*o"_c},
+        {K_KMULTIPLY, "\033O*j"_c},
+        {K_KENTER, "\033O*M"_c},
+        {K_KPOINT, "\033O*n"_c},
+        {K_K0, "\033O*p"_c},
+        {K_K1, "\033O*q"_c},
+        {K_K2, "\033O*r"_c},
+        {K_K3, "\033O*s"_c},
+        {K_K4, "\033O*t"_c},
+        {K_K5, "\033O*u"_c},
+        {K_K6, "\033O*v"_c},
+        {K_K7, "\033O*w"_c},
+        {K_K8, "\033O*x"_c},
+        {K_K9, "\033O*y"_c},
+        {K_KDEL, "\033[3;*~"_c},
+        {K_PASTESTART, "\033[200~"_c},
+        {K_PASTEEND, "\033[201~"_c},
+        {static_cast<int>(KS_CCO), "8"_c},
+        {static_cast<int>(KS_CAB), "\033[4%dm"_c},
+        {static_cast<int>(KS_CAF), "\033[3%dm"_c},
+        {static_cast<int>(KS_OP), "\033[0m"_c},
+        {BT_EXTRA_KEYS, ""_c},
+        {K_TC_k_0, "\033[10;*~"_c},
+        {K_F13, "\033[25;*~"_c},
+        {K_F16, "\033[29;*~"_c},
+        {K_F17, "\033[31;*~"_c},
+        {K_F18, "\033[32;*~"_c},
+        {K_F19, "\033[33;*~"_c},
+        {K_F20, "\033[34;*~"_c},
+        {K_F21, "\033[42;*~"_c},
+        {K_F22, "\033[43;*~"_c},
+        {K_F23, "\033[44;*~"_c},
+        {K_F24, "\033[45;*~"_c},
+        {K_F25, "\033[46;*~"_c},
+        {K_F26, "\033[47;*~"_c},
+        {K_F27, "\033[48;*~"_c},
+        {K_F28, "\033[49;*~"_c},
+        {K_F29, "\033[50;*~"_c},
+        {K_F30, "\033[51;*~"_c},
+        {K_F31, "\033[52;*~"_c},
+        {K_F32, "\033[53;*~"_c},
+        {K_F33, "\033[54;*~"_c},
+        {K_F34, "\033[55;*~"_c},
+        {K_F35, "\033[56;*~"_c},
+        {K_F36, "\033[57;*~"_c},
+        {K_F37, "\033[58;*~"_c},
+        {static_cast<int>(KS_NAME), nullptr},
     };
     tcap_entry_T builtin_mok2[4] =
     {
-        {(int)KS_CTI, (char *)"\033[>4;2m"},
-        {(int)KS_CRK, (char *)"\033[?4m"},
-        {(int)KS_CTE, (char *)"\033[>4;m"},
-        {(int)KS_NAME, nullptr},
+        {static_cast<int>(KS_CTI), "\033[>4;2m"_c},
+        {static_cast<int>(KS_CRK), "\033[?4m"_c},
+        {static_cast<int>(KS_CTE), "\033[>4;m"_c},
+        {static_cast<int>(KS_NAME), nullptr},
     };
     tcap_entry_T builtin_kitty[6] =
     {
-        {(int)KS_CTI, (char *)"\033[=1;1u"},
-        {(int)KS_CRK, (char *)"\033[?u"},
-        {(int)KS_CTE, (char *)"\033[>4;m\033[=0;1u"},
-        {(int)KS_RFG, (char *)"\033]10;?\033\\"},
-        {(int)KS_RBG, (char *)"\033]11;?\033\\"},
-        {(int)KS_NAME, nullptr},
+        {static_cast<int>(KS_CTI), "\033[=1;1u"_c},
+        {static_cast<int>(KS_CRK), "\033[?u"_c},
+        {static_cast<int>(KS_CTE), "\033[>4;m\033[=0;1u"_c},
+        {static_cast<int>(KS_RFG), "\033]10;?\033\\"_c},
+        {static_cast<int>(KS_RBG), "\033]11;?\033\\"_c},
+        {static_cast<int>(KS_NAME), nullptr},
     };
     tcap_entry_T builtin_debug[147] =
     {
-        {(int)KS_CE, (char *)"[CE]"},
-        {(int)KS_CD, (char *)"[CD]"},
-        {(int)KS_AL, (char *)"[AL]"},
-        {(int)KS_CAL, (char *)"[CAL%d]"},
-        {(int)KS_DL, (char *)"[DL]"},
-        {(int)KS_CDL, (char *)"[CDL%d]"},
-        {(int)KS_CS, (char *)"[%dCS%d]"},
-        {(int)KS_CSV, (char *)"[%dCSV%d]"},
-        {(int)KS_CAB, (char *)"[CAB%d]"},
-        {(int)KS_CAF, (char *)"[CAF%d]"},
-        {(int)KS_CSB, (char *)"[CSB%d]"},
-        {(int)KS_CSF, (char *)"[CSF%d]"},
-        {(int)KS_CAU, (char *)"[CAU%d]"},
-        {(int)KS_OP, (char *)"[OP]"},
-        {(int)KS_LE, (char *)"[LE]"},
-        {(int)KS_CL, (char *)"[CL]"},
-        {(int)KS_VI, (char *)"[VI]"},
-        {(int)KS_VE, (char *)"[VE]"},
-        {(int)KS_VS, (char *)"[VS]"},
-        {(int)KS_ME, (char *)"[ME]"},
-        {(int)KS_MR, (char *)"[MR]"},
-        {(int)KS_MB, (char *)"[MB]"},
-        {(int)KS_MD, (char *)"[MD]"},
-        {(int)KS_SE, (char *)"[SE]"},
-        {(int)KS_SO, (char *)"[SO]"},
-        {(int)KS_UE, (char *)"[UE]"},
-        {(int)KS_US, (char *)"[US]"},
-        {(int)KS_UCE, (char *)"[UCE]"},
-        {(int)KS_UCS, (char *)"[UCS]"},
-        {(int)KS_USS, (char *)"[USS]"},
-        {(int)KS_DS, (char *)"[DS]"},
-        {(int)KS_CDS, (char *)"[CDS]"},
-        {(int)KS_STE, (char *)"[STE]"},
-        {(int)KS_STS, (char *)"[STS]"},
-        {(int)KS_MS, (char *)"[MS]"},
-        {(int)KS_UT, (char *)"[UT]"},
-        {(int)KS_XN, (char *)"[XN]"},
-        {(int)KS_CM, (char *)"[%dCM%d]"},
-        {(int)KS_SR, (char *)"[SR]"},
-        {(int)KS_CRI, (char *)"[CRI%d]"},
-        {(int)KS_VB, (char *)"[VB]"},
-        {(int)KS_KS, (char *)"[KS]"},
-        {(int)KS_KE, (char *)"[KE]"},
-        {(int)KS_TI, (char *)"[TI]"},
-        {(int)KS_TE, (char *)"[TE]"},
-        {(int)KS_CIS, (char *)"[CIS]"},
-        {(int)KS_CIE, (char *)"[CIE]"},
-        {(int)KS_CSC, (char *)"[CSC]"},
-        {(int)KS_CEC, (char *)"[CEC]"},
-        {(int)KS_TS, (char *)"[TS]"},
-        {(int)KS_FS, (char *)"[FS]"},
-        {(int)KS_CWS, (char *)"[%dCWS%d]"},
-        {(int)KS_CWP, (char *)"[%dCWP%d]"},
-        {(int)KS_CRV, (char *)"[CRV]"},
-        {(int)KS_CXM, (char *)"[CXM]"},
-        {(int)KS_U7, (char *)"[U7]"},
-        {(int)KS_RFG, (char *)"[RFG]"},
-        {(int)KS_RBG, (char *)"[RBG]"},
-        {(int)KS_CF, (char *)"[CF%d]"},
-        {K_UP, (char *)"[KU]"},
-        {K_DOWN, (char *)"[KD]"},
-        {K_LEFT, (char *)"[KL]"},
-        {K_RIGHT, (char *)"[KR]"},
-        {K_XUP, (char *)"[xKU]"},
-        {K_XDOWN, (char *)"[xKD]"},
-        {K_XLEFT, (char *)"[xKL]"},
-        {K_XRIGHT, (char *)"[xKR]"},
-        {K_S_UP, (char *)"[S-KU]"},
-        {K_S_DOWN, (char *)"[S-KD]"},
-        {K_TC_HASH_4, (char *)"[S-KL]"},
-        {K_C_LEFT, (char *)"[C-KL]"},
-        {K_TC_PCT_i, (char *)"[S-KR]"},
-        {K_C_RIGHT, (char *)"[C-KR]"},
-        {K_F1, (char *)"[F1]"},
-        {K_XF1, (char *)"[xF1]"},
-        {K_F2, (char *)"[F2]"},
-        {K_XF2, (char *)"[xF2]"},
-        {K_F3, (char *)"[F3]"},
-        {K_XF3, (char *)"[xF3]"},
-        {K_F4, (char *)"[F4]"},
-        {K_XF4, (char *)"[xF4]"},
-        {K_F5, (char *)"[F5]"},
-        {K_F6, (char *)"[F6]"},
-        {K_F7, (char *)"[F7]"},
-        {K_F8, (char *)"[F8]"},
-        {K_F9, (char *)"[F9]"},
-        {K_F10, (char *)"[F10]"},
-        {K_F11, (char *)"[F11]"},
-        {K_F12, (char *)"[F12]"},
-        {K_S_F1, (char *)"[S-F1]"},
-        {K_S_XF1, (char *)"[S-xF1]"},
-        {K_S_F2, (char *)"[S-F2]"},
-        {K_S_XF2, (char *)"[S-xF2]"},
-        {K_S_F3, (char *)"[S-F3]"},
-        {K_S_XF3, (char *)"[S-xF3]"},
-        {K_S_F4, (char *)"[S-F4]"},
-        {K_S_XF4, (char *)"[S-xF4]"},
-        {K_S_F5, (char *)"[S-F5]"},
-        {K_S_F6, (char *)"[S-F6]"},
-        {K_S_F7, (char *)"[S-F7]"},
-        {K_S_F8, (char *)"[S-F8]"},
-        {K_S_F9, (char *)"[S-F9]"},
-        {K_S_F10, (char *)"[S-F10]"},
-        {K_S_F11, (char *)"[S-F11]"},
-        {K_S_F12, (char *)"[S-F12]"},
-        {K_HELP, (char *)"[HELP]"},
-        {K_UNDO, (char *)"[UNDO]"},
-        {K_BS, (char *)"[BS]"},
-        {K_INS, (char *)"[INS]"},
-        {K_KINS, (char *)"[KINS]"},
-        {K_DEL, (char *)"[DEL]"},
-        {K_KDEL, (char *)"[KDEL]"},
-        {K_HOME, (char *)"[HOME]"},
-        {K_TC_HASH_2, (char *)"[C-HOME]"},
-        {K_C_HOME, (char *)"[C-HOME]"},
-        {K_KHOME, (char *)"[KHOME]"},
-        {K_XHOME, (char *)"[XHOME]"},
-        {K_ZHOME, (char *)"[ZHOME]"},
-        {K_END, (char *)"[END]"},
-        {K_TC_STAR_7, (char *)"[C-END]"},
-        {K_C_END, (char *)"[C-END]"},
-        {K_KEND, (char *)"[KEND]"},
-        {K_XEND, (char *)"[XEND]"},
-        {K_ZEND, (char *)"[ZEND]"},
-        {K_PAGEUP, (char *)"[PAGEUP]"},
-        {K_PAGEDOWN, (char *)"[PAGEDOWN]"},
-        {K_KPAGEUP, (char *)"[KPAGEUP]"},
-        {K_KPAGEDOWN, (char *)"[KPAGEDOWN]"},
-        {K_KPLUS, (char *)"[KPLUS]"},
-        {K_KMINUS, (char *)"[KMINUS]"},
-        {K_KDIVIDE, (char *)"[KDIVIDE]"},
-        {K_KMULTIPLY, (char *)"[KMULTIPLY]"},
-        {K_KENTER, (char *)"[KENTER]"},
-        {K_KPOINT, (char *)"[KPOINT]"},
-        {K_PASTESTART, (char *)"[PASTE-START]"},
-        {K_PASTEEND, (char *)"[PASTE-END]"},
-        {K_K0, (char *)"[K0]"},
-        {K_K1, (char *)"[K1]"},
-        {K_K2, (char *)"[K2]"},
-        {K_K3, (char *)"[K3]"},
-        {K_K4, (char *)"[K4]"},
-        {K_K5, (char *)"[K5]"},
-        {K_K6, (char *)"[K6]"},
-        {K_K7, (char *)"[K7]"},
-        {K_K8, (char *)"[K8]"},
-        {K_K9, (char *)"[K9]"},
-        {(int)KS_NAME, nullptr},
+        {static_cast<int>(KS_CE), "[CE]"_c},
+        {static_cast<int>(KS_CD), "[CD]"_c},
+        {static_cast<int>(KS_AL), "[AL]"_c},
+        {static_cast<int>(KS_CAL), "[CAL%d]"_c},
+        {static_cast<int>(KS_DL), "[DL]"_c},
+        {static_cast<int>(KS_CDL), "[CDL%d]"_c},
+        {static_cast<int>(KS_CS), "[%dCS%d]"_c},
+        {static_cast<int>(KS_CSV), "[%dCSV%d]"_c},
+        {static_cast<int>(KS_CAB), "[CAB%d]"_c},
+        {static_cast<int>(KS_CAF), "[CAF%d]"_c},
+        {static_cast<int>(KS_CSB), "[CSB%d]"_c},
+        {static_cast<int>(KS_CSF), "[CSF%d]"_c},
+        {static_cast<int>(KS_CAU), "[CAU%d]"_c},
+        {static_cast<int>(KS_OP), "[OP]"_c},
+        {static_cast<int>(KS_LE), "[LE]"_c},
+        {static_cast<int>(KS_CL), "[CL]"_c},
+        {static_cast<int>(KS_VI), "[VI]"_c},
+        {static_cast<int>(KS_VE), "[VE]"_c},
+        {static_cast<int>(KS_VS), "[VS]"_c},
+        {static_cast<int>(KS_ME), "[ME]"_c},
+        {static_cast<int>(KS_MR), "[MR]"_c},
+        {static_cast<int>(KS_MB), "[MB]"_c},
+        {static_cast<int>(KS_MD), "[MD]"_c},
+        {static_cast<int>(KS_SE), "[SE]"_c},
+        {static_cast<int>(KS_SO), "[SO]"_c},
+        {static_cast<int>(KS_UE), "[UE]"_c},
+        {static_cast<int>(KS_US), "[US]"_c},
+        {static_cast<int>(KS_UCE), "[UCE]"_c},
+        {static_cast<int>(KS_UCS), "[UCS]"_c},
+        {static_cast<int>(KS_USS), "[USS]"_c},
+        {static_cast<int>(KS_DS), "[DS]"_c},
+        {static_cast<int>(KS_CDS), "[CDS]"_c},
+        {static_cast<int>(KS_STE), "[STE]"_c},
+        {static_cast<int>(KS_STS), "[STS]"_c},
+        {static_cast<int>(KS_MS), "[MS]"_c},
+        {static_cast<int>(KS_UT), "[UT]"_c},
+        {static_cast<int>(KS_XN), "[XN]"_c},
+        {static_cast<int>(KS_CM), "[%dCM%d]"_c},
+        {static_cast<int>(KS_SR), "[SR]"_c},
+        {static_cast<int>(KS_CRI), "[CRI%d]"_c},
+        {static_cast<int>(KS_VB), "[VB]"_c},
+        {static_cast<int>(KS_KS), "[KS]"_c},
+        {static_cast<int>(KS_KE), "[KE]"_c},
+        {static_cast<int>(KS_TI), "[TI]"_c},
+        {static_cast<int>(KS_TE), "[TE]"_c},
+        {static_cast<int>(KS_CIS), "[CIS]"_c},
+        {static_cast<int>(KS_CIE), "[CIE]"_c},
+        {static_cast<int>(KS_CSC), "[CSC]"_c},
+        {static_cast<int>(KS_CEC), "[CEC]"_c},
+        {static_cast<int>(KS_TS), "[TS]"_c},
+        {static_cast<int>(KS_FS), "[FS]"_c},
+        {static_cast<int>(KS_CWS), "[%dCWS%d]"_c},
+        {static_cast<int>(KS_CWP), "[%dCWP%d]"_c},
+        {static_cast<int>(KS_CRV), "[CRV]"_c},
+        {static_cast<int>(KS_CXM), "[CXM]"_c},
+        {static_cast<int>(KS_U7), "[U7]"_c},
+        {static_cast<int>(KS_RFG), "[RFG]"_c},
+        {static_cast<int>(KS_RBG), "[RBG]"_c},
+        {static_cast<int>(KS_CF), "[CF%d]"_c},
+        {K_UP, "[KU]"_c},
+        {K_DOWN, "[KD]"_c},
+        {K_LEFT, "[KL]"_c},
+        {K_RIGHT, "[KR]"_c},
+        {K_XUP, "[xKU]"_c},
+        {K_XDOWN, "[xKD]"_c},
+        {K_XLEFT, "[xKL]"_c},
+        {K_XRIGHT, "[xKR]"_c},
+        {K_S_UP, "[S-KU]"_c},
+        {K_S_DOWN, "[S-KD]"_c},
+        {K_TC_HASH_4, "[S-KL]"_c},
+        {K_C_LEFT, "[C-KL]"_c},
+        {K_TC_PCT_i, "[S-KR]"_c},
+        {K_C_RIGHT, "[C-KR]"_c},
+        {K_F1, "[F1]"_c},
+        {K_XF1, "[xF1]"_c},
+        {K_F2, "[F2]"_c},
+        {K_XF2, "[xF2]"_c},
+        {K_F3, "[F3]"_c},
+        {K_XF3, "[xF3]"_c},
+        {K_F4, "[F4]"_c},
+        {K_XF4, "[xF4]"_c},
+        {K_F5, "[F5]"_c},
+        {K_F6, "[F6]"_c},
+        {K_F7, "[F7]"_c},
+        {K_F8, "[F8]"_c},
+        {K_F9, "[F9]"_c},
+        {K_F10, "[F10]"_c},
+        {K_F11, "[F11]"_c},
+        {K_F12, "[F12]"_c},
+        {K_S_F1, "[S-F1]"_c},
+        {K_S_XF1, "[S-xF1]"_c},
+        {K_S_F2, "[S-F2]"_c},
+        {K_S_XF2, "[S-xF2]"_c},
+        {K_S_F3, "[S-F3]"_c},
+        {K_S_XF3, "[S-xF3]"_c},
+        {K_S_F4, "[S-F4]"_c},
+        {K_S_XF4, "[S-xF4]"_c},
+        {K_S_F5, "[S-F5]"_c},
+        {K_S_F6, "[S-F6]"_c},
+        {K_S_F7, "[S-F7]"_c},
+        {K_S_F8, "[S-F8]"_c},
+        {K_S_F9, "[S-F9]"_c},
+        {K_S_F10, "[S-F10]"_c},
+        {K_S_F11, "[S-F11]"_c},
+        {K_S_F12, "[S-F12]"_c},
+        {K_HELP, "[HELP]"_c},
+        {K_UNDO, "[UNDO]"_c},
+        {K_BS, "[BS]"_c},
+        {K_INS, "[INS]"_c},
+        {K_KINS, "[KINS]"_c},
+        {K_DEL, "[DEL]"_c},
+        {K_KDEL, "[KDEL]"_c},
+        {K_HOME, "[HOME]"_c},
+        {K_TC_HASH_2, "[C-HOME]"_c},
+        {K_C_HOME, "[C-HOME]"_c},
+        {K_KHOME, "[KHOME]"_c},
+        {K_XHOME, "[XHOME]"_c},
+        {K_ZHOME, "[ZHOME]"_c},
+        {K_END, "[END]"_c},
+        {K_TC_STAR_7, "[C-END]"_c},
+        {K_C_END, "[C-END]"_c},
+        {K_KEND, "[KEND]"_c},
+        {K_XEND, "[XEND]"_c},
+        {K_ZEND, "[ZEND]"_c},
+        {K_PAGEUP, "[PAGEUP]"_c},
+        {K_PAGEDOWN, "[PAGEDOWN]"_c},
+        {K_KPAGEUP, "[KPAGEUP]"_c},
+        {K_KPAGEDOWN, "[KPAGEDOWN]"_c},
+        {K_KPLUS, "[KPLUS]"_c},
+        {K_KMINUS, "[KMINUS]"_c},
+        {K_KDIVIDE, "[KDIVIDE]"_c},
+        {K_KMULTIPLY, "[KMULTIPLY]"_c},
+        {K_KENTER, "[KENTER]"_c},
+        {K_KPOINT, "[KPOINT]"_c},
+        {K_PASTESTART, "[PASTE-START]"_c},
+        {K_PASTEEND, "[PASTE-END]"_c},
+        {K_K0, "[K0]"_c},
+        {K_K1, "[K1]"_c},
+        {K_K2, "[K2]"_c},
+        {K_K3, "[K3]"_c},
+        {K_K4, "[K4]"_c},
+        {K_K5, "[K5]"_c},
+        {K_K6, "[K6]"_c},
+        {K_K7, "[K7]"_c},
+        {K_K8, "[K8]"_c},
+        {K_K9, "[K9]"_c},
+        {static_cast<int>(KS_NAME), nullptr},
     };
     tcap_entry_T builtin_256colors[4] =
     {
-        {(int)KS_CCO, (char *)"256"},
-        {(int)KS_CAB, (char *)"\033[48;5;%dm"},
-        {(int)KS_CAF, (char *)"\033[38;5;%dm"},
-        {(int)KS_NAME, nullptr},
+        {static_cast<int>(KS_CCO), "256"_c},
+        {static_cast<int>(KS_CAB), "\033[48;5;%dm"_c},
+        {static_cast<int>(KS_CAF), "\033[38;5;%dm"_c},
+        {static_cast<int>(KS_NAME), nullptr},
     };
     builtin_tcap_T builtin_terminals[3] =
     {
-        {(char *)"xterm-256color", builtin_xterm},
-        {(char *)"debug", builtin_debug},
+        {"xterm-256color"_c, builtin_xterm},
+        {"debug"_c, builtin_debug},
         {nullptr, nullptr},
     };
     bool need_gather = FALSE;
@@ -10146,7 +10241,7 @@ public:
     bool send_t_RK = FALSE;
     bool cursor_is_off = FALSE;
     bool cursor_is_asleep = FALSE;
-    struct termcode *termcodes = nullptr;
+    termcode *termcodes = nullptr;
     int tc_max_len = 0;
     int tc_len = 0;
     oscstate_T osc_state;
@@ -10162,9 +10257,9 @@ public:
     bool command_frame_height = TRUE;
     char *main_errors[3] =
     {
-        (char *)"Unknown option argument",
-        (char *)"Too many \"+command\", \"-c command\" or \"--cmd command\" arguments",
-        (char *)"Invalid argument for",
+        "Unknown option argument"_c,
+        "Too many \"+command\", \"-c command\" or \"--cmd command\" arguments"_c,
+        "Invalid argument for"_c,
     };
     mparm_T params;
     oparg_T *current_oap = nullptr;
@@ -10202,7 +10297,7 @@ public:
         0,
         0,
     };
-    struct interval utf_char2cells__doublewidth[122] =
+    interval utf_char2cells__doublewidth[122] =
     {
         {0x1100, 0x115f},
         {0x231a, 0x231b},
@@ -10327,7 +10422,7 @@ public:
         {0x20000, 0x2fffd},
         {0x30000, 0x3fffd},
     };
-    struct interval utf_char2cells__emoji_wide[54] =
+    interval utf_char2cells__emoji_wide[54] =
     {
         {0x23ed, 0x23ef},
         {0x23f1, 0x23f2},
@@ -10384,7 +10479,7 @@ public:
         {0x1f6f0, 0x1f6f0},
         {0x1f6f3, 0x1f6f3},
     };
-    struct interval utf_iscomposing__combining[354] =
+    interval utf_iscomposing__combining[354] =
     {
         {0x0300, 0x036f},
         {0x0483, 0x0489},
@@ -10741,7 +10836,7 @@ public:
         {0x1e944, 0x1e94a},
         {0xe0100, 0xe01ef},
     };
-    struct interval utf_printable__nonprint[9] =
+    interval utf_printable__nonprint[9] =
     {
         {0x070f, 0x070f},
         {0x180b, 0x180e},
@@ -10753,7 +10848,7 @@ public:
         {0xfff9, 0xfffb},
         {0xfffe, 0xffff},
     };
-    struct clinterval utf_class_buf__classes[71] =
+    clinterval utf_class_buf__classes[71] =
     {
         {0x037e, 0x037e, 1},
         {0x0387, 0x0387, 1},
@@ -10872,16 +10967,16 @@ public:
     char_u v_visop__trans[17] = "YyDdCcxdXdAAIIrr";
     char_u *nv_optrans__ar[8] =
     {
-        (char_u *)"dl",
-        (char_u *)"dh",
-        (char_u *)"d$",
-        (char_u *)"c$",
-        (char_u *)"cl",
-        (char_u *)"cc",
-        (char_u *)"yy",
-        (char_u *)":s\r",
+        "dl"_uc,
+        "dh"_uc,
+        "d$"_uc,
+        "c$"_uc,
+        "cl"_uc,
+        "cc"_uc,
+        "yy"_uc,
+        ":s\r"_uc,
     };
-    char_u *nv_optrans__str = (char_u *)"xXDCsSY&";
+    char_u *nv_optrans__str = "xXDCsSY&"_uc;
     bool do_addsub__hexupper = FALSE;
     redo_VIsual_T do_pending_operator__redo_VIsual =
     {
@@ -10906,25 +11001,25 @@ public:
     bool vim_handle_signal__blocked = TRUE;
     keyvalue_T get_char_class__char_class_tab[19] =
     {
-        {(CLASS_ALNUM), {((char_u *)"alnum:]"), (sizeof("alnum:]") - 1)}},
-        {(CLASS_ALPHA), {((char_u *)"alpha:]"), (sizeof("alpha:]") - 1)}},
-        {(CLASS_BACKSPACE), {((char_u *)"backspace:]"), (sizeof("backspace:]") - 1)}},
-        {(CLASS_BLANK), {((char_u *)"blank:]"), (sizeof("blank:]") - 1)}},
-        {(CLASS_CNTRL), {((char_u *)"cntrl:]"), (sizeof("cntrl:]") - 1)}},
-        {(CLASS_DIGIT), {((char_u *)"digit:]"), (sizeof("digit:]") - 1)}},
-        {(CLASS_ESCAPE), {((char_u *)"escape:]"), (sizeof("escape:]") - 1)}},
-        {(CLASS_FNAME), {((char_u *)"fname:]"), (sizeof("fname:]") - 1)}},
-        {(CLASS_GRAPH), {((char_u *)"graph:]"), (sizeof("graph:]") - 1)}},
-        {(CLASS_IDENT), {((char_u *)"ident:]"), (sizeof("ident:]") - 1)}},
-        {(CLASS_KEYWORD), {((char_u *)"keyword:]"), (sizeof("keyword:]") - 1)}},
-        {(CLASS_LOWER), {((char_u *)"lower:]"), (sizeof("lower:]") - 1)}},
-        {(CLASS_PRINT), {((char_u *)"print:]"), (sizeof("print:]") - 1)}},
-        {(CLASS_PUNCT), {((char_u *)"punct:]"), (sizeof("punct:]") - 1)}},
-        {(CLASS_RETURN), {((char_u *)"return:]"), (sizeof("return:]") - 1)}},
-        {(CLASS_SPACE), {((char_u *)"space:]"), (sizeof("space:]") - 1)}},
-        {(CLASS_TAB), {((char_u *)"tab:]"), (sizeof("tab:]") - 1)}},
-        {(CLASS_UPPER), {((char_u *)"upper:]"), (sizeof("upper:]") - 1)}},
-        {(CLASS_XDIGIT), {((char_u *)"xdigit:]"), (sizeof("xdigit:]") - 1)}},
+        {(CLASS_ALNUM), {("alnum:]"_uc), (sizeof("alnum:]") - 1)}},
+        {(CLASS_ALPHA), {("alpha:]"_uc), (sizeof("alpha:]") - 1)}},
+        {(CLASS_BACKSPACE), {("backspace:]"_uc), (sizeof("backspace:]") - 1)}},
+        {(CLASS_BLANK), {("blank:]"_uc), (sizeof("blank:]") - 1)}},
+        {(CLASS_CNTRL), {("cntrl:]"_uc), (sizeof("cntrl:]") - 1)}},
+        {(CLASS_DIGIT), {("digit:]"_uc), (sizeof("digit:]") - 1)}},
+        {(CLASS_ESCAPE), {("escape:]"_uc), (sizeof("escape:]") - 1)}},
+        {(CLASS_FNAME), {("fname:]"_uc), (sizeof("fname:]") - 1)}},
+        {(CLASS_GRAPH), {("graph:]"_uc), (sizeof("graph:]") - 1)}},
+        {(CLASS_IDENT), {("ident:]"_uc), (sizeof("ident:]") - 1)}},
+        {(CLASS_KEYWORD), {("keyword:]"_uc), (sizeof("keyword:]") - 1)}},
+        {(CLASS_LOWER), {("lower:]"_uc), (sizeof("lower:]") - 1)}},
+        {(CLASS_PRINT), {("print:]"_uc), (sizeof("print:]") - 1)}},
+        {(CLASS_PUNCT), {("punct:]"_uc), (sizeof("punct:]") - 1)}},
+        {(CLASS_RETURN), {("return:]"_uc), (sizeof("return:]") - 1)}},
+        {(CLASS_SPACE), {("space:]"_uc), (sizeof("space:]") - 1)}},
+        {(CLASS_TAB), {("tab:]"_uc), (sizeof("tab:]") - 1)}},
+        {(CLASS_UPPER), {("upper:]"_uc), (sizeof("upper:]") - 1)}},
+        {(CLASS_XDIGIT), {("xdigit:]"_uc), (sizeof("xdigit:]") - 1)}},
     };
     keyvalue_T *get_char_class__last_entry = nullptr;
     bool init_class_tab__done = FALSE;
@@ -10956,7 +11051,7 @@ public:
     bool set_shellsize__busy = FALSE;
     bool set_shellsize__do_run = FALSE;
     bool ui_breakcheck_force__recursive = FALSE;
-    time_T ui_focus_change__last_time = (time_T)0;
+    time_T ui_focus_change__last_time = static_cast<time_T>(0);
     char_u uc_fun_cmd__fcmd[27] =
     {
         0x84,

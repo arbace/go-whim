@@ -43,9 +43,11 @@ says otherwise:
   did in the file's, so a body is printed as the C wrote it, and an editor
   is `std::make_unique<Editor>()`: value-initialized, so every field the C
   leaves to zero is zero. A `const` object whose value holds nothing of an
-  instance's is the class's (`static inline const`, 9 of them: the tables of
+  instance's is the class's (`static constexpr`, 9 of them: the tables of
   the regexp classes and the like); a block's `static const` stays in its
-  function. A static of a function is a field named for both
+  function. A function that reaches nothing of the editor's is a `static`
+  member (217); every member is private but `glue_` and `vim_main`, and
+  the printf is the class's friend (`doc/CPP-IDIOMS.md`, items 5 and 7). A static of a function is a field named for both
   (`utf_class_buf__classes`), and a struct a function defines is defined at
   namespace scope when a static of it is the editor's.
 - **A function pointer is a pointer to a member**: `void (Editor::*)(exarg_T
@@ -55,22 +57,33 @@ says otherwise:
   option table's callbacks, and the parameters that take one. The functions
   are declared in the class before its fields, so that a table's initial
   value may take any one's address.
-- **An enumeration is its integer type**: each enumerator a `constexpr` of
-  the type C gives it (`int`, or C23's fixed type), and every use of the
-  enumerated type its integer type -- so C's arithmetic on them is C's, and
-  none of C++'s enum conversions (an `int` to an enum, `++` of one, `|` of
-  two kinds, which C++20 deprecates) arises. Struct and union definitions
-  are printed at namespace scope in the C's order, a tagged one nested in
-  another hoisted before it: C's tags are the file's, where C++'s would be
-  the enclosing class's.
+- **An enumeration is its integer type** unless the C uses it only as a
+  type: each enumerator a `constexpr` of the type C gives it (`int`, or
+  C23's fixed type), and every use of the enumerated type its integer type
+  -- so C's arithmetic on them is C's, and none of C++'s enum conversions
+  (an `int` to an enum, `++` of one, `|` of two kinds, which C++20
+  deprecates) arises. The 11 of 24 named enumerations whose every use is a
+  store, a comparison, a switch, an argument, a result or a cast of the
+  type itself are `enum class E : U {...}; using enum E;`
+  (`doc/CPP-IDIOMS.md`, item 3). Struct and union definitions are printed
+  at namespace scope in the C's order, every tag declared first, a tagged
+  one nested in another hoisted before it: C's tags are the file's, where
+  C++'s would be the enclosing class's. A struct is named by its tag alone
+  (`file_buffer *`), `typedef struct {...} pos_T;` is `struct pos_T`, a
+  typedef `using`.
 - **What C converts and C++ does not is a cast**, written where C made the
   conversion -- an assignment, an initial value, an argument, a return, a
   conditional's arm, a comparison: a `void *` to another pointer, a string
   literal to `char *`, `char *` and `unsigned char *`, an integer constant
-  where a pointer goes, a function to a pointer of another type. 1,052
+  where a pointer goes, a function to a pointer of another type. 1,103
   casts. A pointer converts implicitly where C++ allows it (to `void *`, to
-  a more `const` one, `nullptr`), and the C's own casts are printed as the
-  C wrote them.
+  a more `const` one, `nullptr`). Every cast, the C's own and these, is a
+  named one -- `static_cast`, `reinterpret_cast`, `const_cast` -- and a
+  string literal the C makes `char *` or `char_u *` is `"..."_c` or
+  `"..."_uc` (`doc/CPP-IDIOMS.md`, item 1).
+- **A pointer parameter never null** -- only dereferenced, and every call
+  passing `&x` or such a parameter -- is a reference: 141
+  (`doc/CPP-IDIOMS.md`, item 6).
 - **In a braced list C++ refuses a narrowing**: an element converted to its
   member's type where C converts it, unless it is a constant that fits or a
   widening; and `{0}` for a struct is `{}`.
@@ -200,3 +213,30 @@ Through a pipe -- the control -- 42 of 3,120 quick (37 of them
 `par_vglobal`) and 4 of 2,990 wide: whim++ starts as fast as the C and
 reads its keys as they land, as the C does (the C 66 and 106, whimsy 33 and
 61).
+
+The same under milestone 2's printing (a load of 60-70, other work
+sharing the machine): from a file 0 of 3,120 quick and 0 of 3,120 wide;
+through a pipe 15 and 198.
+
+## 9. Milestone 2: much more idiomatic
+
+`doc/CPP-IDIOMS.md` surveys the C++ as milestone 1 left it, counted and
+ranked, and items 1-9 are done in the backend (and the host), each held to
+`TestCpp*`, both suites, the heavy case and the build's zero warnings:
+named casts and literal operators for the 5,719 C casts; `using` and
+structs named by their tags; `enum class` for 11 of 24 named enumerations;
+`[[nodiscard]]` on 753 functions; 217 `static` member functions; 141
+reference parameters; the class private but for `glue_` and `vim_main`,
+the printf its friend; `static constexpr` tables; and the host's RAII,
+namespace and `std::jthread` from milestone 1. Declined, measured:
+`-Wconversion`'s 337 (the C's narrowings), structured bindings at the 104
+sites of the 64 struct results (63 inside expressions), `std::span` and
+`std::string_view` (no bound proved; 23 tests of `-1` for "to the NUL"),
+`std::array` (234 fields that decay), `std::optional` (the null pointer is
+the C's "nothing" already).
+
+Measured: editor.hpp 11,090 and editor.cpp 61,921 lines; g++ on the core
+34-40 s (under the loads above) and 0.34 GB; `-Wall -Wextra` 0 warnings;
+bin/whim++ 1.1 MB; `whim test --cpp` all 80, the control seen by 76;
+`--wide --cpp` all 240, the control seen by 94 and 6; the heavy case 0.2
+times the C (97-103 ms against 432-446).

@@ -1,8 +1,8 @@
 # go-whim
 
 A pipeline, written in Go, that takes vim apart on purpose -- and the editor it
-leaves, eight times over: in C, in Go, in Java, in Clojure, in Haskell, in
-Rust, in Scheme and in OCaml, each required to answer every test case as the
+leaves, nine times over: in C, in Go, in Java, in Clojure, in Haskell, in
+Rust, in Scheme, in OCaml and in C++, each required to answer every test case as the
 C does.
 
 ```
@@ -14,7 +14,8 @@ slim-vim.c ──── whim: 104 phases, in order ────▶ whim-vim.c   
                                                       ├──▶ caprice/  the core in Haskell
                                                       ├──▶ whimsy/   the core in Rust
                                                       ├──▶ whimsical/ the core in Scheme
-                                                      └──▶ whiml/    the core in OCaml
+                                                      ├──▶ whiml/    the core in OCaml
+                                                      └──▶ wpp/      the core in C++ (whim++)
 ```
 
 **The input** is `slim-vim.c`: vim 9.2 as one C translation unit, without
@@ -48,7 +49,7 @@ own snapshot, side by side, and every boundary compiled, in about 35 seconds.
 **The translations** are written by `crefactor/togo` from the core's C, not
 from each other. `editor/editor.go`, `braaam/editor/`,
 `vijure/src/whim/editor.clj`, `caprice/Caprice/Editor.hs` and
-`whimsy/src/editor.rs`, `whimsical/whimsical/editor.ss` and `whiml/editor.ml` (with its `.mli`) are generated, tracked, and refused by
+`whimsy/src/editor.rs`, `whimsical/whimsical/editor.ss`, `whiml/editor.ml` (with its `.mli`) and `wpp/src/editor.cpp` (with its header) are generated, tracked, and refused by
 `make whim-editor-check` when stale.
 
 **The tests.**
@@ -58,8 +59,9 @@ from each other. `editor/editor.go`, `braaam/editor/`,
 - `make whim-test-wide` does the same with 240 cases: keys, every Ex command,
   command lines, and a real terminal.
 - `make whim-test-java`, `make whim-test-clj`, `make whim-test-hs`,
-  `make whim-test-rs`, `make whim-test-scm` and `make whim-test-ml` hold the
-  Java, Clojure, Haskell, Rust, Scheme and OCaml editors to them too.
+  `make whim-test-rs`, `make whim-test-scm`, `make whim-test-ml` and `make
+  whim-test-cpp` hold the Java, Clojure, Haskell, Rust, Scheme, OCaml and C++
+  editors to them too.
 - `make go-test` runs the Go packages' tests.
 
 ## Use
@@ -68,10 +70,10 @@ from each other. `editor/editor.go`, `braaam/editor/`,
 make                   # fetch the input if it moved, then every editor: bin/whim,
                        # bin/whim-vim, bin/slim-vim, bin/braaam and braaam.jar,
                        # bin/vijure and vijure.jar, bin/caprice, bin/whimsy,
-                       # bin/whimsical, bin/whiml
+                       # bin/whimsical, bin/whiml, bin/whim++
 make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the translations
 make whim-build-check  # the same, required to give the committed bytes back
-make whim-editor-check # refuse a stale editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss or editor.ml(i)
+make whim-editor-check # refuse a stale editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml(i) or editor.cpp/hpp
 make whim-test         # the quick suite; whim-test-wide for the wide one
 make go-test           # the Go packages' tests
 make bin/whim-vim      # the C editor's binary
@@ -83,12 +85,14 @@ make bin/caprice       # the Haskell editor (doc/HASKELL.md), compiled by GHC
 make bin/whimsy        # the Rust editor (doc/RUST.md), compiled by cargo, offline
 make bin/whimsical     # the Scheme editor (doc/SCHEME.md), compiled by Chez Scheme
 make bin/whiml         # the OCaml editor (doc/OCAML.md), compiled by ocamlopt
+make bin/whim++        # the C++ editor (doc/CPP.md), compiled by g++ -std=c++23
 make whim-test-java    # the quick suite with the Java editor too
 make whim-test-clj     # ... with the Clojure editor
 make whim-test-hs      # ... with the Haskell editor
 make whim-test-rs      # ... with the Rust editor
 make whim-test-scm     # ... with the Scheme editor
 make whim-test-ml      # ... with the OCaml editor
+make whim-test-cpp     # ... with the C++ editor
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make caprice.hsl       # the Haskell core as one ghc-lisp module (doc/GHC-LISP.md)
 make whim-vim.lc       # the C product as s-expressions, back byte for byte (doc/C-LISP.md)
@@ -136,6 +140,15 @@ make help              # every target
   per arity. A host record, a terminal host on `Unix` and the C host's own
   signal handlers, a port of vim's printf, the parallel `:%s` on domains;
   several editors run at once.
+- **C++**, **whim++** (`wpp/`): the core's own C printed as C++23, the
+  editor a `class Editor` -- its file-scope objects the fields, its
+  functions the members (`static` where they reach nothing of it), a
+  function pointer a pointer to a member -- with what C++ says otherwise
+  written as C++ says it: named casts, `using`, `enum class` where an
+  enumeration is a type, references where a pointer is never null,
+  `[[nodiscard]]`. A `Host` interface, a terminal host on the C host's own
+  calls, the C host's printf, the parallel `:%s` on `std::jthread`;
+  several editors run at once.
 
 ## Requirements
 
@@ -152,7 +165,8 @@ so it also needs:
   `scheme.h`, as Alpine's `chez-scheme` installs them), and the shared lz4,
   zlib and ncursesw it links against;
 - **OCaml 5.5** (`ocamlopt`, and the `unix` library it ships), no dune,
-  ocamlfind or opam.
+  ocamlfind or opam;
+- **g++ 15** (`-std=c++23`) and its libstdc++.
 
 The C front end is a fork of `modernc.org/cc/v4` carried as source, so after
 fetching the input nothing needs the network. The fork parses C23, which
@@ -174,17 +188,17 @@ crefactor/       the generic C refactoring library, a Go module of its own:
                  the verbs the phases are written on, the collection, the
                  fall-out closure and the transforms) and its read-only
                  views, the driver, the analyses, and togo, the C-to-Go,
-                 Java, Clojure, Haskell, Rust, Scheme and OCaml translator
+                 Java, Clojure, Haskell, Rust, Scheme, OCaml and C++ translator
 editor/          the editor in Go          braaam/   the editor in Java
 vijure/          the editor in Clojure     caprice/  the editor in Haskell
 whimsy/          the editor in Rust        whimsical/ the editor in Scheme
-whiml/           the editor in OCaml
+whiml/           the editor in OCaml       wpp/      the editor in C++ (whim++)
 src/             the input (fetched) and the product (tracked)
 doc/             GOALS.md (what holds for every phase, and the blocks),
                  AGENDA.md (what is not done), PIPELINE-REFORM.md (the
                  pipeline reordered: the front, the blocks, what was measured),
                  PIPELINE-COMPACTION.md, JAVA.md, CLOJURE.md, CLOJURE-PROFILE.md,
-                 HASKELL.md, RUST.md, SCHEME.md, OCAML.md, the *-IDIOMS.md surveys, GO-LISP.md,
+                 HASKELL.md, RUST.md, SCHEME.md, OCAML.md, CPP.md, the *-IDIOMS.md surveys, GO-LISP.md,
                  GHC-LISP.md, C-LISP.md, C-LISP-TREE.md, C23.md (the
                  front end against C23: the conformance test, its score),
                  GRAPH.md (the program as a graph, its views as Lisp: the

@@ -6,21 +6,7 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Queued, measured, not started
 
-Each moves method sizes: `whim test --java --clojure`'s heavy case, which
-times every editor, is judged with the suites.
-
-- **whim++, the editor in C++23** (queued 2026-10-04, after whiml): a
-  seventh crefactor/togo backend, faithful first, then idiomatic, in
-  whiml's shape (a builder, `whim test --cpp`, a measured
-  CPP-IDIOMS.md). Measured with g++ 15.2 on the core (75,721 lines) as C++:
-  C23's `typeof` (one cascade; `usize` as `std::size_t`), 74 jumps past an
-  initialisation, ~77 `void*` assignments, ~9 literals to `char*`, ~10 C++
-  keywords as names, 3 tentative definitions -- and the silent ones (`'x'`
-  is `char`, enum conversions, tag scope), ruled out by construction and
-  held by the suites. Idiomatic: `class Editor` (the instance pass),
-  `enum class`, `constexpr`, out-parameters as values, `std::span` /
-  `string_view` / `array` where bounded, `std::optional`, RAII in the host,
-  the parallel `:%s` on `std::jthread`; GCC 15 lacks `std::execution`.
+Nothing queued.
 
 ## Known stale, not yet scoped
 

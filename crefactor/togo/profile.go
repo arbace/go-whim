@@ -138,6 +138,11 @@ type Profile struct {
 	MlStrings StrFuncs
 	// CppNamespace is the namespace -cpp writes the editor in; "" is whimpp.
 	CppNamespace string
+	// CppExports are the editor's members the hand-written C++ names from
+	// outside the class -- public, where the rest are private; CppFriend
+	// is a class of the hand-written C++'s that reaches them all.
+	CppExports []string
+	CppFriend  string
 }
 
 // StrFuncs are a program's string comparisons: Cmp(a, b), NCmp(a, b, n)

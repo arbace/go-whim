@@ -13,8 +13,8 @@
 
 namespace whimpp {
 
-namespace {
-
+// The C's printf, the editor's friend (the profile's CppFriend): it reaches
+// the core's private members through ed.
 struct Printf
 {
     Editor &ed;
@@ -1484,8 +1484,6 @@ struct Printf
         va_end(ap);
         return (int)str_l;
     }};
-
-} // namespace
 
 int Editor::vim_snprintf(char *str, usize str_m, const char *fmt, ...)
 {

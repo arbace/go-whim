@@ -108,7 +108,7 @@ slim-vim.c  --whim-->  whim-vim.c
     match would need more (another line, the cursor, a mark, a message), and
     adds `match_lines`, which says for each line of a range whether it holds
     a match; `ex_substitute` skips the lines it clears. The C runs it line
-    after line; the Go, Java, Clojure, Haskell, Rust, Scheme and OCaml editors run it in
+    after line; the Go, Java, Clojure, Haskell, Rust, Scheme, OCaml and C++ editors run it in
     chunks on every core (the OCaml on at most 16), each on an engine of its own (a runtime body,
     `internal/whim/gen.go`). Exact whatever the pattern: nothing the editor
     does moves.
@@ -244,19 +244,24 @@ slim-vim.c  --whim-->  whim-vim.c
   `doc/OCAML.md`), the same way, its control `" INSERT"` changed in the
   generated `editor.ml` (the literal's bytes in its image); it answers all 80
   and all 240 as the C does, its two builds kept in `.cache/whiml-suite/`.
+  **`--cpp`** adds the C++ editor, whim++ (`wpp/`, `doc/CPP.md`), the same
+  way, its control `" INSERT"` changed in the generated `editor.cpp`; it
+  answers all 80 and all 240 as the C does, its two builds kept in
+  `.cache/wpp-suite/`.
   Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
   Go editors, and on whimsy, whimsical and whimsical's debugging build,
   whiml, the Java, the Clojure and the Haskell editors 0 of 3,120 quick and
-  0 of 3,360 wide each; through a pipe, the control, whimsy differs 33 and
-  61 times, whiml 2-40 and 4-36, the C 66 and 106, and whimsical, the Java, the Clojure and the Haskell
+  0 of 3,360 wide each, whim++ 0 of 3,120 and 0 of 3,120; through a pipe,
+  the control, whimsy differs 33 and 61 times, whiml 2-40 and 4-36, whim++
+  15-42 and 4-198, the C 66 and 106, and whimsical, the Java, the Clojure and the Haskell
   never, since they start after one write of the keys has landed -- the keys
   in 16 pieces 10 ms apart (`MODES=trickle`) move whimsical 326 of 720 quick
   runs and 307 of 920 wide, the Haskell 547 and 464, and the JVM editors,
   which start after all 16 have landed, in 16 pieces 100 ms apart
   (`MODES=slow`) the Java 105 of 320 and 125 of 460, the Clojure 190 and 134
-  (`doc/RUST.md`, `doc/SCHEME.md`, `doc/OCAML.md`, `doc/JAVA.md`,
+  (`doc/RUST.md`, `doc/SCHEME.md`, `doc/OCAML.md`, `doc/CPP.md`, `doc/JAVA.md`,
   `doc/CLOJURE.md`, `doc/HASKELL.md`, *Under load*). **Both end with the heavy
   case** (`internal/suite/heavy.go`), the one that times: 5,000 lines, three
   substitutions and a `:g`, run on every editor of the run one at a time,
@@ -264,7 +269,7 @@ slim-vim.c  --whim-->  whim-vim.c
   C's, and an editor over 25 times the C's time failing the run (one built
   already, `--haskell-bin`'s, is timed but not held to it: the `-O0`
   ghc-lisp caprice 81-84) -- measured,
-  Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
+  C++ 0.2-0.3, Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
   its big functions were compiled sooner, `doc/CLOJURE-PROFILE.md`) since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
   huge-method limit left on, which is what it refuses.
@@ -513,7 +518,17 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    enumerations as variants, ml_record.go structs as
                    records, where the C's types allow and OCaml's type
                    checker proves; ml_doc.go a Wadler layout;
-                   doc/OCAML-IDIOMS.md). Its tests
+                   doc/OCAML-IDIOMS.md), and its C++ backend (cpp*.go:
+                   `whim skel ... -cpp F.cpp`, doc/CPP.md: the core's own
+                   C printed as C++23 in cemit's shape -- cpp.go the
+                   header, the class Editor and its fields, the files;
+                   cpp_decl.go the declarations, cpp_expr.go the
+                   expressions and the named casts, cpp_stmt.go the
+                   statements, the jumps past a value and the locals read
+                   unset; and the idioms, doc/CPP-IDIOMS.md: cpp_enum.go
+                   enum class where an enumeration is a type, cpp_fx.go
+                   the static and [[nodiscard]] members, cpp_refs.go
+                   references for parameters never null). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep's roots and guard, the collection's too), graph.go
@@ -663,6 +678,23 @@ whiml/             the editor in OCaml (doc/OCAML.md), OCaml 5.5 native, no
                    whiml_test.go the layout test and
                    testdata/instances/main.ml, four editors at once on
                    domains, compiled against lib/whiml
+wpp/               whim++, the editor in C++ (doc/CPP.md), g++ 15 -std=c++23;
+                   the C++ in src/ (Go takes a .cpp beside a .go for
+                   cgo's), by hand but src/editor.hpp and src/editor.cpp,
+                   GENERATED by the C++ backend and tracked (whim gen;
+                   never edit them; compiled -Wall -Wextra, a warning a
+                   failed build): rt.hpp and rt.cpp the runtime (the
+                   parallel chunks on std::jthread), host.hpp the Host
+                   interface (editor/host.go's) and run, host.cpp the C
+                   host's 17 functions as members of the editor, a line of
+                   glue each, and its arena, term.hpp and term.cpp the
+                   terminal host (the C host's own calls), printf.cpp
+                   (vim_snprintf: the C host's, pasted into the editor's
+                   friend Printf), main.cpp the launcher; wpp.go the Go
+                   that builds it (`go tool whim wpp`, make bin/whim++: g++
+                   into lib/wpp and the program bin/whim++); wpp_test.go
+                   the layout test and testdata/instances/main.cpp, four
+                   editors at once on threads, compiled against lib/wpp
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),
@@ -673,17 +705,17 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    done, in order, and what was declined, with why), GO-IDIOMS.md (how
                    the Go editor could be idiomatic, measured and ranked; done or
                    declined), JAVA.md (the Java backend: its design and milestones),
-                   JAVA-IDIOMS.md, CLOJURE-IDIOMS.md, HASKELL-IDIOMS.md, RUST-IDIOMS.md, SCHEME-IDIOMS.md and OCAML-IDIOMS.md (how the
-                   Java, Clojure, Haskell, Rust, Scheme and OCaml editors could be idiomatic,
+                   JAVA-IDIOMS.md, CLOJURE-IDIOMS.md, HASKELL-IDIOMS.md, RUST-IDIOMS.md, SCHEME-IDIOMS.md, OCAML-IDIOMS.md and CPP-IDIOMS.md (how the
+                   Java, Clojure, Haskell, Rust, Scheme, OCaml and C++ editors could be idiomatic,
                    measured and ranked; surveys; done: CLOJURE-IDIOMS.md's items 0-3, 4's tables (its messages declined), 5 in part, 6, 7, 8's headroom (9 declined), and
-                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 93) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-16 (17 declined), SCHEME-IDIOMS.md's items 1-18, OCAML-IDIOMS.md's items 1-10),
+                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 93) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-16 (17 declined), SCHEME-IDIOMS.md's items 1-18, OCAML-IDIOMS.md's items 1-10, CPP-IDIOMS.md's items 1-9),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), CLOJURE-PROFILE.md (where its time goes in
                    the heavy case, beside the C's, and the change it chose), HASKELL.md (caprice, the Haskell editor:
                    its design and what was measured), RUST.md (whimsy, the Rust
                    editor: its design, its milestones and its idioms),
-                   SCHEME.md (whimsical, the Scheme editor: the survey and measurements that chose Chez Scheme, its design and its milestones), OCAML.md (whiml, the OCaml editor: its design on the Scheme's forms, its integers, its milestones), IR.md (where a feature goes in the chain,
+                   SCHEME.md (whimsical, the Scheme editor: the survey and measurements that chose Chez Scheme, its design and its milestones), OCAML.md (whiml, the OCaml editor: its design on the Scheme's forms, its integers, its milestones), CPP.md (whim++, the C++ editor: the C kept and printed as C++23, its milestones), IR.md (where a feature goes in the chain,
                    and an intermediate representation: an assessment),
                    IR-SCHEMA.md (that representation sketched against togo:
                    what is shared and duplicated, a schema, a migration path),
@@ -739,10 +771,10 @@ make                 # all: through whim-vim.c (produced only when slim-vim.c mo
                      # and the generated editors, bin/whim (the Go editor), the
                      # C binaries bin/whim-vim and bin/slim-vim, bin/braaam and
                      # braaam.jar, bin/vijure and vijure.jar (packed from its build),
-                     # bin/caprice, bin/whimsy, bin/whimsical, bin/whiml
+                     # bin/caprice, bin/whimsy, bin/whimsical, bin/whiml, bin/whim++
 make whim-build      # the 104 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back, every boundary compiled
-make whim-editor-check # refuse a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss or editor.ml(i) that is not what the generator writes
+make whim-editor-check # refuse a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml(i) or editor.cpp/hpp that is not what the generator writes
 make whim-test        # the quick suite: 80 key sessions, required to behave as HEAD's does
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
 make bin/braaam       # the editor in Java: whim.editor generated, compiled, and a launcher
@@ -761,6 +793,8 @@ make whim-test-scm    # the quick suite with the Scheme editor too (whim test --
 go tool whim whimsical --debug  # its debugging build, bin/whimsical-debug: optimize-level 2, safe, inspectable (39 s, 1.1 GB)
 make bin/whiml        # the editor in OCaml: the module Editor generated, compiled by ocamlopt (ten seconds and 0.54 GB when the core moved; its time and peak printed)
 make whim-test-ml     # the quick suite with the OCaml editor too (whim test --ocaml; --wide --ocaml)
+make bin/whim++       # the editor in C++: editor.hpp and editor.cpp generated, compiled by g++ -O2 (35-40 s and 0.34 GB when the core moved; its time and peak printed)
+make whim-test-cpp    # the quick suite with the C++ editor too (whim test --cpp; --wide --cpp)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make caprice.hsl      # the Haskell core as one ghc-lisp module, checked, compiled, and the program run on the quick suite (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
 make whim-vim.lc      # the C product as s-expressions (C-lisp): back byte for byte, compiled to bin/whim-vim's bytes (7 s; doc/C-LISP.md)
@@ -851,7 +885,9 @@ make help            # every target, with a line each
   (`caprice/Caprice/Editor/`), the Haskell backend's, **and
   `whimsy/src/editor.rs`**, the Rust backend's, **and
   `whimsical/whimsical/editor.ss`**, the Scheme backend's, **and
-  `whiml/editor.ml`** with its interface `editor.mli`, the OCaml backend's.
+  `whiml/editor.ml`** with its interface `editor.mli`, the OCaml backend's,
+  **and `wpp/src/editor.cpp`** with its header `editor.hpp`, the C++
+  backend's.
 
 - **The compile line is one line**, `gcc -O0 -fno-stack-protector -static -no-pie
   -s`, for the input, the product and every boundary: an ordinary static
@@ -947,7 +983,7 @@ was the input boundary's digest and the implementation's together, so a moved
 `whim-vim.c`'s ten `#include`s are not at the top: **the first one is the line
 between the editor core and its host**, marked by nothing else. `internal/whim`'s
 `Cut` cuts there -- every translation cuts the core for itself (`whim gen`,
-`whim java`, `whim clj`, `whim caprice`, `whim whimsy`, `whim whimsical`, `whim whiml`), and `go tool whim cut` prints it: a complete translation unit with 0 preprocessor lines, 0 errors under
+`whim java`, `whim clj`, `whim caprice`, `whim whimsy`, `whim whimsical`, `whim whiml`, `whim wpp`), and `go tool whim cut` prints it: a complete translation unit with 0 preprocessor lines, 0 errors under
 `-fsyntax-only`, and an interface of exactly the names the host defines --
 computed, never listed. The core names no libc function at all, holds no file
 descriptor of its own, and uses no floating point. `GOALS.md` §II.4 is the

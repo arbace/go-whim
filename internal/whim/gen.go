@@ -144,7 +144,7 @@ chunks(n, |from, to| {
 // the editor shared by the threads as the Rust's and the Go's is.
 func matchLinesCpp(string) string {
 	return `return chunks(n, [&](long from, long to) {
-    regengine_T *re = (regengine_T *)alloc_clear(sizeof(regengine_T));
+    regengine_T *re = static_cast<regengine_T *>(alloc_clear(sizeof(regengine_T)));
     match_chunk(re, rmp, do_all, buf, lines, line1, from, to, found);
     return !re->failed;
 });`
@@ -271,6 +271,11 @@ var Gen = togo.Profile{
 	HsExports: []string{"deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells", "IObuff"},
 	// whimsy, the Rust editor: what its host and printf call by name
 	RsExports: []string{"vim_main", "deathtrap", "emsg", "iemsg", "emsg_iobuff_room", "iobuff_or", "utfc_ptr2len", "utf_ptr2cells"},
+	// whim++, the C++ editor: what its host calls of the class from
+	// outside (run), public; its printf, the struct Printf, reaches the
+	// rest as a friend
+	CppExports: []string{"vim_main"},
+	CppFriend:  "Printf",
 	// whimsical, the Scheme editor: its library, and what its host calls
 	// back -- the printf's error messages and cells, the death of a SIGHUP
 	// or a SIGTERM -- and runs (whimsical/whimsical/host.ss)

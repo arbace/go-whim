@@ -597,7 +597,7 @@ func (c *cppgen) convElem(n cc.ExpressionNode, t cc.Type) string {
 		return c.expr(n) // widening
 	}
 	c.nCasts++
-	return "(" + c.typeStr(t) + ")" + c.paren(n)
+	return c.cast(t, c.typeStr(t), n)
 }
 
 // fits reports whether the constant v is a value of kind k.

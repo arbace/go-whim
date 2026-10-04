@@ -103,6 +103,9 @@ func (c *cppgen) typeSpec(n *cc.TypeSpecifier, keepDef bool) string {
 	case cc.TypeSpecifierStructOrUnion:
 		return c.structRef(n.StructOrUnionSpecifier, keepDef)
 	case cc.TypeSpecifierEnum:
+		if e := c.scoped(n.EnumSpecifier.Type()); e != nil {
+			return cppName(e.name)
+		}
 		if e, ok := n.EnumSpecifier.Type().(*cc.EnumType); ok {
 			return c.scalar(e.UnderlyingType())
 		}
@@ -126,14 +129,28 @@ func (c *cppgen) structRef(n *cc.StructOrUnionSpecifier, keepDef bool) string {
 		}
 		return c.structOrUnion(n)
 	}
-	return kw + " " + tag
+	return c.tagRef(kw, tag)
+}
+
+// tagRef names a struct by its tag alone, as C++ does (item 2) -- but
+// where an ordinary name is the tag's too, which would hide it.
+func (c *cppgen) tagRef(kw, tag string) string {
+	if c.ordinary[tag] {
+		return kw + " " + tag
+	}
+	return tag
 }
 
 // structOrUnion prints a struct's or a union's definition, a member a line.
 func (c *cppgen) structOrUnion(n *cc.StructOrUnionSpecifier) string {
+	return c.structNamed(n, n.Token.SrcStr())
+}
+
+// structNamed prints a struct's or a union's definition under name.
+func (c *cppgen) structNamed(n *cc.StructOrUnionSpecifier, name string) string {
 	kw := n.StructOrUnion.Token.SrcStr()
 	var b strings.Builder
-	b.WriteString(cppJoin(kw, n.Token.SrcStr()) + "\n" + c.pad() + "{\n")
+	b.WriteString(cppJoin(kw, name) + "\n" + c.pad() + "{\n")
 	c.indent++
 	for l := n.StructDeclarationList; l != nil; l = l.StructDeclarationList {
 		for _, s := range c.structDecl(l.StructDeclaration) {
@@ -279,7 +296,12 @@ func (c *cppgen) params(n *cc.ParameterTypeList) string {
 				// __attribute__((unused)) said before the sweep took them
 				unused = "[[maybe_unused]]"
 			}
-			parts = append(parts, cppJoin(unused, c.declSpecs(p.DeclarationSpecifiers, false), c.declarator(p.Declarator, "", -1)))
+			decl := c.declarator(p.Declarator, "", -1)
+			if c.refDecl[p.Declarator] {
+				// T *p, never null: T &p
+				decl = "&" + strings.TrimPrefix(strings.TrimPrefix(strings.TrimPrefix(decl, "*"), "const "), "__restrict ")
+			}
+			parts = append(parts, cppJoin(unused, c.declSpecs(p.DeclarationSpecifiers, false), decl))
 		case cc.ParameterDeclarationAbstract:
 			parts = append(parts, cppJoin(c.declSpecs(p.DeclarationSpecifiers, false), c.abstract(p.AbstractDeclarator)))
 		default:

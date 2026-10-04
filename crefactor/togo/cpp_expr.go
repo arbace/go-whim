@@ -212,6 +212,9 @@ func (c *cppgen) expr(n cc.ExpressionNode) string {
 		case cc.PostfixExpressionSelect:
 			return c.expr(x.PostfixExpression) + "." + cppName(x.Token2.SrcStr())
 		case cc.PostfixExpressionPSelect:
+			if c.refName(x.PostfixExpression) != nil {
+				return c.expr(x.PostfixExpression) + "." + cppName(x.Token2.SrcStr())
+			}
 			return c.expr(x.PostfixExpression) + "->" + cppName(x.Token2.SrcStr())
 		case cc.PostfixExpressionInc:
 			return c.expr(x.PostfixExpression) + "++"
@@ -238,6 +241,9 @@ func (c *cppgen) expr(n cc.ExpressionNode) string {
 			}
 			return prefixOp("&", c.expr(x.CastExpression))
 		case cc.UnaryExpressionDeref:
+			if c.refName(x.CastExpression) != nil {
+				return c.expr(x.CastExpression) // *p of a reference: p
+			}
 			if fnDesig(x.CastExpression) != nil || cppFnPtr(x.CastExpression.Type()) {
 				// *f and *p of a function are the function: C++ has no
 				// such deref of a pointer to member
@@ -273,7 +279,7 @@ func (c *cppgen) expr(n cc.ExpressionNode) string {
 		case cc.CastExpressionUnary:
 			return c.expr(x.UnaryExpression)
 		case cc.CastExpressionCast:
-			return "(" + c.typeName(x.TypeName) + ")" + c.expr(x.CastExpression)
+			return c.cast(x.TypeName.Type(), c.typeName(x.TypeName), x.CastExpression)
 		}
 		c.fail(x, "cast expression %v", x.Case)
 		return ""
@@ -395,7 +401,7 @@ func (c *cppgen) cmp(l cc.ExpressionNode, op string, r cc.ExpressionNode) string
 		le, re := elemOf(lt), elemOf(rt)
 		if le.Kind() != cc.Void && re.Kind() != cc.Void && c.canon(le, false) != c.canon(re, false) {
 			c.nCasts++
-			return c.expr(l) + " " + op + " " + "(" + c.typeStr(lt.Decay()) + ")" + c.paren(r)
+			return c.expr(l) + " " + op + " " + c.cast(lt.Decay(), c.typeStr(lt.Decay()), r)
 		}
 	}
 	return c.bin(l, op, r)
@@ -466,7 +472,22 @@ func (c *cppgen) call(x *cc.PostfixExpression) string {
 	}
 	var args []string
 	i := 0
+	var refs map[int]bool
+	if d := fnDesig(callee); d != nil {
+		refs = c.refs[d.Name()]
+	}
 	for l := x.ArgumentExpressionList; l != nil; l = l.ArgumentExpressionList {
+		if refs[i] {
+			// a reference: the object, &x's x, or the caller's reference
+			a := strip(l.AssignmentExpression)
+			if u, ok := a.(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof {
+				args = append(args, c.expr(u.CastExpression))
+			} else {
+				args = append(args, c.expr(l.AssignmentExpression))
+			}
+			i++
+			continue
+		}
 		var pt cc.Type
 		if ft != nil && i < len(ft.Parameters()) {
 			pt = ft.Parameters()[i].Type()
@@ -523,7 +544,7 @@ func (c *cppgen) paren(n cc.ExpressionNode) string {
 func (c *cppgen) conv(n cc.ExpressionNode, t cc.Type) string {
 	if c.needsCast(n, t) {
 		c.nCasts++
-		return "(" + c.typeStr(t) + ")" + c.paren(n)
+		return c.cast(t, c.typeStr(t), n)
 	}
 	return c.expr(n)
 }
@@ -733,4 +754,104 @@ func cppOrderMatters(l, r cc.ExpressionNode) bool {
 	}
 	rw(r)
 	return reads || reach && (calls || cppEffects(r))
+}
+
+// cast is n converted to the type to, spelled ts, by the named cast that
+// says what the conversion is (doc/CPP-IDIOMS.md, item 1): static_cast
+// between arithmetic types and from or to void *, reinterpret_cast between
+// pointers to different types and between pointers and integers, and
+// const_cast where the C drops a const -- around the cast that converts
+// the type, when both happen.  The C's own casts and those C++ wants
+// written are all written so.
+func (c *cppgen) cast(to cc.Type, ts string, n cc.ExpressionNode) string {
+	op := c.expr(n)
+	if p, ok := pass(n).(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionExpr && op != "nullptr" {
+		op = c.expr(p.ExpressionList) // the cast's parentheses are enough
+	}
+	named := func(kind string) string { return kind + "<" + ts + ">(" + op + ")" }
+	if isStrLit(n) && to != nil && to.Kind() == cc.Ptr {
+		// a literal as the C's mutable char * or unsigned char *: the
+		// header's literal operators (item 1)
+		if te := elemOf(to); te != nil && !te.Attributes().IsConst() && !strings.HasPrefix(ts, "const ") {
+			switch te.Kind() {
+			case cc.Char:
+				return op + "_c"
+			case cc.UChar:
+				return op + "_uc"
+			}
+		}
+	}
+	if to == nil || to.Kind() == cc.Void {
+		return named("static_cast")
+	}
+	from := n.Type()
+	if from == nil {
+		return named("static_cast")
+	}
+	fromFn := fnDesig(n) != nil || from.Kind() == cc.Function
+	if to.Kind() != cc.Ptr {
+		if from.Kind() == cc.Ptr && to.Kind() != cc.Bool {
+			return named("reinterpret_cast")
+		}
+		return named("static_cast")
+	}
+	te := elemOf(to)
+	switch {
+	case c.isNull(n):
+		return named("static_cast")
+	case fromFn || cppFnPtr(from) || te.Kind() == cc.Function:
+		if fromFn && c.canon(te, false) == c.canon(n.Type(), false) {
+			return named("static_cast")
+		}
+		return named("reinterpret_cast")
+	case from.Kind() != cc.Ptr && from.Kind() != cc.Array:
+		if c.isNull(n) {
+			return named("static_cast")
+		}
+		return named("reinterpret_cast")
+	}
+	fe := elemOf(from)
+	fconst := fe.Attributes().IsConst() || isStrLit(n) || c.castConst(n)
+	// a cast's type loses its pointee's const in the front end: the
+	// spelling says it
+	tconst := te.Attributes().IsConst() || te.Kind() != cc.Ptr && strings.HasPrefix(ts, "const ")
+	same := c.canon(fe, false) == c.canon(te, false)
+	kind := "reinterpret_cast"
+	if same || te.Kind() == cc.Void || fe.Kind() == cc.Void {
+		kind = "static_cast"
+	}
+	if !fconst || tconst {
+		return named(kind)
+	}
+	// the C drops a const: const_cast, around the conversion of the type
+	if same {
+		return named("const_cast")
+	}
+	cts, ok := c.constPointee(to)
+	if !ok {
+		c.nCStyle++
+		return "(" + ts + ")" + c.paren(n)
+	}
+	return "const_cast<" + ts + ">(" + kind + "<" + cts + ">(" + op + "))"
+}
+
+// constPointee is a pointer type's spelling with its pointee const: for a
+// pointer to a scalar, a typedef's name or a struct.
+func (c *cppgen) constPointee(t cc.Type) (string, bool) {
+	e := elemOf(t)
+	if e == nil || e.Kind() == cc.Ptr || e.Kind() == cc.Function || e.Kind() == cc.Array {
+		return "", false
+	}
+	return "const " + c.typeStr(t), true
+}
+
+// castConst reports whether n is a cast of the C's to a pointer to const,
+// which the front end's type of it does not say.
+func (c *cppgen) castConst(n cc.ExpressionNode) bool {
+	x, ok := strip(n).(*cc.CastExpression)
+	if !ok || x.Case != cc.CastExpressionCast {
+		return false
+	}
+	e := elemOf(x.TypeName.Type())
+	return e != nil && e.Kind() != cc.Ptr && strings.HasPrefix(c.typeName(x.TypeName), "const ")
 }

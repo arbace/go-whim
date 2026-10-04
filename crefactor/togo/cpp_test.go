@@ -40,6 +40,7 @@ func cppProgram(t *testing.T, dir, src string, prof Profile) (cpp, hpp, host, re
 		t.Fatal(err)
 	}
 	out := filepath.Join(dir, "editor.cpp")
+	prof.CppExports = append(append([]string{}, prof.CppExports...), "run")
 	if rc := Run([]string{c, dir, "-cpp", out}, io.Discard, prof); rc != 0 {
 		t.Fatalf("the generator refused: %d", rc)
 	}

@@ -33,6 +33,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -96,14 +97,29 @@ type cppgen struct {
 	localStructs []*cc.StructOrUnionSpecifier
 	hoisted      map[*cc.StructOrUnionSpecifier]bool
 
-	src    []byte
-	lineAt []int
+	src  []byte
+	file string // the unit's file, as positions name it
+	// every ordinary name of the unit: a tag one of them is keeps its keyword
+	ordinary map[string]bool
+	// the enumerations, by enumKey, and each enumerator's (cpp_enum.go)
+	enums   map[string]*cppEnum
+	enumOf  map[string]string
+	nScoped int
+	// the functions that are static members, and [[nodiscard]] (cpp_fx.go)
+	static, nodiscard map[string]bool
+	// the reference parameters (cpp_refs.go)
+	refs    map[string]map[int]bool
+	refDecl map[*cc.Declarator]bool
+	nRefs   int
+	lineAt  []int
 
 	indent int
 	b      strings.Builder
 	err    []string
 
 	nCasts, nSplit, nFnPtr, nZeroed, nOrdered int
+	nCStyle                                   int // the casts written in C's spelling
+	nStaticFn, nNodiscard                     int
 	// the function's nodes' parents, for maybeRead
 	par map[cc.Node]cc.Node
 	// the labels the function's gotos name
@@ -132,6 +148,7 @@ func (g *gen) writeCpp(editorC, path string) error {
 		hostFns: map[string]*cc.Declarator{}, objs: map[string]*cppObj{}, field: map[*cc.Declarator]string{},
 		inst: map[*cc.Declarator]bool{}}
 	c.src = src
+	c.file = editorC
 	c.lineAt = []int{0, 0}
 	for i, b := range src {
 		if b == '\n' {
@@ -154,6 +171,9 @@ func (g *gen) writeCpp(editorC, path string) error {
 		}
 	}
 	c.indexSpecs()
+	c.scopedEnums()
+	c.memberFacts()
+	c.refParams()
 	c.objects()
 	hdr := c.header()
 	csrc := c.source()
@@ -167,8 +187,8 @@ func (g *gen) writeCpp(editorC, path string) error {
 	if err := os.WriteFile(base+".cpp", []byte(csrc), 0o644); err != nil {
 		return err
 	}
-	fmt.Fprintf(logw, "cpp: %d functions, %d host functions, %d fields (%d static), %d casts written, %d declarations split, %d function pointers, %d locals zeroed, %d assignments ordered\n",
-		len(c.order), len(c.hostFns), len(c.objKeys)+len(c.field), c.nStatic(), c.nCasts, c.nSplit, c.nFnPtr, c.nZeroed, c.nOrdered)
+	fmt.Fprintf(logw, "cpp: %d functions, %d host functions, %d fields (%d static), %d casts written, %d declarations split, %d function pointers, %d locals zeroed, %d assignments ordered; %d casts named, %d in C's spelling\n",
+		len(c.order), len(c.hostFns), len(c.objKeys)+len(c.field), c.nStatic(), c.nCasts, c.nSplit, c.nFnPtr, c.nZeroed, c.nOrdered, len(cppCastRe.FindAllStringIndex(hdr+csrc, -1)), c.nCStyle)
 	if err := os.WriteFile(path+".host", []byte(c.hostSigs()), 0o644); err != nil {
 		return err
 	}
@@ -180,6 +200,12 @@ func (g *gen) writeCpp(editorC, path string) error {
 	if err := os.WriteFile(path+".fnptrs", []byte(c.fnPtrStructs()), 0o644); err != nil {
 		return err
 	}
+	for _, k := range sortedKeys(c.enums) {
+		if e := c.enums[k]; e.name != "" && e.why != "" {
+			fmt.Fprintf(logw, "cpp: enumeration %s stays an integer: %s\n", e.name, e.why)
+		}
+	}
+	fmt.Fprintf(logw, "cpp: %d of %d named enumerations scoped; %d static functions, %d [[nodiscard]]; %d reference parameters; %d literals\n", c.nScoped, c.namedEnums(), c.nStaticFn, c.nNodiscard, c.nRefs, len(cppLitRe.FindAllStringIndex(hdr+csrc, -1)))
 	return os.WriteFile(path+".refused", []byte(strings.Join(c.err, "\n")), 0o644)
 }
 
@@ -205,7 +231,7 @@ func (c *cppgen) fail(n cc.Node, format string, a ...any) {
 func (c *cppgen) objects() {
 	for tu := c.g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
 		ed := tu.ExternalDeclaration
-		if ed.Case != cc.ExternalDeclarationDecl || ed.Declaration == nil {
+		if ed.Case != cc.ExternalDeclarationDecl || ed.Declaration == nil || !c.mine(ed) {
 			continue
 		}
 		for l := ed.Declaration.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
@@ -323,6 +349,12 @@ func (c *cppgen) namesInstanceLoose(n cc.Node) bool {
 	return found
 }
 
+// mine reports whether n is the translation unit's own, not the front
+// end's predefined declarations.
+func (c *cppgen) mine(n cc.Node) bool {
+	return n.Position().Filename == c.file
+}
+
 // pad is the current indent.
 func (c *cppgen) pad() string { return strings.Repeat("    ", c.indent) }
 
@@ -342,10 +374,15 @@ func (c *cppgen) header() string {
 	h.WriteString("#pragma once\n\n")
 	fmt.Fprintf(&h, "namespace %s {\n\n", c.ns)
 	h.WriteString("class Editor;\nstruct Glue;\n\n")
+	// every tag declared first, so that a type may name one by its tag
+	// alone before its definition, as C names it by struct T (item 2)
+	if fwd := c.forwardTags(); fwd != "" {
+		h.WriteString(fwd + "\n")
+	}
 	c.b.Reset()
 	for tu := c.g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
 		ed := tu.ExternalDeclaration
-		if ed.Case != cc.ExternalDeclarationDecl || ed.Declaration == nil {
+		if ed.Case != cc.ExternalDeclarationDecl || ed.Declaration == nil || !c.mine(ed) {
 			continue
 		}
 		c.typeDecl(ed.Declaration)
@@ -358,6 +395,19 @@ func (c *cppgen) header() string {
 	}
 	h.WriteString(c.b.String())
 	c.b.Reset()
+	// the literal operators, before what uses them
+	c.line("// A string literal as the C's char * and unsigned char *, which the C")
+	c.line("// writes through none of: its const dropped where the C drops it.")
+	c.line("inline char *operator\"\"_c(const char *s, decltype(sizeof 0))")
+	c.line("{")
+	c.line("    return const_cast<char *>(s);")
+	c.line("}")
+	c.line("")
+	c.line("inline unsigned char *operator\"\"_uc(const char *s, decltype(sizeof 0))")
+	c.line("{")
+	c.line("    return const_cast<unsigned char *>(reinterpret_cast<const unsigned char *>(s));")
+	c.line("}")
+	c.line("")
 	// the class: the functions first, so that a static member's initial
 	// value may take any one's address
 	c.line("")
@@ -368,7 +418,27 @@ func (c *cppgen) header() string {
 	c.indent++
 	c.line("// the host the editor runs on: the hand-written glue's, not the C's")
 	c.line("Glue *glue_ = nullptr;")
-	c.line("")
+	exported := map[string]bool{}
+	for _, n := range c.g.p.CppExports {
+		exported[n] = true
+	}
+	if len(c.g.p.CppExports) > 0 {
+		c.line("")
+		c.line("// what the hand-written C++ calls")
+		for _, fd := range c.order {
+			if exported[fd.Declarator.Name()] {
+				c.line(c.memberProto(fd.Declarator) + ";")
+			}
+		}
+		c.indent--
+		c.line("")
+		c.line("private:")
+		c.indent++
+		if c.g.p.CppFriend != "" {
+			c.line("friend struct " + c.g.p.CppFriend + ";")
+			c.line("")
+		}
+	}
 	var host []string
 	for n := range c.hostFns {
 		host = append(host, n)
@@ -381,7 +451,9 @@ func (c *cppgen) header() string {
 	c.line("")
 	c.line("// the core's")
 	for _, fd := range c.order {
-		c.line(c.prototype(fd.Declarator, "") + ";")
+		if !exported[fd.Declarator.Name()] {
+			c.line(c.memberProto(fd.Declarator) + ";")
+		}
 	}
 	c.line("")
 	c.line("// the objects")
@@ -462,11 +534,38 @@ func (c *cppgen) typeDecl(n *cc.Declaration) {
 	if !typedef {
 		return
 	}
+	// typedef struct { ... } pos_T: the struct is pos_T (item 2)
+	if sp := untaggedStruct(n.DeclarationSpecifiers); sp != nil {
+		if l := n.InitDeclaratorList; l != nil && l.InitDeclaratorList == nil && l.InitDeclarator.Declarator.Pointer == nil &&
+			l.InitDeclarator.Declarator.DirectDeclarator.Case == cc.DirectDeclaratorIdent {
+			c.line(c.structNamed(sp, cppName(l.InitDeclarator.Declarator.Name())) + ";")
+			c.line("")
+			return
+		}
+	}
 	specs := c.declSpecs(n.DeclarationSpecifiers, true)
 	for l := n.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
-		c.line("typedef " + cppJoin(specs, c.declarator(l.InitDeclarator.Declarator, "", -1)) + ";")
+		if e := c.scoped(l.InitDeclarator.Declarator.Type()); e != nil && e.name == l.InitDeclarator.Declarator.Name() {
+			continue // the scoped enumeration is the type
+		}
+		// using T = ...: the declarator with no name (item 2)
+		d := c.declarator(l.InitDeclarator.Declarator, "\x00", -1)
+		c.line("using " + cppName(l.InitDeclarator.Declarator.Name()) + " = " + strings.TrimSpace(strings.Replace(cppJoin(specs, d), "\x00", "", 1)) + ";")
 	}
 	c.line("")
+}
+
+// untaggedStruct is the untagged struct or union a declaration's
+// specifiers define, if they do.
+func untaggedStruct(n *cc.DeclarationSpecifiers) *cc.StructOrUnionSpecifier {
+	for l := n; l != nil; l = l.DeclarationSpecifiers {
+		if l.Case == cc.DeclarationSpecifiersTypeSpec && l.TypeSpecifier.Case == cc.TypeSpecifierStructOrUnion {
+			if sp := l.TypeSpecifier.StructOrUnionSpecifier; sp.Case == cc.StructOrUnionSpecifierDef && sp.Token.SrcStr() == "" {
+				return sp
+			}
+		}
+	}
+	return nil
 }
 
 // definitions writes the enumerations and structs a declaration's
@@ -521,6 +620,25 @@ func (c *cppgen) nestedDefs(n *cc.SpecifierQualifierList) {
 // enumConsts writes an enumeration's constants as constexprs of the type C
 // gives them.
 func (c *cppgen) enumConsts(n *cc.EnumSpecifier) {
+	if e := c.scoped(n.Type()); e != nil {
+		// a scoped enumeration, its enumerators named as the C names them
+		c.line("enum class " + cppName(e.name) + " : " + c.scalar(e.t.UnderlyingType()))
+		c.line("{")
+		c.indent++
+		for l := n.EnumeratorList; l != nil; l = l.EnumeratorList {
+			en := l.Enumerator
+			if en.Case == cc.EnumeratorExpr {
+				c.line(cppName(en.Token.SrcStr()) + " = " + c.expr(en.ConstantExpression) + ",")
+			} else {
+				c.line(cppName(en.Token.SrcStr()) + ",")
+			}
+		}
+		c.indent--
+		c.line("};")
+		c.line("using enum " + cppName(e.name) + ";")
+		c.line("")
+		return
+	}
 	for l := n.EnumeratorList; l != nil; l = l.EnumeratorList {
 		e := l.Enumerator
 		t := c.scalar(e.Type())
@@ -554,6 +672,9 @@ func cppIntLit(v cc.Value, t cc.Type) string {
 func (c *cppgen) scalar(t cc.Type) string {
 	if t == nil {
 		return "int"
+	}
+	if e := c.scoped(t); e != nil {
+		return cppName(e.name)
 	}
 	if e, ok := t.(*cc.EnumType); ok {
 		t = e.UnderlyingType()
@@ -655,7 +776,7 @@ func (c *cppgen) typeDecl1(t cc.Type, name string) string {
 		if tag == "" {
 			c.fail(nil, "an untagged struct named by a cast: %s", t)
 		}
-		return cppJoin(quals+kw+" "+tag, name)
+		return cppJoin(quals+c.tagRef(kw, tag), name)
 	}
 	return cppJoin(quals+c.scalar(t), name)
 }
@@ -671,7 +792,8 @@ func (c *cppgen) fieldDecl(o *cppObj) {
 	}
 	s := cppJoin(specs, c.declarator(o.d, "", ln))
 	if o.isStatic {
-		s = "static inline " + s
+		// a constant the editors share, known when the program compiles
+		s = "static constexpr " + s
 	}
 	if o.in != nil {
 		s += " " + c.assign(o.in, o.d.Type())
@@ -703,6 +825,22 @@ func (c *cppgen) prototype(d *cc.Declarator, qual string) string {
 	specs := c.specs[d]
 	name := qual + cppName(d.Name())
 	return cppJoin(c.declSpecs(specs, false), c.declarator(d, name, -1))
+}
+
+// memberProto is a function's declaration in the class: static when it
+// reaches nothing of the editor's, [[nodiscard]] when every call uses its
+// result.
+func (c *cppgen) memberProto(d *cc.Declarator) string {
+	p := c.prototype(d, "")
+	if c.static[d.Name()] {
+		p = "static " + p
+		c.nStaticFn++
+	}
+	if c.nodiscard[d.Name()] {
+		p = "[[nodiscard]] " + p
+		c.nNodiscard++
+	}
+	return p
 }
 
 // function writes a function's definition, out of the class.
@@ -754,12 +892,17 @@ func (c *cppgen) function(fd *cc.FunctionDefinition) {
 // function definition's, a parameter's.
 func (c *cppgen) indexSpecs() {
 	c.specs = map[*cc.Declarator]*cc.DeclarationSpecifiers{}
+	c.ordinary = map[string]bool{}
 	var rec func(n cc.Node)
 	rec = func(n cc.Node) {
 		if n == nil {
 			return
 		}
 		switch x := n.(type) {
+		case *cc.Declarator:
+			c.ordinary[x.Name()] = true
+		case *cc.Enumerator:
+			c.ordinary[x.Token.SrcStr()] = true
 		case *cc.Declaration:
 			for l := x.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
 				if d := l.InitDeclarator.Declarator; d != nil {
@@ -913,3 +1056,65 @@ func (c *cppgen) fnPtrStructs() string {
 	sort.Strings(names)
 	return strings.Join(names, "\n") + "\n"
 }
+
+// forwardTags declares every struct and union the file defines at its
+// scope, a line each, in the C's order.
+func (c *cppgen) forwardTags() string {
+	seen := map[string]bool{}
+	var b strings.Builder
+	var rec func(n cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil {
+			return
+		}
+		if _, ok := n.(*cc.FunctionDefinition); ok {
+			return
+		}
+		if sp, ok := n.(*cc.StructOrUnionSpecifier); ok {
+			if tag := sp.Token.SrcStr(); tag != "" && !seen[tag] && !c.ordinary[tag] {
+				seen[tag] = true
+				b.WriteString(sp.StructOrUnion.Token.SrcStr() + " " + tag + ";\n")
+			}
+		}
+		walkChildrenFn(n, rec)
+	}
+	for tu := c.g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
+		if c.mine(tu.ExternalDeclaration) {
+			rec(tu.ExternalDeclaration)
+		}
+	}
+	for _, sp := range c.localStructs {
+		if tag := sp.Token.SrcStr(); !seen[tag] && !c.ordinary[tag] {
+			seen[tag] = true
+			b.WriteString(sp.StructOrUnion.Token.SrcStr() + " " + tag + ";\n")
+		}
+	}
+	return b.String()
+}
+
+// namedEnums counts the enumerations with a name.
+func (c *cppgen) namedEnums() int {
+	n := 0
+	for _, e := range c.enums {
+		if e.name != "" {
+			n++
+		}
+	}
+	return n
+}
+
+func sortedKeys[V any](m map[string]V) []string {
+	var ks []string
+	for k := range m {
+		ks = append(ks, k)
+	}
+	sort.Strings(ks)
+	return ks
+}
+
+// cppCastRe and cppLitRe count the named casts and the literals written
+// with the literal operators, for the log.
+var (
+	cppCastRe = regexp.MustCompile(`\b(static|reinterpret|const)_cast<`)
+	cppLitRe  = regexp.MustCompile(`[^"]"_u?c\b`)
+)
