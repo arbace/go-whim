@@ -608,6 +608,16 @@ merged wait-and-read (below) would halve those first.
 
 ## Running on the Mac
 
+**Milestone 4's gate is met** (2026-10-04, reported by the user from the
+M2 Max: macOS with Homebrew clang 23.1.1, arm64-apple-darwin23.6.0):
+`guest/mac/mac.sh` run with every argument in sequence -- `check`, the
+alignment test, `hv` (the framework's own tests, signed), `build`, `hello`,
+`run`, `c`, `suite` and `suite --wide` -- all passing. So the guest runs
+under Hypervisor.framework through the purego backend with no cgo, the
+same `hv` code and image as on KVM/arm64, and answers the quick and wide
+suites as the C built there does. The heavy case on the Mac is not yet
+recorded here.
+
 Milestone 4's groundwork is done here, so that on the M2 Max only building,
 signing and running remain. Everything below was built for `darwin/arm64`
 with cgo off and vetted here (`go build`, `go vet` and staticcheck on the
