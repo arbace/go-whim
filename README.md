@@ -91,7 +91,7 @@ make bin/whim++        # C++          (doc/CPP.md), by g++ -std=c++23
 # the editor as a virtual machine (doc/GUEST.md)
 make bin/whim-guest    # the C core as a guest on KVM: bin/whim-guest [args]
 make bin/whim-guest-go TAMAGO_ROOT=/path/to/tamago-go  # the Go editor as one, built with TamaGo
-make mac-images TAMAGO_ROOT=/path/to/tamago-go         # the Mac's three arm64 images (guest/mac/mac.sh)
+make mac-images TAMAGO_ROOT=/path/to/tamago-go         # the Mac's three arm64 images, in lib/whim-guest/ (guest/mac/mac.sh)
 
 # the tests
 make whim-test         # the quick suite; whim-test-wide for the wide one

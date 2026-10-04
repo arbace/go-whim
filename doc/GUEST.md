@@ -831,10 +831,10 @@ has run on macOS.
 - The image beside the monitor. `codesign` refuses a program with bytes past
   its last segment, so the Mac's launcher cannot carry the image appended:
   `whim-guest` loads `WHIM_GUEST_IMAGE` when it is set, else the image
-  appended to it, else `PROGRAM.elf` beside it (`bin/whim-guest.elf`); `go
-  tool whim guest --image` writes the image alone (`--arch arm64`:
-  `bin/whim-guest-arm64.elf`; with `--hello`,
-  `bin/whim-guest-hello-arm64.elf`). `TestGuestPrebuilt` takes
+  appended to it, else `PROGRAM.elf` beside it; `go tool whim guest
+  --image` writes the image alone into `lib/whim-guest/` (`--arch arm64`:
+  `whim-guest-arm64.elf`; with `--hello`, `whim-guest-hello-arm64.elf`),
+  and `mac.sh` names it by `WHIM_GUEST_IMAGE`. `TestGuestPrebuilt` takes
   `WHIM_SUITE_GUEST_IMAGE`: the control is then the image changed, each run
   through a script that hands the monitor its image.
 - The whole module builds for `darwin/arm64`: the tools' `Pdeathsig`, which
@@ -877,9 +877,9 @@ has run on macOS.
   (16 KiB where that is the page: on the Mac it checks the real thing).
 
 **The Go guest and the heavy case on the Mac.** The Go guest runs under the
-same signed `bin/whim-guest` as the C guest, its image beside it as
-`bin/whim-guest-go.elf` (`go tool whim guest --go --arch arm64 --image`
-writes `bin/whim-guest-go-arm64.elf`, 5.6 MB): `mac.sh` takes `--go` after
+same signed `bin/whim-guest` as the C guest, its image
+`lib/whim-guest/whim-guest-go-arm64.elf` (`go tool whim guest --go --arch
+arm64 --image`, 5.6 MB): `mac.sh` takes `--go` after
 its step's name -- `hello --go` (the Go guest has no stand-in: the editor
 itself, `ihello<Esc>:q!` from a file, exit 0), `run --go`, `suite --go
 [--wide]`, `heavy [--go]` -- and hands the monitor that image by
@@ -918,15 +918,12 @@ Mac-only follow-up, not tried.
 
 **The checklist**, in order:
 
-1. *On Linux, here:* the three images, `go tool whim guest --arch arm64
-   --image`, `go tool whim guest --arch arm64 --hello --image` (clang
-   and `aarch64-none-elf-ld`: Apple's clang has no ELF linker) and
-   `TAMAGO_ROOT=/root/tamago-go go tool whim guest --go --arch arm64
-   --image` (TamaGo); copy them to the Mac's checkout: `scp
-   bin/whim-guest-arm64.elf mac:go-whim/bin/whim-guest.elf`, `scp
-   bin/whim-guest-hello-arm64.elf mac:go-whim/bin/` and `scp
-   bin/whim-guest-go-arm64.elf mac:go-whim/bin/whim-guest-go.elf`. The
-   arm64 images are the ones KVM/arm64 boots.
+1. *On Linux, here:* the three images, `make mac-images
+   TAMAGO_ROOT=/root/tamago-go` (clang and `aarch64-none-elf-ld`: Apple's
+   clang has no ELF linker; TamaGo for the Go guest's), into
+   `lib/whim-guest/`; copy them to the same place in the Mac's checkout,
+   names unchanged: `scp lib/whim-guest/*.elf mac:go-whim/lib/whim-guest/`.
+   The arm64 images are the ones KVM/arm64 boots.
 2. *On the Mac*, in the checkout (Go and Xcode's command-line tools; every
    Go build native and `CGO_ENABLED=0`), `guest/mac/mac.sh` runs each step:
    - `mac.sh check` -- `sw_vers`, `uname -m` (`arm64`, not Rosetta),

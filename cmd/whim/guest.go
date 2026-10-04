@@ -17,8 +17,8 @@ import (
 // "hello" and exits 3; --bench a stand-in that makes argv[1] calls of
 // host_time, to time a hypercall; --alt the alternative trap (an out to a
 // port on amd64, an HVC on arm64) in place of the doorbell.  --image writes
-// the image alone (default bin/whim-guest[-STANDIN][-alt][-ARCH].elf), for a
-// monitor built elsewhere: the Mac's, which loads it from beside itself
+// the image alone (default lib/whim-guest/whim-guest[-STANDIN][-alt][-ARCH].elf),
+// for a monitor built elsewhere: the Mac's, told it by WHIM_GUEST_IMAGE
 // (doc/GUEST.md, *Running on the Mac*).  --go builds the second guest
 // instead: the Go editor, editor/ as it stands, built with TamaGo
 // (guest/tamago/; the distribution $TAMAGO_ROOT or --tamago DIR) and
@@ -78,8 +78,12 @@ func runGuest(args []string) int {
 			out += "-" + a.Name
 		}
 		if imageOnly {
-			out += ".elf"
+			out = filepath.Join("lib", "whim-guest", filepath.Base(out)+".elf")
 		}
+	}
+	if err := os.MkdirAll(filepath.Dir(out), 0o755); err != nil {
+		fmt.Fprintln(os.Stderr, "whim guest:", err)
+		return 1
 	}
 	dir, err := os.MkdirTemp("", "guest.")
 	if err != nil {

@@ -464,20 +464,19 @@ whim-test-guest-go:  ## the quick suite with the Go guest too, required to answe
 	@go tool whim test --guest-go $(if $(TAMAGO_ROOT),--tamago $(TAMAGO_ROOT))
 
 # The Mac's images (doc/GUEST.md, *Running on the Mac*): Apple's clang links
-# no ELF, so the three arm64 guest images are built here, alone, and copied
-# to the Mac, whose signed bin/whim-guest loads an image from beside itself
-# -- bin/whim-guest-arm64.elf there as bin/whim-guest.elf, the Go guest's as
-# bin/whim-guest-go.elf, the hello image under its own name.
-.PHONY: mac-images bin/whim-guest-arm64.elf bin/whim-guest-hello-arm64.elf bin/whim-guest-go-arm64.elf
-mac-images: bin/whim-guest-arm64.elf bin/whim-guest-hello-arm64.elf bin/whim-guest-go-arm64.elf  ## the Mac's three arm64 images, built here (then scp them: doc/GUEST.md, *Running on the Mac*)
+# no ELF, so the three arm64 guest images are built here, alone, into
+# lib/whim-guest/, and copied to the same place on the Mac, whose signed
+# bin/whim-guest is told which by WHIM_GUEST_IMAGE (guest/mac/mac.sh).
+.PHONY: mac-images lib/whim-guest/whim-guest-arm64.elf lib/whim-guest/whim-guest-hello-arm64.elf lib/whim-guest/whim-guest-go-arm64.elf
+mac-images: lib/whim-guest/whim-guest-arm64.elf lib/whim-guest/whim-guest-hello-arm64.elf lib/whim-guest/whim-guest-go-arm64.elf  ## the Mac's three arm64 images, built here (then scp lib/whim-guest/: doc/GUEST.md)
 
-bin/whim-guest-arm64.elf: src/whim-vim.c force  ## the guest's arm64 image (on the Mac: bin/whim-guest.elf)
+lib/whim-guest/whim-guest-arm64.elf: src/whim-vim.c force
 	@go tool whim guest --arch arm64 --image
 
-bin/whim-guest-hello-arm64.elf: force  ## the hello image (on the Mac: as it is, for mac.sh hello)
+lib/whim-guest/whim-guest-hello-arm64.elf: force
 	@go tool whim guest --arch arm64 --hello --image
 
-bin/whim-guest-go-arm64.elf: force  ## the Go guest's arm64 image (on the Mac: bin/whim-guest-go.elf; TAMAGO_ROOT=...)
+lib/whim-guest/whim-guest-go-arm64.elf: force
 	@go tool whim guest --go --arch arm64 --image $(if $(TAMAGO_ROOT),--tamago $(TAMAGO_ROOT))
 
 # ==== the tests

@@ -4,15 +4,16 @@
 # on the Mac, with Go and Xcode's command-line tools.  Every Go build is
 # native and CGO_ENABLED=0 (purego, no cgo); every program that creates a VM
 # is signed ad hoc with the hypervisor entitlement.  The guest images are
-# built on Linux (go tool whim guest [--go] --arch arm64 --image; Apple's
-# clang has no ELF linker) and copied to bin/.  --go takes the Go guest's
-# image, bin/whim-guest-go.elf, for the C guest's, under the same monitor.
+# built on Linux (make mac-images; Apple's clang has no ELF linker) and
+# copied to lib/whim-guest/ under the same names; the monitor is told which
+# by WHIM_GUEST_IMAGE.  --go takes the Go guest's image,
+# lib/whim-guest/whim-guest-go-arm64.elf, for the C guest's.
 #
 #   guest/mac/mac.sh check                 what the Mac is: macOS, the chip, kern.hv_support, the tools
 #   guest/mac/mac.sh hv                    hv's arm64 tests on the framework: the smallest guests
 #   guest/mac/mac.sh build                 bin/whim-guest, signed
 #   guest/mac/mac.sh hello [--go]          the hello image: prints hello, exits 3 (--go: the Go guest types hello, exits 0)
-#   guest/mac/mac.sh run [--go] [ARG...]   the editor: bin/whim-guest on bin/whim-guest.elf (--go: whim-guest-go.elf)
+#   guest/mac/mac.sh run [--go] [ARG...]   the editor: bin/whim-guest on lib/whim-guest/whim-guest-arm64.elf (--go: the Go guest's)
 #   guest/mac/mac.sh c                     the C reference, bin/whim-vim-mac, by clang with guest/mac/shim.h
 #   guest/mac/mac.sh suite [--go] [--wide] the suite: the guest held to the C, with its control
 #   guest/mac/mac.sh heavy [--go]          the heavy case: the C, then the guest, answers compared, times reported
@@ -26,10 +27,11 @@ need() { [ -f "$1" ] || { echo "mac.sh: no $1: $2" >&2; exit 1; }; }
 
 cmd=${1:-}
 [ $# -gt 0 ] && shift
-img=bin/whim-guest.elf how="go tool whim guest --arch arm64 --image, on Linux, copied here"
+L=lib/whim-guest
+img=$L/whim-guest-arm64.elf how="make mac-images, on Linux, copied to $L/"
 if [ "${1:-}" = --go ]; then
 	shift
-	img=bin/whim-guest-go.elf how="go tool whim guest --go --arch arm64 --image, on Linux, copied here as $img"
+	img=$L/whim-guest-go-arm64.elf
 fi
 # suite: the guest held to bin/whim-vim-mac by TestGuestPrebuilt, the image
 # beside the monitor named by WHIM_SUITE_GUEST_IMAGE; its arguments the
@@ -60,13 +62,12 @@ build)
 	go build -o bin/whim-guest ./vmm/cmd/whim-guest
 	sign bin/whim-guest
 	codesign --display --entitlements - bin/whim-guest
-	[ -f bin/whim-guest.elf ] || echo "mac.sh: now copy the arm64 image to bin/whim-guest.elf" >&2
-	[ -f bin/whim-guest-go.elf ] || echo "mac.sh: and the Go guest's to bin/whim-guest-go.elf" >&2
+	ls $L/*.elf >/dev/null 2>&1 || echo "mac.sh: now copy the arm64 images (make mac-images, on Linux) to $L/" >&2
 	;;
 hello)
 	need bin/whim-guest "mac.sh build"
 	s=0
-	if [ "$img" = bin/whim-guest-go.elf ]; then
+	if [ "$img" = $L/whim-guest-go-arm64.elf ]; then
 		# The Go guest has no stand-in: the editor itself, its keys from a
 		# file -- hello typed, :q! -- its screen printed.
 		need "$img" "$how"
@@ -75,8 +76,8 @@ hello)
 		echo
 		echo "exit $s (0 expected, hello on the screen above)"
 	else
-		need bin/whim-guest-hello-arm64.elf "go tool whim guest --arch arm64 --hello --image, on Linux"
-		WHIM_GUEST_IMAGE=bin/whim-guest-hello-arm64.elf bin/whim-guest || s=$?
+		need $L/whim-guest-hello-arm64.elf "$how"
+		WHIM_GUEST_IMAGE=$L/whim-guest-hello-arm64.elf bin/whim-guest || s=$?
 		echo "exit $s (3 expected)"
 	fi
 	;;
