@@ -279,6 +279,40 @@ Edge, the Mac runs macOS. Milestones 1-3 and 5 go ahead; 4 waits.
   `qemu-system-aarch64 -machine virt,virtualization=on -cpu max`: real
   KVM/arm64 inside an emulated EL2, the real VMM and guest unchanged.
 
+## A second guest: the Go editor on TamaGo (an option, not scheduled)
+
+Standard Go cannot build a guest: every `GOOS` assumes an operating system
+(threads, `mmap`, timers, signals), and bare-metal support is only proposed
+upstream (golang/go#73608). **TamaGo** (github.com/usbarmory/tamago) is a
+modified Go distribution adding `GOOS=tamago`: unmodified Go on bare metal,
+no C and no OS, on amd64, arm, arm64 and riscv64. It already runs under KVM
+micro-VMs on amd64 (its Firecracker, Cloud Hypervisor and QEMU microvm
+boards), single- or multi-core, with interrupts on amd64 and arm64.
+
+TamaGo adapts to a machine through a **board** package: a handful of
+runtime hooks -- CPU setup, the clock, console output, memory, random
+numbers -- which is the shape of the core's 17 host functions. So a second
+guest is possible beside the C core:
+
+- **The guest**: the Go editor (`editor/`, already a library on
+  `editor/host.go`'s `Host`), built with TamaGo for amd64 and arm64.
+- **A board for the `hv` VMM**: TamaGo's runtime hooks and the editor's
+  `Host` both answered by the doorbell -- the same 15 hypercalls, plus the
+  runtime's few (clock, memory, randomness), so the VMM side is the one this
+  design already builds.
+- **What it would add**: the Go editor's parallel `:%s` on several vCPUs
+  through goroutines, which the single-threaded C core cannot; and the
+  guest's memory safety from Go itself.
+- **What it costs**: a separate Go distribution, typically pinned a little
+  behind upstream releases (installed only with the user's go-ahead); OS
+  packages (`os`, `net`) limited, though `editor/` needs little beyond its
+  `Host`; a board package of our own, since TamaGo's boot through PVH or
+  UEFI and a serial console, not our doorbell; and a larger, less auditable
+  guest than the C core.
+
+Recommended order: the C core first (milestones 1-5), then this as a later
+milestone once the hypercall surface is proven on it.
+
 ## Open questions
 
 - Is one 4 GiB lazily committed slot enough, or should the allocator ask the
