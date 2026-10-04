@@ -1,11 +1,7 @@
-// Package steps is every transformation a phase names, as a function from text
-// to text.
-//
-// The phase programs called these through tools/st.sh, one process per call,
-// which re-read and re-wrote a two-megabyte file 277 times a pass.  They are
-// the same functions; what is new is that a caller can run them in memory and
-// in order.  cmd/whim' subcommands and cmd/whim' build both dispatch
-// through this table, so there is one definition of what `dropoptions` means.
+// Package steps is every transformation a phase names, by name, in two
+// tables: graphOps, the graph steps the plan runs (crefactor/graph's editor
+// handed in), and ops, the steps as functions from text to text, which
+// cmd/whim's tools run on a file (OnText) and the plan does not.
 //
 // A step reports on w as it goes -- ORDER IS OUTPUT, the phase programs' rule --
 // and refuses with an error rather than returning a half-rewritten tree.  A step

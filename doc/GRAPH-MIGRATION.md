@@ -4,7 +4,17 @@
 driver, the graph snapshots, the collection through the editor, and moved
 the first 14 phases' cuts to the graph (GRAPH.md, *Step 5 as built*). This
 file lists every phase 0-103 and every part, classifies each, and proposes
-the batches stage B hands out. The classification comes from reading every
+the batches stage B hands out.
+
+**The migration is complete** (2026-10-04). Every phase 0-103 and every
+part runs on the graph, written on its verbs; a run imports once, the
+input; `crefactor/xform` is deleted and no phase program is text. The last
+batch, *Fin as built* at the end, has the proof: `whim-vim.c` byte for
+byte, every boundary compiling, 128 s in order (524 s of user CPU) at a
+load of 8-9 and 34 s in parallel. The sections below are the record, batch
+by batch, in the order they landed; the classification and the batch plan
+are what was proposed, kept as they were. The recipe that follows is how a
+phase is written on the graph now, whether converted or new. The classification comes from reading every
 program (`internal/phase/NNN/`, `internal/cut`, `crefactor/xform`) against
 what `crefactor/graph` can do at `step5a`. The fenced table is data: one row
 per unit, `|`-separated, its columns named in the first row.
@@ -22,7 +32,9 @@ per unit, `|`-separated, its columns named in the first row.
    `ReplaceRun`, `Build`, `FallOut`, `Collect`) and on patterns
    (`graph.Match`/`Find`, clisp's pattern forms). Report what the text
    version reported, in its order; the bytes are what is checked, the
-   report is the reader's.
+   report is the reader's. (A new phase has no text version: its report is
+   its own, and what proves it is the product it moves and `make
+   whim-test` -- `CLAUDE.md`, *Adding a phase*.)
 2. Mark the step `Graph: true` in `internal/build/plan.go`.
 3. `GRAPH_SNAPS=.cache/boundaries go test ./internal/graphcheck/ -run
    PhasesOnGraph` holds every phase with a graph step to its snapshot in
@@ -35,7 +47,8 @@ per unit, `|`-separated, its columns named in the first row.
 5. Measure (`GRAPH_MEASURE=5 ... -run MeasureGraphPhases`) and say what the
    phase costs now in its `GOAL.md`.
 
-**What a conversion costs until its neighbours move too.** A phase whose
+**What a conversion cost until its neighbours moved too** (a record: every
+phase now begins and ends on the graph). A phase whose
 graph steps begin after a text step pays an import, 1.7-2.1 s on today's
 texts (2.0-2.7 times cc's parse and check), which is what the sweep and the
 canonical print it no longer runs cost: such a phase is about as fast as

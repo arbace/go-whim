@@ -1,24 +1,14 @@
-// Command whim is every tool the pipeline run.
+// Command whim is the toolset: every tool a subcommand, run as
+// `go tool whim <subcommand>` (go.mod declares this package a tool, so Go
+// builds and caches it).  README.md beside it lists each tool, and what each
+// retired script became.
 //
-// It is one binary with subcommands rather than one binary per tool, because
-// every subcommand works on the same multi-megabyte file and the sweep runs
-// thirteen of them to a fixpoint: as separate processes they re-read and
-// re-scan that file thirteen times a round, which is the cost this rewrite is
-// meant to remove.  Phase programs still name a distinct tools/go path per
-// subcommand so that tools/implhash.sh keeps its per-tool invalidation.
-//
-// The subcommands are drop-in replacements: same argv, same rewrite-in-place,
-// same stdout, same exit codes as the Python they stand in for.  tools/sweep.sh
-// detects that a tool did something by taking sha256 of the file and by
-// nothing else, so agreement means BYTE agreement and each one is held to it
-// against real inputs.  (That comparison lived in arbace/slim-vim, beside the
-// Python it compared against; this repository carries no Python at all.)
-//
-// The C front end (modernc.org/cc/v4, pinned and patched) is deliberately not
-// used by any sweep subcommand.  Those run on text that six deleting tools
-// have already cut and that nothing has compiled since, so it need not be
-// valid C.  Parsing belongs to the phase edit programs, whose input is a
-// boundary that compiled.
+// The pipeline itself is `whim build` (internal/build's plan on
+// crefactor/pipeline's driver, every phase on crefactor/graph's graph); the
+// other subcommands are the generators of the translations, the suite
+// (`whim test`), the graph's and C-lisp's tools, the analyses that report
+// and cut nothing, and the cutters and phase programs one at a time on a
+// file (internal/steps' OnText: the file imported, its C view written back).
 package main
 
 import (

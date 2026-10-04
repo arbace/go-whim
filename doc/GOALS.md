@@ -24,16 +24,19 @@ that record. What holds now is `CLAUDE.md`'s *Build*: one path, and the product
 reproduced byte for byte.
 
 The two pipelines are the same construct — a phase is a function of the tree it
-is handed, memoized in three tiers — and differ only in what they remove.
+is handed (memoized in three tiers when this was written; nothing is now) — and
+differ only in what they remove.
 `SLIM-GOAL.md` removes *files and preprocessor* and changes nothing about what
 the editor can do. **This one removes capability, on purpose**, and every phase
 has to say which and prove it removed nothing else.
 
 **A phase is a directory, `internal/phase/NNN/`** (or, a record now,
-`internal/phase/archive/NNN/`), its number in three digits, and a Go
-package of its own: `edit.go` and `check.go`, its `GOAL.md` — what it removes and why,
-and what was measured — and its declared `delta.md`. This document is what holds for
-all of them: the charters, the rules, what is measured, and an index of the
+`internal/phase/archive/NNN/`), its number in three digits: its `GOAL.md` —
+what it removes and why, and what was measured — and, where its cut is a
+program, `edit.go`, a Go package of its own, written on the program graph now
+(`doc/GRAPH-MIGRATION.md`); its `check.go` and declared `delta.md` (but phase
+1's, which its front reads) went with the suite. This document is what holds
+for all of them: the charters, the rules, what is measured, and an index of the
 phases in each part.
 
 The two parts are one pipeline with one numbering and one product. What changes
@@ -65,8 +68,8 @@ a heading; a phase's number is its place in the plan, which the snapshots
 measurements put them. D1-D12 are the front of phases 1-3 (D1-D5, D6-D8,
 D9-D12), each part followed by its own fall-out closure, so that the parallel
 check runs the three side by side; the drops that stayed after the reform
-joined phase 3's part, or run first in phases 4 and 5 on the text the front
-swept, so the block `d01-front` runs to phase 5 (§7 of the reform, step 10). A
+joined phase 3's part, or run first in phases 4 and 5 on what the front
+collected, so the block `d01-front` runs to phase 5 (§7 of the reform, step 10). A
 generic step stays in the middle where the rewires after it were written for
 its text (§7 of the reform: phases 50, 62 and 74).
 
@@ -110,8 +113,8 @@ its text (§7 of the reform: phases 50, 62 and 74).
 **Parts.** A program a phase runs among its steps that had a number of its own
 is a part of that phase, `internal/phase/NNN/x/`, registered `whimNx`: the
 seed's three (0a-0c); the programs the front calls (2a at phase 2; 3a-3f at
-the end of phase 3's part; 4a-4f and 5a-5d first in phases 4 and 5, on the
-text the phase before swept); and the earlier members of the compaction groups
+the end of phase 3's part; 4a-4f and 5a-5d first in phases 4 and 5, on
+what the phase before collected); and the earlier members of the compaction groups
 that run as one phase (15a, 38a-38b, 49a-49b, 51a, 71a-71b, 74a, 76a, 77a, 86a,
 87a).
 
@@ -2205,17 +2208,21 @@ expected number of new phases is none. A phase is a directory, `internal/phase/N
 number in three digits, and this is how one would join now.
 
 1. **Write it in Go** if its cut is a program: `internal/phase/NNN/` is then a package of
-   its own, `pNNN`, whose `edit.go` registers itself in an `init()`, and
-   `cmd/whim/phases.go` gains a line so it is linked in.
-2. **Add it to the plan**, `internal/build/plan.go`: its steps in order. The
-   sweep follows every phase.
+   its own, `pNNN`, whose `edit.go` is a program on the program graph,
+   written on `crefactor/graph`'s verbs (`doc/GRAPH-MIGRATION.md`, *Converting
+   a phase: the recipe*) and registered with `phase.RegisterGraph` in an
+   `init()`, and `cmd/whim/phases.go` gains a line so it is linked in.
+2. **Add it to the plan**, `internal/build/plan.go`: its steps in order, each
+   a graph step. The re-check, the collection and the C view follow every
+   phase.
 3. Write its `internal/phase/NNN/GOAL.md`, which opens `# Phase N — ...`, and add it to
    the index below.
 4. `make whim-build` produces `whim-vim.c` and `editor/editor.go` again — **both
    are tracked, and a new phase moves them**, so the diff is the phase's product
-   and is reviewed as such. There is no test suite (the one these phases were
-   verified with is at `448e9a8`); what shows the phase does what it says is
-   stated in its `GOAL.md`.
+   and is reviewed as such. The suite these phases were verified with is at
+   `448e9a8`; `make whim-test` now holds the editor to HEAD's (a phase that
+   removes capability moves cases on purpose, and names them), and whatever
+   else shows the phase does what it says is stated in its `GOAL.md`.
 
 What used to be here — the boundary to record, `whim-tip`, and the warning that
 the tracked product can lag the pipeline — went with the memoize. The product

@@ -18,6 +18,13 @@ types. Both halves hold, with numbers below. **The recommendation is not to
 migrate, and to write a new phase on the tree only where the resolver says
 something the text cannot** (*Recommendation*, at the end).
 
+*Afterwards* (2026-10-04): the pipeline did migrate -- not to this untyped
+tree but to `doc/GRAPH.md`'s resolved, typed graph, built on C-lisp's forms,
+which removed both costs measured here (the conversions and the reparse):
+every phase runs on it, one import a run, 128 s in order
+(`doc/GRAPH-MIGRATION.md`, *Fin as built*). The "today" below is the
+pipeline of `66dd7ee`.
+
 ## What was built
 
 **A tree API on C-lisp's `Node`**, in `crefactor/clisp` (it names nothing in

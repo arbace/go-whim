@@ -1,11 +1,13 @@
 # GRAPH.md -- the program as a graph, its views as trees, printed as Lisp
 
-2026-10-03. A design, not a plan of record; its steps 1-4 are built
-(`crefactor/graph`) and measured, in *Steps 1-3 as built* and *Step 4 as
-built*, near the end, and so is step 5's foundation, the pipeline running
-text and graph phases side by side (*Step 5 as built*), and a first, read-only
-taste of its views (`crefactor/graph/view`, `whim view`: *Views,
-read-only*); the rest is not. It asks
+2026-10-03. A design; its steps 1-6 are built (`crefactor/graph`) and
+measured: 1-4 in *Steps 1-3 as built* and *Step 4 as built*, near the end,
+step 5's foundation in *Step 5 as built*, and the rest -- every phase 0-103
+on the graph, the typed transforms on typed edges, one import a run --
+in `doc/GRAPH-MIGRATION.md`'s batches, whose last, *Fin as built*, has the
+build that results (128 s in order, against 451 s on text). A first,
+read-only taste of its views is built too (`crefactor/graph/view`, `whim
+view`: *Views, read-only*); the editor at the end is not. It asks
 what representation the pipeline, and later an editor, would hold a C program
 in, if the C text were no longer the thing edited. It rests on two measured
 pieces: C-lisp (`doc/C-LISP.md`: C23 as s-expressions, byte for byte against
@@ -14,7 +16,7 @@ cemit's canonical text) and the pilot of phases editing C-lisp's tree
 
 ## The problem: two representations, translated back and forth
 
-Every phase today edits **canonical text** (about 70 phase packages, 382
+Every phase, when this was written, edited **canonical text** (about 70 phase packages, 382
 regexp patterns, `crefactor/edit`'s verbs), and every phase ends by parsing
 it again: the sweep parses and resolves names by cc's scopes, the canonical
 print parses again when the sweep cut something, and the typed transforms
@@ -159,7 +161,8 @@ analyses, or cached under the graph's digest.
   candidate for that layer's node kinds.
 - **The typed transforms** become graph rewrites that read typed and derived
   edges directly instead of calling `cc.Translate` on text: the 15 or so
-  phases the pilot could not reach are where the graph earns most.
+  phases the pilot could not reach are where the graph earns most (step 6
+  did it: `doc/GRAPH-MIGRATION.md`, *Step6 as built*).
 
 ## The hard parts
 
@@ -197,8 +200,9 @@ analyses, or cached under the graph's digest.
 5. **The pipeline on the graph**, phase by phase, the graph handed from one
    to the next and C printed only for the snapshots. *Gate:*
    `whim-build-check` unchanged; the in-order time measured against 451 s.
-   Its stage A is built (the hybrid driver, the graph snapshots, 14 phases'
-   cuts); stage B is `doc/GRAPH-MIGRATION.md`'s batches.
+   Built: stage A (the hybrid driver, the graph snapshots, 14 phases' cuts)
+   and stage B, `doc/GRAPH-MIGRATION.md`'s batches, which put every phase on
+   the graph (128 s in order, 34 s the parallel check: *Fin as built*).
 6. **The typed transforms** onto typed edges, `cc.Translate` gone from them
    (built: `doc/GRAPH-MIGRATION.md`, *Step6 as built* -- the type re-check
    and 94, 95, 100, 101 and BoolRet on the graph). *Gate:* every phase on
@@ -1186,8 +1190,10 @@ out:
 - **B3**: the b-class conversions in contiguous ranges.
 - **B4**: the front, last, behind `FallOutOf`.
 
-Only the seed (phase 0) and phase 88 (gcc) stay text. Phase 43 stays text
-unless gcc's three answers become edge queries.
+Only the seed (phase 0) and phase 88 (gcc) were to stay text, and phase 43
+unless gcc's three answers became edge queries. They did not stay: B3d asked
+43's questions of the graph and R3 put the seed and 88 on it, so every phase
+runs on the graph.
 
 ## Open questions
 

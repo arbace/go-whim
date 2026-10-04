@@ -24,7 +24,10 @@ slim-vim.c  --whim-->  whim-vim.c
 - **whim** (the `Makefile`) removes capability on purpose, phases 0-103 from
   180,870 lines to 77,635, numbered in the order they run (`doc/PHASES.md`
   maps them to the numbers they were written under, 0-184 with gaps, which
-  `GOALS.md`, every `GOAL.md` and the records still use). It is two arcs, a
+  `GOALS.md`, every `GOAL.md` and the records still use). Every phase edits
+  the program as one resolved, typed graph (`crefactor/graph`,
+  `doc/GRAPH.md`), imported once from the input and handed from phase to
+  phase; C is printed only at the boundaries. It is two arcs, a
   coda, five for the Go's sake, the headers, the gotos, the parallel `:%s`,
   the out-parameters and struct locals as values, the C spelled plainly, and
   its flags bool:
@@ -164,13 +167,13 @@ slim-vim.c  --whim-->  whim-vim.c
     swap file, startup, the encoding, the terminal, one window and buffer,
     the editing features, one regexp engine, the process; and, after the
     reform, every drop that stayed: the editing-feature programs, phase 3's
-    parts 3a-3f, at the end of its part, and first in phases 4 and 5, on the
-    text the phase before swept, what counts or anchors on swept text --
+    parts 3a-3f, at the end of its part, and first in phases 4 and 5, on
+    what the phase before collected, what counts or anchors on collected text --
     `nostat` (record 13's), part 4a, `onebuffer` (record 42's) and parts
     4b-4e (4f after `nowildmenu`) at phase 4; `nobackup` (phase 12's),
     `lfonly`, `keepbytes` and `noconv` (records 50, 51 and 53's) and parts
-    5a-5d at phase 5. The fall-out closure (`crefactor/graph`'s `FoldX`, on the graph since
-    B4) folds what each of phases 1-3 left unwritten.
+    5a-5d at phase 5. The fall-out closure (`crefactor/graph`'s `FoldX`)
+    folds what each of phases 1-3 left unwritten.
   - **The rest are named in blocks.** `d02`-`d13` are the drops that count
     text only their predecessors leave, `r01`-`r14` the rewires, and
     `g01`-`g11` the generic steps (`doc/GOALS.md`, *The pipeline as it runs*).
@@ -285,13 +288,14 @@ phase runs among its steps that had a number of its own -- a compaction
 group's earlier member, or a program the front calls -- in a directory inside
 the phase's, `internal/phase/NNN/x/`: package `pNNNx`, registered as `whimNx`,
 lettered in the order the phase runs them; there are 33. The other phases are
-plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
-(`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
-itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (every phase, 0-103, and every part, written on the graph's verbs since R1 and R3: `doc/GRAPH-MIGRATION.md`),
-is written on `crefactor/graph`'s editor and verbs and registers with
-`phase.RegisterGraph`, its text program replaced -- and
-`cmd/whim/phases.go` is what links them in: it imports every phase blank.
+plan steps only (`internal/steps`). An edit is a program on the graph: a
+`phase.GraphFunc` (the editor, the report, the arguments) written on
+`crefactor/graph`'s verbs (`graph.NewVerbs`: counted acts by C-lisp pattern,
+C fragments made nodes by FRAG) and editor, and `internal/whim/vimtext`'s
+shared shapes, registered with `internal/phase` (`phase.RegisterGraph`) in an
+`init()`; phase 2 also answers a query (`phase.RegisterQuery`), which the
+plan's `query-empty` asks. `cmd/whim/phases.go` is what links them in: it
+imports every phase blank.
 
 **`doc/GOALS.md`** is what holds for every phase, in the old numbers but for its
 section on the pipeline as it runs: Part I (phases 0-82: the charter,
@@ -314,32 +318,26 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 ```
 cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand>
                    (README.md: each tool, and what each retired script became)
-internal/          whim's Go: cut (the cutters), steps (every transformation a phase names, as
-                   one table), treepilot (doc/C-LISP-TREE.md's pilot,
-                   outside the plan), graphcheck (crefactor/graph's sweep
-                   held to the pipeline's on every phase, and the phases
-                   with a graph step held to their snapshots, timed, the
-                   seed on the graph from the input (r3_test.go,
-                   GRAPH_INPUT), the
-                   graph snapshots read back, and the graph's verbs on the
-                   snapshots -- an initialiser element replaced, phase 15
-                   written on them, the include edits of phases 43, 73, 88
-                   and 99 and the line on every snapshot, B2b's rows,
-                   enumerators and renames held to argvfront, filefront and
-                   phase 51a, eight phases' literal C spliced by FRAG, PARAM,
-                   RETYPE and MOVE on phase 31 and 86's parameter and on
-                   whim-vim.c's functions (57, 66, 78, 80 and 83's moved
-                   into the phases, B3f), a phase's diff against its
-                   snapshot (b3f_test.go), and FOLDX held to the text's
-                   closures (every seed, by the digests testdata/ records,
-                   phase 62's empties, notags' conditions), and every phase on the graph from end to
-                   end held to the import of its C view, ids aside
-                   (s6_test.go, step 6: SameGraph, every typed edge):
-                   GRAPH_SNAPS), steps'
-                   front.go (the front's cutters on the graph and FoldX),
-                   build (whim's pipeline: the plan -- what each
+internal/          whim's Go: cut (the cutters, each a function on crefactor/graph's
+                   editor: DropLocal, the front's packages and the drops the
+                   plan names), steps (every transformation a phase names,
+                   as two tables: graphOps, the graph steps the plan runs, and
+                   the text ops -- funcreach, query, cemit -- a tool runs on a
+                   file; front.go the front's cutters and FoldX), graphcheck
+                   (the graph held to the text's oracles and the snapshots:
+                   the collection to crefactor/sweep's cuts on every phase
+                   (TestCollect), every phase on its snapshot handed the
+                   graph (TestPhasesOnGraph), the seed from the input
+                   (GRAPH_INPUT), the graph snapshots read back, the verbs
+                   and capabilities on the snapshots, FoldX to the text
+                   closure's recorded results, phase 88's include rule to
+                   gcc, and every phase's graph to the import of its C view,
+                   ids aside (s6_test.go, SameGraph); GRAPH_SNAPS),
+                   treepilot (doc/C-LISP-TREE.md's pilot: outside the plan,
+                   imported by nothing, its tests alone), build (whim's
+                   pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
-                   generic driver whim-vim.c, .cache/boundaries, vim's sweep,
+                   generic driver whim-vim.c, .cache/boundaries, the collection's roots,
                    @minmax and phase 1's delta.md), cmdtab (the Ex command
                    table: its names), score (bytes and
                    symbols, the input beside the product)
@@ -353,9 +351,10 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    resolved). c23conf/: its
                    conformance test, a file per C23 feature, held to gcc 15
                    through the parser, cemit and C-lisp (doc/C23.md).
-                   cemit/: the canonical printer (recover.go: its
-                   parse, include lines and macro recovery, exported for
-                   clisp). clisp/: C-lisp, C as s-expressions and back, byte
+                   cemit/: the canonical printer, whose text the graph's C
+                   view reproduces byte for byte (recover.go: its parse,
+                   include lines and macro recovery, exported for clisp
+                   and the graph's import). clisp/: C-lisp, C as s-expressions and back, byte
                    for byte on canonical text (`whim c2lisp`, `whim lisp2c`;
                    SPEC.md, every form; doc/C-LISP.md), and a tree API on
                    its forms (tree.go: cursors, edits, an atom index;
@@ -364,192 +363,92 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    spaces and scopes, untyped; Options.Origin tells a
                    caller the cc node each form came from; printnode.go an
                    expression's or items' C alone). graph/: the
-                   program as one resolved, typed graph (doc/GRAPH.md):
-                   import.go cc's parse and check into C-lisp's forms as
-                   nodes with ids, refers edges (members by type) and typed
-                   edges, types.go the type and external nodes, cview.go the
-                   C view, byte for byte, lisp.go the graph as Lisp and its
-                   reader, collect.go, keys.go and cut.go the sweep as
-                   garbage collection, Prune's rules on the nodes, edit.go
-                   the editor (Delete, Replace, Insert, Retarget, checked
-                   where made: places, containment, dangling records, the
-                   id rule, types kept or cleared), fallout.go the fall-out
-                   closure over dangling edges (call, store, through,
-                   value, constant folds, empties; a program's specifics
-                   through FallOutOptions, which internal/whim/graph.go
-                   gives vim's, and FOLDX's rules opted into there:
-                   the values a cut gives, store ifs, a condition kept,
-                   labels, FoldX, the empties everywhere), FOLDX
-                   (doc/GRAPH-MIGRATION.md, B2d): foldx.go
-                   xform.FallOut's closure on the graph (Editor.FoldX:
-                   the seeds, the constants, && and ||, the branches, the
-                   revealed jumps, the calls and parameters, marked as the
-                   text marks, the text's rounds -- the front's three
-                   closures byte for byte), unwritten.go the unwritten
-                   seed over write edges (Editor.Unwritten), foldx_eval.go
-                   cc's constant evaluation on the forms (types, layout,
-                   offsetof, the header limits, the parentheses C needs),
-                   foldmore.go EmptyBlocks (phase 62's, byte for byte) and
-                   the closure's opt-in rules, pattern.go clisp's patterns on nodes,
-                   names.go what the forms say of a declaration, exported;
-                   editcollect.go the collection through the editor (its
-                   index kept, the act logged); and the library the phases
-                   are converted on (doc/GRAPH-MIGRATION.md, B0): verbs.go
-                   crefactor/edit's verb set on the graph (Verbs: the
-                   scopes, the counted acts by C-lisp pattern, the text's
-                   report and refusals), build.go new nodes from C-lisp
-                   templates at a place (names resolved as the importer
-                   resolves them, members by type, typed edges where they
-                   follow), textq.go the text's assertions (its counts on
-                   the scope's C view, and the edges' answers), unwrap.go a
-                   branch's items spliced where no name clashes, and a run
-                   of items replaced; its tests hold each verb to its text
-                   verb's C, on graphs read back from Lisp; include.go
-                   (B2e) the include forms added, deleted and moved under
+                   program as one resolved, typed graph (doc/GRAPH.md), on
+                   which every phase runs (doc/GRAPH-MIGRATION.md: the
+                   recipe, and each batch as built). The graph: import.go
+                   cc's parse and check into C-lisp's forms as nodes with
+                   ids, refers edges (members by type) and typed edges;
+                   types.go the type and external nodes; cview.go the C
+                   view, cemit's text byte for byte; lisp.go the graph as
+                   Lisp and its reader (the snapshots qNNN.g); same.go
+                   SameGraph (a graph against the import of its C view, ids
+                   aside); headers.go what one header provides, parsed by
+                   cc alone. The collection: collect.go, keys.go and cut.go
+                   the sweep's rules on the nodes, as garbage collection;
+                   editcollect.go through the editor, its index kept. The
+                   editor: edit.go (Delete, Replace, Insert, Retarget,
+                   checked where made: places, containment, dangling
+                   records, the id rule, types kept or cleared);
+                   s6recheck.go the re-check before every collection
+                   (Recheck: an expression's type from its operands' by cc's
+                   rules, a declaration's from its form, the typed edges and
+                   uses of a replaced definition retargeted); fallout.go the
+                   fall-out closure over dangling edges, a program's
+                   specifics through FallOutOptions (internal/whim/graph.go
+                   gives vim's); foldx.go, unwritten.go, foldx_eval.go and
+                   foldmore.go FoldX, the front's closure (the unwritten
+                   seed over write edges, cc's constant evaluation on the
+                   forms, the branches, the revealed jumps, EmptyBlocks and
+                   the opt-in rules). The verbs the phases are written on:
+                   verbs.go (Verbs: crefactor/edit's acts by C-lisp pattern,
+                   counted, the text's report and refusals), runverbs.go,
+                   b3bverbs.go and b2cverbs.go; build.go (BUILD: nodes from
+                   C-lisp templates, names resolved as the importer resolves
+                   them); pattern.go clisp's patterns on nodes (`?x:P`
+                   among them); textq.go, r1_textq.go and fin_textq.go the
+                   text's questions asked of the forms that can answer them
+                   (FormsWith, FormsWhere, Quoted); unwrap.go, names.go;
+                   frag.go FRAG (C text made nodes in context: a pared unit
+                   cc parses, checks and imports, holes `$x`) with
+                   fragverbs.go and fragmore.go, clone.go (CLONE), macrox.go
+                   (MACROX); renum.go, initrow.go and rename.go
+                   (enumerators, a table's rows, spellings); param.go,
+                   retype.go, move.go and typeedit.go (PARAM, RETYPE, MOVE);
+                   include.go, moveowning.go, b3db_include.go,
+                   b3dc_header.go and r3_spare.go (the include forms under
                    the extern rule -- every name the file takes from the
-                   headers provided by an include above its first use, no
-                   header's macro over the file's own names below it -- and
-                   the first include form as the line (Core, Host, InCore,
-                   top-level forms moved across it), headers.go what one
-                   header provides, parsed by cc alone;
-                   and B2b's:
-                   renum.go an enum's enumerators deleted, moved, inserted
-                   under a values policy (held, renumbered and reported,
-                   pinned as the sweep pins), initrow.go a table's rows
-                   deleted, inserted, reordered with every position the
-                   file names said again (subscripts by constants, the
-                   index enumerators and permutations a cut names),
-                   rename.go a declaration and its uses respelled by
-                   edge, a use retargeted to another spelling, a string
-                   literal respelled whole, named by the cut;
-                   B2a's
-                   frag.go, C text made nodes in context (FRAG: SpliceC
-                   at a Spot, on a synthesized unit -- the C view pared to
-                   what a fragment sees, the fragment between markers --
-                   that cc parses, checks and imports, its nodes kept and
-                   their edges carried over, the uses it now declares
-                   retargeted, holes `$x`), fragverbs.go its verbs
-                   (BodyC, LiteralC, ReplaceC, TopBeforeC, ...) and
-                   Together (a phase's literals in one unit), clone.go
-                   (CLONE), macrox.go (MACROX: an invocation's name and
-                   arguments, expanded through FRAG), same.go (SameGraph:
-                   a graph against the import of its C view, ids aside);
-                   and B2c's
-                   capabilities: param.go PARAM (a parameter dropped from
-                   every declaration and every fn form of its family --
-                   pointers, members, typedefs -- with the argument at every
-                   call, every use of what changes type a call, a flow to
-                   the same new type or a test, else refused; DropArg,
-                   ParamToLocal, AddParam; the editor's one sanctioned path
-                   past "a function's parameters are its type"), retype.go
-                   RETYPE (a declaration's type in every declaration of it,
-                   a typedef's reach, the typed edges above every use typed
-                   again or cleared into Untyped), move.go MOVE (items and
-                   nodes moved, ids and edges kept, refused where a use
-                   would no longer resolve or a jump would rebind),
-                   typeedit.go what they share (type nodes interned,
-                   types derived, Rederive), b2cverbs.go their verbs;
-                   runverbs.go (B3a) runs of items as verbs (Run,
-                   CutRun, SpliceFirst), DropCaseRun, DropOperandAsText
-                   (the parentheses a text cut leaves), HeadFold (a line
-                   head's ifs, arms told apart, last first) and EndLabels;
-                   deadstmt.go the statements after a jump (StmtTerminates
-                   on nodes, part 86a's rule);
-                   b3bverbs.go the verbs phases 27-35's conversions
-                   wanted (a fold by where its if stands, CutWhere,
-                   Run and CutRun, Muted, DropArgPure);
-                   and B3d's (phases 43-52):
-                   moveowning.go top-level forms moved across the
-                   include forms owning what they leave unprovided (the
-                   lost macros declared, their tokens made uses, every
-                   edge the move crosses resolved again; phase 43's
-                   move), b3da_rows.go a table's rows arranged and typed
-                   as imported, b3db_own.go libc functions made the
-                   core's own (47), b3db_unions.go the degenerate unions
-                   (50), b3db_include.go the system include run,
-                   b3dc_header.go the file's prototypes of header
-                   functions deleted, their uses the headers' (49);
-                   and B3g's, crefactor/xform's text transforms asked of
-                   the nodes, each held to the text on every boundary
-                   before it went: gotoflow.go the statement walk the
-                   gotos share (a label an item of its own, so a rule's
-                   item is a group of labels and their statement),
-                   gototail.go (89: a label's tail copied over its gotos,
-                   by Clone), gotobreak.go (90), gotoloop.go (91) and
-                   gotoblock.go (92: the region moved into a for (;;),
-                   a do-while or a do-while(0)), nevernull.go (74: the
-                   never-NULL set to its fixed point, the tests after a
-                   store folded), dropcalls.go (60: the calls of what
-                   does nothing, DeadLocals);
-                   and R1's (phases 53-56 and utf8only on the verbs,
-                   where B3e's DRAFT -- text acts on the C view committed
-                   as FRAG -- carried them; deleted): r1_markfold.go
-                   (MARKFOLD: a text simplifier's constant folding on the
-                   forms -- marked constants through `||`, `&&`, `!`,
-                   `?:`, parentheses and comparisons with zero, in the
-                   text's order and at its groups, its kept parentheses as
-                   `(paren ...)`, the statements on a constant folded),
-                   r1_textq.go (FormLines: the lines of the forms that say
-                   a name, found by edge, each with its function;
-                   MemberDecls, LocalDecls, AndUses, ItemsC) and
-                   r1_build.go (BUILD's operands and RETYPE's selections
-                   typed decayed, as cc's check types them; an array size
-                   an enumerator);
-                   and B3f's protoparam.go (a prototype's parameter
-                   names) and fragmore.go (FRAG verbs for an expression by
-                   its C, a spot, nodes the caller found, a node wrapped
-                   as a hole);
-                   and step 6's (doc/GRAPH-MIGRATION.md, *Step6 as
-                   built*): s6recheck.go the type re-check (Recheck: an
-                   expression's type from its operands' by cc's rules --
-                   promotions, the usual conversions, decay, pointer
-                   arithmetic, members, calls, literals -- a declaration's
-                   from its form, the typed edges and uses of a replaced
-                   definition retargeted; on every boundary it types back
-                   every expression an import types, the header macros'
-                   aside), s6fndecls.go the block-scope prototypes
-                   indexed, and the typed transforms, each the text's
-                   byte for byte: s6mo_memberout.go (94), s6sp_stateparam.go
-                   (95), s6lo_localout.go and s6ss_structscalar.go (100),
-                   s6pc_plainc.go (101), s6br_boolret.go with s6br_types.go
-                   and s6br_names.go (87a, 87, 102, 103: BoolRet's fixed
-                   point on the edges, the key codes by ReplaceByUse) and
-                   s6ov_elements.go (76: a member and initialiser elements
-                   inserted); and R3's r3_seed.go (phase 0's parts 0a and
-                   0c: NullptrUsize, Attrs, RespellTokens and RespellText --
-                   a token or a macro's text respelled, the types above it
-                   kept -- DeleteAttr, RespellAttr) and r3_spare.go (88:
-                   Spares, the rule's account in gcc's order, and
-                   DeleteIncludes); and Fin's fin_textq.go (FormsWith,
-                   FormsWhere, Quoted: a text question asked of the forms
-                   whose atoms hold its words, not of the whole C view);
-                   its corpus tests run on GRAPH_CORPUS. graph/view/: its
-                   views, read-only (`go tool whim view`): index.go the
-                   edges the other way round and the roots by name, view.go
-                   the steps, the specs and the tree built with links for
-                   revisits, named.go callers, callees, uses, member, type
-                   and def, print.go the tree as C-lisp, ids on demand.
-                   sweep/: the closure.
+                   headers provided above its first use -- the first one the
+                   line: Core, Host, InCore; phase 88's Spares);
+                   r1_markfold.go (MARKFOLD: a text simplifier's constant
+                   folding on the forms). The transforms, each the text's
+                   byte for byte when it replaced it: gototail.go,
+                   gotobreak.go, gotoloop.go and gotoblock.go (89-92) on
+                   gotoflow.go; nevernull.go (74), dropcalls.go (60),
+                   deadstmt.go (86a), b3db_own.go (47), b3db_unions.go (50),
+                   r3_seed.go (parts 0a and 0c), s6mo_memberout.go (94),
+                   s6sp_stateparam.go (95), s6lo_localout.go and
+                   s6ss_structscalar.go (100), s6pc_plainc.go (101),
+                   s6br_*.go (BoolRet: 87a, 87, 102, 103) and
+                   s6ov_elements.go (76). Its corpus tests run on
+                   GRAPH_CORPUS. graph/view/: its views, read-only (`go
+                   tool whim view`): index.go the edges the other way round
+                   and the roots by name, view.go the steps, the specs and
+                   the tree built with links for revisits, named.go
+                   callers, callees, uses, member, type and def, print.go
+                   the tree as C-lisp, ids on demand.
+                   sweep/: the text's closure (Prune), which whim's plan no
+                   longer runs -- the collection is its rules on the nodes,
+                   held to it by internal/graphcheck -- kept for `whim
+                   sweep` and the driver's text steps.
                    reach/: what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing. ccx/: a core's pointer casts and evaluation order,
                    partitioned. dead/: funcreach and gcc's unused warnings.
                    pipeline/: the driver -- Phase, Step, Plan, Run, Advance,
                    Check, the snapshots, Seed and SeedGraph (the input
-                   imported, its C view the canonical print) -- told everything through a
-                   Config; hybrid.go its text and graph steps, the
-                   conversions between them, the re-check before every
-                   collection, and the graph snapshots; flags.go Flags,
-                   the steps' counted arguments (`--at-least N`). The
-                   text transforms' package, xform/, is gone: its last
-                   code, the text's fall-out closure, was FoldX's tests'
-                   oracle until Fin recorded what it gave as their golden
-                   files. edit/: the C-text
-                   substrate that was cutil, and the one verb set -- E, every act
-                   counted (driver.go, blocks.go); Ph, the driver of the phases
-                   whose cut is a computation; the counted acts both and
-                   internal/cut's `ed` are written on (counted.go); and in
-                   shared.go the generic helpers more than one phase uses.
+                   imported, its C view the canonical print) -- told
+                   everything through a Config; hybrid.go its text and graph
+                   steps (whim's plan has graph steps alone), the
+                   conversions where the kind changes, the re-check before
+                   every collection, and the graph snapshots; flags.go
+                   Flags, the steps' counted arguments (`--at-least N`).
+                   edit/: the C-text substrate that was cutil: Ph's text
+                   questions (a literal's spans, a word's mentions, a
+                   definition found), which the graph's verbs and the
+                   phases still ask of a C view, shared.go's helpers, and
+                   E, the text verb set, every act counted (driver.go,
+                   blocks.go), which no program runs now: the graph's verb
+                   tests hold each verb to it.
                    togo/: the C-to-Go translator internal/gen runs, and its
                    instance pass (instance.go: the state a struct's fields,
                    the functions reaching it its methods), its Java
@@ -601,12 +500,17 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    Haskell's analyses, shared). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
-                   sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
-                   names), gen.go (togo's profile, whim.Gen), graph.go
+                   sweep's roots and guard, the collection's too), graph.go
                    (crefactor/graph's collection and fall-out closure),
+                   xform.go and s6*.go (the knobs of the graph's transforms:
+                   DropCalls, NeverNull, Nullptr, Own47, BoolRet,
+                   StateParam), cut.go (Cut, the line), analysis.go (dead's
+                   roots, reach's and ccx's names), gen.go (togo's profile,
+                   whim.Gen),
                    and vimtext/ (what more than one phase uses that knows vim: the
                    buffer walks, Key, the command table's residue check, the
-                   prototype and #include shapes part 49b and phase 49 share, and the
+                   include forms and the core's ordinary declarations parts
+                   49a-49b and phase 49 read on the graph, and the
                    Python-port helpers of phases 54-56; a shape one phase alone uses
                    is in that phase's shapes.go)
 internal/phase/    the registry the phases' programs join (registry.go, query.go),
@@ -760,15 +664,16 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    whim-vim.lc), C-LISP-TREE.md (a pilot: phases editing
                    that tree instead of the text -- DropLocal and phase 24
                    rewritten in internal/treepilot, byte for byte on their
-                   14 phases, measured; not to migrate) and GRAPH.md (a
-                   design, steps 1-4 built and measured, step 5's stage A
-                   -- text and graph phases side by side -- built, and its views
-                   read-only: the program as one resolved, typed graph,
-                   cuts as deletions whose fall-out is the constraints'
-                   closure, its views trees printed as Lisp, and an editor
-                   over them), GRAPH-MIGRATION.md (every phase classified
-                   for the move to the graph, the batches that do it, and
-                   B0's library as built)
+                   14 phases, measured; it advised against migrating that
+                   tree, and the graph is what the pipeline moved to) and
+                   GRAPH.md (the program as one resolved, typed graph, cuts
+                   as deletions whose fall-out is the constraints' closure,
+                   its views trees printed as Lisp, and an editor over them:
+                   the design, its steps 1-6 built and measured, the views
+                   read-only), GRAPH-MIGRATION.md (every phase classified
+                   for the move to the graph, the recipe for converting --
+                   or writing -- a phase on it, and each batch as built, to
+                   the last: every phase on the graph)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -827,74 +732,66 @@ make help            # every target, with a line each
 ```
 
 - **One path.** `make whim-build` is what a moved upstream runs:
-  `internal/build`'s plan -- each phase's steps (`internal/steps`), **the sweep,
-  after every phase** (there are no stages), and **the canonical print of what is left**
-  (`crefactor/cemit`: one spelling per construct, and NO COMMENTS, of any kind;
-  for a phase that ends on the graph, the collection and the C view, the same
-  text -- a step is a text step or a graph step, below),
-  so every boundary that is C is in the one spelling phase 0 seeds with -- C23's,
-  `nullptr` and `usize` and the attributes included, since phase 0 runs its
-  parts 0a's rename, 0b's variadic collapse and 0c's attributes on the canonical
-  input and every later phase is written for them, 0c's 37 `[[fallthrough]];`
-  among them (20 reach the product; the print wrote them `;` until the front
-  end held them, `doc/C23.md`) -- applied
-  in one process, in memory. **Its log is a line a phase** -- the name, the acts its
-  steps reported, the lines its edits and the sweep took, the lines left, the
-  time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 104 phases, **128 s** with every boundary compiled after (524 s of user CPU, gcc's included), 77,635 lines, at a load of 8-9 after Fin (no phase printing the whole C view for itself); 132 s and 534 s at a load of 7-9 after R1 and R3 (every phase on the verbs); 150 s and 597 s at a load of 3-10 after R3 alone, one import in the run (the input, phase 0's seed) and every phase on the graph; 158 s and 598 s at a load of 3-5 after step 6, two imports (phases 1 and 89) and phases 0 and 88 on text; 182 s and 624 s at a load of 12-34 after B4 (phases 1-3 13, 17 and 8 s, 30, 23 and 28 s on text); 382 s and 976 s at a load of 20-35 after B1a, the two run side by side (main before it: 408 s and 982 s; at a load of 3-13, stage A's 348 s and 936 s, and main before step 5 352 s and 958 s
-  the same hour; 451 s and 563 s of CPU under a load of 54-62; 815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
-  9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
-  whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
-  the boundary before each phase that begins on the graph the graph it
-  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: 103 now, one before every phase but the seed), and seals the
-  set with the input's digest (`manifest`).
-- **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
-  (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
-  the static_asserts found by name in C's three name spaces, and everything else
-  cut -- functions, objects, prototypes, typedefs, tags, members, enumerators,
-  the locals nothing reads (resolved by the parser's scopes), and a
-  `fallthrough` attribute statement that precedes no case label, gcc's test
-  (`fallthrough.go`; on whim's pipeline it finds none). Its guards: no
+  `internal/build`'s plan, applied in one process, in memory. Phase 0 imports
+  the input into `crefactor/graph`'s graph (`pipeline.SeedGraph`), the one
+  import of the run; every phase is then its **graph steps** (`internal/steps`'
+  `graphOps`: the cutters, the phases' programs, the transforms) on the graph
+  the phase before handed it, the type **re-check** (`Editor.Recheck`), **the
+  collection** (what nothing reaches goes; there are no stages), and **the C
+  view** of what is left -- `crefactor/cemit`'s canonical print byte for byte:
+  one spelling per construct, and NO COMMENTS, of any kind -- so every
+  boundary is in the one spelling phase 0 seeds with -- C23's, `nullptr` and
+  `usize` and the attributes included, since phase 0 runs its parts 0a's
+  rename, 0b's variadic collapse and 0c's attributes on the imported input and
+  every later phase is written for them, 0c's 37 `[[fallthrough]];` among them
+  (20 reach the product, `doc/C23.md`). **Its log is a line a phase** -- the
+  name, the acts its steps reported, the lines its edits and the collection
+  took, the lines left, the time, and what the graph's editor logged, under a
+  heading for each block (`block  d02-outside`); `-v` writes every act, and a
+  phase that refuses writes its whole report before the reason. Measured: 104
+  phases, **128 s** with every boundary compiled after (524 s of user CPU,
+  gcc's included), 77,635 lines, at a load of 8-9 -- against 451 s (563 s of
+  CPU, a load of 54-62) when every phase edited text, and 815 s before
+  `doc/PIPELINE-REFORM.md` §7's profile (`doc/GRAPH-MIGRATION.md`, *Fin as
+  built*, has the steps between; `--cpuprofile F` writes a profile). A whole
+  run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside each
+  the graph handed the next phase, as Lisp (qNNN.g, headed by qNNN.c's digest:
+  103, one before every phase but the seed), and seals the set with the
+  input's digest (`manifest`).
+- **The collection is the sweep's closure on the graph** (`crefactor/graph`'s
+  `collect.go`, told vim's roots and guard by `whim.GraphCollect`): everything
+  reachable from `main` and the static_asserts, by refers edges in C's three
+  name spaces, and everything else cut -- functions, objects, prototypes,
+  typedefs, tags, members, enumerators, the locals nothing reads, and a
+  `fallthrough` attribute statement that precedes no case label. Its guards: no
   member goes while `ml_recover` is defined; a struct filled by position keeps
   every member; nothing is emptied; an enumerator's deletion pins the survivor
-  after it to its value. About 1.1 s of CPU a phase (135 s over a run in order, profiled). It replaced six deleters looped around
-  gcc, and keeps nothing they cut (measured on the product: 5,657 entities
-  against 5,662, the five it adds all unused).
-  It needs every text it is handed to PARSE, and every one does.
+  after it to its value. 110-210 ms a phase. It is `crefactor/sweep`'s `Prune`
+  -- the text's closure, which replaced six deleters looped around gcc --
+  rule for rule, held to it on every phase by `internal/graphcheck`'s
+  `TestCollect`; whim's plan no longer runs the text sweep (`whim sweep` does,
+  on a file).
 - **`whim-build-check` runs phase by phase, in parallel.** With a sealed set of
   snapshots for the input on disk, it checks that phase 0 seeds the input into
-  q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
-  `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **105 s** under a load of 54-69 (118 s at 107-139, 76-77 s at a
-  lighter one), 103 links 64 at a time, bound by
-  the machine's load and no longer by one link (in order, the front's three phases took 37, 25 and 33 s before B4 put them on the graph, 13, 17 and 8 s now; phases 4 and 5 12 and 7 s, the seed 12 s; phase 43 15 s until B3d asked its questions of the graph instead of gcc, 1-3 s now; phase 1 alone was 89 s), against 451 s in
-  order then (348-352 s now, at a load of 3-13); and a phase whose program was changed -- on purpose (a control),
-  or phase 96's while it was being written -- is named and fails the check. That is
-  the induction a run in order walks, so it proves the same thing; a phase whose
-  program changed breaks its own link and is named. With no snapshots of this
-  input it runs the pipeline in order, which writes them. A phase that begins
-  on the graph begins on q(N-1).g read back (75-90 ms; a tenth of the
-  import, which it falls back to where there is no graph snapshot of that
-  text). Measured since: 73 s (61 s the links, 10 s the compiles) at a load
-  of 10-16, main's 74 s beside it; after B1a, 98 s (83 s the links, 13 s the
-  compiles, 16 links begun on their graph snapshot) at a load of 20-35,
-  main's 113 s beside it; after step 6, 43 s (33 s the links, 9 s the
-  compiles, 102 links begun on their graph snapshot, 0 imported) at a load
-  of 5-8; after R3, 47 s (35 s the links, 11 s the compiles, all 103 begun
-  on their graph snapshot) at a load of 5-10, phase 0 checked first as
-  before: the input imported, its parts, the collection; after Fin, 34 s
-  (25 s the links, 9 s the compiles) at a load of 8-14. **Either way it then
-  compiles and links every boundary**, q000-q103, with the one compile line
+  q000 and that EVERY phase N, begun on q(N-1).g read back (75-90 ms; the
+  import of q(N-1).c where there is no graph snapshot of that text), gives
+  qN -- all phases at once, `--jobs N` at a time (default: every core) -- and
+  that the last snapshot is the committed `whim-vim.c`. That is the induction a
+  run in order walks, so it proves the same thing; a phase whose program
+  changed -- on purpose (a control), or while it was being written -- breaks
+  its own link and is named. With no snapshots of this input it runs the
+  pipeline in order, which writes them. **Either way it then compiles and
+  links every boundary**, q000-q103, with the one compile line
   (`internal/build`'s `compileBoundary`, the driver's `Config.Compile`), 64 at
   a time, an error failing the check and naming the boundary -- warnings
-  allowed, as for the product, and none printed now. Snapshots q004-q029 did
-  not compile until part 4d and phase 22 were fixed (their `GOAL.md`s): a
-  boundary reproduced is not yet a program. Measured: 8-10 s of a parallel
-  check of 71-73 s at a load of 7, 6.6 min of CPU; `-fsyntax-only` would be
-  under a second but cannot see a function declared and defined nowhere, which
-  only the link does; the control, the unfixed phases on their old snapshots,
-  names all 26. It proves the text,
-  not the editor; `make whim-test` is what sees the editor (see *What this is*).
+  allowed, as for the product, and none printed now: a boundary reproduced is
+  not yet a program (q004-q029 did not compile until part 4d and phase 22 were
+  fixed, their `GOAL.md`s), and `-fsyntax-only`, under a second, cannot see a
+  function declared and defined nowhere, which only the link does. Measured:
+  **34 s** (25 s the links, all 103 begun on their graph snapshot, 9 s the
+  compiles) at a load of 8-14, against 105 s at 54-69 when every phase edited
+  text. It proves the text, not the editor; `make whim-test` is what sees the
+  editor (see *What this is*).
 
 - **`editor/editor.go` is generated** (`go tool whim gen`, `internal/gen` on the
   core it cuts from `src/whim-vim.c` into a directory of its own -- nothing is
@@ -947,7 +844,7 @@ says where each one's work went): most because the front runs their cut now,
 168 because `GotoTail` takes its gotos (`doc/PIPELINE-REFORM.md` §7). 33
 programs that had numbers of their own run inside another phase, as its parts:
 the seed's three (0a-0c), the programs the front calls (2a; 3a-3f; 4a-4f and
-5a-5d, each on the text the phase before swept), and the earlier members of the
+5a-5d, each on what the phase before collected), and the earlier members of the
 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d that run as one phase,
 the group's last: 15, 38, 49, 51, 71, 74, 76, 77, 86 and 87 (of the two other
 groups still running before, 72-73 are phase 5's parts 5b and 5c, and 51-53
@@ -960,49 +857,27 @@ was the input boundary's digest and the implementation's together, so a moved
 - **The driver is generic, the plan is whim's.** `crefactor/pipeline`
   runs a plan (Run, the parallel Check, Advance, the snapshots, `--keep-going`)
   and knows no code base; `internal/build` hands it a `pipeline.Config` -- the
-  plan, the op table (`internal/steps`) and its graph table (`graphOps`), the
+  plan, the op tables (`internal/steps`: the text ops and `graphOps`), the
   collection's options (`whim.GraphCollect`), the work file `whim-vim.c`, `SnapDir`
   `.cache/boundaries`, the sweep's options (`internal/whim`'s `Profile`), the
   `@minmax` argument and phase 1's `delta.md` -- and keeps its old
   names (`build.Run`, `Check`, `Advance`, `Options`) as wrappers.
-- **There are no stages.** Every phase is its steps, the sweep, and the
-  canonical print; a `sweep` step inside a phase's steps is for an edit that
-  reads its own earlier steps' text swept.
-- **A step is a text step or a graph step** (`Step.Graph`; doc/GRAPH.md,
-  *Step 5 as built*). The driver holds the program as text or as
-  `crefactor/graph`'s graph and converts only where the kind changes (the C
-  view before a text step, an import before a graph step); a `sweep` is the
-  collection where the graph is held, and a phase that ends on the graph is
-  collected and printed by the C view, cemit's text byte for byte. The graph
-  goes on to the next phase only when that phase begins on the graph, with a
-  fresh editor, so a phase takes one path in order and in the check. On the
-  graph now: every `droplocal`, phases 24, 27-42 (B3c's 36-42: 38 with its parts 38a and 38b), 58 and 64, phase 77's own
-  step, parts 38a and 86a, B3d's phases 43-52 end to end (43 imports, 44-52
-  are each handed the graph the one before leaves), and B1a's -- the cutters nointro, optreaders,
-  nostat, nobackup, lfonly, keepbytes, noinertopts, nofloat and noowner,
-  part 4a and the programs of phases 15, 19, 20, 23 and 25 -- and B3g's:
-  the programs of phases 60 and 62 and phase 74's own step, and the goto
-  steps of phases 89-92 (89 imports after 88's text; 90-92 are handed
-  the graph) -- and B3e's phases 53-56, a chain handed the graph from 53
-  to 56 -- and B3a's: the cutters onebuffer, nowild, nowildmenu, noconv,
-  noglob, nofind, nohome, nogetenv, nochdir and oneoptset, parts 4b-4f and
-  5a-5d and the programs of phases 21, 22 and 26, so that phases 4-26 run
-  on the graph from end to end with no import between them -- and B3f's,
-  phases 57, 59, 61, 63, 65-73, 75, 78-85, 93 and 96-98, parts 71a, 71b and
-  77a and phase 86's own step -- and B4's, the front: phases 1-3 and
-  their parts 2a and 3a-3f, every cutter a graph step and FoldX the closure, so
-  that phase 1 imports q000 and phases 1-26 run with no import between them
-  (`utf8only` on MARKFOLD since R1) -- and step 6's: phases 76 (with 76a), 87 (with
-  87a), 94, 95 and 99-103, the typed transforms on typed edges, and part
-  74a -- and R3's: phase 0 (the seed, the input imported, and parts 0a-0c
-  as graph steps) and phase 88 (the include rule), so that every phase is
-  on the graph and a run imports once, the input. Every
-  phase that ends on the graph is RE-CHECKED before its collection
-  (`Editor.Recheck`, step 6): what its edits left untyped typed again by
-  C's rules, the typed edges and uses of a definition it replaced
-  retargeted, so that what it hands on is what an import of its C view
-  would be. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
-  record of the schedule there was, and of the measurement that retired it.
+- **There are no stages.** Every phase is its steps, the re-check, the
+  collection and the C view; a `sweep` step inside a phase's steps is a
+  collection, for an edit that reads its own earlier steps' result collected.
+  `internal/phase/STAGES.md` is the record of the schedule there was, and of
+  the measurement that retired it.
+- **Every step is a graph step** (`Step.Graph`; `doc/GRAPH.md`, *Step 5 as
+  built*). The driver can hold the program as text or as `crefactor/graph`'s
+  graph and converts only where the kind changes (the C view before a text
+  step, an import before a graph step); whim's plan has no text step, so a run
+  imports once, the input, and every phase begins on the graph the one before
+  left, with a fresh editor, and ends on it -- re-checked (`Editor.Recheck`:
+  what its edits left untyped typed again by C's rules, the typed edges and
+  uses of a definition it replaced retargeted, so that what it hands on is
+  what an import of its C view would be), collected and printed by the C view.
+  How each phase came onto the graph, batch by batch, is
+  `doc/GRAPH-MIGRATION.md`'s.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).
 - **A binary is only ever the build of its source as it stands.** `bin/slim-vim`
@@ -1010,8 +885,8 @@ was the input boundary's digest and the implementation's together, so a moved
   (`.cache/stamps/`); as make starts, and whenever a rule rewrites a source, a
   binary whose source no longer matches its stamp is deleted and not rebuilt --
   `make bin/slim-vim` or `make bin/whim-vim` builds it again.
-- **A phase touches no shared state**: its scratch and its sweep's file are
-  temporary directories of its own, which is what lets the check run phases side
+- **A phase touches no shared state**: its scratch is a temporary directory
+  of its own and its graph its own, which is what lets the check run phases side
   by side. Two WHOLE builds in one checkout would still both write
   `.cache/boundaries/`; a second one goes in a worktree.
 - **The analysis tools report, they do not cut**: `go tool whim reach FILE` is
@@ -1042,10 +917,17 @@ whose core prints as `Cut`'s text on every snapshot from q043.
 `GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 104.
 The pipeline's goal is met; a phase now is for the Go editor, where the C is
 the cause of what the generator cannot make idiomatic. What a new one takes:
-`internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering
-itself as `whimN` if its cut is a program (a line in `cmd/whim/phases.go`); and
-an entry at the end of `internal/build`'s `Plan`, numbered N, naming its steps
-(the sweep follows every phase), and its row in `doc/PHASES.md`. Then `make whim-build` (the product moves, so the tracked `whim-vim.c`
+`internal/phase/NNN/` with `GOAL.md`, and, if its cut is a program, `edit.go`
+in package `pNNN`: a `phase.GraphFunc` written on `crefactor/graph`'s verbs and
+editor (`graph.NewVerbs`, BUILD's templates, FRAG's C fragments, patterns as
+C-lisp forms, the transforms beside them), registered with
+`phase.RegisterGraph("whimN", ...)` (a line in `cmd/whim/phases.go`) --
+`doc/GRAPH-MIGRATION.md`, *Converting a phase: the recipe*, is the method,
+and `GRAPH_SNAPS=.cache/boundaries go test ./internal/graphcheck/ -run
+PhasesOnGraph` its quick check; and an entry at the end of `internal/build`'s
+`Plan`, numbered N, naming its steps, each `Graph: true` (the re-check,
+the collection and the C view follow every phase), and its row in
+`doc/PHASES.md`. Then `make whim-build` (the product moves, so the tracked `whim-vim.c`
 and `editor/editor.go` are rewritten), `make whim-test` against the commit
 before it (a phase that removes capability moves cases on purpose: name them),
 and whatever further evidence the phase needs, stated in its `GOAL.md`.

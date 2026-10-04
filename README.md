@@ -32,13 +32,16 @@ preprocessor or comments, from [arbace/slim-vim](https://github.com/arbace/slim-
     across a line in the file;
   - make generic C rewrites for the translations.
 
-Each phase is its steps, then a reachability sweep, then one canonical print.
-The phases are numbered 0 to 103 in the order they run (`doc/PHASES.md` maps
-the numbers they were written under), and named in 34 blocks of three kinds:
-`d` drops, `r` rewires, `g` generic steps. `make whim-build` runs them all
-in one process in about eight minutes. The product, `src/whim-vim.c`, is tracked, and
-`make whim-build-check` requires it back byte for byte: every phase checked
-from its own snapshot, side by side, in under two minutes.
+Every phase edits the program as one resolved, typed graph
+(`crefactor/graph`, `doc/GRAPH.md`), imported once from the input and handed
+from phase to phase: its steps, then a collection of what nothing reaches,
+then the C, printed in one canonical spelling. The phases are numbered 0 to
+103 in the order they run (`doc/PHASES.md` maps the numbers they were written
+under), and named in 34 blocks of three kinds: `d` drops, `r` rewires, `g`
+generic steps. `make whim-build` runs them all in one process in about two
+minutes. The product, `src/whim-vim.c`, is tracked, and `make
+whim-build-check` requires it back byte for byte: every phase checked from its
+own snapshot, side by side, and every boundary compiled, in about 35 seconds.
 
 **The translations** are written by `crefactor/togo` from the core's C, not
 from each other. `editor/editor.go`, `braaam/editor/`,
@@ -153,10 +156,11 @@ internal/        the plan (internal/build), the cuts and steps, the phases
                  what the generic library is told about vim (internal/whim)
 crefactor/       the generic C refactoring library, a Go module of its own:
                  the C front end, the canonical printer, C-lisp (C as
-                 s-expressions and back), the sweep, the driver,
-                 the transforms (the fall-out closure among them), the
-                 analyses, and togo, the C-to-Go, Java, Clojure, Haskell,
-                 Rust and Scheme translator
+                 s-expressions and back), the program graph (its editor,
+                 the verbs the phases are written on, the collection, the
+                 fall-out closure and the transforms) and its read-only
+                 views, the driver, the analyses, and togo, the C-to-Go,
+                 Java, Clojure, Haskell, Rust and Scheme translator
 editor/          the editor in Go          braaam/   the editor in Java
 vijure/          the editor in Clojure     caprice/  the editor in Haskell
 whimsy/          the editor in Rust        whimsical/ the editor in Scheme
@@ -168,10 +172,11 @@ doc/             GOALS.md (what holds for every phase, and the blocks),
                  HASKELL.md, RUST.md, SCHEME.md, the *-IDIOMS.md surveys, GO-LISP.md,
                  GHC-LISP.md, C-LISP.md, C-LISP-TREE.md, C23.md (the
                  front end against C23: the conformance test, its score),
-                 GRAPH.md (the program as a graph, its views as Lisp: a design),
+                 GRAPH.md (the program as a graph, its views as Lisp: the
+                 design, built), GRAPH-MIGRATION.md (every phase moved onto
+                 it, and how to write one there),
                  PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
-                 IR.md and IR-SCHEMA.md (an intermediate representation),
-                 SCHEME.md (a Scheme editor surveyed and measured, not scheduled)
+                 IR.md and IR-SCHEMA.md (an intermediate representation)
 CLAUDE.md        the working guide: the build, the pipeline, what to know
                  before changing anything shared
 ```
