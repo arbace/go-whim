@@ -58,12 +58,8 @@ from each other. `editor/editor.go`, `braaam/editor/`,
   with a control that must move them.
 - `make whim-test-wide` does the same with 240 cases: keys, every Ex command,
   command lines, and a real terminal.
-- `make whim-test-java`, `make whim-test-clj`, `make whim-test-hs`,
-  `make whim-test-rs`, `make whim-test-scm`, `make whim-test-ml` and `make
-  whim-test-cpp` hold the Java, Clojure, Haskell, Rust, Scheme, OCaml and C++
-  editors to them too.
-  `make whim-test-rs`, `make whim-test-scm` and `make whim-test-ml` hold the
-  Java, Clojure, Haskell, Rust, Scheme and OCaml editors to them too.
+- `make whim-test-java`, `-clj`, `-hs`, `-rs`, `-scm`, `-ml` and `-cpp` hold
+  the Java, Clojure, Haskell, Rust, Scheme, OCaml and C++ editors to them too.
 - `make whim-test-guest` holds the C core run as a virtual machine on KVM
   (`guest/`, `vmm/`, `hv/`, `doc/GUEST.md`) to them as well.
 - `make whim-test-guest-go TAMAGO_ROOT=...` holds the Go editor run as one,
@@ -73,40 +69,39 @@ from each other. `editor/editor.go`, `braaam/editor/`,
 ## Use
 
 ```sh
-make                   # fetch the input if it moved, then every editor: bin/whim,
-                       # bin/whim-vim, bin/slim-vim, bin/braaam and braaam.jar,
-                       # bin/vijure and vijure.jar, bin/caprice, bin/whimsy,
-                       # bin/whimsical, bin/whiml, bin/whim++
-make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the translations
+make                   # fetch the input if it moved, then every editor and jar
+make help              # every target, grouped as below
+
+# the pipeline
+make whim-build        # slim-vim.c -> whim-vim.c and the translations
 make whim-build-check  # the same, required to give the committed bytes back
-make whim-editor-check # refuse a stale editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml(i) or editor.cpp/hpp
-make whim-test         # the quick suite; whim-test-wide for the wide one
-make go-test           # the Go packages' tests
+make whim-editor-check # refuse a stale generated translation
 make bin/whim-vim      # the C editor's binary
-make bin/braaam        # the Java editor, and a launcher: bin/braaam [args]
-make braaam.jar        # the same as one jar: java -jar braaam.jar [args]
-make bin/vijure        # the Clojure editor (doc/CLOJURE.md), and a launcher: bin/vijure [args]
-make vijure.jar        # the same as one jar: java -jar vijure.jar [args]
-make bin/caprice       # the Haskell editor (doc/HASKELL.md), compiled by GHC
-make bin/whimsy        # the Rust editor (doc/RUST.md), compiled by cargo, offline
-make bin/whimsical     # the Scheme editor (doc/SCHEME.md), compiled by Chez Scheme
-make bin/whiml         # the OCaml editor (doc/OCAML.md), compiled by ocamlopt
-make bin/whim++        # the C++ editor (doc/CPP.md), compiled by g++ -std=c++23
-make bin/whim-guest    # the C core as a virtual machine on KVM (doc/GUEST.md): bin/whim-guest [args]
+
+# the editors (each with a whim-test-* target: the quick suite, held to the C)
+make bin/whim          # Go           (editor/)
+make bin/braaam        # Java         (doc/JAVA.md); braaam.jar: java -jar braaam.jar
+make bin/vijure        # Clojure      (doc/CLOJURE.md); vijure.jar likewise
+make bin/caprice       # Haskell      (doc/HASKELL.md), by GHC
+make bin/whimsy        # Rust         (doc/RUST.md), by cargo, offline
+make bin/whimsical     # Scheme       (doc/SCHEME.md), by Chez Scheme
+make bin/whiml         # OCaml        (doc/OCAML.md), by ocamlopt
+make bin/whim++        # C++          (doc/CPP.md), by g++ -std=c++23
+
+# the editor as a virtual machine (doc/GUEST.md)
+make bin/whim-guest    # the C core as a guest on KVM: bin/whim-guest [args]
 make bin/whim-guest-go TAMAGO_ROOT=/path/to/tamago-go  # the Go editor as one, built with TamaGo
-make whim-test-java    # the quick suite with the Java editor too
-make whim-test-clj     # ... with the Clojure editor
-make whim-test-hs      # ... with the Haskell editor
-make whim-test-rs      # ... with the Rust editor
-make whim-test-scm     # ... with the Scheme editor
-make whim-test-ml      # ... with the OCaml editor
-make whim-test-cpp     # ... with the C++ editor
-make whim-test-guest   # ... with the core as a virtual machine
-make whim-test-guest-go TAMAGO_ROOT=/path/to/tamago-go  # ... with the Go editor as one
+make mac-images TAMAGO_ROOT=/path/to/tamago-go         # the Mac's three arm64 images (guest/mac/mac.sh)
+
+# the tests
+make whim-test         # the quick suite; whim-test-wide for the wide one
+make whim-test-java    # ... and -clj, -hs, -rs, -scm, -ml, -cpp, -guest, -guest-go
+make go-test           # the Go packages' tests
+
+# the Lisp spellings
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make caprice.hsl       # the Haskell core as one ghc-lisp module (doc/GHC-LISP.md)
 make whim-vim.lc       # the C product as s-expressions, back byte for byte (doc/C-LISP.md)
-make help              # every target
 ```
 
 ## The editors
@@ -180,7 +175,9 @@ so it also needs:
 
 The core as a virtual machine (`make bin/whim-guest`) needs **clang** (for
 x86-64 and AArch64), GNU **ld** (and `aarch64-none-elf-ld` for arm64), and
-`/dev/kvm` to run. The Go editor as one (`make bin/whim-guest-go`) needs
+`/dev/kvm` to run; `make mac-images` builds the three arm64 images the Mac
+runs beside its monitor (`guest/mac/mac.sh`). The Go editor as one
+(`make bin/whim-guest-go`) needs
 **TamaGo** (github.com/usbarmory/tamago-go, the release matching `go.mod`'s
 Go), named by `TAMAGO_ROOT`; it fetches the module
 `github.com/usbarmory/tamago` once.

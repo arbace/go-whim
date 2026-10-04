@@ -68,9 +68,9 @@ help:
 	@printf '\n  \033[1mgo-whim\033[0m -- whim-vim.c = G(slim-vim.c), and editor/ is that core in Go\n\n'
 	@awk 'BEGIN { FS = ":.*## " } \
 	     /^# ==== / { printf "\n  \033[1m%s\033[0m\n", substr($$0, 8); next } \
-	     /^[a-zA-Z0-9_.\/%-]+:.*## / { printf "    %-22s %s\n", $$1, $$2 }' \
+	     /^[a-zA-Z0-9_.\/%+-]+:.*## / { printf "    %-30s %s\n", $$1, $$2 }' \
 	    $(MAKEFILE_LIST)
-	@printf '\n    %-22s %s\n\n' "make -n <target>" "what a target would run, without running it"
+	@printf '\n    %-30s %s\n\n' "make -n <target>" "what a target would run, without running it"
 
 # --- a binary is only ever the build of its source as it stands ----------
 # bin/slim-vim and bin/whim-vim each record, when built, the digest of the .c
@@ -203,7 +203,7 @@ bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one l
 # whim-editor-check run on whim-vim.c as it stands: through whim-vim.c's own rule
 # they would start a build.
 .PHONY: editor/editor.go
-editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml(i), editor.cpp/hpp
+editor/editor.go: src/whim-vim.c  ## the eight translations of whim-vim.c's core (Go, Java, Clojure, Haskell, Rust, Scheme, OCaml, C++)
 	@go tool whim gen
 
 .PHONY: whim-editor
@@ -211,7 +211,7 @@ whim-editor:
 	@go tool whim gen
 
 .PHONY: whim-editor-check
-whim-editor-check:  ## refuse if a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml(i) or editor.cpp/hpp is not what the generator writes
+whim-editor-check:  ## refuse a tracked translation that is not what its generator writes
 	@go tool whim gen --check
 
 # ==== the editor in Go
@@ -224,6 +224,7 @@ bin/whim: editor/editor.go force  ## the editor in Go: editor/ built, and its bi
 	@printf '  %-12s %s bytes, the core in Go (editor/)\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 
+# ==== the Lisp spellings: the same programs as s-expressions
 # editor.lgo is the Go editor as ONE go-lisp file (doc/GO-LISP.md): editor/'s
 # files merged into one Go file (whim gocat), converted by go-lisp's golisp,
 # then compiled by go-lisp's go as the proof it is a package.  It needs the
@@ -233,7 +234,7 @@ bin/whim: editor/editor.go force  ## the editor in Go: editor/ built, and its bi
 GOLISP ?= golisp
 GOLISP_ROOT ?=
 .PHONY: editor.lgo
-editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLISP_ROOT=.../go-lisp)
+editor.lgo:  ## the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp)
 	@if [ -n "$(GOLISP_ROOT)" ]; then \
 	    golisp="$(GOLISP_ROOT)/bin/go tool golisp"; gobin="$(GOLISP_ROOT)/bin/go"; \
 	    [ -x "$$gobin" ] || { echo "  editor.lgo   GOLISP_ROOT=$(GOLISP_ROOT) has no bin/go (doc/GO-LISP.md)"; exit 1; }; \
@@ -269,7 +270,7 @@ editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLI
 GHCLISP ?=
 GHCLISP_ROOT ?=
 .PHONY: caprice.hsl
-caprice.hsl:  ## the Haskell editor's core as one ghc-lisp module, checked, compiled and run on the quick suite (needs ghc-lisp: GHCLISP_ROOT=.../ghc-lisp)
+caprice.hsl:  ## the Haskell core as one ghc-lisp module, checked, compiled and run (GHCLISP_ROOT=...)
 	@if [ -n "$(GHCLISP_ROOT)" ]; then ghc="$(GHCLISP_ROOT)/_build/stage1/bin/ghc"; \
 	 elif [ -n "$(GHCLISP)" ]; then ghc="$(GHCLISP)"; \
 	 else echo "  caprice.hsl  needs ghc-lisp: make caprice.hsl GHCLISP_ROOT=/path/to/ghc-lisp (doc/GHC-LISP.md)"; exit 1; fi; \
@@ -359,6 +360,7 @@ vijure.jar: bin/vijure  ## the editor in Clojure as one jar: java -jar vijure.ja
 whim-test-clj:  ## the quick suite with the Clojure editor too, required to answer as the C does
 	@go tool whim test $(if $(CLJ_EDITOR),--clojure-editor $(CLJ_EDITOR),--clojure)
 
+# ==== the editor in Haskell
 # The editor in Haskell (caprice/, doc/HASKELL.md): the core cut from
 # src/whim-vim.c and written as the module Caprice.Editor by the Haskell
 # backend, compiled by GHC with caprice's runtime, host and launcher into
@@ -372,6 +374,7 @@ bin/caprice: src/whim-vim.c force  ## the editor in Haskell: Caprice.Editor gene
 whim-test-hs:  ## the quick suite with the Haskell editor too, required to answer as the C does
 	@go tool whim test --haskell
 
+# ==== the editor in Rust
 # The editor in Rust (whimsy/, doc/RUST.md): the core cut from
 # src/whim-vim.c and written as the module `editor` by the Rust backend,
 # compiled by cargo -- offline, std alone -- with whimsy's runtime, host and
@@ -386,6 +389,7 @@ bin/whimsy: src/whim-vim.c force  ## the editor in Rust: the module editor gener
 whim-test-rs:  ## the quick suite with the Rust editor too, required to answer as the C does
 	@go tool whim test --rust
 
+# ==== the editor in Scheme
 # The editor in Scheme (whimsical/, doc/SCHEME.md): the core cut from
 # src/whim-vim.c and written as the library (whimsical editor) by the
 # Scheme backend, compiled by Chez Scheme at optimize-level 3 with
@@ -401,6 +405,7 @@ bin/whimsical: src/whim-vim.c force  ## the editor in Scheme: the library (whims
 whim-test-scm:  ## the quick suite with the Scheme editor too, required to answer as the C does
 	@go tool whim test --scheme
 
+# ==== the editor in OCaml
 # The editor in OCaml (whiml/, doc/OCAML.md): the core cut from
 # src/whim-vim.c and written as the module Editor by the OCaml backend,
 # compiled by ocamlopt with whiml's runtime, printf, host and launcher in
@@ -414,6 +419,7 @@ bin/whiml: src/whim-vim.c force  ## the editor in OCaml: the module Editor gener
 whim-test-ml:  ## the quick suite with the OCaml editor too, required to answer as the C does
 	@go tool whim test --ocaml
 
+# ==== the editor in C++
 # whim++, the editor in C++ (wpp/, doc/CPP.md): the core cut from
 # src/whim-vim.c and written as editor.hpp and editor.cpp by the C++
 # backend, compiled by g++ -std=c++23 -O2 with whim++'s runtime, host,
@@ -427,6 +433,7 @@ bin/whim++: src/whim-vim.c force  ## the editor in C++: editor.hpp and editor.cp
 .PHONY: whim-test-cpp
 whim-test-cpp:  ## the quick suite with the C++ editor too, required to answer as the C does
 	@go tool whim test --cpp
+# ==== the editor as a virtual machine: the guests (doc/GUEST.md)
 # The editor as a virtual machine (guest/, vmm/, doc/GUEST.md): the core cut
 # from src/whim-vim.c, compiled freestanding by clang with the guest runtime
 # into an image, appended to the monitor, which runs it on KVM.  Twenty
@@ -436,11 +443,11 @@ whim-test-cpp:  ## the quick suite with the C++ editor too, required to answer a
 bin/whim-guest: src/whim-vim.c force  ## the editor as a virtual machine on KVM: the core a guest image, the monitor its host
 	@go tool whim guest
 
-bin/whim-guest-arm64: src/whim-vim.c force  ## the same for arm64, built here, run on an arm64 Linux with KVM (doc/GUEST.md, milestone 3)
+bin/whim-guest-arm64: src/whim-vim.c force  ## the same for arm64, built here, run on an arm64 Linux with KVM
 	@go tool whim guest --arch arm64
 
 .PHONY: whim-test-guest
-whim-test-guest:  ## the quick suite with the guest editor too, on KVM, required to answer as the C does
+whim-test-guest:  ## the quick suite with the guest too, required to answer as the C does
 	@go tool whim test --guest
 
 # The second guest (doc/GUEST.md, *A second guest*): the Go editor, editor/
@@ -450,11 +457,28 @@ whim-test-guest:  ## the quick suite with the guest editor too, on KVM, required
 # and the build fails saying so when it is not set.
 TAMAGO_ROOT ?=
 .PHONY: bin/whim-guest-go whim-test-guest-go
-bin/whim-guest-go: force  ## the Go editor as a virtual machine on KVM, built with TamaGo (TAMAGO_ROOT=.../tamago-go)
+bin/whim-guest-go: force  ## the Go editor as a virtual machine, built with TamaGo (TAMAGO_ROOT=.../tamago-go)
 	@go tool whim guest --go $(if $(TAMAGO_ROOT),--tamago $(TAMAGO_ROOT))
 
-whim-test-guest-go:  ## the quick suite with the Go guest too (TAMAGO_ROOT=.../tamago-go), required to answer as the C does
+whim-test-guest-go:  ## the quick suite with the Go guest too, required to answer as the C does (TAMAGO_ROOT=...)
 	@go tool whim test --guest-go $(if $(TAMAGO_ROOT),--tamago $(TAMAGO_ROOT))
+
+# The Mac's images (doc/GUEST.md, *Running on the Mac*): Apple's clang links
+# no ELF, so the three arm64 guest images are built here, alone, and copied
+# to the Mac, whose signed bin/whim-guest loads an image from beside itself
+# -- bin/whim-guest-arm64.elf there as bin/whim-guest.elf, the Go guest's as
+# bin/whim-guest-go.elf, the hello image under its own name.
+.PHONY: mac-images bin/whim-guest-arm64.elf bin/whim-guest-hello-arm64.elf bin/whim-guest-go-arm64.elf
+mac-images: bin/whim-guest-arm64.elf bin/whim-guest-hello-arm64.elf bin/whim-guest-go-arm64.elf  ## the Mac's three arm64 images, built here (then scp them: doc/GUEST.md, *Running on the Mac*)
+
+bin/whim-guest-arm64.elf: src/whim-vim.c force  ## the guest's arm64 image (on the Mac: bin/whim-guest.elf)
+	@go tool whim guest --arch arm64 --image
+
+bin/whim-guest-hello-arm64.elf: force  ## the hello image (on the Mac: as it is, for mac.sh hello)
+	@go tool whim guest --arch arm64 --hello --image
+
+bin/whim-guest-go-arm64.elf: force  ## the Go guest's arm64 image (on the Mac: bin/whim-guest-go.elf; TAMAGO_ROOT=...)
+	@go tool whim guest --go --arch arm64 --image $(if $(TAMAGO_ROOT),--tamago $(TAMAGO_ROOT))
 
 # ==== the tests
 .PHONY: whim-test
