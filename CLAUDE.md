@@ -707,7 +707,10 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    read-only), GRAPH-MIGRATION.md (every phase classified
                    for the move to the graph, the recipe for converting --
                    or writing -- a phase on it, and each batch as built, to
-                   the last: every phase on the graph)
+                   the last: every phase on the graph), GUEST.md (a design,
+                   nothing built: the core as a bare-metal guest on KVM,
+                   amd64 and arm64, and on Hypervisor.framework, its host
+                   functions as hypercalls to a small VMM)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
