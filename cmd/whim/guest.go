@@ -22,7 +22,8 @@ import (
 // (doc/GUEST.md, *Running on the Mac*).  --go builds the second guest
 // instead: the Go editor, editor/ as it stands, built with TamaGo
 // (guest/tamago/; the distribution $TAMAGO_ROOT or --tamago DIR) and
-// appended to the same monitor, at bin/whim-guest-go.
+// appended to the same monitor, at bin/whim-guest-go (with --image, the
+// image alone).
 //
 //	whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]
 func runGuest(args []string) int {
@@ -87,6 +88,8 @@ func runGuest(args []string) int {
 	}
 	defer os.RemoveAll(dir)
 	switch {
+	case goGuest && imageOnly:
+		err = guest.BuildGoImage(tamago, a, dir, out)
 	case goGuest:
 		err = guest.BuildGo(tamago, a, dir, out)
 	case imageOnly:

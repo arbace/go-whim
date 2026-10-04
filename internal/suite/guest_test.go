@@ -1,6 +1,7 @@
 package suite
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,7 +15,9 @@ import (
 // editor, WHIM_SUITE_GUEST the launcher; WHIM_SUITE_WIDE=1 adds the wide
 // suite's cases (its Ex commands when WHIM_SUITE_SRC names the whim-vim.c
 // the C was built from); WHIM_SUITE_ONLY=GROUP runs one group alone;
-// WHIM_SUITE_LIMIT is a run's limit (default 10s).  WHIM_SUITE_GUEST_IMAGE names the
+// WHIM_SUITE_LIMIT is a run's limit (default 10s).  The launcher is the C
+// guest's or the Go guest's (whim guest --go), told apart by the control's
+// literal (controlLiteral).  WHIM_SUITE_GUEST_IMAGE names the
 // image when the launcher carries none -- the Mac's, signed, which cannot --
 // and the control is then that image changed, each run by a script that
 // hands the monitor its image (WHIM_GUEST_IMAGE).  The test
@@ -75,8 +78,14 @@ func TestGuestPrebuilt(t *testing.T) {
 	dir := t.TempDir()
 	abs := func(p string) string { a, _ := filepath.Abs(p); return a }
 	var ctl string
-	if img := os.Getenv("WHIM_SUITE_GUEST_IMAGE"); img != "" {
-		ci, err := patchControl(img, dir, "control.elf", []byte(" INSERT\x00"), []byte(" INSERX\x00"))
+	img := os.Getenv("WHIM_SUITE_GUEST_IMAGE")
+	prog := g
+	if img != "" {
+		prog = img
+	}
+	from, to := controlLiteral(prog)
+	if img != "" {
+		ci, err := patchControl(img, dir, "control.elf", from, to)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,11 +96,14 @@ func TestGuestPrebuilt(t *testing.T) {
 		if ctl, err = imageScript(dir, "whim-guest-control", mon, ci); err != nil {
 			t.Fatal(err)
 		}
-	} else if ctl, err = patchControl(g, dir, "whim-guest-control", []byte(" INSERT\x00"), []byte(" INSERX\x00")); err != nil {
+	} else if ctl, err = patchControl(g, dir, "whim-guest-control", from, to); err != nil {
 		t.Fatal(err)
 	}
 	e := &jvmEditor{name: "guest", where: "guest/, vmm/", file: "the image", launcher: "whim-guest",
 		bin: abs(g), ctl: ctl, limit: limit, report: guestExits}
+	if from[len(from)-1] != 0 {
+		e.name, e.where, e.launcher = "Go guest", "guest/tamago/, vmm/", "whim-guest-go"
+	}
 	b := &builds{cand: abs(c)}
 	var out strings.Builder
 	err = checkJVM(&out, "guest", groups, all, b, e)
@@ -107,4 +119,14 @@ func imageScript(dir, name, monitor, img string) (string, error) {
 	q := func(s string) string { return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'" }
 	p := filepath.Join(dir, name)
 	return p, os.WriteFile(p, []byte("#!/bin/sh\nWHIM_GUEST_IMAGE="+q(img)+" exec "+q(monitor)+` "$@"`+"\n"), 0o755)
+}
+
+// controlLiteral is what the control changes in the program at p: the C
+// guest's " INSERT" with its terminating NUL, or, where the image holds
+// none -- the Go guest's, whose strings have no NUL -- its one " INSERT".
+func controlLiteral(p string) (from, to []byte) {
+	if b, err := os.ReadFile(p); err == nil && bytes.Count(b, []byte(" INSERT\x00")) != 1 {
+		return []byte(" INSERT"), []byte(" INSERX")
+	}
+	return []byte(" INSERT\x00"), []byte(" INSERX\x00")
 }

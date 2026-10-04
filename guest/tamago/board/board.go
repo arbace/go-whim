@@ -4,7 +4,8 @@
 // guest where an exit would cost too much.
 //
 //	CPUInit        cpuinit (boot_ISA.s): the monitor's entry state taken
-//	               (guest/abi), SSE on, the first stack, the runtime's rt0
+//	               (guest/abi), SSE on (amd64) or FP and
+//	               SIMD (arm64), the first stack, the runtime's rt0
 //	Hwinit0        nothing: the monitor has set the machine up
 //	Hwinit1        goos.Exit and goos.Idle set
 //	Nanotime       the counter (TSC; CNTVCT_EL0), at the rate the monitor

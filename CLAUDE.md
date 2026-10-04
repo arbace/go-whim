@@ -260,7 +260,8 @@ slim-vim.c  --whim-->  whim-vim.c
   (`GOOS=tamago`, the distribution `TAMAGO_ROOT` or `--tamago DIR`, here
   `/root/tamago-go`) on a board of ours and run by the same monitor, its
   control the launcher with its image's one `" INSERT"` changed; it answers
-  all 80 and all 240 as the C does (61.11 exits a key, 6.71 without `par_*`).
+  all 80 and all 240 as the C does (61.11 exits a key, 6.71 without `par_*`),
+  and its arm64 build all 80 as the C does inside the aarch64 VM.
   Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
@@ -744,8 +745,12 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    tamago/ the Go guest, A GO MODULE OF ITS OWN built only
                    by TamaGo: board/ the board for the monitor (its runtime
                    hooks: a call for console, random bytes and exit, the
-                   TSC for the clock), main.go the Go editor on a Host of
-                   hypercalls, faulty/ a stand-in; mac/ the Mac's side
+                   TSC or the generic timer for the clock; amd64 and
+                   arm64), main.go the Go editor on a Host of hypercalls,
+                   faulty/ a stand-in; vm/aarch64.sh the arm64 gate.s VM
+                   (Alpine Edge aarch64 netbooted by qemu with an emulated
+                   EL2, KVM inside, a job agent served by QEMU itself:
+                   doc/GUEST.md, *The aarch64 VM*); mac/ the Mac's side
                    (doc/GUEST.md, *Running on the Mac*): mac.sh, the
                    entitlements, and shim.h, which lets Apple's clang build
                    whim-vim.c
@@ -855,6 +860,7 @@ make bin/whim-guest   # the editor as a virtual machine on KVM: the core a frees
 make bin/whim-guest-arm64  # the same for arm64, built here, run on an arm64 Linux with KVM (doc/GUEST.md, milestone 3: the quick suite in an emulated Alpine aarch64 VM)
 make whim-test-guest  # the quick suite with the guest editor too (whim test --guest; --wide --guest)
 make bin/whim-guest-go TAMAGO_ROOT=/root/tamago-go  # the Go editor as a virtual machine: built with TamaGo, appended to the same monitor (8 s)
+go tool whim guest --go --arch arm64  # the same for arm64, run in the aarch64 VM (guest/vm/aarch64.sh: fetch, start, put, run, stop; doc/GUEST.md, *The aarch64 VM*)
 make whim-test-guest-go TAMAGO_ROOT=/root/tamago-go  # the quick suite with the Go guest too (whim test --guest-go; --wide --guest-go)
 go tool whim guest --hello  # milestone 1's guest: "hello", exit 3, one exit a call
 go tool whim guest --bench [--alt]  # a stand-in making argv[1] hypercalls, to time one (--alt: a port on amd64, an HVC on arm64)

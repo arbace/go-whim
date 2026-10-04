@@ -415,12 +415,19 @@ clang `--target=aarch64-none-elf -mgeneral-regs-only` and
 `aarch64-none-elf-ld` (`go tool whim guest --arch arm64`, `make
 bin/whim-guest-arm64`), and the monitor by `GOARCH=arm64 CGO_ENABLED=0`.
 
-How it was run: Alpine Edge's aarch64 netboot files (`vmlinuz-virt`,
+*The aarch64 VM* (`guest/vm/aarch64.sh`: `fetch`, `start`, `put`, `run`,
+`stop`; its state in `.tmp/vm`, nothing installed on the host): Alpine
+Edge's aarch64 netboot files (`vmlinuz-virt`,
 `initramfs-virt`, `modloop-virt`, Linux 6.18.42) from dl-cdn.alpinelinux.org,
 booted by `qemu-system-aarch64 -machine virt,virtualization=on,gic-version=3
 -cpu max -accel tcg,thread=multi -smp 8 -m 6144` with an apkovl whose local
 service fetches shell jobs over HTTP from the host and posts their output
-back. Its kernel starts at EL2 and runs KVM in VHE mode ("VHE mode
+back. The host side is QEMU's own: user networking forwards the VM's
+connections to 10.0.2.100:80 to the script itself (`guestfwd=...-cmd:`),
+one process a connection, which answers a GET from `.tmp/vm/www` -- the
+apkovl, the modloop, job N, a file `put` for it -- and stores a POST as
+job N's output; so there is no server to keep running, and the VM boots in
+about 30 s. `run` waits for the output and exits as the job did. Its kernel starts at EL2 and runs KVM in VHE mode ("VHE mode
 initialized successfully"); `/dev/kvm` is there. gcc and musl-dev were
 installed in it (`apk add`) to build the C reference with the one compile
 line (70 s under emulation). `hv`'s arm64 tests and `internal/suite`'s
@@ -428,6 +435,19 @@ line (70 s under emulation). `hv`'s arm64 tests and `internal/suite`'s
 launcher built already, the control the launcher with its image's
 `" INSERT"` changed -- are cross-compiled here (`GOARCH=arm64 go test -c`)
 and run there.
+For the Go guest, as run:
+
+```sh
+guest/vm/aarch64.sh fetch && guest/vm/aarch64.sh start
+go tool whim guest --go --arch arm64 -o .tmp/arm/whim-guest-go    # TAMAGO_ROOT set
+GOARCH=arm64 CGO_ENABLED=0 go test -c -o .tmp/arm/suite.test ./internal/suite
+guest/vm/aarch64.sh put src/whim-vim.c .tmp/arm/whim-guest-go .tmp/arm/suite.test
+guest/vm/aarch64.sh run 'apk add -q gcc musl-dev util-linux-misc &&
+  gcc -O0 -fno-stack-protector -static -no-pie -s -o whim-vim whim-vim.c &&
+  TMPDIR=/h WHIM_SUITE_LIMIT=60s WHIM_SUITE_C=/h/whim-vim WHIM_SUITE_GUEST=/h/whim-guest-go \
+  taskset -c 0-3 ./suite.test -test.run TestGuestPrebuilt -test.v -test.timeout 3h'
+guest/vm/aarch64.sh stop
+```
 
 *Gate met:* inside that VM the quick suite's 80 cases answer exactly as the
 C built there does, the control seen by 76 (the guest's runs 266 s of the
@@ -490,7 +510,7 @@ as the C does: C 5 s, the guest 11-12 s under emulation, its 20,786 exits
 
 ### The second guest: the Go editor on TamaGo
 
-*Built on amd64, the gate met.* TamaGo is installed at `/root/tamago-go`
+*Built on amd64 and arm64, both gates met (arm64: below).* TamaGo is installed at `/root/tamago-go`
 (tamago-go1.27.1, the system Go's release; `go tool dist list` has
 `tamago/amd64` and `tamago/arm64`), its module
 `github.com/usbarmory/tamago` v1.27.1 the runtime's `goos` overlay
@@ -579,21 +599,62 @@ on the console and exit 2; a spin ended by the watchdog) run when
 TamaGo's toolchain (`GOROOT=/root/tamago-go`, `GOOS=tamago`), are clean on
 the module for amd64 and arm64.
 
-*arm64: built, not booted.* `board/boot_arm64.s` is the same board for
+*arm64: booted, the gate met.* `board/boot_arm64.s` is the same board for
 arm64 -- `cpuinit` keeping X0-X4 (argc, argv, `RamStart`, `RamSize`,
 `RamStackOffset`), FP and SIMD on (`CPACR_EL1.FPEN`), the counter's rate
 from `CNTFRQ_EL0` and its value from `CNTVCT_EL0`, the doorbell one `STR`
-from X0 (checked in the image: `str x0, [x1]`), `whim_vectors` 16 entries
-of 128 bytes at a 2 KiB boundary -- and `vmm/tamago_arm64.go` sets the
-three registers past the C guest's. `go tool whim guest --go --arch arm64`
-builds it (its segments at 2 MiB, as amd64's). It was not run: by reading,
-it fits the arm64 backend's setup -- EL1t on `SP_EL0` with D, A, I and F
-masked, the MMU on over a 32-bit space (3 GiB above 2 MiB fits under the
-doorbell), `VBAR_EL1` at `whim_vectors`, the store's PC handling the C
-guest's -- and TamaGo's arm64 rt0 needs nothing more (`g` in R28, no TLS
-register, no EL change: its own `cpuinit` drops from EL3 or EL2, and turns
-the MMU *off*, which ours does not). The gate for it is the C guest's
-milestone 3, in the aarch64 VM.
+from X0 (`str x0, [x1]`), `whim_vectors` 16 entries of 128 bytes at a
+2 KiB boundary -- and `vmm/tamago_arm64.go` sets the three registers past
+the C guest's. `go tool whim guest --go --arch arm64` builds the launcher
+(9.1 MB; `--image` the image alone, 5.6 MB: its segments at 2 MiB, as
+amd64's, the entry `_rt0_arm64_tamago`, `whim_vectors` at 0x3c1000). It
+booted under KVM/arm64 in the aarch64 VM as first built, nothing changed:
+the entry state the C guest's (EL1t on `SP_EL0`, D, A, I and F masked, the
+MMU on over a 32-bit space -- 3 GiB above 2 MiB fits under the doorbell --
+`VBAR_EL1` at `whim_vectors`, the store's PC handled as the C guest's);
+EL1 reads `CNTFRQ_EL0` and `CNTVCT_EL0` under KVM without a trap to the
+monitor, and TamaGo's arm64 rt0 needs nothing more (`g` in R28, no TLS
+register, no EL change: its own `cpuinit` drops from EL3 or EL2 and turns
+the MMU *off*, which ours does not). The same seccomp filter (kill mode)
+holds it.
+
+*Gate met, arm64* (`TestGuestPrebuilt`, `WHIM_SUITE_GUEST` the Go guest's
+launcher, which the test now tells from the C guest's by its control's
+literal -- the Go image's `" INSERT"` has no NUL after it): inside the
+aarch64 VM (milestone 3, *The aarch64 VM*) the quick suite's 80 cases answer
+exactly as the C built there does, the control seen by 76; the exits are
+the amd64 Go guest's to the count, 317,273, 61.11 a key, 6.71 without
+`par_*`. The test took 938 s, the guest's runs 597 s, at 4 cases at once
+(`taskset -c 0-3`: the suite runs as many as `runtime.NumCPU()`) and a
+60 s limit for the guest and its control (`WHIM_SUITE_LIMIT=60s`; the C's
+stays 10 s). At the default, 8 at once and 10 s, it failed by time alone,
+never by an answer: the Go guest's runs are heavier under emulation than
+the C guest's (below), and 8 of them at once slowed the whole VM until
+the C itself missed 10 s on `par_branch` and `insert`; at 4 at once with
+10 s, the guest missed it on `append`.
+
+With the wide suite (`WHIM_SUITE_WIDE=1`, the Ex commands from the
+whim-vim.c the C was built from), the same settings: all 320 answer as the
+C does there -- keys 80, its control seen by 76; keys 102, seen by 94; Ex
+commands 98 and command lines 30, seen by 0; the pseudo-terminal 10, seen
+by 6 -- the amd64 Go guest's counts; 346,912 exits for 10,345 bytes of
+keys, 33.53 a key, 5.96 without `par_*`; 2,533 s, the guest's runs 1,815
+s. `hv`'s three arm64 tests pass there too.
+
+*Measured in the VM* (emulated: only ratios mean anything). The heavy
+case, each twice, the answers byte for byte the same: the C 5-6 s, the C
+guest 11-12 s, the Go guest 17-20 s -- 3.3 times the C, against 1.6-1.8 on
+amd64 -- its 20,787 exits 14.4 s inside `KVM_RUN` (the C guest's 20,786,
+9.2 s) and 2.3 s in the monitor (2.2 s), the longest run between two exits
+1.3 s (0.38 s). A start and `:q!`: the C 0.02-0.03 s, the C guest
+0.25-0.45 s, the Go guest 1.5-1.8 s and 33-35 MB (the C guest's 17), of
+which 0.34 s inside `KVM_RUN` (the C guest's 0.08 s), 42 exits (41: one
+`Random`), the first run the runtime's start, 0.2 s; the rest, about
+1.2 s, is the monitor's process outside the loop under emulation (the VM
+made and torn down), not broken down further. On amd64 here the same start is 0.02-0.04 s
+for the Go guest and 0.01 s for the C guest. So a Go guest's run costs
+the emulated VM about four times a C guest's, which is what the 8-at-once
+default could not carry.
 
 *What remains.* The parallel `:%s` on several vCPUs (the stretch, not
 done): TamaGo's SMP is `goos.Task` (start an M on another CPU),

@@ -69,8 +69,7 @@ func GoImage(gocmd string, a Arch, dir string) ([]byte, error) {
 }
 
 // GoProgram builds the package pkg of the Go guest's module (".", the
-// editor; "./faulty", a stand-in) as an image for a, into dir.  The arm64
-// image builds, but has not been booted (doc/GUEST.md, *A second guest*).
+// editor; "./faulty", a stand-in) as an image for a, into dir.
 func GoProgram(gocmd, pkg string, a Arch, dir string) ([]byte, error) {
 	mod, err := goModuleDir()
 	if err != nil {
@@ -108,4 +107,21 @@ func BuildGo(root string, a Arch, dir, out string) error {
 		return err
 	}
 	return Launcher(mon, img, out)
+}
+
+// BuildGoImage is the Go guest's image alone, at out: for a monitor built
+// elsewhere, or to read it (readelf, nm).
+func BuildGoImage(root string, a Arch, dir, out string) error {
+	gocmd, err := TamaGo(root)
+	if err != nil {
+		return err
+	}
+	img, err := GoImage(gocmd, a, dir)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(out), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(out, img, 0o644)
 }
