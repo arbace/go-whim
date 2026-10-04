@@ -26,6 +26,8 @@ static void deathtrap(int sigarg);
 enum
 {
     WHIM_DOORBELL = 0xf0000000,
+    WHIM_PORT = 0x5157,          /* the alternative trap's, amd64 */
+    WHIM_HVC_FN = 0xc3000057,    /* and arm64's: an SMC64 fast call, OEM service */
     WHIM_HEAP_BYTES = 1024 * 1024 * 1024, /* the C host's arena */
 };
 
@@ -66,7 +68,15 @@ static char *whim_heap;
 static void
 whim_doorbell(void)
 {
-#if defined(__x86_64__)
+#if defined(WHIM_TRAP_ALT) && defined(__x86_64__)
+    /* the alternative (doc/GUEST.md, milestone 5): an out to a port */
+    __asm__ volatile("outl %%eax, %%dx" : : "a"((unsigned)(unsigned long)&whim_call), "d"((unsigned short)WHIM_PORT) : "memory");
+#elif defined(WHIM_TRAP_ALT) && defined(__aarch64__)
+    /* the alternative: an HVC, an SMCCC call KVM forwards to the monitor */
+    register long x0 __asm__("x0") = WHIM_HVC_FN;
+    register volatile struct whim_call *x1 __asm__("x1") = &whim_call;
+    __asm__ volatile("hvc #0" : "+r"(x0) : "r"(x1) : "memory", "x2", "x3");
+#elif defined(__x86_64__)
     __asm__ volatile("movq %%rax, (%1)" : : "a"(&whim_call), "r"((unsigned long)WHIM_DOORBELL) : "memory");
 #elif defined(__aarch64__)
     register volatile struct whim_call *x0 __asm__("x0") = &whim_call;

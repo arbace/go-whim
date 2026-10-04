@@ -77,17 +77,6 @@ func (r Return) Error() string {
 	return fmt.Sprintf("hv_return_t %#x", uint32(r))
 }
 
-// errnoError is a backend's failure with its cause kept: a Return for the
-// framework's caller, the system's error for a person.
-type errnoError struct {
-	r    Return
-	op   string
-	errn error
-}
-
-func (e *errnoError) Error() string { return fmt.Sprintf("%s: %s: %v", e.r, e.op, e.errn) }
-func (e *errnoError) Unwrap() error { return e.r }
-
 // IPA is hv_ipa_t, a guest-physical address.
 type IPA uint64
 

@@ -114,8 +114,12 @@ func hostFormat(c []byte) ([]byte, error) {
 
 // Hello is milestone 1's translation unit: rt.c with hello.c standing in
 // for the core.
-func Hello() ([]byte, error) {
-	h, err := sources.ReadFile("rt/hello.c")
+func Hello() ([]byte, error) { return StandIn("hello") }
+
+// StandIn is the translation unit of rt.c with rt/NAME.c standing in for
+// the core: hello (milestone 1) or bench (a hypercall measured).
+func StandIn(name string) ([]byte, error) {
+	h, err := sources.ReadFile("rt/" + name + ".c")
 	if err != nil {
 		return nil, err
 	}
@@ -223,9 +227,9 @@ func Build(src string, a Arch, dir, out string) error {
 	return Launcher(mon, img, out)
 }
 
-// BuildHello is milestone 1's launcher: the runtime and hello.c.
-func BuildHello(a Arch, dir, out string) error {
-	tu, err := Hello()
+// BuildStandIn is a launcher of the runtime with a stand-in for the core.
+func BuildStandIn(name string, a Arch, dir, out string) error {
+	tu, err := StandIn(name)
 	if err != nil {
 		return err
 	}
@@ -244,7 +248,7 @@ func BuildHello(a Arch, dir, out string) error {
 // built from, for a cache's key.
 func Runtime() []byte {
 	var b bytes.Buffer
-	for _, n := range []string{"rt.c", "hello.c", "entry_amd64.S", "entry_arm64.S", "link_amd64.ld", "link_arm64.ld"} {
+	for _, n := range []string{"rt.c", "hello.c", "bench.c", "entry_amd64.S", "entry_arm64.S", "link_amd64.ld", "link_arm64.ld"} {
 		s, _ := sources.ReadFile("rt/" + n)
 		b.Write(s)
 	}

@@ -2,9 +2,10 @@
 // (package vmm) with the guest image appended to it (go tool whim guest),
 // run on the terminal host, editor/term, as bin/whim runs the Go editor.
 //
-// WHIM_GUEST_STATS=FILE writes the run's counts to FILE when it ends;
+// WHIM_GUEST_STATS=FILE appends the run's counts to FILE when it ends;
 // WHIM_GUEST_WATCHDOG=DURATION (default 60s, 0 off) ends a guest that runs
-// that long without a hypercall .
+// that long without a hypercall; WHIM_GUEST_SECCOMP=0 leaves the system-call
+// filter off, =log logs what it would deny.
 package main
 
 import (
@@ -30,12 +31,15 @@ func main() {
 	}
 	cfg := vmm.Config{Image: img, Host: term.New(), Args: os.Args, Watchdog: 60 * time.Second}
 	if p := os.Getenv("WHIM_GUEST_STATS"); p != "" {
-		f, err := os.Create(p)
+		f, err := os.OpenFile(p, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o644)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "whim-guest:", err)
 			os.Exit(1)
 		}
 		cfg.Stats = f
+	}
+	if os.Getenv("WHIM_GUEST_SECCOMP") != "0" {
+		cfg.Seccomp = vmm.Seccomp
 	}
 	if w := os.Getenv("WHIM_GUEST_WATCHDOG"); w != "" {
 		d, err := time.ParseDuration(w)

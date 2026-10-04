@@ -283,3 +283,7 @@ func VCPUSetSysReg(v VCPU, r SysReg, val uint64) error {
 	c.isa.sregsDirt = true
 	return nil
 }
+
+func (c *vcpu) put64(off int, v uint64) {
+	*(*uint64)(unsafe.Pointer(&c.run[off])) = v
+}

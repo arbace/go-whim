@@ -717,13 +717,17 @@ vmm/               the monitor: the guest's ELF in one slot, identity-mapped
                    with each segment's permissions (layout.go), the vCPU set
                    in the mode the core runs in (setup_<isa>.go), the exit
                    loop answering each doorbell store by a call of
-                   editor.Host (vmm.go); cmd/whim-guest the launcher, the
-                   image appended to it, run on editor/term
+                   editor.Host, the watchdog and the counts (vmm.go), the
+                   alternative traps measured against the doorbell
+                   (alt_<isa>.go), the seccomp filter (seccomp_linux*.go);
+                   cmd/whim-guest the launcher, the image appended to it,
+                   run on editor/term (WHIM_GUEST_STATS, _WATCHDOG,
+                   _SECCOMP)
 guest/             the guest image's builder (`go tool whim guest`): the core
                    cut, the C host's vim_snprintf and rt/ -- rt.c the
                    runtime (15 hypercalls, the C host's arena, the fault
                    report), entry_<isa>.S the entry and the vectors,
-                   link_<isa>.ld, hello.c milestone 1's stand-in -- compiled
+                   link_<isa>.ld, hello.c and bench.c stand-ins -- compiled
                    freestanding by clang into one ELF
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
@@ -830,6 +834,7 @@ make bin/whim-guest   # the editor as a virtual machine on KVM: the core a frees
 make bin/whim-guest-arm64  # the same for arm64, built here, run on an arm64 Linux with KVM (doc/GUEST.md, milestone 3: the quick suite in an emulated Alpine aarch64 VM)
 make whim-test-guest  # the quick suite with the guest editor too (whim test --guest; --wide --guest)
 go tool whim guest --hello  # milestone 1's guest: "hello", exit 3, one exit a call
+go tool whim guest --bench [--alt]  # a stand-in making argv[1] hypercalls, to time one (--alt: a port on amd64, an HVC on arm64)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make caprice.hsl      # the Haskell core as one ghc-lisp module, checked, compiled, and the program run on the quick suite (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
 make whim-vim.lc      # the C product as s-expressions (C-lisp): back byte for byte, compiled to bin/whim-vim's bytes (7 s; doc/C-LISP.md)

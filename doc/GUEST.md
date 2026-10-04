@@ -189,16 +189,18 @@ Hypervisor.framework boot it the same way.
 
 ## The VMM
 
-Go, in this repository (`guest/` for the runtime, `vmm/` for the monitor,
-a `go tool whim guest` builder), which keeps the hypercall handler on
+Go, in this repository (`guest/` the image's builder and `guest/rt/` the
+runtime, `hv/` the hypervisor's shape and backends, `vmm/` the monitor,
+`go tool whim guest` the command), which keeps the hypercall handler on
 `editor/host.go`'s `Host` and the terminal on `editor/term`:
 
-- `vmm/kvm_linux.go`: `/dev/kvm` through raw `ioctl` (`syscall.Syscall`;
+- `hv/kvm_linux.go`: `/dev/kvm` through raw `ioctl` (`syscall.Syscall`;
   the request numbers are stable ABI), the `kvm_run` page by `mmap`, per ISA
-  register setup in `kvm_linux_amd64.go` and `kvm_linux_arm64.go`.
+  registers in `kvm_linux_amd64.go` and `kvm_linux_arm64.go`; the guest's
+  register setup per ISA in `vmm/setup_amd64.go` and `setup_arm64.go`.
 - `hv/hvf_darwin.go`: Hypervisor.framework through purego, no cgo
   (*Decided*), fourteen functions.
-- `vmm/loop.go`: the common exit loop -- doorbell, decode, `Host`, resume;
+- `vmm/vmm.go`: the common exit loop -- doorbell, decode, `Host`, resume;
   any other exit (an unexpected port, a halt, a fault the guest did not
   report) ends the VM with a diagnostic.
 
@@ -226,12 +228,14 @@ KVM runs only its host's ISA, so here arm64 is emulated, not virtualized:
 ## Expected performance
 
 Guest instructions run at native speed on all three. The cost is per exit:
-roughly a microsecond on bare metal, several times that here, where the
+roughly a microsecond on bare metal, and 16-18 µs measured here, where the
 VMM's own host is a virtual machine (nested SVM: each exit goes through the
-outer hypervisor). Per keystroke the core makes a handful of hypercalls and
-already buffers its screen output into one write, so interactive use stays
-far below a millisecond. The heavy case (5,000 lines, three `:s` and a `:g`)
-is computation with a few writes: it should run at the C binary's speed.
+outer hypervisor; milestone 5). Per keystroke the core makes a handful of
+hypercalls -- 6.7 exits a key measured, a wait and a read for each key and
+a write for the screen -- so interactive use stays far below a millisecond.
+The heavy case (5,000 lines, three `:s` and a `:g`) turned out to be 20,786
+exits, the C's own selects and reads as `:g` feeds `normal` its keys: 1.0-1.6
+times the native C's time here, of which the exits are about 0.33 s.
 `host_alloc` staying in the guest is what keeps it so.
 
 ## Milestones, each with a gate
@@ -429,15 +433,76 @@ moved by the monitor, a spin ended by `VCPUsExit`, a store made again when
 PC is left alone, and Apple's encodings reaching KVM's registers.
 `bin/whim-guest-hello` for arm64 prints "hello" and exits 3.
 
+### Milestone 5: hardening and measurement
+
+*Seccomp* (`vmm/seccomp_linux*.go`): once the VM is built, before the guest
+first runs, a filter goes on every thread of the monitor (`TSYNC`; threads
+the Go runtime starts later inherit it): 43 system calls on amd64 and 42 on
+arm64 -- the Go runtime's, the terminal host's (`select`/`pselect6`,
+`pipe2`, `kill`, `rt_sigpending` for `:suspend`) -- and of `ioctl` only
+`KVM_RUN`, `TCGETS`, `TCSETS`, `TIOCGWINSZ` and the ISA's register access
+in the exit loop (`KVM_GET/SET_SREGS`; `KVM_GET/SET_ONE_REG`); anything else
+kills the process. The list was found by running both suites with the
+filter logging instead (`WHIM_GUEST_SECCOMP=log`; the kernel's audit
+showed `KVM_SET_SREGS` at the first run and `rt_sigpending`) and is held
+to them in kill mode: the quick and wide suites pass under it on amd64,
+the quick suite in the aarch64 VM, and SIGTERM still ends the guest in the
+C's words. `WHIM_GUEST_SECCOMP=0` leaves it off.
+
+*The watchdog*: a goroutine ends a guest that runs `WHIM_GUEST_WATCHDOG`
+(60 s by default) without a hypercall, by `hv.VCPUsExit` -- KVM's
+`immediate_exit` and a SIGURG to the vCPU's thread, which the Go runtime
+ignores -- and the loop reports it as a fault (`guest`'s `TestWatchdog`: a
+spinning stand-in ended at 200 ms). The longest run between two exits,
+which the monitor now counts: under 1 ms over the quick suite, 31 ms in
+the heavy case, 2.1 s for a `:%s` over 200,000 lines -- vim's breakcheck
+asks for input less often than that loop takes, so 60 s is about 5.7
+million lines of `:%s`, and a file that size wants a longer watchdog.
+
+*Exits per second*: over the quick suite's 80 cases run twice, 634,386
+exits in 14.6 s of the monitor's loop, 43,300 a second; under the stress
+test's load (48 busy loops on the 64 cores, `TestStress`, 10 runs a case),
+3,171,930 exits in 88.2 s, 36,000 a second, and 0 of 720 runs differ
+from their case's first. *A hypercall's cost*, `go tool whim guest
+--bench` (a stand-in core making argv[1] calls of `host_time`), the
+monitor's loop time over the exits: on amd64 here, nested under SVM, the
+doorbell 16.2-18.3 µs, an `out` to a port (`--alt`: `KVM_EXIT_IO`, which
+hv reports as an exception of its own class, `ECPortIO`) 14.7-17.2 µs,
+about a tenth less; on arm64 in the emulated VM, the doorbell 349-361 µs
+and an `hvc` forwarded by `KVM_ARM_VM_SMCCC_FILTER` (`hv.ForwardHVC`, an
+SMC64 OEM function ID, reported as the framework reports an HVC, EC 0x16)
+328-339 µs, a twentieth less -- under emulation, so only the ratio says
+anything. The doorbell stays: it is the one trap the same on all three
+targets, and the alternatives save less than the merged wait-and-read
+would.
+
+The wide suite in the aarch64 VM, after milestone 3: all 240 answer as the
+C does there -- keys 102, its control seen by 94; Ex commands 98 (with the
+C's whim-vim.c to enumerate them, `WHIM_SUITE_SRC`), seen by 1; command
+lines 30; the pseudo-terminal 10, seen by 6 -- and the heavy case answers
+as the C does: C 5 s, the guest 11-12 s under emulation, its 20,786 exits
+9.3 s inside `KVM_RUN` and 2.0 s in the monitor.
+
 ## Open questions
 
 - Is one 4 GiB lazily committed slot enough, or should the allocator ask the
-  VMM to map more (a sixteenth hypercall) for very large files?
+  VMM to map more (a sixteenth hypercall) for very large files? *As built*,
+  the slot is the image, a 64 MiB stack and a 1 GiB heap, 1.1 GiB: the heap
+  is the C host's arena to the byte, so the guest runs out where the C
+  does, in its words. No sixteenth call while the C's arena is 1 GiB.
 - Should `musl_wait_for_input` and `musl_read_input` be merged into one call
-  (wait and read when ready), halving the exits per key?
+  (wait and read when ready), halving the exits per key? *Measured:* they
+  are 20,740 of the heavy case's 20,786 exits and two of the 6.7 a typed
+  key costs; merged, the heavy case would lose about 10,370 exits, 0.17 s
+  of its 0.5 s here. Not done: it changes `editor.Host`, which every
+  editor's host shares, for the guest's sake alone.
 - The parallel `:%s` of the translated editors on several vCPUs: a fork/join
   in shared memory with a halt-and-kick protocol, with no new hypercall --
   worth it only once a single vCPU is measured.
 - Where does the guest's C reference come from on the Mac for the suite:
   `whim-vim.c` built there (its host region is POSIX), or outputs recorded
-  here?
+  here? *The aarch64 VM answered it one way:* the C built where the guest
+  runs, and `TestGuestPrebuilt` cross-compiled to compare the two there.
+  On the Mac that needs `editor/term` ported (it is Linux's: `TCGETS`,
+  `pipe2`, `select`'s signature, `rt_sigaction`), and the C's host part
+  built by Apple's clang.

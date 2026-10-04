@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/arbace/go-whim/editor"
 	"github.com/arbace/go-whim/vmm"
@@ -79,11 +80,15 @@ const faulty = `
 static int vim_main(int argc, char **argv);
 static void deathtrap(int sigarg) { (void)sigarg; }
 static int deep(volatile char *p) { volatile char b[4096]; b[0] = *p; return deep(b) + b[1]; }
+static volatile int spinning = 1;
 static int
 vim_main(int argc, char **argv)
 {
     if (argc > 1 && argv[1][0] == 'd')
         return deep("x");
+    if (argc > 1 && argv[1][0] == 's')
+        while (spinning)
+            ;
     *(volatile int *)0 = 1;
     return 0;
 }
@@ -116,5 +121,29 @@ func TestFault(t *testing.T) {
 			t.Fatalf("%s: %s", c.arg, f.Msg)
 		}
 		t.Logf("%s: %s", c.arg, f.Msg)
+	}
+}
+
+// TestWatchdog: a guest that runs without a hypercall is ended by the
+// monitor's watchdog, as hv_vcpus_exit ends it on the framework.
+func TestWatchdog(t *testing.T) {
+	a := Native()
+	needTools(t, a)
+	rt, err := sources.ReadFile("rt/rt.c")
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, err := Image(append([]byte(faulty), rt...), a, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Now()
+	_, err = vmm.Run(vmm.Config{Image: img, Host: &recorder{}, Args: []string{"faulty", "spin"}, Watchdog: 200 * time.Millisecond})
+	var f *vmm.Fault
+	if !errors.As(err, &f) || !strings.Contains(f.Msg, "watchdog") {
+		t.Fatalf("%v, not the watchdog", err)
+	}
+	if d := time.Since(start); d > 2*time.Second {
+		t.Fatalf("the watchdog took %s", d)
 	}
 }

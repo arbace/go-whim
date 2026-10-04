@@ -83,6 +83,7 @@ type Stats struct {
 	Runs     uint64 // KVM_RUN calls (the backend's)
 	Spurious uint64 // of those, interrupted by a signal and run again
 	Guest    time.Duration
+	Longest  time.Duration // the longest run between two exits
 	Host     time.Duration
 }
 
@@ -159,6 +160,7 @@ func newMachine(cfg Config) (*machine, error) {
 		m.close()
 		return nil, err
 	}
+	vmSetup()
 	if err := hv.VMMap(m.mem, 0, hv.MemoryRead|hv.MemoryWrite|hv.MemoryExec); err != nil {
 		hv.VMDestroy()
 		m.close()
@@ -210,6 +212,7 @@ func (m *machine) loop() (int, error) {
 		}
 		t1 := time.Now()
 		m.stats.Guest += t1.Sub(t0)
+		m.stats.Longest = max(m.stats.Longest, t1.Sub(t0))
 		m.stats.Exits++
 		switch m.exit.Reason {
 		case hv.ExitReasonException:
@@ -233,16 +236,15 @@ func (m *machine) exception() (int, bool, error) {
 	e := m.exit.Exception
 	s := hv.Syndrome(e.Syndrome)
 	addr := uint64(e.PhysicalAddress)
-	isDoorbell := s.EC() == hv.ECDataAbortLower && addr == Doorbell
-	if isAltExit(s, addr) {
-		isDoorbell = true
-	}
-	if !isDoorbell || !s.ISV() || !s.WnR() {
-		return 1, false, m.fault(fmt.Sprintf("the guest touched %#x with no memory there (syndrome %#x, pc %#x)", addr, e.Syndrome, pc(m.v)))
-	}
-	reg, ok := hv.RegForSRT(s.SRT())
-	if !ok {
-		return 1, false, m.fault(fmt.Sprintf("a doorbell store from register %d", s.SRT()))
+	reg, alt := altCall(m.v, s, addr)
+	if !alt {
+		if s.EC() != hv.ECDataAbortLower || addr != Doorbell || !s.ISV() || !s.WnR() {
+			return 1, false, m.fault(fmt.Sprintf("the guest touched %#x with no memory there (syndrome %#x, pc %#x)", addr, e.Syndrome, pc(m.v)))
+		}
+		var ok bool
+		if reg, ok = hv.RegForSRT(s.SRT()); !ok {
+			return 1, false, m.fault(fmt.Sprintf("a doorbell store from register %d", s.SRT()))
+		}
 	}
 	cb, err := hv.VCPUGetReg(m.v, reg)
 	if err != nil {
@@ -373,8 +375,8 @@ func (m *machine) report() {
 	m.stats.Runs, m.stats.Spurious = hv.Stats(m.v)
 	s := &m.stats
 	var calls uint64
-	fmt.Fprintf(m.cfg.Stats, "exits %d runs %d spurious %d guest %dus host %dus\n",
-		s.Exits, s.Runs, s.Spurious, s.Guest.Microseconds(), s.Host.Microseconds())
+	fmt.Fprintf(m.cfg.Stats, "exits %d runs %d spurious %d guest %dus host %dus longest %dus\n",
+		s.Exits, s.Runs, s.Spurious, s.Guest.Microseconds(), s.Host.Microseconds(), s.Longest.Microseconds())
 	for nr, n := range s.Calls {
 		if n > 0 {
 			calls += n

@@ -371,9 +371,6 @@ func describe(c *vcpu, reason uint32) string {
 func (c *vcpu) u16(off int) uint16 { return *(*uint16)(unsafe.Pointer(&c.run[off])) }
 func (c *vcpu) u32(off int) uint32 { return *(*uint32)(unsafe.Pointer(&c.run[off])) }
 func (c *vcpu) u64(off int) uint64 { return *(*uint64)(unsafe.Pointer(&c.run[off])) }
-func (c *vcpu) put64(off int, v uint64) {
-	*(*uint64)(unsafe.Pointer(&c.run[off])) = v
-}
 
 // Stats is what the backend counted on v: KVM_RUN calls, and those a signal
 // interrupted that were run again.  Not the framework's.
@@ -389,3 +386,14 @@ func Stats(v VCPU) (runs, spurious uint64) {
 // that creates a vCPU is the one that runs it, on one thread for the vCPU's
 // life.
 func LockThread() { runtime.LockOSThread() }
+
+// errnoError is a backend's failure with its cause kept: a Return for the
+// framework's caller, the system's error for a person.
+type errnoError struct {
+	r    Return
+	op   string
+	errn error
+}
+
+func (e *errnoError) Error() string { return fmt.Sprintf("%s: %s: %v", e.r, e.op, e.errn) }
+func (e *errnoError) Unwrap() error { return e.r }
