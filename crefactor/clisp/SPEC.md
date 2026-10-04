@@ -365,3 +365,41 @@ attributes and discards them -- just inside a declarator's parenthesis, `int
 ([[a]] *p)`, and before an abstract declarator -- which the fork refuses
 rather than drops. `ToC` refuses a form it does not know, an argument
 missing, a value where none can be.
+
+## Patterns
+
+A pattern (`pattern.go`; `crefactor/graph`'s `pattern.go` matches the same
+patterns against the graph's nodes) is a form written in C-lisp that
+matches forms. Spacing, line breaks and the parentheses C needs are not part
+of the question, but `(paren e)`, a pair the source wrote, is a form like
+any other.
+
+| pattern | matches |
+| --- | --- |
+| `_` | any one node |
+| `_*` | the rest of a list, any number of nodes: last in its list only |
+| `?name` | any one node, bound to `name`; a second `?name` must be the same form |
+| `?name:P` | a node the pattern `P` matches, bound to `name`; `P` a list or an atom |
+| any other atom | itself |
+| `(h p...)` | a list of as many elements, each matching its pattern |
+
+`?name:P` is a binding with a shape: the node is bound only where `P`
+matches it, and `P`'s own bindings are made with it. A second `?name`, bare
+or shaped, must be the same form as the first (and match its own shape).
+`P` cannot be `_*`: a binding is one node.
+
+```
+(= (-> buf ?f) _)                   every assignment to a member of buf, the member bound
+(call ?f:(paren _) _*)              a call through a parenthesised callee, the callee bound
+(if ?c:(== _ nullptr) _*)           an if testing for a null pointer, its condition bound
+(&& ?k:(paren (& flags F)) (! x))   the && whose first operand is that test, the operand bound
+(if _ _ ?arm:(if (! skip) _))       the else-if arm on `!skip`, bound: an if's else that is one
+(= ?x:errno 0)                      the atom as the shape: binds errno, refuses any other
+(+ ?x:(* _ 2) ?x)                   both operands the same doubling
+```
+
+The reader reads `?name:(...)` as the atom `?name:` and the list after it;
+`Pattern` makes the two one node, the list `(?name: P)` -- a head no form
+has -- and `?name:atom`, one atom, the same. `Subst` puts a shaped
+binding's node where the pattern names it. A `?name:` with nothing after
+it is refused, and so is one before `_*`.

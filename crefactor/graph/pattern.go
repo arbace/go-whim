@@ -4,7 +4,8 @@ import "github.com/arbace/go-whim/crefactor/clisp"
 
 // PATTERNS on the graph's nodes: crefactor/clisp's, the same syntax --
 // `_` any node, `_*` the rest of a list, `?name` a binding, which a second
-// `?name` must equal as a form -- matched against nodes rather than forms,
+// `?name` must equal as a form, `?name:P` a binding of a node P matches
+// -- matched against nodes rather than forms,
 // so that a match hands back the nodes themselves, with their ids and
 // edges.
 
@@ -47,6 +48,19 @@ func match(p *clisp.Node, n *Node, b *Bindings) bool {
 			return true
 		}
 		return !n.list && n.Atom == p.Atom
+	}
+	if name, sub, ok := clisp.Shaped(p); ok {
+		if !match(sub, n, b) {
+			return false
+		}
+		if old, ok := (*b)[name]; ok {
+			return SameForm(old, n)
+		}
+		if *b == nil {
+			*b = Bindings{}
+		}
+		(*b)[name] = n
+		return true
 	}
 	if !n.list {
 		return false

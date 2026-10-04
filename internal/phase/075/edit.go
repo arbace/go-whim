@@ -65,11 +65,7 @@ func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 	v.Together(func(v *graph.Verbs) {
 		v.TopAfterC("regstack", "static garray_T regstack_star = {0, 0, 0, 0, nullptr};\nstatic garray_T regstack_behind = {0, 0, 0, 0, nullptr};\nstatic int regstack_bytes = 0;\n",
 			"the records, the stars and the look-behinds are three stacks, and the bytes they hold a count")
-		var lens []*graph.Node
-		for _, c := range v.Find("(cast unsigned (. regstack ga_len))") {
-			lens = append(lens, c.Kids[2])
-		}
-		v.ReplaceEachC(lens, "regstack_bytes", 3, "'maxmempattern' is measured against the count")
+		v.ReplaceAtC("(cast unsigned ?l:(. regstack ga_len))", "l", "regstack_bytes", 3, "'maxmempattern' is measured against the count")
 		v.InFunction("regstack_push", func(v *graph.Verbs) {
 			v.LiteralC("    if ("+w75Grow("regstack", "regitem_T")+")\n    {\n        return nullptr;\n    }\n    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len);\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n    regstack.ga_len += sizeof(regitem_T);\n",
 				"    if (ga_grow(&regstack, 1) == FAIL)\n    {\n        return nullptr;\n    }\n\n    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len];\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n\n    ++regstack.ga_len;\n    regstack_bytes += sizeof(regitem_T);\n",

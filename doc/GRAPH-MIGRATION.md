@@ -799,7 +799,7 @@ phase 16 | 16 | oneoptset, sweep, droplocal | 142 | - | done | - | B3a | the str
 phase 17 | 17 | droplocal | - | - | done | - | A | begins on the graph (q016.g)
 phase 18 | 18 | droplocal | 5 | - | done | - | B1a | whim18kp gone: DropLocal's get_varp rule takes `&curbuf->f` unparenthesised now
 phase 19 | 19 | whim19, sweep, droplocal | 73 | - | done | - | B1a | handed the graph; whim19ep gone as whim18kp
-phase 20 | 20 | whim20, sweep, whim20bl, droplocal | 115 | - | done | - | B1a | handed the graph; whim20bl a DropCase (b_p_bl is the collection's, not droplocal's)
+phase 20 | 20 | whim20, sweep, whim20bl, droplocal | 113 | - | done | - | B1a, Fin | handed the graph; whim20bl a DropCase (b_p_bl is the collection's, not droplocal's); Fin: the two fileinfo acts one Rewrite each (?k:pat)
 phase 21 | 21 | whim21 | 59 | 2403 | done | - | B3a | 8 literal acts in one FRAG unit, ## by BUILD, runs and a member cut
 phase 22 | 22 | whim22 | 38 | 3147 | done | - | B3a | the two block literals in one FRAG unit; Run, CutRun
 phase 23 | 23 | whim23 | 21 | - | done | - | B1a | one FoldNever; the row query TextQuery on the C view
@@ -812,7 +812,7 @@ phase 29 | 29 | whim29 | 115 | 638 | done | - | B3b | no :read: RENUM, DropOpera
 phase 30 | 30 | whim30 | 131 | 844 | done | - | B3b | no :edit, gf: RENUM, two DropCase, a fold by condition
 phase 31 | 31 | whim31 | 102 | 569 | done | - | B3b | open_buffer(void): PARAM's three parameters in one edit
 phase 32 | 32 | whim32 | 476 | 5665 | done | - | B3b | the buffer has no name: CutRun, PARAM (Dangle for the local the text left naming a gone parameter), RENUM; the writes on the C view
-phase 26 | 26 | whim26 | 262 | 450 | done | - | B3a | HeadFold, DropOperandAsText in their conditions, the dead ADDR_* labels and 35 arms from their runs, a message RespellString; no RENUM needed (0 enumerators go)
+phase 26 | 26 | whim26 | 257 | 450 | done | - | B3a, Fin | HeadFold, DropOperandAsText in their conditions, the dead ADDR_* labels and 35 arms from their runs, a message RespellString; no RENUM needed (0 enumerators go); Fin: the else-if arm by ?arm:pat
 phase 27 | 27 | whim27 | 346 | 1992 | b | PARAM TEXTQ | B3b | no Ex mode: ~28 folds, main_loop's parameter
 phase 28 | 28 | whim28 | 67 | 850 | b | RENUM BUILD TEXTQ | B3b | no :write
 phase 29 | 29 | whim29 | 115 | 638 | b | RENUM | B3b | no :read
@@ -928,7 +928,7 @@ phase 91 | 91 | graph/gotoloop.go, gotoflow.go | 211+256 | - | done | - | B3g | 
 phase 92 | 92 | graph/gotoblock.go | 314 | - | done | - | B3g | goto out -> do-while(0) break: Editor.GotoBlock, the region moved; handed the graph
 phase 93 | 93 | whim93 | 71 | - | b | FRAG MOVE TEXTQ | B3f | one_adjust as functions
 phase 74 | 74 | whim74a, xform/nevernull.go | 7+253 | - | b | FOLDX(label) | B3g | never-NULL tests fold; not typed
-phase 75 | 75 | whim75 | 73 | - | done | - | B3f | three typed stacks; on the graph (B3f): one FRAG unit: LiteralC, LiteralExprC (new), ReplaceEachC (new), FragAt (new)
+phase 75 | 75 | whim75 | 69 | - | done | - | B3f, Fin | three typed stacks; on the graph (B3f): one FRAG unit: LiteralC, LiteralExprC (new), ReplaceEachC (new), FragAt (new); Fin: the casts' operands by ReplaceAtC with ?l:pat
 76a | 76 | phase/076/a | 138 | - | done | - | Step6 | def_val split; on the graph (Step6): the kind by the row's flags, def_val renamed by edge and def_num inserted (InsertMember), the rows' pairs by InsertElements/ReplaceElement, the reads RetargetAs
 phase 76 | 76 | whim76a, whim76 + crefactor/graph/s6ov_elements.go | 749+144 | - | done | - | Step6 | optvar_T: kinds from typed edges; on the graph (Step6): the kinds by the declarations' and members' typed edges, RETYPE first, every site in one FRAG unit; handed the graph by 75, hands it to 77
 77a | 77 | phase/077/a | 13 | - | done | - | B3f | a comparison; on the graph (B3f): ReplaceC; phase 77 is graph end to end
@@ -937,7 +937,7 @@ phase 78 | 78 | whim78 | 27 | - | done | - | B3f | gcc's argument order through 
 phase 79 | 79 | whim79 | 16 | - | done | - | B3f | a static byte for (char_u *)-1; on the graph (B3f): one FRAG unit
 phase 80 | 80 | whim80 | 23 | - | done | - | B3f | yankreg_T *; on the graph (B3f): RetypeResult, Retype x3, two Rewrites (B2c's test moved in)
 phase 81 | 81 | whim81 | 16 | - | done | - | B3f | a font read guarded; on the graph (B3f): LiteralExprC
-phase 82 | 82 | whim82 | 28 | - | done | - | B3f | flexible arrays become pointers; on the graph (B3f): RETYPE x3, one FRAG unit
+phase 82 | 82 | whim82 | 24 | - | done | - | B3f, Fin | flexible arrays become pointers; on the graph (B3f): RETYPE x3, one FRAG unit; Fin: the heads by ReplaceAtC with ?b:pat
 phase 83 | 83 | whim83 | 29 | - | done | - | B3f | no cookie; on the graph (B3f): one DropParams over the family (B2c's test moved in)
 phase 84 | 84 | whim84 | 37 | - | done | - | B3f | ml_get_invalid outlined; on the graph (B3f): one FRAG unit
 phase 85 | 85 | whim85 | 19 | - | done | - | B3f | a flag for a pointer comparison; on the graph (B3f): one FRAG unit
@@ -953,7 +953,7 @@ phase 92 | 92 | crefactor/xform/gotoblock.go | 404 | - | b | MOVE | B3g | goto o
 phase 93 | 93 | whim93 | 71 | - | done | - | B3f | one_adjust as functions; on the graph (B3f): expansions by form, one FRAG unit with the lvalue a hole twice
 phase 94 | 94 | steps/s6memberout.go + crefactor/graph/s6mo_memberout.go | 27+564 | - | done | - | Step6 | member out-parameters; on the graph (Step6): the analysis by edges and typed edges, the wrappers and calls one FRAG unit; handed the graph by 93
 phase 95 | 95 | steps/s6stateparam.go + crefactor/graph/s6sp_stateparam.go | 26+350 | - | done | - | Step6 | the engine's state a parameter; on the graph (Step6): the closure by the call graph's edges, the struct and the early typedef one FRAG unit, AddParam, each use (-> re o) built and typed as cc types it
-phase 96 | 96 | whim96 | 232 | - | done | - | B3f | a line's match alone; after 95; on the graph (B3f): one FRAG unit (WrapEachC, AfterEachC, BeforeEachC new)
+phase 96 | 96 | whim96 | 223 | - | done | - | B3f, Fin | a line's match alone; after 95; on the graph (B3f): one FRAG unit (WrapEachC, AfterEachC, BeforeEachC new); Fin: two acts by ?x:pat (the length local, the next search)
 phase 97 | 97 | whim97 | 19 | - | done | - | B3f | :g asks match_range; after 96; on the graph (B3f): one FRAG unit
 phase 98 | 98 | whim98 | 16 | - | done | - | B3f | ml_clearmarked's guard; on the graph (B3f): ReplaceC
 phase 99 | 99 | whim99 | 22 | - | done | - | Step6 | WHIM_TIME (host); on the graph (Step6): BodyC, the include asserted among the include forms
@@ -3215,3 +3215,52 @@ their tests), kept only as the oracle FoldX's tests compared against, and
   without a successor.
 - Code comments that name an xform function as where a graph function came
   from are left as provenance (history keeps the code).
+
+### `?x:pat`, a binding with a shape
+
+`crefactor/clisp`'s patterns and the graph's matcher take `?name:P`: a node
+bound to `name` only where the pattern `P` (a list or an atom) matches it,
+`P`'s own bindings made with it, a second `?name` the same form
+(`crefactor/clisp/SPEC.md`, *Patterns*, new: the whole pattern syntax, with
+examples). The reader reads `?name:(...)` as an atom and a list; `Pattern`
+makes them one node, `(?name: P)`, a head no form has; `Shaped` says
+which; `Subst` puts the bound node back. Tests: `clisp`'s
+`TestShapedBinding` (matches, non-matches, nested shapes with their own
+bindings, beside `_*`, the whole pattern shaped, a repeated shaped name,
+an atom as the shape, `Subst`, the refusals: nothing after `?name:`, `_*`
+as the shape) and `graph`'s `TestFinShapedPattern` (the nodes bound are
+the graph's, a `RewriteAt` at a shaped binding and a `Rewrite` of one,
+held to the C and to the import of the C view).
+
+**Where the conversions worked around it**, replaced where the result is
+simpler, each phase's C and report the same as before, line for line:
+
+- **phase 20** (B1a's wish): `fileinfo`'s two acts were a `One` of the
+  `&&` and a scoped `DropOperand` of the operand the two share; each is one
+  `Rewrite("(&& ?k:(paren (& (-> curbuf b_flags) F)) (! (call bt_dontwrite
+  curbuf)))", "?k", ...)`.
+- **phase 75**: the three `(cast unsigned (. regstack ga_len))` found and
+  their operands taken by index for `ReplaceEachC` are one
+  `ReplaceAtC("(cast unsigned ?l:(. regstack ga_len))", "l", ...)`.
+- **phase 82**: the same for each head's `(init nullptr 0 ?b:(init NUL))`.
+- **phase 96**: the `(def c int)` after which the length local goes, taken
+  by `Kids[2].Kids[1]` behind a length check, is a `Query` of
+  `(if (!= (-> prog regmust) nullptr) (block ?c:(def c int) _*))`; and the
+  next-match search, found and kept where its parent matched `(== _ 0)`,
+  is `ReplaceAtC("(== ?m:(= nmatch (call vim_regexec_multi ...)) 0)", "m",
+  ...)`.
+- **phase 26** (B3a): the else-if arm on `!eap->skip`, found and kept
+  where its parent was an if of four elements holding it last, is a
+  `Query` of `(if _ _ ?arm:(if (! (-> eap skip)) _))`.
+
+**Left**, because a shape does not say it: 96's `fast_breakcheck` calls
+and error calls that must be ITEMS (`Item(m) == m`), its `case` labels
+from a set of names, and the `if (s == nullptr) break;` told by its
+previous sibling; 66's `tvs != nullptr` as an argument at any position (a
+`_*` is last in its list only); noconv's stores matched by regular
+expressions on the names; noswap's arm, whose count over the whole file
+is the assertion; and 56's guarded `mf_get()`, whose `?x` it reads by
+index after the pattern bound it, which needs no shape. 73 (named in *B3f as built*) has no such act left: its acts are
+`TopAfterC`, `LiteralC` and `BeforeC` by pattern. B4's note names no act,
+and the front's cutters hold none of this shape (the candidates in
+`internal/cut` are the noconv and noswap acts above).

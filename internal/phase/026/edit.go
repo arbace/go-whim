@@ -330,12 +330,7 @@ func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 	v.HeadFold("always", false, "(! (-> eap skip))", 6, "nor its pattern, a range, or :match")
 	if !v.Failed() {
 		// `else if (!eap->skip) X` is `else X`
-		var arms []*graph.Node
-		for _, x := range v.Find("(if (! (-> eap skip)) _)") {
-			if p := e.Parent(x); p != nil && p.Is("if") && len(p.Kids) == 4 && p.Kids[3] == x {
-				arms = append(arms, x)
-			}
-		}
+		arms := v.Query("(if _ _ ?arm:(if (! (-> eap skip)) _))", "arm")
 		if len(arms) != 1 {
 			v.Die("nor :substitute's previous pattern -- occurs %d times, expected 1", len(arms))
 		} else if err := e.Replace(arms[0], arms[0].Kids[2]); err != nil {

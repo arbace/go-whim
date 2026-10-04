@@ -70,13 +70,11 @@ func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 
 	// 'buftype'
 	v.InFunction("fileinfo", func(v *graph.Verbs) {
-		notWritable := "(! (call bt_dontwrite curbuf))"
 		for _, f := range []struct{ flag, what string }{
 			{"BF_NOTEDITED", "[Not edited] shown only for a writable 'buftype'"},
 			{"BF_NEW", "[New] shown only for a writable 'buftype'"},
 		} {
-			test := v.One("(&& (paren (& (-> curbuf b_flags) "+f.flag+")) "+notWritable+")", f.what)
-			v.In(test, func(v *graph.Verbs) { v.DropOperand(notWritable, 1, f.what) })
+			v.Rewrite("(&& ?k:(paren (& (-> curbuf b_flags) "+f.flag+")) (! (call bt_dontwrite curbuf)))", "?k", 1, f.what)
 		}
 	})
 	v.InFunction("buf_write", func(v *graph.Verbs) {

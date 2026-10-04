@@ -51,11 +51,7 @@ func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 			"allocated apart from the regprog_T")
 		for _, h := range []string{"redobuff", "old_redobuff", "recordbuff", "readbuf1", "readbuf2"} {
 			v.InTable(h, func(v *graph.Verbs) {
-				var bs []*graph.Node
-				for _, m := range v.Find("(init nullptr 0 (init NUL))") {
-					bs = append(bs, m.Kids[3])
-				}
-				v.ReplaceEachC(bs, "(char_u[1]){NUL}", 1, "the head of "+h+" points at a byte of its own")
+				v.ReplaceAtC("(init nullptr 0 ?b:(init NUL))", "b", "(char_u[1]){NUL}", 1, "the head of "+h+" points at a byte of its own")
 			})
 		}
 	})

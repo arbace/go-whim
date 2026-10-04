@@ -359,8 +359,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    for byte on canonical text (`whim c2lisp`, `whim lisp2c`;
                    SPEC.md, every form; doc/C-LISP.md), and a tree API on
                    its forms (tree.go: cursors, edits, an atom index;
-                   pattern.go: patterns as forms; scope.go: a resolver of
-                   C's name spaces and scopes, untyped; Options.Origin tells a
+                   pattern.go: patterns as forms, `?x:P` a binding
+                   with a shape; scope.go: a resolver of C's name
+                   spaces and scopes, untyped; Options.Origin tells a
                    caller the cc node each form came from; printnode.go an
                    expression's or items' C alone). graph/: the
                    program as one resolved, typed graph (doc/GRAPH.md):

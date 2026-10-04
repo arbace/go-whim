@@ -307,11 +307,7 @@ func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 			must := items(v, "(if (!= (-> prog regmust) nullptr) (block (def c int) _*))", nil)
 			v.BeforeEachC(must, "if (prog->regmust != nullptr && "+alone+" && (re->rex.reg_ic || re->rex.reg_icombine))\n{\n    re->failed = true;\n    break;\n}\n", 1,
 				"the must-have string is looked for through a local length; alone where case is ignored the match fails, since the length may shrink and a later search read it")
-			var cs []*graph.Node
-			if len(must) == 1 {
-				cs = []*graph.Node{must[0].Kids[2].Kids[1]}
-			}
-			v.AfterEachC(cs, "int regmlen = prog->regmlen;\n", 1, "with the length in a local")
+			v.AfterEachC(v.Query("(if (!= (-> prog regmust) nullptr) (block ?c:(def c int) _*))", "c"), "int regmlen = prog->regmlen;\n", 1, "with the length in a local")
 			v.ReplaceC("(call cstrncmp__regmlen re s (-> prog regmust) prog)", "cstrncmp(re, s, prog->regmust, &regmlen)", 2, "both looks")
 			v.BeforeEachC(items(v, "(if (== s nullptr) (block (break)))", func(m *graph.Node) bool {
 				p := sibling(m, -1)
@@ -327,13 +323,8 @@ func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 				"ex_substitute matches the range's lines each alone first")
 			v.ReplaceC("(= nmatch (call vim_regexec_multi (addr regmatch) curwin curbuf lnum (cast colnr_T 0) nullptr))",
 				"nmatch = search_found(found, eap->line1, found_count, &regmatch, lnum, (colnr_T)0);\n", 1, "and its searches take what that found")
-			var next []*graph.Node
-			for _, m := range v.Find("(= nmatch (call vim_regexec_multi (addr regmatch) curwin curbuf sub_firstlnum matchcol nullptr))") {
-				if is(e.Parent(m), "(== _ 0)") {
-					next = append(next, m)
-				}
-			}
-			v.ReplaceEachC(next, "(nmatch = search_found(found, eap->line1, found_count, &regmatch, sub_firstlnum, matchcol))", 1,
+			v.ReplaceAtC("(== ?m:(= nmatch (call vim_regexec_multi (addr regmatch) curwin curbuf sub_firstlnum matchcol nullptr)) 0)", "m",
+				"(nmatch = search_found(found, eap->line1, found_count, &regmatch, sub_firstlnum, matchcol))", 1,
 				"the search for a line's next match, before the line is replaced, too")
 		})
 	})
