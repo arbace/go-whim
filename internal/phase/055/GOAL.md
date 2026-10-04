@@ -196,3 +196,7 @@ the one sweep leaves is byte-identical to the sequential run's, 78,859 lines eit
 the check states that division: **`ML_APPEND_MARK` is reachable code that can never be
 true once the fallback goes**, so no sweep can see it and the edit takes it.
 `make whim-verify` is 45 of 45.
+
+## On the graph
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3e as built*): its acts and assertions are the text program's, made on the graph's C view through a `graph.Draft`, and committed as FRAG of the smallest runs of whole items that hold them, the uses of what those runs declared carried to the new declarations; `whim-build-check` holds q055 to the bytes the text version made, which history keeps (`16717ab` and before).

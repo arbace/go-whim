@@ -89,11 +89,29 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { phase.RegisterArgs("whim54", Edit) }
+func init() { phase.RegisterGraph("whim54", Edit) }
+
+// Edit is the phase on the graph (doc/GRAPH-MIGRATION.md, *B3e as built*):
+// its acts are the text acts below, made on the graph's C view (a
+// graph.Draft) as the text program made them on the file, and committed to
+// the graph as FRAG of the smallest runs of whole items that hold them.
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
+	d, err := e.Draft()
+	if err != nil {
+		return err
+	}
+	out, err := w54Acts([]byte(d.Text()), w, args)
+	if err != nil {
+		return err
+	}
+	_, err = d.Commit(string(out))
+	return err
+}
 
 var (
 	w54Lit     = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
@@ -118,10 +136,10 @@ var (
 	w54Protos = []string{"mf_ins_hash", "mf_rem_hash", "mf_ins_free", "mf_rem_free"}
 )
 
-// Whim54 turns a block number into a reference: `pe_bnum` and `ip_bnum` become
+// w54Acts turns a block number into a reference: `pe_bnum` and `ip_bnum` become
 // `bhdr_T *`, `memline_T` gains `ml_root`, and the hash table that turned an
 // integer into a page goes with the free list and `mf_blocknr_max`.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := edit.Ph{Tag: "refblocks", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim54 <file> <state-dir>")

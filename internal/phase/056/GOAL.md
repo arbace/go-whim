@@ -236,3 +236,7 @@ halves. 126 is the sixth again and the strongest instance of it this pipeline ha
 every keystroke reaches its text through the function it rewrites. And 127 and 128 are the
 **weakest** kind, phases 97 and 98's: the code changes, the binary moves, and eleven and
 twelve controls carry each of them because nothing else can.
+
+## On the graph
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3e as built*): its acts and assertions are the text program's, made on the graph's C view through a `graph.Draft`, and committed as FRAG of the smallest runs of whole items that hold them, the uses of what those runs declared carried to the new declarations; `whim-build-check` holds q056 to the bytes the text version made, which history keeps (`16717ab` and before).

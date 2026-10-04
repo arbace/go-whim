@@ -116,11 +116,29 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { phase.RegisterArgs("whim56", Edit) }
+func init() { phase.RegisterGraph("whim56", Edit) }
+
+// Edit is the phase on the graph (doc/GRAPH-MIGRATION.md, *B3e as built*):
+// its acts are the text acts below, made on the graph's C view (a
+// graph.Draft) as the text program made them on the file, and committed to
+// the graph as FRAG of the smallest runs of whole items that hold them.
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
+	d, err := e.Draft()
+	if err != nil {
+		return err
+	}
+	out, err := w56Acts([]byte(d.Text()), w, args)
+	if err != nil {
+		return err
+	}
+	_, err = d.Commit(string(out))
+	return err
+}
 
 // w56Fanout is the fanout, and it is a LITERAL rather than a computation: the
 // corpus's root-split coverage is measured against the number the input gives,
@@ -164,10 +182,10 @@ var (
 	w56BlankRun = regexp.MustCompile(`\n\n\n`)
 )
 
-// Whim56 folds the node types: `bhdr_T` becomes `struct block_hdr { short_u
+// w56Acts folds the node types: `bhdr_T` becomes `struct block_hdr { short_u
 // bh_id; }`, `memfile_T` goes entirely, and a node is ONE allocation at its own
 // size.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := edit.Ph{Tag: "node", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim56 <file> <state-dir>")

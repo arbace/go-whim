@@ -361,19 +361,19 @@ var Plan = []Phase{
 		}},
 	{N: 53, Block: "r06-memline", Name: "the swap file's residue, and what no sweep could find",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim53", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim53", "@state"}},
 		}},
 	{N: 54, Name: "a block number becomes a reference",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim54", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim54", "@state"}},
 		}},
 	{N: 55, Name: "de-page the leaf",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim55", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim55", "@state"}},
 		}},
 	{N: 56, Name: "fold the node types",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim56", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim56", "@state"}},
 		}},
 	{N: 57, Block: "r07-types", Name: "`p_emoji` is an `int`",
 		Steps: []Step{

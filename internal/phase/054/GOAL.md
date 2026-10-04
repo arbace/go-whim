@@ -177,3 +177,7 @@ swept input and does not start a stage (125-126)* and exits 1 **before any check
 `need 126 swept` already forbids the only stage that could hold both, and an `apart`
 nobody can measure is phase 119's rule. Both halves are written down so the next reader
 knows it was checked and not assumed.
+
+## On the graph
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3e as built*): its acts and assertions are the text program's, made on the graph's C view through a `graph.Draft`, and committed as FRAG of the smallest runs of whole items that hold them, the uses of what those runs declared carried to the new declarations; `whim-build-check` holds q054 to the bytes the text version made, which history keeps (`16717ab` and before).

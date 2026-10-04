@@ -138,3 +138,7 @@ The check is proven able to fail three ways, two of them while it was being writ
 indent draft above; the output with `ml_find_line()`'s descent put back to block nr 1
 refuses at the block numbers; and the edit run on its own output refuses at
 `struct block0`. `make whim-verify` is 43 of 43.
+
+## On the graph
+
+It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3e as built*): its acts and assertions are the text program's, made on the graph's C view through a `graph.Draft`, and committed as FRAG of the smallest runs of whole items that hold them, the uses of what those runs declared carried to the new declarations; `whim-build-check` holds q053 to the bytes the text version made, which history keeps (`16717ab` and before).

@@ -285,7 +285,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 15, 19, 20, 23-25, 27-35, 43-52, 58, 60, 62, 64, 74 and 77 and parts 4a, 15a, 38a, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`),
+phase converted to the graph (phases 15, 19, 20, 23-25, 27-35, 43-56, 58, 60, 62, 64, 74 and 77 and parts 4a, 15a, 38a, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -326,7 +326,8 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    86's parameter and on whim-vim.c's functions, and FOLDX held to the text's
                    closures (the front's three, every seed, phase 62's
                    empties, notags' conditions), and phases 43-52 each
-                   held to the import of its snapshot (B3d's chain):
+                   held to the import of its snapshot (B3d's chain), and
+                   phases 53-56's drafts held to the import of their C view:
                    GRAPH_SNAPS), steps'
                    FrontCut (a front phase's cuts without their closure),
                    build (whim's pipeline: the plan -- what each
@@ -354,7 +355,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    pattern.go: patterns as forms; scope.go: a resolver of
                    C's name spaces and scopes, untyped; Options.Origin tells a
                    caller the cc node each form came from; printnode.go an
-                   expression's or items' C alone). graph/: the
+                   expression's or items' C alone; printspans.go where each
+                   form and item is printed). graph/: the
                    program as one resolved, typed graph (doc/GRAPH.md):
                    import.go cc's parse and check into C-lisp's forms as
                    nodes with ids, refers edges (members by type) and typed
@@ -468,6 +470,11 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    never-NULL set to its fixed point, the tests after a
                    store folded), dropcalls.go (60: the calls of what
                    does nothing, DeadLocals);
+                   and B3e's draft.go (DRAFT: a phase's text acts on the
+                   C view, committed as FRAG of the smallest runs of whole
+                   items that hold them -- linediff.go the line diff --
+                   the uses of a struct, member, enumerator or tag written
+                   anew carried to the new declaration by name);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -918,7 +925,8 @@ was the input boundary's digest and the implementation's together, so a moved
   part 4a and the programs of phases 15, 19, 20, 23 and 25 -- and B3g's:
   the programs of phases 60 and 62 and phase 74's own step, and the goto
   steps of phases 89-92 (89 imports after 88's text; 90-92 are handed
-  the graph). The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
+  the graph) -- and B3e's phases 53-56, a chain handed the graph from 53
+  to 56. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
   record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).

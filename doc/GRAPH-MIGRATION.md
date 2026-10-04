@@ -107,6 +107,7 @@ The new ones, each a batch's job (B0 and B2 below):
 | MOVE | **done (B2c)**: `Editor.MoveBefore`/`MoveAfter`/`MoveRun` (items beside an item, ids and edges kept) and `MoveTo` (a node into a placeholder's place, a fill in its own), refused where a use would not resolve, a declaration would hide or repeat one, or a jump would bind elsewhere (*B2c as built*) | ~15 |
 | INCLUDE | `#include` forms added, deleted or moved, and the first one as the core/host boundary: "is X above it", "the host region" | ~15 |
 | FOLDX | **done (B2d)**: `Editor.FoldX` -- xform.FallOut's closure on the graph: the UNWRITTEN seed over write edges (`Editor.Unwritten`, `FoldX.Before`/`Hold`), the reads of objects and members nothing writes, `a && K`/`a \|\| K` and the constants (cc's evaluation: `!K`, `K == 0`, sizeof, offsetof), the branches, the statements after a revealed jump, a function whose body is `return K;` K at its calls, a parameter every call passes alike, a function left empty uncalled; a cut's own literals as marks (`Marks`, `NoSeeds`); and beside the closure, opted into (`FallOutOptions`): the empty blocks everywhere with the locals only given values (`EmptyBlocks`, phase 62's), a label no goto reaches, `if (!f()) {}` made `(void)f();` (`KeepCondition`), an if whose only effect was a store to a deleted location (`StoreIfs`), the value a cut gives a deleted object (`Values`). The walk fold and the declaring splice are B0's: *B2d as built* | ~30 |
+| DRAFT | **done (B3e)**: `Editor.Draft()`/`Draft.Commit(text)` -- a program's text acts on the C view made the graph's: the changes widened to the innermost runs of whole items, written anew in one FRAG import (fragments naming one another allowed) or deleted, the uses of a struct's members, enumerators and tags written anew carried by name (*B3e as built*) | 4 |
 
 ## B0 as built (2026-10-03)
 
@@ -839,6 +840,23 @@ phase 53 | 53 | whim53 @state | 817 | 4723 | b | PARAM FOLDX FRAG | B3e | swap-f
 phase 54 | 54 | whim54 @state | 589 | 15478 | b | FRAG RETYPE RENAME PARAM | B3e | a block number becomes a reference; after 53
 phase 55 | 55 | whim55 @state | 665 | 4418 | b | FRAG PARAM MOVE | B3e | de-page the leaf; after 54
 phase 56 | 56 | whim56 @state | 791 | 4045 | b | FRAG RETYPE PARAM | B3e | fold the node types; after 55
+phase 43 | 43 | whim43 @state | 717 | - | d | (MOVE INCLUDE FRAG TEXTQ to drop gcc) | B3d | the first #include becomes the boundary; gcc-judged as built
+phase 44 | 44 | whim44 | 272 | - | b | RETYPE FRAG INCLUDE | B3d | the scalar clock
+phase 45 | 45 | whim45 | 287 | - | b | INITROW | B3d | case tables merged (rows read as values)
+phase 46 | 46 | whim46 | 158 | - | b | FRAG | B3d | 1 statement -> 2: the smallest FRAG
+phase 47 | 47 | crefactor/xform/libcown.go | 7+248 | - | b | FRAG INCLUDE | B3d | abs/labs own; text, not typed
+phase 48 | 48 | whim48 | 369 | - | b | RENAME MOVE RETYPE FRAG INCLUDE | B3d | the clock crosses; after 43, 47
+49a | 49 | phase/049/a | 186 | - | b | FRAG INCLUDE | B3d | realloc leaves the core; before 49b
+49b | 49 | phase/049/b | 396 | 828 | b | FRAG INCLUDE | B3d | malloc/free/write leave; before 49
+phase 49 | 49 | whim49a, whim49b, whim49 @state | 506 | 508 | b | FRAG INCLUDE | B3d | getpid/kill leave
+phase 50 | 50 | crefactor/xform/unions.go | 6+311 | - | b | RETYPE | B3d | degenerate unions; text, not typed
+51a | 51 | phase/051/a | 374 | - | b | INITROW RENAME TEXTQ | B3d | terminal names; before 51
+phase 51 | 51 | whim51a, whim51 | 389 | - | b | PARAM MOVE FOLDX RENAME | B3d | -T goes
+phase 52 | 52 | whim52 @state | 218 | 2918 | b | FRAG | B3d | the arena; header types (max_align_t)
+phase 53 | 53 | whim53 @state | 817 | 4723 | b | DRAFT (done, B3e) | B3e | swap-file residue; mostly deletions -- on the graph: its text acts on the C view, committed as FRAG
+phase 54 | 54 | whim54 @state | 589 | 15478 | b | DRAFT (done, B3e) | B3e | a block number becomes a reference; after 53 -- on the graph, as 53
+phase 55 | 55 | whim55 @state | 665 | 4418 | b | DRAFT (done, B3e) | B3e | de-page the leaf; after 54 -- on the graph, as 53
+phase 56 | 56 | whim56 @state | 791 | 4045 | b | DRAFT (done, B3e) | B3e | fold the node types; after 55 -- on the graph, as 53
 phase 57 | 57 | whim57 | 13 | - | b | RETYPE | B3f | p_emoji int
 phase 58 | 58 | whim58 | 13 | - | done | - | B1c | three (pos_T *)-1 tests fold; on the graph (B1c), a FoldNever by form
 phase 59 | 59 | whim59 | 23 | - | b | RETYPE RENAME | B3f | garray_T *
@@ -970,7 +988,8 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
     order 43 -> 47 -> 48; 49a -> 49b -> 49; 51a -> 51.
   - **B3e** phases 53-56 (~2,900, ~29 KB of literal C), a strict chain: one
     agent, in order. Mostly FRAG of whole items and bodies; 53 is mostly
-    deletions.
+    deletions. **Done**, *B3e as built* below: DRAFT, the text acts
+    committed as FRAG.
   - **B3f** phases 57-87 but 58/60/62/64/74/77/86a, and 93, 96-99 (~2,100 of
     programs, BoolRet's 1,020): FRAG, RETYPE, PARAM, MOVE, INITROW; 76/76a
     may wait for step 6 (a typed transform written in text); 96 after 95.
@@ -2109,3 +2128,100 @@ text, so 89 imports once for the four), and 60, 62 and 74 import where
 their text sweep and print stood and still save the text transforms' own
 cost (74's regexps most). When B3f converts 59, 61 and 74a, 60, 62 and 74
 are handed the graph too (0.26-0.58 s).
+## B3e as built (2026-10-03): DRAFT, phases 53-56
+
+Phases 53-56 run on the graph, a chain: 53 imports (52 ends on text), 54-56
+are handed the graph the phase before collected, and each ends on it. Their
+text programs are no longer registered (`phase.RegisterGraph`, `Graph: true`
+in the plan); history keeps them (`16717ab` and before).
+
+**What they are written on is not the verbs.** The four programs are ~2,900
+lines of literal C (29 KB, `editlit.go`) located by text and asserted by line
+partitions (where a name is said, by function; every mention in exactly one
+class). Their acts stay those text acts, made on the graph's C view, and the
+graph takes their difference: a new capability, **DRAFT**, in
+`crefactor/graph`'s `draft.go` and `linediff.go` (generic, new files; and
+`crefactor/clisp`'s `printspans.go` with a span hook of three lines in
+`toc.go`'s printer):
+
+- `e.Draft()` prints the C view, keeping where each top-level form and each
+  block or body item was printed; the program edits `d.Text()` as its text
+  version edited the file -- same literals, same counts, same partitions, same
+  report -- and `d.Commit(text)` makes the result the graph's.
+- **Commit** diffs the view and the text line by line (Myers), slides a pure
+  insertion or deletion along the lines that repeat around it to where it
+  closes every bracket it opens, widens each change to the innermost run of
+  whole items holding it (a statement in a nested block, a definition whose
+  head changed, a struct), merges runs that touch or nest, widens a run whose
+  new text does not close its brackets to the item around it, deletes the
+  runs whose new text is empty, and writes the rest anew in ONE synthesized
+  import (FRAG). Everything outside the runs keeps its ids and edges.
+- **Fragments that name one another** (a function written anew calling
+  another, a struct written anew pointing at another) are spliced with the
+  edges between them held at a live node and put back, indexed, once all are
+  in: SpliceC alone refused them ("a refers edge ... which the graph does not
+  hold").
+- **Uses carried.** FRAG retargets what cc resolves in the forms it prints
+  whole and the top-level names a fragment declares; not the members,
+  enumerators and tags of a struct written anew, which a hundred untouched
+  functions select. Commit points every live use and typed edge of a node it
+  removed at the new node of the same kind and name (a tag's definition, a
+  member of that tag, an enumerator, a top-level declaration); a tag nothing
+  defines any more resolves to `(extern-struct T)`, as the importer resolves
+  it (56's `typedef struct memfile memfile_T`, left for the collection). A use
+  with nothing to go to is a refusal.
+
+`draft_test.go`: the diff (random cases), a nested statement (the function
+beside it keeps its ids), a struct written anew with members dropped, added
+and kept and used elsewhere plus a function's head, its prototype, a call, a
+deletion and two insertions, two functions calling each other both written
+anew, a tag left undefined, nothing changed, and the refusal (a member still
+named); each result's C view the text printed canonically and the graph the
+import of that C view (`SameGraph`, `Check`, nothing dangling).
+`internal/graphcheck`'s `TestB3eDrafts`: each phase on q(N-1)'s graph read
+back, `Check`, read back equal, collected to qN.c byte for byte, and the
+collected graph the import of its C view, every refers and typed edge -- so
+the carried uses (54: 676) are the importer's. 0 left untyped.
+
+| phase | acts logged | ids given / superseded |
+| --- | ---: | ---: |
+| 53 | 102 | 612 / 1,804 |
+| 54 | 604 (66 changes: 34 runs replaced, 1 inserted, 22 deleted, 95 items; 676 uses carried) | 375 / 1,412 |
+| 55 | 30 | 1,199 / 1,820 |
+| 56 | 510 | 993 / 1,535 |
+
+**The proof.** `rm -rf .cache/boundaries; make whim-build-check` in order:
+whim-vim.c byte for byte, 104 boundaries compiling, 361 s wall and 891 s of
+CPU at a load of 25-60 (q052.g-q055.g new among 25 graph snapshots). Again,
+in parallel: byte for byte, 67 s, 25 links begun on their graph snapshot, 0
+imported. The control, four faults at once -- 53's root pointer `= 7`, a
+page size doubled in 54, a `dl_marked = FALSE` in 55, a `return FAIL` in 56,
+each in the text a commit takes -- names exactly 53, 54, 55 and 56: `4 of
+103 phases do not reproduce their snapshot`. `whim-editor-check`,
+`whim-test` (80 as HEAD, the Go editor 80 as the C), `go test ./...` in both
+modules, gofmt, go vet and staticcheck on what changed: clean.
+
+**Measured** (`TestMeasureGraphPhases`, 5 runs, medians, load 25-55, so
+noisy): main's text phases against the graph's, imported (as 53 is in order)
+and handed the graph (54-56 in order; all four in the parallel check):
+
+| phase | main (text), wall / CPU ms | imported, wall / CPU ms | handed, wall / CPU ms |
+| --- | ---: | ---: | ---: |
+| 53 | 5,773 / 8,442 | 4,362 / 9,062 | 2,183 / 3,002 |
+| 54 | 5,319 / 7,250 | 4,650 / 8,528 | 2,757 / 3,547 |
+| 55 | 3,270 / 5,091 | 3,647 / 5,511 | 1,346 / 1,632 |
+| 56 | 3,788 / 6,450 | 4,446 / 6,643 | 2,204 / 2,662 |
+
+Handed the graph they are 1.3-2.8 s, not the 0.2-0.4 s of a phase on the
+verbs: the text acts themselves cost what they did (54's partitions are 1.9
+s of its 2.5), and the commit's FRAG import 0.3-0.6 s.
+
+**Refinement, and what it leaves.** DRAFT is a bridge, not the end: the
+acts are located by text, not by pattern, and a run is written anew whole
+where a pattern would have rewritten a node (54 supersedes 1,412 ids where
+RENAME/RETYPE/PARAM would keep most). Rewriting these four on the verbs --
+the partitions as edge questions, the signatures as PARAM, the structs'
+members as RETYPE/RENAME, the literals as LiteralC/ReplaceC -- is left; the
+bytes, the assertions and the report would not move, and DRAFT's tests are
+how such a rewrite would be held. The state files the programs write
+(`@state`) are written as before; nothing reads them.

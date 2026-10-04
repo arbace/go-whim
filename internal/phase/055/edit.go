@@ -137,11 +137,29 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { phase.RegisterArgs("whim55", Edit) }
+func init() { phase.RegisterGraph("whim55", Edit) }
+
+// Edit is the phase on the graph (doc/GRAPH-MIGRATION.md, *B3e as built*):
+// its acts are the text acts below, made on the graph's C view (a
+// graph.Draft) as the text program made them on the file, and committed to
+// the graph as FRAG of the smallest runs of whole items that hold them.
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
+	d, err := e.Draft()
+	if err != nil {
+		return err
+	}
+	out, err := w55Acts([]byte(d.Text()), w, args)
+	if err != nil {
+		return err
+	}
+	_, err = d.Commit(string(out))
+	return err
+}
 
 const w55DbLineMax = 64
 
@@ -160,10 +178,10 @@ var w55Gone = []string{"db_free", "db_txt_start", "db_txt_end", "db_index", "ML_
 var w55Homes = []string{"<file scope>", "ml_open", "ml_get_buf", "ml_append_int", "ml_delete_int",
 	"ml_setmarked", "ml_firstmarked", "ml_clearmarked", "ml_flush_line", "ml_new_data"}
 
-// Whim55 de-pages the leaf: a data block stops being an index of byte offsets
+// w55Acts de-pages the leaf: a data block stops being an index of byte offsets
 // over a text arena and becomes `DATA_LN db_line[DB_LINE_MAX]`, so a line's text
 // is its own allocation valid for the lifetime of the process.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+func w55Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := edit.Ph{Tag: "leaf", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim55 <file> <state-dir>")

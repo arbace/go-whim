@@ -100,10 +100,28 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.RegisterArgs("whim53", Edit) }
+func init() { phase.RegisterGraph("whim53", Edit) }
+
+// Edit is the phase on the graph (doc/GRAPH-MIGRATION.md, *B3e as built*):
+// its acts are the text acts below, made on the graph's C view (a
+// graph.Draft) as the text program made them on the file, and committed to
+// the graph as FRAG of the smallest runs of whole items that hold them.
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
+	d, err := e.Draft()
+	if err != nil {
+		return err
+	}
+	out, err := w53Acts([]byte(d.Text()), w, args)
+	if err != nil {
+		return err
+	}
+	_, err = d.Commit(string(out))
+	return err
+}
 
 type w53Class struct {
 	label string
@@ -139,11 +157,11 @@ var w53Left = map[string]string{
 	"pe_old_lnum":              "a member nothing names",
 }
 
-// Whim53 takes the swap file's residue: four groups of bookkeeping that is
+// w53Acts takes the swap file's residue: four groups of bookkeeping that is
 // WRITTEN and never read, which is exactly why no tool in tools/ can see any of
 // it -- deadfields.py takes a field named nowhere outside its own type, and gcc
 // has no warning for a file-scope object in either direction.
-func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+func w53Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := edit.Ph{Tag: "swapres", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim53 <file> <state-dir>")
