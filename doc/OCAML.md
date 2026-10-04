@@ -5,10 +5,12 @@ the Go (`editor/`), the Java (`braaam/`), the Clojure (`vijure/`), the
 Haskell (`caprice/`), the Rust (`whimsy/`) and the Scheme (`whimsical/`),
 and held to the same test: `whim test --ocaml` and `--wide --ocaml` answer
 all 80 and all 240 cases as the C does, with a control of its own, and the
-heavy case runs at 0.5-0.6 times the C. It was built in two milestones, as
-whimsical was: faithful (§1-§9), then much more idiomatic
-(`doc/OCAML-IDIOMS.md`, §10). The design below is as it stands, the
-milestones' measurements as they were taken.
+heavy case runs at 0.5-0.6 times the C. It was built in three milestones:
+faithful (§1-§9), then much more idiomatic in the spelling
+(`doc/OCAML-IDIOMS.md` items 1-6, §10), then in the model -- variants,
+records, OCaml strings where the C's types prove them sound (items 7-10,
+§11). The design below is as it stands, the milestones' measurements as
+they were taken.
 
 ```
 go tool whim whiml           # bin/whiml, built in lib/whiml
@@ -64,6 +66,9 @@ What the OCaml printer adds is the types:
   `int list`; the Scheme printer's conversions (`b->i`, `(not (fxzero? x))`)
   already say where a truth value becomes a number and back. `ocamlopt`
   type-checked the first core printed, all 1,713 functions, with no error.
+- **The C's types where OCaml can hold them** (§11): seven enumerations
+  are variants, twelve structs records, and OCaml's type checker is the
+  proof that none of their values meets an integer.
 - **Calls through a function pointer are typed** by one table per arity
   and result: `fn_table_2 : (ed -> int -> int -> int) array`, an index the
   pointer, `call_ptr2 p ed a b`. The tables are made empty at the top of
@@ -105,12 +110,21 @@ them. The C's names read the memory where they are used:
 - a member is a module per struct: `Win_T.w_cursor_lnum ed wp` reads,
   `Win_T.set_w_topline ed wp v` writes, `Win_T.w_cursor_addr wp` is the
   address;
+- but a struct no pointer to which is ever memory is an OCaml record
+  (12 of them, `doc/OCAML-IDIOMS.md` item 8): a local of it made where the
+  function starts, `let eap = Exarg_T.make (fr + 16) in`, its members
+  fields, `eap.line2`, the members whose address is taken or that are
+  aggregates in a block of its own in the frame (`eap.exarg_mem`), read by
+  the module's accessors;
 - a local in the call's frame is its address bound once, `let pos_addr =
   fr + 16 in`, read with `ld_s64 ed pos_addr`.
 
 A C constant is named as the C names it (`let nul = 0`, `mode_insert`),
 lowered; a name that OCaml reserves takes a `_` (`true_`), a local that
-would shadow a renamed one a prime.
+would shadow a renamed one a prime. The enumerators of the seven
+enumerations that are variants are constructors (`Paste_insert`), and a
+member or object of one in memory is its number there, converted where
+it is read and written (`cmd_addr_of_int`).
 
 ## 4. Integers
 
@@ -259,6 +273,10 @@ again (the load average 57 at the end): from a file 0 of 3,120 quick and
 `ex_range`; 14 each on `startup` and `bomb_gone`, the rest one each): as
 before, the pipe's landing raced by an editor that starts in 5 ms.
 
+And on `bin/whiml` after milestone 3 (§11), from a file, under 48 busy
+loops (the load average 50 at the end): 0 of 3,120 quick and 0 of 3,360
+wide runs differ.
+
 ## 10. Milestone 2: much more idiomatic (2026-10-04)
 
 `doc/OCAML-IDIOMS.md` surveyed `editor.ml` as milestone 1 left it and
@@ -276,3 +294,28 @@ need (`(let` 2,612 -> 1,108); a byte compared with a character as a char
 the structs, options for the pointers, variants for the enums,
 exceptions for the error returns and the rest are declined there, with
 why.
+
+## 11. Milestone 3: the model (2026-10-04)
+
+The second pass of `doc/OCAML-IDIOMS.md` took again what milestone 2 had
+declined, with the C's types from the front end the Scheme printer reads
+and OCaml's type checker as the proof: the profile names what it claims
+(`MlVariants`, `MlRecords`, `MlStrings`), the backend checks on the C what
+the type checker cannot see -- an order, an equality of addresses, a
+pointer in memory -- and refuses, and a claim the type checker disproves
+fails the build. Four items, each held to the foreign C tests
+(`TestMlVariants`, `TestMlRecords`, `TestMlRecordMem`, `TestMlStrEq` and
+their refusals), both suites, the heavy case and `whim-editor-check`:
+**7 enumerations as variants** (163 uses of their constructors);
+**12 structs as records** (`exarg_T`, `cmdarg_T`, `winlinevars_T` among
+them: 102 fields, 1,596 field accesses, the accessor calls 13,621 ->
+12,094, a table of function pointers for the records' functions);
+**90 string comparisons against a literal on OCaml strings**
+(`c_str_is ed key "NONE"`); and `a + -x` as `a - x` (16). The module went
+from 57,584 lines to 57,093; `ocamlopt` 9.6 s and 0.51-0.53 GB; the heavy
+case 0.5-0.6 times the C (225-257 ms against 428-452), `chartabsize_T`'s
+record taking the hot loop's argument out of memory. Records for the
+structs that are memory (93 of 164), options, exceptions, modules for
+the code and the rest stay declined, each with its measurement, in the
+survey.
+

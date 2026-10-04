@@ -509,7 +509,10 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    record, the tables of function pointers, the
                    functions in order of their calls; ml_expr.go the
                    forms as expressions, with the types Scheme leaves
-                   unsaid, ladders as matches; ml_doc.go a Wadler layout;
+                   unsaid, ladders as matches; ml_enum.go the C's
+                   enumerations as variants, ml_record.go structs as
+                   records, where the C's types allow and OCaml's type
+                   checker proves; ml_doc.go a Wadler layout;
                    doc/OCAML-IDIOMS.md). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
@@ -673,7 +676,7 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    JAVA-IDIOMS.md, CLOJURE-IDIOMS.md, HASKELL-IDIOMS.md, RUST-IDIOMS.md, SCHEME-IDIOMS.md and OCAML-IDIOMS.md (how the
                    Java, Clojure, Haskell, Rust, Scheme and OCaml editors could be idiomatic,
                    measured and ranked; surveys; done: CLOJURE-IDIOMS.md's items 0-3, 4's tables (its messages declined), 5 in part, 6, 7, 8's headroom (9 declined), and
-                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 93) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-16 (17 declined), SCHEME-IDIOMS.md's items 1-18, OCAML-IDIOMS.md's items 1-6),
+                   JAVA-IDIOMS.md's items 1-3, 4's masks, 5's tables, 6.1 (phase 93) and 11's files, HASKELL-IDIOMS.md's all but what it declines, RUST-IDIOMS.md's items 0-16 (17 declined), SCHEME-IDIOMS.md's items 1-18, OCAML-IDIOMS.md's items 1-10),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), CLOJURE-PROFILE.md (where its time goes in

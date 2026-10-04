@@ -6317,8 +6317,7 @@ let utf_head_off ed base p =
 let reg_prev_class ed re =
   if Regengine_T.rex_input ed re > Regengine_T.rex_line ed re then
     (let r1 = Regengine_T.rex_input ed re - 1 in
-     let r2 = r1 + - utf_head_off ed (Regengine_T.rex_line ed re) (Regengine_T.rex_input ed re - 1)
-     in
+     let r2 = r1 - utf_head_off ed (Regengine_T.rex_line ed re) (Regengine_T.rex_input ed re - 1) in
      mb_get_class_buf ed r2 (Regengine_T.rex_reg_buf ed re))
   else
     -1
@@ -6328,7 +6327,7 @@ let regnext ed re p =
     0
   else
     let offset = i32_shl (ld_u8 ed (p + 1) land 255) 8 + ld_u8 ed (p + 2) land 255 in
-    if offset = 0 then 0 else if ld_u8 ed p = back then p + -offset else p + offset
+    if offset = 0 then 0 else if ld_u8 ed p = back then p - offset else p + offset
 
 let reg_save ed re save gap' =
   if Regengine_T.rex_reg_match ed re = 0 then
@@ -8282,7 +8281,7 @@ let ungetchr ed =
   ed.st.prevchr <- ed.st.prevprevchr;
   ed.st.at_start <- ed.st.prev_at_start;
   ed.st.prev_at_start <- false_;
-  set_regparse ed (regparse ed + -ed.st.prevchr_len)
+  set_regparse ed (regparse ed - ed.st.prevchr_len)
 
 let hex2nr c =
   if c >= Char.code 'a' && c <= Char.code 'f' then
@@ -8542,7 +8541,7 @@ let append_command ed cmd =
   if u64_gt len 925 then
     (let d = iobuff ed + 1025 - 100 in
      let t1 = utf_head_off ed (iobuff ed) d in
-     ignore (musl_strcpy ed (d + -t1) 163245 (* "..." *));
+     ignore (musl_strcpy ed (d - t1) 163245 (* "..." *));
      join2 cmd 0 0)
   else
     join2 cmd 0 0
@@ -14264,7 +14263,7 @@ and beginline ed flags =
 
 and replace_push ed c =
   let join5 () =
-    let p = ed.st.replace_stack + ed.st.replace_stack_nr + -ed.st.replace_offset in
+    let p = ed.st.replace_stack + ed.st.replace_stack_nr - ed.st.replace_offset in
     if ed.st.replace_offset <> 0 then ignore (musl_memmove ed (p + 1) p (ed.st.replace_offset * 1));
     st_u8 ed p (to_u8 c);
     ed.st.replace_stack_nr <- ed.st.replace_stack_nr + 1
@@ -26770,7 +26769,7 @@ and regmatch ed re scan _timed_out =
                  1
                in
                Regitem_T.set_rs_un_regsave_rs_u_ptr ed rp
-                 (Regitem_T.rs_un_regsave_rs_u_ptr ed rp + -t39);
+                 (Regitem_T.rs_un_regsave_rs_u_ptr ed rp - t39);
                if limit > 0 &&
                   Regengine_T.behind_pos_rs_u_ptr ed re - Regitem_T.rs_un_regsave_rs_u_ptr ed rp >
                   limit then
@@ -26848,7 +26847,7 @@ and regmatch ed re scan _timed_out =
          let t40 =
            utf_head_off ed (Regengine_T.rex_line ed re) (Regengine_T.rex_input ed re - 1) + 1
          in
-         Regengine_T.set_rex_input ed re (Regengine_T.rex_input ed re + -t40);
+         Regengine_T.set_rex_input ed re (Regengine_T.rex_input ed re - t40);
          join337 ())
     else if Regstar_T.count ed rst_2 = Regstar_T.minval ed rst_2 ||
        regrepeat ed re (Regitem_T.rs_scan ed rp + 3) 1 = 0 then
@@ -30322,7 +30321,7 @@ and cmdline_search_stat ed dirc pos cursor_pos show_top_bot_msg msgbuf msgbuflen
   let stat = Searchstat_T.make () in
   let t = fr + 0 in
   let join12 len =
-    ignore (musl_memmove ed (msgbuf + msgbuflen + -len) t len);
+    ignore (musl_memmove ed (msgbuf + msgbuflen - len) t len);
     if dirc = Char.code '?' && stat.cur = maxcount + 1 then stat.cur <- -1;
     ed.st.msg_hist_off <- true;
     give_warning ed msgbuf false;
@@ -30811,7 +30810,7 @@ and put_string_in_typebuf ed offset slen string_ new_slen buf bufsize buflen =
      else
        join13 ())
   else if extra < 0 then
-    (ignore (musl_memmove ed (buf + offset) (buf + offset + -extra)
+    (ignore (musl_memmove ed (buf + offset) (buf + offset - extra)
         (ld_s32 ed buflen + offset + extra));
      join7 ())
   else if extra > 0 then
@@ -34905,7 +34904,7 @@ let file_name_in_line ed line col options count rel_fname file_lnum =
         if ptr > line then
           (let len = utf_head_off ed line (ptr - 1) in
            if len > 0 then
-             loop4 (ptr + - (len + 1))
+             loop4 (ptr - (len + 1))
            else if vim_isfilec ed (ld_u8 ed (ptr - 1)) ||
               options land fname_hyp <> 0 && path_is_url ed (ptr - 1) <> 0 then
              loop4 (ptr - 1)
@@ -36200,7 +36199,7 @@ let ins_shift ed c lastc =
 
 let do_join ed count insert_space save_undo _use_formatoptions setmark =
   let rec loop4 curr curr_start cend newp newp_len spaces currsize sumsize t col ret =
-    let cend = cend + -currsize in
+    let cend = cend - currsize in
     let join6 cend =
       let spaces_removed = to_i32 (curr - curr_start - ld_u8 ed (spaces + t)) in
       mark_col_adjust ed (Win_T.w_cursor_lnum ed ed.st.curwin + t) 0 (-t)
@@ -36236,7 +36235,7 @@ let do_join ed count insert_space save_undo _use_formatoptions setmark =
     in
     ignore (musl_memmove ed cend curr currsize);
     if ld_u8 ed (spaces + t) > 0 then
-      (let cend = cend + - ld_u8 ed (spaces + t) in
+      (let cend = cend - ld_u8 ed (spaces + t) in
        ignore (musl_memset ed cend (Char.code ' ') (ld_u8 ed (spaces + t)));
        join6 cend)
     else
@@ -36259,11 +36258,11 @@ let do_join ed count insert_space save_undo _use_formatoptions setmark =
            if insert_space && currsize > 0 then
              (let cend = curr + currsize in
               let t1 = utf_head_off ed curr (cend - 1) + 1 in
-              let cend = cend + -t1 in
+              let cend = cend - t1 in
               let endcurr1 = utf_ptr2char ed cend in
               if cend > curr then
                 (let t2 = utf_head_off ed curr (cend - 1) + 1 in
-                 join26 endcurr1 (utf_ptr2char ed (cend + -t2)))
+                 join26 endcurr1 (utf_ptr2char ed (cend - t2)))
               else
                 join26 endcurr1 nul)
            else
@@ -39322,7 +39321,7 @@ let vim_regsub_both ed re source dest destlen flags =
             if clen < totlen then
               (if copy = 0 then
                  join90 ()
-               else if dst + totlen + -clen > dest + destlen then
+               else if dst + totlen - clen > dest + destlen then
                  (iemsg ed 165999 (* "vim_regsub_both(): not enough space" *);
                   frame_pop ed fr;
                   0)
@@ -41101,7 +41100,7 @@ let mb_adjust_opend ed oap =
      let ptr = line + Oparg_T.end_col ed oap in
      if ld_u8 ed ptr <> nul then
        (let t1 = utf_head_off ed line ptr in
-        let ptr = ptr + -t1 in
+        let ptr = ptr - t1 in
         let t2 = utfc_ptr2len ed ptr - 1 in
         Oparg_T.set_end_col ed oap (to_i32 (ptr + t2 - line))))
 
@@ -46355,13 +46354,13 @@ let cmdline_handle_ctrl_bsl ed gotesc =
 
 let mb_off_next ed base p =
   let head_off = utf_head_off ed base p in
-  if head_off = 0 then 0 else utfc_ptr2len ed (p + -head_off) - head_off
+  if head_off = 0 then 0 else utfc_ptr2len ed (p - head_off) - head_off
 
 let mb_prevptr ed line p =
   let join2 p =
     p
   in
-  if p > line then join2 (p + - (utf_head_off ed line (p - 1) + 1)) else join2 p
+  if p > line then join2 (p - (utf_head_off ed line (p - 1) + 1)) else join2 p
 
 let cmdline_erase_chars ed c indent isp =
   let join2 c =
@@ -46524,8 +46523,8 @@ let cmdline_paste ed regname literally remcr =
                in
                if w > Cmdline_info_T.cmdbuff ed ccline then
                  (let len = utf_head_off ed (Cmdline_info_T.cmdbuff ed ccline) (w - 1) + 1 in
-                  if vim_iswordc ed (utf_ptr2char ed (w + -len)) then
-                    loop7 (w + -len)
+                  if vim_iswordc ed (utf_ptr2char ed (w - len)) then
+                    loop7 (w - len)
                   else
                     join11 r1 r2)
                else

@@ -136,8 +136,7 @@ func (m *mlgen) records() (err error) {
 		return ""
 	}
 	// held: by a member, an array, a static object
-	var holds func(t cc.Type, depth int) string
-	holds = func(t cc.Type, depth int) string {
+	holds := func(t cc.Type, depth int) string {
 		for t != nil && depth < 8 {
 			switch x := t.(type) {
 			case *cc.ArrayType:

@@ -1353,6 +1353,12 @@ func (f *mlfn) runtime(h string, args []*sform, sc *mlScope, want int) (mlx, boo
 		return xs
 	}
 	if op, ok := mlBinOps[h]; ok {
+		if n := args[len(args)-1]; op.op == "+" && len(args) == 2 && (n.head() == "fx-" || n.head() == "-") &&
+			(len(n.kids) == 2 || len(n.kids) == 3 && !n.kids[1].isList() && n.kids[1].atom == "0") {
+			// a + -x, a + (0 - x), is a - x
+			xs := []mlx{f.expr(args[0], sc, wantValue), f.expr(n.kids[len(n.kids)-1], sc, wantValue)}
+			return f.unit(mlInfixL("-", op.prec, xs), want), true
+		}
 		xs := vals()
 		if len(xs) == 1 && op.op == "-" || len(xs) == 2 && op.op == "-" && mlIsZero(xs[0]) {
 			return f.unit(mlNeg(xs[len(xs)-1]), want), true

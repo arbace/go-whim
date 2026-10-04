@@ -10,7 +10,9 @@ how many sites it has, what it becomes, who does it -- the OCaml printer
 (`crefactor/togo/ml.go`, `ml_expr.go`), the runtime -- and how it is
 held. `editor.ml` is generated and stays so: every item done is a change
 to the backend, the module regenerated. Items 1-6 were done the same day
-(*Done*, below); the rest are declined, with why.
+(*Done*, below); a second pass the same day re-examined what the first
+declined -- the model -- and did items 7-10 (*The second pass*); what
+stays declined is at the end, each with the measurement that declines it.
 
 ## The tension, stated first
 
@@ -180,54 +182,170 @@ a char), for `=`, `<>` and the orders: 697 comparisons. `Char.code` 1,628
 | `ocamlopt` on the core | 9.6-10.2 s, 0.54-0.56 GB | 9.4-9.6 s, 0.53 GB |
 | the heavy case | 0.6-0.7 times the C (251-306 ms) | 0.5-0.6 (242-259 ms) |
 
+## The second pass: the model
+
+Milestone 2 left whiml C in OCaml's syntax: every struct an address,
+every enumerator a number, every literal an address. The second pass took
+each declined item again with what the repository knows that the first
+did not use: the C's own types, through the front end the Scheme printer
+already reads (`cc`), and OCaml's type checker as the proof of what the
+backend claims -- a variant or a record that meets an integer anywhere
+fails the build, the way gcc is the control of the pipeline's cuts. What
+the type checker cannot see -- an order, an equality of addresses, memory
+-- the backend checks on the C and refuses. Each item held to the
+recipe; measured on 2026-10-04, the load 7-33 (another build beside).
+
+### 7. The C's enumerations as variants
+
+A C enumeration the profile names (`MlVariants`, `internal/whim/gen.go`)
+is a type of constant constructors, `type paste_mode = Paste_insert |
+Paste_cmdline | Paste_ex | Paste_one_char`: its enumerators the
+constructors wherever the C names them, its case labels patterns (`|
+Addr_lines | Addr_other ->` where the match said `| 0 (* ADDR_LINES *)`),
+a field of the state of its type initialized with a constructor. A member
+or an object in memory of the type is its number there, read and written
+through two conversions (`cmd_addr_of_int`, `int_of_cmd_addr`; a number
+no enumerator has fails), so the C's tables keep their layout. A match
+naming every constructor has no other arm, and an other arm lists the
+constructors left (a wildcard is a fragile match under `-w +a`). The
+backend refuses an enumeration a relational operator compares: OCaml
+would order the variant by its constructors (`ml_enum.go`).
+
+**7 of the 12 named enumerations of more than one enumerator**:
+`cmd_addr_T`, `etype_T`, `flush_buffers_T`, `keyprot_T`, `optmagic_T`,
+`paste_mode_T`, `set_op_T` -- 163 uses of their constructors, 13
+conversions at memory. The other five, each tried alone: `hlf_T` and
+`magic_T` are ordered (2 and 20 operands; refused), `CMD_index` is
+counted (`eap->cmdidx = (cmdidx_T)((int)eap->cmdidx + 1)`) and indexes
+the command table, `key_extra` and `SpecialKey` are stored as key bytes
+and index `term_strings` (the type checker's first error each). The 819
+one-enumerator enums are the C's `#define`s, not enumerations: they stay
+constants, and a label that names one stays a number with its name
+beside it. `TestMlVariants`, `TestMlVariantOrdered`.
+
+### 8. Structs as records
+
+A struct the profile names (`MlRecords`) is an OCaml record of mutable
+fields, `type exarg = { mutable nextcmd : int; ...; mutable forceit :
+bool; ...; exarg_mem : int }`. A local of the type, which the C gave room
+in the call's frame, is a record made where the function starts
+(`Exarg_T.make (fr + 16)`); a pointer to one is the record; a member a
+field, `eap.line2 <- eap.line2 + 1`; an assignment `copy_into`, an
+initializer the fields' stores, a `{0}` or `memset(p, 0, sizeof *p)` a
+`clear`. A member whose address is taken, or that is a struct or an
+array, stays memory: the record holds the address of a block of its own
+in the frame (`exarg_mem`), those members' accessors read there, and
+`copy_into` and `clear` take the block too. A table of function pointers
+whose functions take a record is a table of its own (`fn_table_1v_0exarg`),
+so the ex and normal commands take their records. The Scheme printer says
+so in its forms in the OCaml's mode only (`define-c-local ... rec:S`,
+`rec-copy!`, `rec-clear!`); `editor.ss` is byte for byte as before.
+
+That is the C's meaning only where no pointer to the struct is ever
+memory, so the backend refuses a named struct that a static object, an
+array, another struct or a union holds, that a cast converts, that
+`sizeof` measures or the functions of bytes are handed but to clear it,
+that is passed or returned by value, that has a bit field, or whose
+pointers are compared -- a record's `=` is its fields', and one compared
+with NULL is an option (`ml_record.go`). The type checker proves the
+rest.
+
+Measured with a throwaway closure on the C (`.tmp/`, not tracked): of the
+164 structs and unions, 93 are memory -- 38 the type of a static object,
+29 cast to from the arena, 6 unions, 20 held by those -- and 47 of the
+other 71 are phase 100's out-structs, which the Scheme's forms already
+return as tuples. Of the 24 left, **12 are records**: `bufref_T`,
+`chartabsize_T`, `cmdarg_T`, `exarg_T`, `incsearch_state_T`, `lineoff_T`,
+`optexpand_T`, `optset_T`, `save_state_T`, `searchstat_T`, `ttyinfo_T`,
+`winlinevars_T` -- 102 fields, 1,596 field accesses (`eap.line1`) where
+there were accessor calls, 49 locals made; the member modules' accessor
+calls 13,621 -> 12,094; functions with a frame 228 -> 211. Left memory:
+`oparg_T` (714 accessor calls), compared with NULL in 5 places and kept
+in the static `current_oap` -- item 3's option, declined below;
+`viewstate_T` and `tasave_T`, members of `incsearch_state_T`'s and
+`save_state_T`'s memory; `msgchunk_T` (26 comparisons, a cast) and
+`searchit_arg_T` (passed as NULL). `chartabsize_T` is the hot loop's
+argument (`win_lbr_chartabsize`): the heavy case moved 250 -> 225 ms when
+it became a record. `TestMlRecords`, `TestMlRecordMem`,
+`TestMlRecordCompared`.
+
+### 9. A string compared with a literal compares with an OCaml string
+
+`musl_strcmp ed key 163639 (* "NONE" *) = 0` is `c_str_is ed key
+"NONE"`: a test for 0 of the profile's string comparisons (`MlStrings`:
+strcmp, strncmp and their ASCII-folding kin) against a literal is
+written on an OCaml string by four functions of the runtime --
+`c_str_is`, `has_prefix` (a count the literal's length or less, the
+literal cut to it; a longer count compares the terminator too), and
+`_ci` for the folding ones. **90 comparisons**; a ladder of them reads
+as one now (`c_str_is ed key "TERM"`, `"CTERM"`, `"GUI"`...). The
+literals still an address 622 -> 532. `TestMlStrEq`.
+
+### 10. `a + -x` is `a - x`
+
+The Scheme's `(fx+ a (fx- 0 x))` printed `a + -x`: 16 places, now 0.
+
+### After the second pass
+
+| | milestone 2 (`823aad7`) | after items 7-10 |
+| --- | ---: | ---: |
+| `editor.ml` | 57,584 lines | 57,093 lines |
+| variants / their constructors' uses | 0 | 7 / 163 |
+| records / their fields' accesses | 0 | 12 / 1,596 |
+| member accessor calls (`Win_T.w_topline ed wp`) | 13,621 | 12,094 |
+| literals compared as OCaml strings | 0 | 90 |
+| functions with a frame | 228 | 211 |
+| tables of function pointers | 5 | 7 |
+| `ocamlopt` on the core | 9.4-9.6 s, 0.53 GB | 9.6 s, 0.51-0.53 GB |
+| the heavy case | 0.5-0.6 times the C (242-259 ms) | 0.5-0.6 (225-257 ms; 296 once at a load of 33) |
+
 ## Declined, with why
 
-- **Records for the C's structs.** The C reaches its structs through
-  pointers: 12,646 member reads at a pointer, 992 members' addresses
-  taken, structs copied by bytes (`mem_copy`), allocated from an arena
-  that is never freed, and the parallel `:%s`'s engines made by
-  `alloc_clear`. A record per struct is the Java's and the Clojure's
-  object model (`doc/CLOJURE-PROFILE.md`), the pointer analysis
-  whimsical and caprice exist to avoid; item 3 is the part that is
-  provable without it.
-- **`option` for a pointer that may be NULL.** A pointer is an offset, 0
-  the C's NULL, compared, stored and walked; an `option` would box every
-  pointer and wrap every load and store, and the C's tests (`p = 0`) are
-  already its own.
-- **Variants for the C's enums.** The enumerators are stored in the
-  memory and in the state as numbers, combined with `lor` and `land`
-  (`MODE_INSERT` and the rest are bits), ordered and indexed; a variant
-  would need a conversion at every load and store. A switch on them is a
-  `match` already (item 4, and the C's 70 switches), its labels numbers
-  named beside them.
-- **Exceptions for the C's error returns.** vim's `OK`/`FAIL` and `-1`
-  are values its callers test, store and pass on -- an exception per
-  failure would need, for every caller, the proof that it only
-  propagates. `host_exit`, the one jump the C makes across functions, is
-  an exception (`Rt.Exit`).
-- **`Fun.protect` for a frame's release.** 709 `frame_pop`s give a frame
-  back where a function returns; `Fun.protect` would allocate a closure
-  per call and take the tail position from every join's call, and an
-  exception through a frame ends the editor anyway.
-- **Labelled arguments.** The C's 1,713 functions take their arguments
-  by position, and their calls are the C's; labels would add a name to
-  every argument of every call and say nothing the parameters' names do
-  not.
-- **Modules for the code.** The core has no files left, and its calls
-  are one cycle of 410 functions (`doc/OCAML.md` §2); the structs'
-  members are modules (`Win_T.w_cursor_lnum`), the state a record.
-- **Strings for the C's literals, and the string functions as `Bytes`'.**
-  A literal is an address in the editor's memory, which the C compares,
-  walks and stores; its text is beside it, `164037 (* "<buffer>" *)`.
-  The C's own `musl_strlen` and kin are its loops, translated; `perf` on
-  the heavy case puts none of them among the first twenty (the line
-  width's loop in `win_linetabsize_cts` is 12 %, the frames' zeroing in
-  `caml_fill_bytes` 10 %), and the memory functions are the runtime's
-  already (`mem_copy`, `mem_fill`: the Scheme's runtime bodies).
-- **The joins' and loops' names.** `join17` and `loop22` say which
-  block of the lowered C they are, the same name in the Scheme's
-  `editor.ss`; a name of what they compute is not in the C.
-- **`TRUE` and `FALSE` as `true_` and `false_`** (459 uses): they are
-  the C's int constants -- the flags that are answers are `bool` since
-  phases 102-103 -- and OCaml reserves the lowered names.
-- **`Int64` for the 64-bit types**: `doc/OCAML.md` §4.
+What the second pass declines it declines measured:
+
+- **Records for the rest of the structs.** 93 of 164 are memory by the
+  closure above: the windows, buffers, lines, undo headers and regexp
+  programs are allocated from the arena the C never frees, held by
+  static objects and by each other, and walked by pointer arithmetic
+  (`Win_T`'s 3,554 accessor calls, `Buf_T`'s 1,285, `Pos_T`'s 1,075).
+  A record for one of them is the Java's and the Clojure's object model,
+  every pointer an object reference and every byte array an object of
+  its own: a second backend over the C's tree (the Java's), not a change
+  to this one over the Scheme's forms -- and those editors take 1.6-3.9
+  times the C's time in the heavy case, whiml 0.5-0.6.
+- **`option` for a pointer that may be NULL.** No pointer to a record is
+  compared with NULL (the type checker says so: a null pointer met by a
+  record fails the build). The pointers that are are offsets into the
+  memory, where an `option` would box an `int` and say nothing the C's `p
+  = 0` does not; and `oparg_T`, the one struct an option would make a
+  record, is tested in 5 places and dereferenced in 714: the OCaml
+  printer reads the Scheme's untyped forms, so without a nullness
+  analysis each would be `Option.get`, which is no idiom.
+- **Out-parameters as tuples**: done before this survey, and not by the
+  OCaml printer -- phase 100 made 94 out-parameters of the C values in and
+  out, and the Scheme printer's forms return 64 struct results and 2
+  out-parameters more as values (`cfacts`' `outparams.go`): `let (r1, r2)
+  = one_letter_cmd ed p idx in`.
+- **Exceptions for the C's error returns.** The answers are `bool` since
+  phases 87a, 102 and 103, and a caller tests each; the 49 gotos the C
+  keeps leave a loop or a switch within one function, which the forms
+  write as a tail call to a join -- OCaml's own idiom for it. The one jump
+  across functions, `host_exit`, is an exception (`Rt.Exit`).
+- **`Fun.protect` for a frame's release.** 211 functions keep a frame; as
+  milestone 2 said, a closure a call and every join's tail position lost.
+- **Labelled arguments.** The C's 1,713 functions take their arguments by
+  position, and every call is the C's.
+- **Modules for the code.** The functions are one cycle of 410 functions
+  and **21,526 lines** (the regexp engine, the screen and the commands
+  that call each other), which OCaml can split only into recursive
+  modules with signatures written for each; what precedes and follows it
+  is ordered by calls, not by subsystem, and the core has no files left to
+  name them by. The structs' members are modules (`Win_T`), the records'
+  making and copying too (`Exarg_T.make`).
+- **Strings for the rest of the literals.** 532 are addresses the C walks,
+  stores or hands to a function that reads the memory (`msg`, the
+  formats of `vim_snprintf`, `vim_strchr`'s sets, the option names'
+  table); an OCaml string there is a copy into the memory at every use.
+- **The joins' and loops' names**, **`TRUE`/`FALSE` as `true_`/`false_`**
+  and **`Int64` for the 64-bit types**: as milestone 2 declined them
+  (`doc/OCAML.md` §4 for the last).
