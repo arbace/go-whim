@@ -153,20 +153,6 @@ func (e *Editor) EndLabels(root *Node) (int, error) {
 	return len(lasts), nil
 }
 
-// CutRun deletes the run of consecutive items the patterns say (Run): the
-// text's cut of several whole lines.
-func (v *Verbs) CutRun(what string, pats ...string) {
-	r := v.Run(what, pats...)
-	if r == nil {
-		return
-	}
-	if err := v.e.ReplaceRun(r[0], r[len(r)-1]); err != nil {
-		v.Die("%s -- %v", what, err)
-		return
-	}
-	v.Say(what)
-}
-
 // DropOperandAsText is DropOperand as a text cut makes it: where one operand
 // is left, it keeps the parentheses the C view wrote around it in the
 // operator it stood in (`(a, b) && c` less `c` is `(a, b)`), which a text

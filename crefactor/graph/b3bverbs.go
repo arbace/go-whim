@@ -154,43 +154,6 @@ func (v *Verbs) Muted(acts func(*Verbs)) {
 	}
 }
 
-// Run is the run of items the patterns name, in order: the first an item
-// of the scope found once, each next one the item right after it, matching
-// its pattern -- a text literal of several whole statements, as a run.
-// It refuses on any other shape.
-func (v *Verbs) Run(what string, pats ...string) []*Node {
-	if v.Err != nil {
-		return nil
-	}
-	if len(pats) == 0 {
-		v.Die("%s -- an empty run", what)
-		return nil
-	}
-	var run []*Node
-	for k, src := range pats {
-		p := v.pattern(src, what)
-		if p == nil {
-			return nil
-		}
-		if k == 0 {
-			ms := v.find(p, func(x *Node) bool { return v.e.Item(x) == x })
-			if len(ms) != 1 {
-				v.Die("%s -- the run's first item matches %d items, expected 1", what, len(ms))
-				return nil
-			}
-			run = append(run, ms[0])
-			continue
-		}
-		next := v.e.Sibling(run[k-1], 1)
-		if next == nil || !Matches(p, next) {
-			v.Die("%s -- the run's item %d is not %s", what, k+1, src)
-			return nil
-		}
-		run = append(run, next)
-	}
-	return run
-}
-
 // CutRun deletes the run of items the patterns name (Run).
 func (v *Verbs) CutRun(what string, pats ...string) {
 	run := v.Run(what, pats...)
