@@ -35,9 +35,9 @@ commit that has them.
 tools on a file), `edit whimN FILE` (a phase's program), `query whim2 FILE`,
 and the cutters a phase names. A phase's program, `droplocal` and a cutter of
 the plan's graph table run on the file imported and write its C view back
-(`internal/steps`' `OnText`); the front's cutters (phases 1-3: `notags`,
-`noterm`, `utf8only` and 28 more) are listed but refuse, *no step named*,
-since they run only inside the front's graph steps. Every one runs from the
+(`internal/steps`' `OnText`), the front's cutters (phases 1-3: `notags`,
+`noterm`, `utf8only` and 28 more) among them, though in the plan they run
+inside the front's graph steps, before its closure. Every one runs from the
 repository root and writes its temporaries in `.tmp/`.
 
 ## Retired, and what became of them

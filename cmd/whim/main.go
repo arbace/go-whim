@@ -32,7 +32,7 @@ var order = []string{
 	"funcreach",
 	"score", "cmdnames", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit", "c2lisp", "lisp2c", "graph", "view",
-	"parse", "fieldref", "reach", "measure", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "whimsical", "pre", "gocat", "hscat",
+	"parse", "fieldref", "reach", "measure", "cdiff", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "whimsical", "pre", "gocat", "hscat",
 }
 
 var tools = map[string]tool{

@@ -141,6 +141,19 @@ func GraphNames() []string {
 // never runs this: it runs a graph step on the graph it holds.
 func OnText(name string) (Step, bool) {
 	gs, isGraph := graphOps[name]
+	if !isGraph {
+		// The front's cutters run inside front, front2 and front3 rather than
+		// as steps of their own; by name they run on a file like any other.
+		for _, us := range frontUnits {
+			for _, u := range us {
+				if u.Name == name && u.Fn != nil {
+					fn := u.Fn
+					gs = func(e *graph.Editor, _ []string, w io.Writer) error { return fn(e, w) }
+					isGraph = true
+				}
+			}
+		}
+	}
 	if s, ok := ops[name]; ok && name != "edit" {
 		return s, true
 	} else if !isGraph {
