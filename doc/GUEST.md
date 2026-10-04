@@ -196,8 +196,8 @@ a `go tool whim guest` builder), which keeps the hypercall handler on
 - `vmm/kvm_linux.go`: `/dev/kvm` through raw `ioctl` (`syscall.Syscall`;
   the request numbers are stable ABI), the `kvm_run` page by `mmap`, per ISA
   register setup in `kvm_linux_amd64.go` and `kvm_linux_arm64.go`.
-- `vmm/hvf_darwin.go`: Hypervisor.framework through cgo (`#cgo LDFLAGS:
-  -framework Hypervisor`), about a dozen functions.
+- `hv/hvf_darwin.go`: Hypervisor.framework through purego, no cgo
+  (*Decided*), fourteen functions.
 - `vmm/loop.go`: the common exit loop -- doorbell, decode, `Host`, resume;
   any other exit (an unexpected port, a halt, a fault the guest did not
   report) ends the VM with a diagnostic.
@@ -265,8 +265,12 @@ Edge, the Mac runs macOS. Milestones 1-3 and 5 go ahead; 4 waits.
   `GetSysReg`/`SetSysReg`, Apple's register and system-register names, and
   an exit struct shaped like `hv_vcpu_exit_t` (a reason, an exception
   syndrome, a virtual and a physical address). The Linux backend is KVM by
-  raw `ioctl`, no cgo; the macOS backend, later, is a thin cgo file per
-  function. The hypercall handler is `editor/host.go`'s `Host`
+  raw `ioctl`, no cgo; the macOS backend, later, binds each framework
+  function by purego (`github.com/ebitengine/purego`: the framework
+  `Dlopen`ed, each `hv_*` function a Go function of its C signature by
+  `RegisterLibFunc`), so there is no cgo anywhere and `GOOS=darwin
+  GOARCH=arm64 CGO_ENABLED=0` compiles it here; a vCPU locked to its thread
+  for its life (`runtime.LockOSThread`), as on Linux. The hypercall handler is `editor/host.go`'s `Host`
   (`editor/term`).
 - **amd64 sits behind the same `hv` shape** with x86 register names (`RIP`,
   `RSP`, `CR0`/`CR3`/`CR4`, `EFER`, segments): one exit loop for both ISAs,
@@ -321,8 +325,9 @@ syndrome's fields; `regs_arm64.go` Apple's register names and values,
 `regs_amd64.go` x86 names behind the same shape), its KVM backend
 (`kvm_linux.go`, `kvm_linux_amd64.go`: raw `ioctl`, no cgo; the general
 registers through `kvm_run`'s synced area, so reading the doorbell's
-register costs no system call) and `hvf_darwin.go`, the framework's cgo
-written out and kept out of every build by the tag `hvf`. `vmm/` is the
+register costs no system call) and `hvf_darwin.go`, the framework bound
+by purego (built for `darwin/arm64` with cgo off, as a compile check here;
+never run). `vmm/` is the
 monitor: the image loaded, the slot laid out (`layout.go`), the vCPU put in
 long mode (`setup_amd64.go`), the exit loop and the calls (`vmm.go`).
 `guest/` builds the image: `rt/rt.c` the runtime, `rt/entry_amd64.S` the

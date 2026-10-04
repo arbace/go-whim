@@ -23,7 +23,7 @@ func newTinyGuest(t *testing.T, code []byte) (VCPU, *VCPUExit) {
 	if err := VMCreate(nil); err != nil {
 		t.Fatal(err)
 	}
-	mem, err := syscall.Mmap(-1, 0, 0x10000, syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_PRIVATE|syscall.MAP_ANONYMOUS)
+	mem, err := syscall.Mmap(-1, 0, 0x10000, syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_PRIVATE|syscall.MAP_ANON)
 	if err != nil {
 		t.Fatal(err)
 	}

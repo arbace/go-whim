@@ -711,7 +711,8 @@ hv/                a virtual machine as Apple's Hypervisor.framework shapes one
                    x86 names behind the same shape, regs_amd64.go); the KVM
                    backend by raw ioctl, no cgo (kvm_linux*.go), which reports
                    an MMIO store as the framework's data abort; hvf_darwin.go
-                   the framework's cgo written out, built by nothing (tag hvf)
+                   the framework bound by purego, no cgo (compiled for
+                   darwin/arm64 here, never run)
 vmm/               the monitor: the guest's ELF in one slot, identity-mapped
                    with each segment's permissions (layout.go), the vCPU set
                    in the mode the core runs in (setup_<isa>.go), the exit

@@ -16,7 +16,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"syscall"
 
 	"github.com/arbace/go-whim/internal/whim"
 	"github.com/arbace/go-whim/vmm"
@@ -130,7 +129,7 @@ func Hello() ([]byte, error) {
 func command(dir, name string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(context.Background(), name, args...)
 	cmd.Dir = dir
-	cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
+	cmd.SysProcAttr = procAttr()
 	return cmd
 }
 

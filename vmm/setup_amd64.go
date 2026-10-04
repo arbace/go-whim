@@ -133,7 +133,7 @@ func setup(v hv.VCPU, mem []byte, l *layout) error {
 
 // advance is what the monitor does to the vCPU after a doorbell's exit:
 // nothing on amd64, where KVM has completed the store and RIP is past it.
-func advance(hv.VCPU) error { return nil }
+func advance(hv.VCPU, hv.Syndrome) error { return nil }
 
 // pc is the vCPU's instruction pointer, for a diagnostic.
 func pc(v hv.VCPU) uint64 {

@@ -142,7 +142,7 @@ func newMachine(cfg Config) (*machine, error) {
 	}
 	m := &machine{cfg: cfg, l: plan(im), stop: make(chan struct{})}
 	m.mem, err = syscall.Mmap(-1, 0, int(m.l.size), syscall.PROT_READ|syscall.PROT_WRITE,
-		syscall.MAP_PRIVATE|syscall.MAP_ANONYMOUS|syscall.MAP_NORESERVE)
+		syscall.MAP_PRIVATE|syscall.MAP_ANON|syscall.MAP_NORESERVE)
 	if err != nil {
 		return nil, fmt.Errorf("the guest's %d MiB: %w", m.l.size>>20, err)
 	}
@@ -248,7 +248,7 @@ func (m *machine) exception() (int, bool, error) {
 	if err != nil {
 		return 1, false, err
 	}
-	if err := advance(m.v); err != nil {
+	if err := advance(m.v, s); err != nil {
 		return 1, false, err
 	}
 	if cb%cbSize != 0 || cb < imageBase || cb+cbSize > m.l.size {

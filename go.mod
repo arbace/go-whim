@@ -7,7 +7,7 @@ require (
 	// its boundary is one the compiler keeps (it cannot import this module), and
 	// it is built from the tree beside this file, never fetched.
 	github.com/arbace/go-whim/crefactor v0.0.0
-	modernc.org/token v1.1.0
+	github.com/ebitengine/purego v0.11.1
 )
 
 require (
@@ -16,6 +16,7 @@ require (
 	modernc.org/opt v0.2.0 // indirect
 	modernc.org/sortutil v1.2.1 // indirect
 	modernc.org/strutil v1.2.1 // indirect
+	modernc.org/token v1.1.0 // indirect
 )
 
 replace github.com/arbace/go-whim/crefactor => ./crefactor
