@@ -399,7 +399,10 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    view, cemit's text byte for byte; lisp.go the graph as
                    Lisp and its reader (the snapshots qNNN.g); same.go
                    SameGraph (a graph against the import of its C view, ids
-                   aside); headers.go what one header provides, parsed by
+                   aside); hash.go the content hashes, Unison's, beside
+                   the ids (a cycle a component hashed as one, its order a
+                   colour refinement; doc/GRAPH.md, *Content hashes,
+                   measured*); headers.go what one header provides, parsed by
                    cc alone. The collection: collect.go, keys.go and cut.go
                    the sweep's rules on the nodes, as garbage collection;
                    editcollect.go through the editor, its index kept. The

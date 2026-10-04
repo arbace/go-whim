@@ -244,7 +244,9 @@ direction:
 - **Ids are sequential at import and preserved through edits**; a new node
   gets a fresh id. *Later:* content-addressed ids, Unison's choice --
   identical subtrees one node, edits copy-on-write -- are the direction
-  preferred once the graph stands.
+  preferred once the graph stands. Measured since (*Content hashes,
+  measured*): computed beside the ids, they are kept as a key a phase's
+  end computes, not as the ids.
 - **The serialisation has its own reader**, C's tokens as atoms as in
   C-lisp, `#id` and `@id` as written above. *Later:* a Clojure-readable
   (EDN) form is preferred, so that Clojure tools and an editor read the
@@ -504,6 +506,7 @@ invocations that name `fds_bits`, and the dangling-edge check found it).
   containment bottom-up; the type nodes' cycles (a struct holding a pointer
   to itself) need Unison's treatment of a cycle as one unit. The Lisp then
   writes hashes where it writes numbers; nothing else names an id's form.
+  Built as a pass beside the ids and measured: *Content hashes, measured*.
 - **An EDN form**: the four marks become tagged literals and C's tokens
   strings; the containment, the sections and the edges stay as they are.
 
@@ -1195,6 +1198,143 @@ Only the seed (phase 0) and phase 88 (gcc) were to stay text, and phase 43
 unless gcc's three answers became edge queries. They did not stay: B3d asked
 43's questions of the graph and R3 put the seed and 88 on it, so every phase
 runs on the graph.
+
+## Content hashes, measured (2026-10-04)
+
+*Decided for steps 1-3* left content-addressed ids, Unison's, as the
+direction. Before switching anything, `crefactor/graph`'s `hash.go`
+computes them **beside** the sequential ids, which are unchanged, and
+`TestMeasureHashes` (`GRAPH_BOUNDARIES=.cache/boundaries`) measures what
+they would share across the 104 boundaries of main `e8854cd`, each read from
+its graph snapshot (q000-q102) or imported (q103, which has none).
+
+### The scheme
+
+- **A node's hash** (SHA-256) is a hash of its form: a list's elements, an
+  element with an id by its hash and a token inline, an atom's text, and
+  every refers and typed edge **by the target's hash**. The id is not
+  hashed, nor the order of the type and external sections.
+- **Cycles** -- a function whose call refers to its own definition, a
+  struct holding a pointer to itself (the member's typed edge to
+  `(pointer @:S)`, whose operand is S), webs of structs pointing at one
+  another -- are the strongly connected components of "depends on" (an
+  element, an edge's target), found by Tarjan's algorithm, iteratively.
+  A component is hashed as one unit, Unison's way: each member serialised
+  with a reference inside the component written as the member's position,
+  the serialisations hashed together, a member's hash that hash and its
+  position. **The order** is a colour refinement (Weisfeiler and Lehman):
+  members hashed with the references inside the component erased, then
+  again with each written as its target's hash of the round before, until a
+  round splits no class. The edges are ordered, so the stable partition is
+  bisimilarity; the classes, sorted by their hashes, are the positions, and
+  the component is hashed as its classes. Nothing depends on the order the
+  file holds the members in or on the ids -- a first version broke ties by
+  the containment's order, and two structs pointing at each other, declared
+  in the other order, hashed differently (`TestHashCycles`).
+- **Equal nodes are one hash**, in a cycle or not: a node outside every
+  cycle that says what a cycle's member says of what the member names
+  (`(pointer @:S)` made by an edit beside S's own, which an import interns
+  and an edit does not) takes that member's hash -- found by hashing it with
+  its targets' classes and looking the result up among the members'. Without
+  this, `ml_open` hashed differently in the snapshot and in the import of
+  its text on 31 boundaries.
+- **External aggregates** are the headers' names: `(extern-struct stat
+  (member ...) ...)` is hashed by its head and name, a member by its own
+  form and the aggregate's name. The members listed are a record of which
+  the file uses, in the order met; the import and a graph edited from phase
+  to phase list them differently (q002-q014's `stat`).
+
+Tests (`hash_test.go`): the same program imported twice, read back from its
+Lisp, and renumbered in reverse with its sections reversed gives every node
+the same hash (every sample); a one-token change moves exactly the nodes an
+oracle computes from the containment and the edges alone -- the token's
+ancestors, and to a fixpoint whatever names a moved node -- for a constant
+in a body (its function and its callers' moved, a body behind a prototype
+moves only itself), and a member's type (the struct, its users); a
+recursive function and two mutually pointing structs are cycles, the
+latter's hashes the same in either order and next to unrelated forms, and
+one member changed moves the other. On the corpus (`GRAPH_HASH_IMPORT=1`):
+**every one of the 103 graph snapshots hashes, node by node, as the import
+of its text does**, though their ids differ -- carried from phase to phase
+in one, given afresh in the other.
+
+### What they share
+
+| | |
+| --- | ---: |
+| nodes, summed over the 104 boundaries | 26,105,398 |
+| distinct hashes among them | **901,932 (3.5%)** |
+| top-level units (forms, type nodes, externs), summed | 608,987 |
+| distinct | 60,743 (10.0%) |
+| the 103 graph snapshots (q000-q102), bytes | 700,708,162 |
+| a store of their nodes by hash: each distinct node's serialisation (its elements and edges as hashes) and its 32-byte key | 134,044,638 |
+| and a manifest per snapshot, 32 bytes a top-level unit | 19,305,440 |
+| **the two, against the snapshots** | **21.9%** |
+| a store of top-level units by hash, each its Lisp as written, and the manifests | 32.8% |
+
+Per phase, the top-level forms of qN whose hash q(N-1) holds -- and the
+same with two variants, measurements only (`HashOptions`): **Untyped**, the
+typed edges left out, and **Nominal**, an edge to a type's definition (a
+typedef, a tagged struct, union or enum, an untagged one by its typedef's
+name) written as its name, as C's types are nominal:
+
+| over phases 1-103 | content (the scheme) | untyped | nominal |
+| --- | ---: | ---: | ---: |
+| forms kept, of 491,462 | **447,799 (91.1%)** | 447,799 (91.1%) | 483,491 (98.4%) |
+| forms changed or new | 43,663 | 43,663 | 7,971 |
+| a phase's, median | 65 | 65 | 17 |
+| phases changing 10 or fewer | 29 | 29 | 44 |
+| phases changing 1,000 or more | 23 | 23 | 1 (87, BoolRet's retyping: 1,449) |
+
+The cascade is the types'. Every phase that changes a member of `buf_T`,
+`win_T` or the like -- 7, 8, 12-34, 42, 50-64 and 82 among others -- moves
+the struct, so the typedef, so every form that names the typedef: 950-1,160
+forms, a fifth of the file, of which the nominal variant moves 4-90 (the
+front, phases 1-5, moves 1,378-2,034, nominally 182-550). The
+typed edges add nothing to it: every expression of a struct's type sits in a
+form that names the struct, through a refers edge. At the level of nodes, a
+median phase moves 0.5% of them, the struct phases 16-20%. The cycles are
+small: 13-45 components a boundary, 172-629 nodes, the largest 54-147
+(the struct web around `buf_T` and `win_T`).
+
+**The cost**: hashing a boundary takes 137-417 ms, median 175 ms, one at a
+time (19.0 s over the 104), against 40-90 ms for reading its Lisp and
+0.2-0.4 s for a phase handed its graph. A profile gives the node-to-index
+map 40% and SHA-256 10%; an index kept in the node would take most of the
+former.
+
+### Recommendation: keep the sequential ids; hash at a phase's end, as a key
+
+**Do not switch the ids to hashes.** The id rule -- a node keeps its id
+through every edit, wherever it moves -- is what the editor's `Log`, the
+views and every record keyed by id rely on, and content addresses break it
+exactly where the pipeline works: a phase that deletes one member of
+`buf_T` re-identifies 1,100 forms that it did not touch, and a node's
+address would change under an edit two forms away. Nominal hashing would
+cut that to tens, but it is no longer Unison's guarantee (a form's hash no
+longer pins what its types are), and a hash cannot be recomputed cheaply
+after every act (175 ms a boundary, the whole of a phase's own work).
+
+**Do use them where they pay, as a second key computed at a phase's end**,
+with the ids sequential within it:
+
+- **The snapshots.** A store of nodes keyed by hash and a manifest per
+  boundary would hold the 103 graph snapshots in 22% of their bytes (153
+  MB against 701), and one keyed by top-level unit, each its Lisp, in 33%;
+  a run writes only what is new. Reading a boundary back would assemble its
+  graph from the store, so the parallel check's read would want measuring
+  first.
+- **What a phase changed**, as a fact rather than a log: the forms whose
+  hash moved, which `Log`'s superseded ids approximate from inside.
+- **Caches of derived facts** (the open question below): a per-function
+  analysis keyed by the function's hash is valid exactly while the hash
+  holds; keyed by the nominal hash, where the analysis does not look into
+  the types' layouts, it survives the struct phases.
+
+If an editor ever wants Unison's identity for good -- a definition by its
+hash, edits copy-on-write -- the measurement says to pay the hash per
+top-level form and only for what an edit touched, and to decide first
+whether a struct's change is meant to re-identify its users.
 
 ## Open questions
 
