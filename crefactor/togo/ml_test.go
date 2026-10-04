@@ -353,15 +353,17 @@ func TestMlStrEq(t *testing.T) {
 
 // mlRecordsC is a struct the profile names a record: locals made, written,
 // copied, initialized (all, and with {0} in a loop, which clears it each
-// time), passed by pointer to a function that reads and writes it.
+// time), passed by pointer to a function that reads and writes it, and
+// through a function pointer, whose table is the record's own.
 const mlRecordsC = javaHost + `
 typedef struct { int lnum; int fill; long height; _Bool top; } lineoff_T;
 static void step(lineoff_T *lp) { lp->lnum++; lp->height += lp->fill; lp->top = !lp->top; }
 static int sum(lineoff_T *lp) { return lp->lnum + lp->fill + (int)lp->height + lp->top * 100; }
+static void (*steps[2])(lineoff_T *) = {step, step};
 void run(void) {
     lineoff_T a, b;
     a.lnum = 1; a.fill = 2; a.height = 3; a.top = 0;
-    b = a; step(&b); out(sum(&a)); out(sum(&b));
+    b = a; step(&b); out(sum(&a)); out(sum(&b)); steps[1](&b); out(sum(&b));
     lineoff_T c = {5, 6, 7, 1}; step(&c); out(sum(&c));
     for (int i = 0; i < 3; i++) { lineoff_T d = {0}; d.lnum += i; step(&d); out(sum(&d)); }
 }
@@ -369,7 +371,7 @@ void run(void) {
 
 func TestMlRecords(t *testing.T) {
 	prog := mlSame(t, mlRecordsC, Profile{MlRecords: []string{"lineoff_T"}}, javaHarnessC)
-	for _, want := range []string{"type lineoff = {", "lp.lnum <- lp.lnum + 1", "Lineoff_T.make ()", "Lineoff_T.copy_into", "Lineoff_T.clear"} {
+	for _, want := range []string{"type lineoff = {", "lp.lnum <- lp.lnum + 1", "Lineoff_T.make ()", "Lineoff_T.copy_into", "Lineoff_T.clear", "call_ptr1v_0lineoff"} {
 		if !strings.Contains(prog, want) {
 			t.Errorf("no %q in the OCaml:\n%s", want, numbered(prog))
 		}
@@ -379,14 +381,38 @@ func TestMlRecords(t *testing.T) {
 	}
 }
 
-// A struct the profile names that is memory is refused: here a member's
-// address is taken.
-func TestMlRecordMemory(t *testing.T) {
+// A struct whose member's address is taken, or that holds an array or a
+// struct, keeps those members in memory of its own, in the frame: the rest
+// are its fields.
+const mlRecordMemC = javaHost + `
+typedef struct { int x, y; } pt_T;
+typedef struct { int a, b; pt_T at; char name[4]; } pair_T;
+static void inc(int *p) { (*p)++; }
+static int sum(pair_T *p) { return p->a + p->b + p->at.x * 10 + p->at.y * 100 + p->name[1]; }
+void run(void) {
+    pair_T p = {1, 2}; inc(&p.a); p.at.y = 3; p.name[1] = 7; out(sum(&p));
+    pair_T q; q = p; q.b += 5; q.at.x = 4; out(sum(&q)); out(sum(&p));
+    for (int i = 0; i < 2; i++) { pair_T r = {0}; r.b = i; out(sum(&r)); }
+}
+`
+
+func TestMlRecordMem(t *testing.T) {
+	prog := mlSame(t, mlRecordMemC, Profile{MlRecords: []string{"pair_T"}}, javaHarnessC)
+	for _, want := range []string{"type pair = { mutable b : int; pair_mem : int }", "Pair_T.make (fr + ", "Pair_T.copy_into ed", "q.b <- q.b + 5"} {
+		if !strings.Contains(prog, want) {
+			t.Errorf("no %q in the OCaml:\n%s", want, numbered(prog))
+		}
+	}
+}
+
+// A struct the profile names whose pointers are compared is refused: a
+// record's equality is its fields'.
+func TestMlRecordCompared(t *testing.T) {
 	requireMl(t)
 	src := javaHost + `
 typedef struct { int a, b; } pair_T;
-static void inc(int *p) { (*p)++; }
-void run(void) { pair_T p = {1, 2}; inc(&p.a); out(p.a + p.b); }
+static int same(pair_T *p, pair_T *q) { return p == q; }
+void run(void) { pair_T p = {1, 2}; out(same(&p, &p)); }
 `
 	dir := t.TempDir()
 	c := filepath.Join(dir, "prog.c")
@@ -395,7 +421,7 @@ void run(void) { pair_T p = {1, 2}; inc(&p.a); out(p.a + p.b); }
 	}
 	var log strings.Builder
 	prof := Profile{MlRecords: []string{"pair_T"}, ScmExports: []string{"run"}}
-	if rc := Run([]string{c, dir, "-ml", filepath.Join(dir, "editor.ml")}, &log, prof); rc == 0 || !strings.Contains(log.String(), "a member's address taken") {
-		t.Errorf("a record in memory was not refused: %d\n%s", rc, log.String())
+	if rc := Run([]string{c, dir, "-ml", filepath.Join(dir, "editor.ml")}, &log, prof); rc == 0 || !strings.Contains(log.String(), "pointers compared") {
+		t.Errorf("a record compared was not refused: %d\n%s", rc, log.String())
 	}
 }

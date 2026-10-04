@@ -1038,7 +1038,7 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 			if scmTypeOf(ft.Result()) == "void" {
 				k += "v"
 			}
-			head[0] = k
+			head[0] = k + f.s.recordParams(ft)
 		}
 	}
 	rt := ft.Result()

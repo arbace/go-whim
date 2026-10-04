@@ -73,7 +73,9 @@ type sgen struct {
 	// ml: the forms are for the OCaml backend (newSgen); unitFns, the
 	// functions written whose value is nothing (no result, no values)
 	ml        bool
-	records   map[string]string // the OCaml's records: a struct's identity (recordKey) -> its name (ml_record.go)
+	records   map[string]string          // the OCaml's records: a struct's identity (recordKey) -> its name (ml_record.go)
+	recMem    map[string]map[string]bool // a record's name -> its members in its memory
+	recSize   map[string]int64           // a record's identity -> its C size
 	unitFns   map[string]bool
 	imagePtrs []int64 // the pointers the initial values hold, for the OCaml
 }

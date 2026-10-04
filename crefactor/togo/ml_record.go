@@ -10,16 +10,25 @@ package togo
 // (loff.lnum, loff.lnum <- 1), a copy of one a copy of its fields
 // (copy_into), a clearing a clearing of them.
 //
-// What makes that the C's meaning is that no byte of the struct is ever
-// memory: the backend refuses a struct the profile names that a
-// file-scope or static object, an array, a member or a union holds, whose
-// member's address is taken, that a cast converts, that sizeof measures
-// (an allocation), that the functions of bytes are handed, that is passed
-// or returned by value, that has a member not a scalar, or whose pointers
+// A member whose address is taken, and a member that is a struct or an
+// array, stay memory: the record holds the address of a block of its
+// own, the struct's size, in the call's frame where the C's local was
+// (`exarg_mem`), and those members' accessors read and write there, as
+// every struct's do; copy_into and clear copy and clear the block too.
+// A table of function pointers whose functions take a record is a table
+// of its own (recordParams: fn_table_1v_0exarg), so the ex commands take
+// the command's record.
+//
+// What makes that the C's meaning is that no pointer to the struct is
+// ever memory: the backend refuses a struct the profile names that a
+// file-scope or static object, an array, a member of another struct or a
+// union holds, that a cast converts, that sizeof measures (an
+// allocation) or the functions of bytes are handed but to clear it, that
+// is passed or returned by value, that has a bit field, or whose pointers
 // are compared (a record's equality would be its fields', not its
-// address).  OCaml's type checker proves the rest: a pointer to one that
-// meets an integer -- a null pointer, a store to memory, a table of
-// function pointers -- fails the build.
+// address; and a pointer compared with NULL would be an option).  OCaml's
+// type checker proves the rest: a pointer to one that meets an integer
+// -- a null pointer, a store to memory -- fails the build.
 
 import (
 	"fmt"
@@ -86,6 +95,8 @@ func (m *mlgen) records() (err error) {
 		return nil
 	}
 	s.records = map[string]string{}
+	s.recMem = map[string]map[string]bool{}
+	s.recSize = map[string]int64{}
 	found := map[string]cc.Type{}
 	walkDecls(s.g.ast.TranslationUnit, func(d *cc.Declarator) {
 		if d.IsTypename() && want[d.Name()] {
@@ -105,12 +116,17 @@ func (m *mlgen) records() (err error) {
 			whys = append(whys, n+": its members are named after "+s.structName(t))
 			continue
 		}
+		s.recMem[n] = map[string]bool{}
 		for _, fl := range scmFields(t) {
-			if fl.IsBitfield() || isAggr(fl.Type()) || fl.Type().Kind() == cc.Array {
-				whys = append(whys, n+": a member not a scalar, "+fl.Name())
+			if fl.IsBitfield() {
+				whys = append(whys, n+": a bit field, "+fl.Name())
+			}
+			if isAggr(fl.Type()) || fl.Type().Kind() == cc.Array {
+				s.recMem[n][fl.Name()] = true // in the record's memory
 			}
 		}
 		s.records[recordKey(t)] = n
+		s.recSize[recordKey(t)] = t.Size()
 	}
 	rec := func(t cc.Type) string { return s.record(t) }
 	ptrTo := func(t cc.Type) string {
@@ -204,8 +220,9 @@ func (m *mlgen) records() (err error) {
 			case cc.UnaryExpressionAddrof:
 				if p, ok := unparenE(x.CastExpression).(*cc.PostfixExpression); ok && (p.Case == cc.PostfixExpressionSelect || p.Case == cc.PostfixExpressionPSelect) {
 					if t := p.PostfixExpression.Type(); t != nil {
-						if r := rec(t); r != "" || ptrTo(t) != "" {
-							whys = append(whys, fmt.Sprintf("%s%s: a member's address taken at %v", r, ptrTo(t), x.Position()))
+						if r := rec(t) + ptrTo(t); r != "" {
+							// the member lives in the record's memory
+							s.recMem[r][p.Field().Name()] = true
 						}
 					}
 				}
@@ -263,7 +280,8 @@ func (m *mlgen) records() (err error) {
 // mlRecord is a record's OCaml: its type and its fields, in the C's order.
 type mlRecord struct {
 	c, typ, module string
-	fields         []*mlMember
+	fields         []*mlMember // the members that are fields
+	size           int64       // the C's size: a record's memory's
 }
 
 // recordTypes are the records' declarations, the fields the functions
@@ -280,6 +298,9 @@ func (m *mlgen) recordTypes() string {
 		var fs []string
 		for _, f := range r.fields {
 			fs = append(fs, fmt.Sprintf("mutable %s : %s", f.read, m.memberType(f)))
+		}
+		if m.s.recordMem(r.c) {
+			fs = append(fs, r.typ+"_mem : int")
 		}
 		fmt.Fprintf(&b, "type %s = { %s }\n", r.typ, strings.Join(fs, "; "))
 	}
@@ -317,6 +338,23 @@ func (m *mlgen) recordModule(r *mlRecord) []string {
 		copies = append(copies, fmt.Sprintf("d.%s <- s.%s", f.read, f.read))
 	}
 	var out []string
+	if mem := r.typ + "_mem"; m.s.recordMem(r.c) {
+		// the members in memory: the record's own block, in the call's
+		// frame where the C's local is
+		inits = append(inits, mem+" = mem")
+		sets = append(sets, fmt.Sprintf("mem_zero ed r.%s %d", mem, r.size))
+		copies = append(copies, fmt.Sprintf("mem_copy ed d.%s s.%s %d", mem, mem, r.size))
+		if m.used[r.module+".make"] {
+			out = append(out, fmt.Sprintf("  let make mem = { %s }\n", strings.Join(inits, "; ")))
+		}
+		if m.used[r.module+".clear"] {
+			out = append(out, fmt.Sprintf("  let clear ed r = %s\n", strings.Join(sets, "; ")))
+		}
+		if m.used[r.module+".copy_into"] {
+			out = append(out, fmt.Sprintf("  let copy_into ed d s = %s\n", strings.Join(copies, "; ")))
+		}
+		return out
+	}
 	if m.used[r.module+".make"] {
 		out = append(out, fmt.Sprintf("  let make () = { %s }\n", strings.Join(inits, "; ")))
 	}
@@ -345,16 +383,48 @@ func (m *mlgen) recordList() []*mlRecord {
 	}
 	for n, mm := range m.members {
 		st, _, _ := strings.Cut(n, ".")
-		if r := byName[st]; r != nil {
+		if r := byName[st]; r != nil && mm.record {
 			r.fields = append(r.fields, mm)
 		}
+	}
+	for k, n := range m.s.records {
+		byName[n].size = m.s.recSize[k]
 	}
 	for _, n := range names {
 		r := byName[n]
 		sort.Slice(r.fields, func(i, j int) bool { return r.fields[i].off < r.fields[j].off })
-		if len(r.fields) > 0 {
+		if len(r.fields) > 0 || m.s.recordMem(n) {
 			m.recs = append(m.recs, r)
 		}
 	}
 	return m.recs
+}
+
+// recordMem says the record named r keeps some of its members in memory
+// of its own: an aggregate, an array, a member whose address is taken.
+func (s *sgen) recordMem(r string) bool { return len(s.recMem[r]) > 0 }
+
+// recordParams is what a function type adds to the kind of the table of
+// function pointers its functions are in (ml.go): _N and the record's type
+// for each parameter N that is a pointer to a record -- so that the ex
+// commands, which take the command's record, are a table of their own.
+func (s *sgen) recordParams(ft *cc.FunctionType) string {
+	if !s.ml || len(s.records) == 0 {
+		return ""
+	}
+	var b strings.Builder
+	i := 0
+	for _, p := range ft.Parameters() {
+		t := p.Type()
+		if t == nil || t.Kind() == cc.Void {
+			continue
+		}
+		if t.Kind() == cc.Ptr {
+			if r := s.record(t.(*cc.PointerType).Elem()); r != "" {
+				fmt.Fprintf(&b, "_%d%s", i, mlVariantType(r))
+			}
+		}
+		i++
+	}
+	return b.String()
 }

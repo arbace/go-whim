@@ -16,9 +16,15 @@ type set_op = Op_none | Op_adding | Op_prepending | Op_removing
 (* The C's structs no byte of which is ever memory: records. *)
 type bufref = { mutable br_buf : int; mutable br_fnum : int; mutable br_buf_free_count : int }
 type chartabsize = { mutable cts_win : int; mutable cts_line : int; mutable cts_ptr : int; mutable cts_vcol : int; mutable cts_max_head_vcol : int }
+type cmdarg = { mutable oap : int; mutable cmdchar : int; mutable ncharC1 : int; mutable ncharC2 : int; mutable cmdarg_opcount : int; mutable count0 : int; mutable count1 : int; mutable arg : int; mutable retval : int; mutable searchbuf : int; cmdarg_mem : int }
+type exarg = { mutable nextcmd : int; mutable cmdlinep : int; mutable cmdidx : int; mutable argt : int; mutable forceit : bool; mutable addr_count : int; mutable line1 : int; mutable line2 : int; mutable addr_type : cmd_addr; mutable flags : int; mutable do_ecmd_cmd : int; mutable amount : int; mutable regname : int; mutable errmsg : int; mutable ea_getline : int; exarg_mem : int }
+type incsearch_state = { mutable did_incsearch : bool; mutable incsearch_postponed : bool; mutable magic_overruled_save : optmagic; incsearch_state_mem : int }
 type lineoff = { mutable lnum : int; mutable height : int }
+type optset = { mutable os_idx : int; mutable os_flags : int; mutable os_op : set_op; mutable os_value_checked : int; mutable os_restore_chartab : bool; mutable os_errbuf : int; mutable os_errbuflen : int; optset_mem : int }
+type save_state = { mutable save_msg_scroll : int; mutable save_restart_edit : int; mutable save_msg_didout : int; mutable save_State : int; mutable save_insertmode : int; mutable save_finish_op : bool; mutable save_opcount : int; mutable save_reg_executing : int; mutable save_pending_end_reg_executing : bool; mutable save_script_version : int; save_state_mem : int }
 type searchstat = { mutable cur : int; mutable cnt : int; mutable exact_match : bool; mutable incomplete : int; mutable last_maxcount : int }
 type ttyinfo = { mutable backspace : int; mutable enter : int; mutable interrupt : int; mutable nl_does_cr : bool }
+type winlinevars = { mutable draw_state : int; mutable winlinevars_lnum : int; mutable startrow : int; mutable row : int; mutable screen_row : int; mutable vcol : int; mutable col : int; mutable vcol_off_tp : int; mutable eol_hl_off : int; mutable off : int; mutable win_attr : int; mutable line_attr : int; mutable screen_line_flags : int; mutable char_attr : int; mutable n_extra : int; mutable p_extra : int; mutable p_extra_free : int; mutable extra_attr : int; mutable n_attr_skip : int; mutable c_extra : int; mutable c_final : int; mutable extra_for_textprop : bool; mutable saved_n_extra : int; mutable saved_p_extra : int; mutable saved_p_extra_free : int; mutable saved_extra_attr : int; mutable saved_n_attr_skip : int; mutable saved_extra_for_textprop : bool; mutable saved_c_extra : int; mutable saved_c_final : int; mutable saved_char_attr : int; mutable filler_lines : int; winlinevars_mem : int }
 
 (* The host's functions, as the core calls them: the editor carries them. *)
 type glue = {
@@ -417,33 +423,11 @@ let cmd_addr_of_int = function
   | 10 -> Addr_other
   | 11 -> Addr_none
   | _ -> failwith "not a cmd_addr_T"
-let int_of_cmd_addr = function
-  | Addr_lines -> 0
-  | Addr_windows -> 1
-  | Addr_unsigned -> 9
-  | Addr_other -> 10
-  | Addr_none -> 11
 
 let int_of_etype = function
   | Etype_top -> 0
   | Etype_args -> 6
   | Etype_internal -> 8
-
-let optmagic_of_int = function
-  | 0 -> Option_magic_not_set
-  | 1 -> Option_magic_on
-  | 2 -> Option_magic_off
-  | _ -> failwith "not a optmagic_T"
-let int_of_optmagic = function
-  | Option_magic_not_set -> 0
-  | Option_magic_on -> 1
-  | Option_magic_off -> 2
-
-let int_of_set_op = function
-  | Op_none -> 0
-  | Op_adding -> 1
-  | Op_prepending -> 2
-  | Op_removing -> 3
 
 (* The memory: the null page and the function pointers below 65536, the
    file-scope objects from there, the string literals from 162208 to 176946. *)
@@ -2035,32 +2019,14 @@ module Clinterval = struct
 end
 
 module Cmdarg_T = struct
-  let oap ed p = ld_ptr ed (p + 0)
-  let set_oap ed p v = st_ptr ed (p + 0) v
-  let cmdchar ed p = ld_s32 ed (p + 8)
-  let set_cmdchar ed p v = st_s32 ed (p + 8) v
-  let nchar_addr p = p + 12
-  let nchar ed p = ld_s32 ed (p + 12)
-  let set_nchar ed p v = st_s32 ed (p + 12) v
-  let ncharC1 ed p = ld_s32 ed (p + 16)
-  let set_ncharC1 ed p v = st_s32 ed (p + 16) v
-  let ncharC2 ed p = ld_s32 ed (p + 20)
-  let set_ncharC2 ed p v = st_s32 ed (p + 20) v
-  let extra_char_addr p = p + 24
-  let extra_char ed p = ld_s32 ed (p + 24)
-  let set_extra_char ed p v = st_s32 ed (p + 24) v
-  let opcount ed p = ld_s64 ed (p + 32)
-  let set_opcount ed p v = st_s64 ed (p + 32) v
-  let count0 ed p = ld_s64 ed (p + 40)
-  let set_count0 ed p v = st_s64 ed (p + 40) v
-  let count1 ed p = ld_s64 ed (p + 48)
-  let set_count1 ed p v = st_s64 ed (p + 48) v
-  let arg ed p = ld_s32 ed (p + 56)
-  let set_arg ed p v = st_s32 ed (p + 56) v
-  let retval ed p = ld_s32 ed (p + 60)
-  let set_retval ed p v = st_s32 ed (p + 60) v
-  let searchbuf ed p = ld_ptr ed (p + 64)
-  let set_searchbuf ed p v = st_ptr ed (p + 64) v
+  let make mem = { oap = 0; cmdchar = 0; ncharC1 = 0; ncharC2 = 0; cmdarg_opcount = 0; count0 = 0; count1 = 0; arg = 0; retval = 0; searchbuf = 0; cmdarg_mem = mem }
+  let clear ed r = r.oap <- 0; r.cmdchar <- 0; r.ncharC1 <- 0; r.ncharC2 <- 0; r.cmdarg_opcount <- 0; r.count0 <- 0; r.count1 <- 0; r.arg <- 0; r.retval <- 0; r.searchbuf <- 0; mem_zero ed r.cmdarg_mem 72
+  let nchar_addr p = p.cmdarg_mem + 12
+  let nchar ed p = ld_s32 ed (p.cmdarg_mem + 12)
+  let set_nchar ed p v = st_s32 ed (p.cmdarg_mem + 12) v
+  let extra_char_addr p = p.cmdarg_mem + 24
+  let extra_char ed p = ld_s32 ed (p.cmdarg_mem + 24)
+  let set_extra_char ed p v = st_s32 ed (p.cmdarg_mem + 24) v
 end
 
 module Cmdline_info_T = struct
@@ -2152,40 +2118,14 @@ module Estack_T = struct
 end
 
 module Exarg_T = struct
-  let arg_addr p = p + 0
-  let arg ed p = ld_ptr ed (p + 0)
-  let set_arg ed p v = st_ptr ed (p + 0) v
-  let nextcmd ed p = ld_ptr ed (p + 8)
-  let set_nextcmd ed p v = st_ptr ed (p + 8) v
-  let cmd_addr p = p + 16
-  let cmd ed p = ld_ptr ed (p + 16)
-  let set_cmd ed p v = st_ptr ed (p + 16) v
-  let set_cmdlinep ed p v = st_ptr ed (p + 24) v
-  let cmdidx ed p = ld_s32 ed (p + 32)
-  let set_cmdidx ed p v = st_s32 ed (p + 32) v
-  let argt ed p = ld_s64 ed (p + 40)
-  let set_argt ed p v = st_s64 ed (p + 40) v
-  let forceit ed p = ld_bool ed (p + 48)
-  let set_forceit ed p v = st_bool ed (p + 48) v
-  let addr_count ed p = ld_s32 ed (p + 52)
-  let set_addr_count ed p v = st_s32 ed (p + 52) v
-  let line1 ed p = ld_s64 ed (p + 56)
-  let set_line1 ed p v = st_s64 ed (p + 56) v
-  let line2 ed p = ld_s64 ed (p + 64)
-  let set_line2 ed p v = st_s64 ed (p + 64) v
-  let addr_type ed p = cmd_addr_of_int (ld_s32 ed (p + 72))
-  let set_addr_type ed p v = st_s32 ed (p + 72) (int_of_cmd_addr v)
-  let flags ed p = ld_s32 ed (p + 76)
-  let set_flags ed p v = st_s32 ed (p + 76) v
-  let set_do_ecmd_cmd ed p v = st_ptr ed (p + 80) v
-  let amount ed p = ld_s32 ed (p + 88)
-  let set_amount ed p v = st_s32 ed (p + 88) v
-  let regname ed p = ld_s32 ed (p + 92)
-  let set_regname ed p v = st_s32 ed (p + 92) v
-  let errmsg ed p = ld_ptr ed (p + 96)
-  let set_errmsg ed p v = st_ptr ed (p + 96) v
-  let ea_getline ed p = ld_ptr ed (p + 104)
-  let set_ea_getline ed p v = st_ptr ed (p + 104) v
+  let make mem = { nextcmd = 0; cmdlinep = 0; cmdidx = 0; argt = 0; forceit = false; addr_count = 0; line1 = 0; line2 = 0; addr_type = Addr_lines; flags = 0; do_ecmd_cmd = 0; amount = 0; regname = 0; errmsg = 0; ea_getline = 0; exarg_mem = mem }
+  let clear ed r = r.nextcmd <- 0; r.cmdlinep <- 0; r.cmdidx <- 0; r.argt <- 0; r.forceit <- false; r.addr_count <- 0; r.line1 <- 0; r.line2 <- 0; r.addr_type <- Addr_lines; r.flags <- 0; r.do_ecmd_cmd <- 0; r.amount <- 0; r.regname <- 0; r.errmsg <- 0; r.ea_getline <- 0; mem_zero ed r.exarg_mem 112
+  let arg_addr p = p.exarg_mem + 0
+  let arg ed p = ld_ptr ed (p.exarg_mem + 0)
+  let set_arg ed p v = st_ptr ed (p.exarg_mem + 0) v
+  let cmd_addr p = p.exarg_mem + 16
+  let cmd ed p = ld_ptr ed (p.exarg_mem + 16)
+  let set_cmd ed p v = st_ptr ed (p.exarg_mem + 16) v
 end
 
 module Expand_T = struct
@@ -2328,36 +2268,31 @@ module Hl_overrides_T = struct
 end
 
 module Incsearch_state_T = struct
-  let search_start_addr p = p + 0
-  let search_start_lnum ed p = ld_s64 ed (p + 0)
-  let set_search_start_lnum ed p v = st_s64 ed (p + 0) v
-  let search_start_col ed p = ld_s32 ed (p + 8)
-  let set_search_start_col ed p v = st_s32 ed (p + 8) v
-  let search_start_coladd ed p = ld_s32 ed (p + 12)
-  let set_search_start_coladd ed p v = st_s32 ed (p + 12) v
-  let save_cursor_addr p = p + 16
-  let save_cursor_lnum ed p = ld_s64 ed (p + 16)
-  let save_cursor_col ed p = ld_s32 ed (p + 24)
-  let save_cursor_coladd ed p = ld_s32 ed (p + 28)
-  let init_viewstate_addr p = p + 32
-  let old_viewstate_addr p = p + 72
-  let match_start_addr p = p + 112
-  let match_start_lnum ed p = ld_s64 ed (p + 112)
-  let match_start_col ed p = ld_s32 ed (p + 120)
-  let match_start_coladd ed p = ld_s32 ed (p + 124)
-  let match_end_addr p = p + 128
-  let match_end_lnum ed p = ld_s64 ed (p + 128)
-  let set_match_end_lnum ed p v = st_s64 ed (p + 128) v
-  let match_end_col ed p = ld_s32 ed (p + 136)
-  let set_match_end_col ed p v = st_s32 ed (p + 136) v
-  let match_end_coladd ed p = ld_s32 ed (p + 140)
-  let set_match_end_coladd ed p v = st_s32 ed (p + 140) v
-  let did_incsearch ed p = ld_bool ed (p + 144)
-  let set_did_incsearch ed p v = st_bool ed (p + 144) v
-  let incsearch_postponed ed p = ld_bool ed (p + 145)
-  let set_incsearch_postponed ed p v = st_bool ed (p + 145) v
-  let magic_overruled_save ed p = optmagic_of_int (ld_s32 ed (p + 148))
-  let set_magic_overruled_save ed p v = st_s32 ed (p + 148) (int_of_optmagic v)
+  let make mem = { did_incsearch = false; incsearch_postponed = false; magic_overruled_save = Option_magic_not_set; incsearch_state_mem = mem }
+  let search_start_addr p = p.incsearch_state_mem + 0
+  let search_start_lnum ed p = ld_s64 ed (p.incsearch_state_mem + 0)
+  let set_search_start_lnum ed p v = st_s64 ed (p.incsearch_state_mem + 0) v
+  let search_start_col ed p = ld_s32 ed (p.incsearch_state_mem + 8)
+  let set_search_start_col ed p v = st_s32 ed (p.incsearch_state_mem + 8) v
+  let search_start_coladd ed p = ld_s32 ed (p.incsearch_state_mem + 12)
+  let set_search_start_coladd ed p v = st_s32 ed (p.incsearch_state_mem + 12) v
+  let save_cursor_addr p = p.incsearch_state_mem + 16
+  let save_cursor_lnum ed p = ld_s64 ed (p.incsearch_state_mem + 16)
+  let save_cursor_col ed p = ld_s32 ed (p.incsearch_state_mem + 24)
+  let save_cursor_coladd ed p = ld_s32 ed (p.incsearch_state_mem + 28)
+  let init_viewstate_addr p = p.incsearch_state_mem + 32
+  let old_viewstate_addr p = p.incsearch_state_mem + 72
+  let match_start_addr p = p.incsearch_state_mem + 112
+  let match_start_lnum ed p = ld_s64 ed (p.incsearch_state_mem + 112)
+  let match_start_col ed p = ld_s32 ed (p.incsearch_state_mem + 120)
+  let match_start_coladd ed p = ld_s32 ed (p.incsearch_state_mem + 124)
+  let match_end_addr p = p.incsearch_state_mem + 128
+  let match_end_lnum ed p = ld_s64 ed (p.incsearch_state_mem + 128)
+  let set_match_end_lnum ed p v = st_s64 ed (p.incsearch_state_mem + 128) v
+  let match_end_col ed p = ld_s32 ed (p.incsearch_state_mem + 136)
+  let set_match_end_col ed p v = st_s32 ed (p.incsearch_state_mem + 136) v
+  let match_end_coladd ed p = ld_s32 ed (p.incsearch_state_mem + 140)
+  let set_match_end_coladd ed p v = st_s32 ed (p.incsearch_state_mem + 140) v
 end
 
 module Infoptr_T = struct
@@ -2634,36 +2569,27 @@ module Oparg_T = struct
 end
 
 module Optset_T = struct
-  let os_varp_addr p = p + 0
-  let set_os_varp_ov_int ed p v = st_ptr ed (p + 0) v
-  let os_varp_ov_long ed p = ld_ptr ed (p + 8)
-  let set_os_varp_ov_long ed p v = st_ptr ed (p + 8) v
-  let os_varp_ov_str ed p = ld_ptr ed (p + 16)
-  let set_os_varp_ov_str ed p v = st_ptr ed (p + 16) v
-  let set_os_varp_ov_win ed p v = st_s32 ed (p + 24) v
-  let set_os_idx ed p v = st_s32 ed (p + 32) v
-  let os_flags ed p = ld_s32 ed (p + 36)
-  let set_os_flags ed p v = st_s32 ed (p + 36) v
-  let set_os_op ed p v = st_s32 ed (p + 40) (int_of_set_op v)
-  let os_oldval_boolean ed p = ld_s32 ed (p + 48)
-  let set_os_oldval_boolean ed p v = st_s32 ed (p + 48) v
-  let os_oldval_number ed p = ld_s64 ed (p + 48)
-  let set_os_oldval_number ed p v = st_s64 ed (p + 48) v
-  let os_oldval_string ed p = ld_ptr ed (p + 48)
-  let set_os_oldval_string ed p v = st_ptr ed (p + 48) v
-  let os_newval_boolean ed p = ld_s32 ed (p + 56)
-  let set_os_newval_boolean ed p v = st_s32 ed (p + 56) v
-  let os_newval_number ed p = ld_s64 ed (p + 56)
-  let set_os_newval_number ed p v = st_s64 ed (p + 56) v
-  let os_newval_string ed p = ld_ptr ed (p + 56)
-  let set_os_newval_string ed p v = st_ptr ed (p + 56) v
-  let os_value_checked ed p = ld_s32 ed (p + 64)
-  let os_restore_chartab ed p = ld_bool ed (p + 68)
-  let set_os_restore_chartab ed p v = st_bool ed (p + 68) v
-  let os_errbuf ed p = ld_ptr ed (p + 72)
-  let set_os_errbuf ed p v = st_ptr ed (p + 72) v
-  let os_errbuflen ed p = ld_u64 ed (p + 80)
-  let set_os_errbuflen ed p v = st_u64 ed (p + 80) v
+  let make mem = { os_idx = 0; os_flags = 0; os_op = Op_none; os_value_checked = 0; os_restore_chartab = false; os_errbuf = 0; os_errbuflen = 0; optset_mem = mem }
+  let clear ed r = r.os_idx <- 0; r.os_flags <- 0; r.os_op <- Op_none; r.os_value_checked <- 0; r.os_restore_chartab <- false; r.os_errbuf <- 0; r.os_errbuflen <- 0; mem_zero ed r.optset_mem 88
+  let os_varp_addr p = p.optset_mem + 0
+  let set_os_varp_ov_int ed p v = st_ptr ed (p.optset_mem + 0) v
+  let os_varp_ov_long ed p = ld_ptr ed (p.optset_mem + 8)
+  let set_os_varp_ov_long ed p v = st_ptr ed (p.optset_mem + 8) v
+  let os_varp_ov_str ed p = ld_ptr ed (p.optset_mem + 16)
+  let set_os_varp_ov_str ed p v = st_ptr ed (p.optset_mem + 16) v
+  let set_os_varp_ov_win ed p v = st_s32 ed (p.optset_mem + 24) v
+  let os_oldval_boolean ed p = ld_s32 ed (p.optset_mem + 48)
+  let set_os_oldval_boolean ed p v = st_s32 ed (p.optset_mem + 48) v
+  let os_oldval_number ed p = ld_s64 ed (p.optset_mem + 48)
+  let set_os_oldval_number ed p v = st_s64 ed (p.optset_mem + 48) v
+  let os_oldval_string ed p = ld_ptr ed (p.optset_mem + 48)
+  let set_os_oldval_string ed p v = st_ptr ed (p.optset_mem + 48) v
+  let os_newval_boolean ed p = ld_s32 ed (p.optset_mem + 56)
+  let set_os_newval_boolean ed p v = st_s32 ed (p.optset_mem + 56) v
+  let os_newval_number ed p = ld_s64 ed (p.optset_mem + 56)
+  let set_os_newval_number ed p v = st_s64 ed (p.optset_mem + 56) v
+  let os_newval_string ed p = ld_ptr ed (p.optset_mem + 56)
+  let set_os_newval_string ed p v = st_ptr ed (p.optset_mem + 56) v
 end
 
 module Optvar_T = struct
@@ -2920,28 +2846,9 @@ module Save_se_T = struct
 end
 
 module Save_state_T = struct
-  let save_msg_scroll ed p = ld_s32 ed (p + 0)
-  let set_save_msg_scroll ed p v = st_s32 ed (p + 0) v
-  let save_restart_edit ed p = ld_s32 ed (p + 4)
-  let set_save_restart_edit ed p v = st_s32 ed (p + 4) v
-  let save_msg_didout ed p = ld_s32 ed (p + 8)
-  let set_save_msg_didout ed p v = st_s32 ed (p + 8) v
-  let save_State ed p = ld_s32 ed (p + 12)
-  let set_save_State ed p v = st_s32 ed (p + 12) v
-  let save_insertmode ed p = ld_s32 ed (p + 16)
-  let set_save_insertmode ed p v = st_s32 ed (p + 16) v
-  let save_finish_op ed p = ld_bool ed (p + 20)
-  let set_save_finish_op ed p v = st_bool ed (p + 20) v
-  let save_opcount ed p = ld_s32 ed (p + 24)
-  let set_save_opcount ed p v = st_s32 ed (p + 24) v
-  let save_reg_executing ed p = ld_s32 ed (p + 28)
-  let set_save_reg_executing ed p v = st_s32 ed (p + 28) v
-  let save_pending_end_reg_executing ed p = ld_bool ed (p + 32)
-  let set_save_pending_end_reg_executing ed p v = st_bool ed (p + 32) v
-  let save_script_version ed p = ld_s32 ed (p + 36)
-  let set_save_script_version ed p v = st_s32 ed (p + 36) v
-  let tabuf_addr p = p + 40
-  let tabuf_typebuf_valid ed p = ld_bool ed (p + 88)
+  let make mem = { save_msg_scroll = 0; save_restart_edit = 0; save_msg_didout = 0; save_State = 0; save_insertmode = 0; save_finish_op = false; save_opcount = 0; save_reg_executing = 0; save_pending_end_reg_executing = false; save_script_version = 0; save_state_mem = mem }
+  let tabuf_addr p = p.save_state_mem + 40
+  let tabuf_typebuf_valid ed p = ld_bool ed (p.save_state_mem + 88)
 end
 
 module Sctx_T = struct
@@ -3422,74 +3329,15 @@ module Wininfo_T = struct
 end
 
 module Winlinevars_T = struct
-  let draw_state ed p = ld_s32 ed (p + 0)
-  let set_draw_state ed p v = st_s32 ed (p + 0) v
-  let lnum ed p = ld_s64 ed (p + 8)
-  let set_lnum ed p v = st_s64 ed (p + 8) v
-  let startrow ed p = ld_s32 ed (p + 16)
-  let set_startrow ed p v = st_s32 ed (p + 16) v
-  let row ed p = ld_s32 ed (p + 20)
-  let set_row ed p v = st_s32 ed (p + 20) v
-  let screen_row ed p = ld_s32 ed (p + 24)
-  let set_screen_row ed p v = st_s32 ed (p + 24) v
-  let vcol ed p = ld_s64 ed (p + 32)
-  let set_vcol ed p v = st_s64 ed (p + 32) v
-  let col ed p = ld_s32 ed (p + 40)
-  let set_col ed p v = st_s32 ed (p + 40) v
-  let vcol_off_tp ed p = ld_s32 ed (p + 44)
-  let eol_hl_off ed p = ld_s32 ed (p + 48)
-  let set_eol_hl_off ed p v = st_s32 ed (p + 48) v
-  let off ed p = ld_u32 ed (p + 52)
-  let set_off ed p v = st_u32 ed (p + 52) v
-  let win_attr ed p = ld_s32 ed (p + 56)
-  let set_win_attr ed p v = st_s32 ed (p + 56) v
-  let line_attr ed p = ld_s32 ed (p + 60)
-  let screen_line_flags ed p = ld_s32 ed (p + 64)
-  let set_screen_line_flags ed p v = st_s32 ed (p + 64) v
-  let fromcol_addr p = p + 68
-  let fromcol ed p = ld_s32 ed (p + 68)
-  let set_fromcol ed p v = st_s32 ed (p + 68) v
-  let tocol_addr p = p + 72
-  let tocol ed p = ld_s32 ed (p + 72)
-  let set_tocol ed p v = st_s32 ed (p + 72) v
-  let char_attr ed p = ld_s32 ed (p + 76)
-  let set_char_attr ed p v = st_s32 ed (p + 76) v
-  let n_extra ed p = ld_s32 ed (p + 80)
-  let set_n_extra ed p v = st_s32 ed (p + 80) v
-  let p_extra ed p = ld_ptr ed (p + 88)
-  let set_p_extra ed p v = st_ptr ed (p + 88) v
-  let p_extra_free ed p = ld_ptr ed (p + 96)
-  let set_p_extra_free ed p v = st_ptr ed (p + 96) v
-  let extra_attr ed p = ld_s32 ed (p + 104)
-  let set_extra_attr ed p v = st_s32 ed (p + 104) v
-  let n_attr_skip ed p = ld_s32 ed (p + 108)
-  let set_n_attr_skip ed p v = st_s32 ed (p + 108) v
-  let c_extra ed p = ld_s32 ed (p + 112)
-  let set_c_extra ed p v = st_s32 ed (p + 112) v
-  let c_final ed p = ld_s32 ed (p + 116)
-  let set_c_final ed p v = st_s32 ed (p + 116) v
-  let extra_for_textprop ed p = ld_bool ed (p + 120)
-  let set_extra_for_textprop ed p v = st_bool ed (p + 120) v
-  let saved_n_extra ed p = ld_s32 ed (p + 124)
-  let set_saved_n_extra ed p v = st_s32 ed (p + 124) v
-  let saved_p_extra ed p = ld_ptr ed (p + 128)
-  let set_saved_p_extra ed p v = st_ptr ed (p + 128) v
-  let saved_p_extra_free ed p = ld_ptr ed (p + 136)
-  let set_saved_p_extra_free ed p v = st_ptr ed (p + 136) v
-  let saved_extra_attr ed p = ld_s32 ed (p + 144)
-  let set_saved_extra_attr ed p v = st_s32 ed (p + 144) v
-  let saved_n_attr_skip ed p = ld_s32 ed (p + 148)
-  let set_saved_n_attr_skip ed p v = st_s32 ed (p + 148) v
-  let saved_extra_for_textprop ed p = ld_bool ed (p + 152)
-  let set_saved_extra_for_textprop ed p v = st_bool ed (p + 152) v
-  let saved_c_extra ed p = ld_s32 ed (p + 156)
-  let set_saved_c_extra ed p v = st_s32 ed (p + 156) v
-  let saved_c_final ed p = ld_s32 ed (p + 160)
-  let set_saved_c_final ed p v = st_s32 ed (p + 160) v
-  let saved_char_attr ed p = ld_s32 ed (p + 164)
-  let set_saved_char_attr ed p v = st_s32 ed (p + 164) v
-  let extra_addr p = p + 168
-  let filler_lines ed p = ld_s32 ed (p + 256)
+  let make mem = { draw_state = 0; winlinevars_lnum = 0; startrow = 0; row = 0; screen_row = 0; vcol = 0; col = 0; vcol_off_tp = 0; eol_hl_off = 0; off = 0; win_attr = 0; line_attr = 0; screen_line_flags = 0; char_attr = 0; n_extra = 0; p_extra = 0; p_extra_free = 0; extra_attr = 0; n_attr_skip = 0; c_extra = 0; c_final = 0; extra_for_textprop = false; saved_n_extra = 0; saved_p_extra = 0; saved_p_extra_free = 0; saved_extra_attr = 0; saved_n_attr_skip = 0; saved_extra_for_textprop = false; saved_c_extra = 0; saved_c_final = 0; saved_char_attr = 0; filler_lines = 0; winlinevars_mem = mem }
+  let clear ed r = r.draw_state <- 0; r.winlinevars_lnum <- 0; r.startrow <- 0; r.row <- 0; r.screen_row <- 0; r.vcol <- 0; r.col <- 0; r.vcol_off_tp <- 0; r.eol_hl_off <- 0; r.off <- 0; r.win_attr <- 0; r.line_attr <- 0; r.screen_line_flags <- 0; r.char_attr <- 0; r.n_extra <- 0; r.p_extra <- 0; r.p_extra_free <- 0; r.extra_attr <- 0; r.n_attr_skip <- 0; r.c_extra <- 0; r.c_final <- 0; r.extra_for_textprop <- false; r.saved_n_extra <- 0; r.saved_p_extra <- 0; r.saved_p_extra_free <- 0; r.saved_extra_attr <- 0; r.saved_n_attr_skip <- 0; r.saved_extra_for_textprop <- false; r.saved_c_extra <- 0; r.saved_c_final <- 0; r.saved_char_attr <- 0; r.filler_lines <- 0; mem_zero ed r.winlinevars_mem 264
+  let fromcol_addr p = p.winlinevars_mem + 68
+  let fromcol ed p = ld_s32 ed (p.winlinevars_mem + 68)
+  let set_fromcol ed p v = st_s32 ed (p.winlinevars_mem + 68) v
+  let tocol_addr p = p.winlinevars_mem + 72
+  let tocol ed p = ld_s32 ed (p.winlinevars_mem + 72)
+  let set_tocol ed p v = st_s32 ed (p.winlinevars_mem + 72) v
+  let extra_addr p = p.winlinevars_mem + 168
 end
 
 module Winopt_T = struct
@@ -3556,9 +3404,17 @@ let fn_table_1 : (ed -> int -> int) array =
   Array.make 165 (fun _ _ -> failwith "no function of this type at this pointer")
 let call_ptr1 p ed a0 = fn_table_1.(fn_index p) ed a0
 
-let fn_table_1v : (ed -> int -> unit) array =
+let fn_table_1_0optset : (ed -> optset -> int) array =
   Array.make 165 (fun _ _ -> failwith "no function of this type at this pointer")
-let call_ptr1v p ed a0 = fn_table_1v.(fn_index p) ed a0
+let call_ptr1_0optset p ed a0 = fn_table_1_0optset.(fn_index p) ed a0
+
+let fn_table_1v_0cmdarg : (ed -> cmdarg -> unit) array =
+  Array.make 165 (fun _ _ -> failwith "no function of this type at this pointer")
+let call_ptr1v_0cmdarg p ed a0 = fn_table_1v_0cmdarg.(fn_index p) ed a0
+
+let fn_table_1v_0exarg : (ed -> exarg -> unit) array =
+  Array.make 165 (fun _ _ -> failwith "no function of this type at this pointer")
+let call_ptr1v_0exarg p ed a0 = fn_table_1v_0exarg.(fn_index p) ed a0
 
 let fn_table_2 : (ed -> int -> int -> int) array =
   Array.make 165 (fun _ _ _ -> failwith "no function of this type at this pointer")
@@ -5855,38 +5711,38 @@ let char_needs_redraw ed off_from off_to cols =
    ld_u8 ed (ed.st.screenlines + (off_from + 1)) <> ld_u8 ed (ed.st.screenlines + (off_to + 1)))
 
 let win_line_start ed _wp wlv save_extra =
-  Winlinevars_T.set_col ed wlv 0;
-  Winlinevars_T.set_off ed wlv (to_u32 (ed.st.current_ScreenLine - ed.st.screenlines));
+  wlv.col <- 0;
+  wlv.off <- to_u32 (ed.st.current_ScreenLine - ed.st.screenlines);
   if save_extra then
-    (Winlinevars_T.set_draw_state ed wlv wl_start;
-     Winlinevars_T.set_saved_n_extra ed wlv (Winlinevars_T.n_extra ed wlv);
-     Winlinevars_T.set_saved_p_extra ed wlv (Winlinevars_T.p_extra ed wlv);
-     Winlinevars_T.set_saved_p_extra_free ed wlv (Winlinevars_T.p_extra_free ed wlv);
-     Winlinevars_T.set_p_extra_free ed wlv 0;
-     Winlinevars_T.set_saved_extra_attr ed wlv (Winlinevars_T.extra_attr ed wlv);
-     Winlinevars_T.set_saved_n_attr_skip ed wlv (Winlinevars_T.n_attr_skip ed wlv);
-     Winlinevars_T.set_saved_extra_for_textprop ed wlv (Winlinevars_T.extra_for_textprop ed wlv);
-     Winlinevars_T.set_saved_c_extra ed wlv (Winlinevars_T.c_extra ed wlv);
-     Winlinevars_T.set_saved_c_final ed wlv (Winlinevars_T.c_final ed wlv);
-     Winlinevars_T.set_saved_char_attr ed wlv 0;
-     Winlinevars_T.set_n_extra ed wlv 0;
-     Winlinevars_T.set_n_attr_skip ed wlv 0)
+    (wlv.draw_state <- wl_start;
+     wlv.saved_n_extra <- wlv.n_extra;
+     wlv.saved_p_extra <- wlv.p_extra;
+     wlv.saved_p_extra_free <- wlv.p_extra_free;
+     wlv.p_extra_free <- 0;
+     wlv.saved_extra_attr <- wlv.extra_attr;
+     wlv.saved_n_attr_skip <- wlv.n_attr_skip;
+     wlv.saved_extra_for_textprop <- wlv.extra_for_textprop;
+     wlv.saved_c_extra <- wlv.c_extra;
+     wlv.saved_c_final <- wlv.c_final;
+     wlv.saved_char_attr <- 0;
+     wlv.n_extra <- 0;
+     wlv.n_attr_skip <- 0)
 
-let win_line_continue ed wlv =
-  if Winlinevars_T.saved_n_extra ed wlv > 0 then
-    (Winlinevars_T.set_n_extra ed wlv (Winlinevars_T.saved_n_extra ed wlv);
-     Winlinevars_T.set_saved_n_extra ed wlv 0;
-     Winlinevars_T.set_c_extra ed wlv (Winlinevars_T.saved_c_extra ed wlv);
-     Winlinevars_T.set_c_final ed wlv (Winlinevars_T.saved_c_final ed wlv);
-     Winlinevars_T.set_p_extra ed wlv (Winlinevars_T.saved_p_extra ed wlv);
-     Winlinevars_T.set_p_extra_free ed wlv (Winlinevars_T.saved_p_extra_free ed wlv);
-     Winlinevars_T.set_saved_p_extra_free ed wlv 0;
-     Winlinevars_T.set_extra_attr ed wlv (Winlinevars_T.saved_extra_attr ed wlv);
-     Winlinevars_T.set_n_attr_skip ed wlv (Winlinevars_T.saved_n_attr_skip ed wlv);
-     Winlinevars_T.set_extra_for_textprop ed wlv (Winlinevars_T.saved_extra_for_textprop ed wlv);
-     Winlinevars_T.set_char_attr ed wlv (Winlinevars_T.saved_char_attr ed wlv))
+let win_line_continue _ed wlv =
+  if wlv.saved_n_extra > 0 then
+    (wlv.n_extra <- wlv.saved_n_extra;
+     wlv.saved_n_extra <- 0;
+     wlv.c_extra <- wlv.saved_c_extra;
+     wlv.c_final <- wlv.saved_c_final;
+     wlv.p_extra <- wlv.saved_p_extra;
+     wlv.p_extra_free <- wlv.saved_p_extra_free;
+     wlv.saved_p_extra_free <- 0;
+     wlv.extra_attr <- wlv.saved_extra_attr;
+     wlv.n_attr_skip <- wlv.saved_n_attr_skip;
+     wlv.extra_for_textprop <- wlv.saved_extra_for_textprop;
+     wlv.char_attr <- wlv.saved_char_attr)
   else
-    Winlinevars_T.set_char_attr ed wlv (Winlinevars_T.win_attr ed wlv)
+    wlv.char_attr <- wlv.win_attr
 
 let mb_ptr2char_adv ed pp =
   let c = utf_ptr2char ed (ld_ptr ed pp) in
@@ -5897,9 +5753,9 @@ let mb_ptr2char_adv ed pp =
 let mb_ptr2char_adv__p_extra ed s0__ =
   let fr = frame_push ed 16 in
   let p_extra0___addr = fr + 0 in
-  st_ptr ed p_extra0___addr (Winlinevars_T.p_extra ed s0__);
+  st_ptr ed p_extra0___addr s0__.p_extra;
   let r__ = mb_ptr2char_adv ed p_extra0___addr in
-  Winlinevars_T.set_p_extra ed s0__ (ld_ptr ed p_extra0___addr);
+  s0__.p_extra <- ld_ptr ed p_extra0___addr;
   frame_pop ed fr;
   r__
 
@@ -5929,9 +5785,9 @@ let get_search_match_hl ed wp search_hl col char_attr =
   loop1 char_attr (Win_T.w_match_head ed wp) 0
 
 let get_search_match_hl__char_attr ed wp search_hl col s3__ =
-  let char_attr3__ = Winlinevars_T.char_attr ed s3__ in
+  let char_attr3__ = s3__.char_attr in
   let char_attr3__ = get_search_match_hl ed wp search_hl col char_attr3__ in
-  Winlinevars_T.set_char_attr ed s3__ char_attr3__
+  s3__.char_attr <- char_attr3__
 
 let set_no_hlsearch ed flag =
   ed.st.no_hlsearch <- flag
@@ -8548,7 +8404,7 @@ let default_address ed eap =
   let join6 lnum =
     lnum
   in
-  match Exarg_T.addr_type ed eap with
+  match eap.addr_type with
   | Addr_lines | Addr_other ->
       if Win_T.w_cursor_lnum ed ed.st.curwin > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
         join6 (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
@@ -8713,9 +8569,9 @@ let one_letter_cmd ed p idx =
     (false, idx)
 
 let one_letter_cmd__cmdidx ed p s1__ =
-  let cmdidx1__ = Exarg_T.cmdidx ed s1__ in
+  let cmdidx1__ = s1__.cmdidx in
   let (r1, r2) = one_letter_cmd ed p cmdidx1__ in
-  Exarg_T.set_cmdidx ed s1__ r2;
+  s1__.cmdidx <- r2;
   r1
 
 let find_ex_command ed eap full =
@@ -8723,11 +8579,11 @@ let find_ex_command ed eap full =
     p
   in
   let join23 p =
-    if p = 0 || p = Exarg_T.cmd ed eap then Exarg_T.set_cmdidx ed eap cmd_size;
+    if p = 0 || p = Exarg_T.cmd ed eap then eap.cmdidx <- cmd_size;
     join29 p
   in
   let join20 p =
-    if (Exarg_T.cmdidx ed eap = cmd_size || Exarg_T.cmdidx ed eap = cmd_print) &&
+    if (eap.cmdidx = cmd_size || eap.cmdidx = cmd_print) &&
        ld_char ed (Exarg_T.cmd ed eap) >= 'A' &&
        ld_char ed (Exarg_T.cmd ed eap) <= 'Z' then
       (let rec loop22 p =
@@ -8745,22 +8601,22 @@ let find_ex_command ed eap full =
   let join5 p =
     let len = to_i32 (p - Exarg_T.cmd ed eap) in
     let join14 len =
-      Exarg_T.set_cmdidx ed eap 0;
+      eap.cmdidx <- 0;
       let rec loop15 () =
         let join18 () =
-          if Exarg_T.cmdidx ed eap = cmd_star && vim_strchr ed (p_cpo ed) cpo_star = 0 then
+          if eap.cmdidx = cmd_star && vim_strchr ed (p_cpo ed) cpo_star = 0 then
             join20 (Exarg_T.cmd ed eap)
           else
             join20 p
         in
-        if Exarg_T.cmdidx ed eap < 98 then
-          (if len >= Cmdname.cmd_minlen ed (cmdnames + Exarg_T.cmdidx ed eap * 40) &&
-              musl_strncmp ed (Cmdname.cmd_name ed (cmdnames + Exarg_T.cmdidx ed eap * 40))
+        if eap.cmdidx < 98 then
+          (if len >= Cmdname.cmd_minlen ed (cmdnames + eap.cmdidx * 40) &&
+              musl_strncmp ed (Cmdname.cmd_name ed (cmdnames + eap.cmdidx * 40))
                 (Exarg_T.cmd ed eap) len =
               0 then
              join18 ()
            else
-             (Exarg_T.set_cmdidx ed eap (Exarg_T.cmdidx ed eap + 1);
+             (eap.cmdidx <- eap.cmdidx + 1;
               loop15 ()))
         else
           join18 ()
@@ -8773,9 +8629,9 @@ let find_ex_command ed eap full =
          let join10 () =
            if i = len - 1 then
              (if ld_char ed (p - 1) = 'l' then
-                Exarg_T.set_flags ed eap (Exarg_T.flags ed eap lor exflag_list)
+                eap.flags <- eap.flags lor exflag_list
               else
-                Exarg_T.set_flags ed eap (Exarg_T.flags ed eap lor exflag_print);
+                eap.flags <- eap.flags lor exflag_print;
               join14 (len - 1))
            else
              join14 len
@@ -8811,35 +8667,30 @@ let get_flags ed eap =
   let rec loop1 () =
     if vim_strchr ed 163342 (* "lp#" *) (ld_u8 ed (Exarg_T.arg ed eap)) <> 0 then
       ((match ld_char ed (Exarg_T.arg ed eap) with
-        | 'l' -> Exarg_T.set_flags ed eap (Exarg_T.flags ed eap lor exflag_list)
-        | 'p' -> Exarg_T.set_flags ed eap (Exarg_T.flags ed eap lor exflag_print)
-        | _ -> Exarg_T.set_flags ed eap (Exarg_T.flags ed eap lor exflag_nr));
+        | 'l' -> eap.flags <- eap.flags lor exflag_list
+        | 'p' -> eap.flags <- eap.flags lor exflag_print
+        | _ -> eap.flags <- eap.flags lor exflag_nr);
        Exarg_T.set_arg ed eap (skipwhite ed (Exarg_T.arg ed eap + 1));
        loop1 ())
   in
   loop1 ()
 
 let invalid_range ed eap =
-  if Exarg_T.line1 ed eap < 0 ||
-     Exarg_T.line2 ed eap < 0 ||
-     Exarg_T.line1 ed eap > Exarg_T.line2 ed eap then
+  if eap.line1 < 0 || eap.line2 < 0 || eap.line1 > eap.line2 then
     e_invalid_range
-  else if Exarg_T.argt ed eap land ex_range = 0 then
+  else if eap.argt land ex_range = 0 then
     0
   else
-    match Exarg_T.addr_type ed eap with
+    match eap.addr_type with
     | Addr_lines ->
-        if Exarg_T.line2 ed eap > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
-          e_invalid_range
-        else
-          0
-    | Addr_windows -> if Exarg_T.line2 ed eap > 1 then e_invalid_range else 0
+        if eap.line2 > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then e_invalid_range else 0
+    | Addr_windows -> if eap.line2 > 1 then e_invalid_range else 0
     | Addr_unsigned | Addr_other | Addr_none -> 0
 
-let correct_range ed eap =
-  if Exarg_T.argt ed eap land ex_zeror = 0 then
-    (if Exarg_T.line1 ed eap = 0 then Exarg_T.set_line1 ed eap 1;
-     if Exarg_T.line2 ed eap = 0 then Exarg_T.set_line2 ed eap 1)
+let correct_range _ed eap =
+  if eap.argt land ex_zeror = 0 then
+    (if eap.line1 = 0 then eap.line1 <- 1;
+     if eap.line2 = 0 then eap.line2 <- 1)
 
 let check_nextcmd ed p =
   let s = skipwhite ed p in
@@ -11903,38 +11754,38 @@ and add_to_history ed histype new_entry new_entrylen in_map sep =
 and handle_lnum_col ed wp wlv _sign_present _num_attr =
   let join13 () =
     if Win_T.w_onebuf_opt_wo_rnu ed wp <> 0 &&
-       Winlinevars_T.lnum ed wlv > Win_T.w_cursor_lnum ed wp &&
+       wlv.winlinevars_lnum > Win_T.w_cursor_lnum ed wp &&
        ld_s32 ed (highlight_attr + 52) <> 0 then
       (let r3 = get_win_attr ed wp in
-       Winlinevars_T.set_char_attr ed wlv (hl_combine_attr ed r3 (ld_s32 ed (highlight_attr + 52))))
+       wlv.char_attr <- hl_combine_attr ed r3 (ld_s32 ed (highlight_attr + 52)))
   in
   let join11 () =
-    Winlinevars_T.set_n_extra ed wlv 8;
+    wlv.n_extra <- 8;
     let r1 = get_win_attr ed wp in
-    Winlinevars_T.set_char_attr ed wlv (hl_combine_attr ed r1 (ld_s32 ed (highlight_attr + 44)));
+    wlv.char_attr <- hl_combine_attr ed r1 (ld_s32 ed (highlight_attr + 44));
     if Win_T.w_onebuf_opt_wo_rnu ed wp <> 0 &&
-       Winlinevars_T.lnum ed wlv < Win_T.w_cursor_lnum ed wp &&
+       wlv.winlinevars_lnum < Win_T.w_cursor_lnum ed wp &&
        ld_s32 ed (highlight_attr + 48) <> 0 then
       (let r2 = get_win_attr ed wp in
-       Winlinevars_T.set_char_attr ed wlv (hl_combine_attr ed r2 (ld_s32 ed (highlight_attr + 48)));
+       wlv.char_attr <- hl_combine_attr ed r2 (ld_s32 ed (highlight_attr + 48));
        join13 ())
     else
       join13 ()
   in
   let join10 () =
-    Winlinevars_T.set_p_extra ed wlv (Winlinevars_T.extra_addr wlv);
-    Winlinevars_T.set_c_extra ed wlv nul;
-    Winlinevars_T.set_c_final ed wlv nul;
+    wlv.p_extra <- Winlinevars_T.extra_addr wlv;
+    wlv.c_extra <- nul;
+    wlv.c_final <- nul;
     join11 ()
   in
   let join7 num fmt =
     ignore (vim_snprintf ed (Winlinevars_T.extra_addr wlv) 86 fmt [7; num]);
-    if Win_T.w_skipcol ed wp > 0 && Winlinevars_T.startrow ed wlv = 0 then
-      (Winlinevars_T.set_p_extra ed wlv (Winlinevars_T.extra_addr wlv);
+    if Win_T.w_skipcol ed wp > 0 && wlv.startrow = 0 then
+      (wlv.p_extra <- Winlinevars_T.extra_addr wlv;
        let rec loop9 () =
-         if ld_char ed (Winlinevars_T.p_extra ed wlv) = ' ' then
-           (st_u8 ed (Winlinevars_T.p_extra ed wlv) (Char.code '-');
-            Winlinevars_T.set_p_extra ed wlv (Winlinevars_T.p_extra ed wlv + 1);
+         if ld_char ed wlv.p_extra = ' ' then
+           (st_u8 ed wlv.p_extra (Char.code '-');
+            wlv.p_extra <- wlv.p_extra + 1;
             loop9 ())
          else
            join10 ()
@@ -11944,37 +11795,37 @@ and handle_lnum_col ed wp wlv _sign_present _num_attr =
       join10 ()
   in
   let has_cpo_n = vim_strchr ed (p_cpo ed) cpo_numcol <> 0 in
-  let lnum_row = Winlinevars_T.startrow ed wlv + Winlinevars_T.filler_lines ed wlv in
+  let lnum_row = wlv.startrow + wlv.filler_lines in
   if (Win_T.w_onebuf_opt_wo_nu ed wp <> 0 || Win_T.w_onebuf_opt_wo_rnu ed wp <> 0) &&
-     (Winlinevars_T.row ed wlv <= lnum_row || not has_cpo_n) &&
+     (wlv.row <= lnum_row || not has_cpo_n) &&
      not (has_cpo_n &&
       Win_T.w_skipcol ed wp > 0 &&
-      Winlinevars_T.lnum ed wlv = Win_T.w_topline ed wp) then
-    (if Winlinevars_T.row ed wlv = lnum_row &&
+      wlv.winlinevars_lnum = Win_T.w_topline ed wp) then
+    (if wlv.row = lnum_row &&
         (Win_T.w_skipcol ed wp = 0 ||
-         Winlinevars_T.row ed wlv > 0 ||
+         wlv.row > 0 ||
          Win_T.w_onebuf_opt_wo_nu ed wp <> 0 && Win_T.w_onebuf_opt_wo_rnu ed wp <> 0) then
        (let fmt = 162517 (* "%*ld " *) in
         if Win_T.w_onebuf_opt_wo_nu ed wp <> 0 && Win_T.w_onebuf_opt_wo_rnu ed wp = 0 then
-          join7 (Winlinevars_T.lnum ed wlv) fmt
+          join7 wlv.winlinevars_lnum fmt
         else
-          let num = musl_labs (get_cursor_rel_lnum ed wp (Winlinevars_T.lnum ed wlv)) in
+          let num = musl_labs (get_cursor_rel_lnum ed wp wlv.winlinevars_lnum) in
           if num = 0 &&
              Win_T.w_onebuf_opt_wo_nu ed wp <> 0 &&
              Win_T.w_onebuf_opt_wo_rnu ed wp <> 0 then
-            join7 (Winlinevars_T.lnum ed wlv) 162523 (* "%-*ld " *)
+            join7 wlv.winlinevars_lnum 162523 (* "%-*ld " *)
           else
             join7 num fmt)
      else
-       (Winlinevars_T.set_c_extra ed wlv (Char.code ' ');
-        Winlinevars_T.set_c_final ed wlv nul;
+       (wlv.c_extra <- Char.code ' ';
+        wlv.c_final <- nul;
         join11 ()))
 
 and wlv_screen_line ed wp wlv clear_end =
   let join6 () =
-    screen_line ed wp (Winlinevars_T.screen_row ed wlv) (Win_T.w_wincol ed wp)
-      (Winlinevars_T.col ed wlv) (if clear_end then Win_T.w_width ed wp else - Win_T.w_width ed wp)
-      (to_i32 (Winlinevars_T.vcol ed wlv - 1)) (Winlinevars_T.screen_line_flags ed wlv)
+    screen_line ed wp wlv.screen_row (Win_T.w_wincol ed wp) wlv.col
+      (if clear_end then Win_T.w_width ed wp else - Win_T.w_width ed wp) (to_i32 (wlv.vcol - 1))
+      wlv.screen_line_flags
   in
   let rec loop5 off max_off skip i =
     if i < 3 && i + skip < Win_T.w_width ed wp then
@@ -11987,7 +11838,7 @@ and wlv_screen_line ed wp wlv clear_end =
     else
       join6 ()
   in
-  if Winlinevars_T.row ed wlv = 0 &&
+  if wlv.row = 0 &&
      Win_T.w_skipcol ed wp > 0 &&
      not (Win_T.w_onebuf_opt_wo_list ed wp <> 0 && Win_T.w_lcs_chars_prec ed wp <> 0) then
     (let off = to_i32 (ed.st.current_ScreenLine - ed.st.screenlines) in
@@ -12009,16 +11860,15 @@ and wlv_screen_line ed wp wlv clear_end =
     join6 ()
 
 and draw_screen_line ed wp wlv =
-  Winlinevars_T.set_screen_line_flags ed wlv
-    (Winlinevars_T.screen_line_flags ed wlv lor slf_inc_vcol);
+  wlv.screen_line_flags <- wlv.screen_line_flags lor slf_inc_vcol;
   wlv_screen_line ed wp wlv true;
-  Winlinevars_T.set_screen_line_flags ed wlv (Winlinevars_T.screen_line_flags ed wlv land -5);
-  Winlinevars_T.set_row ed wlv (Winlinevars_T.row ed wlv + 1);
-  Winlinevars_T.set_screen_row ed wlv (Winlinevars_T.screen_row ed wlv + 1)
+  wlv.screen_line_flags <- wlv.screen_line_flags land -5;
+  wlv.row <- wlv.row + 1;
+  wlv.screen_row <- wlv.screen_row + 1
 
 and win_line ed wp lnum startrow endrow number_only =
   let fr = frame_push ed 320 in
-  let wlv = fr + 0 in
+  let wlv = Winlinevars_T.make (fr + 0) in
   let pos = fr + 264 in
   let area_attr_addr = fr + 280 in
   let u8cc = fr + 284 in
@@ -12028,7 +11878,7 @@ and win_line ed wp lnum startrow endrow number_only =
   let has_match_conc_addr = fr + 316 in
   let rec loop85 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col =
     let join300 _update_search_hl__o_r__ _update_search_hl__o_line _update_search_hl__o_on_last_col =
-      let r8 = Winlinevars_T.row ed wlv in
+      let r8 = wlv.row in
       frame_pop ed fr;
       r8
     in
@@ -12041,7 +11891,7 @@ and win_line ed wp lnum startrow endrow number_only =
                 (draw_screen_line ed wp wlv;
                  if in_curline then
                    (Win_T.set_w_cline_row ed ed.st.curwin startrow;
-                    Win_T.set_w_cline_height ed ed.st.curwin (Winlinevars_T.row ed wlv - startrow);
+                    Win_T.set_w_cline_height ed ed.st.curwin (wlv.row - startrow);
                     let r7 = ed.st.curwin in
                     Win_T.set_w_valid ed r7 (Win_T.w_valid ed r7 lor 24);
                     join300 update_search_hl__o_r__ update_search_hl__o_line
@@ -12054,16 +11904,11 @@ and win_line ed wp lnum startrow endrow number_only =
                 let join242 c mb_c mb_utf8 =
                   let join265 skip_cells multi_attr =
                     let join267 skipped_cells =
-                      if Winlinevars_T.draw_state ed wlv > 2 then
-                        Winlinevars_T.set_vcol ed wlv (Winlinevars_T.vcol ed wlv + 1);
-                      let t5 = Winlinevars_T.draw_state ed wlv > 2 && n_attr3 > 0 in
+                      if wlv.draw_state > 2 then wlv.vcol <- wlv.vcol + 1;
+                      let t5 = wlv.draw_state > 2 && n_attr3 > 0 in
                       let join271 n_attr3 t5 =
-                        if t5 then Winlinevars_T.set_char_attr ed wlv saved_attr3;
-                        let t6 =
-                          n_attr > 0 &&
-                          Winlinevars_T.draw_state ed wlv = 3 &&
-                          Winlinevars_T.n_attr_skip ed wlv = 0
-                        in
+                        if t5 then wlv.char_attr <- saved_attr3;
+                        let t6 = n_attr > 0 && wlv.draw_state = 3 && wlv.n_attr_skip = 0 in
                         let join275 n_attr t6 =
                           let join292 () =
                             win_line_start ed wp wlv true;
@@ -12076,64 +11921,50 @@ and win_line ed wp lnum startrow endrow number_only =
                               update_search_hl__o_r__ update_search_hl__o_line
                               update_search_hl__o_on_last_col
                           in
-                          if t6 then Winlinevars_T.set_char_attr ed wlv saved_attr2;
-                          if Winlinevars_T.n_attr_skip ed wlv > 0 then
-                            Winlinevars_T.set_n_attr_skip ed wlv
-                              (Winlinevars_T.n_attr_skip ed wlv - 1);
-                          if Winlinevars_T.col ed wlv >= Win_T.w_width ed wp &&
-                             (Winlinevars_T.draw_state ed wlv <> 3 ||
+                          if t6 then wlv.char_attr <- saved_attr2;
+                          if wlv.n_attr_skip > 0 then wlv.n_attr_skip <- wlv.n_attr_skip - 1;
+                          if wlv.col >= Win_T.w_width ed wp &&
+                             (wlv.draw_state <> 3 ||
                               ld_u8 ed ptr <> nul ||
                               Win_T.w_onebuf_opt_wo_list ed wp <> 0 &&
                               Win_T.w_lcs_chars_eol ed wp <> nul &&
                               lcs_eol_one <> -1 ||
-                              Winlinevars_T.n_extra ed wlv <> 0 &&
-                              (Winlinevars_T.c_extra ed wlv <> nul ||
-                               ld_u8 ed (Winlinevars_T.p_extra ed wlv) <> nul)) then
+                              wlv.n_extra <> 0 &&
+                              (wlv.c_extra <> nul || ld_u8 ed wlv.p_extra <> nul)) then
                             (wlv_screen_line ed wp wlv true;
-                             Winlinevars_T.set_row ed wlv (Winlinevars_T.row ed wlv + 1);
-                             Winlinevars_T.set_screen_row ed wlv
-                               (Winlinevars_T.screen_row ed wlv + 1);
+                             wlv.row <- wlv.row + 1;
+                             wlv.screen_row <- wlv.screen_row + 1;
                              if Win_T.w_onebuf_opt_wo_wrap ed wp = 0 then
                                join300 update_search_hl__o_r__ update_search_hl__o_line
                                  update_search_hl__o_on_last_col
                              else
-                               (if Winlinevars_T.draw_state ed wlv <> 3 then
-                                  (win_draw_end ed wp (Char.code '@') (Char.code ' ') true
-                                     (Winlinevars_T.row ed wlv) (Win_T.w_height ed wp) hlf_at;
-                                   draw_vsep_win ed wp (Winlinevars_T.row ed wlv);
-                                   Winlinevars_T.set_row ed wlv endrow);
-                                if Winlinevars_T.row ed wlv = endrow then
-                                  (Winlinevars_T.set_row ed wlv (Winlinevars_T.row ed wlv + 1);
+                               (if wlv.draw_state <> 3 then
+                                  (win_draw_end ed wp (Char.code '@') (Char.code ' ') true wlv.row
+                                     (Win_T.w_height ed wp) hlf_at;
+                                   draw_vsep_win ed wp wlv.row;
+                                   wlv.row <- endrow);
+                                if wlv.row = endrow then
+                                  (wlv.row <- wlv.row + 1;
                                    join300 update_search_hl__o_r__ update_search_hl__o_line
                                      update_search_hl__o_on_last_col)
-                                else if ed.st.screen_cur_row =
-                                   Winlinevars_T.screen_row ed wlv - 1 &&
+                                else if ed.st.screen_cur_row = wlv.screen_row - 1 &&
                                    Win_T.w_width ed wp = columns ed then
-                                  (st_u8 ed
-                                     (ed.st.linewraps +
-                                      (Winlinevars_T.screen_row ed wlv - 1)) true_;
+                                  (st_u8 ed (ed.st.linewraps + (wlv.screen_row - 1)) true_;
                                    if p_tf ed <> 0 &&
                                       not (utf_off2cells ed
-                                         (ld_u32 ed
-                                            (ed.st.lineoffset +
-                                             Winlinevars_T.screen_row ed wlv * 4))
+                                         (ld_u32 ed (ed.st.lineoffset + wlv.screen_row * 4))
                                          (u32_add
-                                            (ld_u32 ed
-                                               (ed.st.lineoffset +
-                                                Winlinevars_T.screen_row ed wlv * 4))
+                                            (ld_u32 ed (ed.st.lineoffset + wlv.screen_row * 4))
                                             (to_u32 ed.st.screen_Columns)) =
                                        2 ||
                                        utf_off2cells ed
                                          (u32_sub
                                             (u32_add
                                                (ld_u32 ed
-                                                  (ed.st.lineoffset +
-                                                   (Winlinevars_T.screen_row ed wlv - 1) * 4))
+                                                  (ed.st.lineoffset + (wlv.screen_row - 1) * 4))
                                                (to_u32 (Frame_T.fr_width ed ed.st.topframe))) 2)
                                          (u32_add
-                                            (ld_u32 ed
-                                               (ed.st.lineoffset +
-                                                Winlinevars_T.screen_row ed wlv * 4))
+                                            (ld_u32 ed (ed.st.lineoffset + wlv.screen_row * 4))
                                             (to_u32 ed.st.screen_Columns)) =
                                        2) then
                                      (if ed.st.screen_cur_col <> Win_T.w_width ed wp then
@@ -12141,10 +11972,9 @@ and win_line ed wp lnum startrow endrow number_only =
                                           (u32_sub
                                              (u32_add
                                                 (ld_u32 ed
-                                                   (ed.st.lineoffset +
-                                                    (Winlinevars_T.screen_row ed wlv - 1) * 4))
+                                                   (ed.st.lineoffset + (wlv.screen_row - 1) * 4))
                                                 (to_u32 (Frame_T.fr_width ed ed.st.topframe))) 1)
-                                          (Winlinevars_T.screen_row ed wlv - 1)
+                                          (wlv.screen_row - 1)
                                           (Frame_T.fr_width ed ed.st.topframe - 1);
                                       if ld_s8 ed
                                            (mb_bytelen_tab +
@@ -12152,8 +11982,7 @@ and win_line ed wp lnum startrow endrow number_only =
                                               (ed.st.screenlines +
                                                u32_add
                                                  (ld_u32 ed
-                                                    (ed.st.lineoffset +
-                                                     (Winlinevars_T.screen_row ed wlv - 1) * 4))
+                                                    (ed.st.lineoffset + (wlv.screen_row - 1) * 4))
                                                  (to_u32
                                                     (Frame_T.fr_width ed ed.st.topframe - 1)))) >
                                          1 then
@@ -12164,15 +11993,12 @@ and win_line ed wp lnum startrow endrow number_only =
                                              (ed.st.screenlines +
                                               u32_add
                                                 (ld_u32 ed
-                                                   (ed.st.lineoffset +
-                                                    (Winlinevars_T.screen_row ed wlv - 1) * 4))
+                                                   (ed.st.lineoffset + (wlv.screen_row - 1) * 4))
                                                 (to_u32 (Frame_T.fr_width ed ed.st.topframe - 1))));
                                       st_u16 ed
                                         (ed.st.screenattrs +
-                                         ld_u32 ed
-                                           (ed.st.lineoffset +
-                                            Winlinevars_T.screen_row ed wlv * 4) *
-                                         2) 65535;
+                                         ld_u32 ed (ed.st.lineoffset + wlv.screen_row * 4) * 2)
+                                        65535;
                                       screen_start ed;
                                       join292 ())
                                    else
@@ -12201,8 +12027,8 @@ and win_line ed wp lnum startrow endrow number_only =
                       else
                         join271 n_attr3 t5
                     in
-                    if Winlinevars_T.draw_state ed wlv > 2 && skipped_cells > 0 then
-                      (Winlinevars_T.set_vcol ed wlv (Winlinevars_T.vcol ed wlv + skipped_cells);
+                    if wlv.draw_state > 2 && skipped_cells > 0 then
+                      (wlv.vcol <- wlv.vcol + skipped_cells;
                        join267 0)
                     else
                       join267 skipped_cells
@@ -12210,51 +12036,44 @@ and win_line ed wp lnum startrow endrow number_only =
                   let join252 () =
                     let join255 multi_attr =
                       let join264 () =
-                        Winlinevars_T.set_off ed wlv (u32_add (Winlinevars_T.off ed wlv) 1);
-                        Winlinevars_T.set_col ed wlv (Winlinevars_T.col ed wlv + 1);
+                        wlv.off <- u32_add wlv.off 1;
+                        wlv.col <- wlv.col + 1;
                         join265 skip_cells multi_attr
                       in
-                      if Winlinevars_T.draw_state ed wlv > 2 then
-                        st_s32 ed (ed.st.screencols + Winlinevars_T.off ed wlv * 4)
-                          (to_i32 (Winlinevars_T.vcol ed wlv))
+                      if wlv.draw_state > 2 then
+                        st_s32 ed (ed.st.screencols + wlv.off * 4) (to_i32 wlv.vcol)
                       else
-                        st_s32 ed (ed.st.screencols + Winlinevars_T.off ed wlv * 4) (-1);
+                        st_s32 ed (ed.st.screencols + wlv.off * 4) (-1);
                       if utf_char2cells ed mb_c > 1 then
-                        (Winlinevars_T.set_off ed wlv (u32_add (Winlinevars_T.off ed wlv) 1);
-                         Winlinevars_T.set_col ed wlv (Winlinevars_T.col ed wlv + 1);
-                         st_u8 ed (ed.st.screenlines + Winlinevars_T.off ed wlv) 0;
-                         if Winlinevars_T.draw_state ed wlv > 2 then
-                           (Winlinevars_T.set_vcol ed wlv (Winlinevars_T.vcol ed wlv + 1);
-                            st_s32 ed (ed.st.screencols + Winlinevars_T.off ed wlv * 4)
-                              (to_i32 (Winlinevars_T.vcol ed wlv)))
+                        (wlv.off <- u32_add wlv.off 1;
+                         wlv.col <- wlv.col + 1;
+                         st_u8 ed (ed.st.screenlines + wlv.off) 0;
+                         if wlv.draw_state > 2 then
+                           (wlv.vcol <- wlv.vcol + 1;
+                            st_s32 ed (ed.st.screencols + wlv.off * 4) (to_i32 wlv.vcol))
                          else
-                           st_s32 ed (ed.st.screencols + Winlinevars_T.off ed wlv * 4) (-1);
-                         if Winlinevars_T.tocol ed wlv = Winlinevars_T.vcol ed wlv then
+                           st_s32 ed (ed.st.screencols + wlv.off * 4) (-1);
+                         if Winlinevars_T.tocol ed wlv = wlv.vcol then
                            Winlinevars_T.set_tocol ed wlv (Winlinevars_T.tocol ed wlv + 1);
                          join264 ())
                       else
                         join264 ()
                     in
                     if multi_attr = 0 then
-                      (st_u16 ed (ed.st.screenattrs + Winlinevars_T.off ed wlv * 2)
-                         (to_u16 (Winlinevars_T.char_attr ed wlv));
+                      (st_u16 ed (ed.st.screenattrs + wlv.off * 2) (to_u16 wlv.char_attr);
                        join255 multi_attr)
                     else
-                      (st_u16 ed (ed.st.screenattrs + Winlinevars_T.off ed wlv * 2)
-                         (to_u16 multi_attr);
+                      (st_u16 ed (ed.st.screenattrs + wlv.off * 2) (to_u16 multi_attr);
                        join255 0)
                   in
-                  if Winlinevars_T.draw_state ed wlv < 3 || skip_cells <= 0 then
-                    (st_u8 ed (ed.st.screenlines + Winlinevars_T.off ed wlv) (to_u8 c);
+                  if wlv.draw_state < 3 || skip_cells <= 0 then
+                    (st_u8 ed (ed.st.screenlines + wlv.off) (to_u8 c);
                      if mb_utf8 then
-                       (st_u32 ed
-                          (ed.st.screenlinesuc + Winlinevars_T.off ed wlv * 4) (to_u32 mb_c);
-                        if c land 255 = 0 then
-                          st_u8 ed (ed.st.screenlines + Winlinevars_T.off ed wlv) 128;
+                       (st_u32 ed (ed.st.screenlinesuc + wlv.off * 4) (to_u32 mb_c);
+                        if c land 255 = 0 then st_u8 ed (ed.st.screenlines + wlv.off) 128;
                         let rec loop249 i_2 =
                           if i_2 < ed.st.screen_mco then
-                            (st_u32 ed
-                               (ld_ptr ed (screenlinesc + i_2 * 8) + Winlinevars_T.off ed wlv * 4)
+                            (st_u32 ed (ld_ptr ed (screenlinesc + i_2 * 8) + wlv.off * 4)
                                (to_u32 (ld_s32 ed (u8cc + i_2 * 4)));
                              if ld_s32 ed (u8cc + i_2 * 4) = 0 then
                                join252 ()
@@ -12265,22 +12084,19 @@ and win_line ed wp lnum startrow endrow number_only =
                         in
                         loop249 0)
                      else
-                       (st_u32 ed (ed.st.screenlinesuc + Winlinevars_T.off ed wlv * 4) 0;
+                       (st_u32 ed (ed.st.screenlinesuc + wlv.off * 4) 0;
                         join252 ()))
                   else
                     join265 (skip_cells - 1) multi_attr
                 in
                 if lcs_ext <> nul &&
-                   Winlinevars_T.draw_state ed wlv = 3 &&
-                   Winlinevars_T.col ed wlv = Win_T.w_width ed wp - 1 &&
+                   wlv.draw_state = 3 &&
+                   wlv.col = Win_T.w_width ed wp - 1 &&
                    (ld_u8 ed ptr <> nul ||
                     lcs_eol_one > 0 ||
-                    Winlinevars_T.n_extra ed wlv > 0 &&
-                    (Winlinevars_T.c_extra ed wlv <> nul ||
-                     ld_u8 ed (Winlinevars_T.p_extra ed wlv) <> nul)) then
-                  (Winlinevars_T.set_char_attr ed wlv
-                     (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                        (ld_s32 ed (highlight_attr + 8)));
+                    wlv.n_extra > 0 && (wlv.c_extra <> nul || ld_u8 ed wlv.p_extra <> nul)) then
+                  (wlv.char_attr <-
+                     hl_combine_attr ed wlv.win_attr (ld_s32 ed (highlight_attr + 8));
                    if utf_char2len lcs_ext > 1 then
                      (st_s32 ed u8cc 0;
                       join242 192 lcs_ext true)
@@ -12289,64 +12105,54 @@ and win_line ed wp lnum startrow endrow number_only =
                 else
                   join242 c mb_c mb_utf8
             in
-            if (c = nul || did_line_attr = 1) && Winlinevars_T.eol_hl_off ed wlv = 0 then
+            if (c = nul || did_line_attr = 1) && wlv.eol_hl_off = 0 then
               (let prevcol_hl_flag =
                  get_prevcol_hl_flag ed wp screen_search_hl (ptr - line - Bool.to_int (c = nul))
                in
                let join231 n =
                  if n = 0 then
-                   (st_u8 ed (ed.st.screenlines + Winlinevars_T.off ed wlv) (Char.code ' ');
-                    st_u32 ed (ed.st.screenlinesuc + Winlinevars_T.off ed wlv * 4) 0)
+                   (st_u8 ed (ed.st.screenlines + wlv.off) (Char.code ' ');
+                    st_u32 ed (ed.st.screenlinesuc + wlv.off * 4) 0)
                  else
-                   (Winlinevars_T.set_off ed wlv (u32_add (Winlinevars_T.off ed wlv) (to_u32 n));
-                    Winlinevars_T.set_col ed wlv (Winlinevars_T.col ed wlv + n));
+                   (wlv.off <- u32_add wlv.off (to_u32 n);
+                    wlv.col <- wlv.col + n);
                  if ld_s32 ed area_attr_addr = 0 then
                    get_search_match_hl__char_attr ed wp screen_search_hl (ptr - line) wlv;
-                 st_u16 ed (ed.st.screenattrs + Winlinevars_T.off ed wlv * 2)
-                   (to_u16 (Winlinevars_T.char_attr ed wlv));
-                 st_s32 ed (ed.st.screencols + Winlinevars_T.off ed wlv * 4)
-                   (to_i32 (Winlinevars_T.vcol ed wlv));
-                 Winlinevars_T.set_col ed wlv (Winlinevars_T.col ed wlv + 1);
-                 Winlinevars_T.set_off ed wlv (u32_add (Winlinevars_T.off ed wlv) 1);
-                 Winlinevars_T.set_vcol ed wlv (Winlinevars_T.vcol ed wlv + 1);
-                 Winlinevars_T.set_eol_hl_off ed wlv 1;
+                 st_u16 ed (ed.st.screenattrs + wlv.off * 2) (to_u16 wlv.char_attr);
+                 st_s32 ed (ed.st.screencols + wlv.off * 4) (to_i32 wlv.vcol);
+                 wlv.col <- wlv.col + 1;
+                 wlv.off <- u32_add wlv.off 1;
+                 wlv.vcol <- wlv.vcol + 1;
+                 wlv.eol_hl_off <- 1;
                  join237 ()
                in
                if Win_T.w_lcs_chars_eol ed wp = lcs_eol_one &&
                   (ld_s32 ed area_attr_addr <> 0 &&
-                   Winlinevars_T.vcol ed wlv = Winlinevars_T.fromcol ed wlv &&
+                   wlv.vcol = Winlinevars_T.fromcol ed wlv &&
                    (ed.st.visual_mode <> ctrl_v ||
                     lnum = Pos_T.lnum ed visual ||
                     lnum = Win_T.w_cursor_lnum ed ed.st.curwin) &&
                    c = nul ||
                    prevcol_hl_flag && did_line_attr <= 1) then
-                 (if Winlinevars_T.col ed wlv >= Win_T.w_width ed wp then
-                    join231 (-1)
-                  else
-                    join231 0)
+                 (if wlv.col >= Win_T.w_width ed wp then join231 (-1) else join231 0)
                else
                  join237 ())
             else
               join237 ()
           in
-          if Winlinevars_T.n_attr_skip ed wlv = 0 &&
-             n_attr > 0 &&
-             Winlinevars_T.draw_state ed wlv = 3 &&
-             not attr_pri then
-            (if Winlinevars_T.line_attr ed wlv = 0 then
-               Winlinevars_T.set_char_attr ed wlv (Winlinevars_T.extra_attr ed wlv)
+          if wlv.n_attr_skip = 0 && n_attr > 0 && wlv.draw_state = 3 && not attr_pri then
+            (if wlv.line_attr = 0 then
+               wlv.char_attr <- wlv.extra_attr
              else
-               Winlinevars_T.set_char_attr ed wlv
-                 (hl_combine_attr ed (Winlinevars_T.line_attr ed wlv)
-                    (Winlinevars_T.extra_attr ed wlv)));
+               wlv.char_attr <- hl_combine_attr ed wlv.line_attr wlv.extra_attr);
           if lcs_prec_todo <> nul &&
              Win_T.w_onebuf_opt_wo_list ed wp <> 0 &&
              (if Win_T.w_onebuf_opt_wo_wrap ed wp = 0 then
                 Bool.to_int (Win_T.w_leftcol ed wp > 0)
               else
-                Bool.to_int (Win_T.w_skipcol ed wp > 0 && Winlinevars_T.row ed wlv = 0)) <>
+                Bool.to_int (Win_T.w_skipcol ed wp > 0 && wlv.row = 0)) <>
              0 &&
-             Winlinevars_T.draw_state ed wlv > 2 &&
+             wlv.draw_state > 2 &&
              skip_cells <= 0 &&
              c <> nul then
             (let c = Win_T.w_lcs_chars_prec ed wp in
@@ -12355,10 +12161,9 @@ and win_line ed wp lnum startrow endrow number_only =
                  if attr_pri then
                    join227 c lcs_prec_todo n_attr n_attr3 saved_attr3 mb_c mb_utf8
                  else
-                   let saved_attr3 = Winlinevars_T.char_attr ed wlv in
-                   Winlinevars_T.set_char_attr ed wlv
-                     (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                        (ld_s32 ed (highlight_attr + 8)));
+                   let saved_attr3 = wlv.char_attr in
+                   wlv.char_attr <-
+                     hl_combine_attr ed wlv.win_attr (ld_s32 ed (highlight_attr + 8));
                    join227 c lcs_prec_todo n_attr 1 saved_attr3 mb_c mb_utf8
                in
                if utf_char2len c > 1 then
@@ -12368,12 +12173,10 @@ and win_line ed wp lnum startrow endrow number_only =
                  join225 c c false
              in
              if utf_char2cells ed mb_c > 1 then
-               (Winlinevars_T.set_c_extra ed wlv mb_filler_char;
-                Winlinevars_T.set_c_final ed wlv nul;
-                Winlinevars_T.set_n_extra ed wlv 1;
-                Winlinevars_T.set_extra_attr ed wlv
-                  (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                     (ld_s32 ed (highlight_attr + 8)));
+               (wlv.c_extra <- mb_filler_char;
+                wlv.c_final <- nul;
+                wlv.n_extra <- 1;
+                wlv.extra_attr <- hl_combine_attr ed wlv.win_attr (ld_s32 ed (highlight_attr + 8));
                 join222 nul 2)
              else
                join222 nul n_attr)
@@ -12381,60 +12184,50 @@ and win_line ed wp lnum startrow endrow number_only =
             join227 c lcs_prec_todo n_attr n_attr3 saved_attr3 mb_c mb_utf8
         in
         let join214 c multi_attr mb_c mb_utf8 =
-          Winlinevars_T.set_n_extra ed wlv (Winlinevars_T.n_extra ed wlv - 1);
+          wlv.n_extra <- wlv.n_extra - 1;
           join215 c ptr lcs_eol_one n_attr saved_attr2 skip_cells multi_attr mb_c mb_utf8
             in_multispace multispace_pos did_line_attr
         in
-        if Winlinevars_T.win_attr ed wlv <> 0 then
-          (if Winlinevars_T.char_attr ed wlv = 0 then
-             Winlinevars_T.set_char_attr ed wlv (Winlinevars_T.win_attr ed wlv)
+        if wlv.win_attr <> 0 then
+          (if wlv.char_attr = 0 then
+             wlv.char_attr <- wlv.win_attr
            else
-             Winlinevars_T.set_char_attr ed wlv
-               (hl_combine_attr
-                  ed (Winlinevars_T.win_attr ed wlv) (Winlinevars_T.char_attr ed wlv)));
-        if Winlinevars_T.n_extra ed wlv > 0 then
-          (if Winlinevars_T.c_extra ed wlv <> nul ||
-              Winlinevars_T.n_extra ed wlv = 1 && Winlinevars_T.c_final ed wlv <> nul then
-             (let c =
-                if Winlinevars_T.n_extra ed wlv = 1 && Winlinevars_T.c_final ed wlv <> nul then
-                  Winlinevars_T.c_final ed wlv
-                else
-                  Winlinevars_T.c_extra ed wlv
-              in
+             wlv.char_attr <- hl_combine_attr ed wlv.win_attr wlv.char_attr);
+        if wlv.n_extra > 0 then
+          (if wlv.c_extra <> nul || wlv.n_extra = 1 && wlv.c_final <> nul then
+             (let c = if wlv.n_extra = 1 && wlv.c_final <> nul then wlv.c_final else wlv.c_extra in
               if utf_char2len c > 1 then
                 (st_s32 ed u8cc 0;
                  join214 192 multi_attr c true)
               else
                 join214 c multi_attr c false)
            else
-             let c = ld_u8 ed (Winlinevars_T.p_extra ed wlv) in
-             let mb_l = utfc_ptr2len ed (Winlinevars_T.p_extra ed wlv) in
+             let c = ld_u8 ed wlv.p_extra in
+             let mb_l = utfc_ptr2len ed wlv.p_extra in
              let join205 c mb_l mb_c mb_utf8 =
                let join207 mb_l =
                  let join210 c multi_attr mb_c mb_utf8 =
-                   Winlinevars_T.set_p_extra ed wlv (Winlinevars_T.p_extra ed wlv + 1);
+                   wlv.p_extra <- wlv.p_extra + 1;
                    join214 c multi_attr mb_c mb_utf8
                  in
-                 if Winlinevars_T.col ed wlv >= Win_T.w_width ed wp - 1 &&
-                    utf_char2cells ed mb_c = 2 then
+                 if wlv.col >= Win_T.w_width ed wp - 1 && utf_char2cells ed mb_c = 2 then
                    (let c = Char.code '>' in
                     let multi_attr = ld_s32 ed (highlight_attr + 8) in
-                    let multi_attr = hl_combine_attr ed (Winlinevars_T.win_attr ed wlv) multi_attr
-                    in
-                    Winlinevars_T.set_n_extra ed wlv (Winlinevars_T.n_extra ed wlv + 1);
-                    Winlinevars_T.set_p_extra ed wlv (Winlinevars_T.p_extra ed wlv - 1);
+                    let multi_attr = hl_combine_attr ed wlv.win_attr multi_attr in
+                    wlv.n_extra <- wlv.n_extra + 1;
+                    wlv.p_extra <- wlv.p_extra - 1;
                     join210 c multi_attr c false)
                  else
-                   (Winlinevars_T.set_n_extra ed wlv (Winlinevars_T.n_extra ed wlv - (mb_l - 1));
-                    Winlinevars_T.set_p_extra ed wlv (Winlinevars_T.p_extra ed wlv + (mb_l - 1));
+                   (wlv.n_extra <- wlv.n_extra - (mb_l - 1);
+                    wlv.p_extra <- wlv.p_extra + (mb_l - 1);
                     join210 c multi_attr mb_c mb_utf8)
                in
                if mb_l = 0 then join207 1 else join207 mb_l
              in
-             if mb_l > Winlinevars_T.n_extra ed wlv then
+             if mb_l > wlv.n_extra then
                join205 c 1 c false
              else if mb_l > 1 then
-               join205 192 mb_l (utfc_ptr2char ed (Winlinevars_T.p_extra ed wlv) u8cc) true
+               join205 192 mb_l (utfc_ptr2char ed wlv.p_extra u8cc) true
              else
                join205 c mb_l c false)
         else
@@ -12462,9 +12255,8 @@ and win_line ed wp lnum startrow endrow number_only =
                           if attr_pri then
                             join189 (-1) n_attr
                           else
-                            (Winlinevars_T.set_extra_attr ed wlv
-                               (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                                  (ld_s32 ed (highlight_attr + 8)));
+                            (wlv.extra_attr <-
+                               hl_combine_attr ed wlv.win_attr (ld_s32 ed (highlight_attr + 8));
                              join189 (-1) 1)
                         in
                         if Win_T.w_onebuf_opt_wo_list ed wp <> 0 &&
@@ -12477,9 +12269,7 @@ and win_line ed wp lnum startrow endrow number_only =
                         (if c = tab &&
                             (Win_T.w_onebuf_opt_wo_list ed wp = 0 ||
                              Win_T.w_lcs_chars_tab1 ed wp <> 0) then
-                           (let vcol_adjusted =
-                              Winlinevars_T.vcol ed wlv - Winlinevars_T.vcol_off_tp ed wlv
-                            in
+                           (let vcol_adjusted = wlv.vcol - wlv.vcol_off_tp in
                             let lcs_tab1 = Win_T.w_lcs_chars_tab1 ed wp in
                             let lcs_tab2 = Win_T.w_lcs_chars_tab2 ed wp in
                             let lcs_tab3 = Win_T.w_lcs_chars_tab3 ed wp in
@@ -12491,27 +12281,23 @@ and win_line ed wp lnum startrow endrow number_only =
                                    to_i32 (Buf_T.b_p_ts ed (Win_T.w_buffer ed wp)) -
                                    1)
                               in
-                              Winlinevars_T.set_n_extra ed wlv tab_len;
+                              wlv.n_extra <- tab_len;
                               if Win_T.w_onebuf_opt_wo_list ed wp = 0 then
-                                (Winlinevars_T.set_c_final ed wlv nul;
-                                 Winlinevars_T.set_c_extra ed wlv (Char.code ' ');
+                                (wlv.c_final <- nul;
+                                 wlv.c_extra <- Char.code ' ';
                                  join215 (Char.code ' ') ptr lcs_eol_one n_attr saved_attr2
                                    skip_cells multi_attr mb_c false in_multispace multispace_pos
                                    did_line_attr)
                               else
                                 let c =
-                                  if Winlinevars_T.n_extra ed wlv = 0 && lcs_tab3 <> 0 then
-                                    lcs_tab3
-                                  else
-                                    lcs_tab1
+                                  if wlv.n_extra = 0 && lcs_tab3 <> 0 then lcs_tab3 else lcs_tab1
                                 in
-                                Winlinevars_T.set_c_extra ed wlv lcs_tab2;
-                                Winlinevars_T.set_c_final ed wlv lcs_tab3;
+                                wlv.c_extra <- lcs_tab2;
+                                wlv.c_final <- lcs_tab3;
                                 let n_attr = tab_len + 1 in
-                                Winlinevars_T.set_extra_attr ed wlv
-                                  (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                                     (ld_s32 ed highlight_attr));
-                                let saved_attr2 = Winlinevars_T.char_attr ed wlv in
+                                wlv.extra_attr <-
+                                  hl_combine_attr ed wlv.win_attr (ld_s32 ed highlight_attr);
+                                let saved_attr2 = wlv.char_attr in
                                 if utf_char2len c > 1 then
                                   (st_s32 ed u8cc 0;
                                    join215 192 ptr lcs_eol_one n_attr saved_attr2 skip_cells
@@ -12529,33 +12315,31 @@ and win_line ed wp lnum startrow endrow number_only =
                             else
                               join194 lcs_tab1 lcs_tab2 lcs_tab3)
                          else if c = nul &&
-                            Winlinevars_T.n_extra ed wlv = 0 &&
+                            wlv.n_extra = 0 &&
                             (Win_T.w_onebuf_opt_wo_list ed wp <> 0 ||
                              Winlinevars_T.fromcol ed wlv >= 0 &&
-                             Winlinevars_T.tocol ed wlv > Winlinevars_T.vcol ed wlv &&
+                             Winlinevars_T.tocol ed wlv > wlv.vcol &&
                              ed.st.visual_mode <> ctrl_v &&
-                             Winlinevars_T.col ed wlv < Win_T.w_width ed wp) &&
+                             wlv.col < Win_T.w_width ed wp) &&
                             lcs_eol_one > 0 then
-                           (if Winlinevars_T.line_attr ed wlv = 0 then
+                           (if wlv.line_attr = 0 then
                               (if not (area_highlighting <> 0 &&
                                    virtual_active ed <> 0 &&
                                    Winlinevars_T.tocol ed wlv <> maxcol &&
-                                   Winlinevars_T.vcol ed wlv < Winlinevars_T.tocol ed wlv) then
-                                 Winlinevars_T.set_p_extra ed wlv 162263 (* "" *);
-                               Winlinevars_T.set_n_extra ed wlv 0;
+                                   wlv.vcol < Winlinevars_T.tocol ed wlv) then
+                                 wlv.p_extra <- 162263 (* "" *);
+                               wlv.n_extra <- 0;
                                join184 ())
                             else
                               join184 ())
                          else if c <> nul then
-                           (Winlinevars_T.set_p_extra ed wlv
-                              (transchar_buf ed (Win_T.w_buffer ed wp) c);
-                            if Winlinevars_T.n_extra ed wlv = 0 then
-                              Winlinevars_T.set_n_extra ed wlv (byte2cells ed c - 1);
-                            Winlinevars_T.set_c_extra ed wlv nul;
-                            Winlinevars_T.set_c_final ed wlv nul;
-                            Winlinevars_T.set_n_extra ed wlv (byte2cells ed c - 1);
-                            let t4 = Winlinevars_T.p_extra ed wlv in
-                            Winlinevars_T.set_p_extra ed wlv (Winlinevars_T.p_extra ed wlv + 1);
+                           (wlv.p_extra <- transchar_buf ed (Win_T.w_buffer ed wp) c;
+                            if wlv.n_extra = 0 then wlv.n_extra <- byte2cells ed c - 1;
+                            wlv.c_extra <- nul;
+                            wlv.c_final <- nul;
+                            wlv.n_extra <- byte2cells ed c - 1;
+                            let t4 = wlv.p_extra in
+                            wlv.p_extra <- wlv.p_extra + 1;
                             let c = ld_u8 ed t4 in
                             let join179 n_attr saved_attr2 =
                               join215 c ptr lcs_eol_one n_attr saved_attr2 skip_cells multi_attr
@@ -12564,29 +12348,27 @@ and win_line ed wp lnum startrow endrow number_only =
                             if attr_pri then
                               join179 n_attr saved_attr2
                             else
-                              let n_attr = Winlinevars_T.n_extra ed wlv + 1 in
-                              Winlinevars_T.set_extra_attr ed wlv
-                                (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                                   (ld_s32 ed highlight_attr));
-                              join179 n_attr (Winlinevars_T.char_attr ed wlv))
+                              let n_attr = wlv.n_extra + 1 in
+                              wlv.extra_attr <-
+                                hl_combine_attr ed wlv.win_attr (ld_s32 ed highlight_attr);
+                              join179 n_attr wlv.char_attr)
                          else if ed.st.visual_active &&
                             (ed.st.visual_mode = ctrl_v || ed.st.visual_mode = Char.code 'v') &&
                             virtual_active ed <> 0 &&
                             Winlinevars_T.tocol ed wlv <> maxcol &&
-                            Winlinevars_T.vcol ed wlv < Winlinevars_T.tocol ed wlv &&
-                            Winlinevars_T.col ed wlv < Win_T.w_width ed wp then
+                            wlv.vcol < Winlinevars_T.tocol ed wlv &&
+                            wlv.col < Win_T.w_width ed wp then
                            join215 (Char.code ' ') (ptr - 1) lcs_eol_one n_attr saved_attr2
                              skip_cells multi_attr mb_c mb_utf8 in_multispace multispace_pos
                              did_line_attr
-                         else if Winlinevars_T.line_attr ed wlv <> 0 &&
-                            Winlinevars_T.col ed wlv < Win_T.w_width ed wp then
+                         else if wlv.line_attr <> 0 && wlv.col < Win_T.w_width ed wp then
                            (let did_line_attr = did_line_attr + 1 in
-                            if Winlinevars_T.line_attr ed wlv <> 0 &&
-                               Winlinevars_T.char_attr ed wlv = search_attr &&
+                            if wlv.line_attr <> 0 &&
+                               wlv.char_attr = search_attr &&
                                (did_line_attr > 1 ||
                                 Win_T.w_onebuf_opt_wo_list ed wp <> 0 &&
                                 Win_T.w_lcs_chars_eol ed wp > 0) then
-                              Winlinevars_T.set_char_attr ed wlv (Winlinevars_T.line_attr ed wlv);
+                              wlv.char_attr <- wlv.line_attr;
                             join215 (Char.code ' ') (ptr - 1) lcs_eol_one n_attr saved_attr2
                               skip_cells multi_attr mb_c mb_utf8 in_multispace multispace_pos
                               did_line_attr)
@@ -12610,10 +12392,9 @@ and win_line ed wp lnum startrow endrow number_only =
                           if attr_pri then
                             join163 n_attr saved_attr2
                           else
-                            (Winlinevars_T.set_extra_attr ed wlv
-                               (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                                  (ld_s32 ed highlight_attr));
-                             join163 1 (Winlinevars_T.char_attr ed wlv))
+                            (wlv.extra_attr <-
+                               hl_combine_attr ed wlv.win_attr (ld_s32 ed highlight_attr);
+                             join163 1 wlv.char_attr)
                         in
                         if c = Char.code ' ' &&
                            (trailcol <> maxcol && ptr > line + trailcol ||
@@ -12651,10 +12432,9 @@ and win_line ed wp lnum startrow endrow number_only =
                             join151 c n_attr saved_attr2 c false multispace_pos
                         in
                         if ld_s32 ed area_attr_addr = 0 && search_attr = 0 then
-                          (Winlinevars_T.set_extra_attr ed wlv
-                             (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                                (ld_s32 ed highlight_attr));
-                           join148 1 (Winlinevars_T.char_attr ed wlv))
+                          (wlv.extra_attr <-
+                             hl_combine_attr ed wlv.win_attr (ld_s32 ed highlight_attr);
+                           join148 1 wlv.char_attr)
                         else
                           join148 n_attr saved_attr2
                       in
@@ -12702,31 +12482,28 @@ and win_line ed wp lnum startrow endrow number_only =
                     else
                       join166 c n_attr saved_attr2 mb_c mb_utf8 in_multispace multispace_pos
                   in
-                  if skip_cells > 0 && mb_l > 1 && Winlinevars_T.n_extra ed wlv = 0 then
-                    (Winlinevars_T.set_n_extra ed wlv 1;
-                     Winlinevars_T.set_c_extra ed wlv mb_filler_char;
-                     Winlinevars_T.set_c_final ed wlv nul;
+                  if skip_cells > 0 && mb_l > 1 && wlv.n_extra = 0 then
+                    (wlv.n_extra <- 1;
+                     wlv.c_extra <- mb_filler_char;
+                     wlv.c_final <- nul;
                      let c = Char.code ' ' in
                      let join136 n_attr saved_attr2 =
                        join137 c n_attr saved_attr2 1 c false
                      in
                      if ld_s32 ed area_attr_addr = 0 && search_attr = 0 then
-                       (let n_attr = Winlinevars_T.n_extra ed wlv + 1 in
-                        Winlinevars_T.set_extra_attr ed wlv
-                          (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                             (ld_s32 ed (highlight_attr + 8)));
-                        join136 n_attr (Winlinevars_T.char_attr ed wlv))
+                       (let n_attr = wlv.n_extra + 1 in
+                        wlv.extra_attr <-
+                          hl_combine_attr ed wlv.win_attr (ld_s32 ed (highlight_attr + 8));
+                        join136 n_attr wlv.char_attr)
                      else
                        join136 n_attr saved_attr2)
                   else
                     join137 c n_attr saved_attr2 mb_l mb_c mb_utf8
                 in
-                if Winlinevars_T.col ed wlv >= Win_T.w_width ed wp - 1 &&
-                   utf_char2cells ed mb_c = 2 then
+                if wlv.col >= Win_T.w_width ed wp - 1 && utf_char2cells ed mb_c = 2 then
                   (let c = Char.code '>' in
                    join133 c (ptr - 1)
-                     (hl_combine_attr ed (Winlinevars_T.win_attr ed wlv)
-                        (ld_s32 ed (highlight_attr + 8))) 1 c false)
+                     (hl_combine_attr ed wlv.win_attr (ld_s32 ed (highlight_attr + 8))) 1 c false)
                 else if ld_u8 ed ptr = nul then
                   join133 c ptr multi_attr mb_l mb_c mb_utf8
                 else
@@ -12736,20 +12513,17 @@ and win_line ed wp lnum startrow endrow number_only =
                  mb_l >= 1 && mb_c = 0 ||
                  mb_l > 1 && not (vim_isprintc ed mb_c) then
                 (transchar_hex ed (Winlinevars_T.extra_addr wlv) mb_c;
-                 Winlinevars_T.set_p_extra ed wlv (Winlinevars_T.extra_addr wlv);
-                 let c = ld_u8 ed (Winlinevars_T.p_extra ed wlv) in
+                 wlv.p_extra <- Winlinevars_T.extra_addr wlv;
+                 let c = ld_u8 ed wlv.p_extra in
                  let mb_c = mb_ptr2char_adv__p_extra ed wlv in
                  let mb_utf8 = c >= 128 in
-                 Winlinevars_T.set_n_extra ed wlv
-                   (to_i32 (musl_strlen ed (Winlinevars_T.p_extra ed wlv)));
-                 Winlinevars_T.set_c_extra ed wlv nul;
-                 Winlinevars_T.set_c_final ed wlv nul;
+                 wlv.n_extra <- to_i32 (musl_strlen ed wlv.p_extra);
+                 wlv.c_extra <- nul;
+                 wlv.c_final <- nul;
                  if ld_s32 ed area_attr_addr = 0 && search_attr = 0 then
-                   (let n_attr = Winlinevars_T.n_extra ed wlv + 1 in
-                    Winlinevars_T.set_extra_attr ed wlv
-                      (hl_combine_attr
-                         ed (Winlinevars_T.win_attr ed wlv) (ld_s32 ed highlight_attr));
-                    join129 c n_attr (Winlinevars_T.char_attr ed wlv) mb_l mb_c mb_utf8)
+                   (let n_attr = wlv.n_extra + 1 in
+                    wlv.extra_attr <- hl_combine_attr ed wlv.win_attr (ld_s32 ed highlight_attr);
+                    join129 c n_attr wlv.char_attr mb_l mb_c mb_utf8)
                  else
                    join129 c n_attr saved_attr2 mb_l mb_c mb_utf8)
               else if mb_l = 0 then
@@ -12781,48 +12555,40 @@ and win_line ed wp lnum startrow endrow number_only =
       in
       let join102 line ptr search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col =
         if ld_s32 ed area_attr_addr <> 0 then
-          (Winlinevars_T.set_char_attr ed wlv
-             (hl_combine_attr ed (Winlinevars_T.line_attr ed wlv) (ld_s32 ed area_attr_addr));
+          (wlv.char_attr <- hl_combine_attr ed wlv.line_attr (ld_s32 ed area_attr_addr);
            if not ed.st.highlight_match then
-             Winlinevars_T.set_char_attr ed wlv
-               (hl_combine_attr ed search_attr (Winlinevars_T.char_attr ed wlv));
+             wlv.char_attr <- hl_combine_attr ed search_attr wlv.char_attr;
            join110 line ptr true search_attr update_search_hl__o_r__ update_search_hl__o_line
              update_search_hl__o_on_last_col)
         else if search_attr = 0 then
-          (if Winlinevars_T.line_attr ed wlv <> 0 &&
+          (if wlv.line_attr <> 0 &&
               (Winlinevars_T.fromcol ed wlv = -10 && Winlinevars_T.tocol ed wlv = maxcol ||
-               Winlinevars_T.vcol ed wlv < Winlinevars_T.fromcol ed wlv ||
-               Winlinevars_T.vcol ed wlv >= Winlinevars_T.tocol ed wlv) then
-             Winlinevars_T.set_char_attr ed wlv (Winlinevars_T.line_attr ed wlv)
+               wlv.vcol < Winlinevars_T.fromcol ed wlv ||
+               wlv.vcol >= Winlinevars_T.tocol ed wlv) then
+             wlv.char_attr <- wlv.line_attr
            else
-             Winlinevars_T.set_char_attr ed wlv 0;
+             wlv.char_attr <- 0;
            join110 line ptr false search_attr update_search_hl__o_r__ update_search_hl__o_line
              update_search_hl__o_on_last_col)
         else
-          (Winlinevars_T.set_char_attr ed wlv
-             (hl_combine_attr ed (Winlinevars_T.line_attr ed wlv) search_attr);
+          (wlv.char_attr <- hl_combine_attr ed wlv.line_attr search_attr;
            join110 line ptr true search_attr update_search_hl__o_r__ update_search_hl__o_line
              update_search_hl__o_on_last_col)
       in
-      if ed.st.dollar_vcol >= 0 &&
-         in_curline &&
-         Winlinevars_T.vcol ed wlv >= Win_T.w_virtcol ed wp then
+      if ed.st.dollar_vcol >= 0 && in_curline && wlv.vcol >= Win_T.w_virtcol ed wp then
         (wlv_screen_line ed wp wlv false;
-         Winlinevars_T.set_row ed wlv (Win_T.w_height ed wp);
+         wlv.row <- Win_T.w_height ed wp;
          join300 update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
-      else if Winlinevars_T.draw_state ed wlv = 3 && (area_highlighting <> 0 || extra_check) then
-        (if Winlinevars_T.vcol ed wlv = Winlinevars_T.fromcol ed wlv ||
-            Winlinevars_T.vcol ed wlv + 1 = Winlinevars_T.fromcol ed wlv &&
-            (Winlinevars_T.n_extra ed wlv = 0 && utf_ptr2cells ed ptr > 1 ||
-             Winlinevars_T.n_extra ed wlv > 0 &&
-             Winlinevars_T.p_extra ed wlv <> 0 &&
-             utf_ptr2cells ed (Winlinevars_T.p_extra ed wlv) > 1) then
+      else if wlv.draw_state = 3 && (area_highlighting <> 0 || extra_check) then
+        (if wlv.vcol = Winlinevars_T.fromcol ed wlv ||
+            wlv.vcol + 1 = Winlinevars_T.fromcol ed wlv &&
+            (wlv.n_extra = 0 && utf_ptr2cells ed ptr > 1 ||
+             wlv.n_extra > 0 && wlv.p_extra <> 0 && utf_ptr2cells ed wlv.p_extra > 1) then
            st_s32 ed area_attr_addr vi_attr
          else
-           if ld_s32 ed area_attr_addr <> 0 &&
-              Winlinevars_T.vcol ed wlv = Winlinevars_T.tocol ed wlv then
+           if ld_s32 ed area_attr_addr <> 0 && wlv.vcol = Winlinevars_T.tocol ed wlv then
              st_s32 ed area_attr_addr 0;
-         if Winlinevars_T.n_extra ed wlv = 0 then
+         if wlv.n_extra = 0 then
            (let v = ptr - line in
             let (r4, r5, r6) =
               update_search_hl ed wp lnum (to_i32 v) line screen_search_hl has_match_conc_addr
@@ -12839,23 +12605,20 @@ and win_line ed wp lnum startrow endrow number_only =
           update_search_hl__o_on_last_col
     in
     st_s32 ed has_match_conc_addr 0;
-    if Winlinevars_T.draw_state ed wlv = 3 then
+    if wlv.draw_state = 3 then
       join93 ()
     else
-      (if Winlinevars_T.draw_state ed wlv = 0 && Winlinevars_T.n_extra ed wlv = 0 then
-         Winlinevars_T.set_draw_state ed wlv 1;
-       if Winlinevars_T.draw_state ed wlv = 1 && Winlinevars_T.n_extra ed wlv = 0 then
-         (Winlinevars_T.set_draw_state ed wlv 2;
+      (if wlv.draw_state = 0 && wlv.n_extra = 0 then wlv.draw_state <- 1;
+       if wlv.draw_state = 1 && wlv.n_extra = 0 then
+         (wlv.draw_state <- 2;
           handle_lnum_col ed wp wlv sign_present num_attr);
-       if number_only > 0 &&
-          Winlinevars_T.draw_state ed wlv = 2 &&
-          Winlinevars_T.n_extra ed wlv = 0 then
+       if number_only > 0 && wlv.draw_state = 2 && wlv.n_extra = 0 then
          (wlv_screen_line ed wp wlv false;
-          if Winlinevars_T.row ed wlv + 1 - Winlinevars_T.startrow ed wlv < number_only &&
+          if wlv.row + 1 - wlv.startrow < number_only &&
              (ld_s32 ed (highlight_attr + 48) <> 0 || ld_s32 ed (highlight_attr + 52) <> 0) then
-            (Winlinevars_T.set_row ed wlv (Winlinevars_T.row ed wlv + 1);
-             Winlinevars_T.set_screen_row ed wlv (Winlinevars_T.screen_row ed wlv + 1);
-             if Winlinevars_T.row ed wlv = endrow then
+            (wlv.row <- wlv.row + 1;
+             wlv.screen_row <- wlv.screen_row + 1;
+             if wlv.row = endrow then
                join300 update_search_hl__o_r__ update_search_hl__o_line
                  update_search_hl__o_on_last_col
              else
@@ -12870,8 +12633,8 @@ and win_line ed wp lnum startrow endrow number_only =
             join300
               update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col)
        else
-         (if Winlinevars_T.draw_state ed wlv = 2 && Winlinevars_T.n_extra ed wlv = 0 then
-            (Winlinevars_T.set_draw_state ed wlv 3;
+         (if wlv.draw_state = 2 && wlv.n_extra = 0 then
+            (wlv.draw_state <- 3;
              win_line_continue ed wlv);
           join93 ()))
   in
@@ -12908,34 +12671,34 @@ and win_line ed wp lnum startrow endrow number_only =
             in
             if v > 0 && number_only = 0 then
               (st_s32 ed head_addr 0;
-               init_chartabsize_arg ed cts wp lnum (to_i32 (Winlinevars_T.vcol ed wlv)) line ptr;
+               init_chartabsize_arg ed cts wp lnum (to_i32 wlv.vcol) line ptr;
                cts.cts_max_head_vcol <- to_i32 v;
                let rec loop58 in_multispace multispace_pos prev_ptr charsize =
                  let join70 prev_ptr charsize =
-                   Winlinevars_T.set_vcol ed wlv cts.cts_vcol;
+                   wlv.vcol <- cts.cts_vcol;
                    let ptr = cts.cts_ptr in
                    let join74 ptr =
                      let join76 skip_cells =
-                       if Winlinevars_T.tocol ed wlv <= Winlinevars_T.vcol ed wlv then
+                       if Winlinevars_T.tocol ed wlv <= wlv.vcol then
                          Winlinevars_T.set_fromcol ed wlv 0
                        else
                          if Winlinevars_T.fromcol ed wlv >= 0 &&
-                            Winlinevars_T.fromcol ed wlv < Winlinevars_T.vcol ed wlv then
-                           Winlinevars_T.set_fromcol ed wlv (to_i32 (Winlinevars_T.vcol ed wlv));
+                            Winlinevars_T.fromcol ed wlv < wlv.vcol then
+                           Winlinevars_T.set_fromcol ed wlv (to_i32 wlv.vcol);
                        join80 ptr skip_cells in_multispace multispace_pos
                      in
-                     if v > Winlinevars_T.vcol ed wlv then
-                       join76 (to_i32 (v - Winlinevars_T.vcol ed wlv - ld_s32 ed head_addr))
+                     if v > wlv.vcol then
+                       join76 (to_i32 (v - wlv.vcol - ld_s32 ed head_addr))
                      else
                        join76 skip_cells
                    in
-                   if Winlinevars_T.vcol ed wlv < v &&
+                   if wlv.vcol < v &&
                       (virtual_active ed <> 0 ||
                        ed.st.visual_active &&
                        Win_T.w_buffer ed wp = Win_T.w_buffer ed ed.st.curwin) then
-                     Winlinevars_T.set_vcol ed wlv v;
-                   if Winlinevars_T.vcol ed wlv > v then
-                     (Winlinevars_T.set_vcol ed wlv (Winlinevars_T.vcol ed wlv - charsize);
+                     wlv.vcol <- v;
+                   if wlv.vcol > v then
+                     (wlv.vcol <- wlv.vcol - charsize;
                       join74 prev_ptr)
                    else
                      join74 ptr
@@ -12994,7 +12757,7 @@ and win_line ed wp lnum startrow endrow number_only =
         if get_win_attr ed wp = 0 then
           join53 area_highlighting
         else
-          (Winlinevars_T.set_win_attr ed wlv (get_win_attr ed wp);
+          (wlv.win_attr <- get_win_attr ed wp;
            join53 true_)
       in
       let join41 ptr extra_check =
@@ -13037,7 +12800,7 @@ and win_line ed wp lnum startrow endrow number_only =
       else
         join41 line extra_check
     in
-    if Winlinevars_T.line_attr ed wlv = 0 then join38 area_highlighting else join38 true_
+    if wlv.line_attr = 0 then join38 area_highlighting else join38 true_
   in
   let join16 n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col top bot prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col =
     let lnum_in_visual_area = lnum >= Pos_T.lnum ed top && lnum <= Pos_T.lnum ed bot in
@@ -13094,11 +12857,11 @@ and win_line ed wp lnum startrow endrow number_only =
     (frame_pop ed fr;
      startrow)
   else
-    (ignore (musl_memset ed wlv 0 264);
-     Winlinevars_T.set_lnum ed wlv lnum;
-     Winlinevars_T.set_startrow ed wlv startrow;
-     Winlinevars_T.set_row ed wlv startrow;
-     Winlinevars_T.set_screen_row ed wlv (Winlinevars_T.row ed wlv + Win_T.w_winrow ed wp);
+    (Winlinevars_T.clear ed wlv;
+     wlv.winlinevars_lnum <- lnum;
+     wlv.startrow <- startrow;
+     wlv.row <- startrow;
+     wlv.screen_row <- wlv.row + Win_T.w_winrow ed wp;
      Winlinevars_T.set_fromcol ed wlv (-10);
      Winlinevars_T.set_tocol ed wlv maxcol;
      if number_only = 0 then
@@ -14803,7 +14566,7 @@ and do_cmdline ed cmdline fgetline flags =
 and do_one_cmd ed cmdlinep flags fgetline =
   let fr = frame_push ed 336 in
   let errormsg_addr = fr + 0 in
-  let ea = fr + 8 in
+  let ea = Exarg_T.make (fr + 8) in
   let save_cmdmod = fr + 120 in
   let join92 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd =
     let join100 () =
@@ -14811,9 +14574,8 @@ and do_one_cmd ed cmdlinep flags fgetline =
       mem_copy ed cmdmod save_cmdmod 216;
       ed.st.reg_executing <- save_reg_executing;
       ed.st.pending_end_reg_executing <- save_pending_end_reg_executing;
-      if Exarg_T.nextcmd ed ea <> 0 && ld_u8 ed (Exarg_T.nextcmd ed ea) = nul then
-        Exarg_T.set_nextcmd ed ea 0;
-      let r1 = Exarg_T.nextcmd ed ea in
+      if ea.nextcmd <> 0 && ld_u8 ed ea.nextcmd = nul then ea.nextcmd <- 0;
+      let r1 = ea.nextcmd in
       frame_pop ed fr;
       r1
     in
@@ -14841,54 +14603,52 @@ and do_one_cmd ed cmdlinep flags fgetline =
   let join50 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd =
     let join56 () =
       let join66 () =
-        if Exarg_T.argt ed ea land ex_flags <> 0 then get_flags ed ea;
-        if Exarg_T.argt ed ea land ex_extra = 0 && ld_u8 ed (Exarg_T.arg ed ea) <> nul then
+        if ea.argt land ex_flags <> 0 then get_flags ed ea;
+        if ea.argt land ex_extra = 0 && ld_u8 ed (Exarg_T.arg ed ea) <> nul then
           st_ptr ed errormsg_addr (ex_errmsg ed e_trailing_characters_str (Exarg_T.arg ed ea))
         else
-          if Exarg_T.argt ed ea land ex_needarg <> 0 && ld_u8 ed (Exarg_T.arg ed ea) = nul then
+          if ea.argt land ex_needarg <> 0 && ld_u8 ed (Exarg_T.arg ed ea) = nul then
             st_ptr ed errormsg_addr e_argument_required
           else
-            (call_ptr1v (Cmdname.cmd_func ed (cmdnames + Exarg_T.cmdidx ed ea * 40)) ed ea;
-             if Exarg_T.errmsg ed ea <> 0 then st_ptr ed errormsg_addr (Exarg_T.errmsg ed ea));
+            (call_ptr1v_0exarg (Cmdname.cmd_func ed (cmdnames + ea.cmdidx * 40)) ed ea;
+             if ea.errmsg <> 0 then st_ptr ed errormsg_addr ea.errmsg);
         join92 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd
       in
-      if Exarg_T.argt ed ea land ex_count <> 0 && ascii_isdigit (ld_u8 ed (Exarg_T.arg ed ea)) then
+      if ea.argt land ex_count <> 0 && ascii_isdigit (ld_u8 ed (Exarg_T.arg ed ea)) then
         (let n = getdigits_quoted ed (Exarg_T.arg_addr ea) in
          Exarg_T.set_arg ed ea (skipwhite ed (Exarg_T.arg ed ea));
-         if n <= 0 && Exarg_T.argt ed ea land ex_zeror = 0 then
+         if n <= 0 && ea.argt land ex_zeror = 0 then
            (st_ptr ed errormsg_addr e_positive_count_required;
             join92 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
-         else if Exarg_T.addr_type ed ea = Addr_lines then
-           (Exarg_T.set_line1 ed ea (Exarg_T.line2 ed ea);
-            if Exarg_T.line2 ed ea >= long_max - (n - 1) then
-              Exarg_T.set_line2 ed ea long_max
+         else if ea.addr_type = Addr_lines then
+           (ea.line1 <- ea.line2;
+            if ea.line2 >= long_max - (n - 1) then
+              ea.line2 <- long_max
             else
-              Exarg_T.set_line2 ed ea (Exarg_T.line2 ed ea + (n - 1));
-            Exarg_T.set_addr_count ed ea (Exarg_T.addr_count ed ea + 1);
-            if Exarg_T.line2 ed ea > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
-              Exarg_T.set_line2 ed ea (Buf_T.b_ml_ml_line_count ed ed.st.curbuf);
+              ea.line2 <- ea.line2 + (n - 1);
+            ea.addr_count <- ea.addr_count + 1;
+            if ea.line2 > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+              ea.line2 <- Buf_T.b_ml_ml_line_count ed ed.st.curbuf;
             join66 ())
          else
-           (Exarg_T.set_line2 ed ea n;
-            if Exarg_T.addr_count ed ea = 0 then Exarg_T.set_addr_count ed ea 1;
+           (ea.line2 <- n;
+            if ea.addr_count = 0 then ea.addr_count <- 1;
             join66 ()))
       else
         join66 ()
     in
-    if Exarg_T.argt ed ea land ex_dflall <> 0 && Exarg_T.addr_count ed ea = 0 then
-      address_default_all ed ea;
-    if Exarg_T.argt ed ea land ex_regstr <> 0 &&
+    if ea.argt land ex_dflall <> 0 && ea.addr_count = 0 then address_default_all ed ea;
+    if ea.argt land ex_regstr <> 0 &&
        ld_u8 ed (Exarg_T.arg ed ea) <> nul &&
-       not (Exarg_T.argt ed ea land ex_count <> 0 &&
-        ascii_isdigit (ld_u8 ed (Exarg_T.arg ed ea))) then
+       not (ea.argt land ex_count <> 0 && ascii_isdigit (ld_u8 ed (Exarg_T.arg ed ea))) then
       (if ld_char ed (Exarg_T.arg ed ea) = '*' || ld_char ed (Exarg_T.arg ed ea) = '+' then
          (st_ptr ed errormsg_addr e_invalid_register_name;
           join92 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
        else if valid_yank_reg ed (ld_u8 ed (Exarg_T.arg ed ea))
-            (Exarg_T.cmdidx ed ea <> cmd_put && Exarg_T.cmdidx ed ea <> cmd_iput) then
+            (ea.cmdidx <> cmd_put && ea.cmdidx <> cmd_iput) then
          (let t2 = Exarg_T.arg ed ea in
           Exarg_T.set_arg ed ea (Exarg_T.arg ed ea + 1);
-          Exarg_T.set_regname ed ea (ld_u8 ed t2);
+          ea.regname <- ld_u8 ed t2;
           Exarg_T.set_arg ed ea (skipwhite ed (Exarg_T.arg ed ea));
           join56 ())
        else
@@ -14906,7 +14666,7 @@ and do_one_cmd ed cmdlinep flags fgetline =
       (ignore (musl_memmove ed p (p + 1) (musl_strlen ed (p + 1) + 1));
        join48 ())
     else if ld_char ed p = '\n' then
-      (Exarg_T.set_nextcmd ed ea (p + 1);
+      (ea.nextcmd <- p + 1;
        st_u8 ed p nul;
        join50 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
     else
@@ -14916,17 +14676,17 @@ and do_one_cmd ed cmdlinep flags fgetline =
   let save_reg_executing = ed.st.reg_executing in
   let save_pending_end_reg_executing = ed.st.pending_end_reg_executing in
   let sourcing = flags land docmd_verbose in
-  ignore (musl_memset ed ea 0 112);
-  Exarg_T.set_line1 ed ea 1;
-  Exarg_T.set_line2 ed ea 1;
+  Exarg_T.clear ed ea;
+  ea.line1 <- 1;
+  ea.line2 <- 1;
   if ed.st.quitmore <> 0 then ed.st.quitmore <- ed.st.quitmore - 1;
   mem_copy ed save_cmdmod cmdmod 216;
   if ld_char ed (ld_ptr ed cmdlinep) = '#' && ld_char ed (ld_ptr ed cmdlinep + 1) = '!' then
     join92 save_reg_executing save_pending_end_reg_executing sourcing false
   else
     (Exarg_T.set_cmd ed ea (ld_ptr ed cmdlinep);
-     Exarg_T.set_cmdlinep ed ea cmdlinep;
-     Exarg_T.set_ea_getline ed ea fgetline;
+     ea.cmdlinep <- cmdlinep;
+     ea.ea_getline <- fgetline;
      if parse_command_modifiers ed ea errormsg_addr cmdmod false then
        (apply_cmdmod ed cmdmod;
         let after_modifier = Exarg_T.cmd ed ea in
@@ -14934,11 +14694,10 @@ and do_one_cmd ed cmdlinep flags fgetline =
         Exarg_T.set_cmd ed ea (skip_range ed (Exarg_T.cmd ed ea) true 0);
         let p = find_ex_command ed ea 0 in
         Exarg_T.set_cmd ed ea cmd;
-        if Exarg_T.cmdidx ed ea = cmd_size then
-          Exarg_T.set_addr_type ed ea Addr_lines
+        if ea.cmdidx = cmd_size then
+          ea.addr_type <- Addr_lines
         else
-          Exarg_T.set_addr_type ed ea
-            (Cmdname.cmd_addr_type ed (cmdnames + Exarg_T.cmdidx ed ea * 40));
+          ea.addr_type <- Cmdname.cmd_addr_type ed (cmdnames + ea.cmdidx * 40);
         if parse_cmd_address ed ea errormsg_addr false then
           (Exarg_T.set_cmd ed ea (skipwhite ed (Exarg_T.cmd ed ea));
            let rec loop10 () =
@@ -14951,30 +14710,28 @@ and do_one_cmd ed cmdlinep flags fgetline =
                  let join20 p =
                    let join32 () =
                      let join38 () =
-                       if Exarg_T.argt ed ea land ex_cmdarg <> 0 then
-                         Exarg_T.set_do_ecmd_cmd ed ea (getargcmd ed (Exarg_T.arg_addr ea));
-                       if Exarg_T.argt ed ea land ex_trlbar <> 0 then
+                       if ea.argt land ex_cmdarg <> 0 then
+                         ea.do_ecmd_cmd <- getargcmd ed (Exarg_T.arg_addr ea);
+                       if ea.argt land ex_trlbar <> 0 then
                          (separate_nextcmd ed ea false;
                           join50 save_reg_executing save_pending_end_reg_executing sourcing
                             did_append_cmd)
-                       else if Exarg_T.cmdidx ed ea = cmd_global ||
-                          Exarg_T.cmdidx ed ea = cmd_vglobal then
+                       else if ea.cmdidx = cmd_global || ea.cmdidx = cmd_vglobal then
                          loop43 (Exarg_T.arg ed ea) save_reg_executing
                            save_pending_end_reg_executing sourcing did_append_cmd
                        else
                          join50 save_reg_executing save_pending_end_reg_executing sourcing
                            did_append_cmd
                      in
-                     if Exarg_T.addr_type ed ea = Addr_other && Exarg_T.addr_count ed ea = 0 then
-                       Exarg_T.set_line2 ed ea 1;
+                     if ea.addr_type = Addr_other && ea.addr_count = 0 then ea.line2 <- 1;
                      correct_range ed ea;
                      Exarg_T.set_arg ed ea (skipwhite ed p);
-                     if Exarg_T.cmdidx ed ea = cmd_lshift || Exarg_T.cmdidx ed ea = cmd_rshift then
-                       (Exarg_T.set_amount ed ea 1;
+                     if ea.cmdidx = cmd_lshift || ea.cmdidx = cmd_rshift then
+                       (ea.amount <- 1;
                         let rec loop36 () =
                           if ld_u8 ed (Exarg_T.arg ed ea) = ld_u8 ed (Exarg_T.cmd ed ea) then
                             (Exarg_T.set_arg ed ea (Exarg_T.arg ed ea + 1);
-                             Exarg_T.set_amount ed ea (Exarg_T.amount ed ea + 1);
+                             ea.amount <- ea.amount + 1;
                              loop36 ())
                           else
                             (Exarg_T.set_arg ed ea (skipwhite ed (Exarg_T.arg ed ea));
@@ -14993,36 +14750,34 @@ and do_one_cmd ed cmdlinep flags fgetline =
                          did_append_cmd
                    in
                    let join30 () =
-                     let lnum = Exarg_T.line1 ed ea in
-                     Exarg_T.set_line1 ed ea (Exarg_T.line2 ed ea);
-                     Exarg_T.set_line2 ed ea lnum;
+                     let lnum = ea.line1 in
+                     ea.line1 <- ea.line2;
+                     ea.line2 <- lnum;
                      join31 ()
                    in
-                   Exarg_T.set_argt ed ea
-                     (Cmdname.cmd_argt ed (cmdnames + Exarg_T.cmdidx ed ea * 40));
-                   if Buf_T.b_p_ma ed ed.st.curbuf = 0 &&
-                      Exarg_T.argt ed ea land ex_modify <> 0 then
+                   ea.argt <- Cmdname.cmd_argt ed (cmdnames + ea.cmdidx * 40);
+                   if Buf_T.b_p_ma ed ed.st.curbuf = 0 && ea.argt land ex_modify <> 0 then
                      (st_ptr ed errormsg_addr e_cannot_make_changes_modifiable_is_off;
                       join92 save_reg_executing save_pending_end_reg_executing sourcing
                         did_append_cmd)
-                   else if text_locked ed && Exarg_T.argt ed ea land ex_lock_ok = 0 then
+                   else if text_locked ed && ea.argt land ex_lock_ok = 0 then
                      (st_ptr ed errormsg_addr (get_text_locked_msg ed);
                       join92 save_reg_executing save_pending_end_reg_executing sourcing
                         did_append_cmd)
-                   else if Exarg_T.argt ed ea land 17301504 = 0 && curbuf_locked ed then
+                   else if ea.argt land 17301504 = 0 && curbuf_locked ed then
                      join92 save_reg_executing save_pending_end_reg_executing sourcing
                        did_append_cmd
-                   else if Exarg_T.argt ed ea land ex_range = 0 && Exarg_T.addr_count ed ea > 0 then
+                   else if ea.argt land ex_range = 0 && ea.addr_count > 0 then
                      (st_ptr ed errormsg_addr e_no_range_allowed;
                       join92 save_reg_executing save_pending_end_reg_executing sourcing
                         did_append_cmd)
-                   else if Exarg_T.argt ed ea land ex_bang = 0 && Exarg_T.forceit ed ea then
+                   else if ea.argt land ex_bang = 0 && ea.forceit then
                      (st_ptr ed errormsg_addr e_no_bang_allowed;
                       join92 save_reg_executing save_pending_end_reg_executing sourcing
                         did_append_cmd)
-                   else if Exarg_T.argt ed ea land ex_range = 0 then
+                   else if ea.argt land ex_range = 0 then
                      join32 ()
-                   else if ed.st.global_busy = 0 && Exarg_T.line1 ed ea > Exarg_T.line2 ed ea then
+                   else if ed.st.global_busy = 0 && ea.line1 > ea.line2 then
                      (if ed.st.msg_silent = 0 then
                         (if sourcing <> 0 then
                            (st_ptr ed errormsg_addr e_backwards_range_given;
@@ -15058,7 +14813,7 @@ and do_one_cmd ed cmdlinep flags fgetline =
                    (st_ptr ed errormsg_addr (uc_fun_cmd ed);
                     join92
                       save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
-                 else if Exarg_T.cmdidx ed ea = cmd_size then
+                 else if ea.cmdidx = cmd_size then
                    (ignore (musl_strcpy ed (iobuff ed) e_not_an_editor_command);
                     if sourcing = 0 then
                       (if after_modifier = 0 then
@@ -15069,20 +14824,20 @@ and do_one_cmd ed cmdlinep flags fgetline =
                     else
                       join87 did_append_cmd)
                  else if ld_char ed p = '!' &&
-                    Exarg_T.cmdidx ed ea <> cmd_substitute &&
-                    Exarg_T.cmdidx ed ea <> cmd_smagic &&
-                    Exarg_T.cmdidx ed ea <> cmd_snomagic then
-                   (Exarg_T.set_forceit ed ea true;
+                    ea.cmdidx <> cmd_substitute &&
+                    ea.cmdidx <> cmd_smagic &&
+                    ea.cmdidx <> cmd_snomagic then
+                   (ea.forceit <- true;
                     join20 (p + 1))
                  else
-                   (Exarg_T.set_forceit ed ea false;
+                   (ea.forceit <- false;
                     join20 p)
                in
                if t1 then
                  join13 false t1
                else
-                 (Exarg_T.set_nextcmd ed ea (check_nextcmd ed (Exarg_T.cmd ed ea));
-                  join13 false (Exarg_T.nextcmd ed ea <> 0))
+                 (ea.nextcmd <- check_nextcmd ed (Exarg_T.cmd ed ea);
+                  join13 false (ea.nextcmd <> 0))
            in
            loop10 ())
         else
@@ -15094,21 +14849,21 @@ and ex_range_without_command ed eap =
   let join11 errormsg =
     errormsg
   in
-  if Exarg_T.addr_count ed eap = 0 then
+  if eap.addr_count = 0 then
     join11 0
   else
-    (if Exarg_T.line2 ed eap > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+    (if eap.line2 > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
        (if vim_strchr ed (p_cpo ed) cpo_minus = 0 then
-          Exarg_T.set_line2 ed eap (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
+          eap.line2 <- Buf_T.b_ml_ml_line_count ed ed.st.curbuf
         else
-          Exarg_T.set_line2 ed eap (-1));
-     if Exarg_T.line2 ed eap < 0 then
+          eap.line2 <- -1);
+     if eap.line2 < 0 then
        join11 e_invalid_range
      else
-       (if Exarg_T.line2 ed eap = 0 then
+       (if eap.line2 = 0 then
           Win_T.set_w_cursor_lnum ed ed.st.curwin 1
         else
-          Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line2 ed eap);
+          Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line2;
         beginline ed 6;
         join11 0))
 
@@ -15159,7 +14914,7 @@ and parse_command_modifiers ed eap _errormsg cmod skip_only =
         Exarg_T.set_cmd ed eap (Exarg_T.cmd ed eap + 1);
         loop4 orig_cmd cmd_start has_visual_range
     | 10 (* '\x0a' *) ->
-        Exarg_T.set_nextcmd ed eap (Exarg_T.cmd ed eap + 1);
+        eap.nextcmd <- Exarg_T.cmd ed eap + 1;
         frame_pop ed fr;
         false
     | 0 (* NUL *) ->
@@ -15242,14 +14997,13 @@ and parse_command_modifiers ed eap _errormsg cmod skip_only =
 
 and parse_cmd_address ed eap errormsg silent =
   let rec loop1 address_count need_check_cursor ret =
-    Exarg_T.set_line1 ed eap (Exarg_T.line2 ed eap);
-    Exarg_T.set_line2 ed eap (default_address ed eap);
+    eap.line1 <- eap.line2;
+    eap.line2 <- default_address ed eap;
     Exarg_T.set_cmd ed eap (skipwhite ed (Exarg_T.cmd ed eap));
     let t1 = address_count in
     let address_count = address_count + 1 in
     let lnum =
-      get_address ed eap (Exarg_T.cmd_addr eap) (Exarg_T.addr_type ed eap) false silent
-        (Exarg_T.addr_count ed eap = 0) t1
+      get_address ed eap (Exarg_T.cmd_addr eap) eap.addr_type false silent (eap.addr_count = 0) t1
     in
     let join27 ret =
       if need_check_cursor then check_cursor ed;
@@ -15260,21 +15014,21 @@ and parse_cmd_address ed eap errormsg silent =
         Exarg_T.set_cmd ed eap (Exarg_T.cmd ed eap + 1);
         loop1 address_count need_check_cursor ret
       in
-      Exarg_T.set_addr_count ed eap (Exarg_T.addr_count ed eap + 1);
+      eap.addr_count <- eap.addr_count + 1;
       match ld_char ed (Exarg_T.cmd ed eap) with
       | ';' ->
-          Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line2 ed eap);
-          if Exarg_T.line2 ed eap > 0 then check_cursor ed else check_cursor_col ed;
+          Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line2;
+          if eap.line2 > 0 then check_cursor ed else check_cursor_col ed;
           join26 true
       | ',' -> join26 need_check_cursor
       | _ ->
-          if Exarg_T.addr_count ed eap = 1 then
-            (Exarg_T.set_line1 ed eap (Exarg_T.line2 ed eap);
-             if lnum = long_max then Exarg_T.set_addr_count ed eap 0);
+          if eap.addr_count = 1 then
+            (eap.line1 <- eap.line2;
+             if lnum = long_max then eap.addr_count <- 0);
           join27 true
     in
     let join15 () =
-      Exarg_T.set_addr_count ed eap (Exarg_T.addr_count ed eap + 1);
+      eap.addr_count <- eap.addr_count + 1;
       join16 ()
     in
     if Exarg_T.cmd ed eap = 0 then
@@ -15282,25 +15036,25 @@ and parse_cmd_address ed eap errormsg silent =
     else if lnum = long_max then
       (if ld_char ed (Exarg_T.cmd ed eap) = '%' then
          (Exarg_T.set_cmd ed eap (Exarg_T.cmd ed eap + 1);
-          match Exarg_T.addr_type ed eap with
+          match eap.addr_type with
           | Addr_lines | Addr_other ->
-              Exarg_T.set_line1 ed eap 1;
-              Exarg_T.set_line2 ed eap (Buf_T.b_ml_ml_line_count ed ed.st.curbuf);
+              eap.line1 <- 1;
+              eap.line2 <- Buf_T.b_ml_ml_line_count ed ed.st.curbuf;
               join15 ()
           | Addr_windows | Addr_unsigned ->
               st_ptr ed errormsg e_invalid_range;
               join27 ret
           | Addr_none -> join15 ())
        else if ld_char ed (Exarg_T.cmd ed eap) = '*' && vim_strchr ed (p_cpo ed) cpo_star = 0 then
-         (if Exarg_T.addr_type ed eap = Addr_lines then
+         (if eap.addr_type = Addr_lines then
             (Exarg_T.set_cmd ed eap (Exarg_T.cmd ed eap + 1);
              let fp = getmark ed (Char.code '<') false in
              if check_mark ed fp then
-               (Exarg_T.set_line1 ed eap (Pos_T.lnum ed fp);
+               (eap.line1 <- Pos_T.lnum ed fp;
                 let fp = getmark ed (Char.code '>') false in
                 if check_mark ed fp then
-                  (Exarg_T.set_line2 ed eap (Pos_T.lnum ed fp);
-                   Exarg_T.set_addr_count ed eap (Exarg_T.addr_count ed eap + 1);
+                  (eap.line2 <- Pos_T.lnum ed fp;
+                   eap.addr_count <- eap.addr_count + 1;
                    join16 ())
                 else
                   join27 ret)
@@ -15312,7 +15066,7 @@ and parse_cmd_address ed eap errormsg silent =
        else
          join16 ())
     else
-      (Exarg_T.set_line2 ed eap lnum;
+      (eap.line2 <- lnum;
        join16 ())
   in
   loop1 1 false false
@@ -15528,28 +15282,28 @@ and get_address ed _eap ptr addr_type skip silent to_other_file _address_count =
   loop1 long_max
 
 and address_default_all ed eap =
-  Exarg_T.set_line1 ed eap 1;
-  match Exarg_T.addr_type ed eap with
-  | Addr_lines | Addr_other -> Exarg_T.set_line2 ed eap (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
-  | Addr_windows -> Exarg_T.set_line2 ed eap 1
+  eap.line1 <- 1;
+  match eap.addr_type with
+  | Addr_lines | Addr_other -> eap.line2 <- Buf_T.b_ml_ml_line_count ed ed.st.curbuf
+  | Addr_windows -> eap.line2 <- 1
   | Addr_none | Addr_unsigned ->
       iemsg ed 163289 (* "Cannot use EX_DFLALL with ADDR_NONE or ADDR_UNSIGNED" *)
 
 and separate_nextcmd ed eap _keep_backslash =
   let join12 () =
-    if Exarg_T.argt ed eap land ex_notrlcom = 0 then del_trailing_spaces ed (Exarg_T.arg ed eap)
+    if eap.argt land ex_notrlcom = 0 then del_trailing_spaces ed (Exarg_T.arg ed eap)
   in
   let rec loop1 p =
     if ld_u8 ed p = 0 then
       join12 ()
     else if ld_u8 ed p = ctrl_v then
-      (if Exarg_T.argt ed eap land ex_ctrlv = 0 then
+      (if eap.argt land ex_ctrlv = 0 then
          (ignore (musl_memmove ed p (p + 1) (musl_strlen ed (p + 1) + 1));
           join10 p)
        else
          join10 (p + 1))
     else if ld_char ed p = '\n' then
-      (if (vim_strchr ed (p_cpo ed) cpo_bar = 0 || Exarg_T.argt ed eap land ex_ctrlv = 0) &&
+      (if (vim_strchr ed (p_cpo ed) cpo_bar = 0 || eap.argt land ex_ctrlv = 0) &&
           ld_char ed (p - 1) = '\\' then
          (ignore (musl_memmove ed (p - 1) p (musl_strlen ed p + 1));
           join11 (p - 1))
@@ -15569,8 +15323,8 @@ and separate_nextcmd ed eap _keep_backslash =
 and set_nextcmd ed eap arg =
   let p = skipwhite ed arg in
   let p = check_nextcmd ed p in
-  if Exarg_T.nextcmd ed eap = 0 then
-    Exarg_T.set_nextcmd ed eap p
+  if eap.nextcmd = 0 then
+    eap.nextcmd <- p
   else
     if p <> 0 then
       (let r1 = iobuff ed in
@@ -22772,7 +22526,7 @@ and check_options ed =
 and set_bool_option ed opt_idx varp_in value opt_flags =
   let fr = frame_push ed 160 in
   let varp = fr + 0 in
-  let args = fr + 32 in
+  let args = Optset_T.make (fr + 32) in
   let join5 errmsg =
     Vimoption.set_flags ed (options + opt_idx * 112)
       (Vimoption.flags ed (options + opt_idx * 112) lor p_was_set);
@@ -22792,13 +22546,15 @@ and set_bool_option ed opt_idx varp_in value opt_flags =
     if Vimoption.opt_did_set_cb ed (options + opt_idx * 112) = 0 then
       join5 errmsg
     else
-      (ignore (musl_memset ed args 0 88);
+      (Optset_T.clear ed args;
        mem_copy ed (Optset_T.os_varp_addr args) varp 32;
-       Optset_T.set_os_flags ed args opt_flags;
+       args.os_flags <- opt_flags;
        Optset_T.set_os_oldval_boolean ed args old_value;
        Optset_T.set_os_newval_boolean ed args value;
-       Optset_T.set_os_errbuf ed args 0;
-       let errmsg = call_ptr1 (Vimoption.opt_did_set_cb ed (options + opt_idx * 112)) ed args in
+       args.os_errbuf <- 0;
+       let errmsg =
+         call_ptr1_0optset (Vimoption.opt_did_set_cb ed (options + opt_idx * 112)) ed args
+       in
        if errmsg = 0 then
          join5 errmsg
        else
@@ -22961,7 +22717,7 @@ and check_num_option_bounds ed pp old_value old_Rows old_Columns errbuf errbufle
 and set_num_option ed opt_idx varp_in value errbuf errbuflen opt_flags =
   let fr = frame_push ed 160 in
   let varp = fr + 0 in
-  let args = fr + 32 in
+  let args = Optset_T.make (fr + 32) in
   mem_copy ed varp varp_in 32;
   let old_value = ld_s64 ed (Optvar_T.ov_long ed varp) in
   let old_Rows = rows ed in
@@ -22987,13 +22743,13 @@ and set_num_option ed opt_idx varp_in value errbuf errbuflen opt_flags =
     if Vimoption.opt_did_set_cb ed (options + opt_idx * 112) = 0 then
       join5 errmsg
     else
-      (ignore (musl_memset ed args 0 88);
+      (Optset_T.clear ed args;
        mem_copy ed (Optset_T.os_varp_addr args) varp 32;
-       Optset_T.set_os_flags ed args opt_flags;
+       args.os_flags <- opt_flags;
        Optset_T.set_os_oldval_number ed args old_value;
        Optset_T.set_os_newval_number ed args value;
-       Optset_T.set_os_errbuf ed args 0;
-       join5 (call_ptr1 (Vimoption.opt_did_set_cb ed (options + opt_idx * 112)) ed args))
+       args.os_errbuf <- 0;
+       join5 (call_ptr1_0optset (Vimoption.opt_did_set_cb ed (options + opt_idx * 112)) ed args))
   in
   if ed.st.secure <> 0 && Vimoption.flags ed (options + opt_idx * 112) land p_secure <> 0 then
     (frame_pop ed fr;
@@ -23553,7 +23309,7 @@ and set_string_option ed opt_idx value opt_flags errbuf errbuflen =
 
 and did_set_string_option ed opt_idx varp oldval value errbuf errbuflen opt_flags op value_checked =
   let fr = frame_push ed 128 in
-  let args = fr + 0 in
+  let args = Optset_T.make (fr + 0) in
   let join3 opt_idx errmsg free_oldval did_set_cb =
     let join9 errmsg =
       let join20 () =
@@ -23585,11 +23341,11 @@ and did_set_string_option ed opt_idx varp oldval value errbuf errbuflen opt_flag
       else
         (free_string_option (ld_ptr ed varp);
          st_ptr ed varp oldval;
-         if Optset_T.os_restore_chartab ed args then ignore (init_chartab ed);
+         if args.os_restore_chartab then ignore (init_chartab ed);
          if varp = p_hl_addr then ignore (highlight_changed ed);
          join20 ())
     in
-    ignore (musl_memset ed args 0 88);
+    Optset_T.clear ed args;
     if ed.st.secure <> 0 && get_option_flags ed opt_idx land p_secure <> 0 then
       join9 e_not_allowed_here
     else if check_illegal_path_names ed opt_idx varp then
@@ -23602,15 +23358,15 @@ and did_set_string_option ed opt_idx varp oldval value errbuf errbuflen opt_flag
       Optset_T.set_os_varp_ov_long ed args r2;
       Optset_T.set_os_varp_ov_str ed args r3;
       Optset_T.set_os_varp_ov_win ed args r4;
-      Optset_T.set_os_idx ed args opt_idx;
-      Optset_T.set_os_flags ed args opt_flags;
-      Optset_T.set_os_op ed args op;
+      args.os_idx <- opt_idx;
+      args.os_flags <- opt_flags;
+      args.os_op <- op;
       Optset_T.set_os_oldval_string ed args oldval;
       Optset_T.set_os_newval_string ed args value;
-      Optset_T.set_os_errbuf ed args errbuf;
-      Optset_T.set_os_errbuflen ed args errbuflen;
-      let errmsg = call_ptr1 did_set_cb ed args in
-      st_s32 ed value_checked (Optset_T.os_value_checked ed args);
+      args.os_errbuf <- errbuf;
+      args.os_errbuflen <- errbuflen;
+      let errmsg = call_ptr1_0optset did_set_cb ed args in
+      st_s32 ed value_checked args.os_value_checked;
       join9 errmsg
   in
   let free_oldval = get_option_flags ed opt_idx land p_alloced in
@@ -37499,8 +37255,8 @@ let nv_g_home_m_cmd ed cap =
       else
         join11 i
     in
-    Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-    Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
+    Oparg_T.set_motion_type ed cap.oap mchar;
+    Oparg_T.set_inclusive ed cap.oap false_;
     if Win_T.w_onebuf_opt_wo_wrap ed ed.st.curwin <> 0 && Win_T.w_width ed ed.st.curwin <> 0 then
       (let r1 = Win_T.w_width ed ed.st.curwin in
        let width1 = r1 - curwin_col_off ed in
@@ -37532,7 +37288,7 @@ let nv_g_home_m_cmd ed cap =
 let pagescroll ed dir count half =
   let fr = frame_push ed 192 in
   let oa = fr + 0 in
-  let ca = fr + 120 in
+  let ca = Cmdarg_T.make (fr + 120) in
   let buflen = to_i32 (Buf_T.b_ml_ml_line_count ed ed.st.curbuf) in
   let prev_col = Win_T.w_cursor_col ed ed.st.curwin in
   let prev_curswant = Win_T.w_curswant ed ed.st.curwin in
@@ -37555,8 +37311,8 @@ let pagescroll ed dir count half =
     (if did_move then ok else fail) <> 0
   in
   mem_zero ed oa 120;
-  mem_zero ed ca 72;
-  Cmdarg_T.set_oap ed ca oa;
+  Cmdarg_T.clear ed ca;
+  ca.oap <- oa;
   if half then
     (if count <> 0 then
        Win_T.set_w_onebuf_opt_wo_scr ed ed.st.curwin
@@ -38987,21 +38743,21 @@ let ex_append ed eap =
     in
     let join46 () =
       Buf_T.set_b_op_end_lnum ed ed.st.curbuf
-        (if Exarg_T.line2 ed eap < lnum then lnum else Buf_T.b_op_start_lnum ed ed.st.curbuf);
+        (if eap.line2 < lnum then lnum else Buf_T.b_op_start_lnum ed ed.st.curbuf);
       Buf_T.set_b_op_end_col ed ed.st.curbuf 0;
       Buf_T.set_b_op_start_col ed ed.st.curbuf (Buf_T.b_op_end_col ed ed.st.curbuf);
       join47 ()
     in
     ed.st.state <- mode_normal;
-    if Exarg_T.forceit ed eap then
+    if eap.forceit then
       Buf_T.set_b_p_ai ed ed.st.curbuf (Bool.to_int (Buf_T.b_p_ai ed ed.st.curbuf = 0));
     if Cmdmod_T.cmod_flags ed cmdmod land cmod_lockmarks = 0 then
       (Buf_T.set_b_op_start_lnum ed ed.st.curbuf
-         (if Exarg_T.line2 ed eap < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
-            Exarg_T.line2 ed eap + 1
+         (if eap.line2 < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+            eap.line2 + 1
           else
             Buf_T.b_ml_ml_line_count ed ed.st.curbuf);
-       if Exarg_T.cmdidx ed eap = cmd_append then
+       if eap.cmdidx = cmd_append then
          join46 ()
        else
          let r2 = ed.st.curbuf in
@@ -39021,28 +38777,28 @@ let ex_append ed eap =
            loop27 theline did_undo lnum indent theline 0 empty)
       in
       ed.st.ex_keep_indent <- false;
-      if Exarg_T.ea_getline ed eap = 0 then
-        (if Exarg_T.nextcmd ed eap = 0 then
+      if eap.ea_getline = 0 then
+        (if eap.nextcmd = 0 then
            join41 lnum
          else
-           let p = vim_strchr ed (Exarg_T.nextcmd ed eap) nl in
+           let p = vim_strchr ed eap.nextcmd nl in
            let join19 p =
-             let theline = vim_strnsave ed (Exarg_T.nextcmd ed eap) (p - Exarg_T.nextcmd ed eap) in
+             let theline = vim_strnsave ed eap.nextcmd (p - eap.nextcmd) in
              let join22 p =
-               Exarg_T.set_nextcmd ed eap p;
+               eap.nextcmd <- p;
                join23 theline
              in
              if ld_u8 ed p = nul then join22 0 else join22 (p + 1)
            in
            if p = 0 then
-             (let r1 = Exarg_T.nextcmd ed eap in
-              join19 (r1 + musl_strlen ed (Exarg_T.nextcmd ed eap)))
+             (let r1 = eap.nextcmd in
+              join19 (r1 + musl_strlen ed eap.nextcmd))
            else
              join19 p)
       else
         let save_State = ed.st.state in
         ed.st.state <- mode_cmdline;
-        let theline = call_ptr3 (Exarg_T.ea_getline ed eap) ed nul indent getline_concat_cont in
+        let theline = call_ptr3 eap.ea_getline ed nul indent getline_concat_cont in
         ed.st.state <- save_State;
         join23 theline
     in
@@ -39082,7 +38838,7 @@ let ex_append ed eap =
     else
       join30 ()
   in
-  let lnum = Exarg_T.line2 ed eap in
+  let lnum = eap.line2 in
   let empty = Buf_T.b_ml_ml_flags ed ed.st.curbuf land ml_empty in
   let join6 did_undo lnum indent =
     let join8 lnum =
@@ -39091,38 +38847,37 @@ let ex_append ed eap =
     in
     if empty <> 0 && lnum = 1 then join8 0 else join8 lnum
   in
-  if Exarg_T.forceit ed eap then
+  if eap.forceit then
     Buf_T.set_b_p_ai ed ed.st.curbuf (Bool.to_int (Buf_T.b_p_ai ed ed.st.curbuf = 0));
-  if Exarg_T.cmdidx ed eap <> cmd_change && Buf_T.b_p_ai ed ed.st.curbuf <> 0 && lnum > 0 then
+  if eap.cmdidx <> cmd_change && Buf_T.b_p_ai ed ed.st.curbuf <> 0 && lnum > 0 then
     ed.st.append_indent <- get_indent_lnum ed lnum;
-  if Exarg_T.cmdidx ed eap = cmd_append then join6 false lnum 0 else join6 false (lnum - 1) 0
+  if eap.cmdidx = cmd_append then join6 false lnum 0 else join6 false (lnum - 1) 0
 
 let ex_change ed eap =
-  if not (Exarg_T.line2 ed eap >= Exarg_T.line1 ed eap &&
-      not (u_save ed (Exarg_T.line1 ed eap - 1) (Exarg_T.line2 ed eap + 1))) then
-    (if (if Exarg_T.forceit ed eap then
+  if not (eap.line2 >= eap.line1 && not (u_save ed (eap.line1 - 1) (eap.line2 + 1))) then
+    (if (if eap.forceit then
            Bool.to_int (Buf_T.b_p_ai ed ed.st.curbuf = 0)
          else
            Buf_T.b_p_ai ed ed.st.curbuf) <>
         0 then
-       ed.st.append_indent <- get_indent_lnum ed (Exarg_T.line1 ed eap);
+       ed.st.append_indent <- get_indent_lnum ed eap.line1;
      let rec loop4 lnum =
        let join8 () =
          check_cursor_lnum ed;
-         deleted_lines_mark ed (Exarg_T.line1 ed eap) (Exarg_T.line2 ed eap - lnum);
-         Exarg_T.set_line2 ed eap (Exarg_T.line1 ed eap);
+         deleted_lines_mark ed eap.line1 (eap.line2 - lnum);
+         eap.line2 <- eap.line1;
          ex_append ed eap
        in
-       if lnum >= Exarg_T.line1 ed eap then
+       if lnum >= eap.line1 then
          (if Buf_T.b_ml_ml_flags ed ed.st.curbuf land ml_empty = 0 then
-            (ignore (ml_delete ed (Exarg_T.line1 ed eap));
+            (ignore (ml_delete ed eap.line1);
              loop4 (lnum - 1))
           else
             join8 ())
        else
          join8 ()
      in
-     loop4 (Exarg_T.line2 ed eap))
+     loop4 eap.line2)
 
 let ex_z ed eap =
   let rec loop37 minus end_' curs i lnum =
@@ -39130,7 +38885,7 @@ let ex_z ed eap =
       let join47 () =
         loop37 minus end_' curs (i + 1) lnum
       in
-      print_line ed i (Exarg_T.flags ed eap land exflag_nr) (Exarg_T.flags ed eap land exflag_list);
+      print_line ed i (eap.flags land exflag_nr) (eap.flags land exflag_list);
       if minus <> 0 && i = lnum then
         (msg_putchar ed (Char.code '\n');
          let rec loop46 j =
@@ -39200,7 +38955,7 @@ let ex_z ed eap =
         | _ ->
             if ld_char ed kind = '+' then
               join23 (lnum + (bigness * (x - kind - 1) + 1))
-            else if Exarg_T.addr_count ed eap = 0 then join23 (lnum + 1) else join23 lnum
+            else if eap.addr_count = 0 then join23 (lnum + 1) else join23 lnum
       in
       if ld_char ed kind = '-' || ld_char ed kind = '+' then
         (let rec loop17 x =
@@ -39227,7 +38982,7 @@ let ex_z ed eap =
     else
       ignore (emsg ed e_non_numeric_argument_to_z)
   in
-  let lnum = Exarg_T.line2 ed eap in
+  let lnum = eap.line2 in
   let join3 bigness minus =
     let join5 bigness =
       let x = Exarg_T.arg ed eap in
@@ -39242,7 +38997,7 @@ let ex_z ed eap =
     in
     if bigness < 1 then join5 1 else join5 bigness
   in
-  if Exarg_T.forceit ed eap then
+  if eap.forceit then
     join3 (rows ed - 1) 0
   else
     join3 (Win_T.w_onebuf_opt_wo_scr ed ed.st.curwin * 2) 0
@@ -39458,9 +39213,9 @@ let do_sub_msg ed count_only =
      true)
 
 let ex_may_print ed eap =
-  if Exarg_T.flags ed eap <> 0 then
-    print_line ed (Win_T.w_cursor_lnum ed ed.st.curwin) (Exarg_T.flags ed eap land exflag_nr)
-      (Exarg_T.flags ed eap land exflag_list)
+  if eap.flags <> 0 then
+    print_line ed (Win_T.w_cursor_lnum ed ed.st.curwin) (eap.flags land exflag_nr)
+      (eap.flags land exflag_list)
 
 let regtilde ed source magic =
   let fr = frame_push ed 16 in
@@ -39889,7 +39644,7 @@ let ex_substitute ed eap =
          Win_T.set_w_cursor_coladd ed ed.st.curwin old_cursor_coladd);
       if ed.st.sub_nsubs > start_nsubs then
         (if Cmdmod_T.cmod_flags ed cmdmod land cmod_lockmarks = 0 then
-           (Buf_T.set_b_op_start_lnum ed ed.st.curbuf (Exarg_T.line1 ed eap);
+           (Buf_T.set_b_op_start_lnum ed ed.st.curbuf eap.line1;
             Buf_T.set_b_op_end_lnum ed ed.st.curbuf line2;
             Buf_T.set_b_op_end_col ed ed.st.curbuf 0;
             Buf_T.set_b_op_start_col ed ed.st.curbuf (Buf_T.b_op_end_col ed ed.st.curbuf));
@@ -39922,7 +39677,7 @@ let ex_substitute ed eap =
         join88 ()
     in
     if lnum <= line2 && not got_quit then
-      (let nmatch = search_found ed found (Exarg_T.line1 ed eap) found_count regmatch lnum 0 in
+      (let nmatch = search_found ed found eap.line1 found_count regmatch lnum 0 in
        if nmatch = 0 then
          join206 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line
            old_line_count line2 sub_firstline_string sub_firstline_length endcolumn old_cursor_lnum
@@ -40375,9 +40130,7 @@ let ex_substitute ed eap =
     if t6 then
       join176 (-1) t6
     else
-      let nmatch =
-        search_found ed found (Exarg_T.line1 ed eap) found_count regmatch sub_firstlnum matchcol
-      in
+      let nmatch = search_found ed found eap.line1 found_count regmatch sub_firstlnum matchcol in
       join176 nmatch (nmatch = 0)
   and join203 lnum save_do_all save_do_ask sub got_quit got_match first_line last_line old_line_count line2 endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count did_sub =
     if did_sub then ed.st.sub_nlines <- ed.st.sub_nlines + 1;
@@ -40399,18 +40152,17 @@ let ex_substitute ed eap =
       let join50 () =
         let join52 () =
           let join62 sub sub_firstline_string sub_firstline_length =
-            let line2 = Exarg_T.line2 ed eap in
+            let line2 = eap.line2 in
             let found =
-              if Subflags_T.do_ask ed ex_substitute__subflags = 0 &&
-                 line2 > Exarg_T.line1 ed eap then
+              if Subflags_T.do_ask ed ex_substitute__subflags = 0 && line2 > eap.line1 then
                 match_range ed regmatch (Subflags_T.do_all ed ex_substitute__subflags <> 0)
-                  (Exarg_T.line1 ed eap) line2
+                  eap.line1 line2
               else
                 0
             in
             let found_count = Buf_T.b_ml_ml_line_count ed ed.st.curbuf in
-            loop63 (Exarg_T.line1 ed eap) save_do_all save_do_ask sub got_quit got_match first_line
-              last_line old_line_count line2 sub_firstline_string sub_firstline_length endcolumn
+            loop63 eap.line1 save_do_all save_do_ask sub got_quit got_match first_line last_line
+              old_line_count line2 sub_firstline_string sub_firstline_length endcolumn
               old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs found found_count
           in
           if Subflags_T.do_count ed ex_substitute__subflags = 0 &&
@@ -40439,7 +40191,7 @@ let ex_substitute ed eap =
           join52 ()
         else
           (set_nextcmd ed eap (ld_ptr ed cmd_addr);
-           if Exarg_T.nextcmd ed eap = 0 then
+           if eap.nextcmd = 0 then
              (let r3 = iobuff ed in
               let r4 = emsg_iobuff_room ed in
               ignore (vim_snprintf ed r3 r4 e_trailing_characters_str [ld_ptr ed cmd_addr]);
@@ -40461,10 +40213,10 @@ let ex_substitute ed eap =
             ignore (emsg ed (iobuff_or ed e_val_too_large));
             frame_pop ed fr)
          else
-           (Exarg_T.set_line1 ed eap (Exarg_T.line2 ed eap);
-            Exarg_T.set_line2 ed eap (Exarg_T.line2 ed eap + (i - 1));
-            if Exarg_T.line2 ed eap > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
-              Exarg_T.set_line2 ed eap (Buf_T.b_ml_ml_line_count ed ed.st.curbuf);
+           (eap.line1 <- eap.line2;
+            eap.line2 <- eap.line2 + (i - 1);
+            if eap.line2 > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+              eap.line2 <- Buf_T.b_ml_ml_line_count ed ed.st.curbuf;
             join50 ()))
       else
         join50 ()
@@ -40544,13 +40296,12 @@ let ex_substitute ed eap =
            ld_char ed (ld_ptr ed cmd_addr) = 'l' ||
            ld_char ed (ld_ptr ed cmd_addr) = 'p' ||
            ld_char ed (ld_ptr ed cmd_addr) = '#')) then
-        (Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line1 ed eap);
+        (Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line1;
          (match ld_char ed (ld_ptr ed cmd_addr) with
-          | 'l' -> Exarg_T.set_flags ed eap exflag_list
-          | '#' -> Exarg_T.set_flags ed eap exflag_nr
-          | _ ->
-              if ld_char ed (ld_ptr ed cmd_addr) = 'p' then Exarg_T.set_flags ed eap exflag_print);
-         let joined_lines_count = Exarg_T.line2 ed eap - Exarg_T.line1 ed eap + 1 in
+          | 'l' -> eap.flags <- exflag_list
+          | '#' -> eap.flags <- exflag_nr
+          | _ -> if ld_char ed (ld_ptr ed cmd_addr) = 'p' then eap.flags <- exflag_print);
+         let joined_lines_count = eap.line2 - eap.line1 + 1 in
          let join234 joined_lines_count =
            if joined_lines_count > 1 then
              (ignore (do_join ed joined_lines_count false true false true);
@@ -40562,7 +40313,7 @@ let ex_substitute ed eap =
            add_to_history ed hist_search pat_string pat_length true nul;
            frame_pop ed fr
          in
-         if Exarg_T.line2 ed eap < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+         if eap.line2 < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
            join234 (joined_lines_count + 1)
          else
            join234 joined_lines_count)
@@ -40634,7 +40385,7 @@ let ex_substitute ed eap =
       let sub = vim_strsave ed ed.st.old_sub in
       join22 sub 0 0 which_pat (Win_T.w_curswant ed ed.st.curwin = maxcol)
   in
-  if Exarg_T.cmdidx ed eap = cmd_tilde then
+  if eap.cmdidx = cmd_tilde then
     join5 false false re_last 0 0 false
   else
     join5 false false re_subst 0 0 false
@@ -40773,10 +40524,8 @@ let ex_global ed eap =
         (global_exe ed cmd;
          join33 ())
     in
-    if lnum <= Exarg_T.line2 ed eap && ed.st.got_int = 0 then
-      (let match_' =
-         to_i32 (search_found ed found (Exarg_T.line1 ed eap) found_count regmatch lnum 0)
-       in
+    if lnum <= eap.line2 && ed.st.got_int = 0 then
+      (let match_' = to_i32 (search_found ed found eap.line1 found_count regmatch lnum 0) in
        let join24 ndone =
          line_breakcheck ed;
          loop20 (lnum + 1) ndone type_ cmd found found_count
@@ -40799,13 +40548,10 @@ let ex_global ed eap =
          frame_pop ed fr)
       else if ed.st.global_busy = 0 then
         (let found =
-           if Exarg_T.line2 ed eap > Exarg_T.line1 ed eap then
-             match_range ed regmatch false (Exarg_T.line1 ed eap) (Exarg_T.line2 ed eap)
-           else
-             0
+           if eap.line2 > eap.line1 then match_range ed regmatch false eap.line1 eap.line2 else 0
          in
          let found_count = Buf_T.b_ml_ml_line_count ed ed.st.curbuf in
-         loop20 (Exarg_T.line1 ed eap) ndone type_ cmd found found_count)
+         loop20 eap.line1 ndone type_ cmd found found_count)
       else
         let lnum = Win_T.w_cursor_lnum ed ed.st.curwin in
         let match_' = to_i32 (vim_regexec_multi ed regmatch ed.st.curwin ed.st.curbuf lnum 0 0) in
@@ -40844,14 +40590,10 @@ let ex_global ed eap =
           frame_pop ed fr
   in
   if ed.st.global_busy <> 0 &&
-     (Exarg_T.line1 ed eap <> 1 ||
-      Exarg_T.line2 ed eap <> Buf_T.b_ml_ml_line_count ed ed.st.curbuf) then
+     (eap.line1 <> 1 || eap.line2 <> Buf_T.b_ml_ml_line_count ed ed.st.curbuf) then
     (ignore (emsg ed e_cannot_do_global_recursive_with_range);
      frame_pop ed fr)
-  else if Exarg_T.forceit ed eap then
-    join4 0 (Char.code 'v')
-  else
-    join4 0 (ld_u8 ed (Exarg_T.cmd ed eap))
+  else if eap.forceit then join4 0 (Char.code 'v') else join4 0 (ld_u8 ed (Exarg_T.cmd ed eap))
 
 let find_nextcmd ed p =
   let rec loop1 p =
@@ -40865,7 +40607,7 @@ let find_nextcmd ed p =
 let ex_highlight ed eap =
   if ld_u8 ed (Exarg_T.arg ed eap) = nul && ld_char ed (Exarg_T.cmd ed eap + 2) = '!' then
     ignore (msg ed 163346 (* "Greetings, Vim user!" *));
-  do_highlight ed (Exarg_T.arg ed eap) (Exarg_T.forceit ed eap) false
+  do_highlight ed (Exarg_T.arg ed eap) eap.forceit false
 
 let win_valid ed win =
   Bool.to_int (win <> 0 && win = ed.st.curwin)
@@ -40892,10 +40634,10 @@ let ex_quit ed eap =
   else
     let wp = ed.st.curwin in
     if not (curbuf_locked ed) then
-      (if not (before_quit_autocmds ed wp false (Exarg_T.forceit ed eap)) then getout ed 0)
+      (if not (before_quit_autocmds ed wp false eap.forceit) then getout ed 0)
 
 let ex_cquit ed eap =
-  getout ed (if Exarg_T.addr_count ed eap > 0 then to_i32 (Exarg_T.line2 ed eap) else exit_failure)
+  getout ed (if eap.addr_count > 0 then to_i32 eap.line2 else exit_failure)
 
 let scroll_start ed =
   if not (ld_u8 ed (ld_ptr ed (term_strings + 112)) = nul ||
@@ -40929,21 +40671,18 @@ let ex_stop ed _eap =
 let ex_print ed eap =
   let join6 () =
     setpcmark ed;
-    Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line2 ed eap);
+    Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line2;
     beginline ed 6
   in
   if Buf_T.b_ml_ml_flags ed ed.st.curbuf land ml_empty = 0 then
     (let rec loop2 () =
        if ed.st.got_int = 0 then
-         (print_line ed (Exarg_T.line1 ed eap)
+         (print_line ed eap.line1
             (Bool.to_int
-               (Exarg_T.cmdidx ed eap = cmd_number ||
-                Exarg_T.cmdidx ed eap = cmd_pound ||
-                Exarg_T.flags ed eap land exflag_nr <> 0))
-            (Bool.to_int
-               (Exarg_T.cmdidx ed eap = cmd_list || Exarg_T.flags ed eap land exflag_list <> 0));
-          Exarg_T.set_line1 ed eap (Exarg_T.line1 ed eap + 1);
-          if Exarg_T.line1 ed eap > Exarg_T.line2 ed eap then
+               (eap.cmdidx = cmd_number || eap.cmdidx = cmd_pound || eap.flags land exflag_nr <> 0))
+            (Bool.to_int (eap.cmdidx = cmd_list || eap.flags land exflag_list <> 0));
+          eap.line1 <- eap.line1 + 1;
+          if eap.line1 > eap.line2 then
             join6 ()
           else
             (out_flush ed;
@@ -40957,12 +40696,12 @@ let ex_print ed eap =
     ignore (emsg ed e_empty_buffer)
 
 let ex_wrongmodifier ed eap =
-  Exarg_T.set_errmsg ed eap (ex_errmsg ed e_invalid_command_str (Exarg_T.cmd ed eap))
+  eap.errmsg <- ex_errmsg ed e_invalid_command_str (Exarg_T.cmd ed eap)
 
 let ex_equal ed eap =
   let r1 = iobuff ed in
   let r2 = iobuff_room ed in
-  ignore (vim_snprintf ed r1 r2 162765 (* "%ld" *) [Exarg_T.line2 ed eap]);
+  ignore (vim_snprintf ed r1 r2 162765 (* "%ld" *) [eap.line2]);
   ignore (msg ed (iobuff_or ed 162765 (* "%ld" *)));
   ex_may_print ed eap
 
@@ -42009,18 +41748,18 @@ let ex_operators ed eap =
     frame_pop ed fr
   in
   clear_oparg ed oa;
-  Oparg_T.set_regname ed oa (Exarg_T.regname ed eap);
-  Oparg_T.set_start_lnum ed oa (Exarg_T.line1 ed eap);
-  Oparg_T.set_end_lnum ed oa (Exarg_T.line2 ed eap);
-  Oparg_T.set_line_count ed oa (Exarg_T.line2 ed eap - Exarg_T.line1 ed eap + 1);
+  Oparg_T.set_regname ed oa eap.regname;
+  Oparg_T.set_start_lnum ed oa eap.line1;
+  Oparg_T.set_end_lnum ed oa eap.line2;
+  Oparg_T.set_line_count ed oa (eap.line2 - eap.line1 + 1);
   Oparg_T.set_motion_type ed oa mline;
   ed.st.virtual_op <- false_;
-  if Exarg_T.cmdidx ed eap <> cmd_yank then
+  if eap.cmdidx <> cmd_yank then
     (setpcmark ed;
-     Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line1 ed eap);
+     Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line1;
      beginline ed 6);
   if ed.st.visual_active then end_visual_mode ed;
-  match Exarg_T.cmdidx ed eap with
+  match eap.cmdidx with
   | 10 (* CMD_delete *) ->
       Oparg_T.set_op_type ed oa op_delete';
       ignore (op_delete ed oa);
@@ -42030,28 +41769,28 @@ let ex_operators ed eap =
       ignore (op_yank ed oa false true);
       join11 ()
   | _ ->
-      if Exarg_T.cmdidx ed eap = cmd_rshift then
+      if eap.cmdidx = cmd_rshift then
         Oparg_T.set_op_type ed oa op_rshift
       else
         Oparg_T.set_op_type ed oa op_lshift;
-      op_shift ed oa false (Exarg_T.amount ed eap);
+      op_shift ed oa false eap.amount;
       join11 ()
 
 let ex_put ed eap =
-  if Exarg_T.line2 ed eap = 0 then
-    (Exarg_T.set_line2 ed eap 1;
-     Exarg_T.set_forceit ed eap true);
-  Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line2 ed eap);
+  if eap.line2 = 0 then
+    (eap.line2 <- 1;
+     eap.forceit <- true);
+  Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line2;
   check_cursor_col ed;
-  do_put ed (Exarg_T.regname ed eap) 0 (if Exarg_T.forceit ed eap then -1 else forward) 1 12
+  do_put ed eap.regname 0 (if eap.forceit then -1 else forward) 1 12
 
 let ex_iput ed eap =
-  if Exarg_T.line2 ed eap = 0 then
-    (Exarg_T.set_line2 ed eap 1;
-     Exarg_T.set_forceit ed eap true);
-  Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line2 ed eap);
+  if eap.line2 = 0 then
+    (eap.line2 <- 1;
+     eap.forceit <- true);
+  Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line2;
   check_cursor_col ed;
-  do_put ed (Exarg_T.regname ed eap) 0 (if Exarg_T.forceit ed eap then -1 else forward) 1 13
+  do_put ed eap.regname 0 (if eap.forceit then -1 else forward) 1 13
 
 let ex_copymove ed eap =
   let join5 () =
@@ -42059,41 +41798,38 @@ let ex_copymove ed eap =
     beginline ed 6;
     ex_may_print ed eap
   in
-  let n = get_address ed eap (Exarg_T.arg_addr eap) (Exarg_T.addr_type ed eap) false false false 1
-  in
+  let n = get_address ed eap (Exarg_T.arg_addr eap) eap.addr_type false false false 1 in
   if Exarg_T.arg ed eap = 0 then
-    Exarg_T.set_nextcmd ed eap 0
+    eap.nextcmd <- 0
   else
     (get_flags ed eap;
      if n = long_max || n < 0 || n > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
        ignore (emsg ed e_invalid_range)
-     else if Exarg_T.cmdidx ed eap = cmd_move then
-       (if do_move ed (Exarg_T.line1 ed eap) (Exarg_T.line2 ed eap) n then join5 ())
+     else if eap.cmdidx = cmd_move then
+       (if do_move ed eap.line1 eap.line2 n then join5 ())
      else
-       (ex_copy ed (Exarg_T.line1 ed eap) (Exarg_T.line2 ed eap) n;
+       (ex_copy ed eap.line1 eap.line2 n;
         join5 ()))
 
 let ex_submagic ed eap =
   let saved = ed.st.magic_overruled in
-  ed.st.magic_overruled <-
-    (if Exarg_T.cmdidx ed eap = cmd_smagic then Option_magic_on else Option_magic_off);
+  ed.st.magic_overruled <- (if eap.cmdidx = cmd_smagic then Option_magic_on else Option_magic_off);
   ex_substitute ed eap;
   ed.st.magic_overruled <- saved
 
 let ex_join ed eap =
   let join4 () =
-    ignore (do_join ed (Exarg_T.line2 ed eap - Exarg_T.line1 ed eap + 1)
-       (not (Exarg_T.forceit ed eap)) true true true);
+    ignore (do_join ed (eap.line2 - eap.line1 + 1) (not eap.forceit) true true true);
     beginline ed 5;
     ex_may_print ed eap
   in
-  Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line1 ed eap);
-  if Exarg_T.line1 ed eap = Exarg_T.line2 ed eap then
-    (if Exarg_T.addr_count ed eap < 2 then
-       (if Exarg_T.line2 ed eap = Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+  Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line1;
+  if eap.line1 = eap.line2 then
+    (if eap.addr_count < 2 then
+       (if eap.line2 = Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
           beep_flush ed
         else
-          (Exarg_T.set_line2 ed eap (Exarg_T.line2 ed eap + 1);
+          (eap.line2 <- eap.line2 + 1;
            join4 ())))
   else
     join4 ()
@@ -42371,7 +42107,7 @@ let do_execreg ed regname colon addcr silent =
 
 let ex_at ed eap =
   let prev_len = Typebuf_T.tb_len ed typebuf in
-  Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line2 ed eap);
+  Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line2;
   check_cursor_col ed;
   let c = ld_u8 ed (Exarg_T.arg ed eap) in
   let join2 c =
@@ -43013,10 +42749,7 @@ let undo_time ed step sec file absolute =
        join21 (Buf_T.b_u_seq_cur ed ed.st.curbuf + step) 0 0 0 dofile false true)
 
 let ex_undo ed eap =
-  if Exarg_T.addr_count ed eap = 1 then
-    undo_time ed (Exarg_T.line2 ed eap) false false true
-  else
-    u_undo ed 1
+  if eap.addr_count = 1 then undo_time ed eap.line2 false false true else u_undo ed 1
 
 let u_redo ed count =
   if vim_strchr ed (p_cpo ed) cpo_undo = 0 then ed.st.undo_undoes <- false;
@@ -43033,7 +42766,7 @@ let ex_later ed eap =
   in
   let join9 count sec file =
     if ld_u8 ed (ld_ptr ed p_addr) = nul then
-      (undo_time ed (if Exarg_T.cmdidx ed eap = cmd_earlier then -count else count) sec file false;
+      (undo_time ed (if eap.cmdidx = cmd_earlier then -count else count) sec file false;
        join12 ())
     else
       let r1 = iobuff ed in
@@ -43087,10 +42820,10 @@ let redraw_cmd ed clear =
   out_flush ed
 
 let ex_redraw ed eap =
-  redraw_cmd ed (Exarg_T.forceit ed eap)
+  redraw_cmd ed eap.forceit
 
 let ex_redrawstatus ed eap =
-  if Exarg_T.forceit ed eap then status_redraw_all ed else status_redraw_curbuf ed;
+  if eap.forceit then status_redraw_all ed else status_redraw_curbuf ed;
   ed.st.redraw_vseps <- true;
   if not (ed.st.msg_scrolled <> 0 && ed.st.state land mode_cmdline <> 0) then
     (let save_RedrawingDisabled = ed.st.redrawingdisabled in
@@ -43112,7 +42845,7 @@ let ex_mark ed eap =
     (let pos_lnum = Win_T.w_cursor_lnum ed ed.st.curwin in
      let pos_col_ = Win_T.w_cursor_col ed ed.st.curwin in
      let pos_coladd = Win_T.w_cursor_coladd ed ed.st.curwin in
-     Win_T.set_w_cursor_lnum ed ed.st.curwin (Exarg_T.line2 ed eap);
+     Win_T.set_w_cursor_lnum ed ed.st.curwin eap.line2;
      beginline ed 5;
      if setmark ed (ld_u8 ed (Exarg_T.arg ed eap)) = fail then
        ignore (emsg ed e_argument_must_be_letter_or_forward_backward_quote);
@@ -43183,19 +42916,19 @@ let save_typeahead ed tp =
   Tasave_T.set_save_inputbuf ed tp (get_input_buf ed)
 
 let save_current_state ed sst =
-  Save_state_T.set_save_msg_scroll ed sst ed.st.msg_scroll;
-  Save_state_T.set_save_restart_edit ed sst ed.st.restart_edit;
-  Save_state_T.set_save_msg_didout ed sst ed.st.msg_didout;
-  Save_state_T.set_save_State ed sst ed.st.state;
-  Save_state_T.set_save_insertmode ed sst (p_im ed);
-  Save_state_T.set_save_finish_op ed sst ed.st.finish_op;
-  Save_state_T.set_save_opcount ed sst (to_i32 ed.st.opcount);
-  Save_state_T.set_save_reg_executing ed sst ed.st.reg_executing;
-  Save_state_T.set_save_pending_end_reg_executing ed sst ed.st.pending_end_reg_executing;
+  sst.save_msg_scroll <- ed.st.msg_scroll;
+  sst.save_restart_edit <- ed.st.restart_edit;
+  sst.save_msg_didout <- ed.st.msg_didout;
+  sst.save_State <- ed.st.state;
+  sst.save_insertmode <- p_im ed;
+  sst.save_finish_op <- ed.st.finish_op;
+  sst.save_opcount <- to_i32 ed.st.opcount;
+  sst.save_reg_executing <- ed.st.reg_executing;
+  sst.save_pending_end_reg_executing <- ed.st.pending_end_reg_executing;
   ed.st.msg_scroll <- false_;
   ed.st.restart_edit <- 0;
   set_p_im ed false_;
-  Save_state_T.set_save_script_version ed sst (Sctx_T.sc_version ed current_sctx);
+  sst.save_script_version <- Sctx_T.sc_version ed current_sctx;
   Sctx_T.set_sc_version ed current_sctx 1;
   save_typeahead ed (Save_state_T.tabuf_addr sst);
   Save_state_T.tabuf_typebuf_valid ed sst
@@ -43225,16 +42958,16 @@ let restore_typeahead ed tp overwrite =
 
 let restore_current_state ed sst =
   restore_typeahead ed (Save_state_T.tabuf_addr sst) false;
-  ed.st.msg_scroll <- Save_state_T.save_msg_scroll ed sst;
-  ed.st.restart_edit <- Save_state_T.save_restart_edit ed sst;
-  set_p_im ed (Save_state_T.save_insertmode ed sst);
-  ed.st.finish_op <- Save_state_T.save_finish_op ed sst;
-  ed.st.opcount <- Save_state_T.save_opcount ed sst;
-  ed.st.reg_executing <- Save_state_T.save_reg_executing ed sst;
-  ed.st.pending_end_reg_executing <- Save_state_T.save_pending_end_reg_executing ed sst;
-  ed.st.msg_didout <- ed.st.msg_didout lor Save_state_T.save_msg_didout ed sst;
-  Sctx_T.set_sc_version ed current_sctx (Save_state_T.save_script_version ed sst);
-  ed.st.state <- Save_state_T.save_State ed sst
+  ed.st.msg_scroll <- sst.save_msg_scroll;
+  ed.st.restart_edit <- sst.save_restart_edit;
+  set_p_im ed sst.save_insertmode;
+  ed.st.finish_op <- sst.save_finish_op;
+  ed.st.opcount <- sst.save_opcount;
+  ed.st.reg_executing <- sst.save_reg_executing;
+  ed.st.pending_end_reg_executing <- sst.save_pending_end_reg_executing;
+  ed.st.msg_didout <- ed.st.msg_didout lor sst.save_msg_didout;
+  Sctx_T.set_sc_version ed current_sctx sst.save_script_version;
+  ed.st.state <- sst.save_State
 
 let typebuf_maplen ed =
   Typebuf_T.tb_maplen ed typebuf
@@ -43328,18 +43061,18 @@ let del_from_showcmd ed len =
 let normal_cmd_get_count ed cap c _toplevel _set_prevcount ctrl_w' need_flushbuf =
   let join4 c ctrl_w' need_flushbuf _out___r__ _out___ctrl_w _out___need_flushbuf =
     if c = k_cursorhold then
-      (Oparg_T.set_prev_opcount ed (Cmdarg_T.oap ed cap) (Cmdarg_T.opcount ed cap);
-       Oparg_T.set_prev_count0 ed (Cmdarg_T.oap ed cap) (Cmdarg_T.count0 ed cap))
+      (Oparg_T.set_prev_opcount ed cap.oap cap.cmdarg_opcount;
+       Oparg_T.set_prev_count0 ed cap.oap cap.count0)
     else
-      if Cmdarg_T.opcount ed cap <> 0 then
-        (if Cmdarg_T.count0 ed cap = 0 then
-           Cmdarg_T.set_count0 ed cap (Cmdarg_T.opcount ed cap)
-         else if Cmdarg_T.opcount ed cap >= 999999999 / Cmdarg_T.count0 ed cap then
-           Cmdarg_T.set_count0 ed cap 999999999
+      if cap.cmdarg_opcount <> 0 then
+        (if cap.count0 = 0 then
+           cap.count0 <- cap.cmdarg_opcount
+         else if cap.cmdarg_opcount >= 999999999 / cap.count0 then
+           cap.count0 <- 999999999
          else
-           Cmdarg_T.set_count0 ed cap (Cmdarg_T.count0 ed cap * Cmdarg_T.opcount ed cap));
-    Cmdarg_T.set_opcount ed cap (Cmdarg_T.count0 ed cap);
-    Cmdarg_T.set_count1 ed cap (if Cmdarg_T.count0 ed cap = 0 then 1 else Cmdarg_T.count0 ed cap);
+           cap.count0 <- cap.count0 * cap.cmdarg_opcount);
+    cap.cmdarg_opcount <- cap.count0;
+    cap.count1 <- (if cap.count0 = 0 then 1 else cap.count0);
     (c, ctrl_w', need_flushbuf)
   in
   let rec loop0 c ctrl_w' need_flushbuf out___r__ out___ctrl_w out___need_flushbuf =
@@ -43349,14 +43082,14 @@ let normal_cmd_get_count ed cap c _toplevel _set_prevcount ctrl_w' need_flushbuf
       loop2 c ctrl_w' need_flushbuf out___r__ out___ctrl_w out___need_flushbuf
   and loop2 c ctrl_w' need_flushbuf out___r__ out___ctrl_w out___need_flushbuf =
     if c >= Char.code '1' && c <= Char.code '9' ||
-       Cmdarg_T.count0 ed cap <> 0 && (c = k_del || c = k_kdel || c = Char.code '0') then
+       cap.count0 <> 0 && (c = k_del || c = k_kdel || c = Char.code '0') then
       (if c = k_del || c = k_kdel then
-         (Cmdarg_T.set_count0 ed cap (Cmdarg_T.count0 ed cap / 10);
+         (cap.count0 <- cap.count0 / 10;
           del_from_showcmd ed 4)
-       else if Cmdarg_T.count0 ed cap > 99999999 then
-         Cmdarg_T.set_count0 ed cap 999999999
+       else if cap.count0 > 99999999 then
+         cap.count0 <- 999999999
        else
-         Cmdarg_T.set_count0 ed cap (Cmdarg_T.count0 ed cap * 10 + (c - Char.code '0'));
+         cap.count0 <- cap.count0 * 10 + (c - Char.code '0');
        if ctrl_w' then
          (ed.st.no_mapping <- ed.st.no_mapping + 1;
           ed.st.allow_keys <- ed.st.allow_keys + 1);
@@ -43368,9 +43101,9 @@ let normal_cmd_get_count ed cap c _toplevel _set_prevcount ctrl_w' need_flushbuf
           ed.st.allow_keys <- ed.st.allow_keys - 1);
        loop2 c ctrl_w' (need_flushbuf lor Bool.to_int (add_to_showcmd ed c)) out___r__ out___ctrl_w
          out___need_flushbuf)
-    else if c = ctrl_w && not ctrl_w' && Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop then
-      (Cmdarg_T.set_opcount ed cap (Cmdarg_T.count0 ed cap);
-       Cmdarg_T.set_count0 ed cap 0;
+    else if c = ctrl_w && not ctrl_w' && Oparg_T.op_type ed cap.oap = op_nop then
+      (cap.cmdarg_opcount <- cap.count0;
+       cap.count0 <- 0;
        ed.st.no_mapping <- ed.st.no_mapping + 1;
        ed.st.allow_keys <- ed.st.allow_keys + 1;
        let c = plain_vgetc ed in
@@ -43385,14 +43118,14 @@ let normal_cmd_get_count ed cap c _toplevel _set_prevcount ctrl_w' need_flushbuf
 
 let normal_cmd_needs_more_chars ed cap cmd_flags =
   cmd_flags land nv_nch <> 0 &&
-  (cmd_flags land 3 = 3 && Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop ||
+  (cmd_flags land 3 = 3 && Oparg_T.op_type ed cap.oap = op_nop ||
    cmd_flags land 5 = 5 ||
-   Cmdarg_T.cmdchar ed cap = Char.code 'q' &&
-   Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop &&
+   cap.cmdchar = Char.code 'q' &&
+   Oparg_T.op_type ed cap.oap = op_nop &&
    ed.st.reg_recording = 0 &&
    ed.st.reg_executing = 0 ||
-   (Cmdarg_T.cmdchar ed cap = Char.code 'a' || Cmdarg_T.cmdchar ed cap = Char.code 'i') &&
-   (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_nop || ed.st.visual_active))
+   (cap.cmdchar = Char.code 'a' || cap.cmdchar = Char.code 'i') &&
+   (Oparg_T.op_type ed cap.oap <> op_nop || ed.st.visual_active))
 
 let get_op_type ed char1 char2 =
   match char1 with
@@ -43457,10 +43190,7 @@ let normal_cmd_get_more_chars ed idx_arg cap need_flushbuf =
               if c > 0 && (c >= 256 || ld_s8 ed (mb_bytelen_tab + vpeekc ed) > 1) then
                 (let c = plain_vgetc ed in
                  if utf_iscomposing ed c then
-                   (if Cmdarg_T.ncharC1 ed cap = 0 then
-                      Cmdarg_T.set_ncharC1 ed cap c
-                    else
-                      Cmdarg_T.set_ncharC2 ed cap c;
+                   (if cap.ncharC1 = 0 then cap.ncharC1 <- c else cap.ncharC2 <- c;
                     loop31 ())
                  else
                    (vungetc ed c;
@@ -43476,12 +43206,12 @@ let normal_cmd_get_more_chars ed idx_arg cap need_flushbuf =
        if cp = Cmdarg_T.extra_char_addr cap &&
           Cmdarg_T.nchar ed cap = ctrl_bsl &&
           (Cmdarg_T.extra_char ed cap = ctrl_n || Cmdarg_T.extra_char ed cap = ctrl_g) then
-         (Cmdarg_T.set_cmdchar ed cap ctrl_bsl;
+         (cap.cmdchar <- ctrl_bsl;
           Cmdarg_T.set_nchar ed cap (Cmdarg_T.extra_char ed cap);
-          join29 (find_command ed (Cmdarg_T.cmdchar ed cap)))
+          join29 (find_command ed cap.cmdchar))
        else if (Cmdarg_T.nchar ed cap = Char.code 'n' || Cmdarg_T.nchar ed cap = Char.code 'N') &&
-          Cmdarg_T.cmdchar ed cap = Char.code 'g' then
-         (let r1 = Cmdarg_T.oap ed cap in
+          cap.cmdchar = Char.code 'g' then
+         (let r1 = cap.oap in
           Oparg_T.set_op_type ed r1 (get_op_type ed (ld_s32 ed cp) nul);
           join29 idx)
        else if ld_s32 ed cp = ctrl_bsl then
@@ -43496,9 +43226,9 @@ let normal_cmd_get_more_chars ed idx_arg cap need_flushbuf =
                  (vungetc ed c;
                   join29 idx)
                else
-                 (Cmdarg_T.set_cmdchar ed cap ctrl_bsl;
+                 (cap.cmdchar <- ctrl_bsl;
                   Cmdarg_T.set_nchar ed cap c;
-                  join29 (find_command ed (Cmdarg_T.cmdchar ed cap))))
+                  join29 (find_command ed cap.cmdchar)))
             else
               join29 idx
           in
@@ -43512,7 +43242,7 @@ let normal_cmd_get_more_chars ed idx_arg cap need_flushbuf =
   ed.st.no_mapping <- ed.st.no_mapping + 1;
   ed.st.allow_keys <- ed.st.allow_keys + 1;
   ed.st.did_cursorhold <- true;
-  match Cmdarg_T.cmdchar ed cap with
+  match cap.cmdchar with
   | 103 (* 'g' *) ->
       Cmdarg_T.set_nchar ed cap (plain_vgetc ed);
       let t1 = add_to_showcmd ed (Cmdarg_T.nchar ed cap) in
@@ -43545,14 +43275,14 @@ let normal_cmd_need_to_wait_for_msg ed cap old_pos =
    ed.st.restart_edit <> 0 &&
    not ed.st.visual_active &&
    (ed.st.msg_scroll <> 0 || ed.st.emsg_on_display)) &&
-  Oparg_T.regname ed (Cmdarg_T.oap ed cap) = 0 &&
-  Cmdarg_T.retval ed cap land ca_command_busy = 0 &&
+  Oparg_T.regname ed cap.oap = 0 &&
+  cap.retval land ca_command_busy = 0 &&
   stuff_empty ed &&
   typebuf_typed ed &&
   ed.st.emsg_silent = 0 &&
   not ed.st.in_assert_fails &&
   not ed.st.did_wait_return &&
-  Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop
+  Oparg_T.op_type ed cap.oap = op_nop
 
 let normal_cmd_wait_for_msg ed =
   let save_State = ed.st.state in
@@ -43581,26 +43311,26 @@ let normal_cmd_wait_for_msg ed =
 
 let unshift_special ed cap =
   let join7 () =
-    Cmdarg_T.set_cmdchar ed cap (simplify_key ed (Cmdarg_T.cmdchar ed cap) mod_mask_addr)
+    cap.cmdchar <- simplify_key ed cap.cmdchar mod_mask_addr
   in
-  match Cmdarg_T.cmdchar ed cap with
+  match cap.cmdchar with
   | -26917 (* K_TC_PCT_i *) ->
-      Cmdarg_T.set_cmdchar ed cap k_right;
+      cap.cmdchar <- k_right;
       join7 ()
   | -13347 (* K_TC_HASH_4 *) ->
-      Cmdarg_T.set_cmdchar ed cap k_left;
+      cap.cmdchar <- k_left;
       join7 ()
   | -1277 (* K_S_UP *) ->
-      Cmdarg_T.set_cmdchar ed cap k_up;
+      cap.cmdchar <- k_up;
       join7 ()
   | -1533 (* K_S_DOWN *) ->
-      Cmdarg_T.set_cmdchar ed cap k_down;
+      cap.cmdchar <- k_down;
       join7 ()
   | -12835 (* K_TC_HASH_2 *) ->
-      Cmdarg_T.set_cmdchar ed cap k_home;
+      cap.cmdchar <- k_home;
       join7 ()
   | -14122 (* K_TC_STAR_7 *) ->
-      Cmdarg_T.set_cmdchar ed cap k_end;
+      cap.cmdchar <- k_end;
       join7 ()
   | _ -> join7 ()
 
@@ -45176,13 +44906,11 @@ let get_op_vcol ed oap redo_VIsual_vcol initial =
              Oparg_T.set_end_vcol ed oap (ld_s32 ed end_addr));
         join8 ()))
 
-let is_ex_cmdchar ed cap =
-  Cmdarg_T.cmdchar ed cap = Char.code ':' ||
-  Cmdarg_T.cmdchar ed cap = k_command ||
-  Cmdarg_T.cmdchar ed cap = k_script_command
+let is_ex_cmdchar _ed cap =
+  cap.cmdchar = Char.code ':' || cap.cmdchar = k_command || cap.cmdchar = k_script_command
 
 let do_pending_operator ed cap old_col gui_yank =
-  let oap = Cmdarg_T.oap ed cap in
+  let oap = cap.oap in
   let old_cursor_lnum = Win_T.w_cursor_lnum ed ed.st.curwin in
   let old_cursor_col = Win_T.w_cursor_col ed ed.st.curwin in
   let old_cursor_coladd = Win_T.w_cursor_coladd ed ed.st.curwin in
@@ -45232,8 +44960,7 @@ let do_pending_operator ed cap old_col gui_yank =
                    ed.st.restart_edit <- 0;
                    Buf_T.set_b_last_changedtick_i ed ed.st.curbuf
                      (Buf_T.b_changedtick ed ed.st.curbuf);
-                   if op_change ed oap then
-                     Cmdarg_T.set_retval ed cap (Cmdarg_T.retval ed cap lor ca_command_busy);
+                   if op_change ed oap then cap.retval <- cap.retval lor ca_command_busy;
                    if ed.st.restart_edit = 0 then ed.st.restart_edit <- restart_edit_save;
                    join141 ()
                  in
@@ -45242,7 +44969,7 @@ let do_pending_operator ed cap old_col gui_yank =
                    redraw_curbuf_later ed upd_inverted;
                  if Oparg_T.motion_type ed oap = mchar &&
                     Oparg_T.inclusive ed oap = false_ &&
-                    Cmdarg_T.retval ed cap land ca_no_adj_op_end = 0 &&
+                    cap.retval land ca_no_adj_op_end = 0 &&
                     Oparg_T.end_col ed oap = 0 &&
                     (Oparg_T.is_VIsual ed oap = 0 || ld_char ed (p_sel ed) = 'o') &&
                     Oparg_T.block_mode ed oap = 0 &&
@@ -45262,10 +44989,7 @@ let do_pending_operator ed cap old_col gui_yank =
                  match Oparg_T.op_type ed oap with
                  | 4 (* OP_LSHIFT *) | 5 (* OP_RSHIFT *) ->
                      op_shift ed oap true
-                       (if Oparg_T.is_VIsual ed oap = 0 then
-                          1
-                        else
-                          to_i32 (Cmdarg_T.count1 ed cap));
+                       (if Oparg_T.is_VIsual ed oap = 0 then 1 else to_i32 cap.count1);
                      join141 ()
                  | 14 (* OP_JOIN_NS *) | 13 (* OP_JOIN *) ->
                      if Oparg_T.line_count ed oap < 2 then Oparg_T.set_line_count ed oap 2;
@@ -45290,8 +45014,7 @@ let do_pending_operator ed cap old_col gui_yank =
                           (vim_beep ed bo_oper;
                            cancelredo ed))
                      else
-                       (Oparg_T.set_excl_tr_ws ed oap
-                          (Bool.to_int (Cmdarg_T.cmdchar ed cap = Char.code 'z'));
+                       (Oparg_T.set_excl_tr_ws ed oap (Bool.to_int (cap.cmdchar = Char.code 'z'));
                         ignore (op_yank ed oap false (not gui_yank)));
                      check_cursor_col ed;
                      join141 ()
@@ -45327,11 +45050,11 @@ let do_pending_operator ed cap old_col gui_yank =
                        ed.st.restart_edit <- 0;
                        Buf_T.set_b_last_changedtick_i ed ed.st.curbuf
                          (Buf_T.b_changedtick ed ed.st.curbuf);
-                       op_insert ed oap (Cmdarg_T.count1 ed cap);
+                       op_insert ed oap cap.count1;
                        if ed.st.restart_edit = 0 then
                          ed.st.restart_edit <- restart_edit_save
                        else
-                         Cmdarg_T.set_retval ed cap (Cmdarg_T.retval ed cap lor ca_command_busy);
+                         cap.retval <- cap.retval lor ca_command_busy;
                        join141 ()
                  | 16 (* OP_REPLACE *) ->
                      ed.st.visual_reselect <- false;
@@ -45347,7 +45070,7 @@ let do_pending_operator ed cap old_col gui_yank =
                         cancelredo ed)
                      else
                        (ed.st.visual_active <- true;
-                        op_addsub ed oap (Cmdarg_T.count1 ed cap)
+                        op_addsub ed oap cap.count1
                           (Redo_VIsual_T.rv_arg ed do_pending_operator__redo_VIsual);
                         ed.st.visual_active <- false);
                      check_cursor_col ed;
@@ -45400,24 +45123,22 @@ let do_pending_operator ed cap old_col gui_yank =
                       ed.st.resel_VIsual_vcol;
                     Redo_VIsual_T.set_rv_line_count ed do_pending_operator__redo_VIsual
                       ed.st.resel_VIsual_line_count;
-                    Redo_VIsual_T.set_rv_count ed do_pending_operator__redo_VIsual
-                      (Cmdarg_T.count0 ed cap);
-                    Redo_VIsual_T.set_rv_arg ed do_pending_operator__redo_VIsual
-                      (Cmdarg_T.arg ed cap));
+                    Redo_VIsual_T.set_rv_count ed do_pending_operator__redo_VIsual cap.count0;
+                    Redo_VIsual_T.set_rv_arg ed do_pending_operator__redo_VIsual cap.arg);
                  join78 ()
                in
                if (redo_yank || Oparg_T.op_type ed oap <> op_yank') &&
                   Oparg_T.op_type ed oap <> op_colon' &&
                   Oparg_T.motion_force ed oap = nul then
-                 (if Cmdarg_T.cmdchar ed cap = Char.code 'g' &&
+                 (if cap.cmdchar = Char.code 'g' &&
                      (Cmdarg_T.nchar ed cap = Char.code 'n' ||
                       Cmdarg_T.nchar ed cap = Char.code 'N') then
                     (let r8 = Oparg_T.regname ed oap in
-                     let r9 = Cmdarg_T.count0 ed cap in
+                     let r9 = cap.count0 in
                      let r10 = get_op_char ed (Oparg_T.op_type ed oap) in
                      let r11 = get_extra_op_char ed (Oparg_T.op_type ed oap) in
-                     prep_redo ed r8 r9 r10 r11 (Oparg_T.motion_force ed oap)
-                       (Cmdarg_T.cmdchar ed cap) (Cmdarg_T.nchar ed cap);
+                     prep_redo ed r8 r9 r10 r11 (Oparg_T.motion_force ed oap) cap.cmdchar
+                       (Cmdarg_T.nchar ed cap);
                      join76 ())
                   else if is_ex_cmdchar ed cap then
                     join76 ()
@@ -45429,8 +45150,8 @@ let do_pending_operator ed cap old_col gui_yank =
                     in
                     let join72 nchar =
                       if opchar = Char.code 'g' && extra_opchar = Char.code '@' then
-                        prep_redo_num2 ed (Oparg_T.regname ed oap) 0 nul (Char.code 'v')
-                          (Cmdarg_T.count0 ed cap) opchar extra_opchar nchar
+                        prep_redo_num2 ed (Oparg_T.regname ed oap) 0 nul (Char.code 'v') cap.count0
+                          opchar extra_opchar nchar
                       else
                         prep_redo ed (Oparg_T.regname ed oap) 0 nul (Char.code 'v') opchar
                           extra_opchar nchar;
@@ -45511,13 +45232,11 @@ let do_pending_operator ed cap old_col gui_yank =
            (mem_copy ed (Oparg_T.start_addr oap) (Win_T.w_cursor_addr ed.st.curwin) 16;
             let r5 = ed.st.curwin in
             let join47 () =
-              Cmdarg_T.set_count0 ed cap
-                (Redo_VIsual_T.rv_count ed do_pending_operator__redo_VIsual);
+              cap.count0 <- Redo_VIsual_T.rv_count ed do_pending_operator__redo_VIsual;
               if Redo_VIsual_T.rv_count ed do_pending_operator__redo_VIsual = 0 then
-                Cmdarg_T.set_count1 ed cap 1
+                cap.count1 <- 1
               else
-                Cmdarg_T.set_count1 ed cap
-                  (Redo_VIsual_T.rv_count ed do_pending_operator__redo_VIsual);
+                cap.count1 <- Redo_VIsual_T.rv_count ed do_pending_operator__redo_VIsual;
               join50 include_line_break
             in
             Win_T.set_w_cursor_lnum ed r5
@@ -45554,7 +45273,7 @@ let do_pending_operator ed cap old_col gui_yank =
                Buf_T.set_b_visual_vi_curswant ed ed.st.curbuf (Win_T.w_curswant ed ed.st.curwin));
             if ed.st.visual_select <> 0 &&
                ed.st.visual_mode = Char.code 'V' &&
-               Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_delete' then
+               Oparg_T.op_type ed cap.oap <> op_delete' then
               (if (if Pos_T.lnum ed visual = Win_T.w_cursor_lnum ed ed.st.curwin then
                      (if Pos_T.col ed visual = Win_T.w_cursor_col ed ed.st.curwin then
                         Bool.to_int (Pos_T.coladd ed visual < Win_T.w_cursor_coladd ed ed.st.curwin)
@@ -45583,16 +45302,16 @@ let do_pending_operator ed cap old_col gui_yank =
           (not ed.st.visual_active ||
            Oparg_T.motion_force ed oap <> 0 ||
            ed.st.visual_active && is_ex_cmdchar ed cap && Oparg_T.op_type ed oap <> op_colon') &&
-          Cmdarg_T.cmdchar ed cap <> Char.code 'D' then
+          cap.cmdchar <> Char.code 'D' then
          (let r1 = Oparg_T.regname ed oap in
-          let r2 = Cmdarg_T.count0 ed cap in
+          let r2 = cap.count0 in
           let r3 = get_op_char ed (Oparg_T.op_type ed oap) in
           let r4 = get_extra_op_char ed (Oparg_T.op_type ed oap) in
-          prep_redo ed r1 r2 r3 r4 (Oparg_T.motion_force ed oap) (Cmdarg_T.cmdchar ed cap)
-            (Cmdarg_T.nchar ed cap);
-          if Cmdarg_T.cmdchar ed cap = Char.code '/' || Cmdarg_T.cmdchar ed cap = Char.code '?' then
+          prep_redo
+            ed r1 r2 r3 r4 (Oparg_T.motion_force ed oap) cap.cmdchar (Cmdarg_T.nchar ed cap);
+          if cap.cmdchar = Char.code '/' || cap.cmdchar = Char.code '?' then
             (if vim_strchr ed (p_cpo ed) cpo_redo = 0 then
-               appendtoredobufflit ed (Cmdarg_T.searchbuf ed cap) (-1);
+               appendtoredobufflit ed cap.searchbuf (-1);
              appendtoredobuff ed 162586 (* "\n" *);
              join25 ())
           else if is_ex_cmdchar ed cap then
@@ -45600,7 +45319,7 @@ let do_pending_operator ed cap old_col gui_yank =
                (resetredobuff ed;
                 join25 ())
              else
-               (if Cmdarg_T.cmdchar ed cap = Char.code ':' then
+               (if cap.cmdchar = Char.code ':' then
                   appendtoredobufflit ed ed.st.repeat_cmdline (-1)
                 else
                   appendtoredobuffspec ed ed.st.repeat_cmdline;
@@ -45639,19 +45358,19 @@ let do_pending_operator ed cap old_col gui_yank =
 
 let normal_cmd ed oap toplevel =
   let fr = frame_push ed 96 in
-  let ca = fr + 0 in
+  let ca = Cmdarg_T.make (fr + 0) in
   let old_pos = fr + 72 in
   let join61 _normal_cmd_get_count__o_r__ _normal_cmd_get_count__o_ctrl_w _normal_cmd_get_count__o_need_flushbuf _normal_cmd_get_more_chars__o_r__ _normal_cmd_get_more_chars__o_need_flushbuf =
     let join70 () =
       if ed.st.restart_VIsual_select = 2 then ed.st.restart_VIsual_select <- 1;
-      ed.st.opcount <- Cmdarg_T.opcount ed ca;
+      ed.st.opcount <- ca.cmdarg_opcount;
       frame_pop ed fr
     in
     ed.st.msg_nowait <- false;
     if Oparg_T.op_type ed oap = op_nop then ed.st.finish_op <- false;
     if Oparg_T.op_type ed oap = op_nop &&
        Oparg_T.regname ed oap = 0 &&
-       Cmdarg_T.cmdchar ed ca <> k_cursorhold then
+       ca.cmdchar <> k_cursorhold then
       clear_showcmd ed;
     checkpcmark ed;
     mb_adjust_cursor ed;
@@ -45660,7 +45379,7 @@ let normal_cmd ed oap toplevel =
         not ed.st.visual_active &&
         ed.st.normal_cmd__old_mapped_len = 0 ||
         ed.st.restart_VIsual_select = 1) &&
-       Cmdarg_T.retval ed ca land ca_command_busy = 0 &&
+       ca.retval land ca_command_busy = 0 &&
        stuff_empty ed &&
        Oparg_T.regname ed oap = 0 then
       (if ed.st.restart_VIsual_select = 1 then
@@ -45678,14 +45397,14 @@ let normal_cmd ed oap toplevel =
   in
   let old_col = Win_T.w_curswant ed ed.st.curwin in
   let save_did_cursorhold = ed.st.did_cursorhold in
-  ignore (musl_memset ed ca 0 72);
-  Cmdarg_T.set_oap ed ca oap;
-  Cmdarg_T.set_opcount ed ca ed.st.opcount;
+  Cmdarg_T.clear ed ca;
+  ca.oap <- oap;
+  ca.cmdarg_opcount <- ed.st.opcount;
   ed.st.finish_op <- Oparg_T.op_type ed oap <> op_nop;
-  if not ed.st.finish_op && Oparg_T.regname ed oap = 0 then Cmdarg_T.set_opcount ed ca 0;
+  if not ed.st.finish_op && Oparg_T.regname ed oap = 0 then ca.cmdarg_opcount <- 0;
   if Oparg_T.prev_opcount ed oap > 0 || Oparg_T.prev_count0 ed oap > 0 then
-    (Cmdarg_T.set_opcount ed ca (Oparg_T.prev_opcount ed oap);
-     Cmdarg_T.set_count0 ed ca (Oparg_T.prev_count0 ed oap);
+    (ca.cmdarg_opcount <- Oparg_T.prev_opcount ed oap;
+     ca.count0 <- Oparg_T.prev_count0 ed oap;
      Oparg_T.set_prev_opcount ed oap 0;
      Oparg_T.set_prev_count0 ed oap 0);
   let mapped_len = typebuf_maplen ed in
@@ -45699,22 +45418,22 @@ let normal_cmd ed oap toplevel =
       in
       if r2 then
         (Cmdarg_T.set_nchar ed ca r1;
-         Cmdarg_T.set_cmdchar ed ca ctrl_w)
+         ca.cmdchar <- ctrl_w)
       else
-        Cmdarg_T.set_cmdchar ed ca r1;
-      let idx = find_command ed (Cmdarg_T.cmdchar ed ca) in
+        ca.cmdchar <- r1;
+      let idx = find_command ed ca.cmdchar in
       let join33 need_flushbuf idx normal_cmd_get_count__o_r__ normal_cmd_get_count__o_ctrl_w normal_cmd_get_count__o_need_flushbuf =
         let join35 need_flushbuf idx normal_cmd_get_more_chars__o_r__ normal_cmd_get_more_chars__o_need_flushbuf =
           let join49 idx =
-            Cmdarg_T.set_arg ed ca (Nv_cmd.cmd_arg ed (nv_cmds + idx * 24));
-            call_ptr1v (Nv_cmd.cmd_func ed (nv_cmds + idx * 24)) ed ca;
+            ca.arg <- Nv_cmd.cmd_arg ed (nv_cmds + idx * 24);
+            call_ptr1v_0cmdarg (Nv_cmd.cmd_func ed (nv_cmds + idx * 24)) ed ca;
             if not ed.st.finish_op &&
                Oparg_T.op_type ed oap = 0 &&
                (idx < 0 || Nv_cmd.cmd_flags ed (nv_cmds + idx * 24) land nv_keepreg = 0) then
               clearop ed oap;
             if ed.st.normal_cmd__old_mapped_len > 0 then
               ed.st.normal_cmd__old_mapped_len <- typebuf_maplen ed;
-            if Cmdarg_T.cmdchar ed ca <> k_ignore && Cmdarg_T.cmdchar ed ca <> k_mousemove then
+            if ca.cmdchar <> k_ignore && ca.cmdchar <> k_mousemove then
               do_pending_operator ed ca old_col false;
             if normal_cmd_need_to_wait_for_msg ed ca old_pos then normal_cmd_wait_for_msg ed;
             join61 normal_cmd_get_count__o_r__ normal_cmd_get_count__o_ctrl_w
@@ -45722,7 +45441,7 @@ let normal_cmd ed oap toplevel =
               normal_cmd_get_more_chars__o_need_flushbuf
           in
           if need_flushbuf <> 0 then out_flush ed;
-          if Cmdarg_T.cmdchar ed ca <> k_ignore then
+          if ca.cmdchar <> k_ignore then
             (if ed.st.ex_normal_busy = 0 then
                ed.st.did_cursorhold <- false
              else
@@ -45735,7 +45454,7 @@ let normal_cmd ed oap toplevel =
                normal_cmd_get_count__o_need_flushbuf normal_cmd_get_more_chars__o_r__
                normal_cmd_get_more_chars__o_need_flushbuf)
           else
-            (if Cmdarg_T.cmdchar ed ca <> k_ignore then
+            (if ca.cmdchar <> k_ignore then
                (ed.st.msg_didout <- false_;
                 ed.st.msg_col <- 0);
              mem_copy ed old_pos (Win_T.w_cursor_addr ed.st.curwin) 16;
@@ -45749,7 +45468,7 @@ let normal_cmd ed oap toplevel =
                 else
                   (start_selection ed;
                    unshift_special ed ca;
-                   join49 (find_command ed (Cmdarg_T.cmdchar ed ca))))
+                   join49 (find_command ed ca.cmdchar)))
              else
                join49 idx)
         in
@@ -45781,7 +45500,7 @@ let normal_cmd ed oap toplevel =
                join33 r3 idx r1 r2 r3)
             else
               (unshift_special ed ca;
-               let idx = find_command ed (Cmdarg_T.cmdchar ed ca) in
+               let idx = find_command ed ca.cmdchar in
                if idx < 0 then
                  (clearopbeep ed oap;
                   join61 r1 r2 r3 normal_cmd_get_more_chars__o_r__
@@ -45850,7 +45569,7 @@ let exec_normal_cmd ed cmd remap silent =
 
 let ex_normal ed eap =
   let fr = frame_push ed 208 in
-  let save_state = fr + 0 in
+  let save_state = Save_state_T.make (fr + 0) in
   let join13 () =
     update_topline_cursor ed;
     restore_current_state ed save_state;
@@ -45860,19 +45579,17 @@ let ex_normal ed eap =
   let rec loop9 arg =
     let join11 () =
       exec_normal_cmd ed (if arg = 0 then Exarg_T.arg ed eap else arg)
-        (if Exarg_T.forceit ed eap then -1 else remap_yes) false;
-      if Exarg_T.addr_count ed eap > 0 &&
-         Exarg_T.line1 ed eap <= Exarg_T.line2 ed eap &&
-         ed.st.got_int = 0 then
+        (if eap.forceit then -1 else remap_yes) false;
+      if eap.addr_count > 0 && eap.line1 <= eap.line2 && ed.st.got_int = 0 then
         loop9 arg
       else
         join13 ()
     in
-    if Exarg_T.addr_count ed eap = 0 then
+    if eap.addr_count = 0 then
       join11 ()
     else
-      let t5 = Exarg_T.line1 ed eap in
-      Exarg_T.set_line1 ed eap (Exarg_T.line1 ed eap + 1);
+      let t5 = eap.line1 in
+      eap.line1 <- eap.line1 + 1;
       Win_T.set_w_cursor_lnum ed ed.st.curwin t5;
       Win_T.set_w_cursor_col ed ed.st.curwin 0;
       check_cursor_moved ed ed.st.curwin;
@@ -45997,9 +45714,9 @@ let restore_viewstate ed vs =
 
 let init_incsearch_state ed is_state =
   mem_copy ed (Incsearch_state_T.match_start_addr is_state) (Win_T.w_cursor_addr ed.st.curwin) 16;
-  Incsearch_state_T.set_did_incsearch ed is_state false;
-  Incsearch_state_T.set_incsearch_postponed ed is_state false;
-  Incsearch_state_T.set_magic_overruled_save ed is_state ed.st.magic_overruled;
+  is_state.did_incsearch <- false;
+  is_state.incsearch_postponed <- false;
+  is_state.magic_overruled_save <- ed.st.magic_overruled;
   Pos_T.set_lnum ed (Incsearch_state_T.match_end_addr is_state) 0;
   Pos_T.set_col ed (Incsearch_state_T.match_end_addr is_state) 0;
   Pos_T.set_coladd ed (Incsearch_state_T.match_end_addr is_state) 0;
@@ -46018,7 +45735,7 @@ let set_search_match ed t =
 let parse_pattern_and_range ed incsearch_start search_delim skiplen patlen =
   let fr = frame_push ed 352 in
   let dummy_cmdmod = fr + 0 in
-  let ea = fr + 216 in
+  let ea = Exarg_T.make (fr + 216) in
   let magic_addr = fr + 328 in
   let dummy_addr = fr + 336 in
   let join26 cmd p delim_optional =
@@ -46042,12 +45759,10 @@ let parse_pattern_and_range ed incsearch_start search_delim skiplen patlen =
         in
         mem_copy ed (Win_T.w_cursor_addr ed.st.curwin) incsearch_start 16;
         ignore (parse_cmd_address ed ea dummy_addr true);
-        if Exarg_T.addr_count ed ea > 0 then
-          (let reverse_match = Exarg_T.line2 ed ea < Exarg_T.line1 ed ea in
-           ed.st.search_first_line <-
-             (if reverse_match then Exarg_T.line2 ed ea else Exarg_T.line1 ed ea);
-           ed.st.search_last_line <-
-             (if reverse_match then Exarg_T.line1 ed ea else Exarg_T.line2 ed ea);
+        if ea.addr_count > 0 then
+          (let reverse_match = ea.line2 < ea.line1 in
+           ed.st.search_first_line <- (if reverse_match then ea.line2 else ea.line1);
+           ed.st.search_last_line <- (if reverse_match then ea.line1 else ea.line2);
            join36 ())
         else
           (if ld_char ed cmd = 's' && ld_char ed (cmd + 1) <> 'o' then
@@ -46099,11 +45814,11 @@ let parse_pattern_and_range ed incsearch_start search_delim skiplen patlen =
   st_s32 ed patlen (Cmdline_info_T.cmdlen ed ccline);
   ed.st.search_first_line <- 0;
   ed.st.search_last_line <- long_max;
-  ignore (musl_memset ed ea 0 112);
-  Exarg_T.set_line1 ed ea 1;
-  Exarg_T.set_line2 ed ea 1;
+  Exarg_T.clear ed ea;
+  ea.line1 <- 1;
+  ea.line2 <- 1;
   Exarg_T.set_cmd ed ea (Cmdline_info_T.cmdbuff ed ccline);
-  Exarg_T.set_addr_type ed ea Addr_lines;
+  ea.addr_type <- Addr_lines;
   ignore (parse_command_modifiers ed ea dummy_addr dummy_cmdmod true);
   let cmd = skip_range ed (Exarg_T.cmd ed ea) true 0 in
   if vim_strchr ed 163467 (* "sgvlu" *) (ld_u8 ed cmd) = 0 then
@@ -46180,14 +45895,14 @@ let finish_incsearch_highlighting ed gotesc is_state call_update_screen =
     ed.st.highlight_match <- false;
     ed.st.search_first_line <- 0;
     ed.st.search_last_line <- long_max;
-    ed.st.magic_overruled <- Incsearch_state_T.magic_overruled_save ed is_state;
+    ed.st.magic_overruled <- is_state.magic_overruled_save;
     validate_cursor ed;
     status_redraw_all ed;
     redraw_all_later ed upd_some_valid;
     if call_update_screen then ignore (update_screen ed upd_some_valid)
   in
-  if Incsearch_state_T.did_incsearch ed is_state then
-    (Incsearch_state_T.set_did_incsearch ed is_state false;
+  if is_state.did_incsearch then
+    (is_state.did_incsearch <- false;
      if gotesc = 0 then
        (if not (Incsearch_state_T.save_cursor_lnum ed is_state =
             Incsearch_state_T.search_start_lnum ed is_state &&
@@ -46235,7 +45950,7 @@ let may_do_incsearch_highlighting ed firstc count is_state =
   let skiplen_addr = fr + 0 in
   let patlen_addr = fr + 4 in
   let search_delim_addr = fr + 8 in
-  let did_do_incsearch = Incsearch_state_T.did_incsearch ed is_state in
+  let did_do_incsearch = is_state.did_incsearch in
   save_last_search_pattern ed;
   if not (do_incsearch_highlighting
         ed firstc search_delim_addr is_state skiplen_addr patlen_addr) then
@@ -46245,10 +45960,10 @@ let may_do_incsearch_highlighting ed firstc count is_state =
      frame_pop ed fr)
   else if char_avail ed then
     (restore_last_search_pattern ed;
-     Incsearch_state_T.set_incsearch_postponed ed is_state true;
+     is_state.incsearch_postponed <- true;
      frame_pop ed fr)
   else
-    (Incsearch_state_T.set_incsearch_postponed ed is_state false;
+    (is_state.incsearch_postponed <- false;
      if ed.st.search_first_line = 0 then
        mem_copy ed (Win_T.w_cursor_addr ed.st.curwin) (Incsearch_state_T.search_start_addr is_state)
          16
@@ -46289,7 +46004,7 @@ let may_do_incsearch_highlighting ed firstc count is_state =
                (Incsearch_state_T.search_start_addr is_state) 16;
            msg_starthere ed;
            redrawcmdline ed;
-           Incsearch_state_T.set_did_incsearch ed is_state true;
+           is_state.did_incsearch <- true;
            frame_pop ed fr
          in
          if use_last_pat then
@@ -46352,7 +46067,7 @@ let may_do_incsearch_highlighting ed firstc count is_state =
          in
          let join14 found =
            if ed.st.got_int = 0 then
-             (if char_avail ed then Incsearch_state_T.set_incsearch_postponed ed is_state true;
+             (if char_avail ed then is_state.incsearch_postponed <- true;
               join19 found)
            else
              (ignore (vpeekc ed);
@@ -46597,7 +46312,7 @@ let may_add_char_to_search ed firstc c is_state =
   save_last_search_pattern ed;
   if do_incsearch_highlighting ed firstc search_delim_addr is_state skiplen_addr patlen_addr then
     (restore_last_search_pattern ed;
-     if Incsearch_state_T.did_incsearch ed is_state then
+     if is_state.did_incsearch then
        (mem_copy ed (Win_T.w_cursor_addr ed.st.curwin) (Incsearch_state_T.match_end_addr is_state)
           16;
         let c = gchar_cursor ed in
@@ -47018,7 +46733,7 @@ let sb_text_end_cmdline ed =
 let getcmdline_int ed firstc count indent clear_ccline =
   let fr = frame_push ed 304 in
   let gotesc_addr = fr + 0 in
-  let is_state = fr + 8 in
+  let is_state = Incsearch_state_T.make (fr + 8) in
   let xpc = fr + 160 in
   let save_ccline = fr + 240 in
   let join100 did_save_ccline _cmdline_browse_history__o_r__ _cmdline_browse_history__o_curcmdstr _cmdline_browse_history__o_curcmdstrlen _cmdline_browse_history__o_hiscnt_p _may_add_char_to_search__o_r__ _may_add_char_to_search__o_c =
@@ -47454,7 +47169,7 @@ let getcmdline_int ed firstc count indent clear_ccline =
            join64 ())
   and join91 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr cmdline_browse_history__o_curcmdstrlen cmdline_browse_history__o_hiscnt_p may_add_char_to_search__o_r__ may_add_char_to_search__o_c =
     let join93 prev_cmdpos =
-      if Incsearch_state_T.incsearch_postponed ed is_state then
+      if is_state.incsearch_postponed then
         join96 lookfor lookforlen hiscnt histype save_msg_scroll save_State some_key_typed
           did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged prev_cmdpos
           cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
@@ -48785,7 +48500,7 @@ let init_mappings ed =
 
 let do_exmap ed eap isabbrev =
   let cmdp = Exarg_T.cmd ed eap in
-  let (r1, r2) = get_map_mode ed cmdp (Exarg_T.forceit ed eap || isabbrev) in
+  let (r1, r2) = get_map_mode ed cmdp (eap.forceit || isabbrev) in
   match do_map ed
           (match ld_char ed r2 with
            | 'n' -> maptype_noremap
@@ -48806,7 +48521,7 @@ let ex_unmap ed eap =
   do_exmap ed eap false
 
 let ex_mapclear ed eap =
-  map_clear ed (Exarg_T.cmd ed eap) (Exarg_T.arg ed eap) (Exarg_T.forceit ed eap) false
+  map_clear ed (Exarg_T.cmd ed eap) (Exarg_T.arg ed eap) eap.forceit false
 
 let movechangelist ed count =
   let join9 n =
@@ -49057,9 +48772,9 @@ let ex_delmarks ed eap =
   and join21 p =
     loop4 (p + 1)
   in
-  if ld_u8 ed (Exarg_T.arg ed eap) = nul && Exarg_T.forceit ed eap then
+  if ld_u8 ed (Exarg_T.arg ed eap) = nul && eap.forceit then
     clrallmarks ed ed.st.curbuf
-  else if Exarg_T.forceit ed eap then
+  else if eap.forceit then
     ignore (emsg ed e_invalid_argument)
   else if ld_u8 ed (Exarg_T.arg ed eap) = nul then
     ignore (emsg ed e_argument_required)
@@ -49220,10 +48935,10 @@ let match_delete ed wp id perr =
 
 let ex_match ed eap =
   let join14 end_' =
-    Exarg_T.set_nextcmd ed eap (find_nextcmd ed end_')
+    eap.nextcmd <- find_nextcmd ed end_'
   in
-  if Exarg_T.line2 ed eap <= 3 then
-    (let id = to_i32 (Exarg_T.line2 ed eap) in
+  if eap.line2 <= 3 then
+    (let id = to_i32 eap.line2 in
      ignore (match_delete ed ed.st.curwin id false);
      if ends_excmd2 ed (Exarg_T.cmd ed eap) (Exarg_T.arg ed eap) then
        join14 (Exarg_T.arg ed eap)
@@ -49244,7 +48959,7 @@ let ex_match ed eap =
        else
          let end_' = skip_regexp ed (p + 1) (ld_u8 ed p) true_ in
          if ld_u8 ed end_' <> nul && not (ends_excmd2 ed end_' (skipwhite ed (end_' + 1))) then
-           Exarg_T.set_errmsg ed eap (ex_errmsg ed e_trailing_characters_str end_')
+           eap.errmsg <- ex_errmsg ed e_trailing_characters_str end_'
          else if ld_u8 ed end_' = ld_u8 ed p then
            (let c = ld_u8 ed end_' in
             st_u8 ed end_' nul;
@@ -49397,18 +49112,18 @@ let ex_messages ed eap =
          (ignore (delete_first_msg ed);
           loop18 keep)
      in
-     loop18 (to_i32 (if Exarg_T.addr_count ed eap = 0 then 0 else Exarg_T.line2 ed eap)))
+     loop18 (to_i32 (if eap.addr_count = 0 then 0 else eap.line2)))
   else if ld_u8 ed (Exarg_T.arg ed eap) = nul then
     (ed.st.msg_hist_off <- true;
      let p = ed.st.first_msg_hist in
-     if Exarg_T.addr_count ed eap = 0 then
+     if eap.addr_count = 0 then
        loop8 p
      else
        let rec loop4 p c =
          if p <> 0 && ed.st.got_int = 0 then
            loop4 (Msg_hist.next ed p) (c + 1)
          else
-           let c = to_i32 (c - Exarg_T.line2 ed eap) in
+           let c = to_i32 (c - eap.line2) in
            let rec loop6 p c =
              if p <> 0 && ed.st.got_int = 0 && c > 0 then
                loop6 (Msg_hist.next ed p) (c - 1)
@@ -49629,8 +49344,8 @@ let check_visual_highlight ed =
      ed.st.check_visual_highlight__did_check <- true)
 
 let prep_redo_cmd ed cap =
-  prep_redo ed (Oparg_T.regname ed (Cmdarg_T.oap ed cap)) (Cmdarg_T.count0 ed cap) nul
-    (Cmdarg_T.cmdchar ed cap) nul nul (Cmdarg_T.nchar ed cap)
+  prep_redo ed (Oparg_T.regname ed cap.oap) cap.count0 nul cap.cmdchar nul nul
+    (Cmdarg_T.nchar ed cap)
 
 let checkclearop ed oap =
   if Oparg_T.op_type ed oap = op_nop then
@@ -49646,64 +49361,61 @@ let checkclearopq ed oap =
     (clearopbeep ed oap;
      true)
 
-let nv_ignore ed cap =
-  Cmdarg_T.set_retval ed cap (Cmdarg_T.retval ed cap lor ca_command_busy)
+let nv_ignore _ed cap =
+  cap.retval <- cap.retval lor ca_command_busy
 
 let nv_nop _cap =
   ()
 
 let nv_error ed cap =
-  clearopbeep ed (Cmdarg_T.oap ed cap)
+  clearopbeep ed cap.oap
 
 let nv_help ed cap =
-  ignore (checkclearopq ed (Cmdarg_T.oap ed cap))
+  ignore (checkclearopq ed cap.oap)
 
 let nv_lineop ed cap =
-  Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mline;
-  if not (cursor_down ed (Cmdarg_T.count1 ed cap - 1)
-        (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop)) then
-    clearopbeep ed (Cmdarg_T.oap ed cap)
+  Oparg_T.set_motion_type ed cap.oap mline;
+  if not (cursor_down ed (cap.count1 - 1) (Oparg_T.op_type ed cap.oap = op_nop)) then
+    clearopbeep ed cap.oap
   else
-    if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_delete' &&
-       Oparg_T.motion_force ed (Cmdarg_T.oap ed cap) <> Char.code 'v' &&
-       Oparg_T.motion_force ed (Cmdarg_T.oap ed cap) <> ctrl_v ||
-       Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_lshift ||
-       Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_rshift then
+    if Oparg_T.op_type ed cap.oap = op_delete' &&
+       Oparg_T.motion_force ed cap.oap <> Char.code 'v' &&
+       Oparg_T.motion_force ed cap.oap <> ctrl_v ||
+       Oparg_T.op_type ed cap.oap = op_lshift ||
+       Oparg_T.op_type ed cap.oap = op_rshift then
       beginline ed 6
     else
-      if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_yank' then beginline ed 5
+      if Oparg_T.op_type ed cap.oap <> op_yank' then beginline ed 5
 
 let nv_operator ed cap =
-  let op_type = get_op_type ed (Cmdarg_T.cmdchar ed cap) (Cmdarg_T.nchar ed cap) in
-  if op_type = Oparg_T.op_type ed (Cmdarg_T.oap ed cap) then
+  let op_type = get_op_type ed cap.cmdchar (Cmdarg_T.nchar ed cap) in
+  if op_type = Oparg_T.op_type ed cap.oap then
     nv_lineop ed cap
   else
-    if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
-      (mem_copy ed (Oparg_T.start_addr (Cmdarg_T.oap ed cap)) (Win_T.w_cursor_addr ed.st.curwin) 16;
-       Oparg_T.set_op_type ed (Cmdarg_T.oap ed cap) op_type)
+    if not (checkclearop ed cap.oap) then
+      (mem_copy ed (Oparg_T.start_addr cap.oap) (Win_T.w_cursor_addr ed.st.curwin) 16;
+       Oparg_T.set_op_type ed cap.oap op_type)
 
 let nv_addsub ed cap =
-  if not ed.st.visual_active && Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop then
+  if not ed.st.visual_active && Oparg_T.op_type ed cap.oap = op_nop then
     (prep_redo_cmd ed cap;
-     Oparg_T.set_op_type ed (Cmdarg_T.oap ed cap)
-       (if Cmdarg_T.cmdchar ed cap = ctrl_a then op_nr_add else op_nr_sub);
-     op_addsub ed (Cmdarg_T.oap ed cap) (Cmdarg_T.count1 ed cap) (Cmdarg_T.arg ed cap);
-     Oparg_T.set_op_type ed (Cmdarg_T.oap ed cap) op_nop)
-  else if ed.st.visual_active then nv_operator ed cap else clearop ed (Cmdarg_T.oap ed cap)
+     Oparg_T.set_op_type ed cap.oap (if cap.cmdchar = ctrl_a then op_nr_add else op_nr_sub);
+     op_addsub ed cap.oap cap.count1 cap.arg;
+     Oparg_T.set_op_type ed cap.oap op_nop)
+  else if ed.st.visual_active then nv_operator ed cap else clearop ed cap.oap
 
 let nv_page ed cap =
-  if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
+  if not (checkclearop ed cap.oap) then
     (if mod_mask ed land mod_mask_ctrl = 0 then
-       ignore (pagescroll ed (Cmdarg_T.arg ed cap) (Cmdarg_T.count1 ed cap) false)
+       ignore (pagescroll ed cap.arg cap.count1 false)
      else
-       if Cmdarg_T.arg ed cap <> -1 && Cmdarg_T.count0 ed cap > 1 then beep_flush ed)
+       if cap.arg <> -1 && cap.count0 > 1 then beep_flush ed)
 
 let nv_scroll_line ed cap =
-  if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
-    scroll_redraw ed (Cmdarg_T.arg ed cap) (Cmdarg_T.count1 ed cap)
+  if not (checkclearop ed cap.oap) then scroll_redraw ed cap.arg cap.count1
 
 let nv_z_get_count ed cap nchar_arg =
-  if checkclearop ed (Cmdarg_T.oap ed cap) then
+  if checkclearop ed cap.oap then
     (false, nchar_arg)
   else
     let rec loop2 n vim_append_digit_long__o_r__ vim_append_digit_long__o_value =
@@ -49711,7 +49423,7 @@ let nv_z_get_count ed cap nchar_arg =
       ed.st.allow_keys <- ed.st.allow_keys + 1;
       let nchar = plain_vgetc ed in
       let join11 _vim_append_digit_long__o_r__ _vim_append_digit_long__o_value =
-        Oparg_T.set_op_type ed (Cmdarg_T.oap ed cap) op_nop;
+        Oparg_T.set_op_type ed cap.oap op_nop;
         (false, nchar_arg)
       in
       ed.st.no_mapping <- ed.st.no_mapping - 1;
@@ -49724,7 +49436,7 @@ let nv_z_get_count ed cap nchar_arg =
          if r1 then
            loop2 r2 r1 r2
          else
-           (clearopbeep ed (Cmdarg_T.oap ed cap);
+           (clearopbeep ed cap.oap;
             join11 r1 r2))
       else
         match nchar with
@@ -49732,11 +49444,10 @@ let nv_z_get_count ed cap nchar_arg =
             win_setheight ed (to_i32 n);
             join11 vim_append_digit_long__o_r__ vim_append_digit_long__o_value
         | 108 (* 'l' *) | 104 (* 'h' *) | -27755 (* K_LEFT *) | -29291 (* K_RIGHT *) ->
-            Cmdarg_T.set_count1 ed cap
-              (if n = 0 then Cmdarg_T.count1 ed cap else n * Cmdarg_T.count1 ed cap);
+            cap.count1 <- (if n = 0 then cap.count1 else n * cap.count1);
             (true, nchar)
         | _ ->
-            clearopbeep ed (Cmdarg_T.oap ed cap);
+            clearopbeep ed cap.oap;
             join11 vim_append_digit_long__o_r__ vim_append_digit_long__o_value
     in
     loop2 (nchar_arg - Char.code '0') false 0
@@ -49780,7 +49491,7 @@ let put_register ed name reg =
 
 let nv_put_opt ed cap fix_indent =
   let join22 regname reg2 empty was_visual dir flags =
-    do_put ed (Oparg_T.regname ed (Cmdarg_T.oap ed cap)) 0 dir (Cmdarg_T.count1 ed cap) flags;
+    do_put ed (Oparg_T.regname ed cap.oap) 0 dir cap.count1 flags;
     if reg2 <> 0 then put_register ed regname reg2;
     if was_visual then
       (mem_copy ed (Buf_T.b_visual_vi_start_addr ed.st.curbuf) (Buf_T.b_op_start_addr ed.st.curbuf)
@@ -49798,13 +49509,12 @@ let nv_put_opt ed cap fix_indent =
   let join4 regname reg1 reg2 empty was_visual dir flags =
     let join8 flags =
       if ed.st.visual_active then
-        (let regname = Oparg_T.regname ed (Cmdarg_T.oap ed cap) in
-         let keep_registers = Cmdarg_T.cmdchar ed cap = Char.code 'P' in
+        (let regname = Oparg_T.regname ed cap.oap in
+         let keep_registers = cap.cmdchar = Char.code 'P' in
          let join11 reg1 was_visual =
-           Cmdarg_T.set_cmdchar ed cap (Char.code 'd');
+           cap.cmdchar <- Char.code 'd';
            Cmdarg_T.set_nchar ed cap nul;
-           Oparg_T.set_regname ed (Cmdarg_T.oap ed cap)
-             (if keep_registers then Char.code '_' else nul);
+           Oparg_T.set_regname ed cap.oap (if keep_registers then Char.code '_' else nul);
            ed.st.msg_silent <- ed.st.msg_silent + 1;
            nv_operator ed cap;
            do_pending_operator ed cap 0 false;
@@ -49835,7 +49545,7 @@ let nv_put_opt ed cap fix_indent =
              | _ -> join17 flags
            in
            ed.st.msg_silent <- ed.st.msg_silent - 1;
-           Oparg_T.set_regname ed (Cmdarg_T.oap ed cap) regname;
+           Oparg_T.set_regname ed cap.oap regname;
            if reg1 = 0 then
              join13 reg2
            else
@@ -49854,23 +49564,21 @@ let nv_put_opt ed cap fix_indent =
         join22 regname reg2 empty was_visual dir flags
     in
     prep_redo_cmd ed cap;
-    match Cmdarg_T.cmdchar ed cap with
+    match cap.cmdchar with
     | 103 (* 'g' *) -> join8 (flags lor put_cursend)
     | 122 (* 'z' *) -> join8 (flags lor put_block_inner)
     | _ -> join8 flags
   in
-  if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_nop then
-    clearopbeep ed (Cmdarg_T.oap ed cap)
+  if Oparg_T.op_type ed cap.oap <> op_nop then
+    clearopbeep ed cap.oap
   else if fix_indent then
     join4 0 0 0 false_ false
-      (if Cmdarg_T.cmdchar ed cap = Char.code ']' && Cmdarg_T.nchar ed cap = Char.code 'p' then
-         forward
-       else
-         -1) (0 lor put_fixindent)
+      (if cap.cmdchar = Char.code ']' && Cmdarg_T.nchar ed cap = Char.code 'p' then forward else -1)
+      (0 lor put_fixindent)
   else
     join4 0 0 0 false_ false
-      (if Cmdarg_T.cmdchar ed cap = Char.code 'P' ||
-          (Cmdarg_T.cmdchar ed cap = Char.code 'g' || Cmdarg_T.cmdchar ed cap = Char.code 'z') &&
+      (if cap.cmdchar = Char.code 'P' ||
+          (cap.cmdchar = Char.code 'g' || cap.cmdchar = Char.code 'z') &&
           Cmdarg_T.nchar ed cap = Char.code 'P' then
          -1
        else
@@ -49888,16 +49596,16 @@ let nv_zet ed cap =
   in
   let join26 () =
     if Win_T.w_onebuf_opt_wo_wrap ed ed.st.curwin = 0 then
-      ignore (set_leftcol ed (Win_T.w_leftcol ed ed.st.curwin + to_i32 (Cmdarg_T.count1 ed cap)));
+      ignore (set_leftcol ed (Win_T.w_leftcol ed ed.st.curwin + to_i32 cap.count1));
     join46 ()
   in
   let join29 () =
     if Win_T.w_onebuf_opt_wo_wrap ed ed.st.curwin = 0 then
       ignore (set_leftcol ed
-         (if to_i32 (Cmdarg_T.count1 ed cap) > Win_T.w_leftcol ed ed.st.curwin then
+         (if to_i32 cap.count1 > Win_T.w_leftcol ed ed.st.curwin then
             0
           else
-            Win_T.w_leftcol ed ed.st.curwin - to_i32 (Cmdarg_T.count1 ed cap)));
+            Win_T.w_leftcol ed ed.st.curwin - to_i32 cap.count1));
     join46 ()
   in
   let join37 () =
@@ -49931,7 +49639,7 @@ let nv_zet ed cap =
   let join7 () =
     match ld_s32 ed nchar_addr with
     | 43 (* '+' *) ->
-        if Cmdarg_T.count0 ed cap = 0 then
+        if cap.count0 = 0 then
           (validate_botline ed;
            if Win_T.w_botline ed ed.st.curwin > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
              Win_T.set_w_cursor_lnum ed ed.st.curwin (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
@@ -49945,7 +49653,7 @@ let nv_zet ed cap =
         join39 ()
     | 122 (* 'z' *) -> join39 ()
     | 94 (* '^' *) ->
-        if Cmdarg_T.count0 ed cap <> 0 then
+        if cap.count0 <> 0 then
           (scroll_cursor_bot ed 0 true;
            Win_T.set_w_cursor_lnum ed ed.st.curwin (Win_T.w_topline ed ed.st.curwin))
         else if Win_T.w_topline ed ed.st.curwin = 1 then
@@ -49956,11 +49664,11 @@ let nv_zet ed cap =
     | 45 (* '-' *) -> join36 ()
     | 98 (* 'b' *) -> join37 ()
     | 72 (* 'H' *) ->
-        Cmdarg_T.set_count1 ed cap (Cmdarg_T.count1 ed cap * (Win_T.w_width ed ed.st.curwin / 2));
+        cap.count1 <- cap.count1 * (Win_T.w_width ed ed.st.curwin / 2);
         join29 ()
     | 104 (* 'h' *) | -27755 (* K_LEFT *) -> join29 ()
     | 76 (* 'L' *) ->
-        Cmdarg_T.set_count1 ed cap (Cmdarg_T.count1 ed cap * (Win_T.w_width ed ed.st.curwin / 2));
+        cap.count1 <- cap.count1 * (Win_T.w_width ed ed.st.curwin / 2);
         join26 ()
     | 108 (* 'l' *) | -29291 (* K_RIGHT *) -> join26 ()
     | 115 (* 's' *) ->
@@ -50000,7 +49708,7 @@ let nv_zet ed cap =
         nv_operator ed cap;
         join46 ()
     | _ ->
-        clearopbeep ed (Cmdarg_T.oap ed cap);
+        clearopbeep ed cap.oap;
         join46 ()
   in
   if ascii_isdigit (ld_s32 ed nchar_addr) &&
@@ -50008,55 +49716,53 @@ let nv_zet ed cap =
       st_s32 ed (fr + 4) r3;
       not r2) then
     frame_pop ed fr
-  else if checkclearop ed (Cmdarg_T.oap ed cap) then
+  else if checkclearop ed cap.oap then
     frame_pop ed fr
   else if vim_strchr ed 164693 (* "+\x0d\nt.z^-b" *) (ld_s32 ed nchar_addr) <> 0 &&
-     Cmdarg_T.count0 ed cap <> 0 &&
-     Cmdarg_T.count0 ed cap <> Win_T.w_cursor_lnum ed ed.st.curwin then
+     cap.count0 <> 0 &&
+     cap.count0 <> Win_T.w_cursor_lnum ed ed.st.curwin then
     (setpcmark ed;
-     if Cmdarg_T.count0 ed cap > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+     if cap.count0 > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
        Win_T.set_w_cursor_lnum ed ed.st.curwin (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
      else
-       Win_T.set_w_cursor_lnum ed ed.st.curwin (Cmdarg_T.count0 ed cap);
+       Win_T.set_w_cursor_lnum ed ed.st.curwin cap.count0;
      check_cursor_col ed;
      join7 ())
   else
     join7 ()
 
 let nv_colon ed cap =
-  let is_cmdkey = Cmdarg_T.cmdchar ed cap = k_command || Cmdarg_T.cmdchar ed cap = k_script_command
-  in
+  let is_cmdkey = cap.cmdchar = k_command || cap.cmdchar = k_script_command in
   if ed.st.visual_active && not is_cmdkey then
     nv_operator ed cap
   else
-    (if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop then
-       (if Cmdarg_T.count0 ed cap <> 0 && not is_cmdkey then
+    (if Oparg_T.op_type ed cap.oap = op_nop then
+       (if cap.count0 <> 0 && not is_cmdkey then
           (stuffcharReadbuff ed (Char.code '.');
-           if Cmdarg_T.count0 ed cap > 1 then
+           if cap.count0 > 1 then
              (stuffReadbuff ed 164703 (* ",.+" *);
-              stuffnumReadbuff ed (Cmdarg_T.count0 ed cap - 1))))
+              stuffnumReadbuff ed (cap.count0 - 1))))
      else
-       (Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-        Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_);
+       (Oparg_T.set_motion_type ed cap.oap mchar;
+        Oparg_T.set_inclusive ed cap.oap false_);
      if ed.st.keytyped then compute_cmdrow ed;
      let old_p_im = p_im ed in
-     let flags = if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop then 0 else docmd_keepline in
+     let flags = if Oparg_T.op_type ed cap.oap = op_nop then 0 else docmd_keepline in
      let join11 cmd_result =
        if p_im ed <> old_p_im then
          (if p_im ed = 0 then ed.st.restart_edit <- 0 else ed.st.restart_edit <- Char.code 'i');
        if cmd_result then
-         (if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_nop &&
-             (Oparg_T.start_lnum ed (Cmdarg_T.oap ed cap) >
-              Buf_T.b_ml_ml_line_count ed ed.st.curbuf ||
-              (let r1 = Oparg_T.start_col ed (Cmdarg_T.oap ed cap) in
-               r1 > ml_get_len ed (Oparg_T.start_lnum ed (Cmdarg_T.oap ed cap))) ||
+         (if Oparg_T.op_type ed cap.oap <> op_nop &&
+             (Oparg_T.start_lnum ed cap.oap > Buf_T.b_ml_ml_line_count ed ed.st.curbuf ||
+              (let r1 = Oparg_T.start_col ed cap.oap in
+               r1 > ml_get_len ed (Oparg_T.start_lnum ed cap.oap)) ||
               ed.st.did_emsg <> 0) then
-            clearopbeep ed (Cmdarg_T.oap ed cap))
+            clearopbeep ed cap.oap)
        else
-         clearop ed (Cmdarg_T.oap ed cap)
+         clearop ed cap.oap
      in
      if is_cmdkey then
-       join11 (do_cmdkey_command ed (Cmdarg_T.cmdchar ed cap) flags)
+       join11 (do_cmdkey_command ed cap.cmdchar flags)
      else
        join11 (do_cmdline ed 0 (fn_ptr 156) (flags lor docmd_getexline)))
 
@@ -50065,15 +49771,13 @@ let nv_ctrlg ed cap =
     (ed.st.visual_select <- Bool.to_int (ed.st.visual_select = 0);
      ignore (showmode ed))
   else
-    if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
-      fileinfo ed (to_i32 (Cmdarg_T.count0 ed cap)) false true
+    if not (checkclearop ed cap.oap) then fileinfo ed (to_i32 cap.count0) false true
 
 let nv_bck_word ed cap =
-  Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-  Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
+  Oparg_T.set_motion_type ed cap.oap mchar;
+  Oparg_T.set_inclusive ed cap.oap false_;
   Win_T.set_w_set_curswant ed ed.st.curwin true;
-  if not (bck_word ed (Cmdarg_T.count1 ed cap) (Cmdarg_T.arg ed cap) false) then
-    clearopbeep ed (Cmdarg_T.oap ed cap)
+  if not (bck_word ed cap.count1 cap.arg false) then clearopbeep ed cap.oap
 
 let nv_left ed cap =
   let rec loop2 n =
@@ -50084,22 +49788,21 @@ let nv_left ed cap =
       (if oneleft ed then
          join12 ()
        else
-         if ((Cmdarg_T.cmdchar ed cap = k_bs || Cmdarg_T.cmdchar ed cap = ctrl_h) &&
+         if ((cap.cmdchar = k_bs || cap.cmdchar = ctrl_h) &&
              vim_strchr ed (p_ww ed) (Char.code 'b') <> 0 ||
-             Cmdarg_T.cmdchar ed cap = Char.code 'h' &&
-             vim_strchr ed (p_ww ed) (Char.code 'h') <> 0 ||
-             Cmdarg_T.cmdchar ed cap = k_left && vim_strchr ed (p_ww ed) (Char.code '<') <> 0) &&
+             cap.cmdchar = Char.code 'h' && vim_strchr ed (p_ww ed) (Char.code 'h') <> 0 ||
+             cap.cmdchar = k_left && vim_strchr ed (p_ww ed) (Char.code '<') <> 0) &&
             Win_T.w_cursor_lnum ed ed.st.curwin > 1 then
            (let r1 = ed.st.curwin in
             Win_T.set_w_cursor_lnum ed r1 (Win_T.w_cursor_lnum ed r1 - 1);
             ignore (coladvance ed 2147483647);
             Win_T.set_w_set_curswant ed ed.st.curwin true;
-            if (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_delete' ||
-                Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_change') &&
+            if (Oparg_T.op_type ed cap.oap = op_delete' ||
+                Oparg_T.op_type ed cap.oap = op_change') &&
                ld_u8 ed (ml_get ed (Win_T.w_cursor_lnum ed ed.st.curwin)) <> nul then
               (let cp = ml_get_cursor ed in
                let join11 () =
-                 Cmdarg_T.set_retval ed cap (Cmdarg_T.retval ed cap lor ca_no_adj_op_end);
+                 cap.retval <- cap.retval lor ca_no_adj_op_end;
                  join12 ()
                in
                if ld_u8 ed cp = nul then
@@ -50112,38 +49815,36 @@ let nv_left ed cap =
             else
               join12 ())
          else
-           if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop && n = Cmdarg_T.count1 ed cap then
-             beep_flush ed)
+           if Oparg_T.op_type ed cap.oap = op_nop && n = cap.count1 then beep_flush ed)
   in
   if mod_mask ed land 6 = 0 then
-    (Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-     Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
-     loop2 (Cmdarg_T.count1 ed cap))
+    (Oparg_T.set_motion_type ed cap.oap mchar;
+     Oparg_T.set_inclusive ed cap.oap false_;
+     loop2 cap.count1)
   else
-    (if mod_mask ed land mod_mask_ctrl <> 0 then Cmdarg_T.set_arg ed cap 1;
+    (if mod_mask ed land mod_mask_ctrl <> 0 then cap.arg <- 1;
      nv_bck_word ed cap)
 
 let v_visop ed cap =
-  if musl_isupper (to_u8 (Cmdarg_T.cmdchar ed cap)) then
+  if musl_isupper (to_u8 cap.cmdchar) then
     (if ed.st.visual_mode = ctrl_v then
-       (if Cmdarg_T.cmdchar ed cap = Char.code 'C' || Cmdarg_T.cmdchar ed cap = Char.code 'D' then
+       (if cap.cmdchar = Char.code 'C' || cap.cmdchar = Char.code 'D' then
           Win_T.set_w_curswant ed ed.st.curwin maxcol)
      else
        (ed.st.visual_mode_orig <- ed.st.visual_mode;
         ed.st.visual_mode <- Char.code 'V'));
-  Cmdarg_T.set_cmdchar ed cap
-    (ld_u8 ed (vim_strchr ed v_visop__trans (Cmdarg_T.cmdchar ed cap) + 1));
+  cap.cmdchar <- ld_u8 ed (vim_strchr ed v_visop__trans cap.cmdchar + 1);
   nv_operator ed cap
 
 let nv_ctrlh ed cap =
   if ed.st.visual_active && ed.st.visual_select <> 0 then
-    (Cmdarg_T.set_cmdchar ed cap (Char.code 'x');
+    (cap.cmdchar <- Char.code 'x';
      v_visop ed cap)
   else
     nv_left ed cap
 
 let nv_clear ed cap =
-  if not (checkclearop ed (Cmdarg_T.oap ed cap)) then redraw_later ed upd_clear
+  if not (checkclearop ed cap.oap) then redraw_later ed upd_clear
 
 let nv_ctrlo ed cap =
   if ed.st.visual_active && ed.st.visual_select <> 0 then
@@ -50151,13 +49852,13 @@ let nv_ctrlo ed cap =
      ignore (showmode ed);
      ed.st.restart_VIsual_select <- 2)
   else
-    clearopbeep ed (Cmdarg_T.oap ed cap)
+    clearopbeep ed cap.oap
 
 let nv_Zet ed cap =
-  if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
+  if not (checkclearopq ed cap.oap) then
     (match Cmdarg_T.nchar ed cap with
      | 90 (* 'Z' *) | 81 (* 'Q' *) -> ignore (do_cmdline_cmd ed 164707 (* "q!" *))
-     | _ -> clearopbeep ed (Cmdarg_T.oap ed cap))
+     | _ -> clearopbeep ed cap.oap)
 
 let normal_search ed cap dir pat patlen opt wrapped =
   let fr = frame_push ed 16 in
@@ -50165,13 +49866,13 @@ let normal_search ed cap dir pat patlen opt wrapped =
   let prev_cursor_lnum = Win_T.w_cursor_lnum ed ed.st.curwin in
   let prev_cursor_col = Win_T.w_cursor_col ed ed.st.curwin in
   let prev_cursor_coladd = Win_T.w_cursor_coladd ed ed.st.curwin in
-  Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-  Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
-  Oparg_T.set_use_reg_one ed (Cmdarg_T.oap ed cap) true_;
+  Oparg_T.set_motion_type ed cap.oap mchar;
+  Oparg_T.set_inclusive ed cap.oap false_;
+  Oparg_T.set_use_reg_one ed cap.oap true_;
   Win_T.set_w_set_curswant ed ed.st.curwin true;
   ignore (musl_memset ed sia 0 16);
   let i =
-    do_search ed (Cmdarg_T.oap ed cap) dir dir pat patlen (Cmdarg_T.count1 ed cap)
+    do_search ed cap.oap dir dir pat patlen cap.count1
       (opt lor search_opt lor search_echo lor search_msg) sia
   in
   let join7 () =
@@ -50187,10 +49888,10 @@ let normal_search ed cap dir pat patlen opt wrapped =
   in
   if wrapped <> 0 then st_s32 ed wrapped (Bool.to_int (Searchit_arg_T.sa_wrapped ed sia));
   if i = 0 then
-    (clearop ed (Cmdarg_T.oap ed cap);
+    (clearop ed cap.oap;
      join7 ())
   else
-    (if i = 2 then Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mline;
+    (if i = 2 then Oparg_T.set_motion_type ed cap.oap mline;
      Win_T.set_w_cursor_coladd ed ed.st.curwin 0;
      join7 ())
 
@@ -50244,7 +49945,7 @@ let nv_ident ed cap =
       let t1 = ld_ptr ed ptr_addr = 0 in
       let join7 n t1 =
         if t1 then
-          (clearop ed (Cmdarg_T.oap ed cap);
+          (clearop ed cap.oap;
            frame_pop ed fr)
         else
           let buf = alloc ed (n * 2 + 30) in
@@ -50282,17 +49983,17 @@ let nv_ident ed cap =
     if cmdchar = pound then join5 (Char.code '#') else join5 cmdchar
   in
   st_ptr ed ptr_addr 0;
-  if Cmdarg_T.cmdchar ed cap = Char.code 'g' then
+  if cap.cmdchar = Char.code 'g' then
     join3 0 (Cmdarg_T.nchar ed cap) true
   else
-    join3 0 (Cmdarg_T.cmdchar ed cap) false
+    join3 0 cap.cmdchar false
 
 let nv_tagpop ed cap =
-  ignore (checkclearopq ed (Cmdarg_T.oap ed cap))
+  ignore (checkclearopq ed cap.oap)
 
 let nv_scroll ed cap =
   let join14 () =
-    if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop then cursor_correct ed;
+    if Oparg_T.op_type ed cap.oap = op_nop then cursor_correct ed;
     beginline ed 6
   in
   let join9 n =
@@ -50301,18 +50002,18 @@ let nv_scroll ed cap =
       Win_T.set_w_cursor_lnum ed ed.st.curwin (Buf_T.b_ml_ml_line_count ed ed.st.curbuf);
     join14 ()
   in
-  Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mline;
+  Oparg_T.set_motion_type ed cap.oap mline;
   setpcmark ed;
-  match Cmdarg_T.cmdchar ed cap with
+  match cap.cmdchar with
   | 76 (* 'L' *) ->
       validate_botline ed;
       Win_T.set_w_cursor_lnum ed ed.st.curwin (Win_T.w_botline ed ed.st.curwin - 1);
-      if Cmdarg_T.count1 ed cap - 1 >= Win_T.w_cursor_lnum ed ed.st.curwin then
+      if cap.count1 - 1 >= Win_T.w_cursor_lnum ed ed.st.curwin then
         (Win_T.set_w_cursor_lnum ed ed.st.curwin 1;
          join14 ())
       else
         let r1 = ed.st.curwin in
-        Win_T.set_w_cursor_lnum ed r1 (Win_T.w_cursor_lnum ed r1 - (Cmdarg_T.count1 ed cap - 1));
+        Win_T.set_w_cursor_lnum ed r1 (Win_T.w_cursor_lnum ed r1 - (cap.count1 - 1));
         join14 ()
   | 77 (* 'M' *) ->
       validate_botline ed;
@@ -50328,7 +50029,7 @@ let nv_scroll ed cap =
           join7 used
       in
       loop4 0 0 ((Win_T.w_height ed ed.st.curwin - Win_T.w_empty_rows ed ed.st.curwin + 1) / 2)
-  | _ -> join9 (Cmdarg_T.count1 ed cap - 1)
+  | _ -> join9 (cap.count1 - 1)
 
 let adjust_cursor ed oap =
   if Win_T.w_cursor_col ed ed.st.curwin > 0 &&
@@ -50343,7 +50044,7 @@ let adjust_cursor ed oap =
 
 let adjust_for_sel ed cap =
   if ed.st.visual_active &&
-     Oparg_T.inclusive ed (Cmdarg_T.oap ed cap) <> 0 &&
+     Oparg_T.inclusive ed cap.oap <> 0 &&
      ld_char ed (p_sel ed) = 'e' &&
      gchar_cursor ed <> nul &&
      (if Pos_T.lnum ed visual = Win_T.w_cursor_lnum ed ed.st.curwin then
@@ -50355,7 +50056,7 @@ let adjust_for_sel ed cap =
         Bool.to_int (Pos_T.lnum ed visual < Win_T.w_cursor_lnum ed ed.st.curwin)) <>
      0 then
     (ignore (inc_cursor ed);
-     Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
+     Oparg_T.set_inclusive ed cap.oap false_;
      ed.st.visual_select_exclu_adj <- true)
 
 let end_word ed count bigword stop empty =
@@ -50414,24 +50115,23 @@ let nv_wordcmd ed cap =
             else
               Bool.to_int (startpos_lnum < Win_T.w_cursor_lnum ed ed.st.curwin)) <>
            0 then
-          adjust_cursor ed (Cmdarg_T.oap ed cap);
-        if n = fail && Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop then
-          clearopbeep ed (Cmdarg_T.oap ed cap)
+          adjust_cursor ed cap.oap;
+        if n = fail && Oparg_T.op_type ed cap.oap = op_nop then
+          clearopbeep ed cap.oap
         else
           adjust_for_sel ed cap
       in
-      Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
+      Oparg_T.set_motion_type ed cap.oap mchar;
       Win_T.set_w_set_curswant ed ed.st.curwin true;
       if word_end then
-        join13 (Bool.to_int (end_word ed (Cmdarg_T.count1 ed cap) (Cmdarg_T.arg ed cap) flag false))
+        join13 (Bool.to_int (end_word ed cap.count1 cap.arg flag false))
       else
         join13
           (Bool.to_int
-             (fwd_word ed (Cmdarg_T.count1 ed cap) (Cmdarg_T.arg ed cap)
-                (Bool.to_int (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_nop))))
+             (fwd_word ed cap.count1 cap.arg (Bool.to_int (Oparg_T.op_type ed cap.oap <> op_nop))))
     in
-    Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) (Bool.to_int word_end);
-    if not word_end && Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_change' then
+    Oparg_T.set_inclusive ed cap.oap (Bool.to_int word_end);
+    if not word_end && Oparg_T.op_type ed cap.oap = op_change' then
       (let n = gchar_cursor ed in
        let join8 word_end =
          join10 word_end true
@@ -50439,21 +50139,21 @@ let nv_wordcmd ed cap =
        match n with
        | 0 (* NUL *) -> join10 word_end flag
        | 32 (* ' ' *) | 9 (* '\x09' *) ->
-           if Cmdarg_T.count1 ed cap = 1 && vim_strchr ed (p_cpo ed) cpo_cw <> 0 then
-             (Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) true_;
-              Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar)
+           if cap.count1 = 1 && vim_strchr ed (p_cpo ed) cpo_cw <> 0 then
+             (Oparg_T.set_inclusive ed cap.oap true_;
+              Oparg_T.set_motion_type ed cap.oap mchar)
            else
              join10 word_end flag
        | _ ->
            if vim_strchr ed (p_cpo ed) cpo_word = 0 then
              join8 word_end
            else
-             (Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) true_;
+             (Oparg_T.set_inclusive ed cap.oap true_;
               join8 true))
     else
       join10 word_end flag
   in
-  if Cmdarg_T.cmdchar ed cap = Char.code 'e' || Cmdarg_T.cmdchar ed cap = Char.code 'E' then
+  if cap.cmdchar = Char.code 'e' || cap.cmdchar = Char.code 'E' then
     join3 true false
   else
     join3 false false
@@ -50466,16 +50166,14 @@ let nv_right ed cap =
     if n > 0 then
       (if past_line = 0 && not (oneright ed) ||
           past_line <> 0 && ld_u8 ed (ml_get_cursor ed) = nul then
-         (if (Cmdarg_T.cmdchar ed cap = Char.code ' ' &&
-              vim_strchr ed (p_ww ed) (Char.code 's') <> 0 ||
-              Cmdarg_T.cmdchar ed cap = Char.code 'l' &&
-              vim_strchr ed (p_ww ed) (Char.code 'l') <> 0 ||
-              Cmdarg_T.cmdchar ed cap = k_right && vim_strchr ed (p_ww ed) (Char.code '>') <> 0) &&
+         (if (cap.cmdchar = Char.code ' ' && vim_strchr ed (p_ww ed) (Char.code 's') <> 0 ||
+              cap.cmdchar = Char.code 'l' && vim_strchr ed (p_ww ed) (Char.code 'l') <> 0 ||
+              cap.cmdchar = k_right && vim_strchr ed (p_ww ed) (Char.code '>') <> 0) &&
              Win_T.w_cursor_lnum ed ed.st.curwin < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
-            (if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_nop &&
-                Oparg_T.inclusive ed (Cmdarg_T.oap ed cap) = 0 &&
+            (if Oparg_T.op_type ed cap.oap <> op_nop &&
+                Oparg_T.inclusive ed cap.oap = 0 &&
                 ld_u8 ed (ml_get ed (Win_T.w_cursor_lnum ed ed.st.curwin)) <> nul then
-               (Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) true_;
+               (Oparg_T.set_inclusive ed cap.oap true_;
                 join20 ())
              else
                let r1 = ed.st.curwin in
@@ -50483,14 +50181,14 @@ let nv_right ed cap =
                Win_T.set_w_cursor_col ed ed.st.curwin 0;
                Win_T.set_w_cursor_coladd ed ed.st.curwin 0;
                Win_T.set_w_set_curswant ed ed.st.curwin true;
-               Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
+               Oparg_T.set_inclusive ed cap.oap false_;
                join20 ())
           else
-            if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop then
-              (if n = Cmdarg_T.count1 ed cap then beep_flush ed)
+            if Oparg_T.op_type ed cap.oap = op_nop then
+              (if n = cap.count1 then beep_flush ed)
             else
               if ld_u8 ed (ml_get ed (Win_T.w_cursor_lnum ed ed.st.curwin)) <> nul then
-                Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) true_)
+                Oparg_T.set_inclusive ed cap.oap true_)
        else if past_line = 0 then
          join20 ()
        else
@@ -50505,51 +50203,46 @@ let nv_right ed cap =
              join20 ())))
   in
   let join3 past_line =
-    loop4 (Cmdarg_T.count1 ed cap) past_line
+    loop4 cap.count1 past_line
   in
   if mod_mask ed land 6 = 0 then
-    (Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-     Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
+    (Oparg_T.set_motion_type ed cap.oap mchar;
+     Oparg_T.set_inclusive ed cap.oap false_;
      let past_line = Bool.to_int (ed.st.visual_active && ld_char ed (p_sel ed) <> 'o') in
      if virtual_active ed = 0 then join3 past_line else join3 0)
   else
-    (if mod_mask ed land mod_mask_ctrl <> 0 then Cmdarg_T.set_arg ed cap true_;
+    (if mod_mask ed land mod_mask_ctrl <> 0 then cap.arg <- true_;
      nv_wordcmd ed cap)
 
 let nv_up ed cap =
   if mod_mask ed land mod_mask_shift = 0 then
-    (Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mline;
-     if cursor_up
-          ed (Cmdarg_T.count1 ed cap) (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop) then
-       (if Cmdarg_T.arg ed cap <> 0 then beginline ed 5)
+    (Oparg_T.set_motion_type ed cap.oap mline;
+     if cursor_up ed cap.count1 (Oparg_T.op_type ed cap.oap = op_nop) then
+       (if cap.arg <> 0 then beginline ed 5)
      else
-       clearopbeep ed (Cmdarg_T.oap ed cap))
+       clearopbeep ed cap.oap)
   else
-    (Cmdarg_T.set_arg ed cap (-1);
+    (cap.arg <- -1;
      nv_page ed cap)
 
 let nv_down ed cap =
   if mod_mask ed land mod_mask_shift = 0 then
-    (Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mline;
-     if cursor_down
-          ed (Cmdarg_T.count1 ed cap) (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop) then
-       (if Cmdarg_T.arg ed cap <> 0 then beginline ed 5)
+    (Oparg_T.set_motion_type ed cap.oap mline;
+     if cursor_down ed cap.count1 (Oparg_T.op_type ed cap.oap = op_nop) then
+       (if cap.arg <> 0 then beginline ed 5)
      else
-       clearopbeep ed (Cmdarg_T.oap ed cap))
+       clearopbeep ed cap.oap)
   else
-    (Cmdarg_T.set_arg ed cap forward;
+    (cap.arg <- forward;
      nv_page ed cap)
 
 let nv_dollar ed cap =
-  Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-  Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) true_;
-  if virtual_active ed = 0 ||
-     gchar_cursor ed <> nul ||
-     Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop then
+  Oparg_T.set_motion_type ed cap.oap mchar;
+  Oparg_T.set_inclusive ed cap.oap true_;
+  if virtual_active ed = 0 || gchar_cursor ed <> nul || Oparg_T.op_type ed cap.oap = op_nop then
     Win_T.set_w_curswant ed ed.st.curwin maxcol;
-  if not (cursor_down ed (Cmdarg_T.count1 ed cap - 1)
-        (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop)) then
-    clearopbeep ed (Cmdarg_T.oap ed cap)
+  if not (cursor_down ed (cap.count1 - 1) (Oparg_T.op_type ed cap.oap = op_nop)) then
+    clearopbeep ed cap.oap
 
 let nv_goto ed cap =
   let join9 lnum =
@@ -50565,34 +50258,33 @@ let nv_goto ed cap =
       join9 lnum
   in
   let join3 lnum =
-    Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mline;
+    Oparg_T.set_motion_type ed cap.oap mline;
     setpcmark ed;
-    if Cmdarg_T.count0 ed cap = 0 then join5 lnum else join5 (Cmdarg_T.count0 ed cap)
+    if cap.count0 = 0 then join5 lnum else join5 cap.count0
   in
-  if Cmdarg_T.arg ed cap = 0 then join3 1 else join3 (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
+  if cap.arg = 0 then join3 1 else join3 (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
 
 let nv_end ed cap =
-  if Cmdarg_T.arg ed cap <> 0 || mod_mask ed land mod_mask_ctrl <> 0 then
-    (Cmdarg_T.set_arg ed cap true_;
+  if cap.arg <> 0 || mod_mask ed land mod_mask_ctrl <> 0 then
+    (cap.arg <- true_;
      nv_goto ed cap;
-     Cmdarg_T.set_count1 ed cap 1);
+     cap.count1 <- 1);
   nv_dollar ed cap
 
 let nv_search ed cap =
-  let oap = Cmdarg_T.oap ed cap in
+  let oap = cap.oap in
   let save_cursor_lnum = Win_T.w_cursor_lnum ed ed.st.curwin in
   let save_cursor_col = Win_T.w_cursor_col ed ed.st.curwin in
   let save_cursor_coladd = Win_T.w_cursor_coladd ed ed.st.curwin in
-  Cmdarg_T.set_searchbuf ed cap
-    (getcmdline ed (Cmdarg_T.cmdchar ed cap) (Cmdarg_T.count1 ed cap) 0 0);
-  if Cmdarg_T.searchbuf ed cap = 0 then
+  cap.searchbuf <- getcmdline ed cap.cmdchar cap.count1 0 0;
+  if cap.searchbuf = 0 then
     clearop ed oap
   else
-    let r1 = Cmdarg_T.cmdchar ed cap in
-    let r2 = Cmdarg_T.searchbuf ed cap in
-    let r3 = musl_strlen ed (Cmdarg_T.searchbuf ed cap) in
+    let r1 = cap.cmdchar in
+    let r2 = cap.searchbuf in
+    let r3 = musl_strlen ed cap.searchbuf in
     ignore (normal_search ed cap r1 r2 r3
-       (if Cmdarg_T.arg ed cap <> 0 ||
+       (if cap.arg <> 0 ||
            not (save_cursor_lnum = Win_T.w_cursor_lnum ed ed.st.curwin &&
             save_cursor_col = Win_T.w_cursor_col ed ed.st.curwin &&
             save_cursor_coladd = Win_T.w_cursor_coladd ed ed.st.curwin) then
@@ -50607,15 +50299,15 @@ let nv_next ed cap =
   let old_col_ = Win_T.w_cursor_col ed ed.st.curwin in
   let old_coladd = Win_T.w_cursor_coladd ed ed.st.curwin in
   st_s32 ed wrapped_addr false_;
-  let i = normal_search ed cap 0 0 0 (search_mark lor Cmdarg_T.arg ed cap) wrapped_addr in
+  let i = normal_search ed cap 0 0 0 (search_mark lor cap.arg) wrapped_addr in
   if i = 1 &&
      ld_s32 ed wrapped_addr = 0 &&
      old_lnum = Win_T.w_cursor_lnum ed ed.st.curwin &&
      old_col_ = Win_T.w_cursor_col ed ed.st.curwin &&
      old_coladd = Win_T.w_cursor_coladd ed ed.st.curwin then
-    (Cmdarg_T.set_count1 ed cap (Cmdarg_T.count1 ed cap + 1);
-     ignore (normal_search ed cap 0 0 0 (search_mark lor Cmdarg_T.arg ed cap) 0);
-     Cmdarg_T.set_count1 ed cap (Cmdarg_T.count1 ed cap - 1));
+    (cap.count1 <- cap.count1 + 1;
+     ignore (normal_search ed cap 0 0 0 (search_mark lor cap.arg) 0);
+     cap.count1 <- cap.count1 - 1);
   if i > 0 && p_hls ed <> 0 && not ed.st.no_hlsearch then redraw_later ed upd_some_valid;
   frame_pop ed fr
 
@@ -50663,13 +50355,13 @@ let searchc ed cap t_cmd =
     else if col = 0 then false else join28 (col - (utf_head_off ed p (p + col - 1) + 1))
   in
   let c = Cmdarg_T.nchar ed cap in
-  let dir = Cmdarg_T.arg ed cap in
-  let count = Cmdarg_T.count1 ed cap in
+  let dir = cap.arg in
+  let count = cap.count1 in
   let join12 t_cmd c dir stop =
     if dir = -1 then
-      Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_
+      Oparg_T.set_inclusive ed cap.oap false_
     else
-      Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) true_;
+      Oparg_T.set_inclusive ed cap.oap true_;
     let p = ml_get_curline ed in
     let col = Win_T.w_cursor_col ed ed.st.curwin in
     loop16 t_cmd c dir count col p (ml_get_curline_len ed) stop
@@ -50690,17 +50382,15 @@ let searchc ed cap t_cmd =
         set_csearch_direction ed dir;
         set_csearch_until ed t_cmd;
         ed.st.lastc_bytelen <- utf_char2bytes ed c lastc_bytes;
-        if Cmdarg_T.ncharC1 ed cap = 0 then
+        if cap.ncharC1 = 0 then
           join12 t_cmd c dir true
         else
-          let t1 = utf_char2bytes ed (Cmdarg_T.ncharC1 ed cap) (lastc_bytes + ed.st.lastc_bytelen)
-          in
+          let t1 = utf_char2bytes ed cap.ncharC1 (lastc_bytes + ed.st.lastc_bytelen) in
           ed.st.lastc_bytelen <- ed.st.lastc_bytelen + t1;
-          if Cmdarg_T.ncharC2 ed cap = 0 then
+          if cap.ncharC2 = 0 then
             join12 t_cmd c dir true
           else
-            let t2 = utf_char2bytes ed (Cmdarg_T.ncharC2 ed cap) (lastc_bytes + ed.st.lastc_bytelen)
-            in
+            let t2 = utf_char2bytes ed cap.ncharC2 (lastc_bytes + ed.st.lastc_bytelen) in
             ed.st.lastc_bytelen <- ed.st.lastc_bytelen + t2;
             join12 t_cmd c dir true))
   else if ld_u8 ed lastc = nul && ed.st.lastc_bytelen <= 1 then
@@ -50713,17 +50403,17 @@ let nv_csearch ed cap =
   let ecol_addr = fr + 4 in
   let join2 cursor_dec =
     let join5 t_cmd =
-      Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
+      Oparg_T.set_motion_type ed cap.oap mchar;
       if Cmdarg_T.nchar ed cap < 0 || not (searchc ed cap t_cmd) then
-        (clearopbeep ed (Cmdarg_T.oap ed cap);
+        (clearopbeep ed cap.oap;
          if cursor_dec then adjust_for_sel ed cap;
          frame_pop ed fr)
       else
         (Win_T.set_w_set_curswant ed ed.st.curwin true;
          if gchar_cursor ed = tab &&
             virtual_active ed <> 0 &&
-            Cmdarg_T.arg ed cap = forward &&
-            (t_cmd || Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_nop) then
+            cap.arg = forward &&
+            (t_cmd || Oparg_T.op_type ed cap.oap <> op_nop) then
            (getvcol ed ed.st.curwin (Win_T.w_cursor_addr ed.st.curwin) scol_addr 0 ecol_addr 0;
             Win_T.set_w_cursor_coladd ed ed.st.curwin (ld_s32 ed ecol_addr - ld_s32 ed scol_addr))
          else
@@ -50731,10 +50421,7 @@ let nv_csearch ed cap =
          adjust_for_sel ed cap;
          frame_pop ed fr)
     in
-    if Cmdarg_T.cmdchar ed cap = Char.code 't' || Cmdarg_T.cmdchar ed cap = Char.code 'T' then
-      join5 true
-    else
-      join5 false
+    if cap.cmdchar = Char.code 't' || cap.cmdchar = Char.code 'T' then join5 true else join5 false
   in
   if ld_char ed (p_sel ed) = 'e' &&
      ed.st.visual_active &&
@@ -50761,12 +50448,12 @@ let nv_bracket_block ed cap old_pos =
   let rec loop1 pos n =
     if n > 0 then
       (let pos =
-         findmatchlimit ed (Cmdarg_T.oap ed cap) findc
-           (if Cmdarg_T.cmdchar ed cap = Char.code '[' then fm_backward else fm_forward) 0
+         findmatchlimit ed cap.oap findc
+           (if cap.cmdchar = Char.code '[' then fm_backward else fm_forward) 0
        in
        if pos = 0 then
          (if Pos_T.lnum ed new_pos = 0 then
-            (clearopbeep ed (Cmdarg_T.oap ed cap);
+            (clearopbeep ed cap.oap;
              join8 pos)
           else
             join8 new_pos)
@@ -50777,27 +50464,26 @@ let nv_bracket_block ed cap old_pos =
     else
       join8 pos
   in
-  loop1 0 (Cmdarg_T.count1 ed cap)
+  loop1 0 cap.count1
 
 let nv_cursormark ed cap flag pos =
   let join7 () =
-    Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) (if flag = 0 then mchar else mline);
-    if Cmdarg_T.cmdchar ed cap = Char.code '`' then
-      Oparg_T.set_use_reg_one ed (Cmdarg_T.oap ed cap) true_;
-    Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
+    Oparg_T.set_motion_type ed cap.oap (if flag = 0 then mchar else mline);
+    if cap.cmdchar = Char.code '`' then Oparg_T.set_use_reg_one ed cap.oap true_;
+    Oparg_T.set_inclusive ed cap.oap false_;
     Win_T.set_w_set_curswant ed ed.st.curwin true
   in
   if check_mark ed pos then
-    (if Cmdarg_T.cmdchar ed cap = Char.code '\'' ||
-        Cmdarg_T.cmdchar ed cap = Char.code '`' ||
-        Cmdarg_T.cmdchar ed cap = Char.code '[' ||
-        Cmdarg_T.cmdchar ed cap = Char.code ']' then
+    (if cap.cmdchar = Char.code '\'' ||
+        cap.cmdchar = Char.code '`' ||
+        cap.cmdchar = Char.code '[' ||
+        cap.cmdchar = Char.code ']' then
        setpcmark ed;
      mem_copy ed (Win_T.w_cursor_addr ed.st.curwin) pos 16;
      if flag = 0 then check_cursor ed else beginline ed 5;
      join7 ())
   else
-    (clearop ed (Cmdarg_T.oap ed cap);
+    (clearop ed cap.oap;
      join7 ())
 
 let nv_brackets ed cap =
@@ -50814,13 +50500,12 @@ let nv_brackets ed cap =
   let join9 pos =
     if pos = 0 then join11 prev_pos else join11 pos
   in
-  Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-  Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
+  Oparg_T.set_motion_type ed cap.oap mchar;
+  Oparg_T.set_inclusive ed cap.oap false_;
   mem_copy ed old_pos (Win_T.w_cursor_addr ed.st.curwin) 16;
   Win_T.set_w_cursor_coladd ed ed.st.curwin 0;
-  if Cmdarg_T.cmdchar ed cap = Char.code '[' &&
-     vim_strchr ed 164746 (* "{(" *) (Cmdarg_T.nchar ed cap) <> 0 ||
-     Cmdarg_T.cmdchar ed cap = Char.code ']' &&
+  if cap.cmdchar = Char.code '[' && vim_strchr ed 164746 (* "{(" *) (Cmdarg_T.nchar ed cap) <> 0 ||
+     cap.cmdchar = Char.code ']' &&
      vim_strchr ed 164749 (* "})" *) (Cmdarg_T.nchar ed cap) <> 0 then
     (nv_bracket_block ed cap old_pos;
      join14 ())
@@ -50835,62 +50520,62 @@ let nv_brackets ed cap =
           if n > 0 then
             (mem_copy ed prev_pos pos 16;
              let pos =
-               getnextmark ed pos (if Cmdarg_T.cmdchar ed cap = Char.code '[' then -1 else forward)
+               getnextmark ed pos (if cap.cmdchar = Char.code '[' then -1 else forward)
                  (Cmdarg_T.nchar ed cap = Char.code '\'')
              in
              if pos = 0 then join9 pos else loop6 pos (n - 1))
           else
             join9 pos
         in
-        loop6 pos (Cmdarg_T.count1 ed cap)
+        loop6 pos cap.count1
     | _ ->
         if not (Cmdarg_T.nchar ed cap >= k_rightrelease &&
             Cmdarg_T.nchar ed cap <= k_leftmouse) then
-          clearopbeep ed (Cmdarg_T.oap ed cap);
+          clearopbeep ed cap.oap;
         join14 ()
 
 let nv_percent ed cap =
-  Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) true_;
-  if Cmdarg_T.count0 ed cap = 0 then
-    (Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-     Oparg_T.set_use_reg_one ed (Cmdarg_T.oap ed cap) true_;
-     let pos = findmatchlimit ed (Cmdarg_T.oap ed cap) nul 0 0 in
+  Oparg_T.set_inclusive ed cap.oap true_;
+  if cap.count0 = 0 then
+    (Oparg_T.set_motion_type ed cap.oap mchar;
+     Oparg_T.set_use_reg_one ed cap.oap true_;
+     let pos = findmatchlimit ed cap.oap nul 0 0 in
      if pos = 0 then
-       clearopbeep ed (Cmdarg_T.oap ed cap)
+       clearopbeep ed cap.oap
      else
        (setpcmark ed;
         mem_copy ed (Win_T.w_cursor_addr ed.st.curwin) pos 16;
         Win_T.set_w_set_curswant ed ed.st.curwin true;
         Win_T.set_w_cursor_coladd ed ed.st.curwin 0;
         adjust_for_sel ed cap))
-  else if Cmdarg_T.count0 ed cap > 100 then
-    clearopbeep ed (Cmdarg_T.oap ed cap)
+  else if cap.count0 > 100 then
+    clearopbeep ed cap.oap
   else
-    (Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mline;
+    (Oparg_T.set_motion_type ed cap.oap mline;
      setpcmark ed;
      if Buf_T.b_ml_ml_line_count ed ed.st.curbuf >= 21474836 then
        Win_T.set_w_cursor_lnum ed ed.st.curwin
-         ((Buf_T.b_ml_ml_line_count ed ed.st.curbuf + 99) / 100 * Cmdarg_T.count0 ed cap)
+         ((Buf_T.b_ml_ml_line_count ed ed.st.curbuf + 99) / 100 * cap.count0)
      else
        Win_T.set_w_cursor_lnum ed ed.st.curwin
-         ((Buf_T.b_ml_ml_line_count ed ed.st.curbuf * Cmdarg_T.count0 ed cap + 99) / 100);
+         ((Buf_T.b_ml_ml_line_count ed ed.st.curbuf * cap.count0 + 99) / 100);
      if Win_T.w_cursor_lnum ed ed.st.curwin < 1 then Win_T.set_w_cursor_lnum ed ed.st.curwin 1;
      if Win_T.w_cursor_lnum ed ed.st.curwin > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
        Win_T.set_w_cursor_lnum ed ed.st.curwin (Buf_T.b_ml_ml_line_count ed ed.st.curbuf);
      beginline ed 6)
 
 let nv_mark ed cap =
-  if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
-    (if setmark ed (Cmdarg_T.nchar ed cap) = fail then clearopbeep ed (Cmdarg_T.oap ed cap))
+  if not (checkclearop ed cap.oap) then
+    (if setmark ed (Cmdarg_T.nchar ed cap) = fail then clearopbeep ed cap.oap)
 
 let nv_kundo ed cap =
-  if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
-    (u_undo ed (to_i32 (Cmdarg_T.count1 ed cap));
+  if not (checkclearopq ed cap.oap) then
+    (u_undo ed (to_i32 cap.count1);
      Win_T.set_w_set_curswant ed ed.st.curwin true)
 
 let nv_undo ed cap =
-  if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_lower || ed.st.visual_active then
-    (Cmdarg_T.set_cmdchar ed cap (Char.code 'g');
+  if Oparg_T.op_type ed cap.oap = op_lower || ed.st.visual_active then
+    (cap.cmdchar <- Char.code 'g';
      Cmdarg_T.set_nchar ed cap (Char.code 'u');
      nv_operator ed cap)
   else
@@ -50899,10 +50584,9 @@ let nv_undo ed cap =
 let invoke_edit ed cap repl cmd startln =
   let join3 restart_edit_save =
     ed.st.restart_edit <- 0;
-    if Cmdarg_T.cmdchar ed cap <> Char.code 'O' && Cmdarg_T.cmdchar ed cap <> Char.code 'o' then
+    if cap.cmdchar <> Char.code 'O' && cap.cmdchar <> Char.code 'o' then
       Buf_T.set_b_last_changedtick_i ed ed.st.curbuf (Buf_T.b_changedtick ed ed.st.curbuf);
-    if edit ed cmd startln (Cmdarg_T.count1 ed cap) then
-      Cmdarg_T.set_retval ed cap (Cmdarg_T.retval ed cap lor ca_command_busy);
+    if edit ed cmd startln cap.count1 then cap.retval <- cap.retval lor ca_command_busy;
     if ed.st.restart_edit = 0 then ed.st.restart_edit <- restart_edit_save
   in
   if repl || not (stuff_empty ed) then join3 ed.st.restart_edit else join3 0
@@ -50911,8 +50595,8 @@ let nv_replace ed cap =
   let rec loop22 n old_State =
     let join29 () =
       ed.st.state <- old_State;
-      if Cmdarg_T.ncharC1 ed cap <> 0 then ins_char ed (Cmdarg_T.ncharC1 ed cap);
-      if Cmdarg_T.ncharC2 ed cap <> 0 then ins_char ed (Cmdarg_T.ncharC2 ed cap);
+      if cap.ncharC1 <> 0 then ins_char ed cap.ncharC1;
+      if cap.ncharC2 <> 0 then ins_char ed cap.ncharC2;
       loop22 (n - 1) old_State
     in
     if n > 0 then
@@ -50944,15 +50628,15 @@ let nv_replace ed cap =
   let join5 had_ctrl_v =
     let join13 () =
       let r3 = ml_get_cursor_len ed in
-      if u64_lt r3 (to_u32 (Cmdarg_T.count1 ed cap)) ||
+      if u64_lt r3 (to_u32 cap.count1) ||
          (let r4 = mb_charlen ed (ml_get_cursor ed) in
-          r4 < Cmdarg_T.count1 ed cap) then
-        clearopbeep ed (Cmdarg_T.oap ed cap)
+          r4 < cap.count1) then
+        clearopbeep ed cap.oap
       else
         if had_ctrl_v <> ctrl_v &&
            Cmdarg_T.nchar ed cap = Char.code '\t' &&
            (Buf_T.b_p_et ed ed.st.curbuf <> 0 || p_sta ed <> 0) then
-          (stuffnumReadbuff ed (Cmdarg_T.count1 ed cap);
+          (stuffnumReadbuff ed cap.count1;
            stuffcharReadbuff ed (Char.code 'R');
            stuffcharReadbuff ed (Char.code '\t');
            stuffcharReadbuff ed esc)
@@ -50961,24 +50645,22 @@ let nv_replace ed cap =
             (if had_ctrl_v <> ctrl_v &&
                 (Cmdarg_T.nchar ed cap = Char.code '\r' ||
                  Cmdarg_T.nchar ed cap = Char.code '\n') then
-               (ignore (del_chars ed (Cmdarg_T.count1 ed cap) false);
+               (ignore (del_chars ed cap.count1 false);
                 stuffcharReadbuff ed (Char.code '\r');
                 stuffcharReadbuff ed esc;
                 invoke_edit ed cap true (Char.code 'r') false)
              else
-               (prep_redo ed (Oparg_T.regname ed (Cmdarg_T.oap ed cap)) (Cmdarg_T.count1 ed cap) nul
-                  (Char.code 'r') nul had_ctrl_v (Cmdarg_T.nchar ed cap);
+               (prep_redo ed (Oparg_T.regname ed cap.oap) cap.count1 nul (Char.code 'r') nul
+                  had_ctrl_v (Cmdarg_T.nchar ed cap);
                 mem_copy ed (Buf_T.b_op_start_addr ed.st.curbuf) (Win_T.w_cursor_addr ed.st.curwin)
                   16;
                 let old_State = ed.st.state in
-                if Cmdarg_T.ncharC1 ed cap <> 0 then
-                  appendchartoredobuff ed (Cmdarg_T.ncharC1 ed cap);
-                if Cmdarg_T.ncharC2 ed cap <> 0 then
-                  appendchartoredobuff ed (Cmdarg_T.ncharC2 ed cap);
-                loop22 (Cmdarg_T.count1 ed cap) old_State))
+                if cap.ncharC1 <> 0 then appendchartoredobuff ed cap.ncharC1;
+                if cap.ncharC2 <> 0 then appendchartoredobuff ed cap.ncharC2;
+                loop22 cap.count1 old_State))
     in
     if Cmdarg_T.nchar ed cap < 0 then
-      clearopbeep ed (Cmdarg_T.oap ed cap)
+      clearopbeep ed cap.oap
     else
       if ed.st.visual_active then
         (if ed.st.got_int <> 0 then ed.st.got_int <- false_;
@@ -50995,16 +50677,15 @@ let nv_replace ed cap =
           if u_save_cursor ed then
             (if gchar_cursor ed = nul then
                (let r1 = getviscol ed in
-                ignore (coladvance_force ed (to_i32 (r1 + Cmdarg_T.count1 ed cap)));
+                ignore (coladvance_force ed (to_i32 (r1 + cap.count1)));
                 let r2 = ed.st.curwin in
-                Win_T.set_w_cursor_col ed r2
-                  (to_i32 (Win_T.w_cursor_col ed r2 - Cmdarg_T.count1 ed cap));
+                Win_T.set_w_cursor_col ed r2 (to_i32 (Win_T.w_cursor_col ed r2 - cap.count1));
                 join13 ())
              else
                (if gchar_cursor ed = tab then ignore (coladvance_force ed (getviscol ed));
                 join13 ()))
   in
-  if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
+  if not (checkclearop ed cap.oap) then
     (if Cmdarg_T.nchar ed cap = ctrl_v || Cmdarg_T.nchar ed cap = ctrl_q then
        (Cmdarg_T.set_nchar ed cap (get_literal ed false_);
         if Cmdarg_T.nchar ed cap > del then join5 nul else join5 ctrl_v)
@@ -51059,27 +50740,26 @@ let v_swap_corners ed cmdchar =
 
 let nv_Replace ed cap =
   if ed.st.visual_active then
-    (Cmdarg_T.set_cmdchar ed cap (Char.code 'c');
+    (cap.cmdchar <- Char.code 'c';
      Cmdarg_T.set_nchar ed cap nul;
      ed.st.visual_mode_orig <- ed.st.visual_mode;
      ed.st.visual_mode <- Char.code 'V';
      nv_operator ed cap)
   else
-    if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
+    if not (checkclearopq ed cap.oap) then
       (if Buf_T.b_p_ma ed ed.st.curbuf = 0 then
          ignore (emsg ed e_cannot_make_changes_modifiable_is_off)
        else
          (if virtual_active ed <> 0 then ignore (coladvance ed (getviscol ed));
-          invoke_edit ed cap false
-            (if Cmdarg_T.arg ed cap = 0 then Char.code 'R' else Char.code 'V') false))
+          invoke_edit ed cap false (if cap.arg = 0 then Char.code 'R' else Char.code 'V') false))
 
 let nv_vreplace ed cap =
   if ed.st.visual_active then
-    (Cmdarg_T.set_cmdchar ed cap (Char.code 'r');
+    (cap.cmdchar <- Char.code 'r';
      Cmdarg_T.set_nchar ed cap (Cmdarg_T.extra_char ed cap);
      nv_replace ed cap)
   else
-    if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
+    if not (checkclearopq ed cap.oap) then
       (if Buf_T.b_p_ma ed ed.st.curbuf = 0 then
          ignore (emsg ed e_cannot_make_changes_modifiable_is_off)
        else
@@ -51107,9 +50787,7 @@ let n_swapchar ed cap =
             Buf_T.set_b_op_end_col ed r2 (Buf_T.b_op_end_col ed r2 - 1)))
     in
     if n > 0 then
-      (let t1 =
-         swapchar ed (Oparg_T.op_type ed (Cmdarg_T.oap ed cap)) (Win_T.w_cursor_addr ed.st.curwin)
-       in
+      (let t1 = swapchar ed (Oparg_T.op_type ed cap.oap) (Win_T.w_cursor_addr ed.st.curwin) in
        let did_change = did_change lor Bool.to_int t1 in
        let join10 () =
          loop4 (n - 1) startpos_lnum startpos_col startpos_coladd did_change
@@ -51136,85 +50814,84 @@ let n_swapchar ed cap =
     else
       join11 did_change
   in
-  if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
+  if not (checkclearopq ed cap.oap) then
     (if ld_u8 ed (ml_get ed (Win_T.w_cursor_lnum ed ed.st.curwin)) = nul &&
         vim_strchr ed (p_ww ed) (Char.code '~') = 0 then
-       clearopbeep ed (Cmdarg_T.oap ed cap)
+       clearopbeep ed cap.oap
      else
        (prep_redo_cmd ed cap;
         if u_save_cursor ed then
           (let startpos_lnum = Win_T.w_cursor_lnum ed ed.st.curwin in
            let startpos_col = Win_T.w_cursor_col ed ed.st.curwin in
            let startpos_coladd = Win_T.w_cursor_coladd ed ed.st.curwin in
-           loop4 (Cmdarg_T.count1 ed cap) startpos_lnum startpos_col startpos_coladd 0)))
+           loop4 cap.count1 startpos_lnum startpos_col startpos_coladd 0)))
 
 let nv_optrans ed cap =
   let join6 () =
-    Cmdarg_T.set_opcount ed cap 0
+    cap.cmdarg_opcount <- 0
   in
-  if checkclearopq ed (Cmdarg_T.oap ed cap) then
+  if checkclearopq ed cap.oap then
     join6 ()
-  else if Cmdarg_T.cmdchar ed cap = Char.code 'D' && vim_strchr ed (p_cpo ed) cpo_hash <> 0 then
-    (mem_copy ed (Oparg_T.start_addr (Cmdarg_T.oap ed cap)) (Win_T.w_cursor_addr ed.st.curwin) 16;
-     Oparg_T.set_op_type ed (Cmdarg_T.oap ed cap) op_delete';
-     Cmdarg_T.set_count1 ed cap 1;
+  else if cap.cmdchar = Char.code 'D' && vim_strchr ed (p_cpo ed) cpo_hash <> 0 then
+    (mem_copy ed (Oparg_T.start_addr cap.oap) (Win_T.w_cursor_addr ed.st.curwin) 16;
+     Oparg_T.set_op_type ed cap.oap op_delete';
+     cap.count1 <- 1;
      nv_dollar ed cap;
      ed.st.finish_op <- true;
      resetredobuff ed;
      appendchartoredobuff ed (Char.code 'D');
      join6 ())
   else
-    (if Cmdarg_T.count0 ed cap <> 0 then stuffnumReadbuff ed (Cmdarg_T.count0 ed cap);
-     let r1 = vim_strchr ed ed.st.nv_optrans__str (Cmdarg_T.cmdchar ed cap) in
+    (if cap.count0 <> 0 then stuffnumReadbuff ed cap.count0;
+     let r1 = vim_strchr ed ed.st.nv_optrans__str cap.cmdchar in
      stuffReadbuff ed (ld_ptr ed (nv_optrans__ar + to_i32 (r1 - ed.st.nv_optrans__str) * 8));
      join6 ())
 
 let nv_subst ed cap =
   if ed.st.visual_active then
-    (if Cmdarg_T.cmdchar ed cap = Char.code 'S' then
+    (if cap.cmdchar = Char.code 'S' then
        (ed.st.visual_mode_orig <- ed.st.visual_mode;
         ed.st.visual_mode <- Char.code 'V');
-     Cmdarg_T.set_cmdchar ed cap (Char.code 'c');
+     cap.cmdchar <- Char.code 'c';
      nv_operator ed cap)
   else
     nv_optrans ed cap
 
 let nv_abbrev ed cap =
-  if Cmdarg_T.cmdchar ed cap = k_del || Cmdarg_T.cmdchar ed cap = k_kdel then
-    Cmdarg_T.set_cmdchar ed cap (Char.code 'x');
+  if cap.cmdchar = k_del || cap.cmdchar = k_kdel then cap.cmdchar <- Char.code 'x';
   if ed.st.visual_active then v_visop ed cap else nv_optrans ed cap
 
 let nv_gomark ed cap =
   let join3 c =
-    let pos = getmark ed c (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop) in
-    nv_cursormark ed cap (Cmdarg_T.arg ed cap) pos;
+    let pos = getmark ed c (Oparg_T.op_type ed cap.oap = op_nop) in
+    nv_cursormark ed cap cap.arg pos;
     if virtual_active ed = 0 then Win_T.set_w_cursor_coladd ed ed.st.curwin 0;
     check_cursor_col ed
   in
-  if Cmdarg_T.cmdchar ed cap = Char.code 'g' then
+  if cap.cmdchar = Char.code 'g' then
     join3 (Cmdarg_T.extra_char ed cap)
   else
     join3 (Cmdarg_T.nchar ed cap)
 
 let nv_pcmark ed cap =
-  if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
-    (let pos = movechangelist ed (to_i32 (Cmdarg_T.count1 ed cap)) in
+  if not (checkclearopq ed cap.oap) then
+    (let pos = movechangelist ed (to_i32 cap.count1) in
      if pos <> 0 then
        nv_cursormark ed cap false_ pos
      else if Buf_T.b_changelistlen ed ed.st.curbuf = 0 then
        ignore (emsg ed e_changelist_is_empty)
-     else if Cmdarg_T.count1 ed cap < 0 then
+     else if cap.count1 < 0 then
        ignore (emsg ed e_at_start_of_changelist)
      else
        ignore (emsg ed e_at_end_of_changelist))
 
 let nv_regname ed cap =
-  if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
+  if not (checkclearop ed cap.oap) then
     (if Cmdarg_T.nchar ed cap <> nul && valid_yank_reg ed (Cmdarg_T.nchar ed cap) false then
-       (Oparg_T.set_regname ed (Cmdarg_T.oap ed cap) (Cmdarg_T.nchar ed cap);
-        Cmdarg_T.set_opcount ed cap (Cmdarg_T.count0 ed cap))
+       (Oparg_T.set_regname ed cap.oap (Cmdarg_T.nchar ed cap);
+        cap.cmdarg_opcount <- cap.count0)
      else
-       clearopbeep ed (Cmdarg_T.oap ed cap))
+       clearopbeep ed cap.oap)
 
 let nv_visual ed cap =
   let join12 t1 =
@@ -51244,7 +50921,7 @@ let nv_visual ed cap =
        update_curswant_force ed;
        let r4 = ed.st.curwin in
        Win_T.set_w_curswant ed r4
-         (to_i32 (Win_T.w_curswant ed r4 + (ed.st.resel_VIsual_vcol * Cmdarg_T.count0 ed cap - 1)));
+         (to_i32 (Win_T.w_curswant ed r4 + (ed.st.resel_VIsual_vcol * cap.count0 - 1)));
        Win_T.set_w_cursor_lnum ed ed.st.curwin tmp_cursor_lnum;
        Win_T.set_w_cursor_col ed ed.st.curwin tmp_cursor_col;
        Win_T.set_w_cursor_coladd ed ed.st.curwin tmp_cursor_coladd;
@@ -51269,7 +50946,7 @@ let nv_visual ed cap =
          (update_curswant_force ed;
           let r2 = ed.st.curwin in
           Win_T.set_w_curswant ed r2
-            (to_i32 (Win_T.w_curswant ed r2 + ed.st.resel_VIsual_vcol * Cmdarg_T.count0 ed cap));
+            (to_i32 (Win_T.w_curswant ed r2 + ed.st.resel_VIsual_vcol * cap.count0));
           if ld_char ed (p_sel ed) = 'e' then
             join28 ()
           else
@@ -51282,53 +50959,52 @@ let nv_visual ed cap =
     else
       join29 ()
   in
-  if Cmdarg_T.cmdchar ed cap = ctrl_q then Cmdarg_T.set_cmdchar ed cap ctrl_v;
-  if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop then
-    (ed.st.visual_select <- Cmdarg_T.arg ed cap;
+  if cap.cmdchar = ctrl_q then cap.cmdchar <- ctrl_v;
+  if Oparg_T.op_type ed cap.oap = op_nop then
+    (ed.st.visual_select <- cap.arg;
      if ed.st.visual_active then
-       (if ed.st.visual_mode = Cmdarg_T.cmdchar ed cap then
+       (if ed.st.visual_mode = cap.cmdchar then
           end_visual_mode ed
         else
-          (ed.st.visual_mode <- Cmdarg_T.cmdchar ed cap;
+          (ed.st.visual_mode <- cap.cmdchar;
            ignore (showmode ed));
         redraw_curbuf_later ed upd_inverted)
      else
        (check_visual_highlight ed;
-        if Cmdarg_T.count0 ed cap > 0 && ed.st.resel_VIsual_mode <> nul then
+        if cap.count0 > 0 && ed.st.resel_VIsual_mode <> nul then
           (mem_copy ed visual (Win_T.w_cursor_addr ed.st.curwin) 16;
            ed.st.visual_active <- true;
            ed.st.visual_reselect <- true;
-           if Cmdarg_T.arg ed cap = 0 then may_start_select ed (Char.code 'c');
+           if cap.arg = 0 then may_start_select ed (Char.code 'c');
            if p_smd ed <> 0 && ed.st.msg_silent = 0 then ed.st.redraw_cmdline <- true_;
            if ed.st.resel_VIsual_mode <> Char.code 'v' || ed.st.resel_VIsual_line_count > 1 then
              (let r1 = ed.st.curwin in
               Win_T.set_w_cursor_lnum ed r1
-                (Win_T.w_cursor_lnum ed r1 +
-                 (ed.st.resel_VIsual_line_count * Cmdarg_T.count0 ed cap - 1));
+                (Win_T.w_cursor_lnum ed r1 + (ed.st.resel_VIsual_line_count * cap.count0 - 1));
               check_cursor ed;
               join23 ())
            else
              join23 ())
         else
-          (if Cmdarg_T.arg ed cap = 0 then may_start_select ed (Char.code 'c');
-           n_start_visual_mode ed (Cmdarg_T.cmdchar ed cap);
+          (if cap.arg = 0 then may_start_select ed (Char.code 'c');
+           n_start_visual_mode ed cap.cmdchar;
            if ed.st.visual_mode <> Char.code 'V' && ld_char ed (p_sel ed) = 'e' then
-             Cmdarg_T.set_count1 ed cap (Cmdarg_T.count1 ed cap + 1)
+             cap.count1 <- cap.count1 + 1
            else
              ed.st.visual_select_exclu_adj <- false;
-           let t1 = Cmdarg_T.count0 ed cap > 0 in
+           let t1 = cap.count0 > 0 in
            if t1 then
-             (Cmdarg_T.set_count1 ed cap (Cmdarg_T.count1 ed cap - 1);
-              join12 (Cmdarg_T.count1 ed cap > 0))
+             (cap.count1 <- cap.count1 - 1;
+              join12 (cap.count1 > 0))
            else
              join12 t1)))
   else
-    (Oparg_T.set_motion_force ed (Cmdarg_T.oap ed cap) (Cmdarg_T.cmdchar ed cap);
-     set_motion_force ed (Oparg_T.motion_force ed (Cmdarg_T.oap ed cap));
+    (Oparg_T.set_motion_force ed cap.oap cap.cmdchar;
+     set_motion_force ed (Oparg_T.motion_force ed cap.oap);
      ed.st.finish_op <- false)
 
 let nv_suspend ed cap =
-  clearop ed (Cmdarg_T.oap ed cap);
+  clearop ed cap.oap;
   if ed.st.visual_active then end_visual_mode ed;
   ignore (do_cmdline_cmd ed 162548 (* "stop" *))
 
@@ -51343,7 +51019,7 @@ let nv_gv_cmd ed cap =
     Win_T.set_w_cursor_coladd ed ed.st.curwin tpos_coladd;
     check_cursor ed;
     update_topline ed;
-    if Cmdarg_T.arg ed cap = 0 then
+    if cap.arg = 0 then
       may_start_select ed (Char.code 'c')
     else
       (ed.st.visual_select <- true_;
@@ -51390,11 +51066,10 @@ let nv_g_underscore_cmd ed cap =
       (Win_T.set_w_set_curswant ed ed.st.curwin true;
        adjust_for_sel ed cap)
   in
-  Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-  Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) true_;
+  Oparg_T.set_motion_type ed cap.oap mchar;
+  Oparg_T.set_inclusive ed cap.oap true_;
   Win_T.set_w_curswant ed ed.st.curwin maxcol;
-  if cursor_down
-       ed (Cmdarg_T.count1 ed cap - 1) (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop) then
+  if cursor_down ed (cap.count1 - 1) (Oparg_T.op_type ed cap.oap = op_nop) then
     (let ptr = ml_get_curline ed in
      if Win_T.w_cursor_col ed ed.st.curwin > 0 &&
         ld_u8 ed (ptr + Win_T.w_cursor_col ed ed.st.curwin) = nul then
@@ -51404,7 +51079,7 @@ let nv_g_underscore_cmd ed cap =
      else
        loop4 ptr)
   else
-    clearopbeep ed (Cmdarg_T.oap ed cap)
+    clearopbeep ed cap.oap
 
 let nv_g_dollar_cmd ed cap =
   let fr = frame_push ed 16 in
@@ -51412,7 +51087,7 @@ let nv_g_dollar_cmd ed cap =
   let join22 () =
     frame_pop ed fr
   in
-  let oap = Cmdarg_T.oap ed cap in
+  let oap = cap.oap in
   let col_off = curwin_col_off ed in
   let join2 flag =
     let join17 () =
@@ -51434,7 +51109,7 @@ let nv_g_dollar_cmd ed cap =
     Oparg_T.set_inclusive ed oap true_;
     if Win_T.w_onebuf_opt_wo_wrap ed ed.st.curwin <> 0 && Win_T.w_width ed ed.st.curwin <> 0 then
       (Win_T.set_w_curswant ed ed.st.curwin maxcol;
-       if Cmdarg_T.count1 ed cap = 1 then
+       if cap.count1 = 1 then
          (let width1 = Win_T.w_width ed ed.st.curwin - col_off in
           let width2 = width1 + curwin_col_off2 ed in
           validate_virtcol ed;
@@ -51459,11 +51134,10 @@ let nv_g_dollar_cmd ed cap =
           else
             join14 i)
        else
-         (if not (nv_screengo ed oap forward (Cmdarg_T.count1 ed cap - 1)) then clearopbeep ed oap;
+         (if not (nv_screengo ed oap forward (cap.count1 - 1)) then clearopbeep ed oap;
           join17 ()))
     else
-      (if Cmdarg_T.count1 ed cap > 1 then
-         ignore (cursor_down ed (Cmdarg_T.count1 ed cap - 1) false);
+      (if cap.count1 > 1 then ignore (cursor_down ed (cap.count1 - 1) false);
        let i = Win_T.w_leftcol ed ed.st.curwin + Win_T.w_width ed ed.st.curwin - col_off - 1 in
        let join8 () =
          update_curswant_force ed;
@@ -52208,46 +51882,34 @@ let nv_object ed cap =
     let mps_save = Buf_T.b_p_mps ed ed.st.curbuf in
     let join12 flag =
       Buf_T.set_b_p_mps ed ed.st.curbuf mps_save;
-      if not flag then clearopbeep ed (Cmdarg_T.oap ed cap);
+      if not flag then clearopbeep ed cap.oap;
       adjust_cursor_col ed;
       Win_T.set_w_set_curswant ed ed.st.curwin true
     in
     Buf_T.set_b_p_mps ed ed.st.curbuf 164867 (* "(:),{:},[:],<:>" *);
     match Cmdarg_T.nchar ed cap with
-    | 119 (* 'w' *) ->
-        join12 (current_word ed (Cmdarg_T.oap ed cap) (Cmdarg_T.count1 ed cap) include_ false)
-    | 87 (* 'W' *) ->
-        join12 (current_word ed (Cmdarg_T.oap ed cap) (Cmdarg_T.count1 ed cap) include_ true)
+    | 119 (* 'w' *) -> join12 (current_word ed cap.oap cap.count1 include_ false)
+    | 87 (* 'W' *) -> join12 (current_word ed cap.oap cap.count1 include_ true)
     | 98 (* 'b' *) | 40 (* '(' *) | 41 (* ')' *) ->
-        join12
-          (current_block ed (Cmdarg_T.oap ed cap) (Cmdarg_T.count1 ed cap) include_ (Char.code '(')
-             (Char.code ')'))
+        join12 (current_block ed cap.oap cap.count1 include_ (Char.code '(') (Char.code ')'))
     | 66 (* 'B' *) | 123 (* '{' *) | 125 (* '}' *) ->
-        join12
-          (current_block ed (Cmdarg_T.oap ed cap) (Cmdarg_T.count1 ed cap) include_ (Char.code '{')
-             (Char.code '}'))
+        join12 (current_block ed cap.oap cap.count1 include_ (Char.code '{') (Char.code '}'))
     | 91 (* '[' *) | 93 (* ']' *) ->
-        join12
-          (current_block ed (Cmdarg_T.oap ed cap) (Cmdarg_T.count1 ed cap) include_ (Char.code '[')
-             (Char.code ']'))
+        join12 (current_block ed cap.oap cap.count1 include_ (Char.code '[') (Char.code ']'))
     | 60 (* '<' *) | 62 (* '>' *) ->
-        join12
-          (current_block ed (Cmdarg_T.oap ed cap) (Cmdarg_T.count1 ed cap) include_ (Char.code '<')
-             (Char.code '>'))
+        join12 (current_block ed cap.oap cap.count1 include_ (Char.code '<') (Char.code '>'))
     | 34 (* '\x22' *) | 39 (* '\x27' *) | 96 (* '`' *) ->
-        join12
-          (current_quote ed (Cmdarg_T.oap ed cap) (Cmdarg_T.count1 ed cap) include_
-             (Cmdarg_T.nchar ed cap))
+        join12 (current_quote ed cap.oap cap.count1 include_ (Cmdarg_T.nchar ed cap))
     | _ -> join12 false
   in
-  if Cmdarg_T.cmdchar ed cap = Char.code 'i' then join3 false else join3 true
+  if cap.cmdchar = Char.code 'i' then join3 false else join3 true
 
 let nv_edit ed cap =
   let join19 _old_visual_lnum _old_visual_col _old_visual_coladd =
     let join21 () =
-      invoke_edit ed cap false (Cmdarg_T.cmdchar ed cap) false
+      invoke_edit ed cap false cap.cmdchar false
     in
-    if Win_T.w_cursor_coladd ed ed.st.curwin <> 0 && Cmdarg_T.cmdchar ed cap <> Char.code 'A' then
+    if Win_T.w_cursor_coladd ed ed.st.curwin <> 0 && cap.cmdchar <> Char.code 'A' then
       (let save_State = ed.st.state in
        ed.st.state <- mode_insert;
        ignore (coladvance ed (getviscol ed));
@@ -52268,19 +51930,17 @@ let nv_edit ed cap =
       (if ld_u8 ed (ml_get_cursor ed) <> nul then ignore (inc_cursor ed);
        join19 old_visual_lnum old_visual_col old_visual_coladd)
   in
-  if Cmdarg_T.cmdchar ed cap = k_ins || Cmdarg_T.cmdchar ed cap = k_kins then
-    Cmdarg_T.set_cmdchar ed cap (Char.code 'i');
-  if ed.st.visual_active &&
-     (Cmdarg_T.cmdchar ed cap = Char.code 'A' || Cmdarg_T.cmdchar ed cap = Char.code 'I') then
+  if cap.cmdchar = k_ins || cap.cmdchar = k_kins then cap.cmdchar <- Char.code 'i';
+  if ed.st.visual_active && (cap.cmdchar = Char.code 'A' || cap.cmdchar = Char.code 'I') then
     v_visop ed cap
-  else if (Cmdarg_T.cmdchar ed cap = Char.code 'a' || Cmdarg_T.cmdchar ed cap = Char.code 'i') &&
-     (Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_nop || ed.st.visual_active) then
+  else if (cap.cmdchar = Char.code 'a' || cap.cmdchar = Char.code 'i') &&
+     (Oparg_T.op_type ed cap.oap <> op_nop || ed.st.visual_active) then
     nv_object ed cap
   else if Buf_T.b_p_ma ed ed.st.curbuf = 0 && p_im ed = 0 then
     (ignore (emsg ed e_cannot_make_changes_modifiable_is_off);
-     clearop ed (Cmdarg_T.oap ed cap);
-     if Cmdarg_T.cmdchar ed cap = k_pastestart then ignore (bracketed_paste ed Paste_insert true 0))
-  else if Cmdarg_T.cmdchar ed cap = k_pastestart && ed.st.visual_active then
+     clearop ed cap.oap;
+     if cap.cmdchar = k_pastestart then ignore (bracketed_paste ed Paste_insert true 0))
+  else if cap.cmdchar = k_pastestart && ed.st.visual_active then
     (let old_pos_lnum = Win_T.w_cursor_lnum ed ed.st.curwin in
      let old_pos_col = Win_T.w_cursor_col ed ed.st.curwin in
      let old_visual_lnum = Pos_T.lnum ed visual in
@@ -52288,19 +51948,19 @@ let nv_edit ed cap =
      let _old_visual_coladd = Pos_T.coladd ed visual in
      let old_visual_mode = ed.st.visual_mode in
      let join32 () =
-       invoke_edit ed cap false (Cmdarg_T.cmdchar ed cap) false
+       invoke_edit ed cap false cap.cmdchar false
      in
      if ed.st.visual_mode = Char.code 'V' ||
         Win_T.w_cursor_lnum ed ed.st.curwin <> Pos_T.lnum ed visual then
        (shift_delete_registers ed;
-        Oparg_T.set_regname ed (Cmdarg_T.oap ed cap) (Char.code '1'))
+        Oparg_T.set_regname ed cap.oap (Char.code '1'))
      else
-       Oparg_T.set_regname ed (Cmdarg_T.oap ed cap) (Char.code '-');
-     Cmdarg_T.set_cmdchar ed cap (Char.code 'd');
+       Oparg_T.set_regname ed cap.oap (Char.code '-');
+     cap.cmdchar <- Char.code 'd';
      Cmdarg_T.set_nchar ed cap nul;
      nv_operator ed cap;
      do_pending_operator ed cap 0 false;
-     Cmdarg_T.set_cmdchar ed cap k_pastestart;
+     cap.cmdchar <- k_pastestart;
      if ld_u8 ed (ml_get_cursor ed) = nul then
        join32 ()
      else if old_visual_mode = Char.code 'V' then
@@ -52322,10 +51982,10 @@ let nv_edit ed cap =
            Win_T.w_cursor_col ed ed.st.curwin < old_visual_col then
           ignore (inc_cursor ed);
         join32 ()))
-  else if checkclearopq ed (Cmdarg_T.oap ed cap) then
-    (if Cmdarg_T.cmdchar ed cap = k_pastestart then ignore (bracketed_paste ed Paste_insert true 0))
+  else if checkclearopq ed cap.oap then
+    (if cap.cmdchar = k_pastestart then ignore (bracketed_paste ed Paste_insert true 0))
   else
-    match Cmdarg_T.cmdchar ed cap with
+    match cap.cmdchar with
     | 65 (* 'A' *) ->
         set_cursor_for_append_to_line ed;
         join19 0 0 0
@@ -52339,7 +51999,7 @@ let nv_edit ed cap =
 
 let nv_gi_cmd ed cap =
   let join5 () =
-    Cmdarg_T.set_cmdchar ed cap (Char.code 'i');
+    cap.cmdchar <- Char.code 'i';
     nv_edit ed cap
   in
   if Buf_T.b_last_insert_lnum ed ed.st.curbuf = 0 then
@@ -52365,22 +52025,22 @@ let nv_gi_cmd ed cap =
 
 let nv_join ed cap =
   let join7 () =
-    prep_redo ed (Oparg_T.regname ed (Cmdarg_T.oap ed cap)) (Cmdarg_T.count0 ed cap) nul
-      (Cmdarg_T.cmdchar ed cap) nul nul (Cmdarg_T.nchar ed cap);
-    ignore (do_join ed (Cmdarg_T.count0 ed cap) (Cmdarg_T.nchar ed cap = nul) true true true)
+    prep_redo ed (Oparg_T.regname ed cap.oap) cap.count0 nul cap.cmdchar nul nul
+      (Cmdarg_T.nchar ed cap);
+    ignore (do_join ed cap.count0 (Cmdarg_T.nchar ed cap = nul) true true true)
   in
   if ed.st.visual_active then
     nv_operator ed cap
   else
-    if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
-      (if Cmdarg_T.count0 ed cap <= 1 then Cmdarg_T.set_count0 ed cap 2;
-       if Win_T.w_cursor_lnum ed ed.st.curwin + Cmdarg_T.count0 ed cap - 1 >
+    if not (checkclearop ed cap.oap) then
+      (if cap.count0 <= 1 then cap.count0 <- 2;
+       if Win_T.w_cursor_lnum ed ed.st.curwin + cap.count0 - 1 >
           Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
-         (if Cmdarg_T.count0 ed cap <= 2 then
-            clearopbeep ed (Cmdarg_T.oap ed cap)
+         (if cap.count0 <= 2 then
+            clearopbeep ed cap.oap
           else
-            (Cmdarg_T.set_count0 ed cap
-               (Buf_T.b_ml_ml_line_count ed ed.st.curbuf - Win_T.w_cursor_lnum ed ed.st.curwin + 1);
+            (cap.count0 <-
+               Buf_T.b_ml_ml_line_count ed ed.st.curbuf - Win_T.w_cursor_lnum ed ed.st.curwin + 1;
              join7 ()))
        else
          join7 ())
@@ -52831,11 +52491,11 @@ let nv_g_cmd ed cap =
     nv_gomark ed cap
   in
   let join51 () =
-    Cmdarg_T.set_cmdchar ed cap (Cmdarg_T.nchar ed cap + 14);
-    Cmdarg_T.set_arg ed cap true_;
+    cap.cmdchar <- Cmdarg_T.nchar ed cap + 14;
+    cap.arg <- true_;
     nv_visual ed cap
   in
-  let oap = Cmdarg_T.oap ed cap in
+  let oap = cap.oap in
   let join41 i =
     if i = fail then clearopbeep ed oap
   in
@@ -52845,14 +52505,14 @@ let nv_g_cmd ed cap =
   match Cmdarg_T.nchar ed cap with
   | 1 (* Ctrl_A *) | 24 (* Ctrl_X *) ->
       if ed.st.visual_active then
-        (Cmdarg_T.set_arg ed cap true_;
-         Cmdarg_T.set_cmdchar ed cap (Cmdarg_T.nchar ed cap);
+        (cap.arg <- true_;
+         cap.cmdchar <- Cmdarg_T.nchar ed cap;
          Cmdarg_T.set_nchar ed cap nul;
          nv_addsub ed cap)
       else
         clearopbeep ed oap
   | 82 (* 'R' *) ->
-      Cmdarg_T.set_arg ed cap true_;
+      cap.arg <- true_;
       nv_Replace ed cap
   | 114 (* 'r' *) -> nv_vreplace ed cap
   | 38 (* '&' *) -> ignore (do_cmdline_cmd ed 164752 (* "%s//~/&" *))
@@ -52863,24 +52523,20 @@ let nv_g_cmd ed cap =
       join51 ()
   | 104 (* 'h' *) | 72 (* 'H' *) | 8 (* Ctrl_H *) -> join51 ()
   | 78 (* 'N' *) | 110 (* 'n' *) ->
-      if not (current_search
-            ed (Cmdarg_T.count1 ed cap) (Cmdarg_T.nchar ed cap = Char.code 'n')) then
+      if not (current_search ed cap.count1 (Cmdarg_T.nchar ed cap = Char.code 'n')) then
         clearopbeep ed oap
   | 106 (* 'j' *) | -25707 (* K_DOWN *) ->
       if Win_T.w_onebuf_opt_wo_wrap ed ed.st.curwin = 0 then
         (Oparg_T.set_motion_type ed oap mline;
-         join46
-           (Bool.to_int
-              (cursor_down ed (Cmdarg_T.count1 ed cap) (Oparg_T.op_type ed oap = op_nop))))
+         join46 (Bool.to_int (cursor_down ed cap.count1 (Oparg_T.op_type ed oap = op_nop))))
       else
-        join46 (Bool.to_int (nv_screengo ed oap forward (Cmdarg_T.count1 ed cap)))
+        join46 (Bool.to_int (nv_screengo ed oap forward cap.count1))
   | 107 (* 'k' *) | -30059 (* K_UP *) ->
       if Win_T.w_onebuf_opt_wo_wrap ed ed.st.curwin = 0 then
         (Oparg_T.set_motion_type ed oap mline;
-         join41
-           (Bool.to_int (cursor_up ed (Cmdarg_T.count1 ed cap) (Oparg_T.op_type ed oap = op_nop))))
+         join41 (Bool.to_int (cursor_up ed cap.count1 (Oparg_T.op_type ed oap = op_nop))))
       else
-        join41 (Bool.to_int (nv_screengo ed oap (-1) (Cmdarg_T.count1 ed cap)))
+        join41 (Bool.to_int (nv_screengo ed oap (-1) cap.count1))
   | 74 (* 'J' *) -> nv_join ed cap
   | 94 (* '^' *) | 48 (* '0' *) | 109 (* 'm' *) | -26731 (* K_HOME *) | -12619 (* K_KHOME *) ->
       nv_g_home_m_cmd ed cap
@@ -52888,8 +52544,8 @@ let nv_g_cmd ed cap =
       Oparg_T.set_motion_type ed oap mchar;
       Oparg_T.set_inclusive ed oap false_;
       let i = linetabsize_no_outer ed ed.st.curwin (Win_T.w_cursor_lnum ed ed.st.curwin) in
-      if Cmdarg_T.count0 ed cap > 0 && Cmdarg_T.count0 ed cap <= 100 then
-        ignore (coladvance ed (to_i32 (i * Cmdarg_T.count0 ed cap / 100)))
+      if cap.count0 > 0 && cap.count0 <= 100 then
+        ignore (coladvance ed (to_i32 (i * cap.count0 / 100)))
       else
         ignore (coladvance ed (i / 2));
       Win_T.set_w_set_curswant ed ed.st.curwin true
@@ -52900,8 +52556,7 @@ let nv_g_cmd ed cap =
       Oparg_T.set_motion_type ed oap mchar;
       Win_T.set_w_set_curswant ed ed.st.curwin true;
       Oparg_T.set_inclusive ed oap true_;
-      if not (bckend_word
-            ed (Cmdarg_T.count1 ed cap) (Cmdarg_T.nchar ed cap = Char.code 'E') false) then
+      if not (bckend_word ed cap.count1 (Cmdarg_T.nchar ed cap = Char.code 'E') false) then
         clearopbeep ed oap
   | 7 (* Ctrl_G *) -> cursor_pos_info ed
   | 105 (* 'i' *) -> nv_gi_cmd ed cap
@@ -52909,15 +52564,15 @@ let nv_g_cmd ed cap =
       beginline ed 0;
       if not (checkclearopq ed oap) then invoke_edit ed cap false (Char.code 'g') false
   | 39 (* '\x27' *) ->
-      Cmdarg_T.set_arg ed cap true_;
+      cap.arg <- true_;
       join22 ()
   | 96 (* '`' *) -> join22 ()
-  | 115 (* 's' *) -> do_sleep ed (Cmdarg_T.count1 ed cap * 1000) false
+  | 115 (* 's' *) -> do_sleep ed (cap.count1 * 1000) false
   | 97 (* 'a' *) -> do_ascii ed 0
-  | 56 (* '8' *) -> if Cmdarg_T.count0 ed cap = 8 then utf_find_illegal ed else show_utf8 ed
+  | 56 (* '8' *) -> if cap.count0 = 8 then utf_find_illegal ed else show_utf8 ed
   | 60 (* '<' *) -> show_sb_text ed
   | 103 (* 'g' *) ->
-      Cmdarg_T.set_arg ed cap false_;
+      cap.arg <- false_;
       nv_goto ed cap
   | 126 (* '~' *) | 117 (* 'u' *) | 85 (* 'U' *) -> nv_operator ed cap
   | -12285 (* K_MIDDLEMOUSE *) | -12541 (* K_MIDDLEDRAG *) | -12797 (* K_MIDDLERELEASE *) | -11517 (* K_LEFTMOUSE *) | -11773 (* K_LEFTDRAG *) | -12029 (* K_LEFTRELEASE *) | -25853 (* K_MOUSEMOVE *) | -13053 (* K_RIGHTMOUSE *) | -13309 (* K_RIGHTDRAG *) | -13565 (* K_RIGHTRELEASE *) | -23037 (* K_X1MOUSE *) | -23293 (* K_X1DRAG *) | -23549 (* K_X1RELEASE *) | -23805 (* K_X2MOUSE *) | -24061 (* K_X2DRAG *) | -24317 (* K_X2RELEASE *) ->
@@ -52926,37 +52581,31 @@ let nv_g_cmd ed cap =
   | 112 (* 'p' *) | 80 (* 'P' *) -> nv_put ed cap
   | 44 (* ',' *) -> nv_pcmark ed cap
   | 59 (* ';' *) ->
-      Cmdarg_T.set_count1 ed cap (- Cmdarg_T.count1 ed cap);
+      cap.count1 <- - cap.count1;
       nv_pcmark ed cap
-  | 116 (* 't' *) -> if not (checkclearop ed oap) && Cmdarg_T.count0 ed cap > 1 then beep_flush ed
+  | 116 (* 't' *) -> if not (checkclearop ed oap) && cap.count0 > 1 then beep_flush ed
   | 84 (* 'T' *) -> ignore (checkclearop ed oap)
   | 9 (* TAB *) -> if not (checkclearop ed oap) then clearopbeep ed oap
   | 43 (* '+' *) | 45 (* '-' *) ->
       if not (checkclearopq ed oap) then
-        undo_time ed
-          (if Cmdarg_T.nchar ed cap = Char.code '-' then
-             - Cmdarg_T.count1 ed cap
-           else
-             Cmdarg_T.count1 ed cap) false false false
+        undo_time ed (if Cmdarg_T.nchar ed cap = Char.code '-' then - cap.count1 else cap.count1)
+          false false false
   | _ -> clearopbeep ed oap
 
 let n_opencmd ed cap =
-  if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
+  if not (checkclearopq ed cap.oap) then
     (Buf_T.set_b_last_changedtick_i ed ed.st.curbuf (Buf_T.b_changedtick ed ed.st.curbuf);
      if u_save ed
-          (Win_T.w_cursor_lnum ed ed.st.curwin -
-           (if Cmdarg_T.cmdchar ed cap = Char.code 'O' then 1 else 0))
-          (Win_T.w_cursor_lnum ed ed.st.curwin +
-           (if Cmdarg_T.cmdchar ed cap = Char.code 'o' then 1 else 0)) &&
-        open_line ed (if Cmdarg_T.cmdchar ed cap = Char.code 'O' then -1 else forward) 0 0 0 then
-       (if vim_strchr ed (p_cpo ed) cpo_hash <> 0 then Cmdarg_T.set_count1 ed cap 1;
-        invoke_edit ed cap false (Cmdarg_T.cmdchar ed cap) true))
+          (Win_T.w_cursor_lnum ed ed.st.curwin - (if cap.cmdchar = Char.code 'O' then 1 else 0))
+          (Win_T.w_cursor_lnum ed ed.st.curwin + (if cap.cmdchar = Char.code 'o' then 1 else 0)) &&
+        open_line ed (if cap.cmdchar = Char.code 'O' then -1 else forward) 0 0 0 then
+       (if vim_strchr ed (p_cpo ed) cpo_hash <> 0 then cap.count1 <- 1;
+        invoke_edit ed cap false cap.cmdchar true))
 
 let nv_dot ed cap =
-  if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
-    (if not (start_redo ed (Cmdarg_T.count0 ed cap)
-           (ed.st.restart_edit <> 0 && not ed.st.arrow_used)) then
-       clearopbeep ed (Cmdarg_T.oap ed cap))
+  if not (checkclearopq ed cap.oap) then
+    (if not (start_redo ed cap.count0 (ed.st.restart_edit <> 0 && not ed.st.arrow_used)) then
+       clearopbeep ed cap.oap)
 
 let nv_redo_or_register ed cap =
   let join6 reg =
@@ -52970,8 +52619,8 @@ let nv_redo_or_register ed cap =
      ed.st.allow_keys <- ed.st.allow_keys - 1;
      if reg = Char.code '"' then join6 0 else join6 reg)
   else
-    if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
-      (u_redo ed (to_i32 (Cmdarg_T.count1 ed cap));
+    if not (checkclearopq ed cap.oap) then
+      (u_redo ed (to_i32 cap.count1);
        Win_T.set_w_set_curswant ed ed.st.curwin true)
 
 let u_undoline ed =
@@ -53004,31 +52653,29 @@ let u_undoline ed =
      frame_pop ed fr)
 
 let nv_Undo ed cap =
-  if Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_upper || ed.st.visual_active then
-    (Cmdarg_T.set_cmdchar ed cap (Char.code 'g');
+  if Oparg_T.op_type ed cap.oap = op_upper || ed.st.visual_active then
+    (cap.cmdchar <- Char.code 'g';
      Cmdarg_T.set_nchar ed cap (Char.code 'U');
      nv_operator ed cap)
   else
-    if not (checkclearopq ed (Cmdarg_T.oap ed cap)) then
+    if not (checkclearopq ed cap.oap) then
       (u_undoline ed;
        Win_T.set_w_set_curswant ed ed.st.curwin true)
 
 let nv_tilde ed cap =
-  if p_to ed = 0 &&
-     not ed.st.visual_active &&
-     Oparg_T.op_type ed (Cmdarg_T.oap ed cap) <> op_tilde' then
+  if p_to ed = 0 && not ed.st.visual_active && Oparg_T.op_type ed cap.oap <> op_tilde' then
     n_swapchar ed cap
   else
     nv_operator ed cap
 
 let nv_pipe ed cap =
-  Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-  Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
+  Oparg_T.set_motion_type ed cap.oap mchar;
+  Oparg_T.set_inclusive ed cap.oap false_;
   Win_T.set_w_cursor_col ed ed.st.curwin 0;
   Win_T.set_w_cursor_coladd ed ed.st.curwin 0;
-  if Cmdarg_T.count0 ed cap > 0 then
-    (ignore (coladvance ed (to_i32 (Cmdarg_T.count0 ed cap - 1)));
-     Win_T.set_w_curswant ed ed.st.curwin (to_i32 (Cmdarg_T.count0 ed cap - 1)))
+  if cap.count0 > 0 then
+    (ignore (coladvance ed (to_i32 (cap.count0 - 1)));
+     Win_T.set_w_curswant ed ed.st.curwin (to_i32 (cap.count0 - 1)))
   else
     Win_T.set_w_curswant ed ed.st.curwin 0;
   Win_T.set_w_set_curswant ed ed.st.curwin false;
@@ -53036,16 +52683,16 @@ let nv_pipe ed cap =
 
 let nv_home ed cap =
   if mod_mask ed land mod_mask_ctrl = 0 then
-    (Cmdarg_T.set_count0 ed cap 1;
+    (cap.count0 <- 1;
      nv_pipe ed cap)
   else
     nv_goto ed cap;
   ed.st.ins_at_eol <- false
 
 let nv_beginline ed cap =
-  Oparg_T.set_motion_type ed (Cmdarg_T.oap ed cap) mchar;
-  Oparg_T.set_inclusive ed (Cmdarg_T.oap ed cap) false_;
-  beginline ed (Cmdarg_T.arg ed cap);
+  Oparg_T.set_motion_type ed cap.oap mchar;
+  Oparg_T.set_inclusive ed cap.oap false_;
+  beginline ed cap.arg;
   ed.st.ins_at_eol <- false
 
 let nv_select ed cap =
@@ -53055,12 +52702,12 @@ let nv_select ed cap =
   else
     if ed.st.visual_reselect then
       (Cmdarg_T.set_nchar ed cap (Char.code 'v');
-       Cmdarg_T.set_arg ed cap true_;
+       cap.arg <- true_;
        nv_g_cmd ed cap)
 
 let nv_normal ed cap =
   if Cmdarg_T.nchar ed cap = ctrl_n || Cmdarg_T.nchar ed cap = ctrl_g then
-    (clearop ed (Cmdarg_T.oap ed cap);
+    (clearop ed cap.oap;
      if ed.st.restart_edit <> 0 && ed.st.mode_displayed then ed.st.clear_cmdline <- true;
      ed.st.restart_edit <- 0;
      if ed.st.visual_active then
@@ -53068,17 +52715,17 @@ let nv_normal ed cap =
         redraw_curbuf_later ed upd_inverted);
      if Cmdarg_T.nchar ed cap = ctrl_g && p_im ed <> 0 then ed.st.restart_edit <- Char.code 'a')
   else
-    clearopbeep ed (Cmdarg_T.oap ed cap)
+    clearopbeep ed cap.oap
 
 let anyBufIsChanged ed =
   bufIsChanged ed ed.st.curbuf
 
 let nv_esc ed cap =
   let no_reason =
-    Oparg_T.op_type ed (Cmdarg_T.oap ed cap) = op_nop &&
-    Cmdarg_T.opcount ed cap = 0 &&
-    Cmdarg_T.count0 ed cap = 0 &&
-    Oparg_T.regname ed (Cmdarg_T.oap ed cap) = 0 &&
+    Oparg_T.op_type ed cap.oap = op_nop &&
+    cap.cmdarg_opcount = 0 &&
+    cap.count0 = 0 &&
+    Oparg_T.regname ed cap.oap = 0 &&
     p_im ed = 0
   in
   let join9 () =
@@ -53089,7 +52736,7 @@ let nv_esc ed cap =
        redraw_curbuf_later ed upd_inverted)
     else
       if no_reason then vim_beep ed bo_esc;
-    clearop ed (Cmdarg_T.oap ed cap);
+    clearop ed cap.oap;
     if ed.st.restart_edit = 0 && goto_im ed && ed.st.ex_normal_busy = 0 then
       ed.st.restart_edit <- Char.code 'a'
   in
@@ -53098,7 +52745,7 @@ let nv_esc ed cap =
     if p_im ed = 0 then ed.st.restart_edit <- 0;
     join9 ()
   in
-  if Cmdarg_T.arg ed cap = 0 then
+  if cap.arg = 0 then
     join9 ()
   else if ed.st.restart_edit = 0 && not ed.st.visual_active && no_reason then
     (if anyBufIsChanged ed = 0 then
@@ -53169,35 +52816,34 @@ let do_record ed c =
         join7 retval))
 
 let nv_record ed cap =
-  if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
+  if not (checkclearop ed cap.oap) then
     (if ed.st.reg_executing = 0 && not (do_record ed (Cmdarg_T.nchar ed cap)) then
-       clearopbeep ed (Cmdarg_T.oap ed cap))
+       clearopbeep ed cap.oap)
 
 let nv_at ed cap =
-  if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
+  if not (checkclearop ed cap.oap) then
     (let rec loop2 () =
-       let t1 = Cmdarg_T.count1 ed cap in
-       Cmdarg_T.set_count1 ed cap (Cmdarg_T.count1 ed cap - 1);
+       let t1 = cap.count1 in
+       cap.count1 <- cap.count1 - 1;
        if t1 <> 0 && ed.st.got_int = 0 then
          (if do_execreg ed (Cmdarg_T.nchar ed cap) false false false then
             (line_breakcheck ed;
              loop2 ())
           else
-            clearopbeep ed (Cmdarg_T.oap ed cap))
+            clearopbeep ed cap.oap)
      in
      loop2 ())
 
 let nv_halfpage ed cap =
-  let dir = if Cmdarg_T.cmdchar ed cap = ctrl_d then forward else -1 in
-  if not (checkclearop ed (Cmdarg_T.oap ed cap)) then
-    ignore (pagescroll ed dir (Cmdarg_T.count0 ed cap) true)
+  let dir = if cap.cmdchar = ctrl_d then forward else -1 in
+  if not (checkclearop ed cap.oap) then ignore (pagescroll ed dir cap.count0 true)
 
 let nv_open ed cap =
-  if ed.st.visual_active then v_swap_corners ed (Cmdarg_T.cmdchar ed cap) else n_opencmd ed cap
+  if ed.st.visual_active then v_swap_corners ed cap.cmdchar else n_opencmd ed cap
 
 let nv_cursorhold ed cap =
   ed.st.did_cursorhold <- true;
-  Cmdarg_T.set_retval ed cap (Cmdarg_T.retval ed cap lor ca_command_busy)
+  cap.retval <- cap.retval lor ca_command_busy
 
 let option_expand ed opt_idx val_ =
   let join4 val_ =
@@ -55053,7 +54699,7 @@ let ex_set ed eap =
   let join2 flags =
     ignore (do_set ed (Exarg_T.arg ed eap) flags)
   in
-  if Exarg_T.forceit ed eap then join2 (0 lor opt_onecolumn) else join2 0
+  if eap.forceit then join2 (0 lor opt_onecolumn) else join2 0
 
 let get_term_opt_idx ed p =
   let rec loop1 opt_idx =
@@ -55591,24 +55237,22 @@ let did_set_chars_option ed args =
   let varp = Optset_T.os_varp_ov_str ed args in
   if varp = p_lcs_addr || varp = p_fcs_addr then
     join6
-      (did_set_global_listfillchars ed (ld_ptr ed varp) (varp = p_lcs_addr)
-         (Optset_T.os_flags ed args) (Optset_T.os_errbuf ed args) (Optset_T.os_errbuflen ed args))
+      (did_set_global_listfillchars ed (ld_ptr ed varp) (varp = p_lcs_addr) args.os_flags
+         args.os_errbuf args.os_errbuflen)
   else if varp = Win_T.w_onebuf_opt_wo_lcs_addr ed.st.curwin then
     join6
-      (set_listchars_option ed ed.st.curwin (ld_ptr ed varp) true (Optset_T.os_errbuf ed args)
-         (Optset_T.os_errbuflen ed args))
+      (set_listchars_option ed ed.st.curwin (ld_ptr ed varp) true args.os_errbuf args.os_errbuflen)
   else if varp = Win_T.w_onebuf_opt_wo_fcs_addr ed.st.curwin then
     join6
-      (set_fillchars_option ed ed.st.curwin (ld_ptr ed varp) true (Optset_T.os_errbuf ed args)
-         (Optset_T.os_errbuflen ed args))
+      (set_fillchars_option ed ed.st.curwin (ld_ptr ed varp) true args.os_errbuf args.os_errbuflen)
   else
     join6 0
 
 let did_set_cpoptions ed args =
   let varp = Optset_T.os_varp_ov_str ed args in
   did_set_option_listflag ed (ld_ptr ed varp)
-    165760 (* "aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~" *)
-    (Optset_T.os_errbuf ed args) (Optset_T.os_errbuflen ed args)
+    165760 (* "aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~" *) args.os_errbuf
+    args.os_errbuflen
 
 let did_set_display ed _args =
   if opt_strings_flags ed (p_dy ed) p_dy_values dy_flags_addr true then
@@ -55624,7 +55268,7 @@ let did_set_isopt ed args =
   if init_chartab ed then
     0
   else
-    (Optset_T.set_os_restore_chartab ed args true;
+    (args.os_restore_chartab <- true;
      e_invalid_argument)
 
 let did_set_iskeyword ed args =
@@ -55830,8 +55474,8 @@ let did_set_selectmode ed _args =
 
 let did_set_shortmess ed args =
   let varp = Optset_T.os_varp_ov_str ed args in
-  did_set_option_listflag ed (ld_ptr ed varp) 165822 (* "rmfixlnwaWtToOsAIcCqFSu" *)
-    (Optset_T.os_errbuf ed args) (Optset_T.os_errbuflen ed args)
+  did_set_option_listflag ed (ld_ptr ed varp) 165822 (* "rmfixlnwaWtToOsAIcCqFSu" *) args.os_errbuf
+    args.os_errbuflen
 
 let did_set_showcmdloc ed _args =
   let errmsg = did_set_opt_strings ed (p_sloc ed) p_sloc_values false in
@@ -56020,7 +55664,7 @@ let did_set_term_option ed args =
 
 let did_set_virtualedit ed args =
   let join2 ve flags =
-    if Optset_T.os_flags ed args land opt_local <> 0 && ld_u8 ed ve = nul then
+    if args.os_flags land opt_local <> 0 && ld_u8 ed ve = nul then
       (st_u32 ed flags 0;
        0)
     else if opt_strings_flags ed ve p_ve_values flags true then
@@ -56032,7 +55676,7 @@ let did_set_virtualedit ed args =
       e_invalid_argument
   in
   let ve = p_ve ed in
-  if Optset_T.os_flags ed args land opt_local = 0 then
+  if args.os_flags land opt_local = 0 then
     join2 ve ve_flags_addr
   else
     let ve = Win_T.w_onebuf_opt_wo_ve ed ed.st.curwin in
@@ -56040,8 +55684,8 @@ let did_set_virtualedit ed args =
 
 let did_set_whichwrap ed args =
   let varp = Optset_T.os_varp_ov_str ed args in
-  did_set_option_listflag ed (ld_ptr ed varp) 165846 (* "bshl<>[]~," *) (Optset_T.os_errbuf ed args)
-    (Optset_T.os_errbuflen ed args)
+  did_set_option_listflag ed (ld_ptr ed varp) 165846 (* "bshl<>[]~," *) args.os_errbuf
+    args.os_errbuflen
 
 let did_set_wincolor ed args =
   ignore (update_wincolor ed ed.st.curwin (Optset_T.os_newval_string ed args));
@@ -56732,162 +56376,162 @@ let vim_main ed argc argv =
 
 (* The tables of function pointers, filled in. *)
 let () =
-  fn_table_1v.(0) <- nv_error;
-  fn_table_1v.(1) <- nv_addsub;
-  fn_table_1v.(2) <- nv_page;
-  fn_table_1v.(3) <- nv_esc;
-  fn_table_1v.(4) <- nv_halfpage;
-  fn_table_1v.(5) <- nv_scroll_line;
-  fn_table_1v.(6) <- nv_ctrlg;
-  fn_table_1v.(7) <- nv_ctrlh;
-  fn_table_1v.(8) <- nv_down;
-  fn_table_1v.(9) <- nv_clear;
-  fn_table_1v.(10) <- nv_ctrlo;
-  fn_table_1v.(11) <- nv_up;
-  fn_table_1v.(12) <- nv_visual;
-  fn_table_1v.(13) <- nv_redo_or_register;
-  fn_table_1v.(14) <- nv_ignore;
-  fn_table_1v.(15) <- nv_tagpop;
-  fn_table_1v.(16) <- nv_suspend;
-  fn_table_1v.(17) <- nv_normal;
-  fn_table_1v.(18) <- nv_right;
-  fn_table_1v.(19) <- nv_regname;
-  fn_table_1v.(20) <- nv_ident;
-  fn_table_1v.(21) <- nv_dollar;
-  fn_table_1v.(22) <- nv_percent;
-  fn_table_1v.(23) <- nv_optrans;
-  fn_table_1v.(24) <- nv_gomark;
-  fn_table_1v.(25) <- nv_csearch;
-  fn_table_1v.(26) <- nv_dot;
-  fn_table_1v.(27) <- nv_search;
-  fn_table_1v.(28) <- nv_beginline;
-  fn_table_1v.(29) <- nv_colon;
-  fn_table_1v.(30) <- nv_operator;
-  fn_table_1v.(31) <- nv_at;
-  fn_table_1v.(32) <- nv_edit;
-  fn_table_1v.(33) <- nv_bck_word;
-  fn_table_1v.(34) <- nv_abbrev;
-  fn_table_1v.(35) <- nv_wordcmd;
-  fn_table_1v.(36) <- nv_goto;
-  fn_table_1v.(37) <- nv_scroll;
-  fn_table_1v.(38) <- nv_join;
-  fn_table_1v.(39) <- nv_next;
-  fn_table_1v.(40) <- nv_open;
-  fn_table_1v.(41) <- nv_put;
-  fn_table_1v.(42) <- nv_Replace;
-  fn_table_1v.(43) <- nv_subst;
-  fn_table_1v.(44) <- nv_Undo;
-  fn_table_1v.(45) <- nv_Zet;
-  fn_table_1v.(46) <- nv_brackets;
-  fn_table_1v.(47) <- nv_lineop;
-  fn_table_1v.(48) <- nv_g_cmd;
-  fn_table_1v.(49) <- nv_left;
-  fn_table_1v.(50) <- nv_mark;
-  fn_table_1v.(51) <- nv_record;
-  fn_table_1v.(52) <- nv_replace;
-  fn_table_1v.(53) <- nv_undo;
-  fn_table_1v.(54) <- nv_zet;
-  fn_table_1v.(55) <- nv_pipe;
-  fn_table_1v.(56) <- nv_tilde;
-  fn_table_1v.(57) <- (fun _ed a0 -> nv_nop a0);
-  fn_table_1v.(58) <- nv_end;
-  fn_table_1v.(59) <- nv_home;
-  fn_table_1v.(60) <- nv_kundo;
-  fn_table_1v.(61) <- nv_help;
-  fn_table_1v.(62) <- nv_select;
-  fn_table_1v.(63) <- nv_cursorhold;
-  fn_table_1.(64) <- did_set_ambiwidth;
-  fn_table_1.(65) <- did_set_background;
-  fn_table_1.(66) <- did_set_backspace;
-  fn_table_1.(67) <- did_set_belloff;
-  fn_table_1.(68) <- did_set_casemap;
-  fn_table_1.(69) <- did_set_cmdheight;
-  fn_table_1.(70) <- did_set_compatible;
-  fn_table_1.(71) <- did_set_cpoptions;
-  fn_table_1.(72) <- did_set_display;
-  fn_table_1.(73) <- did_set_chars_option;
-  fn_table_1.(74) <- did_set_highlight;
-  fn_table_1.(75) <- did_set_hlsearch;
-  fn_table_1.(76) <- did_set_ignorecase;
-  fn_table_1.(77) <- did_set_insertmode;
-  fn_table_1.(78) <- did_set_isopt;
-  fn_table_1.(79) <- did_set_iskeyword;
-  fn_table_1.(80) <- did_set_keymodel;
-  fn_table_1.(81) <- did_set_keyprotocol;
-  fn_table_1.(82) <- did_set_laststatus;
-  fn_table_1.(83) <- did_set_matchpairs;
-  fn_table_1.(84) <- did_set_maxcombine;
-  fn_table_1.(85) <- did_set_maxsearchcount;
-  fn_table_1.(86) <- did_set_messagesopt;
-  fn_table_1.(87) <- did_set_modifiable;
-  fn_table_1.(88) <- did_set_modified;
-  fn_table_1.(89) <- did_set_nrformats;
-  fn_table_1.(90) <- (fun _ed a0 -> did_set_number_relativenumber a0);
-  fn_table_1.(91) <- did_set_osctimeoutlen;
-  fn_table_1.(92) <- did_set_paste;
-  fn_table_1.(93) <- did_set_pastetoggle;
-  fn_table_1.(94) <- did_set_selection;
-  fn_table_1.(95) <- did_set_selectmode;
-  fn_table_1.(96) <- did_set_shiftwidth_tabstop;
-  fn_table_1.(97) <- did_set_shortmess;
-  fn_table_1.(98) <- did_set_showcmdloc;
-  fn_table_1.(99) <- did_set_smoothscroll;
-  fn_table_1.(100) <- did_set_term;
-  fn_table_1.(101) <- did_set_termsync;
-  fn_table_1.(102) <- did_set_terse;
-  fn_table_1.(103) <- did_set_textwidth;
-  fn_table_1.(104) <- did_set_undolevels;
-  fn_table_1.(105) <- did_set_virtualedit;
-  fn_table_1.(106) <- did_set_weirdinvert;
-  fn_table_1.(107) <- did_set_whichwrap;
-  fn_table_1.(108) <- did_set_wincolor;
-  fn_table_1.(109) <- did_set_window;
-  fn_table_1.(110) <- did_set_winhighlight;
-  fn_table_1.(111) <- did_set_wrap;
-  fn_table_1.(112) <- did_set_term_option;
-  fn_table_1v.(113) <- ex_append;
-  fn_table_1v.(114) <- do_ascii;
-  fn_table_1v.(115) <- ex_change;
-  fn_table_1v.(116) <- ex_changes;
-  fn_table_1v.(117) <- ex_map;
-  fn_table_1v.(118) <- ex_mapclear;
-  fn_table_1v.(119) <- ex_copymove;
-  fn_table_1v.(120) <- ex_cquit;
-  fn_table_1v.(121) <- ex_unmap;
-  fn_table_1v.(122) <- ex_operators;
-  fn_table_1v.(123) <- ex_delmarks;
-  fn_table_1v.(124) <- ex_display;
-  fn_table_1v.(125) <- ex_later;
-  fn_table_1v.(126) <- ex_wrongmodifier;
-  fn_table_1v.(127) <- do_fixdel;
-  fn_table_1v.(128) <- ex_global;
-  fn_table_1v.(129) <- ex_highlight;
-  fn_table_1v.(130) <- ex_history;
-  fn_table_1v.(131) <- ex_iput;
-  fn_table_1v.(132) <- ex_join;
-  fn_table_1v.(133) <- ex_mark;
-  fn_table_1v.(134) <- ex_print;
-  fn_table_1v.(135) <- ex_marks;
-  fn_table_1v.(136) <- ex_match;
-  fn_table_1v.(137) <- ex_messages;
-  fn_table_1v.(138) <- ex_nohlsearch;
-  fn_table_1v.(139) <- ex_normal;
-  fn_table_1v.(140) <- ex_put;
-  fn_table_1v.(141) <- ex_quit;
-  fn_table_1v.(142) <- ex_redo;
-  fn_table_1v.(143) <- ex_redraw;
-  fn_table_1v.(144) <- ex_redrawstatus;
-  fn_table_1v.(145) <- ex_substitute;
-  fn_table_1v.(146) <- ex_set;
-  fn_table_1v.(147) <- ex_submagic;
-  fn_table_1v.(148) <- ex_stop;
-  fn_table_1v.(149) <- ex_undo;
-  fn_table_1v.(150) <- ex_undojoin;
-  fn_table_1v.(151) <- ex_undolist;
-  fn_table_1v.(152) <- ex_winsize;
-  fn_table_1v.(153) <- ex_z;
-  fn_table_1v.(154) <- ex_at;
-  fn_table_1v.(155) <- ex_equal;
+  fn_table_1v_0cmdarg.(0) <- nv_error;
+  fn_table_1v_0cmdarg.(1) <- nv_addsub;
+  fn_table_1v_0cmdarg.(2) <- nv_page;
+  fn_table_1v_0cmdarg.(3) <- nv_esc;
+  fn_table_1v_0cmdarg.(4) <- nv_halfpage;
+  fn_table_1v_0cmdarg.(5) <- nv_scroll_line;
+  fn_table_1v_0cmdarg.(6) <- nv_ctrlg;
+  fn_table_1v_0cmdarg.(7) <- nv_ctrlh;
+  fn_table_1v_0cmdarg.(8) <- nv_down;
+  fn_table_1v_0cmdarg.(9) <- nv_clear;
+  fn_table_1v_0cmdarg.(10) <- nv_ctrlo;
+  fn_table_1v_0cmdarg.(11) <- nv_up;
+  fn_table_1v_0cmdarg.(12) <- nv_visual;
+  fn_table_1v_0cmdarg.(13) <- nv_redo_or_register;
+  fn_table_1v_0cmdarg.(14) <- nv_ignore;
+  fn_table_1v_0cmdarg.(15) <- nv_tagpop;
+  fn_table_1v_0cmdarg.(16) <- nv_suspend;
+  fn_table_1v_0cmdarg.(17) <- nv_normal;
+  fn_table_1v_0cmdarg.(18) <- nv_right;
+  fn_table_1v_0cmdarg.(19) <- nv_regname;
+  fn_table_1v_0cmdarg.(20) <- nv_ident;
+  fn_table_1v_0cmdarg.(21) <- nv_dollar;
+  fn_table_1v_0cmdarg.(22) <- nv_percent;
+  fn_table_1v_0cmdarg.(23) <- nv_optrans;
+  fn_table_1v_0cmdarg.(24) <- nv_gomark;
+  fn_table_1v_0cmdarg.(25) <- nv_csearch;
+  fn_table_1v_0cmdarg.(26) <- nv_dot;
+  fn_table_1v_0cmdarg.(27) <- nv_search;
+  fn_table_1v_0cmdarg.(28) <- nv_beginline;
+  fn_table_1v_0cmdarg.(29) <- nv_colon;
+  fn_table_1v_0cmdarg.(30) <- nv_operator;
+  fn_table_1v_0cmdarg.(31) <- nv_at;
+  fn_table_1v_0cmdarg.(32) <- nv_edit;
+  fn_table_1v_0cmdarg.(33) <- nv_bck_word;
+  fn_table_1v_0cmdarg.(34) <- nv_abbrev;
+  fn_table_1v_0cmdarg.(35) <- nv_wordcmd;
+  fn_table_1v_0cmdarg.(36) <- nv_goto;
+  fn_table_1v_0cmdarg.(37) <- nv_scroll;
+  fn_table_1v_0cmdarg.(38) <- nv_join;
+  fn_table_1v_0cmdarg.(39) <- nv_next;
+  fn_table_1v_0cmdarg.(40) <- nv_open;
+  fn_table_1v_0cmdarg.(41) <- nv_put;
+  fn_table_1v_0cmdarg.(42) <- nv_Replace;
+  fn_table_1v_0cmdarg.(43) <- nv_subst;
+  fn_table_1v_0cmdarg.(44) <- nv_Undo;
+  fn_table_1v_0cmdarg.(45) <- nv_Zet;
+  fn_table_1v_0cmdarg.(46) <- nv_brackets;
+  fn_table_1v_0cmdarg.(47) <- nv_lineop;
+  fn_table_1v_0cmdarg.(48) <- nv_g_cmd;
+  fn_table_1v_0cmdarg.(49) <- nv_left;
+  fn_table_1v_0cmdarg.(50) <- nv_mark;
+  fn_table_1v_0cmdarg.(51) <- nv_record;
+  fn_table_1v_0cmdarg.(52) <- nv_replace;
+  fn_table_1v_0cmdarg.(53) <- nv_undo;
+  fn_table_1v_0cmdarg.(54) <- nv_zet;
+  fn_table_1v_0cmdarg.(55) <- nv_pipe;
+  fn_table_1v_0cmdarg.(56) <- nv_tilde;
+  fn_table_1v_0cmdarg.(57) <- (fun _ed a0 -> nv_nop a0);
+  fn_table_1v_0cmdarg.(58) <- nv_end;
+  fn_table_1v_0cmdarg.(59) <- nv_home;
+  fn_table_1v_0cmdarg.(60) <- nv_kundo;
+  fn_table_1v_0cmdarg.(61) <- nv_help;
+  fn_table_1v_0cmdarg.(62) <- nv_select;
+  fn_table_1v_0cmdarg.(63) <- nv_cursorhold;
+  fn_table_1_0optset.(64) <- did_set_ambiwidth;
+  fn_table_1_0optset.(65) <- did_set_background;
+  fn_table_1_0optset.(66) <- did_set_backspace;
+  fn_table_1_0optset.(67) <- did_set_belloff;
+  fn_table_1_0optset.(68) <- did_set_casemap;
+  fn_table_1_0optset.(69) <- did_set_cmdheight;
+  fn_table_1_0optset.(70) <- did_set_compatible;
+  fn_table_1_0optset.(71) <- did_set_cpoptions;
+  fn_table_1_0optset.(72) <- did_set_display;
+  fn_table_1_0optset.(73) <- did_set_chars_option;
+  fn_table_1_0optset.(74) <- did_set_highlight;
+  fn_table_1_0optset.(75) <- did_set_hlsearch;
+  fn_table_1_0optset.(76) <- did_set_ignorecase;
+  fn_table_1_0optset.(77) <- did_set_insertmode;
+  fn_table_1_0optset.(78) <- did_set_isopt;
+  fn_table_1_0optset.(79) <- did_set_iskeyword;
+  fn_table_1_0optset.(80) <- did_set_keymodel;
+  fn_table_1_0optset.(81) <- did_set_keyprotocol;
+  fn_table_1_0optset.(82) <- did_set_laststatus;
+  fn_table_1_0optset.(83) <- did_set_matchpairs;
+  fn_table_1_0optset.(84) <- did_set_maxcombine;
+  fn_table_1_0optset.(85) <- did_set_maxsearchcount;
+  fn_table_1_0optset.(86) <- did_set_messagesopt;
+  fn_table_1_0optset.(87) <- did_set_modifiable;
+  fn_table_1_0optset.(88) <- did_set_modified;
+  fn_table_1_0optset.(89) <- did_set_nrformats;
+  fn_table_1_0optset.(90) <- (fun _ed a0 -> did_set_number_relativenumber a0);
+  fn_table_1_0optset.(91) <- did_set_osctimeoutlen;
+  fn_table_1_0optset.(92) <- did_set_paste;
+  fn_table_1_0optset.(93) <- did_set_pastetoggle;
+  fn_table_1_0optset.(94) <- did_set_selection;
+  fn_table_1_0optset.(95) <- did_set_selectmode;
+  fn_table_1_0optset.(96) <- did_set_shiftwidth_tabstop;
+  fn_table_1_0optset.(97) <- did_set_shortmess;
+  fn_table_1_0optset.(98) <- did_set_showcmdloc;
+  fn_table_1_0optset.(99) <- did_set_smoothscroll;
+  fn_table_1_0optset.(100) <- did_set_term;
+  fn_table_1_0optset.(101) <- did_set_termsync;
+  fn_table_1_0optset.(102) <- did_set_terse;
+  fn_table_1_0optset.(103) <- did_set_textwidth;
+  fn_table_1_0optset.(104) <- did_set_undolevels;
+  fn_table_1_0optset.(105) <- did_set_virtualedit;
+  fn_table_1_0optset.(106) <- did_set_weirdinvert;
+  fn_table_1_0optset.(107) <- did_set_whichwrap;
+  fn_table_1_0optset.(108) <- did_set_wincolor;
+  fn_table_1_0optset.(109) <- did_set_window;
+  fn_table_1_0optset.(110) <- did_set_winhighlight;
+  fn_table_1_0optset.(111) <- did_set_wrap;
+  fn_table_1_0optset.(112) <- did_set_term_option;
+  fn_table_1v_0exarg.(113) <- ex_append;
+  fn_table_1v_0exarg.(114) <- do_ascii;
+  fn_table_1v_0exarg.(115) <- ex_change;
+  fn_table_1v_0exarg.(116) <- ex_changes;
+  fn_table_1v_0exarg.(117) <- ex_map;
+  fn_table_1v_0exarg.(118) <- ex_mapclear;
+  fn_table_1v_0exarg.(119) <- ex_copymove;
+  fn_table_1v_0exarg.(120) <- ex_cquit;
+  fn_table_1v_0exarg.(121) <- ex_unmap;
+  fn_table_1v_0exarg.(122) <- ex_operators;
+  fn_table_1v_0exarg.(123) <- ex_delmarks;
+  fn_table_1v_0exarg.(124) <- ex_display;
+  fn_table_1v_0exarg.(125) <- ex_later;
+  fn_table_1v_0exarg.(126) <- ex_wrongmodifier;
+  fn_table_1v_0exarg.(127) <- do_fixdel;
+  fn_table_1v_0exarg.(128) <- ex_global;
+  fn_table_1v_0exarg.(129) <- ex_highlight;
+  fn_table_1v_0exarg.(130) <- ex_history;
+  fn_table_1v_0exarg.(131) <- ex_iput;
+  fn_table_1v_0exarg.(132) <- ex_join;
+  fn_table_1v_0exarg.(133) <- ex_mark;
+  fn_table_1v_0exarg.(134) <- ex_print;
+  fn_table_1v_0exarg.(135) <- ex_marks;
+  fn_table_1v_0exarg.(136) <- ex_match;
+  fn_table_1v_0exarg.(137) <- ex_messages;
+  fn_table_1v_0exarg.(138) <- ex_nohlsearch;
+  fn_table_1v_0exarg.(139) <- ex_normal;
+  fn_table_1v_0exarg.(140) <- ex_put;
+  fn_table_1v_0exarg.(141) <- ex_quit;
+  fn_table_1v_0exarg.(142) <- ex_redo;
+  fn_table_1v_0exarg.(143) <- ex_redraw;
+  fn_table_1v_0exarg.(144) <- ex_redrawstatus;
+  fn_table_1v_0exarg.(145) <- ex_substitute;
+  fn_table_1v_0exarg.(146) <- ex_set;
+  fn_table_1v_0exarg.(147) <- ex_submagic;
+  fn_table_1v_0exarg.(148) <- ex_stop;
+  fn_table_1v_0exarg.(149) <- ex_undo;
+  fn_table_1v_0exarg.(150) <- ex_undojoin;
+  fn_table_1v_0exarg.(151) <- ex_undolist;
+  fn_table_1v_0exarg.(152) <- ex_winsize;
+  fn_table_1v_0exarg.(153) <- ex_z;
+  fn_table_1v_0exarg.(154) <- ex_at;
+  fn_table_1v_0exarg.(155) <- ex_equal;
   fn_table_3.(156) <- getexline;
   fn_table_3.(157) <- getcmdkeycmd;
   fn_table_2.(158) <- cmp_keyvalue_value_ni;

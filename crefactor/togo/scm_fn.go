@@ -430,7 +430,7 @@ func (f *sfn) placeVars(fd *cc.FunctionDefinition) {
 		if f.sv[v] != nil {
 			continue
 		}
-		if f.s.record(v.c) != "" {
+		if r := f.s.record(v.c); r != "" && !f.s.recordMem(r) {
 			f.mem[v] = 0 // a record the OCaml makes, no room in the frame (ml_record.go)
 			continue
 		}

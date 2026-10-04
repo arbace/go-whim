@@ -16,9 +16,15 @@ type set_op = Op_none | Op_adding | Op_prepending | Op_removing
 (* The C's structs no byte of which is ever memory: records. *)
 type bufref = { mutable br_buf : int; mutable br_fnum : int; mutable br_buf_free_count : int }
 type chartabsize = { mutable cts_win : int; mutable cts_line : int; mutable cts_ptr : int; mutable cts_vcol : int; mutable cts_max_head_vcol : int }
+type cmdarg = { mutable oap : int; mutable cmdchar : int; mutable ncharC1 : int; mutable ncharC2 : int; mutable cmdarg_opcount : int; mutable count0 : int; mutable count1 : int; mutable arg : int; mutable retval : int; mutable searchbuf : int; cmdarg_mem : int }
+type exarg = { mutable nextcmd : int; mutable cmdlinep : int; mutable cmdidx : int; mutable argt : int; mutable forceit : bool; mutable addr_count : int; mutable line1 : int; mutable line2 : int; mutable addr_type : cmd_addr; mutable flags : int; mutable do_ecmd_cmd : int; mutable amount : int; mutable regname : int; mutable errmsg : int; mutable ea_getline : int; exarg_mem : int }
+type incsearch_state = { mutable did_incsearch : bool; mutable incsearch_postponed : bool; mutable magic_overruled_save : optmagic; incsearch_state_mem : int }
 type lineoff = { mutable lnum : int; mutable height : int }
+type optset = { mutable os_idx : int; mutable os_flags : int; mutable os_op : set_op; mutable os_value_checked : int; mutable os_restore_chartab : bool; mutable os_errbuf : int; mutable os_errbuflen : int; optset_mem : int }
+type save_state = { mutable save_msg_scroll : int; mutable save_restart_edit : int; mutable save_msg_didout : int; mutable save_State : int; mutable save_insertmode : int; mutable save_finish_op : bool; mutable save_opcount : int; mutable save_reg_executing : int; mutable save_pending_end_reg_executing : bool; mutable save_script_version : int; save_state_mem : int }
 type searchstat = { mutable cur : int; mutable cnt : int; mutable exact_match : bool; mutable incomplete : int; mutable last_maxcount : int }
 type ttyinfo = { mutable backspace : int; mutable enter : int; mutable interrupt : int; mutable nl_does_cr : bool }
+type winlinevars = { mutable draw_state : int; mutable winlinevars_lnum : int; mutable startrow : int; mutable row : int; mutable screen_row : int; mutable vcol : int; mutable col : int; mutable vcol_off_tp : int; mutable eol_hl_off : int; mutable off : int; mutable win_attr : int; mutable line_attr : int; mutable screen_line_flags : int; mutable char_attr : int; mutable n_extra : int; mutable p_extra : int; mutable p_extra_free : int; mutable extra_attr : int; mutable n_attr_skip : int; mutable c_extra : int; mutable c_final : int; mutable extra_for_textprop : bool; mutable saved_n_extra : int; mutable saved_p_extra : int; mutable saved_p_extra_free : int; mutable saved_extra_attr : int; mutable saved_n_attr_skip : int; mutable saved_extra_for_textprop : bool; mutable saved_c_extra : int; mutable saved_c_final : int; mutable saved_char_attr : int; mutable filler_lines : int; winlinevars_mem : int }
 
 (* The host's functions, as the core calls them: the editor carries them. *)
 type glue = {

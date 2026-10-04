@@ -256,7 +256,11 @@ func (f *mlfn) body(forms []*sform, up *mlScope, want int) mlx {
 			sc.m[n] = b
 			sc.m["&"+n] = b
 			frameBinds = append(frameBinds, b)
-			frameDefs = append(frameDefs, "let "+o+" = "+mod+".make () in")
+			arg := "()"
+			if f.m.s.recordMem(r) {
+				arg = "(fr + " + off + ")" // its members in memory, in the frame
+			}
+			frameDefs = append(frameDefs, "let "+o+" = "+mod+".make "+arg+" in")
 			f.m.use(mod + ".make")
 			continue
 		}
@@ -489,6 +493,9 @@ func (f *mlfn) expr(x *sform, sc *mlScope, want int) mlx {
 			fn = mod + ".copy_into"
 		}
 		f.m.use(fn)
+		if f.m.s.recordMem(args[0].atom) {
+			fn += " " + f.ed(sc)
+		}
 		var xs []mlx
 		for _, a := range args[1:] {
 			xs = append(xs, f.expr(a, sc, wantValue))

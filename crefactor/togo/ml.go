@@ -116,6 +116,7 @@ type mlMember struct {
 	off                     int
 	variant                 *mlEnum // the variant its values are, nil for none: read and written through the conversions
 	record                  bool    // a record's field (ml_record.go), named read: p.read
+	recBase                 string  // a member in a record's memory: the record's field that holds its address
 }
 
 // mlStats counts what the printer wrote.
@@ -476,12 +477,22 @@ func (m *mlgen) nameAll(taken, read map[string]bool) {
 			fieldNames[ob.read] = true
 		}
 	}
+	for r := range recNames {
+		if s.recordMem(r) {
+			fieldNames[mlVariantType(r)+"_mem"] = true
+		}
+	}
 	for _, n := range ms {
-		st, _, _ := strings.Cut(n, ".")
+		st, path, _ := strings.Cut(n, ".")
 		mm := m.members[n]
-		if !recNames[st] || mm.kind == "agg" {
+		if !recNames[st] {
 			continue
 		}
+		mm.recBase = mlVariantType(st) + "_mem"
+		if mm.kind == "agg" || strings.Contains(path, ".") || s.recMem[st][path] {
+			continue // in the record's memory
+		}
+		mm.recBase = ""
 		mm.record = true
 		f := mm.read
 		for fieldNames[f] || mlRtFields[f] || m.hostField(f) {
@@ -493,6 +504,15 @@ func (m *mlgen) nameAll(taken, read map[string]bool) {
 		fieldNames[f] = true
 		mm.read = f
 	}
+}
+
+// base is the address a member's accessors add its offset to: the
+// struct's, p, or a record's memory's.
+func (mm *mlMember) base() string {
+	if mm.recBase != "" {
+		return "p." + mm.recBase
+	}
+	return "p"
 }
 
 // mlRtFields are the fields of the runtime's records, which a field of the
@@ -857,10 +877,10 @@ func (m *mlgen) header() string {
 				continue
 			}
 			if m.used[mod+"."+mm.addr] {
-				defs = append(defs, fmt.Sprintf("  let %s p = p + %d\n", mm.addr, mm.off))
+				defs = append(defs, fmt.Sprintf("  let %s p = %s + %d\n", mm.addr, mm.base(), mm.off))
 			}
 			if mm.kind != "agg" && m.used[mod+"."+mm.read] {
-				ld := fmt.Sprintf("ld_%s ed (p + %d)", mm.kind, mm.off)
+				ld := fmt.Sprintf("ld_%s ed (%s + %d)", mm.kind, mm.base(), mm.off)
 				if mm.variant != nil {
 					ld = mm.variant.typ + "_of_int (" + ld + ")"
 				}
@@ -871,7 +891,7 @@ func (m *mlgen) header() string {
 				if mm.variant != nil {
 					v = "(int_of_" + mm.variant.typ + " v)"
 				}
-				defs = append(defs, fmt.Sprintf("  let %s ed p v = st_%s ed (p + %d) %s\n", mm.set, mm.kind, mm.off, v))
+				defs = append(defs, fmt.Sprintf("  let %s ed p v = st_%s ed (%s + %d) %s\n", mm.set, mm.kind, mm.base(), mm.off, v))
 			}
 		}
 		if len(defs) > 0 {
@@ -892,8 +912,13 @@ func (m *mlgen) header() string {
 		var ts, us, as []string
 		ts = append(ts, "ed")
 		us = append(us, "_")
+		recs := mlTableRecords(k)
 		for i := 0; i < ar; i++ {
-			ts = append(ts, "int")
+			if r, ok := recs[i]; ok {
+				ts = append(ts, r)
+			} else {
+				ts = append(ts, "int")
+			}
 			us = append(us, "_")
 			as = append(as, fmt.Sprintf("a%d", i))
 		}
@@ -910,9 +935,26 @@ func (m *mlgen) header() string {
 
 // mlTableKind is a table's arity, and whether its functions' value is ().
 func mlTableKind(k string) (int, bool) {
+	k, _, _ = strings.Cut(k, "_")
 	void := strings.HasSuffix(k, "v")
 	n, _ := strconv.Atoi(strings.TrimSuffix(k, "v"))
 	return n, void
+}
+
+// mlTableRecords are a table's parameters that are records, by position:
+// its kind's _0cmdarg (recordParams).
+func mlTableRecords(k string) map[int]string {
+	out := map[int]string{}
+	parts := strings.Split(k, "_")
+	for _, p := range parts[1:] {
+		i := 0
+		for i < len(p) && p[i] >= '0' && p[i] <= '9' {
+			i++
+		}
+		n, _ := strconv.Atoi(p[:i])
+		out[n] = p[i:]
+	}
+	return out
 }
 
 // tableKinds are the tables: those the calls name, and those of the
@@ -952,7 +994,7 @@ func (m *mlgen) fnKind(name string) string {
 	if scmTypeOf(ft.Result()) == "void" {
 		k += "v"
 	}
-	return k
+	return k + m.s.recordParams(ft)
 }
 
 // tableEntries fill the tables: each function whose address is taken, at
