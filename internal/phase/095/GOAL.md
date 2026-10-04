@@ -57,3 +57,11 @@ built by keys and every line printed after it -- answers as the commit
 before on the C, and the Go, Java and Clojure editors answer as the C; the
 heavy case's times are the same (Go 0.6, Java 2.3, Clojure 8.0 times the
 C).
+
+**On the graph (Step6, doc/GRAPH-MIGRATION.md).** The step runs on the
+graph: crefactor/graph's `Editor.StateParam` (whim.StateParam's knobs), the
+call graph and the objects' uses asked of the edges, the parameter added by
+AddParam, the struct, the instance and the roots' locals made by one FRAG
+unit, each use `re->o` built in its place and typed as the import types it
+-- q095.c byte for byte, its report the text's, the graph the import of its
+C view; 1.2 s handed the graph against the text step's 3.7 s.

@@ -114,7 +114,12 @@ func Edit(e *graph.Editor, w io.Writer, _ []string) error {
 			if p := e.Parent(m); p != nil && p.Is("paren") {
 				at = p
 			}
-			if err := e.Replace(at, graph.NewAtom("TRUE")); err != nil {
+			// TRUE by BUILD: the use, its edge to the enumerator
+			ns, err := e.Build(at, "TRUE", nil)
+			if err == nil {
+				err = e.Replace(at, ns...)
+			}
+			if err != nil {
 				v.Die("ONE_WINDOW, expanded in place -- %v", err)
 				break
 			}

@@ -39,16 +39,9 @@ var ops = map[string]Step{
 	"edit":      runEdit,
 	"query":     runQuery,
 
-	"cemit":        Step(pipeline.Canonical),
-	"includes":     Step(xform.Includes(whim.Includes)),
-	"memberout":    Step(xform.MemberOut(whim.Core)),
-	"stateparam":   Step(xform.StateParam(whim.RegEngine)),
-	"localout":     Step(xform.LocalOut(whim.Core)),
-	"structscalar": Step(xform.StructScalar(whim.Core)),
-	"identity":     Step(xform.Identity(whim.Core)),
-	"asciiclass":   Step(xform.AsciiClass(whim.Core)),
-	"constbranch":  Step(xform.ConstBranch(whim.Core)),
-	"query-empty":  queryEmpty,
+	"cemit":       Step(pipeline.Canonical),
+	"includes":    Step(xform.Includes(whim.Includes)),
+	"query-empty": queryEmpty,
 }
 
 // Lookup2 returns the step of that name and panics when there is none: for a

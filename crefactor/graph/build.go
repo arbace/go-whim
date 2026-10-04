@@ -468,6 +468,13 @@ func (b *builder) typ(f *clisp.Node) *Node {
 		if isIdent(f.Atom) {
 			return b.name(f.Atom)
 		}
+		// a word the keywords list (usize) that the file declares as a
+		// typedef is that typedef's name (Step6: LocalOut's `usize *p`)
+		if isIdentText(f.Atom) && b.local[f.Atom] == nil {
+			if d := b.e.resolveAt(b.p, b.i, f.Atom); d != nil && d.Is("typedef") {
+				return &Node{Atom: f.Atom, Refs: []*Node{d}}
+			}
+		}
 		return NewAtom(f.Atom)
 	}
 	switch h := f.Head(); {

@@ -677,7 +677,8 @@ the closure is the text's on all three. What it does not have:
 - **(c)** a typed transform: it calls `cc.Translate` -- step 6, on typed
   edges. There are only five: the front's `FallOutOf` wrapper
   (`xform/fallout.go`, phases 1-3), `memberout` (94), `stateparam` (95),
-  `localout` and `structscalar` (100), and `plainc`'s three (101). Several
+  `localout` and `structscalar` (100), and `plainc`'s three (101) -- all on
+  the graph since B4 and Step6, `cc.Translate` gone from them. Several
   that live in `crefactor/xform` are NOT typed -- `NullptrUsize`, `Attrs`
   (0a, 0c), `Own` (47) and `Unions` (50) (on the graph since B3d), `DropCalls` (60), `EmptyBlocks` (62),
   `NeverNull` (74), `DeadStmt` (86a, on the graph since B1c), `BoolRet` (87a, 102, 103) and the four
@@ -905,11 +906,9 @@ phase 70 | 70 | whim70 | 17 | - | done | - | B3f | no build date; on the graph (
 phase 71 | 71 | whim71a, whim71b, whim71 | 59 | - | done | - | B3f | check_termcode; after 71a, 71b; on the graph (B3f): FRAG for the jump, MOVE (MoveRun) for the skipped items into a BUILD else
 phase 72 | 72 | whim72 | 58 | - | done | - | B3f | a node names its block; on the graph (B3f): struct, bodies and 19 casts by FRAG (selection chains as cc reads them), assertion by Rewrite and RespellString
 phase 73 | 73 | whim73 | 58 | - | done | - | B3f | deathtrap at the next wait (host); on the graph (B3f): one FRAG unit, then INCLUDE's MoveFormsAfter
-74a | 74 | phase/074/a | 20 | - | b | FRAG | B3f | lalloc's body
+74a | 74 | phase/074/a | 20 | - | done | - | Step6 | lalloc's body; on the graph (Step6): BodyC, so 74 begins on the graph
 phase 74 | 74 | whim74a, phase/074 + graph/nevernull.go | 35+381 | - | b | FRAG (74a) | B3g, B3f | whim74 on the graph (B3g): Editor.NeverNull, the set by forms, its locals by spelling as the text's; 74a still text, so the phase imports after it
 phase 75 | 75 | whim75 | 73 | - | b | FRAG INITROW TEXTQ | B3f | three typed stacks
-76a | 76 | phase/076/a | 96 | - | b | INITROW RETYPE RENAME FRAG | B3f/step 6 | def_val split; a typed transform in text
-phase 76 | 76 | whim76a, whim76 | 294 | - | b | INITROW RETYPE FRAG RENAME | B3f/step 6 | optvar_T: kinds from typed edges
 77a | 77 | phase/077/a | 13 | - | b | FRAG | B3f | a comparison
 phase 77 | 77 | whim77a, whim77 | 13 | - | b | FRAG (77a) | B1c, B3f | whim77 on the graph (B1c): an if cut; 77a still text, so the phase imports after it
 phase 78 | 78 | whim78 | 27 | - | b | FRAG MOVE | B3f | gcc's argument order through locals
@@ -922,8 +921,6 @@ phase 84 | 84 | whim84 | 37 | - | b | FRAG MOVE | B3f | ml_get_invalid outlined
 phase 85 | 85 | whim85 | 19 | - | b | FRAG | B3f | a flag for a pointer comparison
 86a | 86 | phase/086/a + graph/deadstmt.go | 21+104 | - | done | - | B1c | statements after a jump; on the graph (B1c): Editor.DeadStmt, StmtTerminates on nodes; xform.Terminates stays for fallout.go (the gotos are on the graph since B3g)
 phase 86 | 86 | whim86a, whim86 | 35 | - | b | PARAM FRAG | B3f | six dead stores; one parameter becomes a local
-87a | 87 | phase/087/a + xform/boolret.go | 7+1020 | - | b | RETYPE BUILD | B3f | bool for 278 functions; cc.Parse only
-phase 87 | 87 | whim87a, whim87 | 167 | - | b | FRAG TEXTQ | B3f | 153 key codes named
 phase 88 | 88 | crefactor/xform/includes.go | 159 | - | d | - | - | each #include tried under gcc
 phase 89 | 89 | graph/gototail.go, gotoflow.go | 297+256 | - | done | - | B3g | goto tails: Editor.GotoTail, the copies Clone's; begins on text (88), imports
 phase 90 | 90 | graph/gotobreak.go, gotoflow.go | 90+256 | - | done | - | B3g | goto -> break: Editor.GotoBreak; handed the graph
@@ -932,8 +929,8 @@ phase 92 | 92 | graph/gotoblock.go | 314 | - | done | - | B3g | goto out -> do-w
 phase 93 | 93 | whim93 | 71 | - | b | FRAG MOVE TEXTQ | B3f | one_adjust as functions
 phase 74 | 74 | whim74a, xform/nevernull.go | 7+253 | - | b | FOLDX(label) | B3g | never-NULL tests fold; not typed
 phase 75 | 75 | whim75 | 73 | - | done | - | B3f | three typed stacks; on the graph (B3f): one FRAG unit: LiteralC, LiteralExprC (new), ReplaceEachC (new), FragAt (new)
-76a | 76 | phase/076/a | 96 | - | b | INITROW RETYPE RENAME FRAG | B3f/step 6 | def_val split; a typed transform in text; B3f: left text, for step 6
-phase 76 | 76 | whim76a, whim76 | 294 | - | b | INITROW RETYPE FRAG RENAME | B3f/step 6 | optvar_T: kinds from typed edges; B3f: left text, for step 6
+76a | 76 | phase/076/a | 138 | - | done | - | Step6 | def_val split; on the graph (Step6): the kind by the row's flags, def_val renamed by edge and def_num inserted (InsertMember), the rows' pairs by InsertElements/ReplaceElement, the reads RetargetAs
+phase 76 | 76 | whim76a, whim76 + crefactor/graph/s6ov_elements.go | 749+144 | - | done | - | Step6 | optvar_T: kinds from typed edges; on the graph (Step6): the kinds by the declarations' and members' typed edges, RETYPE first, every site in one FRAG unit; handed the graph by 75, hands it to 77
 77a | 77 | phase/077/a | 13 | - | done | - | B3f | a comparison; on the graph (B3f): ReplaceC; phase 77 is graph end to end
 phase 77 | 77 | whim77a, whim77 | 13 | - | done | - | B3f | an if cut (B1c) and a comparison (B3f): graph end to end
 phase 78 | 78 | whim78 | 27 | - | done | - | B3f | gcc's argument order through locals; on the graph (B3f): BUILD + MoveTo (B2c's test moved in)
@@ -946,24 +943,24 @@ phase 84 | 84 | whim84 | 37 | - | done | - | B3f | ml_get_invalid outlined; on t
 phase 85 | 85 | whim85 | 19 | - | done | - | B3f | a flag for a pointer comparison; on the graph (B3f): one FRAG unit
 86a | 86 | phase/086/a + graph/deadstmt.go | 21+104 | - | done | - | B1c | statements after a jump; on the graph (B1c): Editor.DeadStmt, StmtTerminates on nodes; xform.Terminates stays for fallout.go and the gotos
 phase 86 | 86 | whim86a, whim86 | 35 | - | done | - | B3f | six dead stores; one parameter becomes a local; on the graph (B3f): 86a (B1c) and whim86 (B3f): Cuts by form and context, Rewrite, ParamToLocal
-87a | 87 | phase/087/a + xform/boolret.go | 7+1020 | - | b | RETYPE BUILD | B3f | bool for 278 functions; cc.Parse only; B3f: left text (B3f as built)
-phase 87 | 87 | whim87a, whim87 | 167 | - | b | FRAG TEXTQ | B3f | 153 key codes named; B3f: left text (B3f as built)
+87a | 87 | phase/087/a + crefactor/graph/s6br_boolret.go, s6br_types.go | 6+1085+263 | - | done | - | Step6 | bool for 278 functions; on the graph (Step6): BoolRet's fixed point on the edges, one batched RETYPE, the comparisons rewritten in the text's four rounds
+phase 87 | 87 | whim87a, whim87 + crefactor/graph/s6br_names.go | 196+17 | - | done | - | Step6 | 153 key codes named; on the graph (Step6): each code a use of its enumerator (ReplaceByUse), the enumerators one FRAG unit; handed the graph by 86
 phase 88 | 88 | crefactor/xform/includes.go | 159 | - | d | - | - | each #include tried under gcc
 phase 89 | 89 | crefactor/xform/gototail.go | 366 | - | b | CLONE FOLDX(label) | B3g | goto tails; cc.Parse only
 phase 90 | 90 | crefactor/xform/gotobreak.go, gotoflow.go | 84+186 | - | a | BUILD FOLDX(label) | B3g | goto -> break
 phase 91 | 91 | crefactor/xform/gotoloop.go, gotoflow.go | 232+186 | - | b | MOVE | B3g | goto back -> loop
 phase 92 | 92 | crefactor/xform/gotoblock.go | 404 | - | b | MOVE | B3g | goto out -> do-while(0) break
 phase 93 | 93 | whim93 | 71 | - | done | - | B3f | one_adjust as functions; on the graph (B3f): expansions by form, one FRAG unit with the lvalue a hole twice
-phase 94 | 94 | crefactor/xform/memberout.go, rewrite.go | 703+147 | - | c | step 6 | 6 | member out-parameters
-phase 95 | 95 | crefactor/xform/stateparam.go | 429 | - | c | step 6 | 6 | the engine's state a parameter
+phase 94 | 94 | steps/s6memberout.go + crefactor/graph/s6mo_memberout.go | 27+564 | - | done | - | Step6 | member out-parameters; on the graph (Step6): the analysis by edges and typed edges, the wrappers and calls one FRAG unit; handed the graph by 93
+phase 95 | 95 | steps/s6stateparam.go + crefactor/graph/s6sp_stateparam.go | 26+350 | - | done | - | Step6 | the engine's state a parameter; on the graph (Step6): the closure by the call graph's edges, the struct and the early typedef one FRAG unit, AddParam, each use (-> re o) built and typed as cc types it
 phase 96 | 96 | whim96 | 232 | - | done | - | B3f | a line's match alone; after 95; on the graph (B3f): one FRAG unit (WrapEachC, AfterEachC, BeforeEachC new)
 phase 97 | 97 | whim97 | 19 | - | done | - | B3f | :g asks match_range; after 96; on the graph (B3f): one FRAG unit
 phase 98 | 98 | whim98 | 16 | - | done | - | B3f | ml_clearmarked's guard; on the graph (B3f): ReplaceC
-phase 99 | 99 | whim99 | 16 | - | b | INCLUDE FRAG | B3f | WHIM_TIME (host)
-phase 100 | 100 | crefactor/xform/localout.go, structscalar.go | 1148+420 | - | c | step 6 | 6 | values for out-parameters and struct locals
-phase 101 | 101 | crefactor/xform/plainc.go | 308 | - | c | step 6 | 6 | identity, ascii classes, constant ifs
-phase 102 | 102 | crefactor/xform/boolret.go (Globals) | 11 | - | b | RETYPE BUILD | B3f | file-scope flags bool; B3f: left text (B3f as built)
-phase 103 | 103 | crefactor/xform/boolret.go (Relax) | 12 | - | b | RETYPE BUILD | B3f | more flags bool; B3f: left text (B3f as built)
+phase 99 | 99 | whim99 | 22 | - | done | - | Step6 | WHIM_TIME (host); on the graph (Step6): BodyC, the include asserted among the include forms
+phase 100 | 100 | steps/s6localout.go, s6structscalar.go + crefactor/graph/s6lo_localout.go, s6ss_structscalar.go | 26+26+1283+544 | - | done | - | Step6 | values for out-parameters and struct locals; on the graph (Step6): LocalOut's questions of the forms and edges, RETYPE/PARAM/FRAG innermost first; StructScalars by edges, one FRAG unit; handed the graph by 99
+phase 101 | 101 | steps/s6plainc.go + crefactor/graph/s6pc_plainc.go | 39+432 | - | done | - | Step6 | identity, ascii classes, constant ifs; on the graph (Step6): the argument moved into the call's place, BUILD calls and one FRAG of the three functions, the folds by foldx's evaluation
+phase 102 | 102 | whim102 + crefactor/graph/s6br_boolret.go (Globals) | 10 | - | done | - | Step6 | file-scope flags bool; on the graph (Step6)
+phase 103 | 103 | whim103 + crefactor/graph/s6br_boolret.go (Relax) | 11 | - | done | - | Step6 | more flags bool; on the graph (Step6)
 ```
 
 190 rows: 23 (a), 119 (b), 8 (c: the `FallOutOf` wrapper and the three
@@ -1066,7 +1063,8 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
   (FRAG/BUILD, or step 6). Most cutters are (a) or need BUILD/INITROW.
 - **Step 6**: phases 94, 95, 100 and 101, and FallOutOf -- the typed
   transforms on typed edges; the graph's `Untyped` lists are where its
-  checker starts.
+  checker starts. **Done** (FallOutOf by B4; the rest, with 76, 87, 99, 102
+  and 103 and the re-check, *Step6 as built* below).
 - **Stays text**: phase 0 (the seed and 0a-0c) and phase 88 (gcc).
 
 **What the pipeline would gain, measured on what stage A moved.** A phase
@@ -2665,3 +2663,177 @@ main `19c8e86` beside it at the same hour):
 
 In order the three are 38 s against main's ~81; with B3's phases on the
 graph beside them the whole build in order is 182 s.
+
+## Step6 as built (2026-10-04): the type re-check and the typed transforms
+
+Phases 76 (with part 76a), 87 (with 87a), 94, 95 and 99-103, and part
+74a, run on the graph, byte for byte, their text programs and `crefactor/xform`'s typed
+transforms replaced (history keeps them, `19c8e86` and before):
+`MemberOut` (94), `StateParam` (95), `LocalOut` and `StructScalar` (100),
+`plainc.go`'s three (101) and `BoolRet` (87a, 102, 103), about 4,600 lines
+of cc-typed text transforms, with their tests, which moved to
+`crefactor/graph` and are held to the text step's recorded output. Each
+reports what the text version reported, line for line, its refusals and
+floors kept. With B4's front, **every phase but 0 and 88 is on the
+graph**: a run in order imports twice -- phase 1 (0 is text) and 89 (88 is
+text) -- and 2-87 and 89-103 run with no import after them; 74 is handed
+the graph by 73, 76 by 75 (and hands it to 77), 87 by 86.
+
+**The type re-check** (`crefactor/graph/s6recheck.go`, `Editor.Recheck`;
+1,017 lines of Go, comments and blank lines aside). The pipeline calls it
+before every collection of a phase that ends on the graph
+(`crefactor/pipeline`'s `collect`, its stats on the collect line), so that
+what a phase hands on is what an import of its C view would be:
+
+- **Expressions** an edit left untyped are typed from their operands as
+  `crefactor/cc`'s check types them: the integer promotions (an enum
+  unpromoted, a bit-field narrower than int an int), the usual arithmetic
+  conversions (an enum by its underlying type, cc's choice from its
+  values), pointer arithmetic (pointer and integer, two pointers `long`),
+  comparisons and logic `int`, an assignment its left side's, `?:` by cc's
+  cases, calls, selections, `&`, `*`, `p[i]` (decayed always, as cc's
+  index is), casts, `sizeof`/`_Alignof` `unsigned long`, the comma,
+  literals by suffix and value (`ll` long long), a string `char[N]`,
+  `nullptr` `void *`, an enumerator inside its own enum's definition as cc
+  types it there (long long, or its value's type). An operand is DECAYED
+  (array to pointer, function to pointer) everywhere but under `&`, and
+  cc's check stores the decayed type on the expression too -- under
+  `sizeof` included. A token whose edge is not its own name (a header
+  macro: `errno`, `sa_handler`) is not typed from that edge.
+- **Declarations** are typed from their type form (B2c's `formType`), an
+  array's size from its initialiser; where a definition's array type
+  moves (INITROW, a DRAFT, a FRAG of the table) the file's other
+  declarations of it take the completed type, as cc's check gives them,
+  and the expressions above every use are typed again.
+- **Stale typed edges**: an edge into a struct, union or enum definition
+  that is no longer in the graph -- one an edit removed, or one of a
+  FRAG unit's own that a carried-over type still names -- is retargeted to
+  the definition that stands for it now (its tag's; an anonymous one's
+  typedef's, by the removed typedef or the typedef's own edge), with the
+  refers edges of its tag's uses and its members' uses; a type node that
+  named it is interned anew. One with no stand-in (63: `bt_regprog_T`'s
+  uses retargeted to `regprog_T`, the typedef gone) re-types what it typed,
+  through any type node, from forms and operands.
+- **A `(paren ...)` an edit kept where the C view writes the parentheses
+  anyway** (B3a's 5: `DropOperandAsText`) is taken out: the import has no
+  node there.
+
+It looks only where the edits wrote and at `Untyped`. `Written` is
+consumed by the closures, so the editor now keeps `touched` beside it,
+appended where `Written` is and never reset (`edit.go`, `move.go`,
+`param.go`: one line each); what Recheck walks, each root once.
+
+**What proves it.** `crefactor/graph`'s `TestRecheckEveryExpression`
+(S6_RECHECK, a glob of boundaries): every expression's typed edge is
+cleared and Recheck must give each back as the import typed it --
+**on all 104 boundaries, 0 typed otherwise**; it leaves untyped only what
+a header's macro spells (16 expressions of the host from q043, 52-214
+before, `ICRNL`, `PATH_MAX`, `errno`), whose type is the header's.
+`TestRecheckSample` holds the rules on a sample with no corpus.
+`internal/graphcheck`'s `TestGraphPhasesAsImported` (s6_test.go, B3c's,
+B3d's and B3f's `...AsImported`/`HandsOnTheImport`/`Same` tests made one,
+those three deleted): every phase whose steps are all graph steps, handed
+q(N-1)'s graph read back, gives qN.c AND a graph `SameGraph` to the import
+of its C view. Before the re-check it failed 14 phases (4, 5, 16, 19, 20,
+21, 25, 26, 32 untyped; 63, 72, 96 stale; then B4's 1 and 2, a DRAFT's
+array and a dropped parameter); with it, **all 102 pass** (1-87, 89-103).
+
+**Fixes to existing code** (each found by the test):
+- `typeedit.go`: `formType` read a tag's edge from its atom; the importer
+  puts it on the `(struct T)` form, so RETYPE's and PARAM's types of a
+  struct were nil (unknown). A definition form is its own type.
+- `internal/phase/005/b`: ONE_WINDOW's `TRUE` was `NewAtom("TRUE")`, a use
+  with no edge; it is BUILD's now.
+- `param.go`'s `funcDecls` walked every function on each call (155 calls
+  in LocalOut): the block-scope prototypes are indexed (`s6fndecls.go`),
+  rebuilt when a splice puts a `def` anywhere -- phase 100 5.5 to 4.3 s.
+- From the batch's units: `build.go` (BUILD's type forms resolve `usize`
+  to the file's typedef where there is one) and `retype.go` (an unnamed
+  prototype parameter left untyped, as the import does), LocalOut's.
+
+**The transforms** (each its own unit, its C before the collection held
+to the text step's output printed canonically and its report line for
+line, on the snapshot, before the text version was deleted):
+
+| unit | on the graph | Go (non-blank, non-comment) |
+| --- | --- | ---: |
+| 94 `memberout` | `Editor.MemberOut` (`s6mo_memberout.go`): the analysis in the text's order by edges -- a callee by its declaration's function type, a member by its declaration, an aggregate by the selection's typed edge, host names by the host's C view; the wrappers and every call one FRAG unit, the arguments moved in as holes | 27+564 |
+| 95 `stateparam` | `Editor.StateParam` (`s6sp_stateparam.go`): the closure by the call graph's edges, the text's refusals in its order; the early typedef, the struct and the roots' locals one FRAG unit (so the typedef's edge is the definition's, the stale edge 96's FRAG left avoided); `AddParam`; each use `(-> re o)` built and typed as cc types it | 26+350 |
+| 100 `localout` | `Editor.LocalOut` (`s6lo_localout.go`): candidates, sites, the escape fixpoint, the dead-in flow and the read-back asked of the forms and edges; the structs by FRAG, `RetypeResult`/`Retype`/`ParamToLocal`, `*p` and the tests in place, the locals, returns and calls by FRAG innermost first | 26+1,283 |
+| 100 `structscalar` | `Editor.StructScalars` (`s6ss_structscalar.go`): the candidates, uses and members by edges; the declarations, names and copies one FRAG unit | 26+544 |
+| 101 `identity`, `asciiclass`, `constbranch` | `PlainIdentity`, `PlainAsciiClass`, `PlainConstBranch` (`s6pc_plainc.go`): the argument moved into the call's place (a cast where its decayed type is not the result's), BUILD calls and one FRAG of the three functions, the constant ifs by foldx's evaluation | 39+432 |
+| 87a, 102, 103 | `Editor.BoolRet` (`s6br_boolret.go`, `s6br_types.go`): the greatest fixed point rule for rule on the edges, `true`/`false` the 1/0 cc's predefined macros made them; one batched RETYPE (`brRetype`: `Retype` a declaration at a time took 9 s); the comparisons in the text's four rounds; `PositionalMembers` exported from the collector's guard | 6+10+11+1,348 |
+| 87 | each spelled-out key code a use of its enumerator (`ReplaceByUse`, `s6br_names.go`), the enumerators one FRAG unit; the 683 sites asserted against the nodes | 190+17 |
+| 76a, 76 | the kind by the row's flags and the declarations' and members' typed edges; `def_val` renamed by edge, `def_num` inserted (`InsertMember`), the rows' pairs by `InsertElements`/`ReplaceElement` (`s6ov_elements.go`); `optvar_T`, its helpers and `get_varp_allbuf()` one FRAG unit, RETYPE first, every site in one FRAG unit | 138+611+144 |
+| 99 | `BodyC`; the include asserted among the include forms | 22 |
+| 74a | `BodyC` of `lalloc()` | 20 |
+
+`crefactor/xform` keeps `fallout.go` (the text closure, FoldX's tests'
+oracle), the seed's `attrs.go` and `nullptr.go`, phase 88's
+`includes.go`, and in `kept.go` the four helpers `fallout.go` asked of the
+deleted files.
+
+### Refinements
+
+- **A typed transform is a graph program over typed edges**: what each
+  asked `cc.Translate` -- a declarator's type kind, a selection's struct,
+  a function's parameters, a scalar -- is a walk of type nodes, as GRAPH.md
+  predicted; what it wrote is FRAG (typed as the import types it), BUILD,
+  RETYPE and PARAM. The text's "what it writes does not type-check"
+  refusals have no counterpart: there is no checker of C's constraints,
+  and `TestGraphPhasesAsImported` stands in for one (the import's check
+  of the result).
+- **RETYPE one declaration at a time is too slow for a bulk retype**
+  (`funcDecls` and `onlyCalled` walk the file each call): BoolRet batches
+  (`brRetype`), and `funcDecls` is indexed.
+- **cc decays under `sizeof`**: `sizeof(s.arr)`'s selection is typed a
+  pointer (cc's check passes the mode on and undecays after). Only `&`
+  stops it.
+- **Two typers stay local**: BoolRet's `brTypeUntyped` and 76's
+  `RederiveValue` type what their own edits make before the re-check
+  runs; the re-check would type the same, and they are left as written.
+
+### The proof
+
+On main `d15f6e2` (B4) merged in:
+- `rm -rf .cache/boundaries; make whim-build-check`, in order: whim-vim.c
+  byte for byte, 77,635 lines, 104 boundaries compiling, **158 s** (598 s
+  user, 93 s system) at a load of 3-5, two imports (phases 1 and 89); 102
+  graph snapshots. B4's run was 182 s (624 s of CPU) at a load of 12-34.
+- Again, in parallel: byte for byte, 43 s, **102 of 103 links begun on
+  their graph snapshot** (all but 89, after 88's text), 0 imported.
+- The control, one fault in each converted unit at once (74a's
+  `emsg_silent`, 76's `optvar_T` initialiser, 87's `K_TC_` names, 94's
+  wrapper names, 95's struct type, 99's variable, 100's member locals'
+  names, 101's `ascii_isupper`, 102 relaxed, 103 not): `10 of 103 phases
+  do not reproduce their snapshot`, exactly 74, 76, 87, 94, 95, 99, 100,
+  101, 102 and 103 (an earlier run faulting 100's LocalOut instead named
+  the same).
+- `TestGraphPhasesAsImported`, `TestPhasesOnGraph` and
+  `TestGraphSnapshots` on every phase; `make whim-editor-check`; `make
+  whim-test` (80 as HEAD, the control seen by 76, the Go editor 80 as the
+  C); `go test ./...` in both modules; gofmt, go vet and staticcheck on
+  what changed: clean (but `b2c_test.go`'s two unused helpers, before
+  this batch).
+
+### Measured
+
+`TestMeasureGraphPhases`, 3 runs, medians, load 2-6: `19c8e86`'s text
+against the graph as a run in order takes each phase (handed the graph; 74a's lalloc body is
+too small to time apart):
+
+| phase | text, wall ms | graph, handed, wall ms | graph, imported, wall ms |
+| --- | ---: | ---: | ---: |
+| 76 | 3,398 | 1,020 | 2,837 |
+| 87 | 6,439 | 1,833 | 3,867 |
+| 94 | 2,447 | 625 | 2,323 |
+| 95 | 3,734 | 712 | 2,471 |
+| 99 | 1,526 | 475 | 2,154 |
+| 100 | 5,786 | 3,907 | 5,728 |
+| 101 | 3,943 | 429 | 2,080 |
+| 102 | 4,316 | 385 | 2,063 |
+| 103 | 3,708 | 390 | 2,082 |
+
+35.3 s on text against 9.8 s handed for the nine. 100 costs most: LocalOut's
+155 retypes and its three FRAG rounds. The re-check adds nothing
+measurable to a collection (phase 2's 376 ms to 398, the rest 105-250 ms).

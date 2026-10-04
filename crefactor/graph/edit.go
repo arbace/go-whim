@@ -57,6 +57,18 @@ type Editor struct {
 	emptied []*Node           // blocks an edit left with no item
 	wasTop  map[*Node]bool    // top-level forms an edit removed
 
+	// blockFns are the block-scope declarations of functions by name, in
+	// the file's order (funcDecls, s6fndecls.go): built once, and again
+	// after a splice puts a def anywhere.
+	blockFns   map[string][]*Node
+	blockFnsOK bool
+
+	// touched is every node Written was given, which the closures consume
+	// and this does not: where Recheck (s6recheck.go) looks.
+	touched  []*Node
+	s6walked map[*Node]int // s6Walk's: the pass each node was last walked in
+	s6pass   int
+
 	// argLists makes a function type's parameter list and a call's arguments
 	// places for items, while PARAM (param.go) edits them: the one
 	// sanctioned path past "a function's parameters are its type".
@@ -590,6 +602,9 @@ func (e *Editor) spliceAs(op string, p *Node, lo, hi int, with []*Node, pl int) 
 			for _, k := range x.Kids {
 				k.up = x
 			}
+			if x.Is("def") {
+				e.blockFnsOK = false
+			}
 			return true
 		})
 	}
@@ -619,8 +634,10 @@ func (e *Editor) spliceAs(op string, p *Node, lo, hi int, with []*Node, pl int) 
 	}
 	if p != e.top[0] {
 		e.Written = append(e.Written, p)
+		e.touched = append(e.touched, p)
 	}
 	e.Written = append(e.Written, with...)
+	e.touched = append(e.touched, with...)
 	if oldOne != nil && len(with) == 1 && e.place(p, lo) == placeFixed && !IsStatement(oldOne) {
 		e.retype(p, oldOne, with[0])
 	}

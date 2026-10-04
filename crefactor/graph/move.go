@@ -424,6 +424,7 @@ func (e *Editor) moved(op string, run []*Node, from, to *Node, re []retarget) {
 	for _, p := range []*Node{from, to} {
 		if !e.isTop(p) {
 			e.Written = append(e.Written, p)
+			e.touched = append(e.touched, p)
 		}
 	}
 }

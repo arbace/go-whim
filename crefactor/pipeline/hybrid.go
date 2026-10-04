@@ -131,6 +131,10 @@ func (pr *prog) textOf() ([]byte, error) {
 // collect is the sweep on the graph, through its editor.
 func (c *Config) collect(pr *prog, w io.Writer) error {
 	start := time.Now()
+	// the typed edges the phase's edits cleared or left stale, given back
+	// (doc/GRAPH.md, step 6), so that what the phase hands on is what an
+	// import of its C view would be
+	rs := pr.ed.Recheck()
 	st, err := pr.ed.Collect(c.Collect)
 	if err != nil {
 		return fmt.Errorf("collection: %w", err)
@@ -139,7 +143,7 @@ func (c *Config) collect(pr *prog, w io.Writer) error {
 	pr.text = nil
 	pr.conv.Collections++
 	pr.conv.Collect += d
-	fmt.Fprintf(w, "  collect      %s; %dms\n", st, d.Milliseconds())
+	fmt.Fprintf(w, "  collect      %s; recheck: %s; %dms\n", st, rs, d.Milliseconds())
 	return nil
 }
 

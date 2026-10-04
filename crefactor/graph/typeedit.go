@@ -199,6 +199,12 @@ func (tx *typeTx) formType1(t *Node) *Node {
 	}
 	switch h := t.Head(); h {
 	case "struct", "union", "enum":
+		if isDefForm(t) {
+			return t // a definition is its type
+		}
+		if r := t.Ref(); r != nil {
+			return r // the importer puts a tag's edge on its form
+		}
 		if len(t.Kids) == 2 {
 			return t.Kids[1].Ref()
 		}

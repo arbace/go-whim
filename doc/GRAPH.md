@@ -199,7 +199,11 @@ analyses, or cached under the graph's digest.
    `whim-build-check` unchanged; the in-order time measured against 451 s.
    Its stage A is built (the hybrid driver, the graph snapshots, 14 phases'
    cuts); stage B is `doc/GRAPH-MIGRATION.md`'s batches.
-6. **The typed transforms** onto typed edges, `cc.Translate` gone from them.
+6. **The typed transforms** onto typed edges, `cc.Translate` gone from them
+   (built: `doc/GRAPH-MIGRATION.md`, *Step6 as built* -- the type re-check
+   and 94, 95, 100, 101 and BoolRet on the graph). *Gate:* every phase on
+   the graph from end to end leaves the import of its C view, typed edges
+   and all; `whim-build-check` unchanged.
 
 Steps 1-3 are worth building on their own: they prove the representation is
 lossless and resolved, and they are what an editor needs. Steps 4-6 are the

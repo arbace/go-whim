@@ -22,3 +22,5 @@ check proves from the input that `host_alloc()` never returns NULL, and
 requires the new `lalloc()` body.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 149, in the group 148-149, whose phases share one purpose. There is no boundary q148 of its own any more; everything above still says what the steps do and why.
+
+Since step 6 (`doc/GRAPH-MIGRATION.md`, *Step6 as built*) it runs on the graph: `lalloc()`'s body is written by FRAG (`BodyC`), so that phase 74 begins on the graph phase 73 hands it; `whim-build-check` holds it to the bytes the text version made (in history, `19c8e86` and before).

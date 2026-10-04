@@ -34,3 +34,5 @@ did 707: the definitions and the run-time forms. vet, staticcheck and
 `gofmt -s` stay at 0. `whim-test`: 45/45, C and Go.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 168, in the group 166-168, whose phases share one purpose. There is no boundary q167 of its own any more; everything above still says what the steps do and why.
+
+**On the graph** (doc/GRAPH-MIGRATION.md, Step6): the codes and names are read off the C view as before; each code spelled out is a node of the core replaced by a use of its enumerator (`Editor.ReplaceByUse`), the enumerators one FRAG unit, so that phase 87 (with 87a) runs on the graph from end to end, handed the graph by phase 86: 1.3 s against the text's 5.8 s.

@@ -36,3 +36,5 @@ were. 97 declarations retyped; 77,634 lines, as before. In the Java:
 (`whim-build-check`), and `whim test` against the commit before it on the
 C, the Go, and with `--java --clojure --haskell`, quick and wide. gcc
 reports the same diagnostics before and after.
+
+**On the graph** (doc/GRAPH-MIGRATION.md, Step6): `crefactor/graph`'s `Editor.BoolRet` with Globals, byte for byte and its graph the import of its C view; 0.36 s handed the graph against the text's 4.4 s.

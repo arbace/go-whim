@@ -165,19 +165,25 @@ func (e *Editor) ParamIndex(fn, param string) int {
 // funcDecls are every declaration of the function name: the file's
 // prototypes and definition, and the block-scope prototypes, in order.
 func (e *Editor) funcDecls(name string) []*Node {
+	if !e.blockFnsOK {
+		e.s6indexBlockFns()
+	}
+	inner := map[*Node][]*Node{}
+	for _, n := range e.blockFns[name] {
+		if e.Live(n) && topName(n) == name && defType(n).Is("fn") {
+			top := n
+			for !e.isTop(top.up) {
+				top = top.up
+			}
+			inner[top] = append(inner[top], n)
+		}
+	}
 	var out []*Node
 	for _, f := range e.g.Forms {
 		if (f.Is("def") || f.Is("defn")) && topName(f) == name && defType(f).Is("fn") && !hasPrefix(f, "typedef") {
 			out = append(out, f)
 		}
-		if f.Is("defn") {
-			Walk(f, func(n *Node) bool {
-				if n != f && n.Is("def") && topName(n) == name && defType(n).Is("fn") {
-					out = append(out, n)
-				}
-				return true
-			})
-		}
+		out = append(out, inner[f]...)
 	}
 	return out
 }
@@ -857,6 +863,7 @@ func (pe *paramEdit) toLocal(p *Node) error {
 	f.Kids = slices.Insert(slices.Clone(f.Kids), at, p)
 	p.up = f
 	e.Written = append(e.Written, pl, f)
+	e.touched = append(e.touched, pl, f)
 	e.Log = append(e.Log, Act{Op: "param-to-local", Moved: []ID{p.ID}})
 	return nil
 }

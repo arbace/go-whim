@@ -41,3 +41,5 @@ from the input's row, and requires no option variable punned through
 Each control moves.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 151-152 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).
+
+**On the graph** (doc/GRAPH-MIGRATION.md, *Step6 as built*): it runs as a graph program, handed the graph by phase 75 and handing it to 77 -- the rows rewritten in place, every declaration retyped first, each kind read off a typed edge, the rewrites made in one FRAG unit -- byte for byte the text's, its graph the import of its C view; 1.1 s handed the graph against 3.4 s on text (76a and 76, the sweep and the print).

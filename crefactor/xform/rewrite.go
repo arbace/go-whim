@@ -7,7 +7,6 @@ package xform
 
 import (
 	"fmt"
-	"reflect"
 	"sort"
 
 	"github.com/arbace/go-whim/crefactor/cc"
@@ -73,95 +72,6 @@ func applyNested(src []byte, rws []nrw) ([]byte, error) {
 	}
 	s, err := render(0, len(src), rws)
 	return []byte(s), err
-}
-
-// parents is the parent of each node under root.
-func parents(root cc.Node) map[cc.Node]cc.Node {
-	par := map[cc.Node]cc.Node{}
-	var rec func(n cc.Node)
-	rec = func(n cc.Node) {
-		children(n, func(c cc.Node) {
-			par[c] = n
-			rec(c)
-		})
-	}
-	rec(root)
-	return par
-}
-
-// children calls f with each child node of n.
-func children(n cc.Node, f func(cc.Node)) {
-	v := reflect.ValueOf(n)
-	if v.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return
-		}
-		v = v.Elem()
-	}
-	if v.Kind() != reflect.Struct {
-		return
-	}
-	t := v.Type()
-	for i := 0; i < v.NumField(); i++ {
-		if !t.Field(i).IsExported() {
-			continue
-		}
-		fv := v.Field(i)
-		if (fv.Kind() == reflect.Ptr || fv.Kind() == reflect.Interface) && !fv.IsNil() {
-			if c, ok := fv.Interface().(cc.Node); ok {
-				f(c)
-			}
-		}
-	}
-}
-
-// up is n's parent, past parentheses.
-func up(par map[cc.Node]cc.Node, n cc.Node) cc.Node {
-	for {
-		p := par[n]
-		switch x := p.(type) {
-		case *cc.PrimaryExpression:
-			if x.Case == cc.PrimaryExpressionExpr {
-				n = p
-				continue
-			}
-		case *cc.ExpressionList:
-			if x.ExpressionList == nil {
-				n = p
-				continue
-			}
-		}
-		return p
-	}
-}
-
-// identOf is the declarator e names, or nil.
-func identOf(e cc.Node) *cc.Declarator {
-	pe, ok := unparen(e).(*cc.PrimaryExpression)
-	if !ok || pe.Case != cc.PrimaryExpressionIdent {
-		return nil
-	}
-	d, _ := pe.ResolvedTo().(*cc.Declarator)
-	return d
-}
-
-// isNullC says e is a null pointer constant: 0, or 0 cast to a pointer.
-func isNullC(e cc.Node) bool {
-	e = unparen(e)
-	if c, ok := e.(*cc.CastExpression); ok && c.Case == cc.CastExpressionCast {
-		return isNullC(c.CastExpression)
-	}
-	x, ok := e.(cc.ExpressionNode)
-	if !ok {
-		return false
-	}
-	switch v := x.Value().(type) {
-	case cc.Int64Value:
-		return v == 0
-	case cc.UInt64Value:
-		return v == 0
-	}
-	return false
 }
 
 // spanOf is n's span in src, to the end of the identifier it ends in: the

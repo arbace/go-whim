@@ -37,18 +37,6 @@ var NeverNull = graph.NeverNullOptions{
 	Roots: []string{"host_alloc"},
 }
 
-// BoolRet is phase 87a's: vim's truth constants, TRUE and OK beside true,
-// FALSE and FAIL beside false; main, whose int is the process's; and the
-// sweep's layout guard, which says which members a positional initialiser
-// fills.
-var BoolRet = xform.BoolRetKnobs{
-	Core:   Core,
-	True:   []string{"TRUE", "OK"},
-	False:  []string{"FALSE", "FAIL"},
-	Keep:   []string{"main"},
-	Layout: Profile.Sweep,
-}
-
 // Nullptr is phase 0a's, run by the seed: the three string literals that hold `NULL` and
 // stay as they are -- a message, the printf layer's stand-in for a null %s,
 // and what an empty growarray prints.  A fourth would be a message the phase
@@ -88,25 +76,4 @@ var Own47 = graph.OwnKnobs{
 		{Name: "labs", Proto: "long labs(long n);", Def: "    static long\nmusl_labs(long a)\n{\n    return a > 0 ? a : -a;\n}\n\n"},
 	},
 	Before: "musl_bsearch",
-}
-
-// RegEngine is phase 95's: the regex engine's state at match time -- the
-// match in progress (rex, and its re-entry guard), the backtracking stacks
-// and their byte count, the look-behind's and the counted repeats' state,
-// the back-reference's copy -- and reg_toolong, which the compiler sets and
-// every match clears; one struct, handed down from the four functions the
-// rest of the editor calls the engine by.
-var RegEngine = xform.StateParamKnobs{
-	Core: Core,
-	Objects: []string{
-		"rex", "rex_in_use",
-		"regstack", "regstack_star", "regstack_behind", "backpos", "regstack_bytes",
-		"behind_pos", "bl_minval", "bl_maxval",
-		"brace_min", "brace_max", "brace_count",
-		"reg_tofree", "reg_tofreelen", "reg_toolong",
-	},
-	Type:     "regengine_T",
-	Instance: "reg_engine",
-	Param:    "re",
-	Roots:    []string{"vim_regcomp", "vim_regexec_multi", "vim_regexec_string", "vim_regsub_multi"},
 }

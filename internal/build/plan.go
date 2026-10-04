@@ -454,7 +454,7 @@ var Plan = []Phase{
 		}},
 	{N: 74, Block: "g04-never-null", Name: "allocation cannot fail, and its branches fold",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim74a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim74a"}},
 			{Op: "edit", Graph: true, Args: []string{"whim74", "--at-least", "80"}},
 		}},
 	{N: 75, Block: "r13-translation", Name: "the regexp stack is three typed stacks",
@@ -463,8 +463,8 @@ var Plan = []Phase{
 		}},
 	{N: 76, Name: "the option table's defaults and its variables, typed",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim76a"}},
-			{Op: "edit", Args: []string{"whim76"}},
+			{Op: "edit", Graph: true, Args: []string{"whim76a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim76"}},
 		}},
 	{N: 77, Name: "`free_one_termoption()` compares without a cast, and its NULL write is gone",
 		Steps: []Step{
@@ -510,8 +510,8 @@ var Plan = []Phase{
 		}},
 	{N: 87, Block: "g06-bool-and-keys", Name: "`bool` and key names",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim87a"}},
-			{Op: "edit", Args: []string{"whim87"}},
+			{Op: "edit", Graph: true, Args: []string{"whim87a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim87"}},
 		}},
 	{N: 88, Block: "g07-includes", Name: "the system headers nothing needs",
 		Steps: []Step{
@@ -539,11 +539,11 @@ var Plan = []Phase{
 		}},
 	{N: 94, Name: "a member's address a call hands back is a local's",
 		Steps: []Step{
-			{Op: "memberout"},
+			{Op: "memberout", Graph: true},
 		}},
 	{N: 95, Name: "the regex engine's state is a parameter",
 		Steps: []Step{
-			{Op: "stateparam", Args: []string{"--at-least", "43"}},
+			{Op: "stateparam", Graph: true, Args: []string{"--at-least", "43"}},
 		}},
 	{N: 96, Name: "a line's match on its own",
 		Steps: []Step{
@@ -559,24 +559,24 @@ var Plan = []Phase{
 		}},
 	{N: 99, Name: "the host's clock can be held still",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim99"}},
+			{Op: "edit", Graph: true, Args: []string{"whim99"}},
 		}},
 	{N: 100, Block: "g09-values", Name: "an out-parameter a value, a struct local its members",
 		Steps: []Step{
-			{Op: "localout"},
-			{Op: "structscalar"},
+			{Op: "localout", Graph: true},
+			{Op: "structscalar", Graph: true},
 		}},
 	{N: 101, Block: "g10-plain-c", Name: "gettext's identity not called, the ASCII tests named, constant ifs their branch",
 		Steps: []Step{
-			{Op: "identity"},
-			{Op: "asciiclass"},
-			{Op: "constbranch"},
+			{Op: "identity", Graph: true},
+			{Op: "asciiclass", Graph: true},
+			{Op: "constbranch", Graph: true},
 		}},
 	{N: 102, Block: "g11-bool", Name: "a file-scope flag is bool",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim102"}},
+			{Op: "edit", Graph: true, Args: []string{"whim102"}},
 		}}, {N: 103, Name: "more flags are bool",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim103"}},
+			{Op: "edit", Graph: true, Args: []string{"whim103"}},
 		}},
 }

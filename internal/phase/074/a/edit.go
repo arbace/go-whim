@@ -13,11 +13,11 @@ package p074a
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim74a", Edit) }
+func init() { phase.RegisterGraph("whim74a", Edit) }
 
 // W74aLallocBody is lalloc()'s Body after this phase, inside its braces.
 const W74aLallocBody = `    if (size == 0)
@@ -41,9 +41,12 @@ const W74aLallocBody = `    if (size == 0)
 // bytes, where NULL was -- so that no allocation in the core can fail, and the
 // failure branches after every allocation are dead (internal/gen/FINDINGS.md, 9): the
 // next phase folds them.  The Go transpilation had dropped them already.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nofail", text, w)
-	e.Body("lalloc", W74aLallocBody,
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, Step6): the body written by FRAG;
+// history keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nofail", e, w)
+	v.BodyC("lalloc", W74aLallocBody,
 		"lalloc() returns what host_alloc() gives, which is never NULL, after reporting a request for zero bytes")
-	return e.Done()
+	return v.Done()
 }

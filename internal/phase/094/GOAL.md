@@ -46,3 +46,9 @@ member -- `getvcol` and kin with `w_virtcol` and the column members,
 which reach the redraw. Those are provably unsafe to copy as far as the
 analysis sees, and are left: taking them would rest on a judgement the suite
 may not reach.
+
+It runs on the graph (doc/GRAPH-MIGRATION.md, Step6): `crefactor/graph`'s
+`MemberOut` asks the same questions of the typed and refers edges and makes
+the wrappers and the calls by FRAG, byte for byte and report for report the
+text step it replaced; handed the graph by phase 93, 0.7 s against the
+text's 2.5 s.

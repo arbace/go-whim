@@ -22,3 +22,5 @@ a number is. Its probes set every option to its default and list them
 option. Each control moves.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 152, in the group 151-152, whose phases share one purpose. There is no boundary q151 of its own any more; everything above still says what the steps do and why.
+
+**On the graph** (doc/GRAPH-MIGRATION.md, *Step6 as built*): it runs as a graph program -- the rows' pairs written in place and the other pair inserted beside each, `def_val` renamed `def_str` and `def_num` added after it (so `struct vimoption` keeps its node), the number reads and the store pointed at `def_num` by edge -- byte for byte the text's, its graph the import of its C view.

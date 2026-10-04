@@ -33,3 +33,5 @@ clock free, and none of 112 with it held.
 Since phase 88 keeps `<stdlib.h>` (its `EXIT_FAILURE` assertion names it),
 this phase asserts the include once instead of adding it after `<stddef.h>`;
 the header stays where the input had it.
+
+Since step 6 (`doc/GRAPH-MIGRATION.md`, *Step6 as built*) it runs on the graph: `host_time()`'s body is written by FRAG (`BodyC`, its `getenv`, `atol` and `time` the headers' externs as the import makes them) and the include is asserted among the include forms; phase 98 hands it the graph and it hands it to 100, and `whim-build-check` holds it to the bytes the text version made (in history, `19c8e86` and before).

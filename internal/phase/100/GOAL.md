@@ -102,3 +102,15 @@ clean under staticcheck, `go vet` and `gofmt -s`.
 does, every editor as the C -- and `--wide` the same, 240 cases; the steps'
 own tests (`TestLocalOut`, `TestStructScalar`) compile a program before and
 after with gcc and require the same output, and name what each holds back.
+
+Since step 6 (`doc/GRAPH-MIGRATION.md`, *Step6 as built*) both steps run on
+the graph, phase 99 handing it the graph and 101 taking it on: `localout` is
+`crefactor/graph`'s `Editor.LocalOut` (`s6lo_localout.go`), the text step's
+questions asked of the core's forms, refers edges and typed edges, its
+rewrites by RETYPE, PARAM and FRAG (the structs, the locals, the returns and
+the calls, innermost first); `structscalar` is `StructScalars`
+(`s6ss_structscalar.go`), the candidates, uses and members asked of the
+edges, the new C one FRAG unit. Byte for byte the bytes crefactor/xform's
+text steps made (in history, `19c8e86` and before), their reports line for
+line (94 out-parameters of 61 functions, 66 structs), the graph the import
+of q100.c (`SameGraph`, nothing untyped).

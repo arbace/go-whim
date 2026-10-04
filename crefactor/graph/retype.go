@@ -234,6 +234,9 @@ func (e *Editor) retypeForms(places, forms, fns []*Node, typ string) (RetypeStat
 	}
 	act := Act{Op: "retype"}
 	for _, d := range changed {
+		if isParam(d) && paramName(d) == "" && d.Type == nil {
+			continue // an unnamed parameter: no declarator, untyped as imported (Step6)
+		}
 		if d.Type != newT[d] {
 			d.Type = newT[d]
 			st.Decls++

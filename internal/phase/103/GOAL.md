@@ -38,3 +38,5 @@ Verified by the phase's own link (`whim-build-check`), and `whim test`
 against the commit before it on the C, the Go, and with `--java --clojure
 --haskell`, quick and wide; gcc reports the same diagnostics before and
 after; `TestBoolRetRelax` (a program under gcc before and after).
+
+**On the graph** (doc/GRAPH-MIGRATION.md, Step6): `crefactor/graph`'s `Editor.BoolRet` with Globals and Relax, byte for byte and its graph the import of its C view; 0.38 s handed the graph against the text's 3.7 s; `TestBoolRetGraphRelax` is the gcc test.

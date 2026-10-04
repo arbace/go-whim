@@ -46,3 +46,9 @@ own link (`whim-build-check`), the committed product back byte for byte,
 and `whim test` against the commit before it, on the C, the Go, and with
 `--java --clojure --haskell`, quick and wide: nothing the editor does
 moves.
+
+The three steps run on the graph (doc/GRAPH-MIGRATION.md, Step6):
+`crefactor/graph`'s `PlainIdentity`, `PlainAsciiClass` and
+`PlainConstBranch`, on the core's forms and its typed edges, byte for byte
+and report for report the text steps' they replaced, the graph left the
+import of its C view; 0.45 s handed the graph, against 4.3 s on text.

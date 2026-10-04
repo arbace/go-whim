@@ -60,6 +60,6 @@ Not done: what the rule refuses by design keeps its `B2i` -- a variable also
 updated with `|=` (`area_highlighting`), a member some table fills by position,
 a parameter of a function taken by address.
 
-The transformation now lives in `crefactor/xform` (`BoolRet`), with vim's knobs in `internal/whim/xform.go`.
+The transformation lived in `crefactor/xform` (`BoolRet`); it now runs on the graph as `crefactor/graph`'s `Editor.BoolRet` (doc/GRAPH-MIGRATION.md, Step6), the analysis asked of the forms and their edges and the declarations retyped by RETYPE, with vim's knobs in `internal/whim/s6boolret.go`.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 168, in the group 166-168, whose phases share one purpose. There is no boundary q166 of its own any more; everything above still says what the steps do and why.

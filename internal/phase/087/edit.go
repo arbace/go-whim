@@ -7,16 +7,15 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/crefactor/cc"
-	"github.com/arbace/go-whim/crefactor/edit"
-	"github.com/arbace/go-whim/crefactor/sweep"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim87", Edit) }
+func init() { phase.RegisterGraph("whim87", Edit) }
 
 // keyCode is vim's TERMCAP2KEY(a, b) as the preprocessor left it, in the
 // canonical spelling: two constant operands, a character or a name.
@@ -31,14 +30,25 @@ var ident = regexp.MustCompile(`\b[A-Za-z_][A-Za-z0-9_]*\b`)
 // before its first use, and writes the name wherever the code was spelled
 // out.  The name is vim's where the file still says it: K_X for
 // TERMCAP2KEY(KS_EXTRA, KE_X), and K_ plus the shortest name
-// key_names_table gives the code.  A code named nowhere gets a mechanical
-// name from its two characters, K_TC_<a>_<b>, rather than one remembered.
-// A code computed from variables is not a constant and stays as it is.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "keynames", W: w}
+// key_names_table gives the code.  A code computed from variables is not a
+// constant and stays as it is.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, Step6): the codes and the names are
+// read off the C view, as the text read them; each code spelled out is a
+// node of the core whose C is the code, replaced by a use of its
+// enumerator (Editor.ReplaceByUse), and the enumerators are one FRAG unit
+// before the top-level form that holds the first.  History keeps the text
+// version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("keynames", e, w)
+	text, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
 	cut := bytes.Index(text, []byte("\n#include "))
 	if cut < 0 {
-		return nil, p.Die("no #include: the core/host line is not where this phase expects it")
+		v.Die("no #include: the core/host line is not where this phase expects it")
+		return v.Done()
 	}
 	core := text[:cut]
 
@@ -78,75 +88,97 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			}
 		}
 		if name == "" {
-			return nil, p.Die("no free name for the key code %s", code)
+			v.Die("no free name for the key code %s", code)
+			return v.Done()
 		}
 		named[name] = true
 		codes[code] = name
 		order = append(order, code)
 	}
 	if len(order) == 0 {
-		return nil, p.Die("no constant key code in the core")
+		v.Die("no constant key code in the core")
+		return v.Done()
 	}
 
-	// where the definitions go: before the top-level declaration that holds
-	// the first use, which must come after every KS_ and KE_ name they use
-	const path = "whim-vim.c"
-	cfg, err := cc.NewConfig("linux", "amd64")
-	if err != nil {
-		return nil, err
+	// the codes spelled out: the nodes of the core whose C is one, in the
+	// file's order, none inside another
+	sites := map[string][]*graph.Node{}
+	var first *graph.Node
+	nsites := 0
+	coreForms := e.Core()
+	for _, f := range coreForms {
+		graph.Walk(f, func(x *graph.Node) bool {
+			if !x.Is("paren") || len(x.Kids) != 2 || !x.Kids[1].Is("-") || len(x.Kids[1].Kids) != 2 {
+				return true
+			}
+			c, err := graph.ExprText(x)
+			if err != nil || codes[c] == "" {
+				return true
+			}
+			if first == nil {
+				first = f
+			}
+			sites[c] = append(sites[c], x)
+			nsites++
+			return false
+		})
 	}
-	ast, err := cc.Parse(cfg, []cc.Source{
-		{Name: "<predefined>", Value: cfg.Predefined},
-		{Name: "<builtin>", Value: cc.Builtin},
-		{Name: path, Value: text},
-	})
-	if err != nil {
-		return nil, p.Die("the input does not parse: %v", err)
-	}
-	first := keyCode.FindIndex(core)[0]
-	at := -1
-	for tu := ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
-		ed := tu.ExternalDeclaration
-		if ed == nil {
-			continue
-		}
-		if a, z := sweep.Span(ed, path, text); a <= first && first < z {
-			at = a
-			break
-		}
-	}
-	if at < 0 {
-		return nil, p.Die("the first key code is in no top-level declaration")
-	}
+	// where the definitions go: before the top-level form that holds the
+	// first use, which must come after every KS_ and KE_ name they use
+	at := slices.Index(coreForms, first)
 	for _, code := range order {
-		for _, m := range keyCode.FindStringSubmatch(code)[1:] {
-			if m[0] == '\'' {
-				continue
-			}
-			def := regexp.MustCompile(`\b` + m + ` = `).FindIndex(text)
-			if def == nil || def[0] > at {
-				return nil, p.Die("%s is not defined before the first key code", m)
-			}
+		if len(sites[code]) == 0 {
+			v.Die("the key code %s is spelled out in no expression of the core", code)
+			return v.Done()
 		}
+		x := sites[code][0]
+		bad := ""
+		graph.Walk(x, func(y *graph.Node) bool {
+			if d := y.Ref(); d != nil && !y.IsList() {
+				if i := slices.Index(coreForms, e.TopForm(d)); i < 0 || i >= at {
+					bad = y.Atom
+				}
+			}
+			return true
+		})
+		if bad != "" {
+			v.Die("%s is not defined before the first key code", bad)
+			return v.Done()
+		}
+	}
+	// the text's count: every spelling from the first use to the core's end
+	body := string(text[bytes.Index(text, []byte(order[0])):cut])
+	want := 0
+	for _, code := range order {
+		want += strings.Count(body, code)
+		body = strings.ReplaceAll(body, code, codes[code])
+	}
+	if nsites != want {
+		v.Die("%d key codes spelled out in the core's expressions, %d in its text", nsites, want)
+		return v.Done()
 	}
 
 	var defs strings.Builder
 	for _, code := range order {
 		fmt.Fprintf(&defs, "enum { %s = %s };\n", codes[code], code)
 	}
-	defs.WriteString("\n")
-	sites := 0
-	body := string(text[at:cut])
-	for _, code := range order {
-		sites += strings.Count(body, code)
-		body = strings.ReplaceAll(body, code, codes[code])
+	v.Muted(func(v *graph.Verbs) { v.FragAt(e.SpotBefore(first), defs.String(), "the key codes' enumerators") })
+	if v.Failed() {
+		return v.Done()
 	}
-	out := append([]byte{}, text[:at]...)
-	out = append(out, defs.String()...)
-	out = append(out, body...)
-	out = append(out, text[cut:]...)
+	for _, code := range order {
+		if err := e.ReplaceByUse(sites[code], codes[code]); err != nil {
+			v.Die("%s: %v", codes[code], err)
+			return v.Done()
+		}
+	}
+	out, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
 	if rest := keyCode.FindAll(out[:bytes.Index(out, []byte("\n#include "))], -1); len(rest) != len(order) {
-		return nil, p.Die("%d constant key codes are left spelled out outside their definitions", len(rest)-len(order))
+		v.Die("%d constant key codes are left spelled out outside their definitions", len(rest)-len(order))
+		return v.Done()
 	}
 	fromTable, fromKE, mech := 0, 0, 0
 	for _, code := range order {
@@ -159,9 +191,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			fromKE++
 		}
 	}
-	p.Say(fmt.Sprintf("%d key codes named at %d sites: %d from key_names_table, %d as K_X for KE_X, %d mechanically",
-		len(order), sites, fromTable, fromKE, mech))
-	return out, nil
+	v.Say(fmt.Sprintf("%d key codes named at %d sites: %d from key_names_table, %d as K_X for KE_X, %d mechanically",
+		len(order), nsites, fromTable, fromKE, mech))
+	return v.Done()
 }
 
 // keyWord is a key_names_table name as an identifier: upper case, with every

@@ -1,19 +1,82 @@
-package xform
+package graph
 
 import (
-	"bytes"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
-// core is a foreign code base's core/host line: the first `#include`.
-var core Core = func(t []byte) int { return bytes.Index(t, []byte("\n#include ")) }
+// crefactor/xform's BoolRet tests, on the graph: each source imported, read
+// back from its Lisp, BoolRet run, its C view held to what the text step
+// gave (the same strings, the same program's output), and the graph held
+// to the import of its C view (SameGraph): every expression typed as cc
+// types it, nothing left untyped.
+
+func brRunOn(t *testing.T, opt BoolRetOptions, src string) string {
+	t.Helper()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "t.c")
+	g, _, err := Import(path, []byte(src))
+	if err != nil {
+		t.Fatal(err)
+	}
+	h, err := Read(g.Lisp())
+	if err != nil {
+		t.Fatal(err)
+	}
+	e := NewEditor(h)
+	if _, err := e.BoolRet(opt); err != nil {
+		t.Fatal(err)
+	}
+	if err := e.Check(); err != nil {
+		t.Fatal(err)
+	}
+	out, err := h.C()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(e.Untyped) > 0 {
+		t.Errorf("%d left untyped: %s", len(e.Untyped), Lisp(e.Untyped[0]))
+	}
+	i, _, err := Import(path, out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := SameGraph(h, i); err != nil {
+		t.Errorf("not the import of its C view: %v", err)
+	}
+	return string(out)
+}
+
+// brGccRun is what a C program prints, when there is a gcc.
+func brGccRun(t *testing.T, src string) string {
+	t.Helper()
+	if _, err := exec.LookPath("gcc"); err != nil {
+		t.Skip("no gcc")
+	}
+	dir := t.TempDir()
+	c := filepath.Join(dir, "p.c")
+	if err := os.WriteFile(c, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	bin := filepath.Join(dir, "p")
+	if o, err := exec.Command("gcc", "-w", "-o", bin, c).CombinedOutput(); err != nil {
+		t.Fatalf("gcc: %v\n%s\n%s", err, o, src)
+	}
+	o, err := exec.Command(bin).Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(o)
+}
 
 // A foreign code base's own truth constants, YES and NO: even and check
 // answer, so they and check's local are bool, and check(4) == YES is
 // check(4); count and main stay int.
-func TestBoolRet(t *testing.T) {
-	k := BoolRetKnobs{Core: core, True: []string{"YES"}, False: []string{"NO"}, Keep: []string{"main"}}
+func TestBoolRetGraph(t *testing.T) {
+	k := BoolRetOptions{True: []string{"YES"}, False: []string{"NO"}, Keep: []string{"main"}}
 	src := `enum
 {
     NO = 0,
@@ -100,12 +163,12 @@ main(void)
 
 #include <stdio.h>
 `
-	got := run(t, BoolRet(k), src)
-	same(t, got, want)
-	compiles(t, got)
+	got := brRunOn(t, k, src)
+	gtSame(t, got, want)
+	gtCompiles(t, got)
 	// without the truth constants, NO is a code and check stays int
 	k.True, k.False = nil, nil
-	if got := run(t, BoolRet(k), src); !strings.Contains(got, "int\ncheck(") || !strings.Contains(got, "bool\neven(") {
+	if got := brRunOn(t, k, src); !strings.Contains(got, "int\ncheck(") || !strings.Contains(got, "bool\neven(") {
 		t.Errorf("with no truth constants, check is not left int and even not made bool:\n%s", got)
 	}
 }
@@ -113,8 +176,8 @@ main(void)
 // With Globals, a file-scope int that only ever holds an answer is bool; a
 // counter, one whose address is taken, one compared with a code, one sized,
 // and one a local shadows stay int; and the program prints what it did.
-func TestBoolRetGlobals(t *testing.T) {
-	k := BoolRetKnobs{Core: core, True: []string{"YES"}, False: []string{"NO"}, Keep: []string{"main"}, Globals: true}
+func TestBoolRetGraphGlobals(t *testing.T) {
+	k := BoolRetOptions{True: []string{"YES"}, False: []string{"NO"}, Keep: []string{"main"}, Globals: true}
 	src := `int printf(const char *, ...);
 enum
 {
@@ -169,20 +232,20 @@ main(void)
 
 #include <stdio.h>
 `
-	want := gccRun(t, src)
-	got := run(t, BoolRet(k), src)
+	want := brGccRun(t, src)
+	got := brRunOn(t, k, src)
 	for _, w := range []string{"static bool active", "static bool seen", "static bool ready", "if (!(active) ||",
 		"static int count", "static int held", "static int mode", "static int sized", "static int shadow", "static int tabled"} {
 		if !strings.Contains(got, w) {
 			t.Errorf("no %q in\n%s", w, got)
 		}
 	}
-	if o := gccRun(t, got); o != want {
+	if o := brGccRun(t, got); o != want {
 		t.Errorf("the program prints %q, the original %q\n%s", o, want, got)
 	}
 	// without Globals, nothing file-scope moves
 	k.Globals = false
-	if got := run(t, BoolRet(k), src); strings.Contains(got, "static bool") {
+	if got := brRunOn(t, k, src); strings.Contains(got, "static bool") {
 		t.Errorf("without Globals a file-scope object was retyped:\n%s", got)
 	}
 }
@@ -191,8 +254,8 @@ main(void)
 // |= and &= of an answer is bool, the compound written x = E || x; a flag
 // given |= of a number, compared with a code, or counted stays int; and the
 // program prints what it did.
-func TestBoolRetRelax(t *testing.T) {
-	k := BoolRetKnobs{Core: core, True: []string{"YES"}, False: []string{"NO"}, Keep: []string{"main"}, Globals: true, Relax: true}
+func TestBoolRetGraphRelax(t *testing.T) {
+	k := BoolRetOptions{True: []string{"YES"}, False: []string{"NO"}, Keep: []string{"main"}, Globals: true, Relax: true}
 	src := `int printf(const char *, ...);
 enum
 {
@@ -244,20 +307,20 @@ main(void)
 
 #include <stdio.h>
 `
-	want := gccRun(t, src)
-	got := run(t, BoolRet(k), src)
+	want := brGccRun(t, src)
+	got := brRunOn(t, k, src)
 	for _, w := range []string{"static bool scroll", "static bool broke", "static bool seen", "seen = (hit(n)) || seen",
 		"seen = (n < 9) && seen", "static int mixed", "static int code", "static int counted"} {
 		if !strings.Contains(got, w) {
 			t.Errorf("no %q in\n%s", w, got)
 		}
 	}
-	if o := gccRun(t, got); o != want {
+	if o := brGccRun(t, got); o != want {
 		t.Errorf("the program prints %q, the original %q\n%s", o, want, got)
 	}
 	// without Relax, phase 102's rule: the saved flag and the others stay int
 	k.Relax = false
-	if got := run(t, BoolRet(k), src); !strings.Contains(got, "static int scroll") || !strings.Contains(got, "static int seen") {
+	if got := brRunOn(t, k, src); !strings.Contains(got, "static int scroll") || !strings.Contains(got, "static int seen") {
 		t.Errorf("without Relax a flag the old rule keeps int was retyped:\n%s", got)
 	}
 }
