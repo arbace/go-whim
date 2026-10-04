@@ -271,3 +271,53 @@ func TestMlControl(t *testing.T) {
 		})
 	}
 }
+
+// mlVariantsC is an enumeration the profile names a variant: a parameter,
+// a result, a switch, comparisons, a member in memory (zeroed, read and
+// written through the conversions) and a field of the state with an
+// initial value that is not the first enumerator's.
+const mlVariantsC = javaHost + `
+typedef enum { RED, GREEN = 4, BLUE } color_T;
+struct cell { int n; color_T c; };
+static color_T last = GREEN;
+static struct cell cells[3];
+static color_T next(color_T c) { switch (c) { case RED: return GREEN; case GREEN: return BLUE; default: return RED; } }
+static int code(color_T c) { if (c == BLUE) return 30; if (c != RED) return 20; return 10; }
+void run(void) {
+    color_T c = RED;
+    out(code(cells[1].c));
+    for (int i = 0; i < 3; i++) { cells[i].c = c; cells[i].n = i; c = next(c); }
+    for (int i = 0; i < 3; i++) out(code(cells[i].c) + cells[i].n);
+    out(code(last)); last = next(last); out(code(last));
+}
+`
+
+func TestMlVariants(t *testing.T) {
+	prog := mlSame(t, mlVariantsC, Profile{MlVariants: []string{"color_T"}}, javaHarnessC)
+	for _, want := range []string{"type color = Red | Green | Blue", "| Red -> Green", "| Blue -> 30", "color_of_int", "int_of_color"} {
+		if !strings.Contains(prog, want) {
+			t.Errorf("no %q in the OCaml:\n%s", want, numbered(prog))
+		}
+	}
+}
+
+// An enumeration the C orders is refused: OCaml would order its variant by
+// the constructors, polymorphically.
+func TestMlVariantOrdered(t *testing.T) {
+	requireMl(t)
+	src := javaHost + `
+typedef enum { LOW, HIGH } level_T;
+static int high(level_T l) { return l > LOW; }
+void run(void) { out(high(HIGH)); }
+`
+	dir := t.TempDir()
+	c := filepath.Join(dir, "prog.c")
+	if err := os.WriteFile(c, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var log strings.Builder
+	prof := Profile{MlVariants: []string{"level_T"}, ScmExports: []string{"run"}}
+	if rc := Run([]string{c, dir, "-ml", filepath.Join(dir, "editor.ml")}, &log, prof); rc == 0 || !strings.Contains(log.String(), "level_T ordered") {
+		t.Errorf("an ordered variant was not refused: %d\n%s", rc, log.String())
+	}
+}

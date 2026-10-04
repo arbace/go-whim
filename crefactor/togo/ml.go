@@ -62,10 +62,13 @@ type mlgen struct {
 	members map[string]*mlMember
 	modules map[string]string // a struct's name -> its module
 	modTake map[string]bool
-	enumVal map[string]string // a Scheme enumerator -> its value, as OCaml writes it
-	unitFn  map[string]bool   // a Scheme function name -> its value is ()
-	tables  map[string]bool   // the call-ptr tables used
-	used    map[string]bool   // the names at file scope the functions use
+	enumVal map[string]string  // a Scheme enumerator -> its value, as OCaml writes it
+	variant map[string]*mlEnum // a Scheme enumerator of a variant -> the variant
+	ctorOf  map[string]string  // a Scheme enumerator of a variant -> its constructor
+	venums  []*mlEnum          // the variants, in the order they are declared
+	unitFn  map[string]bool    // a Scheme function name -> its value is ()
+	tables  map[string]bool    // the call-ptr tables used
+	used    map[string]bool    // the names at file scope the functions use
 	st      mlStats
 }
 
@@ -80,6 +83,7 @@ type mlObj struct {
 	read, set, addr string
 	agg, field      bool
 	kind            string
+	variant         *mlEnum // the variant the object's values are, nil for none
 	addrAt          int
 	written         bool
 }
@@ -109,6 +113,7 @@ type mlMember struct {
 	module, read, set, addr string
 	kind                    string
 	off                     int
+	variant                 *mlEnum // the variant its values are, nil for none: read and written through the conversions
 }
 
 // mlStats counts what the printer wrote.
@@ -192,7 +197,10 @@ func (g *gen) writeMl(path string) error {
 	m := &mlgen{s: s, glob: map[string]string{}, taken: map[string]bool{}, renamed: map[string]bool{},
 		objs: map[string]*sobj{}, objOf: map[string]*mlObj{}, fns: map[string]string{}, members: map[string]*mlMember{},
 		modules: map[string]string{}, modTake: map[string]bool{}, enumVal: map[string]string{}, unitFn: map[string]bool{},
-		tables: map[string]bool{}, used: map[string]bool{}}
+		tables: map[string]bool{}, used: map[string]bool{}, variant: map[string]*mlEnum{}, ctorOf: map[string]string{}}
+	if err := m.variants(); err != nil {
+		return err
+	}
 	var report strings.Builder
 	for _, f := range failed {
 		fmt.Fprintf(&report, "initial value of %s\n", f)
@@ -382,7 +390,7 @@ func (m *mlgen) nameAll(taken, read map[string]bool) {
 		o := s.objects[k]
 		m.objs[o.name] = o
 		base := mlMangle(o.name)
-		ob := &mlObj{agg: o.kind == "agg", kind: o.kind, addrAt: o.addr}
+		ob := &mlObj{agg: o.kind == "agg", kind: o.kind, addrAt: o.addr, variant: m.variantOfObject(k)}
 		if !ob.agg && !taken[o.name] && read[o.name] && !m.imageTakes(o) && !m.exported(o.name) {
 			ob.field = true
 			ob.read = base
@@ -408,6 +416,10 @@ func (m *mlgen) nameAll(taken, read map[string]bool) {
 	}
 	sort.Strings(es)
 	for _, n := range es {
+		if c, ok := m.ctorOf[n]; ok {
+			m.glob[n] = c
+			continue
+		}
 		m.glob[n] = m.take(mlMangle(n), n)
 		m.enumVal[n] = s.enums[n]
 	}
@@ -439,7 +451,7 @@ func (m *mlgen) nameAll(taken, read map[string]bool) {
 			return x
 		}
 		f := mlMangle(path)
-		mm := &mlMember{module: mod, kind: sm.kind, off: sm.off}
+		mm := &mlMember{module: mod, kind: sm.kind, off: sm.off, variant: m.variantOfType(sm.ctype)}
 		mm.addr = uniq(f + "_addr")
 		if sm.kind != "agg" {
 			mm.read = uniq(f)
@@ -485,6 +497,18 @@ func (m *mlgen) initial(ob *mlObj) string {
 			return uint64(m.s.image[at+i])
 		}
 		return 0
+	}
+	if ob.variant != nil {
+		bits, _ := mlAccessBits(ob.kind)
+		var v uint64
+		for i := 0; i < bits/8; i++ {
+			v |= b(i) << (8 * i)
+		}
+		c, ok := ob.variant.byVal[int64(int32(v))]
+		if !ok {
+			panic(unsupported{fmt.Sprintf("a variant's object whose initial value, %d, is no enumerator", v)})
+		}
+		return c
 	}
 	if ob.kind == "bool" {
 		if b(0) != 0 {
@@ -573,6 +597,7 @@ func mlKindType(st string) string {
 func (m *mlgen) glueType(mli bool) string {
 	s := m.s
 	var b strings.Builder
+	b.WriteString(m.variantTypes())
 	b.WriteString("(* The host's functions, as the core calls them: the editor carries them. *)\n")
 	b.WriteString("type glue = {\n")
 	for _, n := range s.hostList {
@@ -590,7 +615,11 @@ func (m *mlgen) glueType(mli bool) string {
 			if ob.written {
 				mut = "mutable "
 			}
-			fmt.Fprintf(&b, "  %s%s : %s;\n", mut, ob.read, mlKindType(scmKindOf(ob.kind)))
+			t := mlKindType(scmKindOf(ob.kind))
+			if ob.variant != nil {
+				t = ob.variant.typ
+			}
+			fmt.Fprintf(&b, "  %s%s : %s;\n", mut, ob.read, t)
 		}
 		b.WriteString("}\n\n")
 	}
@@ -680,7 +709,9 @@ func scmKindOf(k string) string {
 func (m *mlgen) header() string {
 	s := m.s
 	var b strings.Builder
+	m.variantNeeds()
 	b.WriteString(m.glueType(false))
+	b.WriteString(m.variantConvs())
 	end := s.litBase + len(s.pool)
 	fmt.Fprintf(&b, "(* The memory: the null page and the function pointers below %d, the\n   file-scope objects from there, the string literals from %d to %d. *)\nlet data_end = %d\n\n", scmBase, s.litBase, end, scmAlign(end, 16))
 
@@ -744,10 +775,18 @@ func (m *mlgen) header() string {
 			fmt.Fprintf(&b, "let %s = %d\n", ob.addr, o.addr)
 		}
 		if m.used[ob.read] {
-			fmt.Fprintf(&b, "let %s ed = ld_%s ed %d\n", ob.read, o.kind, o.addr)
+			ld := fmt.Sprintf("ld_%s ed %d", o.kind, o.addr)
+			if ob.variant != nil {
+				ld = ob.variant.typ + "_of_int (" + ld + ")"
+			}
+			fmt.Fprintf(&b, "let %s ed = %s\n", ob.read, ld)
 		}
 		if m.used[ob.set] {
-			fmt.Fprintf(&b, "let %s ed v = st_%s ed %d v\n", ob.set, o.kind, o.addr)
+			v := "v"
+			if ob.variant != nil {
+				v = "(int_of_" + ob.variant.typ + " v)"
+			}
+			fmt.Fprintf(&b, "let %s ed v = st_%s ed %d %s\n", ob.set, o.kind, o.addr, v)
 		}
 	}
 
@@ -778,10 +817,18 @@ func (m *mlgen) header() string {
 				defs = append(defs, fmt.Sprintf("  let %s p = p + %d\n", mm.addr, mm.off))
 			}
 			if mm.kind != "agg" && m.used[mod+"."+mm.read] {
-				defs = append(defs, fmt.Sprintf("  let %s ed p = ld_%s ed (p + %d)\n", mm.read, mm.kind, mm.off))
+				ld := fmt.Sprintf("ld_%s ed (p + %d)", mm.kind, mm.off)
+				if mm.variant != nil {
+					ld = mm.variant.typ + "_of_int (" + ld + ")"
+				}
+				defs = append(defs, fmt.Sprintf("  let %s ed p = %s\n", mm.read, ld))
 			}
 			if mm.kind != "agg" && m.used[mod+"."+mm.set] {
-				defs = append(defs, fmt.Sprintf("  let %s ed p v = st_%s ed (p + %d) v\n", mm.set, mm.kind, mm.off))
+				v := "v"
+				if mm.variant != nil {
+					v = "(int_of_" + mm.variant.typ + " v)"
+				}
+				defs = append(defs, fmt.Sprintf("  let %s ed p v = st_%s ed (p + %d) %s\n", mm.set, mm.kind, mm.off, v))
 			}
 		}
 		if len(defs) > 0 {

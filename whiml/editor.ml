@@ -3,6 +3,16 @@
 
 open Rt
 
+(* The C's enumerations whose values are only named, compared and matched:
+   variants. *)
+type cmd_addr = Addr_lines | Addr_windows | Addr_unsigned | Addr_other | Addr_none
+type etype = Etype_top | Etype_args | Etype_internal
+type flush_buffers = Flush_minimal | Flush_input
+type keyprot = Keyprotocol_none | Keyprotocol_mok2 | Keyprotocol_kitty | Keyprotocol_fail
+type optmagic = Option_magic_not_set | Option_magic_on | Option_magic_off
+type paste_mode = Paste_insert | Paste_cmdline | Paste_ex | Paste_one_char
+type set_op = Op_none | Op_adding | Op_prepending | Op_removing
+
 (* The host's functions, as the core calls them: the editor carries them. *)
 type glue = {
   host_alloc : ed -> int -> int;
@@ -216,7 +226,7 @@ and state = {
   mutable sub_nlines : int;
   mutable term_is_xterm : int;
   mutable virtual_op : int;
-  mutable magic_overruled : int;
+  mutable magic_overruled : optmagic;
   skip_win_fix_cursor : bool;
   skip_win_fix_scroll : bool;
   mutable skip_update_topline : bool;
@@ -393,6 +403,41 @@ and state = {
 
 and ed = (glue, state) Rt.ed
 
+let cmd_addr_of_int = function
+  | 0 -> Addr_lines
+  | 1 -> Addr_windows
+  | 9 -> Addr_unsigned
+  | 10 -> Addr_other
+  | 11 -> Addr_none
+  | _ -> failwith "not a cmd_addr_T"
+let int_of_cmd_addr = function
+  | Addr_lines -> 0
+  | Addr_windows -> 1
+  | Addr_unsigned -> 9
+  | Addr_other -> 10
+  | Addr_none -> 11
+
+let int_of_etype = function
+  | Etype_top -> 0
+  | Etype_args -> 6
+  | Etype_internal -> 8
+
+let optmagic_of_int = function
+  | 0 -> Option_magic_not_set
+  | 1 -> Option_magic_on
+  | 2 -> Option_magic_off
+  | _ -> failwith "not a optmagic_T"
+let int_of_optmagic = function
+  | Option_magic_not_set -> 0
+  | Option_magic_on -> 1
+  | Option_magic_off -> 2
+
+let int_of_set_op = function
+  | Op_none -> 0
+  | Op_adding -> 1
+  | Op_prepending -> 2
+  | Op_removing -> 3
+
 (* The memory: the null page and the function pointers below 65536, the
    file-scope objects from there, the string literals from 162208 to 176946. *)
 let data_end = 176960
@@ -417,9 +462,6 @@ let musl_wait_for_input ed a0 = ed.glue.musl_wait_for_input ed a0
 let vim_snprintf ed a0 a1 a2 args = ed.glue.vim_snprintf ed a0 a1 a2 args
 
 (* The C's named constants the functions use. *)
-let addr_lines = 0
-let addr_none = 11
-let addr_other = 10
 let add_nl = 30
 let anybut = 22
 let anyof = 21
@@ -606,9 +648,6 @@ let eow = 16
 let err_buflen = 80
 let esc = 27
 let estack_none = 0
-let etype_args = 6
-let etype_internal = 8
-let etype_top = 0
 let exactly = 5
 let exflag_list = 1
 let exflag_nr = 2
@@ -636,8 +675,6 @@ let find_eval = 4
 let find_ident = 1
 let find_noerror = 8
 let find_string = 2
-let flush_input = 2
-let flush_minimal = 0
 let fm_backward = 1
 let fm_blockstop = 4
 let fm_forward = 2
@@ -698,10 +735,6 @@ let int_max = 2147483647
 let int_min = -2147483648
 let jumplistsize = 100
 let keylen_removed = 9999
-let keyprotocol_fail = 3
-let keyprotocol_kitty = 2
-let keyprotocol_mok2 = 1
-let keyprotocol_none = 0
 let ke_command = 103
 let ke_csi = 81
 let ke_esc = 107
@@ -893,8 +926,6 @@ let openline_delspaces = 1
 let openline_force_indent = 64
 let openline_markfix = 8
 let opf_lines = 1
-let option_magic_off = 2
-let option_magic_on = 1
 let opt_free = 1
 let opt_global = 2
 let opt_local = 4
@@ -902,7 +933,6 @@ let opt_nowin = 32
 let opt_no_redraw = 128
 let opt_onecolumn = 64
 let opt_winonly = 16
-let op_adding = 1
 let op_append = 18
 let op_change' = 3
 let op_colon' = 10
@@ -911,12 +941,9 @@ let op_insert' = 17
 let op_join = 13
 let op_lower = 12
 let op_lshift = 4
-let op_none = 0
 let op_nop = 0
 let op_nr_add = 28
 let op_nr_sub = 29
-let op_prepending = 2
-let op_removing = 3
 let op_replace' = 16
 let op_rshift = 5
 let op_tilde' = 7
@@ -924,9 +951,6 @@ let op_upper = 11
 let op_yank' = 2
 let osc = 157
 let out_size = 8191
-let paste_cmdline = 1
-let paste_insert = 0
-let paste_one_char = 3
 let path_max = 4096
 let pb_count_max = 255
 let pc_status_left = 2
@@ -2093,7 +2117,7 @@ module Cmdname = struct
   let cmd_minlen ed p = ld_s32 ed (p + 8)
   let cmd_func ed p = ld_ptr ed (p + 16)
   let cmd_argt ed p = ld_u64 ed (p + 24)
-  let cmd_addr_type ed p = ld_s32 ed (p + 32)
+  let cmd_addr_type ed p = cmd_addr_of_int (ld_s32 ed (p + 32))
 end
 
 module ConvertStruct = struct
@@ -2129,7 +2153,7 @@ module Estack_T = struct
   let set_es_lnum ed p v = st_s64 ed (p + 0) v
   let es_name ed p = ld_ptr ed (p + 8)
   let set_es_name ed p v = st_ptr ed (p + 8) v
-  let set_es_type ed p v = st_s32 ed (p + 16) v
+  let set_es_type ed p v = st_s32 ed (p + 16) (int_of_etype v)
 end
 
 module Exarg_T = struct
@@ -2154,8 +2178,8 @@ module Exarg_T = struct
   let set_line1 ed p v = st_s64 ed (p + 56) v
   let line2 ed p = ld_s64 ed (p + 64)
   let set_line2 ed p v = st_s64 ed (p + 64) v
-  let addr_type ed p = ld_s32 ed (p + 72)
-  let set_addr_type ed p v = st_s32 ed (p + 72) v
+  let addr_type ed p = cmd_addr_of_int (ld_s32 ed (p + 72))
+  let set_addr_type ed p v = st_s32 ed (p + 72) (int_of_cmd_addr v)
   let flags ed p = ld_s32 ed (p + 76)
   let set_flags ed p v = st_s32 ed (p + 76) v
   let set_do_ecmd_cmd ed p v = st_ptr ed (p + 80) v
@@ -2337,8 +2361,8 @@ module Incsearch_state_T = struct
   let set_did_incsearch ed p v = st_bool ed (p + 144) v
   let incsearch_postponed ed p = ld_bool ed (p + 145)
   let set_incsearch_postponed ed p v = st_bool ed (p + 145) v
-  let magic_overruled_save ed p = ld_s32 ed (p + 148)
-  let set_magic_overruled_save ed p v = st_s32 ed (p + 148) v
+  let magic_overruled_save ed p = optmagic_of_int (ld_s32 ed (p + 148))
+  let set_magic_overruled_save ed p v = st_s32 ed (p + 148) (int_of_optmagic v)
 end
 
 module Infoptr_T = struct
@@ -2628,7 +2652,7 @@ module Optset_T = struct
   let set_os_idx ed p v = st_s32 ed (p + 32) v
   let os_flags ed p = ld_s32 ed (p + 36)
   let set_os_flags ed p v = st_s32 ed (p + 36) v
-  let set_os_op ed p v = st_s32 ed (p + 40) v
+  let set_os_op ed p v = st_s32 ed (p + 40) (int_of_set_op v)
   let os_oldval_boolean ed p = ld_s32 ed (p + 48)
   let set_os_oldval_boolean ed p v = st_s32 ed (p + 48) v
   let os_oldval_number ed p = ld_s64 ed (p + 48)
@@ -8551,22 +8575,22 @@ let default_address ed eap =
     lnum
   in
   match Exarg_T.addr_type ed eap with
-  | 0 (* ADDR_LINES *) | 10 (* ADDR_OTHER *) ->
+  | Addr_lines | Addr_other ->
       if Win_T.w_cursor_lnum ed ed.st.curwin > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
         join6 (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
       else
         join6 (Win_T.w_cursor_lnum ed ed.st.curwin)
-  | 1 (* ADDR_WINDOWS *) | 9 (* ADDR_UNSIGNED *) -> join6 1
-  | _ -> join6 0
+  | Addr_windows | Addr_unsigned -> join6 1
+  | Addr_none -> join6 0
 
 let getmark ed c changefile =
   getmark_buf_fnum ed ed.st.curbuf c changefile 0
 
 let magic_isset ed =
   match ed.st.magic_overruled with
-  | 1 (* OPTION_MAGIC_ON *) -> true_
-  | 2 (* OPTION_MAGIC_OFF *) -> false_
-  | _ -> p_magic ed
+  | Option_magic_on -> true_
+  | Option_magic_off -> false_
+  | Option_magic_not_set -> p_magic ed
 
 let other_sourcing_name ed =
   if Garray_T.ga_data ed exestack <> 0 &&
@@ -8830,13 +8854,13 @@ let invalid_range ed eap =
     0
   else
     match Exarg_T.addr_type ed eap with
-    | 0 (* ADDR_LINES *) ->
+    | Addr_lines ->
         if Exarg_T.line2 ed eap > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
           e_invalid_range
         else
           0
-    | 1 (* ADDR_WINDOWS *) -> if Exarg_T.line2 ed eap > 1 then e_invalid_range else 0
-    | _ -> 0
+    | Addr_windows -> if Exarg_T.line2 ed eap > 1 then e_invalid_range else 0
+    | Addr_unsigned | Addr_other | Addr_none -> 0
 
 let correct_range ed eap =
   if Exarg_T.argt ed eap land ex_zeror = 0 then
@@ -14579,16 +14603,16 @@ and bracketed_paste ed mode drop gap' =
             join22 ret_char
           else
             match mode with
-            | 1 (* PASTE_CMDLINE *) ->
+            | Paste_cmdline ->
                 ignore (put_on_cmdline ed buf idx true);
                 join22 ret_char
-            | 2 (* PASTE_EX *) ->
+            | Paste_ex ->
                 if gap' <> 0 && ga_grow ed gap' (idx + 1) then
                   (ignore (musl_memmove ed (Garray_T.ga_data ed gap' + Garray_T.ga_len ed gap') buf
                       idx);
                    Garray_T.set_ga_len ed gap' (Garray_T.ga_len ed gap' + idx));
                 join22 ret_char
-            | 0 (* PASTE_INSERT *) ->
+            | Paste_insert ->
                 if stop_arrow ed then
                   (let c = ld_u8 ed buf in
                    if idx = 1 && (c = car || c = k_kenter || c = nl) then
@@ -14599,9 +14623,8 @@ and bracketed_paste ed mode drop gap' =
                    join22 ret_char)
                 else
                   join22 ret_char
-            | 3 (* PASTE_ONE_CHAR *) ->
+            | Paste_one_char ->
                 if ret_char = -1 then join22 (utf_ptr2char ed buf) else join22 ret_char
-            | _ -> join22 ret_char
       in
       loop7 ()
   in
@@ -14874,7 +14897,7 @@ and do_one_cmd ed cmdlinep flags fgetline =
          if n <= 0 && Exarg_T.argt ed ea land ex_zeror = 0 then
            (st_ptr ed errormsg_addr e_positive_count_required;
             join92 save_reg_executing save_pending_end_reg_executing sourcing did_append_cmd)
-         else if Exarg_T.addr_type ed ea = addr_lines then
+         else if Exarg_T.addr_type ed ea = Addr_lines then
            (Exarg_T.set_line1 ed ea (Exarg_T.line2 ed ea);
             if Exarg_T.line2 ed ea >= long_max - (n - 1) then
               Exarg_T.set_line2 ed ea long_max
@@ -14951,7 +14974,7 @@ and do_one_cmd ed cmdlinep flags fgetline =
         let p = find_ex_command ed ea 0 in
         Exarg_T.set_cmd ed ea cmd;
         if Exarg_T.cmdidx ed ea = cmd_size then
-          Exarg_T.set_addr_type ed ea addr_lines
+          Exarg_T.set_addr_type ed ea Addr_lines
         else
           Exarg_T.set_addr_type ed ea
             (Cmdname.cmd_addr_type ed (cmdnames + Exarg_T.cmdidx ed ea * 40));
@@ -14981,7 +15004,7 @@ and do_one_cmd ed cmdlinep flags fgetline =
                          join50 save_reg_executing save_pending_end_reg_executing sourcing
                            did_append_cmd
                      in
-                     if Exarg_T.addr_type ed ea = addr_other && Exarg_T.addr_count ed ea = 0 then
+                     if Exarg_T.addr_type ed ea = Addr_other && Exarg_T.addr_count ed ea = 0 then
                        Exarg_T.set_line2 ed ea 1;
                      correct_range ed ea;
                      Exarg_T.set_arg ed ea (skipwhite ed p);
@@ -15299,16 +15322,16 @@ and parse_cmd_address ed eap errormsg silent =
       (if ld_char ed (Exarg_T.cmd ed eap) = '%' then
          (Exarg_T.set_cmd ed eap (Exarg_T.cmd ed eap + 1);
           match Exarg_T.addr_type ed eap with
-          | 0 (* ADDR_LINES *) | 10 (* ADDR_OTHER *) ->
+          | Addr_lines | Addr_other ->
               Exarg_T.set_line1 ed eap 1;
               Exarg_T.set_line2 ed eap (Buf_T.b_ml_ml_line_count ed ed.st.curbuf);
               join15 ()
-          | 1 (* ADDR_WINDOWS *) | 9 (* ADDR_UNSIGNED *) ->
+          | Addr_windows | Addr_unsigned ->
               st_ptr ed errormsg e_invalid_range;
               join27 ret
-          | _ -> join15 ())
+          | Addr_none -> join15 ())
        else if ld_char ed (Exarg_T.cmd ed eap) = '*' && vim_strchr ed (p_cpo ed) cpo_star = 0 then
-         (if Exarg_T.addr_type ed eap = addr_lines then
+         (if Exarg_T.addr_type ed eap = Addr_lines then
             (Exarg_T.set_cmd ed eap (Exarg_T.cmd ed eap + 1);
              let fp = getmark ed (Char.code '<') false in
              if check_mark ed fp then
@@ -15334,7 +15357,7 @@ and parse_cmd_address ed eap errormsg silent =
   loop1 1 false false
 
 and addr_error ed addr_type =
-  if addr_type = addr_none then
+  if addr_type = Addr_none then
     ignore (emsg ed e_no_range_allowed)
   else
     ignore (emsg ed e_invalid_range)
@@ -15372,28 +15395,25 @@ and get_address ed _eap ptr addr_type skip silent to_other_file _address_count =
     | '.' ->
         (st_ptr ed cmd_addr (ld_ptr ed cmd_addr + 1);
          match addr_type with
-         | 0 (* ADDR_LINES *) | 10 (* ADDR_OTHER *) -> loop52 (Win_T.w_cursor_lnum ed ed.st.curwin)
-         | 1 (* ADDR_WINDOWS *) -> loop52 1
-         | 11 (* ADDR_NONE *) | 9 (* ADDR_UNSIGNED *) ->
+         | Addr_lines | Addr_other -> loop52 (Win_T.w_cursor_lnum ed ed.st.curwin)
+         | Addr_windows -> loop52 1
+         | Addr_none | Addr_unsigned ->
              addr_error ed addr_type;
              st_ptr ed cmd_addr 0;
              st_ptr ed ptr (ld_ptr ed cmd_addr);
              frame_pop ed fr;
-             lnum
-         | _ -> loop52 lnum)
+             lnum)
     | '$' ->
         (st_ptr ed cmd_addr (ld_ptr ed cmd_addr + 1);
          match addr_type with
-         | 0 (* ADDR_LINES *) | 10 (* ADDR_OTHER *) ->
-             loop52 (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
-         | 1 (* ADDR_WINDOWS *) -> loop52 1
-         | 11 (* ADDR_NONE *) | 9 (* ADDR_UNSIGNED *) ->
+         | Addr_lines | Addr_other -> loop52 (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
+         | Addr_windows -> loop52 1
+         | Addr_none | Addr_unsigned ->
              addr_error ed addr_type;
              st_ptr ed cmd_addr 0;
              st_ptr ed ptr (ld_ptr ed cmd_addr);
              frame_pop ed fr;
-             lnum
-         | _ -> loop52 lnum)
+             lnum)
     | '\'' ->
         st_ptr ed cmd_addr (ld_ptr ed cmd_addr + 1);
         if ld_u8 ed (ld_ptr ed cmd_addr) = nul then
@@ -15401,7 +15421,7 @@ and get_address ed _eap ptr addr_type skip silent to_other_file _address_count =
            st_ptr ed ptr (ld_ptr ed cmd_addr);
            frame_pop ed fr;
            lnum)
-        else if addr_type <> addr_lines then
+        else if addr_type <> Addr_lines then
           (addr_error ed addr_type;
            st_ptr ed cmd_addr 0;
            st_ptr ed ptr (ld_ptr ed cmd_addr);
@@ -15427,7 +15447,7 @@ and get_address ed _eap ptr addr_type skip silent to_other_file _address_count =
         let t1 = ld_ptr ed cmd_addr in
         st_ptr ed cmd_addr (ld_ptr ed cmd_addr + 1);
         let c = ld_u8 ed t1 in
-        if addr_type <> addr_lines then
+        if addr_type <> Addr_lines then
           (addr_error ed addr_type;
            st_ptr ed cmd_addr 0;
            st_ptr ed ptr (ld_ptr ed cmd_addr);
@@ -15467,7 +15487,7 @@ and get_address ed _eap ptr addr_type skip silent to_other_file _address_count =
              loop52 lnum)
     | '\\' ->
         (st_ptr ed cmd_addr (ld_ptr ed cmd_addr + 1);
-         if addr_type <> addr_lines then
+         if addr_type <> Addr_lines then
            (addr_error ed addr_type;
             st_ptr ed cmd_addr 0;
             st_ptr ed ptr (ld_ptr ed cmd_addr);
@@ -15504,10 +15524,9 @@ and get_address ed _eap ptr addr_type skip silent to_other_file _address_count =
           lnum))
     else if lnum = long_max then
       (match addr_type with
-       | 0 (* ADDR_LINES *) | 10 (* ADDR_OTHER *) -> join58 (Win_T.w_cursor_lnum ed ed.st.curwin)
-       | 1 (* ADDR_WINDOWS *) -> join58 1
-       | 11 (* ADDR_NONE *) | 9 (* ADDR_UNSIGNED *) -> join58 0
-       | _ -> join58 lnum)
+       | Addr_lines | Addr_other -> join58 (Win_T.w_cursor_lnum ed ed.st.curwin)
+       | Addr_windows -> join58 1
+       | Addr_none | Addr_unsigned -> join58 0)
     else
       join58 lnum
   and join58 lnum =
@@ -15550,12 +15569,10 @@ and get_address ed _eap ptr addr_type skip silent to_other_file _address_count =
 and address_default_all ed eap =
   Exarg_T.set_line1 ed eap 1;
   match Exarg_T.addr_type ed eap with
-  | 0 (* ADDR_LINES *) | 10 (* ADDR_OTHER *) ->
-      Exarg_T.set_line2 ed eap (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
-  | 1 (* ADDR_WINDOWS *) -> Exarg_T.set_line2 ed eap 1
-  | 11 (* ADDR_NONE *) | 9 (* ADDR_UNSIGNED *) ->
+  | Addr_lines | Addr_other -> Exarg_T.set_line2 ed eap (Buf_T.b_ml_ml_line_count ed ed.st.curbuf)
+  | Addr_windows -> Exarg_T.set_line2 ed eap 1
+  | Addr_none | Addr_unsigned ->
       iemsg ed 163289 (* "Cannot use EX_DFLALL with ADDR_NONE or ADDR_UNSIGNED" *)
-  | _ -> ()
 
 and separate_nextcmd ed eap _keep_backslash =
   let join12 () =
@@ -15977,7 +15994,7 @@ and flush_buffers ed flush_typeahead =
       loop1 ()
     else
       match flush_typeahead with
-      | 0 (* FLUSH_MINIMAL *) ->
+      | Flush_minimal ->
           if Typebuf_T.tb_off ed typebuf + Typebuf_T.tb_maplen ed typebuf >=
              Typebuf_T.tb_buflen ed typebuf then
             (Typebuf_T.set_tb_off ed typebuf maxmaplen;
@@ -15988,7 +16005,7 @@ and flush_buffers ed flush_typeahead =
              Typebuf_T.set_tb_len ed typebuf
                (Typebuf_T.tb_len ed typebuf - Typebuf_T.tb_maplen ed typebuf));
           join11 ()
-      | 2 (* FLUSH_INPUT *) ->
+      | Flush_input ->
           let rec loop5 () =
             if inchar ed (Typebuf_T.tb_buf ed typebuf) (Typebuf_T.tb_buflen ed typebuf - 1) 10 =
                0 then
@@ -15997,7 +16014,6 @@ and flush_buffers ed flush_typeahead =
               loop5 ()
           in
           loop5 ()
-      | _ -> join6 ()
   in
   loop1 ()
 
@@ -16363,7 +16379,7 @@ and plain_vgetc ed =
     c
   in
   let c = plain_vgetc_nopaste ed in
-  if c = k_pastestart then join2 (bracketed_paste ed paste_one_char false 0) else join2 c
+  if c = k_pastestart then join2 (bracketed_paste ed Paste_one_char false 0) else join2 c
 
 and vpeekc ed =
   if can_get_old_char ed then ed.st.old_char else vgetorpeek ed false
@@ -16473,7 +16489,7 @@ and handle_mapping ed keylenp timedout mapdepth =
            if mapdepth >= p_mmd ed then
              (ignore (emsg ed e_recursive_mapping);
               if ed.st.state land mode_cmdline = 0 then setcursor ed else redrawcmdline ed;
-              flush_buffers ed flush_minimal;
+              flush_buffers ed Flush_minimal;
               frame_pop ed fr;
               (map_result_fail, keylen, timedout, 0))
            else
@@ -16835,7 +16851,7 @@ and vgetorpeek ed advance =
     if ed.st.got_int <> 0 then
       (let c = inchar ed (Typebuf_T.tb_buf ed typebuf) (Typebuf_T.tb_buflen ed typebuf - 1) 0 in
        let join103 c =
-         flush_buffers ed flush_input;
+         flush_buffers ed Flush_input;
          if advance then
            (st_u8 ed (Typebuf_T.tb_buf ed typebuf) (to_u8 c);
             gotchars ed (Typebuf_T.tb_buf ed typebuf) 1);
@@ -19767,7 +19783,7 @@ and emsg_core ed s =
        (ed.st.msg_silent <- 0;
         ed.st.cmd_silent <- false;
         if ed.st.global_busy <> 0 then ed.st.global_busy <- ed.st.global_busy + 1;
-        if p_eb ed = 0 then flush_buffers ed flush_minimal else beep_flush ed;
+        if p_eb ed = 0 then flush_buffers ed Flush_minimal else beep_flush ed;
         ed.st.did_emsg <- ed.st.did_emsg + 1;
         join8 ())
      else if ed.st.emsg_noredir = 0 then
@@ -20857,7 +20873,7 @@ and get_keystroke ed =
 
 and beep_flush ed =
   if ed.st.emsg_silent = 0 then
-    (flush_buffers ed flush_minimal;
+    (flush_buffers ed Flush_minimal;
      vim_beep ed bo_error)
 
 and preserve_exit ed =
@@ -23618,7 +23634,7 @@ and set_string_option ed opt_idx value opt_flags errbuf errbuflen =
     let oldval = ld_ptr ed varp in
     st_ptr ed varp s;
     let errmsg =
-      did_set_string_option ed opt_idx varp oldval value errbuf errbuflen opt_flags op_none
+      did_set_string_option ed opt_idx varp oldval value errbuf errbuflen opt_flags Op_none
         value_checked_addr
     in
     if errmsg = 0 then did_set_option ed opt_idx opt_flags true (ld_s32 ed value_checked_addr);
@@ -38362,7 +38378,7 @@ let edit ed cmdchar startln count_in =
             let (r11, r12) = ins_bs ed c backspace_line inserted_space in
             join179 c r11 false r11 r12
         | -21328 (* K_PASTESTART *) ->
-            ignore (bracketed_paste ed paste_insert false 0);
+            ignore (bracketed_paste ed Paste_insert false 0);
             if cmdchar = k_pastestart then
               (if edit_esc ed count_addr cmdchar nomove edit__o_lnum_addr then
                  (frame_pop ed fr;
@@ -42200,7 +42216,7 @@ let ex_copymove ed eap =
 let ex_submagic ed eap =
   let saved = ed.st.magic_overruled in
   ed.st.magic_overruled <-
-    (if Exarg_T.cmdidx ed eap = cmd_smagic then option_magic_on else option_magic_off);
+    (if Exarg_T.cmdidx ed eap = cmd_smagic then Option_magic_on else Option_magic_off);
   ex_substitute ed eap;
   ed.st.magic_overruled <- saved
 
@@ -46227,7 +46243,7 @@ let parse_pattern_and_range ed incsearch_start search_delim skiplen patlen =
   Exarg_T.set_line1 ed ea 1;
   Exarg_T.set_line2 ed ea 1;
   Exarg_T.set_cmd ed ea (Cmdline_info_T.cmdbuff ed ccline);
-  Exarg_T.set_addr_type ed ea addr_lines;
+  Exarg_T.set_addr_type ed ea Addr_lines;
   ignore (parse_command_modifiers ed ea dummy_addr dummy_cmdmod true);
   let cmd = skip_range ed (Exarg_T.cmd ed ea) true 0 in
   if vim_strchr ed 163467 (* "sgvlu" *) (ld_u8 ed cmd) = 0 then
@@ -46248,10 +46264,10 @@ let parse_pattern_and_range ed incsearch_start search_delim skiplen patlen =
          musl_strncmp ed cmd 163393 (* "snomagic" *) (if p - cmd > 3 then p - cmd else 3) = 0 ||
          musl_strncmp ed cmd 163402 (* "vglobal" *) (p - cmd) = 0 then
         (if ld_char ed cmd = 's' && ld_char ed (cmd + 1) = 'm' then
-           ed.st.magic_overruled <- option_magic_on
+           ed.st.magic_overruled <- Option_magic_on
          else
            if ld_char ed cmd = 's' && ld_char ed (cmd + 1) = 'n' then
-             ed.st.magic_overruled <- option_magic_off;
+             ed.st.magic_overruled <- Option_magic_off;
          join26 cmd p false)
       else if musl_strncmp ed cmd 163410 (* "sort" *) (if p - cmd > 3 then p - cmd else 3) = 0 ||
          musl_strncmp ed cmd 163415 (* "uniq" *) (if p - cmd > 3 then p - cmd else 3) = 0 then
@@ -47444,7 +47460,7 @@ let getcmdline_int ed firstc count indent clear_ccline =
                        cursorcmd ed);
                     join48 c false may_add_char_to_search__o_r__ may_add_char_to_search__o_c
                 | -21328 (* K_PASTESTART *) ->
-                    ignore (bracketed_paste ed paste_cmdline false 0);
+                    ignore (bracketed_paste ed Paste_cmdline false 0);
                     join96 lookfor lookforlen hiscnt histype save_msg_scroll save_State
                       some_key_typed did_save_ccline wild_type prev_cmdbuff trigger_cmdlinechanged
                       prev_cmdpos cmdline_browse_history__o_r__ cmdline_browse_history__o_curcmdstr
@@ -48889,7 +48905,7 @@ let check_map_keycodes ed =
       join32 p
   in
   validate_maphash ed;
-  ignore (estack_push ed etype_internal 164128 (* "mappings" *) 0);
+  ignore (estack_push ed Etype_internal 164128 (* "mappings" *) 0);
   loop1 ed.st.curbuf
 
 let add_map ed map_ mode nore =
@@ -52404,7 +52420,7 @@ let nv_edit ed cap =
   else if Buf_T.b_p_ma ed ed.st.curbuf = 0 && p_im ed = 0 then
     (ignore (emsg ed e_cannot_make_changes_modifiable_is_off);
      clearop ed (Cmdarg_T.oap ed cap);
-     if Cmdarg_T.cmdchar ed cap = k_pastestart then ignore (bracketed_paste ed paste_insert true 0))
+     if Cmdarg_T.cmdchar ed cap = k_pastestart then ignore (bracketed_paste ed Paste_insert true 0))
   else if Cmdarg_T.cmdchar ed cap = k_pastestart && ed.st.visual_active then
     (let old_pos_lnum = Win_T.w_cursor_lnum ed ed.st.curwin in
      let old_pos_col = Win_T.w_cursor_col ed ed.st.curwin in
@@ -52448,7 +52464,7 @@ let nv_edit ed cap =
           ignore (inc_cursor ed);
         join32 ()))
   else if checkclearopq ed (Cmdarg_T.oap ed cap) then
-    (if Cmdarg_T.cmdchar ed cap = k_pastestart then ignore (bracketed_paste ed paste_insert true 0))
+    (if Cmdarg_T.cmdchar ed cap = k_pastestart then ignore (bracketed_paste ed Paste_insert true 0))
   else
     match Cmdarg_T.cmdchar ed cap with
     | 65 (* 'A' *) ->
@@ -54012,12 +54028,12 @@ let get_opt_op ed arg =
   in
   if ld_u8 ed arg <> nul && ld_char ed (arg + 1) = '=' then
     (match ld_char ed arg with
-     | '+' -> join7 op_adding
-     | '^' -> join7 op_prepending
-     | '-' -> join7 op_removing
-     | _ -> join7 op_none)
+     | '+' -> join7 Op_adding
+     | '^' -> join7 Op_prepending
+     | '-' -> join7 Op_removing
+     | _ -> join7 Op_none)
   else
-    join7 op_none
+    join7 Op_none
 
 let validate_opt_idx ed opt_idx opt_flags _flags _errmsg _prefix =
   if opt_flags land opt_winonly <> 0 &&
@@ -54163,7 +54179,7 @@ let stropt_copy_value ed origval argp op _flags =
     let newval = alloc ed newlen in
     loop3 arg newval newval
   in
-  if op = op_none then
+  if op = Op_none then
     join2 newlen
   else
     join2 (u32_add newlen (u32_add (to_u32 (musl_strlen ed origval)) 1))
@@ -54179,7 +54195,7 @@ let stropt_expand_envvar ed opt_idx origval newval op =
       ignore (musl_strcpy ed newval s);
       newval
     in
-    if op = op_none then
+    if op = Op_none then
       join3 newlen
     else
       join3 (u32_add newlen (u32_add (to_u32 (musl_strlen ed origval)) 1))
@@ -54189,7 +54205,7 @@ let stropt_concat_with_comma ed origval newval op flags =
   let join5 len =
     if comma then st_u8 ed (newval + len) (Char.code ',')
   in
-  if op = op_adding then
+  if op = Op_adding then
     (let len = to_i32 (musl_strlen ed origval) in
      let join4 len =
        ignore (musl_memmove
@@ -54299,40 +54315,40 @@ let stropt_handle_keymatch ed origval newval op _flags =
       (let colon = vim_strchr ed item_start (Char.code ':') in
        if colon <> 0 && colon < item_start + item_len then
          (let keylen = to_i32 (colon - item_start) + 1 in
-          if op = op_adding || op = op_prepending then
+          if op = Op_adding || op = Op_prepending then
             (let (r1, r2) = find_key_item ed newval item_start keylen old_itemlen in
              if r1 <> 0 then
                (if r2 = item_len && musl_strncmp ed r1 item_start item_len = 0 then
                   remove_key_item ed newval item_start keylen r1
                 else
                   (remove_key_item ed newval item_start keylen 0;
-                   if op = op_prepending then
+                   if op = Op_prepending then
                      prepend_item ed newval item_start item_len
                    else
                      append_item ed newval item_start item_len))
-             else if op = op_prepending then
+             else if op = Op_prepending then
                prepend_item ed newval item_start item_len
              else
                append_item ed newval item_start item_len;
              join24 r2 r1 r2)
           else
-            (if op = op_removing then remove_key_item ed newval item_start keylen 0;
+            (if op = Op_removing then remove_key_item ed newval item_start keylen 0;
              join24 old_itemlen find_key_item__o_r__ find_key_item__o_itemlenp))
        else
          match op with
-         | 1 (* OP_ADDING *) | 2 (* OP_PREPENDING *) ->
+         | Op_adding | Op_prepending ->
              let found_2 = find_dup_item ed newval item_start item_len p_comma in
              if found_2 = 0 then
-               (if op = op_prepending then
+               (if op = Op_prepending then
                   prepend_item ed newval item_start item_len
                 else
                   append_item ed newval item_start item_len);
              join24 old_itemlen find_key_item__o_r__ find_key_item__o_itemlenp
-         | 3 (* OP_REMOVING *) ->
+         | Op_removing ->
              let found_3 = find_dup_item ed newval item_start item_len p_comma in
              if found_3 <> 0 then remove_comma_item ed newval found_3 item_len;
              join24 old_itemlen find_key_item__o_r__ find_key_item__o_itemlenp
-         | _ -> join24 old_itemlen find_key_item__o_r__ find_key_item__o_itemlenp)
+         | Op_none -> join24 old_itemlen find_key_item__o_r__ find_key_item__o_itemlenp)
     else
       join24 old_itemlen find_key_item__o_r__ find_key_item__o_itemlenp
   in
@@ -54388,18 +54404,18 @@ let stropt_get_newval ed nextchar opt_idx argp varp_in origval_arg origval_l_arg
           opt_backspace_nr2str__o_origval_g_p opt_backspace_nr2str__o_oldval_p
       in
       let join14 op s len =
-        if op = op_adding || op = op_prepending then
+        if op = Op_adding || op = Op_prepending then
           stropt_concat_with_comma ed origval newval op flags
         else
-          if op = op_removing then stropt_remove_val ed origval newval flags s len;
+          if op = Op_removing then stropt_remove_val ed origval newval flags s len;
         join18 op
       in
       if flags land p_comma <> 0 &&
          flags land p_colon <> 0 &&
-         op <> op_none &&
+         op <> Op_none &&
          stropt_handle_keymatch ed origval newval op flags then
         join18 op
-      else if op = op_removing || flags land p_nodup <> 0 then
+      else if op = Op_removing || flags land p_nodup <> 0 then
         (let len = to_i32 (musl_strlen ed newval) in
          let s = find_dup_item ed origval newval len flags in
          let join12 op =
@@ -54408,15 +54424,15 @@ let stropt_get_newval ed nextchar opt_idx argp varp_in origval_arg origval_l_arg
            else
              join14 op s len
          in
-         if (op = op_adding || op = op_prepending) && s <> 0 then
+         if (op = Op_adding || op = Op_prepending) && s <> 0 then
            (ignore (musl_strcpy ed newval origval);
-            join12 op_none)
+            join12 Op_none)
          else
            join12 op)
       else
         join14 op s 0
     in
-    if op = op_none || flags land p_comma <> 0 then
+    if op = Op_none || flags land p_comma <> 0 then
       (let newval = stropt_expand_envvar ed opt_idx origval newval op in
        if newval = 0 then
          join21 origval origval_l origval_g oldval op save_arg newval out___r__ out___argp
@@ -54470,7 +54486,7 @@ let do_set_option_string ed opt_idx opt_flags argp nextchar op_arg flags cp_val 
       if r13 = 0 then st_ptr ed (Optvar_T.ov_str ed varp) ed.st.empty_option;
       let p = Vimoption.flags_addr (options + opt_idx * 112) in
       let secure_saved = ed.st.secure in
-      if r19 <> op_none && ld_u64 ed p land p_insecure <> 0 then ed.st.secure <- 1;
+      if r19 <> Op_none && ld_u64 ed p land p_insecure <> 0 then ed.st.secure <- 1;
       let errmsg =
         did_set_string_option ed opt_idx (Optvar_T.ov_str ed varp) r18 r13 errbuf errbuflen
           opt_flags r19 value_checked
@@ -54557,12 +54573,12 @@ let do_set_option_numeric ed opt_idx opt_flags argp nextchar op flags cp_val var
     let arg = argp + 1 in
     let join7 _out___r__ _out___argp =
       (match op with
-       | 1 (* OP_ADDING *) ->
+       | Op_adding ->
            st_s64 ed value_addr (ld_s64 ed (Optvar_T.ov_long ed varp) + ld_s64 ed value_addr)
-       | 2 (* OP_PREPENDING *) ->
+       | Op_prepending ->
            st_s64 ed value_addr (ld_s64 ed (Optvar_T.ov_long ed varp) * ld_s64 ed value_addr)
-       | _ ->
-           if op = op_removing then
+       | Op_none | Op_removing ->
+           if op = Op_removing then
              st_s64 ed value_addr (ld_s64 ed (Optvar_T.ov_long ed varp) - ld_s64 ed value_addr));
       if Optvar_T.ov_long ed varp = Win_T.w_onebuf_opt_wo_sop_addr ed.st.curwin &&
          ld_s64 ed value_addr < -1 then
@@ -54625,7 +54641,7 @@ let do_set_option_value ed opt_idx opt_flags argp prefix op flags varp_in key_na
   let value_checked_addr = fr + 32 in
   let join14 errmsg arg _out___r__ _out___argp _do_set_option_keycode__o_r__ _do_set_option_keycode__o_argp _do_set_option_numeric__o_r__ _do_set_option_numeric__o_argp _do_set_option_string__o_r__ _do_set_option_string__o_argp _do_set_option_string__o_errmsg =
     if opt_idx >= 0 then
-      did_set_option ed opt_idx opt_flags (op = op_none) (ld_s32 ed value_checked_addr);
+      did_set_option ed opt_idx opt_flags (op = Op_none) (ld_s32 ed value_checked_addr);
     frame_pop ed fr;
     (errmsg, arg)
   in
@@ -54880,7 +54896,7 @@ let do_set_option ed opt_flags argp _arg_start _startarg did_show stopopteval er
                 st_u8 ed (key_name + 1) (to_u8 (key land 255)));
              join12 p_string
          in
-         if op = op_none then
+         if op = Op_none then
            join5 r12 r14 len 0 false 0 0 r11 r12 r13 r14
          else
            join5 r12 r14 (len + 1) 0 false 0 0 r11 r12 r13 r14
@@ -55854,9 +55870,9 @@ let accept_modifiers_for_function_keys ed =
   loop1 0
 
 let apply_keyprotocol ed term prot =
-  if prot = keyprotocol_kitty then apply_builtin_tcap ed term builtin_kitty true;
-  if prot = keyprotocol_mok2 then apply_builtin_tcap ed term builtin_mok2 true;
-  if prot <> keyprotocol_none then accept_modifiers_for_function_keys ed
+  if prot = Keyprotocol_kitty then apply_builtin_tcap ed term builtin_kitty true;
+  if prot = Keyprotocol_mok2 then apply_builtin_tcap ed term builtin_mok2 true;
+  if prot <> Keyprotocol_none then accept_modifiers_for_function_keys ed
 
 let match_keyprotocol ed term =
   let fr = frame_push ed 176 in
@@ -55864,7 +55880,7 @@ let match_keyprotocol ed term =
   let rec loop1 len buf ret p _copy_option_part__o_r__ _copy_option_part__o_option =
     if ld_u8 ed p = nul then
       (frame_pop ed fr;
-       keyprotocol_none)
+       Keyprotocol_none)
     else
       let (r1, r2) = copy_option_part ed p buf len 163844 (* "," *) in
       let colon = vim_strchr ed buf (Char.code ':') in
@@ -55890,23 +55906,23 @@ let match_keyprotocol ed term =
       else
         (st_u8 ed colon nul;
          if musl_strcmp ed (colon + 1) 164243 (* "none" *) = 0 then
-           join11 r2 keyprotocol_none r1 r2
+           join11 r2 Keyprotocol_none r1 r2
          else if musl_strcmp ed (colon + 1) 166694 (* "mok2" *) = 0 then
-           join11 r2 keyprotocol_mok2 r1 r2
+           join11 r2 Keyprotocol_mok2 r1 r2
          else if musl_strcmp ed (colon + 1) 166636 (* "kitty" *) = 0 then
-           join11 r2 keyprotocol_kitty r1 r2
+           join11 r2 Keyprotocol_kitty r1 r2
          else
            (frame_pop ed fr;
             ret))
   in
   let len = to_i32 (musl_strlen ed (p_kpc ed)) + 1 in
   let buf = alloc ed len in
-  loop1 len buf keyprotocol_fail (p_kpc ed) 0 0
+  loop1 len buf Keyprotocol_fail (p_kpc ed) 0 0
 
 let did_set_keyprotocol ed _args =
   let term = ld_ptr ed term_strings in
   let kpc = match_keyprotocol ed term in
-  if kpc = keyprotocol_fail then
+  if kpc = Keyprotocol_fail then
     e_invalid_argument
   else
     (apply_keyprotocol ed term kpc;
@@ -56384,7 +56400,7 @@ let ex_display ed eap =
 let estack_init ed =
   if not (ga_grow ed exestack 10) then mch_exit ed 0;
   let entry = Garray_T.ga_data ed exestack + Garray_T.ga_len ed exestack * 24 in
-  Estack_T.set_es_type ed entry etype_top;
+  Estack_T.set_es_type ed entry Etype_top;
   Estack_T.set_es_name ed entry 0;
   Estack_T.set_es_lnum ed entry 0;
   Garray_T.set_ga_len ed exestack (Garray_T.ga_len ed exestack + 1)
@@ -56728,7 +56744,7 @@ let create_windows ed _parmp =
 let exe_commands ed parmp =
   ed.st.msg_scroll <- true_;
   if Win_T.w_cursor_lnum ed ed.st.curwin <= 1 then Win_T.set_w_cursor_lnum ed ed.st.curwin 0;
-  ignore (estack_push ed etype_args 167403 (* "command line" *) 0);
+  ignore (estack_push ed Etype_args 167403 (* "command line" *) 0);
   let rec loop3 i =
     if i < Mparm_T.n_commands ed parmp then
       (ignore (do_cmdline_cmd ed (ld_ptr ed (Mparm_T.commands_addr parmp + i * 8)));
@@ -57226,7 +57242,7 @@ let new_editor glue =
     sub_nlines = 0;
     term_is_xterm = 0;
     virtual_op = 2;
-    magic_overruled = 0;
+    magic_overruled = Option_magic_not_set;
     skip_win_fix_cursor = false;
     skip_win_fix_scroll = false;
     skip_update_topline = false;

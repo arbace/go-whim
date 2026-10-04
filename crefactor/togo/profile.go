@@ -122,6 +122,11 @@ type Profile struct {
 	// ScmPure writes a function that touches no memory without the editor
 	// (effects.go).
 	ScmNoOuts, ScmNoStructValues, ScmPure bool
+
+	// MlVariants are the C enumerations, by typedef or tag, the OCaml
+	// backend writes as variants (ml_enum.go): those whose values OCaml
+	// types apart from every integer, which its type checker proves.
+	MlVariants []string
 }
 
 // ByteFuncs are the program's memmove and memcpy (Memmove), memset

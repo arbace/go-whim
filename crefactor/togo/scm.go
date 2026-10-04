@@ -89,8 +89,9 @@ type sobj struct {
 // smember is a member's accessor: the kind it reads (agg: its address
 // alone) at off from the struct's address.
 type smember struct {
-	kind string
-	off  int
+	kind  string
+	off   int
+	ctype cc.Type // the member's C type, where an accessor names one (the OCaml's variants)
 }
 
 // scmReserved are the names a C name may not take: the Scheme the library
@@ -901,7 +902,7 @@ func (s *sgen) structName(t cc.Type) string {
 
 // useMember is the accessor name, defined to read kind st at off, or ""
 // when the name reads something else already.
-func (s *sgen) useMember(name, st string, off int) string {
+func (s *sgen) useMember(name, st string, off int, ct cc.Type) string {
 	kind := "agg"
 	if st != "agg" {
 		kind = scmAccess(st)
@@ -909,7 +910,7 @@ func (s *sgen) useMember(name, st string, off int) string {
 	m, ok := s.members[name]
 	switch {
 	case !ok:
-		s.members[name] = &smember{kind: kind, off: off}
+		s.members[name] = &smember{kind: kind, off: off, ctype: ct}
 	case m.off != off:
 		return ""
 	case kind == "agg":

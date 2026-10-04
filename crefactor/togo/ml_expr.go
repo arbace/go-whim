@@ -704,13 +704,32 @@ func (f *mlfn) match(scr *sform, arms []mlCase, sc *mlScope, want int) mlx {
 	} else {
 		e = f.expr(scr, sc, wantValue)
 	}
+	// a match on a variant whose arms name every constructor has no other
+	// arm: OCaml would warn of it, unused
+	var ve *mlEnum
+	covered := map[string]bool{}
+	for _, a := range arms {
+		for _, l := range a.labels {
+			if v := f.m.variant[l]; v != nil {
+				ve = v
+				covered[f.m.ctorOf[l]] = true
+			}
+		}
+	}
+	exhaustive := ve != nil && len(covered) == len(ve.ctors)
 	seen := map[string]bool{}
 	var docs []*mdoc
-	hasElse := false
+	hasElse := exhaustive
 	for k, a := range arms {
 		var pat string
+		if a.other && exhaustive {
+			break
+		}
 		if a.other {
 			pat = "_"
+			if ve != nil {
+				pat = strings.Join(ve.rest(covered), " | ")
+			}
 			hasElse = true
 		} else {
 			var ps []string
@@ -744,7 +763,11 @@ func (f *mlfn) match(scr *sform, arms []mlCase, sc *mlScope, want int) mlx {
 		}
 	}
 	if !hasElse {
-		docs = append(docs, mtext("| _ -> ()"))
+		pat := "_"
+		if ve != nil {
+			pat = strings.Join(ve.rest(covered), " | ")
+		}
+		docs = append(docs, mtext("| "+pat+" -> ()"))
 	}
 	head := mgroup(mtext("match "), mnest(6, mlClosed(e, precIf+1).d), mtext(" with"))
 	return mlx{d: mcat(head, mhard, mjoin(mhard, docs)), prec: precOpen, tail: "match"}
@@ -904,6 +927,9 @@ func (f *mlfn) label(l string) string {
 			panic(unsupported{"a character label " + l})
 		}
 		return fmt.Sprintf("%d (* %s *)", v, mlCharComment(v))
+	}
+	if c, ok := f.m.ctorOf[l]; ok {
+		return c
 	}
 	if v, ok := f.m.enumVal[l]; ok {
 		return f.m.intLit(v) + " (* " + l + " *)"

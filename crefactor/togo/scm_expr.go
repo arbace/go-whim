@@ -186,7 +186,11 @@ func (f *sfn) accessor(a saddr, st string) string {
 	if a.root == "" {
 		return ""
 	}
-	return f.s.useMember(a.root+"."+strings.Join(a.path, "."), st, a.off)
+	var ct cc.Type
+	if a.field != nil {
+		ct = a.field.Type()
+	}
+	return f.s.useMember(a.root+"."+strings.Join(a.path, "."), st, a.off, ct)
 }
 
 // addrString is a's address as an expression.

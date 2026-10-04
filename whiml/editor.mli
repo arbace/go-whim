@@ -3,6 +3,16 @@
 (* The core's interface: what a host makes an editor with, and what it
    calls back. *)
 
+(* The C's enumerations whose values are only named, compared and matched:
+   variants. *)
+type cmd_addr = Addr_lines | Addr_windows | Addr_unsigned | Addr_other | Addr_none
+type etype = Etype_top | Etype_args | Etype_internal
+type flush_buffers = Flush_minimal | Flush_input
+type keyprot = Keyprotocol_none | Keyprotocol_mok2 | Keyprotocol_kitty | Keyprotocol_fail
+type optmagic = Option_magic_not_set | Option_magic_on | Option_magic_off
+type paste_mode = Paste_insert | Paste_cmdline | Paste_ex | Paste_one_char
+type set_op = Op_none | Op_adding | Op_prepending | Op_removing
+
 (* The host's functions, as the core calls them: the editor carries them. *)
 type glue = {
   host_alloc : ed -> int -> int;

@@ -268,6 +268,13 @@ var Gen = togo.Profile{
 	// a function that touches no memory takes no editor
 	// (doc/SCHEME-IDIOMS.md, item 7)
 	ScmPure: true,
+	// whiml, the OCaml editor: the enumerations whose values OCaml types
+	// apart from every integer -- named, compared, matched, stored in
+	// memory only through a member's or an object's accessor -- as
+	// variants (doc/OCAML-IDIOMS.md, item 7). The others are ordered
+	// (hlf_T, magic_T), counted (CMD_index) or stored as key bytes and
+	// used as indices (key_extra, SpecialKey).
+	MlVariants: []string{"cmd_addr_T", "etype_T", "flush_buffers_T", "keyprot_T", "optmagic_T", "paste_mode_T", "set_op_T"},
 	// a Clojure state machine split into groups past 50,000 (the backend's
 	// default is the JVM's method limit, 110,000): a group is called on
 	// every jump between groups, so C1 compiles it early and cheaply, where
