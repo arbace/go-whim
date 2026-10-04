@@ -666,6 +666,14 @@ has run on macOS.
   and wide suites as the guest does -- the Mac's whole flow (the monitor
   with no image appended, the image beside it, the shim's C) run on KVM:
   80 of 80 and 240 of 240, the controls seen by 76 and 94/0/0/6.
+  The first build on the Mac (2026-10-04, Homebrew clang 23.1.1,
+  arm64-apple-darwin23.6.0) found two more: `gettimeofday`, which macOS
+  declares only in `<sys/time.h>` -- the shim declares it as macOS does,
+  with no header (a header included ahead of the file would define names
+  the core declares as its own, `INT_MAX`, `PATH_MAX`); and the host's
+  assertion that the core's `PATH_MAX`, 4096, is the header's, 1024 on
+  macOS -- the host uses `PATH_MAX` nowhere else, so `mac.sh c` compiles a
+  copy without that one line (`.tmp/whim-vim-mac.c`).
 - **The 16 KiB alignment** `hv_vm_map` asks on Apple silicon:
   `vmm/layout_test.go` holds the layout to it -- the monitor maps one
   slot, guest-physical 0 to its size, which is a multiple of 2 MiB for any

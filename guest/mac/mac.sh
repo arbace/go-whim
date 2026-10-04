@@ -55,7 +55,12 @@ run)
 	exec bin/whim-guest "$@"
 	;;
 c)
-	clang -std=gnu23 -O0 -w -include guest/mac/shim.h -o bin/whim-vim-mac src/whim-vim.c
+	# The host asserts the core's PATH_MAX, 4096, equal to the header's; macOS's
+	# is 1024. The host uses PATH_MAX nowhere else (the core's paths are its
+	# own buffers), so the Mac's copy drops that one Linux guard.
+	mkdir -p .tmp
+	sed '/^static_assert(4096 == PATH_MAX, "PATH_MAX");$/d' src/whim-vim.c > .tmp/whim-vim-mac.c
+	clang -std=gnu23 -O0 -w -include guest/mac/shim.h -o bin/whim-vim-mac .tmp/whim-vim-mac.c
 	;;
 suite)
 	need bin/whim-guest "mac.sh build"

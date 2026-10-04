@@ -7,8 +7,13 @@
  * __builtin_setjmp and __builtin_longjmp, which clang does not offer on arm64
  * ("not supported for the current target") -- _setjmp and _longjmp on a
  * jmp_buf of the shim's, the host's one jump being from host_exit back to
- * main.  On Linux the shim changes nothing the host does (XTABS is defined;
- * the pipe2 and the jump are this one's, to the same effect). */
+ * main.  And gettimeofday, found on the Mac itself (Homebrew clang 23.1.1,
+ * arm64-apple-darwin23.6.0): glibc and musl declare it through the headers
+ * the host includes, macOS only in <sys/time.h> -- declared here as macOS
+ * does, with no header, since a header included this early would define the
+ * names the core declares as its own (INT_MAX, PATH_MAX: phase 43).  On
+ * Linux the shim changes nothing the host does (XTABS is defined; the
+ * pipe2, the jump and the declaration are this one's, to the same effect). */
 #include <setjmp.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -36,6 +41,9 @@ fail:
     return -1;
 }
 #define pipe2 whim_pipe2
+
+struct timeval;
+int gettimeofday(struct timeval *__restrict, void *__restrict);
 
 static jmp_buf whim_jump;
 #define __builtin_setjmp(buf) _setjmp(whim_jump)
