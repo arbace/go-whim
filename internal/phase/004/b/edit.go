@@ -43,104 +43,168 @@ package p004b
 // nothing could reach.  The probes check the editor still starts, edits and
 // writes, and the pty check is what would catch the termcode fold going wrong.
 
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the text version's lines and
+// literals are acts on the nodes -- an operand dropped, statements cut, a
+// table's rows deleted by their name (INITROW), the termcode ifs dropped and
+// folded, win_line's parameter dropped with the argument at its two calls
+// (PARAM) -- each counted, its report the text's (history keeps it).
+
 import (
 	"io"
+	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/clisp"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// The mouse names in key_names_table are matched ON THE NAME and not on the
-// row's first field: five of eighteen -- DecMouse, JsbMouse, NetMouse,
-// PtermMouse, UrxvtMouse -- are written with the key code first and a trailing
-// FALSE across THREE lines, so an anchor on `{TRUE,` found 13 and left the
-// terminal-specific ones behind, and a single-line pattern cannot see them at
-// all.
-const (
-	mouseNameOneLine   = `(?m)^[ \t]*\{TRUE,[^\n]*\(char_u \*\)\("(\w*(?:Mouse|Drag|Release|Wheel)\w*)"\)[^\n]*\n`
-	mouseNameThreeLine = `(?m)^[ \t]*\{FALSE, [^\n]*\(char_u \*\)\("(\w*Mouse\w*)"\)[^\n]*\n`
+// The mouse names in key_names_table are matched ON THE NAME, a row's
+// string: the text matched the 13 one-line rows (`{TRUE, ...`) whose name
+// says Mouse, Drag, Release or Wheel, and the 5 written across three lines
+// (`{FALSE, ...`, the key code first) whose name says Mouse.  On the graph
+// a row is a node whatever its lines, and the two kinds are its first
+// element, TRUE or FALSE.
+var (
+	mouseNameTrue  = regexp.MustCompile(`^"\w*(?:Mouse|Drag|Release|Wheel)\w*"$`)
+	mouseNameFalse = regexp.MustCompile(`^"\w*Mouse\w*"$`)
 )
 
 // writeOnlyStatics are file-scope variables that are written and never read:
-// their writes go here, and the declarations, named by nothing after that,
-// go to the sweep.  Where the write is a whole `if` Body or a whole
-// function, that goes too -- see the cases below the loop.
+// their writes go here (each the value one of vals), and the declarations,
+// named by nothing after that, go to the collection.  Where the write is a
+// whole `if` Body or a whole function, that goes too -- see the cases below
+// the loop.
 var writeOnlyStatics = []struct {
-	writes     string
+	name       string
+	vals       []string
 	n          int
 	writesWhat string
 }{
-	{`did_check_timestamps = FALSE;`, 3, "the three writes to did_check_timestamps"},
-	{`did_emsg_syntax = (?:TRUE|FALSE);`, 2, "did_emsg_syntax's two writes"},
-	{`typebuf_was_empty = (?:TRUE|FALSE);`, 2, "typebuf_was_empty's two writes"},
-	{`in_mch_delay = (?:TRUE|FALSE);`, 2, "in_mch_delay's two writes"},
+	{"did_check_timestamps", []string{"FALSE"}, 3, "the three writes to did_check_timestamps"},
+	{"did_emsg_syntax", []string{"TRUE", "FALSE"}, 2, "did_emsg_syntax's two writes"},
+	{"typebuf_was_empty", []string{"TRUE", "FALSE"}, 2, "typebuf_was_empty's two writes"},
+	{"in_mch_delay", []string{"TRUE", "FALSE"}, 2, "in_mch_delay's two writes"},
+}
+
+// cutWrites cuts the n statements `name = V;`, V one of vals, as one act.
+func cutWrites(v *graph.Verbs, name string, vals []string, n int, what string) {
+	got := 0
+	for _, val := range vals {
+		got += v.Count("(= " + name + " " + val + ")")
+	}
+	if got != n {
+		v.Die("%s -- %d matches, expected %d", what, got, n)
+		return
+	}
+	v.Cut("(= "+name+" _)", n, what)
+}
+
+// mouseRows deletes the rows of key_names_table whose first element is
+// flag and whose name re matches, n of them, as one act; it says them.
+func mouseRows(v *graph.Verbs, flag string, re *regexp.Regexp, n int, what string) {
+	e := v.Editor()
+	p := "(init " + flag + " _ (init (cast (ptr char_u) (paren ?name)) _) _)"
+	var rows []*graph.Node
+	var names []string
+	pat := clisp.MustPattern(p)
+	for _, r := range v.Rows() {
+		if b, ok := graph.Match(pat, r); ok && re.MatchString(b["name"].Atom) {
+			rows = append(rows, r)
+			names = append(names, strings.Trim(b["name"].Atom, `"`))
+		}
+	}
+	if v.Failed() {
+		return
+	}
+	if len(rows) != n {
+		v.Die("key_names_table -- %d %s mouse names, expected %d: %s", len(rows), flag, n, strings.Join(names, " "))
+		return
+	}
+	if _, err := e.DeleteRows(v.Scope(), rows, graph.RowIndex{}); err != nil {
+		v.Die("%s -- %v", what, err)
+		return
+	}
+	v.Say(what + strings.Join(names, " "))
 }
 
 // Whim4b takes the mouse -- every key name, the deferred-match machinery in
 // check_termcode and the statics that tracked a pointer -- the spell plumbing
 // win_line still carried, and eleven file-scope variables written and never
 // read.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nomouse", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nomouse", e, w)
 
-	e.Literal(" || (is_mouse_key(n) && n != (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))))", "", 1,
+	v.DropOperand("(paren (&& (call is_mouse_key n) (!= n (paren (- (+ (paren KS_EXTRA) (<< (cast int (paren KE_LEFTMOUSE)) 8)))))))", 1,
 		"the input loop asking whether a key is a mouse key")
-	e.Cut(edit.Line("reset_dragwin();"), 2, "the two calls that forgot the dragged window")
-	e.Cut(edit.Line("reset_held_button();"), 1, "the call that forgot the held button")
+	v.Cut("(call reset_dragwin)", 2, "the two calls that forgot the dragged window")
+	v.Cut("(call reset_held_button)", 1, "the call that forgot the held button")
 	// mouse_row/col and old_mouse_row/col are a closed loop: saved here,
 	// restored there, read by nothing else.
-	e.Cut(edit.Line("mouse_row = old_mouse_row;"), 1, "restoring the mouse row")
-	e.Cut(edit.Line("mouse_col = old_mouse_col;"), 1, "restoring the mouse column")
-	e.Cut(edit.Line("old_mouse_row = mouse_row;"), 1, "saving the mouse row")
-	e.Cut(edit.Line("old_mouse_col = mouse_col;"), 1, "saving the mouse column")
+	v.Cut("(= mouse_row old_mouse_row)", 1, "restoring the mouse row")
+	v.Cut("(= mouse_col old_mouse_col)", 1, "restoring the mouse column")
+	v.Cut("(= old_mouse_row mouse_row)", 1, "saving the mouse row")
+	v.Cut("(= old_mouse_col mouse_col)", 1, "saving the mouse column")
 
-	one := e.Query(mouseNameOneLine, 1)
-	e.Expect(len(one) == 13, "key_names_table -- %d single-line mouse names, expected 13: %s", len(one), strings.Join(one, " "))
-	e.Cut(mouseNameOneLine, 13, "the mouse key names: "+strings.Join(one, " "))
-	three := e.Query(mouseNameThreeLine, 1)
-	e.Expect(len(three) == 5, "key_names_table -- %d three-line mouse names, expected 5: %s", len(three), strings.Join(three, " "))
-	e.Cut(mouseNameThreeLine, 5, "the terminal-specific mouse names: "+strings.Join(three, " "))
-	e.Cut(`(?m)^[ \t]*\{\(-\(\(KS_MOUSE\) \+ \(\(int\)\(\('X'\)\) << 8\)\)\),[^\n]*"\[MOUSE\]"\},\n`, 1,
-		"the [MOUSE] entry of the terminal string table")
+	v.InTable("key_names_table", func(v *graph.Verbs) {
+		mouseRows(v, "TRUE", mouseNameTrue, 13, "the mouse key names: ")
+		mouseRows(v, "FALSE", mouseNameFalse, 5, "the terminal-specific mouse names: ")
+	})
+	v.InTable("builtin_debug", func(v *graph.Verbs) {
+		v.DeleteRows(`(init (paren (- (+ (paren KS_MOUSE) (<< (cast int (paren (paren 'X'))) 8)))) "[MOUSE]")`, 1,
+			graph.RowIndex{}, "the [MOUSE] entry of the terminal string table")
+	})
 
-	e.InFunction("check_termcode", func(e *edit.E) {
+	v.InFunction("check_termcode", func(v *graph.Verbs) {
 		// The whole `slen == 2 && ESC [` block existed to set that flag, and its
 		// only other arm counted the semicolons of a DEC mouse report.
-		e.DropIf(edit.Head("if (slen == 2 && len > 2 && termcodes[idx].code[0] == ESC && termcodes[idx].code[1] == '[')"), 1,
+		v.DropIf("(&& (== slen 2) (> len 2) (== (index (. (index termcodes idx) code) 0) ESC) (== (index (. (index termcodes idx) code) 1) '['))", 1,
 			"deferring an ESC [ code in case a mouse code is longer")
-		e.FoldNever(edit.Head("if (looks_like_mouse_start)"), 1, "a deferred match winning over a real one")
-		e.Literal(" && mouse_index_found < 0", "", 1, "the modifier scan waiting for a deferred mouse match")
-		e.FoldNever(edit.Head("else if (idx == tc_len && mouse_index_found >= 0)"), 1, "falling back to the deferred mouse match")
-		e.Cut(edit.Line("if (key_name[0] == KS_MOUSE || key_name[0] == KS_SGR_MOUSE || key_name[0] == KS_SGR_MOUSE_RELEASE)", "{", "}"), 1,
+		v.FoldNever("looks_like_mouse_start", 1, "a deferred match winning over a real one")
+		v.DropOperand("(< mouse_index_found 0)", 1, "the modifier scan waiting for a deferred mouse match")
+		v.FoldNever("(&& (== idx tc_len) (>= mouse_index_found 0))", 1, "falling back to the deferred mouse match")
+		v.Cut("(if (|| (== (index key_name 0) KS_MOUSE) (== (index key_name 0) KS_SGR_MOUSE) (== (index key_name 0) KS_SGR_MOUSE_RELEASE)) (block))", 1,
 			"a mouse report being handled by an empty block")
 	})
 
-	// the spell plumbing
-	e.Literal(", spellvars_T *spv)", ")", 1, "win_line's unused spell parameter")
-	e.Literal("win_line(wp, lnum, srow, wp->w_height, 0, &spv)", "win_line(wp, lnum, srow, wp->w_height, 0)", 1, "the first win_line call")
-	e.Literal("win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size, &spv)",
-		"win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size)", 1, "the second win_line call")
+	// the spell plumbing: the parameter, and the argument at both calls
+	if !v.Failed() {
+		calls := len(v.Find("(call win_line wp lnum srow (-> wp w_height) _ (addr spv))"))
+		v.Expect(calls == 2, "win_line -- %d calls passing &spv, expected 2", calls)
+	}
+	v.DropParam("win_line", "spv", "win_line's unused spell parameter")
+	if !v.Failed() {
+		v.Say("the first win_line call")
+		v.Say("the second win_line call")
+	}
 
 	// the write-only statics
 	for _, s := range writeOnlyStatics {
-		e.Lines(s.writes, s.n, s.writesWhat)
+		cutWrites(v, s.name, s.vals, s.n, s.writesWhat)
 	}
-	e.Cut(edit.Line("frame_locked++;"), 1, "the lock it took")
-	e.Cut(edit.Line("frame_locked--;"), 1, "the lock it released")
-	e.Cut(edit.Line("swap_exists_did_quit = TRUE;"), 1, "its one write")
-	e.Cut(edit.Line("did_swapwrite_msg = FALSE;"), 1, "its one write")
-	e.Cut(edit.Line("autocmd_nested = ac->nested;"), 1, "its one write")
-	e.Cut(edit.Line("oldtitle_outdated = TRUE;"), 1, "its one write")
-	e.Cut(edit.Line("deadly_signal = sigarg;"), 1, "the signal number it recorded")
+	v.Cut("(post++ frame_locked)", 1, "the lock it took")
+	v.Cut("(post-- frame_locked)", 1, "the lock it released")
+	v.Cut("(= swap_exists_did_quit TRUE)", 1, "its one write")
+	v.Cut("(= did_swapwrite_msg FALSE)", 1, "its one write")
+	v.Cut("(= autocmd_nested (-> ac nested))", 1, "its one write")
+	v.Cut("(= oldtitle_outdated TRUE)", 1, "its one write")
+	v.Cut("(= deadly_signal sigarg)", 1, "the signal number it recorded")
 	// mr_patternlen's two writes are a whole if/else, so the test goes with them.
-	e.Cut(edit.Line("if (mr_pattern == nullptr)", "{", "mr_patternlen = 0;", "}", "else", "{", "mr_patternlen = patlen;", "}"), 1,
+	v.Cut("(if (== mr_pattern nullptr) (block (= mr_patternlen 0)) (block (= mr_patternlen patlen)))", 1,
 		"mr_patternlen's if/else")
 	// was_safe is a whole function Body, and that function has two callers.
-	e.Lines(`state_no_longer_safe\("(?:ins_typebuf\(\)|key typed)"\);`, 2, "the two calls that declared the state unsafe")
-	e.DeleteDefinition("state_no_longer_safe", "state_no_longer_safe, whose body was one write")
-	e.Lines(`was_safe = (?:is_safe|FALSE);`, 2, "its remaining writes")
-	return e.Done()
+	if !v.Failed() {
+		n := v.Count(`(call state_no_longer_safe "ins_typebuf()")`) + v.Count(`(call state_no_longer_safe "key typed")`)
+		v.Expect(n == 2, "the two calls that declared the state unsafe -- %d matches, expected 2", n)
+	}
+	v.Cut("(call state_no_longer_safe _)", 2, "the two calls that declared the state unsafe")
+	v.DeleteDefinition("state_no_longer_safe", "state_no_longer_safe, whose body was one write")
+	if !v.Failed() {
+		n := v.Count("(= was_safe is_safe)") + v.Count("(= was_safe FALSE)")
+		v.Expect(n == 2, "its remaining writes -- %d matches, expected 2", n)
+	}
+	v.Cut("(= was_safe _)", 2, "its remaining writes")
+	return v.Done()
 }
 
-func init() { phase.Register("whim4b", Edit) }
+func init() { phase.RegisterGraph("whim4b", Edit) }

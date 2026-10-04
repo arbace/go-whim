@@ -101,3 +101,5 @@ h2; plain editing; and `:e!` discarding an unwritten change. No probe key contai
 over.
 
 Measured: 93,393 → **93,127 lines**.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): every step of this phase runs on `crefactor/graph`, handed the graph the phase before left, with no import, its report the text version's and its boundary byte for byte (`whim-build-check`).

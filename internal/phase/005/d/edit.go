@@ -54,117 +54,162 @@ package p005d
 // THE DELTA: none expected.  Nothing could fire an autocommand, so removing the
 // dispatch cannot change what the editor does.  Declared empty, left for the delta check.
 
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the proof is asked of the
+// edges -- first_autopat's uses, none of them a store -- and the text
+// version's literals, heads and lines are acts on the nodes: two literals
+// made nodes (FRAG), folds, a body, runs and statements cut, the bare
+// dispatches found by their callee; each counted, its report the text's
+// (history keeps the text version).
+
 import (
 	"fmt"
 	"io"
 	"regexp"
-	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// writesTo returns the 1-based line of every assignment TO name, or to an
-// element of it.
-//
-// It steps over a BALANCED SUBSCRIPT and only then looks at the operator.  A
-// first version matched `name[^\n;]*=` and reported three writes that were the
-// `!=` of the has_* predicates -- it spanned the subscript and landed on the
-// comparison.  AN ASSERTION THAT CRIES WOLF IS WORSE THAN NONE, because the
-// temptation is to loosen it until it passes.
-func writesTo(text []byte, name string) []int {
-	var Out []int
-	re := regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`)
-	for _, m := range re.FindAllIndex(text, -1) {
-		end := m[1] + 80
-		if end > len(text) {
-			end = len(text)
+var (
+	applyAutocmds = regexp.MustCompile(`^apply_autocmds\w*$`)
+	insEvent      = regexp.MustCompile(`^EVENT_[A-Z]+$`)
+)
+
+// isStore says the use u is written: the left side of an assignment, of
+// itself or of an element of it.
+func isStore(e *graph.Editor, u *graph.Node) bool {
+	at := u
+	if p := e.Parent(at); p != nil && p.Is("index") && p.Kids[1] == at {
+		at = p
+	}
+	p := e.Parent(at)
+	if p == nil || len(p.Kids) < 2 || p.Kids[1] != at {
+		return false
+	}
+	switch p.Head() {
+	case "=", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "<<=", ">>=":
+		return true
+	}
+	return false
+}
+
+// cutStatements deletes the n statements -- items -- that are a call of a
+// function whose name re matches (cast to void where void says so), whose
+// arguments ok accepts, as one act.
+func cutStatements(v *graph.Verbs, re *regexp.Regexp, void bool, ok func([]*graph.Node) bool, n int, what string) {
+	if v.Failed() {
+		return
+	}
+	e := v.Editor()
+	var ms []*graph.Node
+	for _, c := range v.Find("(call _*)") {
+		f := c.Kids[1]
+		if f.IsList() || !re.MatchString(f.Atom) || !ok(c.Args()[1:]) {
+			continue
 		}
-		s := strings.TrimLeft(string(text[m[1]:end]), " \t\n")
-		if strings.HasPrefix(s, "[") {
-			depth := 0
-			for i, ch := range s {
-				if ch == '[' {
-					depth++
-				} else if ch == ']' {
-					depth--
-					if depth == 0 {
-						s = s[i+1:]
-						break
-					}
-				}
-			}
-			s = strings.TrimLeft(s, " \t\n")
+		at := c
+		if p := e.Parent(c); void && p != nil && p.Is("cast") && len(p.Kids) == 3 && !p.Kids[1].IsList() && p.Kids[1].Atom == "void" {
+			at = p
 		}
-		if strings.HasPrefix(s, "=") && !strings.HasPrefix(s, "==") {
-			Out = append(Out, 1+edit.CountNewlines(text[:m[0]]))
+		if e.Item(at) == at {
+			ms = append(ms, at)
 		}
 	}
-	return Out
+	if len(ms) != n {
+		v.Die("%s -- matched %d times, expected %d", what, len(ms), n)
+		return
+	}
+	for _, m := range ms {
+		if err := e.Delete(m); err != nil {
+			v.Die("%s -- %v", what, err)
+			return
+		}
+	}
+	v.Say(what)
 }
+
+func anyArgs([]*graph.Node) bool { return true }
 
 // Whim5d removes the autocommand dispatch, having first PROVED that nothing can
 // register one.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("noautocmd", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("noautocmd", e, w)
 
-	e.CountIs(`(?m)^static AutoPat \*first_autopat\[NUM_EVENTS\] =\n\{\n[ \t]*nullptr,\n\};$`, 1,
+	d := v.One("(def static first_autopat (array NUM_EVENTS (ptr AutoPat)) (init nullptr))",
 		"the first_autopat declaration is where this phase expects it")
-	ws := writesTo(e.Text(), "first_autopat")
-	e.Expect(len(ws) == 1, "first_autopat is assigned in %d place(s), not just its all-nullptr initialiser (lines %s) -- an autocommand CAN be registered and this whole phase is wrong",
-		len(ws), edit.JoinInts(ws))
-	e.Say("confirmed: first_autopat is only ever the all-nullptr initialiser")
+	if d != nil {
+		ws := 0
+		for _, u := range e.Uses(d) {
+			if isStore(e, u) {
+				ws++
+			}
+		}
+		v.Expect(ws == 0, "first_autopat is assigned in %d place(s), not just its all-nullptr initialiser -- an autocommand CAN be registered and this whole phase is wrong", ws)
+	}
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Say("confirmed: first_autopat is only ever the all-nullptr initialiser")
 
-	e.InFunction("close_buffer", func(e *edit.E) {
-		e.Literal(w5dOldCb, w5dNewCb, 1, "close_buffer, whose abort label three gotos still target")
+	v.InFunction("close_buffer", func(v *graph.Verbs) {
+		v.LiteralC(w5dOldCb, w5dNewCb, 1, "close_buffer, whose abort label three gotos still target")
 	})
-	e.InFunction("buf_freeall", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFUNLOAD,`, 1, "unloading a buffer asking the autocommands first")
-		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFWIPEOUT,`, 1, "wiping a buffer asking them")
+	v.InFunction("buf_freeall", func(v *graph.Verbs) {
+		v.FoldNever("(&& (call apply_autocmds EVENT_BUFUNLOAD _*) _*)", 1, "unloading a buffer asking the autocommands first")
+		v.FoldNever("(&& (call apply_autocmds EVENT_BUFWIPEOUT _*) _*)", 1, "wiping a buffer asking them")
 	})
-	e.InFunction("buflist_new", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFNEW,`, 1, "a new buffer announcing itself")
+	v.InFunction("buflist_new", func(v *graph.Verbs) {
+		v.FoldNever("(&& (call apply_autocmds EVENT_BUFNEW _*) _*)", 1, "a new buffer announcing itself")
 	})
 	// readfile went at phase 1 (readfront, phase 31's move)
 	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront, phase 33's move)
-	e.InFunction("ins_redraw", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedI\(\)`, 1, "insert mode reporting a change")
-		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedP\(\)`, 1, "and the popup-menu variant")
+	v.InFunction("ins_redraw", func(v *graph.Verbs) {
+		v.FoldNever("(&& ready (call has_textchangedI) _*)", 1, "insert mode reporting a change")
+		v.FoldNever("(&& ready (call has_textchangedP) _*)", 1, "and the popup-menu variant")
 	})
-	e.InFunction("do_one_cmd", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(p != nullptr && ea\.cmdidx == CMD_SIZE && !ea\.skip && [^\n]*has_cmdundefined\(\)\)$`, 1, "an unknown command being defined by an autocommand")
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.FoldNever("(&& (!= p nullptr) (== (. ea cmdidx) CMD_SIZE) (! (. ea skip)) _ (call has_cmdundefined))", 1,
+			"an unknown command being defined by an autocommand")
 	})
-	e.Body("ins_apply_autocmds", w5dlit2, "ins_apply_autocmds, which dispatched and watched the tick")
-	e.InFunction("ui_focus_change", func(e *edit.E) {
-		e.Literal(w5dlit5, "", 1, "a focus change telling the autocommands")
+	v.Body("ins_apply_autocmds", "(return FALSE)", "ins_apply_autocmds, which dispatched and watched the tick")
+	v.InFunction("ui_focus_change", func(v *graph.Verbs) {
+		v.Cut("(|= need_redraw (call apply_autocmds (? in_focus EVENT_FOCUSGAINED EVENT_FOCUSLOST) nullptr nullptr FALSE curbuf))", 1,
+			"a focus change telling the autocommands")
 	})
 	// the modelines are still applied there: phase 16 (oneoptset), which
 	// takes them, runs after this program now (whim5d runs at phase 5)
-	e.InFunction("open_buffer", func(e *edit.E) {
-		e.Literal(w5dlit6, w5dlit7, 1, "open_buffer, keeping the flag clearing the autocmd call was wrapped around")
+	v.InFunction("open_buffer", func(v *graph.Verbs) {
+		v.LiteralC(w5dlit6, w5dlit7, 1, "open_buffer, keeping the flag clearing the autocmd call was wrapped around")
 	})
 	// buf_write, with its autocommands, went with :write at phase 1
 	// (filefront, the reform's D4)
-	e.DropBlocks("set_termname", edit.Head("if (curbuf->b_ml.ml_mfp != nullptr)"), 1, "a new terminal telling every buffer")
-	e.Lines(`ins_apply_autocmds\(EVENT_[A-Z]+\);`, 6, "the insert-mode dispatches")
-	e.InFunction("ins_redraw", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(ready && \(has_cursormovedI\(\)\)`, 1, "insert mode reporting the cursor moved")
+	v.InFunction("set_termname", func(v *graph.Verbs) {
+		v.Cut("(if (!= (. (-> curbuf b_ml) ml_mfp) nullptr) _*)", 1, "a new terminal telling every buffer")
 	})
-	e.InFunction("free_buffer", func(e *edit.E) {
-		e.Cut(edit.Line("aubuflocal_remove(buf);"), 1, "a freed buffer detaching its buffer-local patterns")
+	cutStatements(v, regexp.MustCompile(`^ins_apply_autocmds$`), false, func(a []*graph.Node) bool {
+		return len(a) == 1 && !a[0].IsList() && insEvent.MatchString(a[0].Atom)
+	}, 6, "the insert-mode dispatches")
+	v.InFunction("ins_redraw", func(v *graph.Verbs) {
+		v.FoldNever("(&& ready (paren (call has_cursormovedI)) _*)", 1, "insert mode reporting the cursor moved")
 	})
-	e.InFunction("getout", func(e *edit.E) {
+	v.InFunction("free_buffer", func(v *graph.Verbs) {
+		v.Cut("(call aubuflocal_remove buf)", 1, "a freed buffer detaching its buffer-local patterns")
+	})
+	v.InFunction("getout", func(v *graph.Verbs) {
 		for _, ev := range []string{"VIMLEAVEPRE", "VIMLEAVE"} {
-			e.Literal(fmt.Sprintf(w5dlit14, ev), "", 1, fmt.Sprintf("quitting unblocking autocommands to announce EVENT_%s", ev))
+			v.CutRun(fmt.Sprintf("quitting unblocking autocommands to announce EVENT_%s", ev),
+				"(if (call is_autocmd_blocked) (block (call unblock_autocmds) (pre++ unblock)))",
+				"(call apply_autocmds EVENT_"+ev+" nullptr nullptr FALSE curbuf)",
+				"(if unblock (block (call block_autocmds)))")
 		}
 	})
-	e.InFunction("do_one_cmd", func(e *edit.E) {
-		e.Literal(w5dlit8, w5dlit9, 1, "asking whether the command came from an autocommand")
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.DropOperand("(! (call getline_equal fgetline cookie getnextac))", 1, "asking whether the command came from an autocommand")
 	})
-	// the command-line type: its one write goes, and the sweep takes the
-	// declaration
-	e.InFunction("getcmdline_int", func(e *edit.E) {
-		e.Cut(edit.Line("cmdline_type = firstc == NUL ? '-' : firstc;"), 1, "the line that set the command-line type")
+	// the command-line type: its one write goes, and the collection takes
+	// the declaration
+	v.InFunction("getcmdline_int", func(v *graph.Verbs) {
+		v.Cut("(= cmdline_type (? (== firstc NUL) '-' firstc))", 1, "the line that set the command-line type")
 	})
 	// 43: six more were in the write and read paths, gone at phase 1 (D4),
 	// and seven in the buffer and window switching :q's refusal reached
@@ -172,10 +217,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// 31's move).  Run at phase 5, it finds 18 that the phases between took
 	// first when it ran as phase 75 of the old numbering: buf_write()'s 8, set_rw_fname()'s 4, set_buflisted()'s
 	// and enter_buffer()'s 2 each, do_ecmd()'s third and do_filetype_autocmd()'s
-	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 43, "every remaining bare dispatch (43)")
-	e.Lines(`trigger_cmd_autocmd\([^\n]*\);`, 7, "the command-line triggers (7)")
-	e.DropBareBlock("set_termname", "buf = curbuf;", "the husk the terminal notification left behind")
-	return e.Done()
+	cutStatements(v, applyAutocmds, true, anyArgs, 43, "every remaining bare dispatch (43)")
+	cutStatements(v, regexp.MustCompile(`^trigger_cmd_autocmd$`), false, anyArgs, 7, "the command-line triggers (7)")
+	v.InFunction("set_termname", func(v *graph.Verbs) {
+		v.DropBareBlock("(= buf curbuf)", "the husk the terminal notification left behind")
+	})
+	return v.Done()
 }
 
-func init() { phase.Register("whim5d", Edit) }
+func init() { phase.RegisterGraph("whim5d", Edit) }

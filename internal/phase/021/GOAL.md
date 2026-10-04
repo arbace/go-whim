@@ -56,3 +56,5 @@ plain editing, a second file argument refused without writing either file, `:nex
 refused, and `:e` still opening a second file.
 
 Measured: 94,122 → **93,393 lines**.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): every step of this phase runs on `crefactor/graph`, handed the graph the phase before left, with no import, its report the text version's and its boundary byte for byte (`whim-build-check`).

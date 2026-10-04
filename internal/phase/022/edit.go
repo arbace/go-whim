@@ -51,49 +51,66 @@ package p022
 // `exit= left= err=` -- the same reason :next did not move in phase 21.  Declared
 // empty and left for the delta check to correct.
 
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the two block literals are
+// made nodes in one unit (FRAG: LiteralC, Together) -- stat(), stat_T and
+// the header's st_dev/st_ino resolved as the importer resolves them -- and
+// the rest are acts on the nodes, each counted, its report the text's
+// (history keeps the text version).
+
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
 // Whim22 makes one buffer the invariant: :edit stops opening a second, the
 // swap-file dialog goes with everything that armed or answered it, and the
 // swap file itself is never opened.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("onebuffer", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("onebuffer", e, w)
 
 	// fname2fnum, which gave a file mark its own buffer, went with the file
 	// marks at phase 3 (whim3f, on the front)
 
-	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.Literal(w22OldOpen, w22NewOpen, 1, ":edit opening a second buffer")
-		e.Literal(w22OldOldbuf, w22lit2, 1, ":edit deciding the buffer was already loaded")
-		// Brace-matched: the Body may be any length, which is the point.
-		e.DropIf(`(?m)^[ \t]*if \(buf != curbuf\)\n[ \t]*\{\n[ \t]*bufref_T[ \t]+save_au_new_curbuf;$`, 1,
+	v.InFunction("do_ecmd", func(v *graph.Verbs) {
+		v.Together(func(v *graph.Verbs) {
+			v.LiteralC(w22OldOpen, w22NewOpen, 1, ":edit opening a second buffer")
+			v.LiteralC(w22OldOldbuf, w22lit2, 1, ":edit deciding the buffer was already loaded")
+		})
+		// The body may be any length, which is the point.
+		v.DropIf("(if (!= buf curbuf) (block (def save_au_new_curbuf bufref_T) _*))", 1,
 			":edit leaving one buffer for another")
-		e.Literal(w22lit3, w22lit4, 1, "the reload path asking whether the file changed")
-		e.Literal(w22lit5, w22lit6, 1, ":edit arming the swap-file dialog")
-		e.Literal(w22lit7, "", 1, ":edit answering it")
+		v.Rewrite("(&& (! other_file) (! oldbuf))", "(! oldbuf)", 1, "the reload path asking whether the file changed")
+		if r := v.Run(":edit arming the swap-file dialog", "(= swap_exists_action SEA_DIALOG)",
+			"(|= (-> curbuf b_flags) BF_CHECK_RO)"); r != nil {
+			if err := e.Delete(r[0]); err != nil {
+				v.Die(":edit arming the swap-file dialog -- %v", err)
+			} else {
+				v.Say(":edit arming the swap-file dialog")
+			}
+		}
+		v.CutRun(":edit answering it", "(if (== swap_exists_action SEA_QUIT) (block (= retval FAIL)))",
+			"(call handle_swap_exists (addr old_curbuf))")
 	})
 	// readfile went at phase 1 (readfront, phase 31's move)
 	// create_windows() armed and answered it at startup; its body is phase
 	// 5b's from phase 5 (whim5b, which runs before this phase now)
 	// read_stdin() armed and answered it too; it went at phase 1, nothing
 	// writing the edit type that called it (argvfront, the reform's D1)
-	e.InFunction("ml_open", func(e *edit.E) {
-		e.Cut(edit.Line("buf->b_may_swap = false;"), 1, "ml_open clearing b_may_swap")
+	v.InFunction("ml_open", func(v *graph.Verbs) {
+		v.Cut("(= (-> buf b_may_swap) false)", 1, "ml_open clearing b_may_swap")
 	})
-	e.InFunction("changed", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (curbuf->b_may_swap)"), 1, "the first change to a buffer opening a swap file")
+	v.InFunction("changed", func(v *graph.Verbs) {
+		v.FoldNever("(-> curbuf b_may_swap)", 1, "the first change to a buffer opening a swap file")
 	})
 	// the two calls of check_need_swap() went with readfile at phase 1
 	// (readfront, phase 31's move)
 	// handle_swap_exists(), check_swap_exists_action(), check_need_swap(),
 	// ml_open_file(), swap_exists_action, the SEA_* actions and the
-	// b_may_swap field are named by nothing live now; the sweep takes them.
-	return e.Done()
+	// b_may_swap field are named by nothing live now; the collection takes
+	// them.
+	return v.Done()
 }
 
-func init() { phase.Register("whim22", Edit) }
+func init() { phase.RegisterGraph("whim22", Edit) }

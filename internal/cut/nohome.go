@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // homeReplaceCopy is what home_replace becomes: a bounded copy.
@@ -35,30 +34,26 @@ const homeReplaceCopy = `    usize len;
     dst[len] = NUL;
     return len;`
 
-var initHomedir = regexp.MustCompile(edit.Line("init_homedir();"))
-
 // NoHome takes $HOME out of the editor: the value, the shortening, the
 // expansion and the user database.
-func NoHome(text []byte, w io.Writer) ([]byte, error) {
-	if !initHomedir.Match(text) {
-		return nil, fmt.Errorf("nohome: common_init_2 no longer calls init_homedir")
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the call cut as an item, the
+// shortening's body the text's literal made nodes (FRAG: BodyC), the user's
+// name a one-statement body (BUILD); the lengths and the mentions left are
+// the text's numbers, on the C view (history keeps the text version).
+func NoHome(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nohome", e, w)
+	if v.Count("(call init_homedir)") == 0 {
+		return fmt.Errorf("nohome: common_init_2 no longer calls init_homedir")
 	}
-	text, _ = replaceFirst(initHomedir, text, "")
-	fmt.Fprintln(w, "  nohome       $HOME, read once at startup")
+	v.Cut("(call init_homedir)", 1, "$HOME, read once at startup")
 
-	ho, hc, found, _ := edit.Body(text, "home_replace")
-	if !found {
-		return nil, fmt.Errorf("nohome: home_replace is not defined at file scope")
+	if e.Defn("home_replace") == nil {
+		return fmt.Errorf("nohome: home_replace is not defined at file scope")
 	}
-	was := bytes.Count(text[ho:hc], []byte{'\n'})
-	var hbuf []byte
-	hbuf = append(hbuf, text[:ho]...)
-	hbuf = append(hbuf, "{\n"...)
-	hbuf = append(hbuf, homeReplaceCopy...)
-	hbuf = append(hbuf, "\n}"...)
-	text = append(hbuf, text[hc+1:]...)
-	fmt.Fprintf(w, "  nohome       home_replace was %d lines, and now shows a name as "+
-		"it is\n", was)
+	was := 0
+	v.InFunction("home_replace", func(v *graph.Verbs) { was = bodyLines(v.Text()) })
+	v.BodyC("home_replace", homeReplaceCopy, fmt.Sprintf("home_replace was %d lines, and now shows a name as it is", was))
 	// expand_env_esc keeps its ~ arms here: nogetenv, the next step of this
 	// phase, replaces its whole body with a copy that expands nothing.
 
@@ -71,17 +66,13 @@ func NoHome(text []byte, w io.Writer) ([]byte, error) {
 	// get_user_name() answers who this is, for a swap file's block zero.
 	// There are no swap files; the block is still built in memory, and it can
 	// be built without a name.  This is the last reader of getpwuid.
-	go_, gc, found, _ := edit.Body(text, "get_user_name")
-	if !found {
-		return nil, fmt.Errorf("nohome: get_user_name is not defined at file scope")
+	if !v.Failed() && e.Defn("get_user_name") == nil {
+		return fmt.Errorf("nohome: get_user_name is not defined at file scope")
 	}
-	var gbuf []byte
-	gbuf = append(gbuf, text[:go_]...)
-	gbuf = append(gbuf, "{\n    return FAIL;\n}"...)
-	text = append(gbuf, text[gc+1:]...)
-	fmt.Fprintln(w, "  nohome       who this is, which only a swap file wanted to know")
-
-	fmt.Fprintf(w, "  nohome       %d homedir mentions left for the sweep\n",
-		bytes.Count(text, []byte("homedir")))
-	return text, nil
+	v.Body("get_user_name", "(return FAIL)", "who this is, which only a swap file wanted to know")
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Sayf("%d homedir mentions left for the sweep", bytes.Count(v.Text(), []byte("homedir")))
+	return v.Done()
 }

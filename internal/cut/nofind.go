@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // nofindBody answers "is there a file of this name?" and nothing else.
@@ -32,30 +32,36 @@ const nofindBody = `    char_u      *name;
 
 // NoFind stops find_file_in_path searching 'path'.
 //
-// The extent is BRACE MATCHED from the definition's head, and the old body must
-// still delegate to find_file_in_path_option -- which is how the tool tells a
-// file it has not seen from one it has already cut, rather than replacing its
-// own output with itself.
-func NoFind(text []byte, w io.Writer) ([]byte, error) {
-	opening, closing, err := edit.FindBody(text, "find_file_in_path")
-	if err != nil {
-		return nil, fmt.Errorf("nofind: %v", err)
+// The old body must still delegate to find_file_in_path_option -- which is
+// how the tool tells a file it has not seen from one it has already cut,
+// rather than replacing its own output with itself.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the delegation is asked of the
+// edges (a use of find_file_in_path_option inside the definition), the new
+// body is the text's literal made nodes (FRAG: BodyC), and the mentions
+// left are the text's count on the C view (history keeps the text version).
+func NoFind(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nofind", e, w)
+	d := e.Defn("find_file_in_path")
+	if d == nil {
+		return fmt.Errorf("nofind: find_file_in_path is not defined at file scope")
 	}
-	if !bytes.Contains(text[opening:closing], []byte("find_file_in_path_option")) {
-		return nil, fmt.Errorf("nofind: find_file_in_path no longer delegates to the " +
+	delegates := false
+	for _, u := range v.UsesOf("find_file_in_path_option") {
+		if e.Function(u) == d {
+			delegates = true
+		}
+	}
+	if !delegates {
+		return fmt.Errorf("nofind: find_file_in_path no longer delegates to the " +
 			"'path' search, so this has run already")
 	}
-	var buf []byte
-	buf = append(buf, text[:opening]...)
-	buf = append(buf, "{\n"...)
-	buf = append(buf, nofindBody...)
-	buf = append(buf, "\n}"...)
-	buf = append(buf, text[closing+1:]...)
-	text = buf
-
-	fmt.Fprintln(w, `  nofind       find_file_in_path answers "is there a file of this `+
-		`name?" and nothing else`)
-	fmt.Fprintf(w, "  nofind       %d find_file_in_path_option mentions left for the sweep\n",
-		bytes.Count(text, []byte("find_file_in_path_option")))
-	return text, nil
+	v.BodyC("find_file_in_path", nofindBody,
+		`find_file_in_path answers "is there a file of this name?" and nothing else`)
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Sayf("%d find_file_in_path_option mentions left for the sweep",
+		bytes.Count(v.Text(), []byte("find_file_in_path_option")))
+	return v.Done()
 }

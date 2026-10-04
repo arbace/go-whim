@@ -88,3 +88,5 @@ every pattern back unexpanded â€” deleting the editor's own globbing outright â€
 removes 1,025 further lines and **not one libc symbol**. `opendir`, `readdir`,
 `closedir`, `getcwd` and `lstat` all survive it. Lowering the surface is a
 different question from this one, and the answer to it is not here.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): every step of this phase runs on `crefactor/graph`, handed the graph the phase before left, with no import, its report the text version's and its boundary byte for byte (`whim-build-check`).

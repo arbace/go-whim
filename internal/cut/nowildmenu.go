@@ -4,288 +4,171 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
-// wmCut is edits applied in order, each of which must find exactly what it
-// expects, with the report printed at the END rather than as it goes.
-//
-// A miss is fatal rather than silent.  An edit that quietly matched nothing
-// leaves the code it was meant to remove in place, and the report still says
-// the phase succeeded -- which is how an inert option survives three passes.
-type wmCut struct {
-	text []byte
-	log  []struct {
-		what string
-		n    int
-	}
-}
-
-func (c *wmCut) note(what string, n int) {
-	c.log = append(c.log, struct {
-		what string
-		n    int
-	}{what, n})
-}
-
-func (c *wmCut) sub(pat, repl string, count int, what string) error {
-	re := regexp.MustCompile("(?m)" + pat)
-	out, n := edit.ReplaceAllCounted(re, c.text, []byte(repl))
-	if n != count {
-		return fmt.Errorf("nowildmenu: %s -- expected %d, matched %d", what, count, n)
-	}
-	c.text = out
-	c.note(what, n)
-	return nil
-}
-
-// block returns (line_start, open_brace, close_brace) for the `if (...)`
-// matching pat.
-//
-// The extent of the condition is found by MATCHING PARENTHESES, not by reading
-// to the end of the line: these conditions are single-line by construction but
-// full of parenthesised key codes, so a pattern that merely names the first
-// term stops in the middle of one.
-func (c *wmCut) block(pat string) (start, opening, closing int, ok bool) {
-	m := regexp.MustCompile("(?m)" + pat).FindIndex(c.text)
-	if m == nil {
-		return 0, 0, 0, false
-	}
-	blanked := edit.Blank(c.text)
-	lp := m[0] + bytes.IndexByte(c.text[m[0]:], '(')
-	rp := edit.Match(blanked, lp)
-	if rp < 0 {
-		return 0, 0, 0, false
-	}
-	i := rp + 1
-	for i < len(c.text) && (c.text[i] == ' ' || c.text[i] == '\t' || c.text[i] == '\n') {
-		i++
-	}
-	if i >= len(c.text) || c.text[i] != '{' {
-		return 0, 0, 0, false
-	}
-	cl := edit.Match(blanked, i)
-	if cl < 0 {
-		return 0, 0, 0, false
-	}
-	return m[0], i, cl, true
-}
-
-func (c *wmCut) blockEnd(closing int) int {
-	end := closing + 1
-	for end < len(c.text) && (c.text[end] == ' ' || c.text[end] == '\t') {
-		end++
-	}
-	if end < len(c.text) && c.text[end] == '\n' {
-		end++
-	}
-	return end
-}
-
-// dropIf deletes an `if (...)` and everything it guards, count times, and then
-// requires that there are no more.
-func (c *wmCut) dropIf(pat string, count int, what string) error {
-	for i := 0; i < count; i++ {
-		start, _, closing, ok := c.block(pat)
-		if !ok {
-			return fmt.Errorf("nowildmenu: %s -- no more blocks to drop", what)
-		}
-		end := c.blockEnd(closing)
-		out := make([]byte, 0, len(c.text))
-		out = append(out, c.text[:start]...)
-		c.text = append(out, c.text[end:]...)
-	}
-	if _, _, _, ok := c.block(pat); ok {
-		return fmt.Errorf("nowildmenu: %s -- more blocks than expected", what)
-	}
-	c.note(what, count)
-	return nil
-}
-
-// unwrapIf deletes an `if (...)`'s header and braces, keeping its body.
-func (c *wmCut) unwrapIf(pat string, count int, what string) error {
-	for i := 0; i < count; i++ {
-		start, opening, closing, ok := c.block(pat)
-		if !ok {
-			return fmt.Errorf("nowildmenu: %s -- no more blocks to unwrap", what)
-		}
-		body := c.text[opening+bytes.IndexByte(c.text[opening:], '\n')+1 : bytes.LastIndexByte(c.text[:closing], '\n')+1]
-		end := closing + 1
-		for end < len(c.text) && (c.text[end] == ' ' || c.text[end] == '\t') {
-			end++
-		}
-		if end < len(c.text) && c.text[end] == '\n' {
-			end++
-		}
-		out := make([]byte, 0, len(c.text))
-		out = append(out, c.text[:start]...)
-		out = append(out, body...)
-		c.text = append(out, c.text[end:]...)
-	}
-	c.note(what, count)
-	return nil
-}
-
-// keepElse turns `if (dead) { A } else { B }` into B.
-func (c *wmCut) keepElse(pat, what string) error {
-	start, _, closing, ok := c.block(pat)
-	if !ok {
-		return fmt.Errorf("nowildmenu: %s -- not found", what)
-	}
-	m := regexp.MustCompile(`^[ \t]*\n[ \t]*else[ \t]*\n`).FindIndex(c.text[closing+1:])
-	if m == nil {
-		return fmt.Errorf("nowildmenu: %s -- no else branch, so there is nothing to "+
-			"keep and deleting the if alone would delete the fallback", what)
-	}
-	blanked := edit.Blank(c.text)
-	at := closing + 1 + m[1]
-	opening := at + bytes.IndexByte(blanked[at:], '{')
-	eclose := edit.Match(blanked, opening)
-	if eclose < 0 {
-		return fmt.Errorf("nowildmenu: %s -- the else branch is unbalanced", what)
-	}
-	body := c.text[opening+bytes.IndexByte(c.text[opening:], '\n')+1 : bytes.LastIndexByte(c.text[:eclose], '\n')+1]
-	end := eclose + 1
-	for end < len(c.text) && (c.text[end] == ' ' || c.text[end] == '\t') {
-		end++
-	}
-	if end < len(c.text) && c.text[end] == '\n' {
-		end++
-	}
-	out := make([]byte, 0, len(c.text))
-	out = append(out, c.text[:start]...)
-	out = append(out, body...)
-	c.text = append(out, c.text[end:]...)
-	c.note(what, 1)
-	return nil
-}
-
 // NoWildMenu removes 'wildmenu' and the command-line popup it drew.
-func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
-	c := &wmCut{text: text}
-	steps := []func() error{
-		func() error { return c.dropIf(`^[ \t]*if \(p_wmnu\)[ \t]*$`, 3, "the three `if (p_wmnu)` blocks") },
-		func() error {
-			return c.unwrapIf(`^[ \t]*if \(!p_wmnu \|\| \(c != `, 1,
-				"the cmdline_leave guard that only wildmenu needed")
-		},
-		// showmatches' second argument was "draw the wildmenu" and its fourth
-		// the wildmode flags that only the menu read.  ONE substitution covers
-		// the definition, the prototype and all six calls, because they have
-		// the same shape.
-		func() error {
-			return c.sub(`\bshowmatches\(([^,]+), [^,]+, ([^,]+), [^)]*\)`,
-				"showmatches(${1}, ${2})", 7,
-				"showmatches loses its wildmenu and wim_flags arguments")
-		},
-		func() error {
-			return c.dropIf(`^[ \t]*if \(display_wildmenu && !display_list && vim_strchr`, 1,
-				"the popup form of the wildmenu")
-		},
-		func() error {
-			return c.dropIf(`^[ \t]*if \(display_wildmenu && display_list\)[ \t]*$`, 1,
-				"the menu drawn beside the list")
-		},
-		// The middle arm of a three-way chain: `if (got_int) ... else if
-		// (menu) ... else if (list) ...`.  Dropping the arm has to drop its
-		// `else` too.
-		func() error {
-			return c.sub(`^[ \t]*else if \(display_wildmenu && !display_list\)\n`+
-				`[ \t]*\{\n[ \t]*win_redr_status_matches\([^\n]*\n[ \t]*\}\n`, "", 1,
-				"the status-line menu arm of showmatches")
-		},
-		func() error {
-			return c.sub(`if \(wim_noselect \|\| \(wim_list && !wim_full\)\)`,
-				"if (wim_list && !wim_full)", 1, "the WILD_NOSELECT condition")
-		},
-		func() error {
-			return c.dropIf(`^[ \t]*if \(wim_noinsert\)[ \t]*$`, 1, "the WILD_NOINSERT block")
-		},
-		func() error {
-			return c.sub(`xp->xp_numfiles > \(\(wim_noselect \|\| wim_noinsert\) \? 0 : 1\)`,
-				"xp->xp_numfiles > 1", 1, "the match-count threshold")
-		},
-		func() error {
-			return c.sub(`if \(wim_list \|\| show_menu\)`, "if (wim_list)", 2,
-				"the two `wim_list || show_menu` conditions")
-		},
-		func() error {
-			return c.sub(`if \(wim_list_next \|\| \(p_wmnu && \([^\n]*\)\)\)`,
-				"if (wim_list_next)", 1, "the next-wildmode condition")
-		},
-		func() error {
-			return c.sub(`if \(xpc\.xp_numfiles > 1 && \(\(!did_wild_list && \(wim_flags\[wim_index\] `+
-				`& WIM_LIST\)\) \|\| p_wmnu\)\)`,
-				"if (xpc.xp_numfiles > 1 && !did_wild_list && (wim_flags[wim_index] & WIM_LIST))",
-				1, "the CTRL-L listing condition")
-		},
-		func() error {
-			return c.sub(`^[ \t]*wildmenu_cleanup\([^;\n]*\);[ \t]*\n`, "", 4,
-				"the wildmenu_cleanup calls")
-		},
-		func() error {
-			return c.sub(`cmdline_pum_active\(\) \|\| wild_menu_showing \|\| did_wild_list`,
-				"did_wild_list", 1, "the CTRL-E/CTRL-Y guard")
-		},
-		func() error {
-			return c.sub(`msg_scrolled == 0 && wild_menu_showing == 0 && call_update_screen`,
-				"msg_scrolled == 0 && call_update_screen", 1,
-				"the redraw guard that asked whether the menu was up")
-		},
-		func() error {
-			return c.sub(`^[ \t]*if \(pum_visible\(\)\)\n[ \t]*\{\n`+
-				`[ \t]*cmdline_pum_display\(\);\n[ \t]*\}\n`, "", 1,
-				"the command-line popup redraw")
-		},
-		func() error {
-			return c.sub(`^[ \t]*if \(cmdline_pum_active\(\)\)\n[ \t]*\{\n`+
-				`[ \t]*cmdline_pum_remove\(&ccline, FALSE\);\n[ \t]*\}\n`, "", 2,
-				"the two popup removals in getcmdline_int")
-		},
-		func() error {
-			return c.sub(`^[ \t]*if \(cmdline_match_array != nullptr\)\n[ \t]*\{\n`+
-				`[ \t]*cmdline_pum_remove\(get_cmdline_info\(\), FALSE\);\n[ \t]*\}\n`, "", 1,
-				"the popup removal in ExpandOne")
-		},
-		func() error {
-			return c.sub(`^[ \t]*if \(cmdline_pum_active\(\)\)\n[ \t]*\{\n`+
-				`[ \t]*cmdline_pum_cleanup\(&ccline\);\n[ \t]*\}\n`, "", 1,
-				"the CTRL-A popup cleanup")
-		},
-		func() error {
-			return c.sub(`^[ \t]*end_wildmenu = end_wildmenu && \(!cmdline_pum_active\(\)[^\n]*\n`,
-				"", 1, "the popup exception to leaving completion")
-		},
-		func() error {
-			return c.dropIf(`^[ \t]*if \(cmdline_pum_active\(\)\)\n[ \t]*\{\n[ \t]*skip_pum_redraw`,
-				1, "the popup teardown on any other key")
-		},
-		func() error {
-			return c.dropIf(`^[ \t]*if \(c == \(-\(\(KS_EXTRA\) \+ \(\(int\)\(KE_WILD\) << 8\)\)\) && firstc != .@.\)[ \t]*$`, 1, "the one place that set it")
-		},
-		func() error {
-			return c.keepElse(`^[ \t]*if \(cmdline_pum_active\(\) && \(c == `,
-				"the popup page-up/page-down arm")
-		},
-		// 'wildoptions', whose `pum` value selected the menu, is dropped at
-		// phase 1 with every option the product has not (optfront, D3).
+//
+// Each edit must find exactly what it expects, with the report printed at
+// the END rather than as it goes.  A miss is fatal rather than silent.  An
+// edit that quietly matched nothing leaves the code it was meant to remove
+// in place, and the report still says the phase succeeded -- which is how
+// an inert option survives three passes.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the text version's brace and
+// parenthesis matching and its substitutions are acts on the nodes -- ifs
+// dropped and folded, an else-if arm folded away, conditions rewritten from
+// their own operands, statements cut -- and showmatches' two parameters are
+// dropped with their arguments at every call (PARAM), after the ifs that
+// read one of them; the locals initialised from the other dangle for the
+// collection, as the text left them to the sweep.  The report is the
+// text's, in its order (history keeps the text version).
+func NoWildMenu(e *graph.Editor, w io.Writer) error {
+	q := graph.NewVerbs("nowildmenu", e, io.Discard)
+	type entry struct {
+		what string
+		n    int
 	}
-	for _, step := range steps {
-		if err := step(); err != nil {
-			return nil, err
+	var log []entry
+	act := func(n int, what string, f func()) {
+		if q.Failed() {
+			return
+		}
+		f()
+		log = append(log, entry{what, n})
+	}
+	in := func(fn string, f func(*graph.Verbs)) { q.InFunction(fn, f) }
+
+	act(3, "the three `if (p_wmnu)` blocks", func() { q.DropIf("p_wmnu", 3, "the three `if (p_wmnu)` blocks") })
+	act(1, "the cmdline_leave guard that only wildmenu needed", func() {
+		in("getcmdline_int", func(q *graph.Verbs) {
+			q.FoldAlways("(|| (! p_wmnu) _*)", 1, "the cmdline_leave guard that only wildmenu needed")
+		})
+	})
+	// showmatches' second argument was "draw the wildmenu" and its fourth
+	// the wildmode flags that only the menu read: the parameters go from
+	// its definition, the arguments from its six calls,
+	// once the ifs below have taken the second's last readers.  The text
+	// counted the seven places one substitution changed.
+	showmatches := len(log)
+	log = append(log, entry{"showmatches loses its wildmenu and wim_flags arguments", 7})
+	in("showmatches", func(q *graph.Verbs) {
+		act(1, "the popup form of the wildmenu", func() {
+			q.DropIf("(&& display_wildmenu (! display_list) _)", 1, "the popup form of the wildmenu")
+		})
+		act(1, "the menu drawn beside the list", func() {
+			q.DropIf("(&& display_wildmenu display_list)", 1, "the menu drawn beside the list")
+		})
+		// The middle arm of a three-way chain: `if (got_int) ... else if
+		// (menu) ... else if (list) ...`.  Dropping the arm drops its else.
+		act(1, "the status-line menu arm of showmatches", func() {
+			q.One("(if (&& display_wildmenu (! display_list)) (block (call win_redr_status_matches _*)) _)",
+				"the status-line menu arm of showmatches")
+			q.FoldNever("(&& display_wildmenu (! display_list))", 1, "the status-line menu arm of showmatches")
+		})
+	})
+	if !q.Failed() {
+		f := e.Defn("showmatches")
+		var st graph.ParamStats
+		var err error
+		if f == nil {
+			err = fmt.Errorf("showmatches is not defined")
+		} else {
+			st, err = e.DropParams([]graph.ParamDrop{{Decl: f, I: 1}, {Decl: f, I: 3}}, graph.ParamOptions{Dangle: true})
+		}
+		if err == nil && (st.Calls != 6 || st.Params != 2) {
+			err = fmt.Errorf("%s, expected 2 parameters of its definition and 6 calls", st)
+		}
+		if err != nil {
+			return fmt.Errorf("nowildmenu: %s -- %v", log[showmatches].what, err)
 		}
 	}
+	in("cmdline_wildchar_complete", func(q *graph.Verbs) {
+		act(1, "the WILD_NOSELECT condition", func() {
+			q.Rewrite("(|| wim_noselect (paren ?x))", "?x", 1, "the WILD_NOSELECT condition")
+		})
+		act(1, "the WILD_NOINSERT block", func() { q.DropIf("wim_noinsert", 1, "the WILD_NOINSERT block") })
+		act(1, "the match-count threshold", func() {
+			q.Rewrite("(? (paren (|| wim_noselect wim_noinsert)) 0 1)", "1", 1, "the match-count threshold")
+		})
+		act(2, "the two `wim_list || show_menu` conditions", func() {
+			q.Rewrite("(|| wim_list show_menu)", "wim_list", 2, "the two `wim_list || show_menu` conditions")
+		})
+		act(1, "the next-wildmode condition", func() {
+			q.Rewrite("(|| wim_list_next (paren (&& p_wmnu _)))", "wim_list_next", 1, "the next-wildmode condition")
+		})
+	})
+	act(1, "the CTRL-L listing condition", func() {
+		in("getcmdline_int", func(q *graph.Verbs) {
+			q.Rewrite("(&& (> (. xpc xp_numfiles) 1) (|| (paren (&& ?b ?c)) p_wmnu))",
+				"(&& (> (. xpc xp_numfiles) 1) ?b ?c)", 1, "the CTRL-L listing condition")
+		})
+	})
+	act(4, "the wildmenu_cleanup calls", func() { q.Cut("(call wildmenu_cleanup _)", 4, "the wildmenu_cleanup calls") })
+	act(1, "the CTRL-E/CTRL-Y guard", func() {
+		in("getcmdline_int", func(q *graph.Verbs) {
+			q.Rewrite("(|| (call cmdline_pum_active) wild_menu_showing did_wild_list)", "(paren did_wild_list)", 1,
+				"the CTRL-E/CTRL-Y guard")
+		})
+	})
+	act(1, "the redraw guard that asked whether the menu was up", func() {
+		in("redraw_after_callback", func(q *graph.Verbs) {
+			q.DropOperand("(== wild_menu_showing 0)", 1, "the redraw guard that asked whether the menu was up")
+		})
+	})
+	act(1, "the command-line popup redraw", func() {
+		q.Cut("(if (call pum_visible) (block (call cmdline_pum_display)))", 1, "the command-line popup redraw")
+	})
+	in("getcmdline_int", func(q *graph.Verbs) {
+		act(2, "the two popup removals in getcmdline_int", func() {
+			q.Cut("(if (call cmdline_pum_active) (block (call cmdline_pum_remove (addr ccline) FALSE)))", 2,
+				"the two popup removals in getcmdline_int")
+		})
+	})
+	in("ExpandOne", func(q *graph.Verbs) {
+		act(1, "the popup removal in ExpandOne", func() {
+			q.Cut("(if (!= cmdline_match_array nullptr) (block (call cmdline_pum_remove (call get_cmdline_info) FALSE)))", 1,
+				"the popup removal in ExpandOne")
+		})
+	})
+	in("getcmdline_int", func(q *graph.Verbs) {
+		act(1, "the CTRL-A popup cleanup", func() {
+			q.Cut("(if (call cmdline_pum_active) (block (call cmdline_pum_cleanup (addr ccline))))", 1, "the CTRL-A popup cleanup")
+		})
+		act(1, "the popup exception to leaving completion", func() {
+			q.Cut("(= end_wildmenu (&& end_wildmenu (|| (! (call cmdline_pum_active)) _)))", 1,
+				"the popup exception to leaving completion")
+		})
+		act(1, "the popup teardown on any other key", func() {
+			q.DropIf("(if (call cmdline_pum_active) (block (= skip_pum_redraw _) _*))", 1, "the popup teardown on any other key")
+		})
+		act(1, "the one place that set it", func() {
+			q.DropIf("(&& (== c (paren (- (+ (paren KS_EXTRA) (<< (cast int (paren KE_WILD)) 8))))) (!= firstc '@'))", 1,
+				"the one place that set it")
+		})
+		// if (dead) { A } else { B } is B: the else must be there to keep
+		act(1, "the popup page-up/page-down arm", func() {
+			q.One("(if (&& (call cmdline_pum_active) _) _ _)", "the popup page-up/page-down arm -- no else branch, so "+
+				"there is nothing to keep and deleting the if alone would delete the fallback")
+			q.FoldNever("(&& (call cmdline_pum_active) _)", 1, "the popup page-up/page-down arm")
+		})
+	})
+	// 'wildoptions', whose `pum` value selected the menu, is dropped at
+	// phase 1 with every option the product has not (optfront, D3).
+	if err := q.Done(); err != nil {
+		return err
+	}
 
-	for _, l := range c.log {
+	for _, l := range log {
 		fmt.Fprintf(w, "  nowildmenu   %-3d %s\n", l.n, l.what)
 	}
+	text := q.Text()
 	left := 0
 	for _, n := range []string{"p_wmnu", "wild_menu_showing", "cmdline_pum_active"} {
-		left += bytes.Count(c.text, []byte(n))
+		left += bytes.Count(text, []byte(n))
 	}
 	fmt.Fprintf(w, "  nowildmenu   %d mentions left, all of them definitions for the sweep\n",
 		left)
-	return c.text, nil
+	return nil
 }

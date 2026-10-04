@@ -52,3 +52,5 @@ on a plain name instead.
 
 **None the harnesses record** beyond Phase 58's. Measured: 108,374 →
 **102,166 lines**.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): this part's program is a graph step of phase 4, on `crefactor/graph`'s verbs, its report the text version's line for line and the phase's boundary byte for byte (`whim-build-check`).

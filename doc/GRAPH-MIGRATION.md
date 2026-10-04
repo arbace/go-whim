@@ -763,44 +763,44 @@ noabbr | 3 | cut/noabbr.go | 97 | - | a | - | B4 | abbreviations
 3f | 3 | phase/003/f | 33 | 3206 | b | FRAG | B4 | file marks: 2 bodies
 nointro | 3 | cut/small.go | 11 | - | done | - | B1a | 2 calls cut, counted
 optreaders | 3 | cut/optreaders.go | 57 | - | done | - | B1a | a statement found by its string; the leftover check TextCount; phase 3 ends on the graph
-phase 4 | 4 | 13 steps, 1 sweep | - | - | b | FRAG FOLDX PARAM INITROW | B3a | droplocal x2 on the graph; 2 imports today
+phase 4 | 4 | 13 steps, 1 sweep | - | - | done | - | B3a | graph end to end, handed phase 3's graph; the in-phase sweep a collection; no import
 nostat | 4 | cut/nostat.go | 32 | - | done | - | B1a | check_timestamps returns 0 (Body); phase 4 begins on the graph, handed phase 3's
 4a | 4 | phase/004/a | 72 | 480 | done | - | B1a | AUTOMATIC_ENGINE retries; the one-engine proof the text's code on the C view
-onebuffer | 4 | cut/onebuffer.go | 176 | - | a | BUILD | B3a | one buffer; a key-table element Replace
-4b | 4 | phase/004/b | 70 | - | b | INITROW PARAM | B3a | 19 key rows; win_line's parameter
-4c | 4 | phase/004/c | 53 | - | b | FRAG | B3a | aucmd window
-4d | 4 | phase/004/d | 80 | 8385 | b | FRAG FOLDX(walk) | B3a | one buffer: walks folded, bodies; members after their uses
-4e | 4 | phase/004/e | 26 | - | b | PARAM TEXTQ | B3a | check_tty's parameter
-nowild | 4 | cut/small.go | 24 | - | b | FRAG BUILD | B3a | delegations to save_patterns, a prototype
-nowildmenu | 4 | cut/nowildmenu.go | 252 | - | b | PARAM | B3a | wildmenu; showmatches' 2 parameters
-4f | 4 | phase/004/f | 84 | - | b | BUILD | B3a | completion keys; >=20 options[] callbacks to nullptr (Replace); after nowildmenu
-phase 5 | 5 | 12 steps, 1 sweep | - | - | b | FRAG FOLDX RENAME PARAM MOVE | B3a | droplocal x2 on the graph; 1 import today
+onebuffer | 4 | cut/onebuffer.go | 176 | - | done | - | B3a | DropCaseRun, DropIf, FoldNever, DropOperand, Rewrite, the CTRL-^ row RewriteAt; the leftover counts the text's on the C view
+4b | 4 | phase/004/b | 70 | - | done | - | B3a | 18 key_names_table rows deleted by name (INITROW), the [MOUSE] row, win_line's parameter (PARAM)
+4c | 4 | phase/004/c | 53 | - | done | - | B3a | Splice, Rewrite, the bodies by template; no FRAG
+4d | 4 | phase/004/d | 80 | 8385 | done | - | B3a | FoldWalk x7, 3 bodies and 4 address arms in two FRAG units (Together), the list members cut
+4e | 4 | phase/004/e | 26 | - | done | - | B3a | an arm folded, check_tty's parameter (PARAM); counts the text's on the C view
+nowild | 4 | cut/small.go | 24 | - | done | - | B3a | the prototype and 3 calls in one FRAG unit
+nowildmenu | 4 | cut/nowildmenu.go | 252 | - | done | - | B3a | 23 acts; showmatches' 2 parameters (PARAM, Dangle for the unread locals); report at the end in the text's order
+4f | 4 | phase/004/f | 84 | - | done | - | B3a | DropCaseRun, Run, SpliceFirst; 22 options[] callbacks to nullptr (Replace)
+phase 5 | 5 | 12 steps, 1 sweep | - | - | done | - | B3a | graph end to end, handed phase 4's graph; the in-phase sweep a collection; no import
 nobackup | 5 | cut/nobackup.go | 158 | - | done | - | B1a | backups and ACLs; quiet acts, a line a group; reproduces the text's bodiless-if accident (B1a as built)
 lfonly | 5 | cut/lfonly.go | 310 | - | done | - | B1a | LF only; the dying functions' callers asked of the edges
 keepbytes | 5 | cut/keepbytes.go | 98 | - | done | - | B1a | ++bad gone; KeepThen on a chain; phase 5 begins on the graph and imports again after noconv
-noconv | 5 | cut/noconv.go | 290 | - | b | FRAG RENAME | B3a | mb_* pointers become utf_* calls
-5a | 5 | phase/005/a | 201 | - | b | PARAM FRAG MOVE | B3a | 'formatoptions', gq, = and !
-5b | 5 | phase/005/b | 132 | 3511 | b | FRAG FOLDX(walk) RENAME | B3a | one window and tab: walks, 35 uses to curwin
-5c | 5 | phase/005/c | 50 | 4353 | b | FRAG | B3a | the frame tree: 15 bodies
-5d | 5 | phase/005/d | 112 | 4261 | b | FRAG TEXTQ | B3a | no autocommands
-noglob | 5 | cut/small.go | 27 | - | b | BUILD | B3a | a one-call body; after nowild
-phase 6 | 6 | nofind | 45 | - | b | FRAG | B3a | find_file_in_path's 15-line body
+noconv | 5 | cut/noconv.go | 290 | - | done | - | B3a | HeadFold (heads, arms apart, last first); 386 callees through the mb_* pointers replaced by the functions, by edge; the startup loop FRAG; EndLabels
+5a | 5 | phase/005/a | 201 | - | done | - | B3a | 77 acts on the verbs; comp_textwidth's flag (PARAM, also at format_lines' dead call, which the text left ill-typed for the sweep); CutRun
+5b | 5 | phase/005/b | 132 | 3511 | done | - | B3a | FoldWalks by pattern (a repeated ?name is the backreference), 9 bodies in 3 FRAG units, firstwin/lastwin's 35 uses RetargetUses to curwin
+5c | 5 | phase/005/c | 50 | 4353 | done | - | B3a | 15 bodies in one FRAG unit
+5d | 5 | phase/005/d | 112 | 4261 | done | - | B3a | the proof by edges (no store to first_autopat), 2 FRAG literals, 56 dispatches cut by callee
+noglob | 5 | cut/small.go | 27 | - | done | - | B3a | a one-call body (BUILD)
+phase 6 | 6 | nofind | 45 | - | done | - | B3a | the delegation by edge, the body FRAG; graph end to end
 phase 7 | 7 | noinertopts, sweep, droplocal | 30 | - | done | - | B1a | graph end to end: a FoldNever, a RewriteAt, a Cut; the sweep a collection
 phase 8 | 8 | droplocal | - | - | done | - | A | begins on the graph (q007.g)
-phase 9 | 9 | nohome, nogetenv | 138 | - | b | FRAG | B3a | bodies naming libc (externs)
-phase 10 | 10 | nochdir | 112 | - | b | FRAG | B3a | 2 bodies with static locals, getcwd, errno
+phase 9 | 9 | nohome, nogetenv | 138 | - | done | - | B3a | two bodies FRAG, a body BUILD, cuts and drops; graph end to end
+phase 10 | 10 | nochdir | 112 | - | done | - | B3a | two bodies in one FRAG unit (static locals, getcwd, errno); graph end to end
 phase 11 | 11 | nofloat | 97 | - | done | - | B1a | the conversion a Splice, the arms DropCase; literals and libm calls counted on the C view
 phase 12 | 12 | noowner, droplocal | 123 | - | done | - | B1a | handed the graph: DropOperand, FoldAlways, DropIf, FoldAlwaysElse, `(void)f()` by Rewrite
 phase 13 | 13 | sweep, droplocal | - | - | done | - | A | begins on the graph (q012.g)
 phase 14 | 14 | sweep, droplocal | - | - | done | - | A | begins on the graph (q013.g)
 phase 15 | 15 | whim15a, whim15 | 37 | - | done | - | B1a | handed the graph: an nv_cmds element RewriteAt; :noswapfile's DropCase
-phase 16 | 16 | oneoptset, sweep, droplocal | 142 | - | b | RENAME | B3a | a string literal respelled
+phase 16 | 16 | oneoptset, sweep, droplocal | 142 | - | done | - | B3a | the string RespellString, three arms folded, DropOperandAsText; graph end to end
 phase 17 | 17 | droplocal | - | - | done | - | A | begins on the graph (q016.g)
 phase 18 | 18 | droplocal | 5 | - | done | - | B1a | whim18kp gone: DropLocal's get_varp rule takes `&curbuf->f` unparenthesised now
 phase 19 | 19 | whim19, sweep, droplocal | 73 | - | done | - | B1a | handed the graph; whim19ep gone as whim18kp
 phase 20 | 20 | whim20, sweep, whim20bl, droplocal | 115 | - | done | - | B1a | handed the graph; whim20bl a DropCase (b_p_bl is the collection's, not droplocal's)
-phase 21 | 21 | whim21 | 59 | 2403 | b | FRAG | B3a | one file argument
-phase 22 | 22 | whim22 | 38 | 3147 | b | FRAG | B3a | :e in place: a 45-line block with stat()
+phase 21 | 21 | whim21 | 59 | 2403 | done | - | B3a | 8 literal acts in one FRAG unit, ## by BUILD, runs and a member cut
+phase 22 | 22 | whim22 | 38 | 3147 | done | - | B3a | the two block literals in one FRAG unit; Run, CutRun
 phase 23 | 23 | whim23 | 21 | - | done | - | B1a | one FoldNever; the row query TextQuery on the C view
 phase 24 | 24 | edit whim24 | 188 | - | done | - | A | begins on the graph (q023.g)
 phase 25 | 25 | whim25 | 129 | 961 | done | - | B1a | handed the graph; its own DropOperand keeps the text's parentheses; one MIN() macro's text respelled (MACROX's)
@@ -811,6 +811,13 @@ phase 29 | 29 | whim29 | 115 | 638 | done | - | B3b | no :read: RENUM, DropOpera
 phase 30 | 30 | whim30 | 131 | 844 | done | - | B3b | no :edit, gf: RENUM, two DropCase, a fold by condition
 phase 31 | 31 | whim31 | 102 | 569 | done | - | B3b | open_buffer(void): PARAM's three parameters in one edit
 phase 32 | 32 | whim32 | 476 | 5665 | done | - | B3b | the buffer has no name: CutRun, PARAM (Dangle for the local the text left naming a gone parameter), RENUM; the writes on the C view
+phase 26 | 26 | whim26 | 262 | 450 | done | - | B3a | HeadFold, DropOperandAsText in their conditions, the dead ADDR_* labels and 35 arms from their runs, a message RespellString; no RENUM needed (0 enumerators go)
+phase 27 | 27 | whim27 | 346 | 1992 | b | PARAM TEXTQ | B3b | no Ex mode: ~28 folds, main_loop's parameter
+phase 28 | 28 | whim28 | 67 | 850 | b | RENUM BUILD TEXTQ | B3b | no :write
+phase 29 | 29 | whim29 | 115 | 638 | b | RENUM | B3b | no :read
+phase 30 | 30 | whim30 | 131 | 844 | b | RENUM TEXTQ | B3b | no :edit, gf
+phase 31 | 31 | whim31 | 102 | 569 | b | PARAM | B3b | open_buffer(void)
+phase 32 | 32 | whim32 | 476 | 5665 | b | RENUM PARAM TEXTQ FOLDX | B3b | the buffer has no name
 phase 33 | 33 | whim33 | 87 | 656 | done | - | B1b | begins on the graph (q032.g); ex_quit's dead tail, two members
 phase 34 | 34 | whim34, droplocal x2, whim34rows | 155 | 513 | done | - | B3b | W10 and [RO]: DeleteDefinition, RespellString, DropArgPure; graph end to end
 phase 35 | 35 | whim35 | 227 | 1854 | done | - | B3b | the never-opened FILE*s: CutRun, DropOperand, PARAM
@@ -919,6 +926,11 @@ parts, 43 as built, 88), and 34 `done` (stage A's 5 phases that began on
 the graph, B1a's 16 rows, B1b's, B1c's and B3b's; counted after B3b; the
 `droplocal` steps of 4, 5, 16 and 34 are done too, inside phases whose
 other steps are listed). A phase of several units has a
+190 rows: 28 (a), 104 (b), 8 (c: the `FallOutOf` wrapper and the three
+front phases it wraps, 94, 95, 100, 101), 6 (d: phase 0 and its three
+parts, 43 as built, 88), and 44 `done` (stage A's 5 phases that began on
+the graph, B1a's 16 rows and B3a's 23; the `droplocal` steps of 4, 5, 16 and 34 are
+done too, inside phases whose other steps are listed). A phase of several units has a
 row of its own besides theirs, so the classes overlap by those rows.
 
 ## Batches for stage B
@@ -980,6 +992,9 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
     and 24's neighbours; the in-phase sweeps become collections.
   - **B3b** phases 27-35 (~1,600): RENUM, PARAM, FOLDX, little FRAG --
     **done**, *B3b as built* below: no FOLDX or FRAG was needed.
+    and 24's neighbours; the in-phase sweeps become collections. **Done**,
+    *B3a as built* below: phases 4-26 run on the graph end to end.
+  - **B3b** phases 27-35 (~1,600): RENUM, PARAM, FOLDX, little FRAG.
   - **B3c** phases 36-42 (~2,100, ~50 KB of literal C): FRAG with externs,
     builtins and macros; RENAME; PARAM; INCLUDE. 42's MIN/MAX may stay a
     text step.
@@ -2225,3 +2240,73 @@ members as RETYPE/RENAME, the literals as LiteralC/ReplaceC -- is left; the
 bytes, the assertions and the report would not move, and DRAFT's tests are
 how such a rewrite would be held. The state files the programs write
 (`@state`) are written as before; nothing reads them.
+## B3a as built (2026-10-04)
+
+Phases 4-6, 9-12, 16, 21, 22 and 26 on the graph: every remaining text step
+of theirs converted, byte for byte, their text programs replaced (history
+keeps them). Ten cutters are graph steps in `internal/steps`' `graphOps`
+(`onebuffer`, `nowild`, `nowildmenu`, `noconv`, `noglob`, `nofind`,
+`nohome`, `nogetenv`, `nochdir`, `oneoptset`), and parts 4b-4f, 5a-5d and
+phases 21, 22 and 26 register with `RegisterGraph`. 2,308 lines of text
+programs became 2,361 on the verbs (non-blank, non-comment; 26's
+`editlit.go` folded in). **Phases 4-26 now run on the graph end to end**:
+phase 3 hands its graph to 4, and no phase from 4 to 26 imports, prints
+for a text step or sweeps -- the in-phase sweeps of 4, 5, 16, 19 and 20
+are collections.
+
+**Library** (`crefactor/graph/runverbs.go`, new, 224 lines, generic; its
+tests `runverbs_test.go`, each against the text verb's C printed
+canonically): `Run`/`CutRun` (a run of consecutive items by their
+patterns, found once: a text literal of several lines); `SpliceFirst`
+(from an item through the first after it of a shape: the text's splice to
+a line); `DropCaseRun` (DropCase judging the statement before by
+`StmtTerminates`, so a case after a block ending in a jump goes, as the
+text's line cut did); `DropOperandAsText` (the operand left keeps the
+parentheses the C view wrote around it in its operator, which a text cut
+of ` && x` leaves: `while ((a, b))`); `HeadFold` (a text fold of a line
+head: plain ifs or else-if arms of a condition, apart, folded one at a
+time from the last, `what (N)` reported as noconv's text did); and
+`Editor.EndLabels` (the `;` the print puts after a label left last in its
+block). Nothing existing changed.
+
+**Refinements of the catalogue.**
+- No RENUM, INITROW-by-index or MOVE was needed. 4b's 18 mouse rows and
+  the `[MOUSE]` row are `DeleteRows` with no position to say; 26's
+  enumerators past `CMD_SIZE` are all still named here (0 go, as the text
+  reported); 5b's 35 `firstwin`/`lastwin` uses are `RetargetUses` to
+  `curwin`, the two declarations then cut.
+- PARAM did what the text's literals did: win_line's, check_tty's,
+  showmatches' two (with `Dangle`: the locals they initialised go to the
+  collection, as the text left them to the sweep), comp_textwidth's. The
+  text missed comp_textwidth's call in `format_lines` (left `(TRUE)`, an
+  ill-typed call in a function the sweep takes); PARAM drops it too,
+  so the C view before the collection differs there by those bytes and
+  after it is the same.
+- noconv's 386 calls through the ten mb_* pointers are each callee
+  replaced by the function, found by the pointers' uses (edges), every use
+  a call or refused; `Rederive` types the call again.
+- A text head (`if (x)`) did not match `else if (x)`; where both occur
+  (noconv's `converted`, 26's skip folds) `HeadFold` tells them apart.
+- 5d's proof that nothing registers an autocommand is asked of the edges
+  (no use of `first_autopat` is stored to); 5b's backreferences are a
+  repeated `?name` in the walk's pattern.
+- Each unit was proved alone before its phase (`internal/graphcheck`'s
+  `TestB3aRecord`/`TestB3aUnit`, B3A_REF): the text step's output printed
+  canonically against the graph step's C view on the same input, and its
+  report line for line -- all 22 units the same but 5a's one call above.
+
+**The proof**, rebased on main `4f96189`: `rm -rf .cache/boundaries; make
+whim-build-check` in order, whim-vim.c byte for byte (77,635 lines), 104
+boundaries compiling, 323 s; again in parallel, byte for byte, 28 links
+begun on their graph snapshot (0 imported), 91 s. The control -- one act
+dropped or changed in onebuffer, part 5b, nochdir and oneoptset -- is
+named by the parallel check: phases 4 (onebuffer's own leftover count
+refuses), 5, 10 (refuses) and 16, `4 of 103 phases do not reproduce their
+snapshot`; a fifth, 22's `b_may_swap` store kept, fails
+`TestPhasesOnGraph` (50 bytes). `whim-editor-check`, `whim-test` (80 as
+HEAD, the Go editor 80), `go test ./...` in both modules, gofmt, vet and
+staticcheck on what changed: clean. In order beside main at the same hour
+(load 20-30): **313 s wall, 902 s CPU against main's 340 s and 978 s**;
+phase 4 5 s (12 s), 5 4 s (10 s), 6, 9, 10, 21, 22 and 26 0-1 s (2-3 s):
+three imports and one C view fewer (before 4's onebuffer, 5's start and
+noconv, 16), and nine sweeps and canonical prints gone.

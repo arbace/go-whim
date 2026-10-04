@@ -65,3 +65,5 @@ none of them walks the path this changes: every harness edits a file in the
 directory it is standing in. So it writes `sub/f.txt` from above and then
 `../sub/f.txt` from inside `sub`, and requires the file to come back correct
 both times.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): every step of this phase runs on `crefactor/graph`, handed the graph the phase before left, with no import, its report the text version's and its boundary byte for byte (`whim-build-check`).

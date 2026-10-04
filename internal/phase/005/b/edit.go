@@ -61,119 +61,148 @@ package p005b
 // THE DELTA: none expected.  Every window and tabpage Ex command is already ex_ni, so
 // no exsweep row can move; declared empty and left for the delta check to correct.
 
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the text version's literals,
+// walks and bodies are acts on the nodes -- the walks folded by their
+// shape, the variables the text's backreferences asked to agree bound once
+// in the pattern (a second ?name must be the same form), the one-statement
+// bodies built from templates, the long ones spliced as C in three units
+// (FRAG, Together), the list heads' last uses pointed at curwin by edge
+// (RetargetUses) -- each counted, its report the text's (history keeps the
+// text version).
+
 import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/clisp"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// THE ONE PATTERN BACKREFERENCE IN ANY EDIT PART, and RE2 has none.
-//
-// The Python matches a walk with `(?P<v>\w+)` and then requires the SAME name
-// at every later position with `(?P=v)`, so a `for` whose variables disagree
-// simply does not match.  Go cannot say that, so each position is captured
-// SEPARATELY and the equality is asserted afterwards -- the route the Go session
-// measured on q71 of the old numbering, where NESTED, TABS and WINS give 15, 17 and 23 either way.
-//
-// The measurement that makes that mean something is the CONTROL, not the
-// agreement: on the real tree the equality rejects NOTHING, because every raw
-// match already has equal groups, so agreeing shows only that the rewrite loses
-// no match.  A synthetic header with mismatched variables is what shows it
-// discriminates -- backref finds 0, raw RE2 finds 1, capture-and-compare finds 0.
+// The walks, as forms: a variable bound once and named again at every
+// place the text's backreference asked for it.
 const (
-	nestedWalk = `for \(\((\w+)\) = \(\((\w+)\) == (?:nullptr \|\| \((\w+)\) == )?curtab\) *\? firstwin : \((\w+)\)->tp_firstwin; \((\w+)\); \((\w+)\) = \((\w+)\)->w_next\)`
-	tabsWalk   = `for \(\((\w+)\) = first_tabpage; \((\w+)\) != nullptr; \((\w+)\) = \((\w+)\)->tp_next\)`
-	winsWalk   = `for \(\((\w+)\) = firstwin; \((\w+)\) != nullptr; \((\w+)\) = \((\w+)\)->w_next\)`
+	nestedWalk = "(for (= (paren ?w) (? (paren ?c) firstwin (-> (paren ?t) tp_firstwin))) (paren ?w) (= (paren ?w) (-> (paren ?w) w_next)) _)"
+	tabsWalk   = "(for (= (paren ?v) first_tabpage) (!= (paren ?v) nullptr) (= (paren ?v) (-> (paren ?v) tp_next)) _)"
+	winsWalk   = "(for (= (paren ?v) firstwin) (!= (paren ?v) nullptr) (= (paren ?v) (-> (paren ?v) w_next)) _)"
 )
 
-// allEqual says whether every named index holds the same non-empty text.  An
-// EMPTY capture is skipped rather than failed: NESTED's third group is inside
-// `(?:...)?` and is absent when that alternative did not run.
-func allEqual(g []string, idx ...int) bool {
-	var want string
-	for _, i := range idx {
-		if i >= len(g) || g[i] == "" {
-			continue
-		}
-		if want == "" {
-			want = g[i]
-		} else if g[i] != want {
-			return false
-		}
-	}
-	return want != ""
+// nestedTab is the tabpage test of a nested walk: `(tp) == curtab`, or
+// `(tp) == nullptr || (tp) == curtab`, of the walk's own tabpage.
+var nestedTab = []*clisp.Node{
+	clisp.MustPattern("(== (paren ?t) curtab)"),
+	clisp.MustPattern("(|| (== (paren ?t) nullptr) (== (paren ?t) curtab))"),
 }
+
+func named(n *graph.Node) bool { return n != nil && !n.IsList() && n.Atom != "" }
 
 // Whim5b makes one window and one tabpage the layout: every walk over the window
 // or tabpage list folds to curwin or curtab, and the list heads themselves go.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("onewin", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("onewin", e, w)
 
 	// 1. the constant tests, before anything renames what they compare.
 	// ONE_WINDOW, expanded at three sites and missed by phase 4c, which only
-	// folded the one_window()/last_window()/only_one_window() functions.
-	e.Literal("(firstwin == lastwin)", "TRUE", 3, "ONE_WINDOW, expanded in place")
-	e.Literal("wp == firstwin", "TRUE", 2, "win_update asking whether this is the top window")
-	e.Literal("wp == lastwin", "wp == curwin", 1, "win_redr_ruler asking for the bottom window")
+	// folded the one_window()/last_window()/only_one_window() functions.  The
+	// text's literal took the parentheses: the expansion's own where they are
+	// a node, the C view's under a `!`.
+	if ms := v.Find("(== firstwin lastwin)"); len(ms) != 3 {
+		v.Die("ONE_WINDOW, expanded in place -- occurs %d times, expected 3", len(ms))
+	} else {
+		for _, m := range ms {
+			at := m
+			if p := e.Parent(m); p != nil && p.Is("paren") {
+				at = p
+			}
+			if err := e.Replace(at, graph.NewAtom("TRUE")); err != nil {
+				v.Die("ONE_WINDOW, expanded in place -- %v", err)
+				break
+			}
+		}
+		if !v.Failed() {
+			v.Say("ONE_WINDOW, expanded in place")
+		}
+	}
+	v.Rewrite("(== wp firstwin)", "TRUE", 2, "win_update asking whether this is the top window")
+	v.Rewrite("(== wp lastwin)", "(== wp curwin)", 1, "win_redr_ruler asking for the bottom window")
 
-	e.DropWalk("aucmd_prepbuf", "for ((win) = firstwin; (win) != nullptr; (win) = (win)->w_next)",
-		w5blit3, 1, "aucmd_prepbuf searching for the window showing a buffer")
-	e.DropWalk("can_unload_buffer", "for ((wp) = firstwin; (wp) != nullptr; (wp) = (wp)->w_next)",
-		w5blit4, 1, "can_unload_buffer asking whether the buffer is on screen")
-	e.Cut(edit.Line("borrow_stl_vsep_hl();"), 2, "the two calls to the separator-highlight pass")
-	e.DeleteDefinition("borrow_stl_vsep_hl", "borrow_stl_vsep_hl, which had no window to borrow from")
-	e.Body("current_win_nr", w5blit5, "current_win_nr, which counted to the window")
-	e.Body("current_tab_nr", w5blit5, "current_tab_nr, which counted to the tabpage")
-	e.ReplaceBlock("getout", edit.Head("for (tp = first_tabpage; tp != nullptr; tp = next_tp)"),
-		w5blit6, "quitting walking every window of every tabpage")
-	e.Body("create_windows", w5blit7, "the startup scan rewinding over the window list")
-	e.Body("win_valid", w5blit8, "win_valid, which walked the list for the window it was given")
-	e.Body("win_valid_any_tab", w5blit8, "win_valid_any_tab, which walked every tabpage for it")
-	e.Body("win_find_by_id", w5blit9, "win_find_by_id, which walked the list by id")
-	e.Body("valid_tabpage", w5blit10, "valid_tabpage, which walked the tabpage list")
-	e.InFunction("goto_tabpage_tp", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(tp != curtab && leave_tabpage\(`, 1, "switching to another tabpage")
+	v.InFunction("aucmd_prepbuf", func(v *graph.Verbs) {
+		v.Rewrite(winsWalk, "(= win (? (paren (== (-> curwin w_buffer) buf)) curwin nullptr))", 1,
+			"aucmd_prepbuf searching for the window showing a buffer")
 	})
-	e.InFunction("close_buffer", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (is_curwin && curwin != win && win_valid)"), 1, "closing a buffer from another window")
+	v.InFunction("can_unload_buffer", func(v *graph.Verbs) {
+		v.Rewrite(winsWalk, "(if (== (-> curwin w_buffer) buf) (block (= can_unload FALSE)))", 1,
+			"can_unload_buffer asking whether the buffer is on screen")
 	})
-	e.InFunction("buf_freeall", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (is_curwin && curwin != the_curwin && win_valid_any_tab(the_curwin))"), 1, "freeing a buffer from another window")
+	v.Cut("(call borrow_stl_vsep_hl)", 2, "the two calls to the separator-highlight pass")
+	v.DeleteDefinition("borrow_stl_vsep_hl", "borrow_stl_vsep_hl, which had no window to borrow from")
+	v.Body("current_win_nr", "(return 1)", "current_win_nr, which counted to the window")
+	v.Body("current_tab_nr", "(return 1)", "current_tab_nr, which counted to the tabpage")
+	v.Together(func(v *graph.Verbs) {
+		v.InFunction("getout", func(v *graph.Verbs) {
+			v.ReplaceC("(for (= tp first_tabpage) (!= tp nullptr) (= tp next_tp) _)", w5blit6, 1,
+				"quitting walking every window of every tabpage")
+		})
+		v.BodyC("create_windows", w5blit7, "the startup scan rewinding over the window list")
+		v.BodyC("win_valid", w5blit8, "win_valid, which walked the list for the window it was given")
+		v.BodyC("win_valid_any_tab", w5blit8, "win_valid_any_tab, which walked every tabpage for it")
+		v.BodyC("win_find_by_id", w5blit9, "win_find_by_id, which walked the list by id")
+		v.BodyC("valid_tabpage", w5blit10, "valid_tabpage, which walked the tabpage list")
 	})
-	e.Body("win_alloc_firstwin", w5blit11, "win_alloc_firstwin cloning an existing window")
-	e.Body("win_alloc_first", w5blit12, "the first tabpage being the head of a list")
-	e.InFunction("win_alloc", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (!hidden)"), 1, "win_alloc appending to the window list")
+	v.InFunction("goto_tabpage_tp", func(v *graph.Verbs) {
+		v.FoldNever("(&& (!= tp curtab) (== (call leave_tabpage _*) OK))", 1, "switching to another tabpage")
 	})
-	e.Body("unuse_tabpage", w5blit13, "a tabpage remembering the ends of its window list")
-	e.Body("win_rest_invalid", w5blit14, "win_rest_invalid invalidating every window after one")
+	v.InFunction("close_buffer", func(v *graph.Verbs) {
+		v.FoldNever("(&& is_curwin (!= curwin win) win_valid)", 1, "closing a buffer from another window")
+	})
+	v.InFunction("buf_freeall", func(v *graph.Verbs) {
+		v.FoldNever("(&& is_curwin (!= curwin the_curwin) (call win_valid_any_tab the_curwin))", 1, "freeing a buffer from another window")
+	})
+	v.Together(func(v *graph.Verbs) {
+		v.BodyC("win_alloc_firstwin", w5blit11, "win_alloc_firstwin cloning an existing window")
+		v.BodyC("win_alloc_first", w5blit12, "the first tabpage being the head of a list")
+	})
+	v.InFunction("win_alloc", func(v *graph.Verbs) {
+		v.FoldNever("(! hidden)", 1, "win_alloc appending to the window list")
+	})
+	v.Together(func(v *graph.Verbs) {
+		v.BodyC("unuse_tabpage", w5blit13, "a tabpage remembering the ends of its window list")
+		v.BodyC("win_rest_invalid", w5blit14, "win_rest_invalid invalidating every window after one")
+	})
 
-	e.FoldWalks(nestedWalk,
-		func(g []string) bool { return allEqual(g, 2, 6, 7, 8) && allEqual(g, 3, 4, 5) },
-		func(g []string) string { return g[2] + " = curwin;" },
+	v.FoldWalks(nestedWalk,
+		func(b graph.Bindings) bool {
+			if !named(b["w"]) || !named(b["t"]) {
+				return false
+			}
+			for _, p := range nestedTab {
+				if m, ok := graph.Match(p, b["c"]); ok && graph.SameForm(m["t"], b["t"]) {
+					return true
+				}
+			}
+			return false
+		},
+		func(b graph.Bindings) string { return "(= " + b["w"].Atom + " curwin)" },
 		"the window walk inside every tabpage walk")
-	e.FoldWalks(tabsWalk,
-		func(g []string) bool { return allEqual(g, 2, 3, 4, 5) },
-		func(g []string) string { return g[2] + " = curtab;" },
+	v.FoldWalks(tabsWalk, func(b graph.Bindings) bool { return named(b["v"]) },
+		func(b graph.Bindings) string { return "(= " + b["v"].Atom + " curtab)" },
 		"every walk over the tabpage list")
-	e.FoldWalks(winsWalk,
-		func(g []string) bool { return allEqual(g, 2, 3, 4, 5) },
-		func(g []string) string { return g[2] + " = curwin;" },
+	v.FoldWalks(winsWalk, func(b graph.Bindings) bool { return named(b["v"]) },
+		func(b graph.Bindings) string { return "(= " + b["v"].Atom + " curwin)" },
 		"every walk over the window list")
 
-	e.InFunction("win_ins_lines", func(e *edit.E) {
-		e.Literal(w5blit16, w5blit17, 1, "scrolling asking whether a window is below")
-		e.Literal(w5blit18, "", 1, "scrolling refusing when a window is below")
-		e.Literal(w5blit19, w5blit20, 1, "scrolling invalidating the window below")
+	v.InFunction("win_ins_lines", func(v *graph.Verbs) {
+		v.DropOperand("(!= (-> wp w_next) nullptr)", 1, "scrolling asking whether a window is below")
+		v.FoldNever("(-> wp w_next)", 1, "scrolling refusing when a window is below")
+		v.Cut("(call win_rest_invalid (paren (-> (paren wp) w_next)))", 1, "scrolling invalidating the window below")
 	})
-	e.InFunction("win_del_lines", func(e *edit.E) {
-		e.Literal(w5blit21, w5blit22, 1, "deleting lines asking whether a window is below")
-		e.Literal(w5blit23, w5blit24, 1, "deleting lines invalidating the window below")
+	v.InFunction("win_del_lines", func(v *graph.Verbs) {
+		v.DropOperand("(-> wp w_next)", 1, "deleting lines asking whether a window is below")
+		v.Cut("(call win_rest_invalid (-> wp w_next))", 1, "deleting lines invalidating the window below")
 	})
-	e.InFunction("win_do_lines", func(e *edit.E) {
-		e.Literal(w5blit25, "", 1, "'termfastscroll' refusing to scroll a window that has one below")
+	v.InFunction("win_do_lines", func(v *graph.Verbs) {
+		v.Cut("(if (&& (!= (-> wp w_next) nullptr) p_tf) (block (return FAIL)))", 1,
+			"'termfastscroll' refusing to scroll a window that has one below")
 	})
 
 	for _, f := range []struct {
@@ -186,19 +215,42 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"check_chars_options", "tp", 1}, {"check_lnums_both", "tp", 1},
 		{"screenalloc", "tp", 2},
 	} {
-		f := f
-		e.InFunction(f.fn, func(e *edit.E) {
-			e.Lines(f.v+` = curtab;`, f.n, fmt.Sprintf("the tabpage %s no longer walks", f.fn))
+		v.InFunction(f.fn, func(v *graph.Verbs) {
+			v.Cut("(= "+f.v+" curtab)", f.n, fmt.Sprintf("the tabpage %s no longer walks", f.fn))
 		})
 	}
 	// The variables those writes held, win_T's w_next and first_tabpage are
-	// named by nothing now; the sweep takes them.
+	// named by nothing now; the collection takes them.
 
-	// 7. what is left of the two lists
-	e.Lines(`static win_T[ \t]+\*firstwin;`, 1, "firstwin")
-	e.Lines(`static win_T[ \t]+\*lastwin;`, 1, "lastwin")
-	e.Sub(`\b(?:first|last)win\b`, "curwin", 35, "the list heads read as layout state (35 mentions -> curwin)")
-	return e.Done()
+	// 7. what is left of the two lists: the heads' declarations go, and
+	// every use left of either is curwin's, by edge
+	if v.Failed() {
+		return v.Done()
+	}
+	cw := e.FileDecls("curwin")
+	if len(cw) == 0 {
+		return fmt.Errorf("onewin: curwin is not declared")
+	}
+	uses := 0
+	for _, h := range []string{"firstwin", "lastwin"} {
+		ds := e.FileDecls(h)
+		if len(ds) != 1 {
+			return fmt.Errorf("onewin: %s -- %d declarations, expected 1", h, len(ds))
+		}
+		moved, err := e.RetargetUses(ds[0], cw[0])
+		if err != nil {
+			return fmt.Errorf("onewin: %s -- %v", h, err)
+		}
+		uses += len(moved)
+	}
+	for _, h := range []string{"firstwin", "lastwin"} {
+		v.Cut("(def static "+h+" (ptr win_T))", 1, h)
+	}
+	v.Expect(uses == 35, "the list heads read as layout state -- %d uses, expected 35", uses)
+	if !v.Failed() {
+		v.Sayf("the list heads read as layout state (%d mentions -> curwin)", uses)
+	}
+	return v.Done()
 }
 
-func init() { phase.Register("whim5b", Edit) }
+func init() { phase.RegisterGraph("whim5b", Edit) }

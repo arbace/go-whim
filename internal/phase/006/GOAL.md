@@ -37,3 +37,5 @@ searching `'path'` for one. **No Ex command moves** — Phase 10's lesson again
 rather than a surprise: retiring a command only shows in the sweep if it used to
 *succeed*, and `:find`, `:sfind` and `:tabfind` already failed for want of an
 argument.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): every step of this phase runs on `crefactor/graph`, handed the graph the phase before left, with no import, its report the text version's and its boundary byte for byte (`whim-build-check`).

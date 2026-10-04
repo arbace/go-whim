@@ -64,3 +64,5 @@ half unreachable.
 
 Cumulatively: `helpclose intro version cd chdir lcd lchdir tcd tchdir pwd
 recover`.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): every step of this phase runs on `crefactor/graph`, handed the graph the phase before left, with no import, its report the text version's and its boundary byte for byte (`whim-build-check`).

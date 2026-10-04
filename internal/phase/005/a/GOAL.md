@@ -162,3 +162,5 @@ Two more failures came from the checks rather than the cuts:
    the q63 binary, which gives `if (x) {` / `    y;` / `}` for the corrected keys.
 
 Measured: 100,354 → **97,734 lines**.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): this part's program is a graph step of phase 5, on `crefactor/graph`'s verbs, its report the text version's line for line and the phase's boundary byte for byte (`whim-build-check`).

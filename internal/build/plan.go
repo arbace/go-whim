@@ -56,14 +56,17 @@ type (
 //
 // THE GRAPH STEPS (doc/GRAPH.md step 5, doc/GRAPH-MIGRATION.md): every
 // `droplocal` (internal/cut's DropLocal, a deletion and its fall-out),
-// phase 24's program, and B1a's: the cutters nointro, optreaders, nostat,
+// phase 24's program, B1a's -- the cutters nointro, optreaders, nostat,
 // nobackup, lfonly, keepbytes, noinertopts, nofloat and noowner, and the
-// programs of part 4a and phases 15, 15a, 19, 20, 23 and 25.  Phases 4, 5,
-// 7, 8, 11-15, 17-20 and 23-25 begin on the graph -- the first step, sweeps
-// aside, is a graph step -- so the run hands them the graph the phase
-// before left when it ended on one, and the check reads it from qNNN.g; the
-// rest import the text where their graph steps begin.  Phases 3, 7, 8,
-// 11-20 and 23-25 end on the graph: collected, not swept.
+// programs of part 4a and phases 15, 15a, 19, 20, 23 and 25 -- and B3a's:
+// the cutters onebuffer, nowild, nowildmenu, noconv, noglob, nofind,
+// nohome, nogetenv, nochdir and oneoptset, and the programs of parts 4b-4f
+// and 5a-5d and phases 21, 22 and 26.  Phases 4-26 begin on the graph --
+// the first step, sweeps aside, is a graph step -- so the run hands them
+// the graph the phase before left when it ended on one, and the check reads
+// it from qNNN.g; the rest import the text where their graph steps begin.
+// Phases 3-26 end on the graph: collected, not swept, phases 4-26 with no
+// import between them.
 var Plan = []Phase{
 	// Phase 0 seeds the input canonically and spells it in C23 there:
 	// whim0a's `nullptr` and `usize` (internal/phase/000/a), whim0b's
@@ -104,18 +107,18 @@ var Plan = []Phase{
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_lisp", "b_p_lw", "b_p_iminsert", "b_p_imsearch"}},
 			// onebuffer (record 42's cut), its sweep and droplocal, then the
 			// programs of parts 4b-4e: they count and anchor on swept text
-			{Op: "onebuffer"},
+			{Op: "onebuffer", Graph: true},
 			{Op: "sweep"},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_bh"}},
-			{Op: "edit", Args: []string{"whim4b"}},
-			{Op: "edit", Args: []string{"whim4c"}},
-			{Op: "edit", Args: []string{"whim4d"}},
-			{Op: "edit", Args: []string{"whim4e"}},
-			{Op: "nowild"},
-			{Op: "nowildmenu"},
+			{Op: "edit", Graph: true, Args: []string{"whim4b"}},
+			{Op: "edit", Graph: true, Args: []string{"whim4c"}},
+			{Op: "edit", Graph: true, Args: []string{"whim4d"}},
+			{Op: "edit", Graph: true, Args: []string{"whim4e"}},
+			{Op: "nowild", Graph: true},
+			{Op: "nowildmenu", Graph: true},
 			// part 4f's program, after nowildmenu: it takes what of
 			// getcmdline_int()'s completion the menu's cut leaves
-			{Op: "edit", Args: []string{"whim4f"}},
+			{Op: "edit", Graph: true, Args: []string{"whim4f"}},
 		}},
 	{N: 5, Name: "the front, ended; and the editor stops looking for files it was not given",
 		Steps: []Step{
@@ -128,20 +131,20 @@ var Plan = []Phase{
 			{Op: "nobackup", Graph: true},
 			{Op: "lfonly", Graph: true},
 			{Op: "keepbytes", Graph: true},
-			{Op: "noconv"},
-			{Op: "edit", Args: []string{"whim5a"}},
-			{Op: "edit", Args: []string{"whim5b"}},
-			{Op: "edit", Args: []string{"whim5c"}},
+			{Op: "noconv", Graph: true},
+			{Op: "edit", Graph: true, Args: []string{"whim5a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim5b"}},
+			{Op: "edit", Graph: true, Args: []string{"whim5c"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_bin", "b_p_ff", "b_p_fixeol", "b_p_tx", "b_p_menc"}},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_fo", "b_p_flp", "b_p_com"}},
 			// part 5d's program, which counts the dispatches on swept text
-			{Op: "edit", Args: []string{"whim5d"}},
-			{Op: "noglob"},
+			{Op: "edit", Graph: true, Args: []string{"whim5d"}},
+			{Op: "noglob", Graph: true},
 		}},
 	{N: 6, Block: "d02-outside", Name: "a file name means the file of that name",
 		Steps: []Step{
-			{Op: "nofind"},
+			{Op: "nofind", Graph: true},
 		}},
 	{N: 7, Name: "six options that no longer decide anything",
 		Steps: []Step{
@@ -157,12 +160,12 @@ var Plan = []Phase{
 		}},
 	{N: 9, Name: "nothing outside the process is consulted",
 		Steps: []Step{
-			{Op: "nohome"},
-			{Op: "nogetenv"},
+			{Op: "nohome", Graph: true},
+			{Op: "nogetenv", Graph: true},
 		}},
 	{N: 10, Name: "the working directory is where it started",
 		Steps: []Step{
-			{Op: "nochdir"},
+			{Op: "nochdir", Graph: true},
 		}},
 	{N: 11, Name: "no floating-point library",
 		Steps: []Step{
@@ -194,7 +197,7 @@ var Plan = []Phase{
 		}},
 	{N: 16, Name: "one set of options",
 		Steps: []Step{
-			{Op: "oneoptset"},
+			{Op: "oneoptset", Graph: true},
 			{Op: "sweep"},
 			{Op: "droplocal", Graph: true, Args: []string{"b_p_ml"}},
 		}},
@@ -225,11 +228,11 @@ var Plan = []Phase{
 		}},
 	{N: 21, Block: "d09-one-of-each", Name: "one file argument, and no argument list",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim21"}},
+			{Op: "edit", Graph: true, Args: []string{"whim21"}},
 		}},
 	{N: 22, Name: ":e reloads in place, and there is no swap file",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim22"}},
+			{Op: "edit", Graph: true, Args: []string{"whim22"}},
 		}},
 	{N: 23, Block: "d11-commands", Name: "no buffer-name argument matching",
 		Steps: []Step{
@@ -245,7 +248,7 @@ var Plan = []Phase{
 		}},
 	{N: 26, Name: "the Ex command table, cut to the commands that exist",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim26"}},
+			{Op: "edit", Graph: true, Args: []string{"whim26"}},
 		}},
 	{N: 27, Block: "d12-terminal-and-ex", Name: "no streaming Ex",
 		Steps: []Step{

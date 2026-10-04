@@ -107,3 +107,5 @@ decision, and not this one.
 `:e $HOME/notes.txt` needs a directory literally named `$HOME`, and
 `:set shell?` says `sh` whatever `$SHELL` was — verified by hand, none of it
 something a harness asks for.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): every step of this phase runs on `crefactor/graph`, handed the graph the phase before left, with no import, its report the text version's and its boundary byte for byte (`whim-build-check`).

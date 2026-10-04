@@ -96,3 +96,5 @@ It does not run `tools/create_cmdidxs.py --check`, which every whim edit of the
 command table ends with: the derived first-two-letters index went with the table whim
 reduced, there are no `ex_cmdidxs.h` banners left in `whim-vim.c`, and the tool
 raises rather than reporting nothing.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): this part's program is a graph step of phase 4, on `crefactor/graph`'s verbs, its report the text version's line for line and the phase's boundary byte for byte (`whim-build-check`).

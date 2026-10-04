@@ -6,7 +6,6 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
 )
 
@@ -33,40 +32,28 @@ func NoIntro(e *graph.Editor, w io.Writer) error {
 // NoGlob replaces gen_expand_wildcards' body with one that treats every
 // pattern as a name.
 //
-// The extent is found by BRACE MATCHING from the definition's head, because
-// replacing a function by guesswork is how an editor stops opening files.
-func NoGlob(text []byte, w io.Writer) ([]byte, error) {
-	blanked := edit.Blank(text)
-	head := regexp.MustCompile(`(?m)^gen_expand_wildcards\([^\n]*\n`)
-	m := head.FindIndex(text)
-	if m == nil {
-		return nil, fmt.Errorf("noglob: gen_expand_wildcards is not defined at file scope " +
+// The extent was found by BRACE MATCHING from the definition's head, because
+// replacing a function by guesswork is how an editor stops opening files; on
+// the graph (doc/GRAPH-MIGRATION.md, B3a) the body is the definition's
+// items, replaced by its one statement (Body), the old body's length the
+// text's number on the C view (history keeps the text version).
+func NoGlob(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("noglob", e, w)
+	if e.Defn("gen_expand_wildcards") == nil {
+		return fmt.Errorf("noglob: gen_expand_wildcards is not defined at file scope " +
 			"any more, and replacing a function by guesswork is how an editor stops " +
 			"opening files")
 	}
-	rel := bytes.IndexByte(blanked[m[1]:], '{')
-	if rel < 0 {
-		return nil, fmt.Errorf("noglob: gen_expand_wildcards is unbalanced")
+	was := 0
+	v.InFunction("gen_expand_wildcards", func(v *graph.Verbs) { was = bodyLines(v.Text()) })
+	q := graph.NewVerbs("noglob", e, io.Discard)
+	q.Body("gen_expand_wildcards", "(return (call save_patterns num_pat pat num_file file))", "gen_expand_wildcards")
+	if err := q.Done(); err != nil {
+		return err
 	}
-	opening := m[1] + rel
-	close := edit.Match(blanked, opening)
-	if close < 0 {
-		return nil, fmt.Errorf("noglob: gen_expand_wildcards is unbalanced")
-	}
-	was := bytes.Count(text[opening:close], []byte{'\n'})
-	var buf []byte
-	buf = append(buf, text[:opening]...)
-	buf = append(buf, "{\n    return save_patterns(num_pat, pat, num_file, file);\n}"...)
-	buf = append(buf, text[close+1:]...)
-	fmt.Fprintf(w, "  noglob       gen_expand_wildcards was %d lines, is now one; every "+
-		"pattern names a file\n", was)
-	return buf, nil
+	v.Sayf("gen_expand_wildcards was %d lines, is now one; every pattern names a file", was)
+	return v.Done()
 }
-
-var (
-	wildCall  = regexp.MustCompile(`\bmch_expand_wildcards\((num_pat, pat, num_file, file)[^)]*\)`)
-	wildProto = regexp.MustCompile(`(?m)^static int mch_expand_wildcards\([^;\n]*\);$`)
-)
 
 // NoWild makes every delegation to the shell expander return the pattern
 // unexpanded.
@@ -75,27 +62,46 @@ var (
 // and rewriting it by guesswork is how an editor stops opening files -- which
 // is the same sentence NoGlob carries, for the same function, from the other
 // side.
-func NoWild(text []byte, w io.Writer) ([]byte, error) {
-	calls := len(wildCall.FindAll(text, -1))
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the shell expander's
+// prototype becomes save_patterns' (FRAG: a declaration in C), and each
+// call is save_patterns' with the flags left out, rebuilt from its own
+// arguments; one unit for both.  The mentions left are the text's count,
+// on the C view (history keeps the text version).
+func NoWild(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nowild", e, w)
+	const call = "(call mch_expand_wildcards num_pat pat num_file file _)"
+	calls := v.Count(call)
 	if calls != 3 {
-		return nil, fmt.Errorf("nowild: expected 3 delegations to the shell expander, "+
+		return fmt.Errorf("nowild: expected 3 delegations to the shell expander, "+
 			"found %d -- gen_expand_wildcards has been reshaped and rewriting it by "+
 			"guesswork is how an editor stops opening files", calls)
 	}
-	text = wildCall.ReplaceAll(text, []byte(`save_patterns($1)`))
-
-	n := len(wildProto.FindAll(text, -1))
-	if n != 1 {
-		return nil, fmt.Errorf("nowild: expected one declaration of the shell expander "+
-			"to reuse, found %d", n)
+	var protos []*graph.Node
+	for _, d := range e.FileDecls("mch_expand_wildcards") {
+		if d.Is("def") {
+			protos = append(protos, d)
+		}
 	}
-	text = wildProto.ReplaceAll(text, []byte(
-		"static int save_patterns(int num_pat, char_u **pat, int *num_file, char_u ***file);"))
-
-	left := bytes.Count(text, []byte("mch_expand_wildcards"))
-	fmt.Fprintf(w, "  nowild       %d delegations now return the pattern unexpanded; "+
-		"%d mch_expand_wildcards mentions left for the sweep\n", calls, left)
-	return text, nil
+	if len(protos) != 1 {
+		return fmt.Errorf("nowild: expected one declaration of the shell expander "+
+			"to reuse, found %d", len(protos))
+	}
+	q := graph.NewVerbs("nowild", e, io.Discard)
+	q.Together(func(q *graph.Verbs) {
+		q.In(protos[0], func(q *graph.Verbs) {
+			q.ReplaceC("(def static mch_expand_wildcards _)",
+				"static int save_patterns(int num_pat, char_u **pat, int *num_file, char_u ***file);", 1, "the prototype")
+		})
+		q.ReplaceC(call, "save_patterns(num_pat, pat, num_file, file)", calls, "the delegations")
+	})
+	if q.Err != nil {
+		return q.Err
+	}
+	left := bytes.Count(v.Text(), []byte("mch_expand_wildcards"))
+	v.Sayf("%d delegations now return the pattern unexpanded; "+
+		"%d mch_expand_wildcards mentions left for the sweep", calls, left)
+	return v.Done()
 }
 
 const equiOld = `                            c_class = get_equi_class(&regparse);

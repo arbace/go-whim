@@ -98,3 +98,5 @@ Gone: the `EVENT_` enum (123 enumerators), `event_tab` (127 rows), `AutoPat`,
 `event_nr2name` and all four dispatch wrappers.
 
 Measured: 90,972 → **89,804 lines**.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): this part's program is a graph step of phase 5, on `crefactor/graph`'s verbs, its report the text version's line for line and the phase's boundary byte for byte (`whim-build-check`).

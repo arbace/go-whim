@@ -44,10 +44,14 @@ package p005c
 // already ex_ni, and :set cmdheight= keeps the same accepted range because
 // frame_minheight keeps its arithmetic.  Declared empty, left for the delta check.
 
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the invariant is the text's
+// own question, on the C view, and the fifteen bodies are its literals made
+// nodes in one unit (FRAG, Together); history keeps the text version.
+
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
@@ -59,35 +63,40 @@ const frameLinkWrite = `fr_(?:child|next|prev|parent)[ \t]*(?:=[^=]|\+\+|--)`
 
 // Whim5c makes a frame a leaf: fifteen functions that recursed into children or
 // climbed to parents become constants, and the four tree pointers go.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("oneframe", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("oneframe", e, w)
 
-	k := len(e.Query(frameLinkWrite, 0))
-	e.Expect(k == 0, "the frame tree IS linked somewhere (%d writes) -- the invariant this phase rests on is false, and every replacement below would be wrong", k)
-	e.Say("confirmed: nothing writes fr_child, fr_next, fr_prev or fr_parent")
-
-	for _, f := range []struct{ Name, Body, What string }{
-		{"frame_fixed_height", w5clit1, "frame_fixed_height, asked of a leaf"},
-		{"frame_fixed_width", w5clit1, "frame_fixed_width, asked of a leaf"},
-		{"frame_minheight", w5clit2, "frame_minheight recursing into a row or column"},
-		{"frame_minwidth", w5clit3, "frame_minwidth recursing into a row or column"},
-		{"frame_check_height", w5clit4, "frame_check_height comparing against children"},
-		{"frame_check_width", w5clit5, "frame_check_width comparing against children"},
-		{"frame_comp_pos", w5clit6, "frame_comp_pos descending into children"},
-		{"frame_new_height", w5clit7, "frame_new_height distributing height over children"},
-		{"frame_new_width", w5clit8, "frame_new_width distributing width over children"},
-		{"frame_setheight", w5clit9, "frame_setheight taking room from siblings"},
-		{"frame_setwidth", w5clit10, "frame_setwidth taking room from siblings"},
-		{"frame_add_height", w5clit11, "frame_add_height propagating to parents"},
-		{"last_status_rec", w5clit12, "last_status_rec descending a row or column of frames"},
-		{"command_height", w5clit13, "command_height walking to the widest ancestor"},
-		{"stl_connected", w5clit1, "stl_connected, which climbed the tree for a neighbour"},
-	} {
-		e.Body(f.Name, f.Body, f.What)
+	k := v.TextCount(frameLinkWrite)
+	v.Expect(k == 0, "the frame tree IS linked somewhere (%d writes) -- the invariant this phase rests on is false, and every replacement below would be wrong", k)
+	if v.Failed() {
+		return v.Done()
 	}
+	v.Say("confirmed: nothing writes fr_child, fr_next, fr_prev or fr_parent")
+
+	v.Together(func(v *graph.Verbs) {
+		for _, f := range []struct{ Name, Body, What string }{
+			{"frame_fixed_height", w5clit1, "frame_fixed_height, asked of a leaf"},
+			{"frame_fixed_width", w5clit1, "frame_fixed_width, asked of a leaf"},
+			{"frame_minheight", w5clit2, "frame_minheight recursing into a row or column"},
+			{"frame_minwidth", w5clit3, "frame_minwidth recursing into a row or column"},
+			{"frame_check_height", w5clit4, "frame_check_height comparing against children"},
+			{"frame_check_width", w5clit5, "frame_check_width comparing against children"},
+			{"frame_comp_pos", w5clit6, "frame_comp_pos descending into children"},
+			{"frame_new_height", w5clit7, "frame_new_height distributing height over children"},
+			{"frame_new_width", w5clit8, "frame_new_width distributing width over children"},
+			{"frame_setheight", w5clit9, "frame_setheight taking room from siblings"},
+			{"frame_setwidth", w5clit10, "frame_setwidth taking room from siblings"},
+			{"frame_add_height", w5clit11, "frame_add_height propagating to parents"},
+			{"last_status_rec", w5clit12, "last_status_rec descending a row or column of frames"},
+			{"command_height", w5clit13, "command_height walking to the widest ancestor"},
+			{"stl_connected", w5clit1, "stl_connected, which climbed the tree for a neighbour"},
+		} {
+			v.BodyC(f.Name, f.Body, f.What)
+		}
+	})
 	// fr_parent, fr_next, fr_prev and fr_child are named by nothing now; the
-	// sweep takes them.
-	return e.Done()
+	// collection takes them.
+	return v.Done()
 }
 
-func init() { phase.Register("whim5c", Edit) }
+func init() { phase.RegisterGraph("whim5c", Edit) }

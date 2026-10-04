@@ -42,18 +42,29 @@ package p021
 // The probes are LOAD-FIRST -- the first one proves the buffer holds the file's
 // lines, because that is the check the earlier attempt did not have and needed.
 
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the bodies and the ADDR_*
+// arms are the text's literals made nodes in one unit (FRAG: BodyC,
+// LiteralC, Together; the arms at two depths one literal, spacing aside),
+// the ## expansion two values rebuilt (BUILD), runs of items and the
+// member cut; each counted, its report the text's (history keeps the text
+// version).
+
 import (
+	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
+
+// alistLen is `ALIST_LEN(&global_alist)` as the expansion left it.
+const alistLen = "(paren (. global_alist al_ga ga_len))"
 
 // Whim21 makes the argument list one file: the second file argument goes, :next
 // and :previous become ex_ni, every ADDR_ARGUMENTS arm becomes a constant, and
 // the list type itself follows.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("onearg", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("onearg", e, w)
 
 	// 1. a second file argument: the command line's own, gone with it
 	// (argvfront, the reform's D1)
@@ -62,9 +73,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// reform's D2)
 
 	// 3. the readers that can only ever see one
-	e.Body("check_more", w21lit1, "check_more refusing to quit with files left to edit")
-	e.Body("append_arg_number", w21lit2, "the (N of M) suffix on the file message")
-
+	//
 	// EVERY command that uses ADDR_ARGUMENTS -- argadd, argdelete, argdo,
 	// argedit, argument, sargument -- is already ex_ni, so no live command
 	// reaches these arms.  But THE LABELS MUST STAY: these switches enumerate
@@ -72,27 +81,30 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// 'ADDR_ARGUMENTS' not handled in switch" -- seven of them, which is what
 	// the sweep kept reporting as "left alone" and could never converge on.  So
 	// each arm gets a constant Body instead.
-	e.InFunction("parse_cmd_address", func(e *edit.E) {
-		e.Literal(w21lit3, w21lit4, 1, "an argument range in a command line")
-	})
-	e.InFunction("address_default_all", func(e *edit.E) {
-		e.Literal(w21lit5, w21lit6, 1, "an argument range with no range given")
-	})
-	e.InFunction("default_address", func(e *edit.E) {
-		e.Literal(w21lit7, w21lit8, 1, "the default line for an argument range")
-	})
-	// THE TWO ARMS IN get_address ARE AT TWO DEPTHS.  The macro expander used
-	// to leave both at the same column, so one literal matched them; on a text
-	// that indents by structure they differ, and the arm is written with its
-	// own indentation carried through.  Both counts are what they were.
-	e.InFunction("get_address", func(e *edit.E) {
-		e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = curwin->w_arg_idx \+ 1;\n[ \t]*break;\n`,
-			"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 2, "an argument range parsed from an address")
-		e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = \(\(curwin\)->w_alist->al_ga\.ga_len\);\n[ \t]*break;\n`,
-			"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 1, "the last line of an argument range")
-	})
-	e.InFunction("invalid_range", func(e *edit.E) {
-		e.Literal(w21lit12, w21lit13, 1, "an argument range checked for validity")
+	//
+	// THE TWO ARMS IN get_address ARE AT TWO DEPTHS, which a literal of items
+	// does not see: spacing aside, one literal is both.
+	v.Together(func(v *graph.Verbs) {
+		v.BodyC("check_more", w21lit1, "check_more refusing to quit with files left to edit")
+		v.BodyC("append_arg_number", w21lit2, "the (N of M) suffix on the file message")
+		v.InFunction("parse_cmd_address", func(v *graph.Verbs) {
+			v.LiteralC(w21lit3, w21lit4, 1, "an argument range in a command line")
+		})
+		v.InFunction("address_default_all", func(v *graph.Verbs) {
+			v.LiteralC(w21lit5, w21lit6, 1, "an argument range with no range given")
+		})
+		v.InFunction("default_address", func(v *graph.Verbs) {
+			v.LiteralC(w21lit7, w21lit8, 1, "the default line for an argument range")
+		})
+		v.InFunction("get_address", func(v *graph.Verbs) {
+			v.LiteralC("case ADDR_ARGUMENTS: lnum = curwin->w_arg_idx + 1; break;",
+				"case ADDR_ARGUMENTS:\n    lnum = 0;\n    break;\n", 2, "an argument range parsed from an address")
+			v.LiteralC("case ADDR_ARGUMENTS: lnum = ((curwin)->w_alist->al_ga.ga_len); break;",
+				"case ADDR_ARGUMENTS:\n    lnum = 0;\n    break;\n", 1, "the last line of an argument range")
+		})
+		v.InFunction("invalid_range", func(v *graph.Verbs) {
+			v.LiteralC(w21lit12, w21lit13, 1, "an argument range checked for validity")
+		})
 	})
 
 	// 3b. the readers with live callers.  check_arg_idx() is called from six
@@ -103,9 +115,28 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// (D2, D4), and buf_name_changed()'s with setfname()'s last caller once
 	// phase 5b's body for create_windows() runs at phase 5, before this
 	// phase now
-	e.Lines(`check_arg_idx\((?:win|curwin)\);`, 3, "the three calls that revalidated the argument index")
-	e.InFunction("eval_vars", func(e *edit.E) {
-		e.Literal(w21lit16, w21lit17, 1, "## expanding to every file in the argument list")
+	if !v.Failed() {
+		n := v.Count("(call check_arg_idx curwin)") + v.Count("(call check_arg_idx win)")
+		v.Expect(n == 3, "the three calls that revalidated the argument index -- matched %d times, expected 3", n)
+	}
+	v.Cut("(call check_arg_idx _)", 3, "the three calls that revalidated the argument index")
+	v.InFunction("eval_vars", func(v *graph.Verbs) {
+		const what = "## expanding to every file in the argument list"
+		r := v.Run(what, "(= result (call arg_all))", "(= resultbuf result)")
+		if r == nil {
+			return
+		}
+		for i, val := range []string{`(cast (ptr char_u) "")`, "nullptr"} {
+			with, err := e.Build(r[i], val, nil)
+			if err == nil {
+				err = e.Replace(r[i].Kids[2], with...)
+			}
+			if err != nil {
+				v.Die("%s -- %v", what, err)
+				return
+			}
+		}
+		v.Say(what)
 	})
 	// win_init_some(), where a new window inherited the argument list, went
 	// with the window split at phase 5 (whim5b and whim5c, which run before
@@ -114,31 +145,32 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// its body is phase 5b's from phase 5 (whim5b, which runs before this
 	// phase now)
 	// The window's argument-list fields are named by nothing after this, and
-	// the sweep takes them.
+	// the collection takes them.
 
 	// main() takes the first entry's name into params.fname and never reads it:
 	// the WHOLE guarded assignment goes, not just the line, or alist_name
 	// outlives the list.
-	e.Cut(edit.Line("if ((global_alist.al_ga.ga_len) > 0)", "{", "params.fname = alist_name(&((aentry_T *)global_alist.al_ga.ga_data)[0]);", "}"), 1,
+	v.Cut("(if (> "+alistLen+" 0) (block (= (. params fname) (call alist_name _))))", 1,
 		"main taking the first argument as the file name")
-	// mparm_T's field, and no other `char_u *fname;`: the blank line that used
-	// to tell them apart is not in a canonical text, so the field above it is.
-	e.Sub(`(?m)^([ \t]*char \*\*argv;\n)[ \t]*char_u[ \t]+\*fname;\n`, "${1}", 1,
-		"mparm_T's unread fname")
+	// mparm_T's field, and no other `char_u *fname;`: the member after argv.
+	if td := v.One("(typedef mparm_T (struct (argc int) (argv (ptr (ptr char))) (fname (ptr char_u)) _*))",
+		"mparm_T's unread fname"); td != nil {
+		v.In(td, func(v *graph.Verbs) { v.Cut("(fname (ptr char_u))", 1, "mparm_T's unread fname") })
+	}
 
 	// The list itself: initialised at startup and pointed at by the one window.
 	// These are the last two mentions, and without them alist_init,
 	// global_alist, alist_T and aentry_T all lose their readers.
-	e.InFunction("common_init_2", func(e *edit.E) {
-		e.Cut(edit.Line("alist_init(&global_alist);", "global_alist.id = 0;"), 1, "the argument list set up at startup")
+	v.InFunction("common_init_2", func(v *graph.Verbs) {
+		v.CutRun("the argument list set up at startup", "(call alist_init (addr global_alist))", "(= (. global_alist id) 0)")
 	})
 	// the one window pointed at it in win_alloc_firstwin(), whose body is
 	// phase 5b's from phase 5 (whim5b, which runs before this phase now)
 
 	// and the count message, which one file argument can never satisfy
-	e.Cut(edit.Line("if ((global_alist.al_ga.ga_len) > 1 && !silent_mode)", "{", `printf(_("%d files to edit\n"), (global_alist.al_ga.ga_len));`, "}"), 1,
+	v.Cut(fmt.Sprintf(`(if (&& (> %s 1) (! silent_mode)) (block (call printf (call _ "%%d files to edit\n") %s)))`, alistLen, alistLen), 1,
 		"the \"N files to edit\" message at startup")
-	return e.Done()
+	return v.Done()
 }
 
-func init() { phase.Register("whim21", Edit) }
+func init() { phase.RegisterGraph("whim21", Edit) }

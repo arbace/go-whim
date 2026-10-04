@@ -6,57 +6,46 @@ import (
 	"regexp"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 var (
 	optModeline = regexp.MustCompile(`\bOPT_MODELINE\b`)
 	doModelines = regexp.MustCompile(`\bdo_modelines\(`)
-	optLessThan = `^[ \t]*else if \(nextchar == '<'\)$`
-	ftIsEmptyIf = `^[ \t]*if \(\*curbuf->b_p_ft == NUL\)$`
 )
 
 // OneOptSet leaves :set as the only way to give an option a value.
-func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
-	e := ed{"oneoptset", w}
-	var err error
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the text version's heads and
+// literals are acts on the nodes -- folds, an else-if arm each in three
+// functions, calls and a store cut, operands dropped as the text's cuts
+// left their neighbours, and the one string literal respelled whole
+// (RespellString, RENAME's rule for strings) -- each counted, its report
+// the text's.  The last counts are the text's own, on the C view (history
+// keeps the text version).
+func OneOptSet(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("oneoptset", e, w)
 
-	text, err = e.inFunction(text, "ex_set", func(s []byte) ([]byte, error) {
-		s, err := e.foldNever(s, `^[ \t]*if \(eap->cmdidx == CMD_setlocal\)$`,
-			":setlocal choosing OPT_LOCAL")
-		if err != nil {
-			return nil, err
-		}
-		return e.foldNever(s, `^[ \t]*if \(eap->cmdidx == CMD_setglobal\)$`,
-			":setglobal choosing OPT_GLOBAL")
+	v.InFunction("ex_set", func(v *graph.Verbs) {
+		v.FoldNever("(== (-> eap cmdidx) CMD_setlocal)", 1, ":setlocal choosing OPT_LOCAL")
+		v.FoldNever("(== (-> eap cmdidx) CMD_setglobal)", 1, ":setglobal choosing OPT_GLOBAL")
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// completion for :setglobal and :setlocal went with
 	// set_context_by_cmdname() at phase 4 (whim4f, phase 4f's program, which
 	// runs before this phase now)
 
-	text, err = e.inFunction(text, "do_set_option", func(s []byte) ([]byte, error) {
-		return e.literal(s, `(char_u *)"?=:!&<"`, `(char_u *)"?=:!&"`,
-			":set accepting the < suffix", 1)
+	v.InFunction("do_set_option", func(v *graph.Verbs) {
+		v.RespellString(`"?=:!&<"`, `"?=:!&"`, 1, ":set accepting the < suffix")
 	})
-	if err != nil {
-		return nil, err
-	}
 	for _, f := range []struct{ name, kind string }{
 		{"do_set_option_bool", "a boolean"},
 		{"do_set_option_numeric", "a number"},
 		{"stropt_get_newval", "a string"},
 	} {
-		kind := f.kind
-		text, err = e.inFunction(text, f.name, func(s []byte) ([]byte, error) {
-			return e.foldNever(s, optLessThan,
-				":set opt< copying the global value of "+kind)
+		v.InFunction(f.name, func(v *graph.Verbs) {
+			v.FoldNever("(== nextchar '<')", 1, ":set opt< copying the global value of "+f.kind)
 		})
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	// THE ORDER IS THE PYTHON'S, and it is load-bearing: each edit prints a
@@ -65,71 +54,33 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 	// comparison would differ on every input that cuts.
 	// at the depth phase 5d's fold leaves it: whim5d runs at phase 5, before
 	// this phase now
-	text, err = e.inFunction(text, "open_buffer", func(s []byte) ([]byte, error) {
-		return e.literal(s, "        do_modelines(0);\n", "",
-			"reading a buffer applying its modelines", 1)
+	v.InFunction("open_buffer", func(v *graph.Verbs) {
+		v.Cut("(call do_modelines 0)", 1, "reading a buffer applying its modelines")
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// do_write went with :write at phase 1 (filefront, the reform's D4)
 
-	text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
-		return e.literal(s, "            do_modelines(OPT_WINONLY);\n", "",
-			"editing a file applying its window modelines", 1)
+	v.InFunction("do_ecmd", func(v *graph.Verbs) {
+		v.Cut("(call do_modelines OPT_WINONLY)", 1, "editing a file applying its window modelines")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "set_rw_fname", func(s []byte) ([]byte, error) {
-		return e.dropIf(s, ftIsEmptyIf, "naming a buffer applying modelines")
+	v.InFunction("set_rw_fname", func(v *graph.Verbs) {
+		v.DropIf("(== (deref (-> curbuf b_p_ft)) NUL)", 1, "naming a buffer applying modelines")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "validate_opt_idx", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(opt_flags & OPT_MODELINE\)$`,
-			"the options a modeline may not set")
+	v.InFunction("validate_opt_idx", func(v *graph.Verbs) {
+		v.FoldNever("(& opt_flags OPT_MODELINE)", 1, "the options a modeline may not set")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "do_set", func(s []byte) ([]byte, error) {
-		return e.literal(s, " && !(opt_flags & OPT_MODELINE)", "",
-			":set all and :set termcap refused in a modeline", 2)
+	v.InFunction("do_set", func(v *graph.Verbs) {
+		v.DropOperandAsText("(! (& opt_flags OPT_MODELINE))", 2, ":set all and :set termcap refused in a modeline")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "do_set_option_string", func(s []byte) ([]byte, error) {
-		return e.literal(s, "(opt_flags & OPT_MODELINE) || ", "",
-			"a modeline string option run securely", 1)
+	v.InFunction("do_set_option_string", func(v *graph.Verbs) {
+		v.DropOperandAsText("(paren (& opt_flags OPT_MODELINE))", 1, "a modeline string option run securely")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "did_set_option", func(s []byte) ([]byte, error) {
-		return e.literal(s, "(secure || (opt_flags & OPT_MODELINE))", "secure",
-			"a modeline value marked insecure", 1)
+	v.InFunction("did_set_option", func(v *graph.Verbs) {
+		v.DropOperandAsText("(paren (& opt_flags OPT_MODELINE))", 1, "a modeline value marked insecure")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "do_filetype_autocmd", func(s []byte) ([]byte, error) {
-		return e.foldNever(s,
-			`^[ \t]*if \(\(opt_flags & OPT_MODELINE\) && !value_changed\)$`,
-			"a modeline's unchanged 'filetype'")
+	v.InFunction("do_filetype_autocmd", func(v *graph.Verbs) {
+		v.FoldNever("(&& (paren (& opt_flags OPT_MODELINE)) (! value_changed))", 1, "a modeline's unchanged 'filetype'")
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// set_options_bin(), where 'binary' saved and restored 'modeline', went
 	// with 'binary' at phase 5 (lfonly, record 50's cut, which runs before
@@ -138,15 +89,15 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 	// b_p_ml_nobin is where 'binary' kept 'modeline' while it was off.  It is
 	// not an option, so it has no get_varp() case and droplocal does not know
 	// its shape: its one copy goes here, and the field and p_ml_nobin, with
-	// no reader left, go to the sweep.
-	text, err = e.inFunction(text, "buf_copy_options", func(s []byte) ([]byte, error) {
-		return e.subOnce(s, `^[ \t]*buf->b_p_ml_nobin = p_ml_nobin;\n`,
-			"a new buffer copying the saved 'modeline'")
+	// no reader left, go to the collection.
+	v.InFunction("buf_copy_options", func(v *graph.Verbs) {
+		v.Cut("(= (-> buf b_p_ml_nobin) p_ml_nobin)", 1, "a new buffer copying the saved 'modeline'")
 	})
-	if err != nil {
-		return nil, err
+	if v.Failed() {
+		return v.Done()
 	}
 
+	text := v.Text()
 	blanked := edit.Blank(text)
 	var dying [][2]int
 	for _, n := range []string{"chk_modeline", "do_modelines"} {
@@ -168,13 +119,13 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if live != 1 {
-		return nil, fmt.Errorf("oneoptset: OPT_MODELINE outside its enumerator and the "+
+		return fmt.Errorf("oneoptset: OPT_MODELINE outside its enumerator and the "+
 			"dying modeline code -- %d, expected 1", live)
 	}
 	if n := len(doModelines.FindAll(text, -1)); n != 2 {
-		return nil, fmt.Errorf("oneoptset: do_modelines is still called")
+		return fmt.Errorf("oneoptset: do_modelines is still called")
 	}
 
-	e.say(":set is the only way to give an option a value")
-	return text, nil
+	v.Say(":set is the only way to give an option a value")
+	return v.Done()
 }

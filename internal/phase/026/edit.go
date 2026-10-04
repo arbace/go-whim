@@ -64,14 +64,24 @@ package p026
 // of it moves.  In the background: the edits below do not wait for it, but this
 // part does before it exits, so the check finds $state/old whole.
 
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the text version's heads,
+// literals and line surgery are acts on the nodes -- the folds told plain
+// ifs from else-if arms as the heads did (HeadFold), operands dropped from
+// the conditions that named them, the stub flag and the skip flag folded,
+// the two definitions deleted, the dead address types' case labels deleted
+// from their runs and whole arms with them, the one message respelled
+// whole (RespellString) -- each counted, its report the text's.  The
+// remaining-name checks ask the C view the text's own questions (history
+// keeps the text version).
+
 import (
 	"fmt"
 	"io"
-	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
@@ -82,272 +92,411 @@ var w26DeadAddr = map[string]bool{
 	"ADDR_TABS_RELATIVE": true,
 }
 
+// isUser is `!IS_USER_CMDIDX(x)`, as the expansion left it.
+func notUser(x string) string { return "(! (< (cast int (paren " + x + ")) 0))" }
+
+// dropIn drops from the one node holder matches, in the scope, the operands
+// pats match, each once, as one act.
+func dropIn(v *graph.Verbs, holder string, pats []string, what string) {
+	h := v.One(holder, what)
+	if h == nil {
+		return
+	}
+	q := graph.NewVerbs(v.Tag, v.Editor(), io.Discard)
+	q.In(h, func(q *graph.Verbs) {
+		for _, p := range pats {
+			q.DropOperandAsText(p, 1, what)
+		}
+	})
+	if q.Err != nil {
+		v.Err = q.Err
+		return
+	}
+	v.Say(what)
+}
+
 // Whim26 cuts the Ex command table to the commands that exist, and gives every
 // surviving row the shortest abbreviation the 600-row table implied for it.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("cmdtable", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("cmdtable", e, w)
 
 	// ---- 1-2: the table, the index, the lookup ---------------------------------
 	// Cut at phase 1 (extable, the reform's D2b): the stub rows are gone, each
 	// row carries its shortest abbreviation, the lookup scans them.  What is
 	// left of the stubs here is their enumerators, after CMD_SIZE, which the
-	// edits below take the last uses of; the enumerators go now.
-	t := string(e.Text())
-	me := deadEnumRe.FindStringSubmatchIndex(t)
-	if me == nil {
-		return nil, e.Refused("enum CMD_index has no enumerators after CMD_SIZE")
-	}
-	// Those nothing else names go now; the commands that name a file are
-	// still named until phases 28-32 take their last uses, and the sweep
+	// edits below take the last uses of; the enumerators go now.  Those
+	// nothing else names go now; the commands that name a file are still
+	// named until phases 28-32 take their last uses, and the collection
 	// takes them then.
-	var keep []string
-	gone := 0
-	for _, line := range strings.SplitAfter(t[me[2]:me[3]], "\n") {
-		id := deadIDRe.FindString(line)
-		if id == "" {
-			continue
+	var size *graph.Node
+	for _, d := range v.Find("(CMD_SIZE)") {
+		if e.IsEnumerator(d) {
+			size = d
 		}
-		if edit.MentionCount([]byte(t), strings.TrimSpace(id)) > 1 {
-			keep = append(keep, line)
-			continue
+	}
+	if size == nil {
+		return refuse(v, "enum CMD_index has no enumerators after CMD_SIZE")
+	}
+	text := v.Text()
+	var dead []*graph.Node
+	kept := 0
+	for s := e.Sibling(size, 1); s != nil; s = e.Sibling(s, 1) {
+		if edit.MentionCount(text, graph.EnumeratorName(s)) > 1 {
+			kept++
+		} else {
+			dead = append(dead, s)
 		}
-		gone++
 	}
-	e.Set([]byte(t[:me[2]] + strings.Join(keep, "") + t[me[3]:]))
-	e.Say(fmt.Sprintf("%d enumerators past CMD_SIZE, of rows deleted at phase 1; %d still named stay",
-		gone, len(keep)))
-	mt := tableRe.FindStringSubmatchIndex(t)
-	if mt == nil {
-		return nil, e.Refused("cmdnames[] definition not found")
+	if kept+len(dead) == 0 {
+		return refuse(v, "enum CMD_index has no enumerators after CMD_SIZE")
 	}
+	if len(dead) > 0 {
+		if _, err := e.DeleteEnumerators(dead, graph.Renumber); err != nil {
+			return refuse(v, "the enumerators past CMD_SIZE -- %v", err)
+		}
+	}
+	v.Sayf("%d enumerators past CMD_SIZE, of rows deleted at phase 1; %d still named stay", len(dead), kept)
 	var live []string
-	for _, m := range liveRowRe.FindAllStringSubmatch(t[mt[2]:mt[3]], -1) {
-		live = append(live, m[1])
-	}
+	v.InTable("cmdnames", func(v *graph.Verbs) {
+		for _, r := range v.Rows() {
+			if b, ok := graph.Match(clispRow, r); ok {
+				live = append(live, strings.Trim(b["name"].Atom, `"`))
+			}
+		}
+	})
 
 	// ---- 3: find_ex_command ----------------------------------------------------
-	e.Cut(edit.Line("int vim9 = FALSE;"), 1, "the Vim9 flag nothing sets")
-	e.FoldNever(edit.Head("if (vim9 && eap->cmdidx != CMD_SIZE)"), 1,
-		"the Vim9 whole-name check, the one reader of the name length")
-	e.Literal("if (!vim9 && *eap->cmd == 'd' && ", "if (*eap->cmd == 'd' && ", 1,
-		":dl and :dp outside Vim9, which is everywhere")
-	e.FoldNever(edit.Head("if (eap->cmdidx == CMD_final && p - eap->cmd == 4 && !vim9)"), 1,
-		":final is not a command")
-	e.FoldNever(edit.Head("if (eap->cmdidx == CMD_horizontal && p - eap->cmd == 2)"), 1,
-		":horizontal is not a command")
-	if e.Failed() {
-		return e.Done()
-	}
-	for _, n := range live {
-		if strings.HasPrefix(n, "py") || strings.HasPrefix(n, "vim") {
-			return nil, e.Refused("a live command starts with py or vim, and its name may need a digit")
+	v.InFunction("find_ex_command", func(v *graph.Verbs) {
+		// the flag's declaration goes once its readers have: said first, as
+		// the text cut it first
+		vim9 := v.One("(def vim9 int FALSE)", "the Vim9 flag nothing sets")
+		if vim9 != nil {
+			v.Say("the Vim9 flag nothing sets")
 		}
-	}
-	e.FoldNever(edit.Head("if (eap->cmd[0] == 'p' && eap->cmd[1] == 'y')"), 1,
-		"no command left is spelled with a digit: not :py3")
-	e.FoldNever(edit.Head(`if (*p == '9' && strncmp((char *)("vim9"), (char *)(eap->cmd), (4)) == 0)`), 1,
-		"and not :vim9cmd")
-	if e.Failed() {
-		return e.Done()
-	}
-	t = string(e.Text())
-	fx := strings.Index(t, w26lit11)
-	if fx >= 0 && vim9Re.MatchString(t[fx:min80(fx+6000, len(t))]) {
-		return nil, e.Refused("vim9 survives in find_ex_command")
-	}
+		v.FoldNever("(&& vim9 (!= (-> eap cmdidx) CMD_SIZE))", 1,
+			"the Vim9 whole-name check, the one reader of the name length")
+		dropIn(v, "(&& (! vim9) (== (deref (-> eap cmd)) 'd') _)", []string{"(! vim9)"}, ":dl and :dp outside Vim9, which is everywhere")
+		v.FoldNever("(&& (== (-> eap cmdidx) CMD_final) (== (- p (-> eap cmd)) 4) (! vim9))", 1,
+			":final is not a command")
+		if !v.Failed() {
+			if err := e.Delete(vim9); err != nil {
+				v.Die("the Vim9 flag nothing sets -- %v", err)
+			}
+		}
+		v.FoldNever("(&& (== (-> eap cmdidx) CMD_horizontal) (== (- p (-> eap cmd)) 2))", 1,
+			":horizontal is not a command")
+		if v.Failed() {
+			return
+		}
+		for _, n := range live {
+			if strings.HasPrefix(n, "py") || strings.HasPrefix(n, "vim") {
+				v.Die("a live command starts with py or vim, and its name may need a digit")
+				return
+			}
+		}
+		v.FoldNever("(&& (== (index (-> eap cmd) 0) 'p') (== (index (-> eap cmd) 1) 'y'))", 1,
+			"no command left is spelled with a digit: not :py3")
+		v.FoldNever(`(&& (== (deref p) '9') (== (call strncmp (cast (ptr char) (paren "vim9")) (cast (ptr char) (paren (-> eap cmd))) (paren 4)) 0))`, 1,
+			"and not :vim9cmd")
+		if !v.Failed() && v.Mentions("vim9") > 0 {
+			v.Die("vim9 survives in find_ex_command")
+		}
+	})
 
 	// ---- 4: do_one_cmd ---------------------------------------------------------
-	e.FoldNever(edit.Head("if (ea.cmdidx == CMD_wincmd && p != nullptr)"), 1, ":wincmd has no address type to find")
-	e.FoldAlways(edit.Head("if (!((int)(ea.cmdidx) < 0))"), 3, "a command index is never a user command")
-	e.Literal("ea.cmd[0] == 78 && !((int)(ea.cmdidx) < 0))", "ea.cmd[0] == 78)", 1, "nor in the Ni! test")
-	e.Literal("ea.cmdidx != CMD_checktime && ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && !((int)(ea.cmdidx) < 0) && curbuf_locked()",
-		"ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && curbuf_locked()", 1,
-		"nor in the locked-buffer exemptions, which lose :checktime")
-	e.Literal("*ea.arg != NUL && (!((int)(ea.cmdidx) < 0) || *ea.arg != '=') && !((ea.argt",
-		"*ea.arg != NUL && !((ea.argt", 1, "nor in the register argument test")
-	e.Literal("(!((int)(ea.cmdidx) < 0) && ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)",
-		"(ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)", 1, "nor in which registers may be written")
-	e.FoldNever(edit.Head("if (((int)(eap->cmdidx) < 0))"), 1, "nor in a % range over windows")
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		ea := notUser("(. ea cmdidx)")
+		v.FoldNever("(&& (== (. ea cmdidx) CMD_wincmd) (!= p nullptr))", 1, ":wincmd has no address type to find")
+		v.HeadFold("always", false, ea, 3, "a command index is never a user command")
+		dropIn(v, "(&& (== (deref p) '!') (== (index (. ea cmd) 1) 0151) (== (index (. ea cmd) 0) 78) _)",
+			[]string{ea}, "nor in the Ni! test")
+		dropIn(v, "(&& (! (& (. ea argt) (| EX_CMDWIN EX_LOCK_OK))) (!= (. ea cmdidx) CMD_checktime) _*)",
+			[]string{"(!= (. ea cmdidx) CMD_checktime)", ea}, "nor in the locked-buffer exemptions, which lose :checktime")
+		dropIn(v, "(&& (paren (& (. ea argt) EX_REGSTR)) (!= (deref (. ea arg)) NUL) (|| "+ea+" (!= (deref (. ea arg)) '=')) _*)",
+			[]string{"(|| " + ea + " _)"}, "nor in the register argument test")
+		dropIn(v, "(paren (&& "+ea+" (!= (. ea cmdidx) CMD_put) (!= (. ea cmdidx) CMD_iput)))",
+			[]string{ea}, "nor in which registers may be written")
+	})
+	v.HeadFold("never", false, "(paren (< (cast int (paren (-> eap cmdidx))) 0))", 1, "nor in a % range over windows")
 
-	e.Cut(edit.Line("ni = (!((int)(ea.cmdidx) < 0) && (cmdnames[ea.cmdidx].cmd_func == ex_ni || cmdnames[ea.cmdidx].cmd_func == ex_script_ni));"),
-		1, "the stub flag, which no row can raise")
-	// do_one_cmd's `int ni;` is named by nothing after the three terms below,
-	// and the sweep takes it.
-	e.Literal("(!ni && ", "(", 4, "range, bang, extra-argument and required-argument checks apply to every command")
-	e.Literal("&& !ni && ", "&& ", 2, "and the range and count checks")
-	e.Literal("getargopt(&ea) == FAIL && !ni)", "getargopt(&ea) == FAIL)", 1, "and ++opt parsing")
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.Cut("(= ni (paren (&& "+notUser("(. ea cmdidx)")+" _)))", 1, "the stub flag, which no row can raise")
+		// do_one_cmd's `int ni;` is named by nothing after the three terms
+		// below, and the collection takes it.  The text told them apart by
+		// what stood before and after `!ni`: first in its condition, between
+		// two others, and last after getargopt()'s.
+		if v.Failed() {
+			return
+		}
+		var first, mid, last []*graph.Node
+		for _, x := range v.Find("(! ni)") {
+			p := e.Parent(x)
+			if p == nil || !p.Is("&&") {
+				continue
+			}
+			args := p.Args()
+			switch {
+			case args[0] == x:
+				first = append(first, x)
+			case args[len(args)-1] == x:
+				last = append(last, x)
+			default:
+				mid = append(mid, x)
+			}
+		}
+		for _, g := range []struct {
+			xs   []*graph.Node
+			n    int
+			what string
+		}{
+			{first, 4, "range, bang, extra-argument and required-argument checks apply to every command"},
+			{mid, 2, "and the range and count checks"},
+			{last, 1, "and ++opt parsing"},
+		} {
+			if len(g.xs) != g.n {
+				v.Die("%s -- occurs %d times, expected %d", g.what, len(g.xs), g.n)
+				return
+			}
+			q := graph.NewVerbs(v.Tag, e, io.Discard)
+			for _, x := range g.xs {
+				q.In(e.Parent(x), func(q *graph.Verbs) { q.DropOperandAsText("(! ni)", 1, g.what) })
+			}
+			if q.Err != nil {
+				v.Err = q.Err
+				return
+			}
+			v.Say(g.what)
+		}
 
-	e.DropIf(`(?m)^    if \(ea\.cmdidx == CMD_if\)$`, 1, ":if and the level it raised")
-	e.FoldNever(`(?m)^    if \(if_level\)$`, 1, "the level is never raised")
-	e.Cut(edit.Line("ea.skip = (if_level > 0);"), 1, "so nothing is skipped")
-	e.Cut(edit.Line("if_level = 0;"), 1, "the reset")
-	// and the level itself, named by nothing now, goes to the sweep
+		v.HeadFold("drop", false, "(== (. ea cmdidx) CMD_if)", 1, ":if and the level it raised")
+		v.HeadFold("never", false, "if_level", 1, "the level is never raised")
+		v.Cut("(= (. ea skip) (paren (> if_level 0)))", 1, "so nothing is skipped")
+	})
+	v.Cut("(= if_level 0)", 1, "the reset")
+	// and the level itself, named by nothing now, goes to the collection
 
-	e.FoldNever(edit.Head("if (ea.cmdidx == CMD_bang)"), 1, ":! keeps no leading space")
-	e.Literal("else if (ea.cmdidx == CMD_bang || ea.cmdidx == CMD_terminal || ea.cmdidx == CMD_global",
-		"else if (ea.cmdidx == CMD_global", 1, "the commands that take the whole line are :g and :v")
-	e.Literal("else if (*p == '\\n' && !(ea.argt & EX_EXPR_ARG))", "else if (*p == '\\n')", 1,
-		"and none takes an expression")
-	e.Literal(" && (!(ea.argt & EX_BUFNAME) || *(p = skipdigits(ea.arg + 1)) == NUL || ((*p) == ' ' || (*p) == '\\t')))",
-		")", 1, "a count is never a buffer name")
-	e.FoldNever(edit.Head("if (ea.cmdidx == CMD_try && cmdmod.cmod_did_esilent > 0)"), 1, ":try is not a command")
-	if e.Failed() {
-		return e.Done()
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.HeadFold("never", false, "(== (. ea cmdidx) CMD_bang)", 1, ":! keeps no leading space")
+		dropIn(v, "(|| (== (. ea cmdidx) CMD_bang) (== (. ea cmdidx) CMD_terminal) (== (. ea cmdidx) CMD_global) _*)",
+			[]string{"(== (. ea cmdidx) CMD_bang)", "(== (. ea cmdidx) CMD_terminal)"},
+			"the commands that take the whole line are :g and :v")
+		dropIn(v, "(&& (== (deref p) '\\n') (! (& (. ea argt) EX_EXPR_ARG)))",
+			[]string{"(! (& (. ea argt) EX_EXPR_ARG))"}, "and none takes an expression")
+		dropIn(v, "(&& (paren (& (. ea argt) EX_COUNT)) _ (|| (! (& (. ea argt) EX_BUFNAME)) _*))",
+			[]string{"(|| (! (& (. ea argt) EX_BUFNAME)) _*)"}, "a count is never a buffer name")
+		v.HeadFold("never", false, "(&& (== (. ea cmdidx) CMD_try) (> (. cmdmod cmod_did_esilent) 0))", 1, ":try is not a command")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
 
 	// ---- 5: ea.skip, which only :if ever raised --------------------------------
+	q := graph.NewVerbs(v.Tag, e, io.Discard)
 	for _, fn := range []string{"ex_ni", "ex_script_ni"} {
-		cur := e.Text()
-		a, z, ok := edit.FindDefinition(cur, edit.Blank(cur), fn)
-		if !ok {
-			return nil, e.Refused("%s is not defined", fn)
+		if e.Defn(fn) == nil {
+			return refuse(v, "%s is not defined", fn)
 		}
-		e.Set(append(append([]byte{}, cur[:a]...), cur[z:]...))
+		q.DeleteDefinition(fn, fn)
 	}
-	e.Say("ex_ni and ex_script_ni, which no row names")
-	e.FoldNever(edit.Head("if (ea.skip)"), 1, "an empty command line is never skipped")
-	e.FoldAlways(edit.Head("if (!ea.skip)"), 3, "do_one_cmd: nothing is skipped")
-	e.Literal("if (!ea.skip && (ea.argt & EX_RANGE))", "if (ea.argt & EX_RANGE)", 1, "nor a range check")
-	e.Literal("eap->addr_type, eap->skip, silent,", "eap->addr_type, FALSE, silent,", 1, "nor an address")
-	e.FoldNever(edit.Head("if (eap->skip)"), 2, ":substitute is never skipped")
-	e.FoldAlways(edit.Head("if (!eap->skip)"), 6, "nor its pattern, a range, or :match")
-	e.Literal(w26lit6, w26lit7, 1, "nor :substitute's previous pattern")
-	e.Literal("i <= 0 && !eap->skip && subflags.do_error", "i <= 0 && subflags.do_error", 1, "nor its count")
-	if e.Failed() {
-		return e.Done()
+	if q.Err != nil {
+		return q.Err
 	}
-	if skipRe.Match(e.Text()) {
-		return nil, e.Refused("a read of skip survives")
+	v.Say("ex_ni and ex_script_ni, which no row names")
+	v.HeadFold("never", false, "(. ea skip)", 1, "an empty command line is never skipped")
+	v.HeadFold("always", false, "(! (. ea skip))", 3, "do_one_cmd: nothing is skipped")
+	v.Rewrite("(&& (! (. ea skip)) (paren ?x))", "?x", 1, "nor a range check")
+	if !v.Failed() {
+		var at []*graph.Node
+		for _, x := range v.Find("(-> eap skip)") {
+			p := e.Parent(x)
+			if p != nil && p.Is("call") {
+				prev, next := e.Sibling(x, -1), e.Sibling(x, 1)
+				if prev != nil && graph.Matches(clispAddrType, prev) && next != nil && !next.IsList() && next.Atom == "silent" {
+					at = append(at, x)
+				}
+			}
+		}
+		if len(at) != 1 {
+			v.Die("nor an address -- occurs %d times, expected 1", len(at))
+		} else if with, err := e.Build(at[0], "FALSE", nil); err != nil {
+			v.Die("nor an address -- %v", err)
+		} else if err := e.Replace(at[0], with...); err != nil {
+			v.Die("nor an address -- %v", err)
+		} else {
+			v.Say("nor an address")
+		}
+	}
+	v.HeadFold("never", false, "(-> eap skip)", 2, ":substitute is never skipped")
+	v.HeadFold("always", false, "(! (-> eap skip))", 6, "nor its pattern, a range, or :match")
+	if !v.Failed() {
+		// `else if (!eap->skip) X` is `else X`
+		var arms []*graph.Node
+		for _, x := range v.Find("(if (! (-> eap skip)) _)") {
+			if p := e.Parent(x); p != nil && p.Is("if") && len(p.Kids) == 4 && p.Kids[3] == x {
+				arms = append(arms, x)
+			}
+		}
+		if len(arms) != 1 {
+			v.Die("nor :substitute's previous pattern -- occurs %d times, expected 1", len(arms))
+		} else if err := e.Replace(arms[0], arms[0].Kids[2]); err != nil {
+			v.Die("nor :substitute's previous pattern -- %v", err)
+		} else {
+			v.Say("nor :substitute's previous pattern")
+		}
+	}
+	dropIn(v, "(&& (<= i 0) (! (-> eap skip)) (. subflags do_error))", []string{"(! (-> eap skip))"}, "nor its count")
+	if v.Failed() {
+		return v.Done()
+	}
+	if skipRe.Match(v.Text()) {
+		return refuse(v, "a read of skip survives")
 	}
 
 	// ---- 6: the filename and bar parsers ---------------------------------------
-	e.Literal(" && eap->cmdidx != CMD_bang && eap->cmdidx != CMD_grep && eap->cmdidx != CMD_grepadd && eap->cmdidx != CMD_hardcopy && eap->cmdidx != CMD_lgrep && eap->cmdidx != CMD_lgrepadd && eap->cmdidx != CMD_lmake && eap->cmdidx != CMD_make && eap->cmdidx != CMD_terminal)",
-		")", 1, "expanded filenames are escaped for every command left")
-	e.Literal("(eap->usefilter || eap->cmdidx == CMD_bang || eap->cmdidx == CMD_terminal) &&",
-		"eap->usefilter &&", 1, "and '!' only for a filter")
+	cmds := []string{"CMD_bang", "CMD_grep", "CMD_grepadd", "CMD_hardcopy", "CMD_lgrep", "CMD_lgrepadd", "CMD_lmake", "CMD_make", "CMD_terminal"}
+	var ne []string
+	for _, c := range cmds {
+		ne = append(ne, "(!= (-> eap cmdidx) "+c+")")
+	}
+	dropIn(v, "(&& (! (-> eap usefilter)) (! escaped) "+strings.Join(ne, " ")+")", ne,
+		"expanded filenames are escaped for every command left")
+	v.Rewrite("(|| (-> eap usefilter) (== (-> eap cmdidx) CMD_bang) (== (-> eap cmdidx) CMD_terminal))", "(-> eap usefilter)", 1,
+		"and '!' only for a filter")
 	// separate_nextcmd's :redir @" exception went with its comment test at
 	// phase 1 (onecmdfront, record 81's move)
-	if e.Failed() {
-		return e.Done()
+	if v.Failed() {
+		return v.Done()
 	}
 
 	// ---- 7: do_exedit went with :edit at phase 1 (filefront, the reform's D4)
 
 	// ---- 8: the address types only stub rows had -------------------------------
-	e.FoldNever(edit.Head("if (addr_type == ADDR_TABS_RELATIVE)"), 1, "no relative tab page offset")
-	e.FoldNever(edit.Head("if (addr_type == ADDR_LOADED_BUFFERS || addr_type == ADDR_BUFFERS)"), 1,
+	v.HeadFold("never", false, "(== addr_type ADDR_TABS_RELATIVE)", 1, "no relative tab page offset")
+	v.HeadFold("never", false, "(|| (== addr_type ADDR_LOADED_BUFFERS) (== addr_type ADDR_BUFFERS))", 1,
 		"no buffer-number offset")
-	if e.Failed() {
-		return e.Done()
+	if v.Failed() {
+		return v.Done()
 	}
-	// THE TABLE IS FOUND AGAIN, on the text as it now stands.  The Python held
-	// tab_start from step 1 and every act since had moved the text under it, so
-	// what it scanned was whatever that stale offset happened to land on -- on
-	// the canonical text it lands below the table, on rows of another kind that
-	// still say ADDR_BUFFERS, and the assertion fires for a reason that has
-	// nothing to do with cmdnames[].  What the assertion is FOR is that no
-	// SURVIVING ROW carries one of the seven address types this phase removes,
-	// and that is what it asks now: the table as it is, found by its own header.
-	t = string(e.Text())
-	mt2 := tableRe.FindStringSubmatchIndex(t)
-	if mt2 == nil {
-		return nil, e.Refused("cmdnames[] is gone before its address types were checked")
-	}
+	// What the assertion is FOR is that no SURVIVING ROW carries one of the
+	// seven address types this phase removes: the table as it is.
 	var bad []string
-	for _, a := range regexp.MustCompile(`ADDR_\w+`).FindAllString(t[mt2[2]:mt2[3]], -1) {
-		if w26DeadAddr[a] && !edit.Contains(bad, a) {
-			bad = append(bad, a)
-		}
-	}
+	v.InTable("cmdnames", func(v *graph.Verbs) {
+		graph.Walk(v.Scope(), func(n *graph.Node) bool {
+			if !n.IsList() && w26DeadAddr[n.Atom] && !edit.Contains(bad, n.Atom) {
+				bad = append(bad, n.Atom)
+			}
+			return true
+		})
+	})
 	if len(bad) > 0 {
 		sort.Strings(bad)
-		return nil, e.Refused("a live row has one of the address types being removed: %v", bad)
+		return refuse(v, "a live row has one of the address types being removed: %v", bad)
 	}
-	L := strings.Split(t, "\n")
-	var Out []string
-	labelsGone, groupsGone := 0, 0
-	for i := 0; i < len(L); {
-		mm := labelRe.FindStringSubmatch(L[i])
-		if mm == nil {
-			Out = append(Out, L[i])
-			i++
-			continue
-		}
-		ind := mm[1]
-		j := i
-		var labels []string
-		for j < len(L) {
-			x := labelRe.FindStringSubmatch(L[j])
-			if x == nil || x[1] != ind {
-				break
-			}
-			labels = append(labels, L[j])
-			j++
-		}
-		k := j
-		for k < len(L) && (L[k] == "" || (strings.HasPrefix(L[k], ind+" ") && !labelRe.MatchString(L[k]))) {
-			k++
-		}
-		var keep []string
-		for _, x := range labels {
-			n := "default"
-			if strings.TrimSpace(x) != "default:" {
-				n = caseRe.FindStringSubmatch(x)[1]
-			}
-			if !w26DeadAddr[n] {
-				keep = append(keep, x)
-			}
-		}
-		switch {
-		case len(keep) == len(labels):
-			Out = append(Out, L[i:k]...)
-		case len(keep) > 0:
-			Out = append(Out, keep...)
-			Out = append(Out, L[j:k]...)
-			labelsGone += len(labels) - len(keep)
-		default:
-			prev := ""
-			for x := len(Out) - 1; x >= 0; x-- {
-				if strings.TrimSpace(Out[x]) != "" {
-					prev = Out[x]
-					break
-				}
-			}
-			if !fallRe.MatchString(prev) {
-				return nil, e.Refused("a removed case group can be fallen into from %s",
-					edit.PyRepr(strings.TrimSpace(prev)))
-			}
-			labelsGone += len(labels)
-			groupsGone++
-		}
-		i = k
+	labelsGone, groupsGone, err := deadAddrLabels(e)
+	if err != nil {
+		return refuse(v, "%v", err)
 	}
-	e.Set([]byte(strings.Join(Out, "\n")))
-	e.Literal(`"Cannot use EX_DFLALL with ADDR_NONE, ADDR_UNSIGNED or ADDR_QUICKFIX"`,
+	v.RespellString(`"Cannot use EX_DFLALL with ADDR_NONE, ADDR_UNSIGNED or ADDR_QUICKFIX"`,
 		`"Cannot use EX_DFLALL with ADDR_NONE or ADDR_UNSIGNED"`, 1,
 		"the internal error that named the quickfix address type")
-	if e.Failed() {
-		return e.Done()
+	if v.Failed() {
+		return v.Done()
 	}
 	var left []string
 	for a := range w26DeadAddr {
-		if regexp.MustCompile(`\bcase ` + a + `:`).Match(e.Text()) {
+		if v.Count("(case "+a+")") > 0 {
 			left = append(left, a)
 		}
 	}
 	if len(left) > 0 {
 		sort.Strings(left)
-		return nil, e.Refused("case labels survive: %v", left)
+		return refuse(v, "case labels survive: %v", left)
 	}
-	e.Say(fmt.Sprintf("%d case labels for the seven address types, %d whole arms", labelsGone, groupsGone))
-	return e.Done()
+	v.Sayf("%d case labels for the seven address types, %d whole arms", labelsGone, groupsGone)
+	return v.Done()
 }
 
-func min80(a, b int) int {
-	if a < b {
-		return a
+// deadAddrLabels takes the dead address types' case labels from every run
+// of labels in the file: a label alone where its run keeps another, the run
+// with the statements it heads, up to the next label, where every label of
+// it goes -- refused where the statement before that run could fall into it
+// (the text's test: a break, a goto, a return, or the start of the block).
+func deadAddrLabels(e *graph.Editor) (labels, groups int, err error) {
+	isLabel := func(n *graph.Node) bool { return n.Is("case") || n.Is("default") || n.Is("case-range") }
+	dead := func(n *graph.Node) bool {
+		return n.Is("case") && len(n.Kids) == 2 && !n.Kids[1].IsList() && w26DeadAddr[n.Kids[1].Atom]
 	}
-	return b
+	type cut struct{ first, last *graph.Node }
+	var lone []*graph.Node
+	var runs []cut
+	var walkErr error
+	for _, f := range e.Graph().Forms {
+		graph.Walk(f, func(l *graph.Node) bool {
+			if walkErr != nil || !l.Is("block") {
+				return walkErr == nil
+			}
+			ks := l.Kids
+			for i := 1; i < len(ks); {
+				if !isLabel(ks[i]) {
+					i++
+					continue
+				}
+				j := i
+				for j < len(ks) && isLabel(ks[j]) {
+					j++
+				}
+				k := j
+				for k < len(ks) && !isLabel(ks[k]) {
+					k++
+				}
+				var gone []*graph.Node
+				for _, x := range ks[i:j] {
+					if dead(x) {
+						gone = append(gone, x)
+					}
+				}
+				switch {
+				case len(gone) == 0:
+				case len(gone) < j-i:
+					lone = append(lone, gone...)
+					labels += len(gone)
+				default:
+					if i > 1 {
+						p := ks[i-1]
+						if !(p.Is("break") || p.Is("goto") || p.Is("return")) {
+							walkErr = fmt.Errorf("a removed case group can be fallen into from a %s", p.Head())
+							return false
+						}
+					}
+					runs = append(runs, cut{ks[i], ks[k-1]})
+					labels += j - i
+					groups++
+				}
+				i = k
+			}
+			return true
+		})
+	}
+	if walkErr != nil {
+		return 0, 0, walkErr
+	}
+	for _, x := range lone {
+		if err := e.Delete(x); err != nil {
+			return 0, 0, err
+		}
+	}
+	for _, r := range runs {
+		if err := e.ReplaceRun(r.first, r.last); err != nil {
+			return 0, 0, err
+		}
+	}
+	return labels, groups, nil
 }
 
-func init() { phase.Register("whim26", Edit) }
+func init() { phase.RegisterGraph("whim26", Edit) }
+
+// refuse stops the phase with the text's refusal.
+func refuse(v *graph.Verbs, format string, a ...any) error {
+	v.Die(format, a...)
+	return v.Done()
+}

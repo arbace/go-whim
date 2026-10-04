@@ -1,12 +1,11 @@
 package cut
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // nochdirFullNameNote is what stands above mch_FullName.
@@ -96,35 +95,30 @@ const nochdirDirname = "    static char_u   cwd[ PATH_MAX ];\n" +
 	"     strcpy((char *)(buf), (char *)(cwd)) ;\n" +
 	"    return OK;"
 
-// nochdirBody replaces a definition's body and reports its old line count in
-// the tool's own column.
-func nochdirBody(text []byte, name, replacement, tag string, w io.Writer) ([]byte, error) {
-	o, c, found, balanced := edit.Body(text, name)
-	if !found || !balanced {
-		return nil, fmt.Errorf("nochdir: %s is not defined at file scope", name)
-	}
-	fmt.Fprintf(w, "  nochdir      %-14s was %3d lines -- %s\n",
-		name, bytes.Count(text[o:c], []byte{'\n'}), tag)
-	out := make([]byte, 0, len(text))
-	out = append(out, text[:o]...)
-	out = append(out, "{\n"...)
-	out = append(out, replacement...)
-	out = append(out, "\n}"...)
-	return append(out, text[c+1:]...), nil
-}
-
 // NoChdir stops anything moving this process between directories.
-func NoChdir(text []byte, w io.Writer) ([]byte, error) {
-	text, err := nochdirBody(text, "mch_FullName", nochdirFullName,
-		"nothing moves this process", w)
-	if err != nil {
-		return nil, err
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the two bodies are the text's
+// literals made nodes in one unit (FRAG: BodyC, Together) -- their static
+// locals, getcwd, errno and strerror resolved as the importer resolves them
+// -- the free cut as an item; the lengths and the mentions left are the
+// text's numbers, on the C view (history keeps the text version).
+func NoChdir(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nochdir", e, w)
+	bodies := []struct{ name, body, tag string }{
+		{"mch_FullName", nochdirFullName, "nothing moves this process"},
+		{"mch_dirname", nochdirDirname, "the answer cannot change"},
 	}
-	text, err = nochdirBody(text, "mch_dirname", nochdirDirname,
-		"the answer cannot change", w)
-	if err != nil {
-		return nil, err
-	}
+	v.Together(func(v *graph.Verbs) {
+		for _, b := range bodies {
+			if e.Defn(b.name) == nil {
+				v.Die("%s is not defined at file scope", b.name)
+				return
+			}
+			was := 0
+			v.InFunction(b.name, func(v *graph.Verbs) { was = bodyLines(v.Text()) })
+			v.BodyC(b.name, b.body, fmt.Sprintf("%-14s was %3d lines -- %s", b.name, was, b.tag))
+		}
+	})
 
 	// The window- and tab-local directory restore in aucmd_restbuf() went
 	// with the autocommand window's switch at phase 4 (whim4c, phase 4c's
@@ -135,21 +129,19 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// `globaldir` remembers the directory to come back to when a window-local
 	// one is in force.  aucmd_prepbuf()/aucmd_restbuf() saved and restored it
 	// around the autocommand window's switch, and both went with that switch
-	// at phase 4 (whim4c); the global and the function are the sweep's.
+	// at phase 4 (whim4c); the global and the function are the collection's.
 
 	// edit_buffers(), the -o window walk that returned to `cwd`, went with
 	// the windows at phase 3 (nowindows, the reform's D9).  start_dir, which
 	// nothing assigns, is left with its free, which goes here, and the global
-	// is the sweep's.
-	if text, err = cutCounted(text, edit.Line("vim_free(start_dir);"), "nochdir",
-		"start_dir -- the free of it", 1); err != nil {
-		return nil, err
+	// is the collection's.
+	v.Cut("(call vim_free start_dir)", 1, "start_dir's free, of a directory nothing ever names")
+	if v.Failed() {
+		return v.Done()
 	}
-	fmt.Fprintln(w, "  nochdir      start_dir's free, of a directory nothing ever names")
-
+	text := v.Text()
 	for _, g := range []string{"mch_chdir", "fchdir", "getcwd"} {
-		fmt.Fprintf(w, "  nochdir      %-10s %d mentions left for the sweep\n",
-			g, len(regexp.MustCompile(`\b`+g+`\b`).FindAll(text, -1)))
+		v.Sayf("%-10s %d mentions left for the sweep", g, len(regexp.MustCompile(`\b`+g+`\b`).FindAll(text, -1)))
 	}
-	return text, nil
+	return v.Done()
 }

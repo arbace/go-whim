@@ -51,75 +51,106 @@ package p004d
 // THE DELTA: none expected.  The buffer commands are already ex_ni, so no exsweep row
 // can move; declared empty and left for the delta check to correct.
 
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the text version's bodies,
+// walks and literals are acts on the nodes -- the one-statement bodies built
+// from templates (BUILD), the long ones and the address cases spliced as C
+// in two units (FRAG, Together), the walks folded (FoldWalk), runs of items
+// cut, the list's members cut -- each counted, its report the text's
+// (history keeps it).
+
 import (
 	"io"
-	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
-	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
+
+// walk is the forward walk over the buffer list, by the variable it walks
+// with (vimtext.FwdWalk's text, as a form).
+func walk(v, body string) string {
+	return "(for (= (paren " + v + ") firstbuf) (!= (paren " + v + ") nullptr) (= (paren " + v + ") (-> (paren " + v + ") b_next)) " + body + ")"
+}
 
 // Whim4d makes the buffer list one buffer: buf_valid() is `buf == curbuf`,
 // every walk over firstbuf folds to curbuf, and the list pointers go.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("onebuf", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("onebuf", e, w)
 
 	// 1. the keystone: a buffer is valid exactly when it is THE buffer
-	e.Body("buf_valid", w4dlit3, "buf_valid, which walked the list to find the buffer it was given")
-	e.Body("anyBufIsChanged", w4dlit4, "anyBufIsChanged, which asked every buffer")
-	e.Body("buflist_findname_stat", w4dlit5, "buflist_findname_stat, which searched the list by name")
+	v.Body("buf_valid", "(return (== buf curbuf))", "buf_valid, which walked the list to find the buffer it was given")
+	v.Body("anyBufIsChanged", "(return (call bufIsChanged curbuf))", "anyBufIsChanged, which asked every buffer")
+	v.BodyC("buflist_findname_stat", w4dlit5, "buflist_findname_stat, which searched the list by name")
 
-	e.FoldWalk("ml_close_all", "buf", "curbuf", vimtext.FwdWalk, 1, "ml_close_all closing every buffer")
-	e.FoldWalk("ml_close_notmod", "buf", "curbuf", vimtext.FwdWalk, 1, "ml_close_notmod closing every buffer")
-	e.FoldWalk("shorten_fnames", "buf", "curbuf", vimtext.FwdWalk, 1, "shorten_fnames shortening every name")
-	e.FoldWalk("did_set_paste", "buf", "curbuf", vimtext.FwdWalk, 3, "'paste' saving and restoring every buffer")
-	e.FoldWalk("set_termname", "buf", "curbuf", vimtext.FwdWalk, 1, "a new terminal notifying every buffer")
-	e.DropWalk("getout", vimtext.FwdWalk, w4dlit6, 1, "quitting unloading every buffer, whose break bound to the walk")
-	e.Body("buflist_findpat", w4dlit7, "buflist_findpat matching against every buffer")
-	e.Body("autowrite_all", w4dAutowriteAll, "autowrite_all writing every changed buffer")
+	fold := func(fn string, n int, what string) {
+		v.InFunction(fn, func(v *graph.Verbs) { v.FoldWalk(walk("buf", "_"), "(= buf curbuf)", n, what) })
+	}
+	fold("ml_close_all", 1, "ml_close_all closing every buffer")
+	fold("ml_close_notmod", 1, "ml_close_notmod closing every buffer")
+	fold("shorten_fnames", 1, "shorten_fnames shortening every name")
+	fold("did_set_paste", 3, "'paste' saving and restoring every buffer")
+	fold("set_termname", 1, "a new terminal notifying every buffer")
+	v.Together(func(v *graph.Verbs) {
+		v.InFunction("getout", func(v *graph.Verbs) {
+			v.ReplaceC(walk("buf", "_"), w4dlit6, 1, "quitting unloading every buffer, whose break bound to the walk")
+		})
+		v.BodyC("buflist_findpat", w4dlit7, "buflist_findpat matching against every buffer")
+		v.BodyC("autowrite_all", w4dAutowriteAll, "autowrite_all writing every changed buffer")
+	})
 	// check_changed_any's walks went with :q's refusal at phase 1 (quitfront,
 	// phase 33's move)
-	e.DropWalk("open_buffer", strings.ReplaceAll(vimtext.FwdWalk, "(buf)", "(curbuf)"), "", 1, "open_buffer looking for another loaded buffer")
+	v.InFunction("open_buffer", func(v *graph.Verbs) {
+		v.Cut(walk("curbuf", "_"), 1, "open_buffer looking for another loaded buffer")
+		v.FoldAlways("(== curbuf nullptr)", 1, "open_buffer testing whether it found one")
+		v.Splice("(call emsg (call _ e_cannot_allocate_buffer_using_other_one))", "(return FAIL)", "",
+			"open_buffer carrying on in another buffer instead")
+	})
+	v.Body("compute_buffer_local_count", "(return (-> curbuf b_fnum))", "computing a buffer address by walking to an offset")
 
-	e.InFunction("open_buffer", func(e *edit.E) {
-		e.FoldAlways(edit.Head("if (curbuf == nullptr)"), 1, "open_buffer testing whether it found one")
-		e.Literal(w4dlit15, "", 1, "open_buffer carrying on in another buffer instead")
-	})
-	e.Body("compute_buffer_local_count", w4dlit9, "computing a buffer address by walking to an offset")
-
-	e.InFunction("parse_cmd_address", func(e *edit.E) {
-		e.Literal(w4dAddrPair1, w4dNewPair1, 1, "the default buffer range")
-	})
-	e.InFunction("address_default_all", func(e *edit.E) {
-		e.Literal(w4dAddrPair2, w4dNewPair2, 1, "the :% buffer range")
-	})
-	e.InFunction("get_address", func(e *edit.E) {
-		e.Literal(w4dAddrPair3, w4dNewPair3, 1, "the $ of a buffer range")
-	})
-	e.InFunction("invalid_range", func(e *edit.E) {
-		e.Literal(w4dAddrPair4, w4dNewPair4, 1, "validating a buffer range")
+	v.Together(func(v *graph.Verbs) {
+		v.InFunction("parse_cmd_address", func(v *graph.Verbs) {
+			v.LiteralC(w4dAddrPair1, w4dNewPair1, 1, "the default buffer range")
+		})
+		v.InFunction("address_default_all", func(v *graph.Verbs) {
+			v.LiteralC(w4dAddrPair2, w4dNewPair2, 1, "the :% buffer range")
+		})
+		v.InFunction("get_address", func(v *graph.Verbs) {
+			v.LiteralC(w4dAddrPair3, w4dNewPair3, 1, "the $ of a buffer range")
+		})
+		v.InFunction("invalid_range", func(v *graph.Verbs) {
+			v.LiteralC(w4dAddrPair4, w4dNewPair4, 1, "validating a buffer range")
+		})
 	})
 
 	// free_buffer's deferral onto au_pending_free_buf folds at phase 1:
 	// autocmd_busy falls out with the autocommands' last writers (the reform's
 	// D6)
-	e.Literal(w4dlit10, w4dlit11, 1, "the mapping scan walking the list, still twice: curbuf then the globals")
+	v.Rewrite("(for (= bp firstbuf) () (= bp (-> bp b_next)) ?body)", "(for (= bp curbuf) () (= bp nullptr) ?body)", 1,
+		"the mapping scan walking the list, still twice: curbuf then the globals")
 	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront, phase 33's move)
-	e.InFunction("close_buffer", func(e *edit.E) {
-		e.FoldNever(edit.Head("if (wipe_buf && buf->b_nwindows <= 0 && (buf->b_prev != nullptr || buf->b_next != nullptr))"), 1,
+	v.InFunction("close_buffer", func(v *graph.Verbs) {
+		v.FoldNever("(&& wipe_buf (<= (-> buf b_nwindows) 0) (|| (!= (-> buf b_prev) nullptr) (!= (-> buf b_next) nullptr)))", 1,
 			"close_buffer unlinking a buffer that was never linked to another")
 	})
-	e.InFunction("buflist_new", func(e *edit.E) {
-		e.Literal(w4dlit20, "", 1, "buflist_new appending to the list")
+	v.InFunction("buflist_new", func(v *graph.Verbs) {
+		v.Splice("(= (-> buf b_next) nullptr)", "(= lastbuf buf)", "", "buflist_new appending to the list")
+		// The wiped-fnum branch is cut from its head to the plain else after it.
+		v.Rewrite("(if (&& (paren (& flags BLN_REUSE)) (> (. buf_reuse ga_len) 0)) _ (block (= (-> buf b_fnum) (post++ top_file_num))))",
+			"(= (-> buf b_fnum) (post++ top_file_num))", 1,
+			"buflist_new reusing a wiped fnum and re-sorting the list for it")
 	})
-
-	// The wiped-fnum branch is cut from its head to the plain else after it.
-	e.Splice(w4dOldReuseStart, w4dOldReuseEnd, w4dlit13, "buflist_new reusing a wiped fnum and re-sorting the list for it")
 	// au_pending_free_buf, set_curbuf's valid flag, firstbuf, lastbuf and the
-	// buf_reuse pool are named by nothing now; the sweep takes them.
-	e.Literal(w4dlit12, "", 1, "the buffer list pointers in buf_T")
-	return e.Done()
+	// buf_reuse pool are named by nothing now; the collection takes them.
+	if v.Failed() {
+		return v.Done()
+	}
+	q := graph.NewVerbs("onebuf", e, io.Discard)
+	q.Cut("(b_next (ptr buf_T))", 1, "b_next")
+	q.Cut("(b_prev (ptr buf_T))", 1, "b_prev")
+	if q.Err != nil {
+		return q.Err
+	}
+	v.Say("the buffer list pointers in buf_T")
+	return v.Done()
 }
 
-func init() { phase.Register("whim4d", Edit) }
+func init() { phase.RegisterGraph("whim4d", Edit) }

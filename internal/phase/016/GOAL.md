@@ -48,3 +48,5 @@ value that moved besides the backup options that phase removed on purpose.
 
 **`:setlocal` and `:setglobal`**, which succeeded run bare. Measured: 115,568 →
 **115,246 lines**.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): every step of this phase runs on `crefactor/graph`, handed the graph the phase before left, with no import, its report the text version's and its boundary byte for byte (`whim-build-check`).

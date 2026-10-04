@@ -78,3 +78,5 @@ written in violation of.
 Measured: 92,110 → **91,329 lines**.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 72-73 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): this part's program is a graph step of phase 5, on `crefactor/graph`'s verbs, its report the text version's line for line and the phase's boundary byte for byte (`whim-build-check`).

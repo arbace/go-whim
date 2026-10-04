@@ -76,3 +76,5 @@ vanish wholesale.
 
 **None.** No key, command or option changes. Measured: 96,636 → **94,122 lines**,
 the largest single phase since the early cuts.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): this part's program is a graph step of phase 4, on `crefactor/graph`'s verbs, its report the text version's line for line and the phase's boundary byte for byte (`whim-build-check`).

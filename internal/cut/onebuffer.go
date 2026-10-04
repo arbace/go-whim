@@ -7,37 +7,38 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // OneBuffer leaves one buffer: the old one is wiped, nothing is hidden,
 // nothing is the alternate.
-func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
-	e := ed{"onebuffer", w}
-	var err error
-
-	text, err = e.inFunction(text, "parse_command_modifiers", func(s []byte) ([]byte, error) {
-		s, err := e.subOnce(s,
-			`^[ \t]*case 'h':\n[ \t]*if \(p != eap->cmd \|\| !checkforcmd_noparen\(&p, "hide", 3\) \|\| \*p == NUL \|\| ends_excmd\(\*p\)\)\n`+
-				`[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*eap->cmd = p;\n`+
-				`[ \t]*cmod->cmod_flags \|= CMOD_HIDE;\n[ \t]*continue;\n`,
-			"the :hide modifier")
-		if err != nil {
-			return nil, err
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the text version's line
+// regexps and literals are acts on the nodes -- a case's run dropped, ifs
+// dropped and folded, operands dropped, expressions rewritten, the CTRL-^
+// row's handler pointed at nv_error -- each counted, its report the text's
+// (history keeps it).  The leftover counts are the text's own, on the C
+// view.
+func OneBuffer(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("onebuffer", e, w)
+	v.InFunction("parse_command_modifiers", func(v *graph.Verbs) {
+		v.One(`(if (|| (!= p (-> eap cmd)) (! (call checkforcmd_noparen (addr p) "hide" 3)) (== (deref p) NUL) (call ends_excmd (deref p))) (block (break)))`,
+			"the :hide modifier is not where this expects")
+		v.DropCaseRun("(case 'h')", 1, "the :hide modifier")
+		v.DropIf(`(call checkforcmd_noparen (addr (-> eap cmd)) "keepalt" 5)`, 1, "the :keepalt modifier")
+	})
+	v.InFunction("set_context_by_cmdname", func(v *graph.Verbs) {
+		q := graph.NewVerbs("onebuffer", e, io.Discard)
+		q.In(v.Scope(), func(q *graph.Verbs) {
+			q.Cut("(case CMD_hide)", 1, "")
+			q.Cut("(case CMD_keepalt)", 1, "")
+		})
+		if q.Err != nil {
+			v.Err = q.Err
+			return
 		}
-		return e.dropIf(s, `^[ \t]*if \(checkforcmd_noparen\(&eap->cmd, "keepalt", 5\)\)$`,
-			"the :keepalt modifier")
+		v.Say("completion for :hide and :keepalt")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "set_context_by_cmdname", func(s []byte) ([]byte, error) {
-		return e.subCount(s, `^[ \t]*case CMD_(?:hide|keepalt):\n`,
-			"completion for :hide and :keepalt", 2)
-	})
-	if err != nil {
-		return nil, err
-	}
 
 	// do_argfile, :next, can_abandon, alist_add and alist_add_list died with
 	// the argument-list and buffer commands, retired at phase 1 (exfront, the
@@ -46,123 +47,81 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	// set_curbuf, which hid the buffer it left, went with ex_quit's refusal
 	// at phase 1 (quitfront, the reform's move of phase 33)
 
-	text, err = e.inFunction(text, "getfile", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, " && !buf_hide(curbuf) && ", " && ",
-			"getfile writing before it leaves", 1)
-		if err != nil {
-			return nil, err
-		}
-		return e.literal(s, "(buf_hide(curbuf) ? ECMD_HIDE : 0) + ", "",
-			"getfile hiding the buffer", 1)
+	v.InFunction("getfile", func(v *graph.Verbs) {
+		v.DropOperand("(! (call buf_hide curbuf))", 1, "getfile writing before it leaves")
+		v.Rewrite("(+ (? (call buf_hide curbuf) ECMD_HIDE 0) ?rest)", "(paren ?rest)", 1,
+			"getfile hiding the buffer")
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// :quit's refusal, and with it its buf_hide test, folded at phase 1
 	// (quitfront, phase 33's move)
-	text, err = e.inFunction(text, "ex_quit", func(s []byte) ([]byte, error) {
-		return e.literal(s, "win_close(wp, !buf_hide(wp->w_buffer) || eap->forceit)",
-			"win_close(wp, TRUE)", ":quit freeing the buffer", 1)
+	v.InFunction("ex_quit", func(v *graph.Verbs) {
+		v.Rewrite("(call win_close wp (|| (! (call buf_hide (-> wp w_buffer))) (-> eap forceit)))",
+			"(call win_close wp TRUE)", 1, ":quit freeing the buffer")
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// ex_exit, do_exedit, rename_buffer, ex_read and do_write went with :exit,
 	// :edit, :file, :read and :write at phase 1 (filefront, the reform's D4)
 
-	text, err = e.inFunction(text, "nv_gotofile", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, " && !buf_hide(curbuf))", ")", "gf refusing a changed buffer", 1)
-		if err != nil {
-			return nil, err
-		}
-		return e.literal(s, "buf_hide(curbuf) ? ECMD_HIDE : 0", "0", "gf hiding the buffer", 1)
+	v.InFunction("nv_gotofile", func(v *graph.Verbs) {
+		v.DropOperand("(! (call buf_hide curbuf))", 1, "gf refusing a changed buffer")
+		v.Rewrite("(? (call buf_hide curbuf) ECMD_HIDE 0)", "0", 1, "gf hiding the buffer")
 	})
-	if err != nil {
-		return nil, err
+	if v.Failed() {
+		return v.Done()
 	}
-	if n := len(edit.CallsNotAfterWord(text, "buf_hide")); n != 2 {
-		return nil, fmt.Errorf("onebuffer: buf_hide is still called -- %d mentions, expected "+
+	if n := len(edit.CallsNotAfterWord(v.Text(), "buf_hide")); n != 2 {
+		return fmt.Errorf("onebuffer: buf_hide is still called -- %d mentions, expected "+
 			"its prototype and definition", n)
 	}
 
-	text, err = e.inFunction(text, "close_buffer", func(s []byte) ([]byte, error) {
-		var err error
+	v.InFunction("close_buffer", func(v *graph.Verbs) {
 		for _, b := range []struct{ ch, what string }{
 			{"d", "delete"}, {"w", "wipe"}, {"u", "unload"},
 		} {
-			if s, err = e.foldNever(s, `^[ \t]*if \(buf->b_p_bh\[0\] == '`+b.ch+`'\)$`,
-				"close_buffer's bufhidden="+b.what); err != nil {
-				return nil, err
-			}
+			v.FoldNever("(== (index (-> buf b_p_bh) 0) '"+b.ch+"')", 1,
+				"close_buffer's bufhidden="+b.what)
 		}
-		return s, nil
 	})
-	if err != nil {
-		return nil, err
-	}
 
-	text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "(flags & ECMD_HIDE) ? 0 : DOBUF_UNLOAD", "DOBUF_WIPE",
-			"do_ecmd wiping the buffer it leaves", 1)
-		if err != nil {
-			return nil, err
-		}
-		if s, err = e.dropIf(s, `^[ \t]*if \(fnum == 0 && other_file && ffname != nullptr\)$`,
-			"do_ecmd naming a refused file the alternate"); err != nil {
-			return nil, err
-		}
-		if s, err = e.dropIf(s, `^[ \t]*if \(\(cmdmod\.cmod_flags & CMOD_KEEPALT\) == 0\)$`,
-			"do_ecmd making the old buffer the alternate"); err != nil {
-			return nil, err
-		}
-		if s, err = e.subOnce(s,
-			`^[ \t]*if \(oldwin != nullptr\)\n[ \t]*\{\n[ \t]*buflist_altfpos\(oldwin\);\n[ \t]*\}\n`,
-			"do_ecmd saving the old window position"); err != nil {
-			return nil, err
-		}
-		return e.dropIf(s,
-			`^[ \t]*if \(curwin->w_alt_fnum == buf->b_fnum && prev_alt_fnum != 0\)$`,
+	v.InFunction("do_ecmd", func(v *graph.Verbs) {
+		v.Rewrite("(? (paren (& flags ECMD_HIDE)) 0 DOBUF_UNLOAD)", "DOBUF_WIPE", 1,
+			"do_ecmd wiping the buffer it leaves")
+		v.DropIf("(&& (== fnum 0) other_file (!= ffname nullptr))", 1,
+			"do_ecmd naming a refused file the alternate")
+		v.DropIf("(== (& (. cmdmod cmod_flags) CMOD_KEEPALT) 0)", 1,
+			"do_ecmd making the old buffer the alternate")
+		v.Cut("(if (!= oldwin nullptr) (block (call buflist_altfpos oldwin)))", 1,
+			"do_ecmd saving the old window position")
+		v.DropIf("(&& (== (-> curwin w_alt_fnum) (-> buf b_fnum)) (!= prev_alt_fnum 0))", 1,
 			"do_ecmd restoring the alternate")
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// set_curbuf went with ex_quit's refusal at phase 1 (quitfront)
 
-	text, err = e.inFunction(text, "win_init", func(s []byte) ([]byte, error) {
-		return e.literal(s, "    newp->w_alt_fnum = oldp->w_alt_fnum;\n", "",
-			"win_init copying the alternate", 1)
+	v.InFunction("win_init", func(v *graph.Verbs) {
+		v.Cut("(= (-> newp w_alt_fnum) (-> oldp w_alt_fnum))", 1, "win_init copying the alternate")
 	})
-	if err != nil {
-		return nil, err
-	}
-	text, err = e.inFunction(text, "buflist_findnr", func(s []byte) ([]byte, error) {
-		return e.dropIf(s, `^[ \t]*if \(nr == 0\)$`, "buffer 0 meaning the alternate")
+	v.InFunction("buflist_findnr", func(v *graph.Verbs) {
+		v.DropIf("(== nr 0)", 1, "buffer 0 meaning the alternate")
 	})
-	if err != nil {
-		return nil, err
-	}
-	text, err = e.inFunction(text, "buflist_findpat", func(s []byte) ([]byte, error) {
-		return e.literal(s, "match = curwin->w_alt_fnum;", "match = 0;",
-			"'#' finding the alternate", 1)
+	v.InFunction("buflist_findpat", func(v *graph.Verbs) {
+		v.Rewrite("(= match (-> curwin w_alt_fnum))", "(= match 0)", 1, "'#' finding the alternate")
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// A ROW IS NEVER DELETED FROM nv_cmds[], IT IS POINTED AT nv_error.
-	if text, err = e.subCountRepl(text,
-		`(?m)^([ \t]*\{Ctrl_HAT, )nv_hat(, NV_NCW, 0\},)$`, "${1}nv_error${2}",
-		"CTRL-^'s row points at nv_error", 1); err != nil {
-		return nil, err
+	v.InTable("nv_cmds", func(v *graph.Verbs) {
+		v.RewriteAt("(init Ctrl_HAT ?h NV_NCW 0)", "h", "nv_error", 1, "CTRL-^'s row points at nv_error")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
 
 	// setaltfname() and buf_hide() have no caller now and still name the
-	// alternate and the two modifier flags; the sweep takes them, and record 42's
-	// program counted again after it.  Everything else is counted here.
+	// alternate and the two modifier flags; the collection takes them, and
+	// record 42's program counted again after it.  Everything else is
+	// counted here, by the text's own question on the C view.
+	text := v.Text()
 	blanked := edit.Blank(text)
 	var dying [][2]int
 	for _, n := range []string{"setaltfname", "buf_hide"} {
@@ -193,11 +152,11 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if len(left) > 0 {
-		return nil, fmt.Errorf("onebuffer: still present: [%s]", strings.Join(left, ", "))
+		return fmt.Errorf("onebuffer: still present: [%s]", strings.Join(left, ", "))
 	}
 
-	e.say("one buffer: the old one is wiped, nothing is hidden, nothing is the alternate")
-	return text, nil
+	v.Say("one buffer: the old one is wiped, nothing is hidden, nothing is the alternate")
+	return v.Done()
 }
 
 // oneBufferLeft is what OneBuffer counts outside the two dying functions,

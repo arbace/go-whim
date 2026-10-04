@@ -65,3 +65,5 @@ rather than by the build.**
 
 **None.** No key, command or option changes — every cut is code nothing could
 reach. Measured: 96,848 → **96,636 lines**.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): this part's program is a graph step of phase 4, on `crefactor/graph`'s verbs, its report the text version's line for line and the phase's boundary byte for byte (`whim-build-check`).

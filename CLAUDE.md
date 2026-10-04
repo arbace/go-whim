@@ -285,7 +285,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 15, 19, 20, 23-25, 27-35, 43-56, 58, 60, 62, 64, 74 and 77 and parts 4a, 15a, 38a, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
+phase converted to the graph (phases 15, 19-35, 43-56, 58, 60, 62, 64, 74 and 77 and parts 4a-4f, 5a-5d, 15a, 38a, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -442,6 +442,10 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    would no longer resolve or a jump would rebind),
                    typeedit.go what they share (type nodes interned,
                    types derived, Rederive), b2cverbs.go their verbs;
+                   runverbs.go (B3a) runs of items as verbs (Run,
+                   CutRun, SpliceFirst), DropCaseRun, DropOperandAsText
+                   (the parentheses a text cut leaves), HeadFold (a line
+                   head's ifs, arms told apart, last first) and EndLabels;
                    deadstmt.go the statements after a jump (StmtTerminates
                    on nodes, part 86a's rule);
                    b3bverbs.go the verbs phases 27-35's conversions
@@ -926,7 +930,10 @@ was the input boundary's digest and the implementation's together, so a moved
   the programs of phases 60 and 62 and phase 74's own step, and the goto
   steps of phases 89-92 (89 imports after 88's text; 90-92 are handed
   the graph) -- and B3e's phases 53-56, a chain handed the graph from 53
-  to 56. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
+  to 56 -- and B3a's: the cutters onebuffer, nowild, nowildmenu, noconv,
+  noglob, nofind, nohome, nogetenv, nochdir and oneoptset, parts 4b-4f and
+  5a-5d and the programs of phases 21, 22 and 26, so that phases 4-26 run
+  on the graph from end to end with no import between them. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
   record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).

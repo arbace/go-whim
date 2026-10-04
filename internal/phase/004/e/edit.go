@@ -73,10 +73,11 @@ import (
 	"regexp"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim4e", Edit) }
+func init() { phase.RegisterGraph("whim4e", Edit) }
 
 // Whim4e stops the core diagnosing its own terminal.
 //
@@ -95,24 +96,38 @@ func init() { phase.Register("whim4e", Edit) }
 // second reader survives the branch that went.  So all five isatty() calls
 // remain and the undefined symbol count does not move.  This phase is the
 // warnings, the pause and the flag -- not every isatty caller.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nottywarn", text, w)
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3a): the else-if arm folded, and
+// check_tty's parameter dropped with the argument at its one call (PARAM)
+// where the text rewrote the two lines; the counts are the text's own, on
+// the C view (history keeps the text version).
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nottywarn", e, w)
+	count := func(text []byte, re string, n int, what string) {
+		if k := edit.CountMatches(regexp.MustCompile(re), text); k != n && !v.Failed() {
+			v.Die("%s -- matched %d times, expected %d", what, k, n)
+		}
+	}
 
 	// ---- 0. the invariants the cut rests on ------------------------------
 	// Asserted rather than trusted from the survey: if an upstream gives
 	// tty_fail a second reader, or moves the pause Out of the branch, this
 	// fails loudly instead of taking a decision that is no longer the one
 	// written down.
-	e.CountIs(`tty_fail`, 0, "tty_fail")
-	e.CountIs(`ui_delay\(2005L`, 1, "ui_delay(2005L")
-	e.CountIs(`\bisatty\(`, 5, "isatty")
-	e.Say("tty_fail is gone: nothing wrote it once the command line was cut, and the fall-out closure took its read; the 2005 ms pause is the only one")
+	text := v.Text()
+	count(text, `tty_fail`, 0, "tty_fail")
+	count(text, `ui_delay\(2005L`, 1, "ui_delay(2005L")
+	count(text, `\bisatty\(`, 5, "isatty")
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Say("tty_fail is gone: nothing wrote it once the command line was cut, and the fall-out closure took its read; the 2005 ms pause is the only one")
 
 	// ---- 1. the warnings, the pause and the exit -------------------------
 	// One `else if` in a chain, so FoldNever takes the whole branch and
 	// leaves the exmode_active one before it.
-	e.InFunction("check_tty", func(e *edit.E) {
-		e.FoldNever(edit.Head("else if (parmp->want_full_screen && (!stdout_isatty || !input_isatty))"), 1,
+	v.InFunction("check_tty", func(v *graph.Verbs) {
+		v.FoldNever("(&& (-> parmp want_full_screen) (|| (! stdout_isatty) (! input_isatty)))", 1,
 			"both warnings, the flush, the --ttyfail exit and the two-second pause")
 	})
 
@@ -123,12 +138,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// The alternative is __attribute__((unused)) on a parameter nothing will
 	// ever read again, which is how slim MARKS an unused parameter and how
 	// whim 67 got rid of one.
-	e.Literal("check_tty(mparm_T *parmp)\n", "check_tty(void)\n", 1,
-		"check_tty takes nothing: its only use of parmp went with the branch")
-	e.Literal("    check_tty(&params);\n", "    check_tty();\n", 1, "and its one caller")
-
-	for _, s := range []string{"ttyfail", "not to a terminal", "not from a terminal", "ui_delay(2005L"} {
-		e.CountIs(regexp.QuoteMeta(s), 0, s+" survives the edit")
+	if !v.Failed() {
+		n := v.Count("(call check_tty (addr params))")
+		v.Expect(n == 1, "check_tty -- %d calls passing &params, expected 1", n)
 	}
-	return e.Done()
+	v.DropParam("check_tty", "parmp", "check_tty takes nothing: its only use of parmp went with the branch")
+	if !v.Failed() {
+		v.Say("and its one caller")
+		text = v.Text()
+		for _, s := range []string{"ttyfail", "not to a terminal", "not from a terminal", "ui_delay(2005L"} {
+			count(text, regexp.QuoteMeta(s), 0, s+" survives the edit")
+		}
+	}
+	return v.Done()
 }

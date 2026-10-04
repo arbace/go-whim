@@ -104,3 +104,5 @@ says not to put it back. It also corrected a belief: that walk is
 a mapping is found through `curbuf->b_maphash[]`, which never touches the list.
 
 Measured: 93,127 → **92,749 lines**.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): this part's program is a graph step of phase 4, on `crefactor/graph`'s verbs, its report the text version's line for line and the phase's boundary byte for byte (`whim-build-check`).

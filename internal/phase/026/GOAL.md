@@ -94,3 +94,5 @@ lengths elsewhere in the file; and `:h|…` expected to differ, because I assume
 stub row split at the bar without reading `:help`'s flags.
 
 Measured: 88,636 → **87,142 lines**, the binary 1,008,424 → 955,976 bytes.
+
+**On the graph** (B3a, `doc/GRAPH-MIGRATION.md`): every step of this phase runs on `crefactor/graph`, handed the graph the phase before left, with no import, its report the text version's and its boundary byte for byte (`whim-build-check`).
