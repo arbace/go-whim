@@ -28,6 +28,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/arbace/go-whim/internal/procattr"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
@@ -56,7 +57,7 @@ func (s Stats) String() string {
 // command is exec.Command whose process dies with ours.
 func command(name string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(context.Background(), name, args...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
+	cmd.SysProcAttr = procattr.Child()
 	return cmd
 }
 

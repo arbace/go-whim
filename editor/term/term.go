@@ -4,6 +4,10 @@
 // signals, output and the exit.  It is the Host bin/whim runs the editor with
 // (editor.Main(term.New(), os.Args)).
 //
+// What differs between Linux and macOS -- the termios requests, the wake-up
+// pipe, select, and :suspend's signal calls -- is in term_linux.go and
+// term_darwin.go; the rest is here.
+//
 // Deviations from the C are marked DEVIATION where they happen; the
 // important ones are about signals, which Go cannot run asynchronously on the
 // goroutine running the core:
@@ -28,16 +32,12 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"runtime"
 	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
 	"unsafe"
 )
-
-// XTABS (TABDLY) is not in package syscall; Linux's value.
-const xtabs = 0x1800
 
 // Host is the terminal host.  There is one terminal, so there is one Host a
 // process can use; New makes it.
@@ -71,7 +71,7 @@ func ioctl(fd int, req uintptr, arg unsafe.Pointer) syscall.Errno {
 }
 
 func tcgetattr(fd int, t *syscall.Termios) bool {
-	return ioctl(fd, syscall.TCGETS, unsafe.Pointer(t)) == 0
+	return ioctl(fd, tcgets, unsafe.Pointer(t)) == 0
 }
 
 func (h *Host) ttySet(raw, sleep bool) {
@@ -97,7 +97,7 @@ func (h *Host) ttySet(raw, sleep bool) {
 		tnew.Cc[syscall.VTIME] = 0
 	}
 	for {
-		e := ioctl(0, syscall.TCSETS, unsafe.Pointer(&tnew)) // tcsetattr(0, TCSANOW)
+		e := ioctl(0, tcsets, unsafe.Pointer(&tnew)) // tcsetattr(0, TCSANOW)
 		if !(e != 0 && e == syscall.EINTR && n > 0) {
 			break
 		}
@@ -161,12 +161,15 @@ func (h *Host) deliver() {
 	}
 }
 
+// nfdbits is the bits in an fd_set word: 64 on Linux, 32 on macOS.
+const nfdbits = int(unsafe.Sizeof(syscall.FdSet{}.Bits[0])) * 8
+
 func fdSet(s *syscall.FdSet, fd int) {
-	s.Bits[fd/64] |= 1 << (uint(fd) % 64)
+	s.Bits[fd/nfdbits] |= 1 << uint(fd%nfdbits)
 }
 
 func fdIsSet(s *syscall.FdSet, fd int) bool {
-	return s.Bits[fd/64]&(1<<(uint(fd)%64)) != 0
+	return s.Bits[fd/nfdbits]&(1<<uint(fd%nfdbits)) != 0
 }
 
 // Init starts catching the signals, with deathtrap the core's handler for
@@ -174,9 +177,8 @@ func fdIsSet(s *syscall.FdSet, fd int) bool {
 func (h *Host) Init(deathtrap func(sig int32)) {
 	h.deathtrap = deathtrap
 	if h.sigch == nil {
-		var fds [2]int
-		if syscall.Pipe2(fds[:], syscall.O_NONBLOCK|syscall.O_CLOEXEC) == nil {
-			h.wakeR, h.wakeW = fds[0], fds[1]
+		if r, w, ok := wakePipe(); ok {
+			h.wakeR, h.wakeW = r, w
 		}
 		h.sigch = make(chan os.Signal, 64)
 		go h.signals()
@@ -283,13 +285,13 @@ func (h *Host) sleep(ms int64) {
 		return
 	}
 	h.drain()
-	tv := syscall.Timeval{Sec: ms / 1000, Usec: (ms % 1000) * 1000}
+	tv := syscall.NsecToTimeval(ms * 1e6)
 	for {
 		var r syscall.FdSet
 		fdSet(&r, h.wakeR)
-		// Linux's select leaves the time remaining in tv, so an EINTR from
-		// the Go runtime's own signals resumes the same sleep.
-		_, err := syscall.Select(h.wakeR+1, &r, nil, nil, &tv)
+		// sel leaves the time remaining in tv, so an EINTR from the Go
+		// runtime's own signals resumes the same sleep.
+		_, err := sel(h.wakeR+1, &r, &tv)
 		if err == syscall.EINTR {
 			continue
 		}
@@ -318,8 +320,7 @@ func (h *Host) WaitForInput(ms int64) bool {
 	var tvp *syscall.Timeval
 
 	if ms >= 0 {
-		tv.Sec = ms / 1000
-		tv.Usec = (ms % 1000) * 1000
+		tv = syscall.NsecToTimeval(ms * 1e6)
 		tvp = &tv
 	}
 	for {
@@ -335,7 +336,7 @@ func (h *Host) WaitForInput(ms int64) bool {
 			fdSet(&rfds, h.wakeR)
 			nfd = h.wakeR + 1
 		}
-		ret, err := syscall.Select(nfd, &rfds, nil, nil, tvp)
+		ret, err := sel(nfd, &rfds, tvp)
 		if err == syscall.EINTR {
 			continue
 		}
@@ -388,7 +389,7 @@ func (h *Host) ReadInput(buf []byte) int32 {
 			var rfds syscall.FdSet
 			fdSet(&rfds, 0)
 			fdSet(&rfds, h.wakeR)
-			ret, err := syscall.Select(h.wakeR+1, &rfds, nil, nil, nil)
+			ret, err := sel(h.wakeR+1, &rfds, nil)
 			if err == syscall.EINTR {
 				continue
 			}
@@ -435,50 +436,6 @@ func (h *Host) Raise(sig int32) {
 		}
 	}
 	syscall.Kill(syscall.Getpid(), syscall.Signal(sig))
-}
-
-// Suspend stops the process group with SIGTSTP at its default action.  Go's
-// signal.Reset would leave the runtime's handler installed, which swallows
-// SIGTSTP, so the kernel action is set to SIG_DFL with rt_sigaction directly
-// and the runtime's own restored after.
-//
-// DEVIATION: the C is one thread, which takes the signal and stops as kill
-// returns.  A Go process is many, and the kernel hands the signal to its first
-// thread, which takes it when it next runs: with the runtime's handler put
-// back at once, that thread found it and did not stop -- the Go editor's
-// :suspend never stopped (0 of 100 runs, the C 100).  So the handler waits
-// until the signal is no longer pending: taken, and the process stopped and
-// continued (or, in an orphaned process group, discarded by the kernel).
-// rt_sigpending reports only what the asking thread blocks, so this goroutine
-// holds its thread and blocks SIGTSTP on it for the kill and the wait: another
-// thread takes it, and until one has, it is pending here.  At most a second,
-// a bound no run has reached.  Braaam's host (Term.suspend) does the same.
-func (h *Host) Suspend() {
-	var old, dfl [4]uint64 // struct kernel_sigaction: handler, flags, restorer, mask
-
-	_, _, e := syscall.RawSyscall6(syscall.SYS_RT_SIGACTION, uintptr(syscall.SIGTSTP), 0, uintptr(unsafe.Pointer(&old)), 8, 0, 0)
-	if e != 0 {
-		// DEVIATION (fallback only): stop with SIGSTOP instead
-		syscall.Kill(0, syscall.SIGSTOP)
-		return
-	}
-	runtime.LockOSThread()
-	defer runtime.UnlockOSThread()
-	const tstp = uint64(1) << (syscall.SIGTSTP - 1)
-	set, mask := tstp, uint64(0)
-	syscall.RawSyscall6(syscall.SYS_RT_SIGPROCMASK, 0 /* SIG_BLOCK */, uintptr(unsafe.Pointer(&set)), uintptr(unsafe.Pointer(&mask)), 8, 0, 0)
-	dfl = old
-	dfl[0] = 0 // SIG_DFL
-	syscall.RawSyscall6(syscall.SYS_RT_SIGACTION, uintptr(syscall.SIGTSTP), uintptr(unsafe.Pointer(&dfl)), 0, 8, 0, 0)
-	syscall.Kill(0, syscall.SIGTSTP)
-	for end := time.Now().Add(time.Second); time.Now().Before(end); {
-		var pending uint64
-		if _, _, e := syscall.RawSyscall(syscall.SYS_RT_SIGPENDING, uintptr(unsafe.Pointer(&pending)), 8, 0); e != 0 || pending&tstp == 0 {
-			break
-		}
-	}
-	syscall.RawSyscall6(syscall.SYS_RT_SIGACTION, uintptr(syscall.SIGTSTP), uintptr(unsafe.Pointer(&old)), 0, 8, 0, 0)
-	syscall.RawSyscall6(syscall.SYS_RT_SIGPROCMASK, 2 /* SIG_SETMASK */, uintptr(unsafe.Pointer(&mask)), 0, 8, 0, 0)
 }
 
 // Exit is the C longjmp back to main, which returns the code: here the

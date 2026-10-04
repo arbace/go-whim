@@ -26,8 +26,9 @@
 // physical address in Exception.PhysicalAddress -- so a monitor decodes the
 // framework's form on every target.  On arm64 the program counter after such
 // an exit is the faulting store's, as the framework leaves it, and the
-// monitor advances it.  The macOS backend is hvf_darwin.go, written as the
-// cgo it would be and not built (doc/GUEST.md).
+// monitor advances it.  The macOS backend is hvf_darwin.go, the framework
+// bound by purego with no cgo, built for darwin/arm64 here and run only on
+// the Mac (doc/GUEST.md, *Running on the Mac*).
 //
 // amd64 sits behind the same shape with x86 names (regs_amd64.go): RAX..R15,
 // RIP and RFLAGS as registers; CR0, CR3, CR4, EFER, the descriptor tables and

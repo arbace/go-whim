@@ -14,7 +14,10 @@ import (
 // editor, WHIM_SUITE_GUEST the launcher; WHIM_SUITE_WIDE=1 adds the wide
 // suite's cases (its Ex commands when WHIM_SUITE_SRC names the whim-vim.c
 // the C was built from); WHIM_SUITE_ONLY=GROUP runs one group alone;
-// WHIM_SUITE_LIMIT is a run's limit (default 10s).  The test
+// WHIM_SUITE_LIMIT is a run's limit (default 10s).  WHIM_SUITE_GUEST_IMAGE names the
+// image when the launcher carries none -- the Mac's, signed, which cannot --
+// and the control is then that image changed, each run by a script that
+// hands the monitor its image (WHIM_GUEST_IMAGE).  The test
 // binary is built here, `GOARCH=arm64 go test -c ./internal/suite`, and run
 // there: the cases are compiled into it.
 func TestGuestPrebuilt(t *testing.T) {
@@ -70,11 +73,23 @@ func TestGuestPrebuilt(t *testing.T) {
 		}
 	}
 	dir := t.TempDir()
-	ctl, err := patchControl(g, dir, "whim-guest-control", []byte(" INSERT\x00"), []byte(" INSERX\x00"))
-	if err != nil {
+	abs := func(p string) string { a, _ := filepath.Abs(p); return a }
+	var ctl string
+	if img := os.Getenv("WHIM_SUITE_GUEST_IMAGE"); img != "" {
+		ci, err := patchControl(img, dir, "control.elf", []byte(" INSERT\x00"), []byte(" INSERX\x00"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		mon := abs(g)
+		if g, err = imageScript(dir, "whim-guest", mon, abs(img)); err != nil {
+			t.Fatal(err)
+		}
+		if ctl, err = imageScript(dir, "whim-guest-control", mon, ci); err != nil {
+			t.Fatal(err)
+		}
+	} else if ctl, err = patchControl(g, dir, "whim-guest-control", []byte(" INSERT\x00"), []byte(" INSERX\x00")); err != nil {
 		t.Fatal(err)
 	}
-	abs := func(p string) string { a, _ := filepath.Abs(p); return a }
 	e := &jvmEditor{name: "guest", where: "guest/, vmm/", file: "the image", launcher: "whim-guest",
 		bin: abs(g), ctl: ctl, limit: limit, report: guestExits}
 	b := &builds{cand: abs(c)}
@@ -84,4 +99,12 @@ func TestGuestPrebuilt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+// imageScript writes dir/name, a script running the monitor with the image
+// img, and returns its path.  monitor is a program, or another such script.
+func imageScript(dir, name, monitor, img string) (string, error) {
+	q := func(s string) string { return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'" }
+	p := filepath.Join(dir, name)
+	return p, os.WriteFile(p, []byte("#!/bin/sh\nWHIM_GUEST_IMAGE="+q(img)+" exec "+q(monitor)+` "$@"`+"\n"), 0o755)
 }

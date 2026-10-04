@@ -9,9 +9,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
+
+	"github.com/arbace/go-whim/internal/procattr"
 )
 
 // standIn is the hand-written whim.editor the tests build: what the
@@ -44,7 +45,7 @@ func run(t *testing.T, bin string, keys string, args ...string) (string, string,
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin, args...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
+	cmd.SysProcAttr = procattr.Child()
 	cmd.Stdin = f
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
@@ -128,7 +129,7 @@ func TestStandInRuns(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "java", "-jar", jar, "x")
-	cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
+	cmd.SysProcAttr = procattr.Child()
 	cmd.Stdin = strings.NewReader("iq")
 	b, err := cmd.CombinedOutput()
 	if ee, ok := err.(*exec.ExitError); !ok || ee.ExitCode() != 5 || !strings.Contains(string(b), "argc=2 [x]") || !strings.Contains(string(b), " INSERT") {

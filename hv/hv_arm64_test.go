@@ -11,9 +11,12 @@ import (
 
 // newTinyGuest is a VM of 64 KiB with code at 0x1000, run at EL1 with the
 // MMU off: the smallest guest that makes the exits the monitor decodes.
+// On the Mac it runs on Hypervisor.framework: the test binary signed with
+// the hypervisor entitlement (guest/mac/mac.sh hv), the first thing to run
+// there; 64 KiB is four of its 16 KiB pages.
 func newTinyGuest(t *testing.T, code []uint32) (VCPU, *VCPUExit) {
 	t.Helper()
-	if _, err := os.Stat("/dev/kvm"); err != nil {
+	if _, err := os.Stat("/dev/kvm"); err != nil && runtime.GOOS == "linux" {
 		t.Skip("no /dev/kvm")
 	}
 	runtime.LockOSThread()

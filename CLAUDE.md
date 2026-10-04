@@ -571,8 +571,8 @@ editor/            the core in Go, package editor, a library of instances: an
                    over lines in parallel chunks: match_lines), and host.go --
                    the Host interface an Editor runs on, editorHost (the
                    host's state, which Editor embeds), New and Main(host,
-                   args); term/ is the terminal host and cmd/whim/ the
-                   launcher bin/whim is
+                   args); term/ is the terminal host (Linux and macOS)
+                   and cmd/whim/ the launcher bin/whim is
 internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    skel` runs it by hand, with -bodies for the bodies alone):
                    crefactor/togo, the C-to-Go translator, which names
@@ -719,16 +719,21 @@ vmm/               the monitor: the guest's ELF in one slot, identity-mapped
                    loop answering each doorbell store by a call of
                    editor.Host, the watchdog and the counts (vmm.go), the
                    alternative traps measured against the doorbell
-                   (alt_<isa>.go), the seccomp filter (seccomp_linux*.go);
-                   cmd/whim-guest the launcher, the image appended to it,
-                   run on editor/term (WHIM_GUEST_STATS, _WATCHDOG,
-                   _SECCOMP)
+                   (alt_<isa>.go), the seccomp filter (seccomp_linux*.go;
+                   none on macOS), Die (die_<os>.go), the slot's 16 KiB
+                   alignment held by layout_test.go; cmd/whim-guest the
+                   launcher, the image appended to it or beside it
+                   (WHIM_GUEST_IMAGE, PROGRAM.elf: the Mac's way), run on
+                   editor/term (WHIM_GUEST_STATS, _WATCHDOG, _SECCOMP)
 guest/             the guest image's builder (`go tool whim guest`): the core
                    cut, the C host's vim_snprintf and rt/ -- rt.c the
                    runtime (15 hypercalls, the C host's arena, the fault
                    report), entry_<isa>.S the entry and the vectors,
                    link_<isa>.ld, hello.c and bench.c stand-ins -- compiled
-                   freestanding by clang into one ELF
+                   freestanding by clang into one ELF (--image: the ELF
+                   alone); mac/ the Mac's side (doc/GUEST.md, *Running on
+                   the Mac*): mac.sh, the entitlements, and shim.h, which
+                   lets Apple's clang build whim-vim.c
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),

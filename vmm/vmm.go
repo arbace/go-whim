@@ -410,7 +410,7 @@ func (m *machine) watchdog() {
 }
 
 // ErrNoImage is what the launcher says when it carries no guest.
-var ErrNoImage = errors.New("whim-guest: no guest image appended to this program (go tool whim guest builds one)")
+var ErrNoImage = errors.New("whim-guest: no guest image: none appended to this program, no WHIM_GUEST_IMAGE, no program.elf beside it (go tool whim guest builds one)")
 
 // The image is appended to the launcher: the ELF, then its length and a
 // magic word.

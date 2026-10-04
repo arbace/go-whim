@@ -17,6 +17,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/arbace/go-whim/internal/procattr"
 	"github.com/arbace/go-whim/internal/whim"
 	"github.com/arbace/go-whim/vmm"
 )
@@ -133,7 +134,7 @@ func StandIn(name string) ([]byte, error) {
 func command(dir, name string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(context.Background(), name, args...)
 	cmd.Dir = dir
-	cmd.SysProcAttr = procAttr()
+	cmd.SysProcAttr = procattr.Child()
 	return cmd
 }
 
@@ -242,6 +243,34 @@ func BuildStandIn(name string, a Arch, dir, out string) error {
 		return err
 	}
 	return Launcher(mon, img, out)
+}
+
+// BuildImage writes the image alone at out -- of src (a whim-vim.c), or of
+// the stand-in standIn when that is not "" -- for a monitor built and signed
+// elsewhere, which loads it from WHIM_GUEST_IMAGE or from PROGRAM.elf beside
+// it: the Mac's way (doc/GUEST.md, *Running on the Mac*).
+func BuildImage(src, standIn string, a Arch, dir, out string) error {
+	var tu []byte
+	var err error
+	if standIn != "" {
+		tu, err = StandIn(standIn)
+	} else {
+		var c []byte
+		if c, err = os.ReadFile(src); err == nil {
+			tu, err = Source(c)
+		}
+	}
+	if err != nil {
+		return err
+	}
+	img, err := Image(tu, a, filepath.Join(dir, "image"))
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(out), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(out, img, 0o644)
 }
 
 // Runtime is the runtime's sources, concatenated: part of what an image is

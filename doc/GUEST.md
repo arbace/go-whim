@@ -184,8 +184,8 @@ Hypervisor.framework boot it the same way.
   `memcpy`/`memset` the compiler may emit.
 - **Toolchains here**: `clang` 23 (both targets) and `gcc` / `aarch64-none-elf-gcc`
   16.2 with `aarch64-none-elf-ld` (installed); on the Mac, Apple clang with
-  `-target aarch64-none-elf` and `ld.lld`, or the image built here and
-  copied.
+  `-target aarch64-none-elf` and an `ld.lld` Xcode does not ship -- so the
+  image is built here and copied (*Running on the Mac*).
 
 ## The VMM
 
@@ -205,8 +205,10 @@ runtime, `hv/` the hypervisor's shape and backends, `vmm/` the monitor,
   report) ends the VM with a diagnostic.
 
 Hardening is the VMM's: on Linux a seccomp filter allowing only the
-syscalls the 15 calls and `KVM_RUN` need; on macOS the app sandbox. The
-guest itself has no syscalls to restrict.
+syscalls the 15 calls and `KVM_RUN` need. On macOS the app sandbox was
+weighed and not taken (*Running on the Mac*): the monitor is signed with
+the hypervisor entitlement alone. The guest itself has no syscalls to
+restrict.
 
 ## Testing arm64 on this amd64 machine
 
@@ -252,6 +254,7 @@ times the native C's time here, of which the exits are about 0.33 s.
    (slowly).
 4. **Hypervisor.framework on the M2 Max.** *Gate:* the suite, run on the Mac
    against the C built there, 80 and 240; the heavy case at native speed.
+   Its groundwork is done (*Running on the Mac*); the gate waits for the Mac.
 5. **Hardening and measurement**: seccomp, the watchdog, exits per second
    under the stress test, the I/O-port and `HVC` alternatives measured
    against the doorbell.
@@ -483,6 +486,147 @@ lines 30; the pseudo-terminal 10, seen by 6 -- and the heavy case answers
 as the C does: C 5 s, the guest 11-12 s under emulation, its 20,786 exits
 9.3 s inside `KVM_RUN` and 2.0 s in the monitor.
 
+## Running on the Mac
+
+Milestone 4's groundwork is done here, so that on the M2 Max only building,
+signing and running remain. Everything below was built for `darwin/arm64`
+with cgo off and vetted here (`go build`, `go vet` and staticcheck on the
+whole module, `GOOS=darwin GOARCH=arm64 CGO_ENABLED=0`, clean); none of it
+has run on macOS.
+
+**What was ported.**
+
+- `editor/term`, the terminal host, on macOS: `term.go` keeps what is the
+  same, `term_linux.go` and `term_darwin.go` what is not -- `TIOCGETA` and
+  `TIOCSETA` for `TCGETS` and `TCSETS`, `OXTABS` for `XTABS`, `pipe` and
+  `fcntl` for `pipe2`, a `select` that reports a count and leaves the time
+  remaining in its timeout as Linux's does (macOS's does neither, and the
+  host resumes a wait with it), and `:suspend` through libc's
+  `sigaction`, `pthread_sigmask` and `sigpending` (`internal/libsys`, bound
+  by purego: the Go runtime installs its handlers through libc, so the
+  kernel's form cannot restore them), with Linux's semantics: SIGTSTP at
+  its default action, blocked on the locked thread for the kill, the wait
+  bounded by a second. The signals are caught as on Linux (`os/signal`),
+  SIGHUP and SIGTERM queued for `deathtrap`. It builds for `darwin/amd64`
+  too; the Linux host is unchanged (the suites below).
+- `vmm`: `Die` on macOS (`die_darwin.go`: SIGSEGV's action back to the
+  default through libc, the signal sent to the thread); `Seccomp` is nil
+  outside Linux; the watchdog was already `hv.VCPUsExit`, which is
+  `hv_vcpus_exit` there.
+- The image beside the monitor. `codesign` refuses a program with bytes past
+  its last segment, so the Mac's launcher cannot carry the image appended:
+  `whim-guest` loads `WHIM_GUEST_IMAGE` when it is set, else the image
+  appended to it, else `PROGRAM.elf` beside it (`bin/whim-guest.elf`); `go
+  tool whim guest --image` writes the image alone (`--arch arm64`:
+  `bin/whim-guest-arm64.elf`; with `--hello`,
+  `bin/whim-guest-hello-arm64.elf`). `TestGuestPrebuilt` takes
+  `WHIM_SUITE_GUEST_IMAGE`: the control is then the image changed, each run
+  through a script that hands the monitor its image.
+- The whole module builds for `darwin/arm64`: the tools' `Pdeathsig`, which
+  only Linux has, is `internal/procattr` (none elsewhere), and the suite's
+  pseudo-terminal is opened by macOS's `TIOCPTYGRANT`, `TIOCPTYUNLK` and
+  `TIOCPTYGNAME` (`internal/suite/pty_darwin.go`). For `darwin/amd64` all
+  but `hv` and what imports `vmm` build: there is no Hypervisor.framework
+  backend for x86. `crefactor/`'s two tests that set `Pdeathsig` do not
+  build for darwin; nothing on the Mac needs them.
+- `hv`'s arm64 tests -- the smallest guests: a doorbell store, a store made
+  again, the system registers, a spin ended by `VCPUsExit` -- skip only on a
+  Linux without `/dev/kvm`, so on the Mac they are the framework's first
+  test.
+- **The C reference** built on the Mac by Apple's clang:
+  `whim-vim.c`'s host region is POSIX but for three things gcc on Linux
+  allows, which `guest/mac/shim.h`, included ahead of the file, spells for
+  macOS -- `XTABS` (`OXTABS`), `pipe2` (`pipe` and `fcntl`), and
+  `__builtin_setjmp`/`__builtin_longjmp`, which clang does not offer on
+  arm64 at all (`clang --target=arm64-apple-macos -fsyntax-only` says *not
+  supported for the current target*; `_setjmp`/`_longjmp` on a buffer of
+  the shim's). There is no macOS SDK here, so the check against Apple's
+  headers waits for the Mac; built with the shim here by clang (`-std=gnu23
+  -O0`, dynamic: macOS links nothing statically), the C answers the quick
+  and wide suites as the guest does -- the Mac's whole flow (the monitor
+  with no image appended, the image beside it, the shim's C) run on KVM:
+  80 of 80 and 240 of 240, the controls seen by 76 and 94/0/0/6.
+- **The 16 KiB alignment** `hv_vm_map` asks on Apple silicon:
+  `vmm/layout_test.go` holds the layout to it -- the monitor maps one
+  slot, guest-physical 0 to its size, which is a multiple of 2 MiB for any
+  image; the doorbell page outside it and below a 36-bit IPA space -- and
+  maps a slot as the monitor does and holds its host address to the page
+  (16 KiB where that is the page: on the Mac it checks the real thing).
+
+**Signing, and the sandbox.** `guest/mac/whim-guest.entitlements` holds
+`com.apple.security.hypervisor` alone; `codesign --sign - --entitlements
+guest/mac/whim-guest.entitlements --force bin/whim-guest` signs ad hoc.
+*The app sandbox is not taken.* It applies at `exec`, not once the VM is
+built as the seccomp filter does, and a sandboxed program may open no file
+outside its container but those the user picks: the image beside the
+monitor or in `WHIM_GUEST_IMAGE`, `WHIM_GUEST_STATS`'s file, the suite's
+keys and scripts in `TMPDIR`. The terminal itself would be no obstacle --
+descriptors inherited from the shell are not checked again -- but the files
+are: the image would have to be in the signed binary, and the suite's
+control, an image changed, signed afresh on every run. The counterpart of
+the seccomp filter, should one be wanted, is `sandbox_init` with a profile
+of our own, applied in `Config.Seccomp`'s place once the VM is built: a
+Mac-only follow-up, not tried.
+
+**The checklist**, in order:
+
+1. *On Linux, here:* the two images, `go tool whim guest --arch arm64
+   --image` and `go tool whim guest --arch arm64 --hello --image` (clang
+   and `aarch64-none-elf-ld`: Apple's clang has no ELF linker); copy them
+   to the Mac's checkout: `scp bin/whim-guest-arm64.elf
+   mac:go-whim/bin/whim-guest.elf` and `scp bin/whim-guest-hello-arm64.elf
+   mac:go-whim/bin/`. The arm64 image is the one KVM/arm64 boots.
+2. *On the Mac*, in the checkout (Go and Xcode's command-line tools; every
+   Go build native and `CGO_ENABLED=0`), `guest/mac/mac.sh` runs each step:
+   - `mac.sh check` -- `sw_vers`, `uname -m` (`arm64`, not Rosetta),
+     `sysctl kern.hv_support` (1), `go version`, `clang --version`;
+   - `CGO_ENABLED=0 go test ./vmm/` -- the alignment, checked on a 16 KiB
+     page;
+   - `mac.sh hv` -- `hv`'s arm64 tests, the test binary signed: the
+     framework itself, with no monitor and no image;
+   - `mac.sh build` -- `bin/whim-guest`, signed, its entitlements printed;
+   - `mac.sh hello` -- prints `hello`, exits 3 (milestone 1 on the Mac);
+   - `mac.sh run FILE` -- the editor, by hand;
+   - `mac.sh c` -- the C reference, `bin/whim-vim-mac`: `clang -std=gnu23
+     -O0 -w -include guest/mac/shim.h` (an older Xcode: `-std=gnu2x`);
+   - `mac.sh suite`, then `mac.sh suite --wide` -- `TestGuestPrebuilt`,
+     the guest held to the C with its control: milestone 4's gate, 80 and
+     240. The heavy case is not in it: `bin/whim-guest` and
+     `bin/whim-vim-mac` timed on the same keys by hand.
+
+**What to look for when it fails.**
+
+- `HV_DENIED` from `hv_vm_create`: the program is not signed with the
+  entitlement -- or was changed after signing. `codesign --display
+  --entitlements - bin/whim-guest`; `mac.sh build` again. Never append to a
+  signed program.
+- `Killed: 9` as it starts: the signature is invalid (the same causes); the
+  reason is in Console, under `kernel` or `amfid`.
+- `HV_UNSUPPORTED` or `HV_NO_DEVICE`: no virtualization here --
+  `kern.hv_support` 0, a monitor built for amd64 under Rosetta, or macOS
+  itself in a VM without nested virtualization.
+- `HV_BAD_ARGUMENT` from `hv_vm_map`: the alignment -- `go test ./vmm/`
+  says which of the address, the IPA and the size.
+- `HV_NO_RESOURCES` from `hv_vm_map`: the 1.1 GiB slot refused; the slot is
+  mapped lazily by `mmap`, so this would be the framework's own limit.
+- `the guest stopped: HV_EXIT_REASON_VTIMER_ACTIVATED`: the guest's virtual
+  timer fired, which it never arms; the framework would want it masked
+  (`hv_vcpu_set_vtimer_mask`), a function `hv` does not bind yet.
+- `the guest touched ... with no memory there` at the first instructions:
+  the system registers (`setup_arm64.go`: the 4 KiB granule, `TCR_EL1`'s
+  IPS against the chip's IPA size) are where KVM/arm64 and the framework
+  could differ.
+- A key that never arrives, `:suspend` that does not stop, a wait that does
+  not end: `editor/term`'s macOS half (`term_darwin.go`), which runs for
+  the first time there; `bin/whim` (the Go editor, `go build -o bin/whim
+  ./editor/cmd/whim`) runs the same host without a VM, to tell the two
+  apart.
+
+**What only the Mac can do**: run any of it -- the framework under the
+monitor, the terminal host on macOS, the shim's C against Apple's headers,
+the signature and its entitlement -- and so milestone 4's gate: the suite,
+80 and 240, and the heavy case's time against the C built there.
+
 ## Open questions
 
 - Is one 4 GiB lazily committed slot enough, or should the allocator ask the
@@ -503,6 +647,5 @@ as the C does: C 5 s, the guest 11-12 s under emulation, its 20,786 exits
   `whim-vim.c` built there (its host region is POSIX), or outputs recorded
   here? *The aarch64 VM answered it one way:* the C built where the guest
   runs, and `TestGuestPrebuilt` cross-compiled to compare the two there.
-  On the Mac that needs `editor/term` ported (it is Linux's: `TCGETS`,
-  `pipe2`, `select`'s signature, `rt_sigaction`), and the C's host part
-  built by Apple's clang.
+  *The Mac the same way:* `editor/term` is ported and the C built there by
+  Apple's clang with `guest/mac/shim.h` (*Running on the Mac*).

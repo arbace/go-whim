@@ -8,9 +8,10 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
+
+	"github.com/arbace/go-whim/internal/procattr"
 )
 
 // runPipe is how Run fed the keys before: through a pipe.  The stress test runs
@@ -36,7 +37,7 @@ func runPipe(bin string, args []string, keys []byte, pieces int, pause, limit ti
 	attr := &os.ProcAttr{
 		Env:   append(os.Environ(), pinnedTime),
 		Files: []*os.File{r, out, out},
-		Sys:   &syscall.SysProcAttr{Setpgid: true, Pdeathsig: syscall.SIGKILL},
+		Sys:   procattr.Group(),
 	}
 	p, err := os.StartProcess(bin, append([]string{bin}, args...), attr)
 	r.Close()

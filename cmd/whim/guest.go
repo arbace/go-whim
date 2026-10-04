@@ -16,13 +16,16 @@ import (
 // milestone 1's guest instead: the runtime with a stand-in that writes
 // "hello" and exits 3; --bench a stand-in that makes argv[1] calls of
 // host_time, to time a hypercall; --alt the alternative trap (an out to a
-// port on amd64, an HVC on arm64) in place of the doorbell.
+// port on amd64, an HVC on arm64) in place of the doorbell.  --image writes
+// the image alone (default bin/whim-guest[-STANDIN][-alt][-ARCH].elf), for a
+// monitor built elsewhere: the Mac's, which loads it from beside itself
+// (doc/GUEST.md, *Running on the Mac*).
 //
-//	whim guest [--arch amd64|arm64] [--hello|--bench] [--alt] [-o OUT] [FILE]
+//	whim guest [--arch amd64|arm64] [--hello|--bench] [--alt] [--image] [-o OUT] [FILE]
 func runGuest(args []string) int {
 	a := guest.Native()
 	src, out, standIn := "src/whim-vim.c", "", ""
-	alt := false
+	alt, imageOnly := false, false
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--arch" && i+1 < len(args):
@@ -36,13 +39,15 @@ func runGuest(args []string) int {
 			standIn = args[i][2:]
 		case args[i] == "--alt":
 			alt = true
+		case args[i] == "--image":
+			imageOnly = true
 		case args[i] == "-o" && i+1 < len(args):
 			i++
 			out = args[i]
 		case len(args[i]) > 0 && args[i][0] != '-':
 			src = args[i]
 		default:
-			fmt.Fprintln(os.Stderr, "usage: whim guest [--arch amd64|arm64] [--hello|--bench] [--alt] [-o OUT] [FILE]")
+			fmt.Fprintln(os.Stderr, "usage: whim guest [--arch amd64|arm64] [--hello|--bench] [--alt] [--image] [-o OUT] [FILE]")
 			return 2
 		}
 	}
@@ -60,6 +65,9 @@ func runGuest(args []string) int {
 		if a.Name != guest.Native().Name {
 			out += "-" + a.Name
 		}
+		if imageOnly {
+			out += ".elf"
+		}
 	}
 	dir, err := os.MkdirTemp("", "guest.")
 	if err != nil {
@@ -67,7 +75,9 @@ func runGuest(args []string) int {
 		return 1
 	}
 	defer os.RemoveAll(dir)
-	if standIn != "" {
+	if imageOnly {
+		err = guest.BuildImage(src, standIn, a, dir, out)
+	} else if standIn != "" {
 		err = guest.BuildStandIn(standIn, a, dir, out)
 	} else {
 		err = guest.Build(src, a, dir, out)

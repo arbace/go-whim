@@ -31,6 +31,7 @@ import (
 	"github.com/arbace/go-whim/braaam"
 	"github.com/arbace/go-whim/caprice"
 	"github.com/arbace/go-whim/internal/build"
+	"github.com/arbace/go-whim/internal/procattr"
 	"github.com/arbace/go-whim/vijure"
 	"github.com/arbace/go-whim/whiml"
 	"github.com/arbace/go-whim/whimsical"
@@ -173,7 +174,7 @@ func runEnv(bin string, args []string, keys []byte, limit time.Duration, env []s
 	// ITS OWN PROCESS GROUP.  `:suspend` and `:stop` signal the editor's whole group,
 	// and in ours that stops the test and the shell that ran it.  And it dies
 	// with us (Pdeathsig): a test killed from outside leaves no editor running.
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true, Pdeathsig: syscall.SIGKILL}
+	cmd.SysProcAttr = procattr.Group()
 	// The output is a file as well: the child is reaped here, by wait4, and no
 	// goroutine copying a pipe is left waiting on it.
 	out, err := os.CreateTemp("", "out.")

@@ -27,10 +27,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/arbace/go-whim/braaam"
+	"github.com/arbace/go-whim/internal/procattr"
 )
 
 //go:embed src/whim/cljhost.clj src/whim/cljmain.clj
@@ -66,7 +66,7 @@ const Main = "whim.cljmain"
 // started by a test must not outlive it (Pdeathsig), whatever kills the test.
 func command(name string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(context.Background(), name, args...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
+	cmd.SysProcAttr = procattr.Child()
 	return cmd
 }
 
@@ -356,7 +356,7 @@ func Train(jar, cache string) bool {
 	defer cancel()
 	args := append(append([]string{}, JVMFlags...), "-XX:AOTCacheOutput="+cache, "-cp", jar, Main)
 	cmd := exec.CommandContext(ctx, "java", args...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL, Setpgid: true}
+	cmd.SysProcAttr = procattr.Group()
 	cmd.Stdin = in
 	cmd.Run() // its status is the editor's; what counts is the cache
 	st, err := os.Stat(cache)

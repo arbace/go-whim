@@ -27,6 +27,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/arbace/go-whim/internal/procattr"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
@@ -65,7 +66,7 @@ const Program = "whim++"
 
 func command(name string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(context.Background(), name, args...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
+	cmd.SysProcAttr = procattr.Child()
 	return cmd
 }
 

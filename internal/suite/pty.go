@@ -36,25 +36,6 @@ func ioctl(f *os.File, req uintptr, arg unsafe.Pointer) error {
 	return nil
 }
 
-// openPty is a pseudo-terminal: its master, and its slave by name.
-func openPty() (*os.File, string, error) {
-	m, err := os.OpenFile("/dev/ptmx", os.O_RDWR, 0)
-	if err != nil {
-		return nil, "", err
-	}
-	var unlock int32
-	if err := ioctl(m, syscall.TIOCSPTLCK, unsafe.Pointer(&unlock)); err != nil {
-		m.Close()
-		return nil, "", err
-	}
-	var n uint32
-	if err := ioctl(m, syscall.TIOCGPTN, unsafe.Pointer(&n)); err != nil {
-		m.Close()
-		return nil, "", err
-	}
-	return m, fmt.Sprintf("/dev/pts/%d", n), nil
-}
-
 // RunPty runs bin on a pseudo-terminal and returns everything it wrote there
 // and its exit status.
 //
@@ -85,7 +66,7 @@ func runPty(bin string, args []string, keys []byte, spec ptySpec, limit time.Dur
 		return nil, -1, err
 	}
 	var t syscall.Termios
-	if err := ioctl(slave, syscall.TCGETS, unsafe.Pointer(&t)); err != nil {
+	if err := ioctl(slave, tcgets, unsafe.Pointer(&t)); err != nil {
 		return nil, -1, err
 	}
 	// cfmakeraw
@@ -94,7 +75,7 @@ func runPty(bin string, args []string, keys []byte, spec ptySpec, limit time.Dur
 	t.Lflag &^= syscall.ECHO | syscall.ECHONL | syscall.ICANON | syscall.ISIG | syscall.IEXTEN
 	t.Cflag &^= syscall.CSIZE | syscall.PARENB
 	t.Cflag |= syscall.CS8
-	if err := ioctl(slave, syscall.TCSETS, unsafe.Pointer(&t)); err != nil {
+	if err := ioctl(slave, tcsets, unsafe.Pointer(&t)); err != nil {
 		return nil, -1, err
 	}
 	if _, err := m.Write(keys); err != nil {
