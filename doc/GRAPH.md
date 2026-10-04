@@ -251,6 +251,7 @@ direction:
   C-lisp, `#id` and `@id` as written above. *Later:* a Clojure-readable
   (EDN) form is preferred, so that Clojure tools and an editor read the
   graph for nothing; the C tokens would then be strings or tagged literals.
+  Built since, beside the Lisp (*EDN*): `whim graph --edn`.
 - **Step 1 takes cc's types at import**, so members resolve by type (the
   pilot's 3,843 ambiguous uses) and the typed edges exist from the start.
 
@@ -509,6 +510,7 @@ invocations that name `fds_bits`, and the dangling-edge check found it).
   Built as a pass beside the ids and measured: *Content hashes, measured*.
 - **An EDN form**: the four marks become tagged literals and C's tokens
   strings; the containment, the sections and the edges stay as they are.
+  Built: *EDN*.
 
 ## Views, read-only (2026-10-03)
 
@@ -1335,6 +1337,106 @@ If an editor ever wants Unison's identity for good -- a definition by its
 hash, edits copy-on-write -- the measurement says to pay the hash per
 top-level form and only for what an edit touched, and to decide first
 whether a struct's change is meant to re-identify its users.
+
+## EDN (2026-10-04)
+
+The second preferred direction of *Decided for steps 1-3*: a serialisation
+Clojure's reader reads for nothing. `crefactor/graph`'s `edn.go` writes
+the graph as EDN and reads it back, beside the Lisp, which stays the
+snapshots' notation; `go tool whim graph --edn [-o OUT] FILE` writes it (FILE
+C, or a graph's Lisp such as `qNNN.g`), `graph --edn --check FILE...` holds
+files to its round trip.
+
+### The form
+
+One map, its keys in this order: `:forms`, a vector of the top-level forms;
+`:types` and `:externs`, vectors of the type and external nodes; `:ids`, the
+last id the graph's `IDs` gave (the Lisp's `(ids N)`). The containment is
+C-lisp's lists, as in the Lisp. **Six tags**, namespaced as EDN asks of
+tags not its own:
+
+| tag | what | the Lisp's |
+| --- | --- | --- |
+| `#g/n [ID FORM EDGE*]` | a node with an id (or with edges): its id, its form -- a list or an atom -- and its edges | `#ID(...)`, `#ID:atom` |
+| `#g/r ID` | a refers edge, in a `#g/n` vector after the form | `@ID` |
+| `#g/t ID` | a typed edge, there; alone, a type's operand | `@:ID` |
+| `#c/num "0x7fUL"` | a number EDN would not read back as written: hexadecimal, octal, suffixed, floating, `1'000` | the token |
+| `#c/char "'A'"` | a character constant, its prefix included | the token |
+| `#c/tok "\|\|"` | any other token EDN cannot spell: `\|\|`, `^=`, `/=`, `~`, `L"wide"`, `nil` | the token |
+
+Every other atom is EDN's own: a **symbol** where EDN reads the token as a
+symbol (identifiers, heads, `->`, `<<=`, `!=`, `.`, `...`, `/`), C23's `true`
+and `false` as **booleans**, a decimal constant EDN reads back as written as
+an **integer**, and a quoted atom -- C's string literal or C-lisp's text,
+`(include "<limits.h>")` -- as a **string** of its content, escaped as EDN
+escapes. q103's first form:
+
+```clojure
+{:forms
+ [#g/n [1 (defn static inline ascii_isupper
+    #g/n [2 (fn #g/n [3 (#g/n [4 (c int) #g/t 237424])] bool)]
+    #g/n [5 (return
+      #g/n [6 (<
+        #g/n [7 (- #g/n [8 (cast unsigned #g/n [9 c #g/r 4]) #g/t 237428] #c/char "'A'") #g/t 237428]
+        26) #g/t 237424])]) #g/t 237426]
+  ...]
+ :types
+ [#g/n [237424 (basic int)]
+  ...]
+ :externs
+ [...]
+ :ids 239125}
+```
+
+The layout is the Lisp's (a form on one line when it fits in 100 columns
+and is not a body). The six tags are constants in one place, as the Lisp's
+four marks are. A Clojure program reads it with `(clojure.edn/read
+{:readers {'g/n ... 'g/r ... ...}} r)`, or `{:default tagged-literal}`;
+`crefactor/graph/testdata/edn2lisp.clj` is one, whose `g/n` makes a record
+of id, form and edges.
+
+### The proof
+
+| check | on | result |
+| --- | --- | --- |
+| written as EDN, read back by `ReadEDN`: the same graph, ids and every edge (`Equal`); its C view the boundary's text byte for byte; and the import of that text, ids aside (`SameGraph`) | q000-q103, each read from its graph snapshot or imported (`TestCorpusEDN`, `GRAPH_BOUNDARIES`) | **104 of 104** |
+| read by **Clojure's own EDN reader** (`clojure.edn/read`, Clojure 1.12.5's jar from `~/.m2`, nothing installed), written back by `edn2lisp.clj` as the graph's Lisp, read by `graph.Read`: the same graph, ids and edges | q000-q103 (`TestCorpusEDNClojure`, `GRAPH_CLOJURE_CP`) | **104 of 104** |
+| every sample, written and read back, `Equal`, its C view, written again the same bytes; each kind of atom; a retargeted `#g/r` caught by `Equal` and a changed token by the C view | `TestEDNSamples`, `TestEDNAtoms`, `TestEDNControl` | pass |
+
+whim-vim.c's EDN holds 239,125 `#g/n`, 102,080 `#g/t`, 4,363 `#c/num`, 3,227
+`#c/char` and 2,152 `#c/tok` (`~`, `||`, `^`, and C-lisp's bit-field `:`
+among them).
+
+### Measured
+
+One boundary at a time, best of 3 (`TestCorpusEDN`, `GRAPH_JOBS=1`), at a
+load of 1-9:
+
+| | the Lisp | the EDN | EDN / Lisp |
+| --- | ---: | ---: | ---: |
+| q000, bytes; the read | 14,821,231; 75 ms | 22,221,029; 165 ms | 1.50; 2.2 |
+| q023 | 6,854,299; 40 ms | 10,318,496; 74 ms | 1.51; 1.8 |
+| whim-vim.c (q103) | 6,397,634; 39 ms | 9,663,341; 72 ms | 1.51; 1.8 |
+| the 104, bytes in all | 707,095,908 | 1,064,110,547 | 1.50 |
+| the 104, the read, median (range) | 38.4 ms (29-75) | 70.8 ms (62-165) | 1.8 |
+
+The EDN is half as long again as the Lisp -- `#g/n [12 ...]` against
+`#12(...)`, `#g/t 3` against `@:3`, every atom with an id wrapped -- and its
+reader, written as the Lisp's (one string, atoms sliced from it, nodes in
+slabs; a string allocated only where it holds an escape), takes 1.8-2.2
+times as long: still a tenth of cc's parse and check (779 ms median). The
+write is 131 ms for whim-vim.c, 322 for q000. Clojure's `clojure.edn/read`,
+for scale, takes 0.55-1.1 s for whim-vim.c's EDN and 1.2-1.9 s for q000's
+in a warm JVM, building Clojure's persistent collections and tagged
+literals; `TestCorpusEDNClojure`'s one JVM reads and rewrites all 104 in 87
+s.
+
+**Not taken**: the ids as EDN metadata (`^{:id 12}`), which is Clojure's and
+not EDN's, and cannot sit on a number or a string; the edges as a map per
+node, longer still; and the Lisp's marks inside symbols (`#12:c@4` as one
+token), which EDN cannot read. The EDN is for tools and an editor in
+Clojure; the snapshots stay Lisp, which is two-thirds the size and
+faster to read.
 
 ## Open questions
 

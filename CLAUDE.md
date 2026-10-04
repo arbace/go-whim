@@ -397,7 +397,10 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    ids, refers edges (members by type) and typed edges;
                    types.go the type and external nodes; cview.go the C
                    view, cemit's text byte for byte; lisp.go the graph as
-                   Lisp and its reader (the snapshots qNNN.g); same.go
+                   Lisp and its reader (the snapshots qNNN.g); edn.go the
+                   graph as EDN, which clojure.edn reads as it is (six
+                   tags: #g/n #g/r #g/t, #c/num #c/char #c/tok), and its
+                   reader (`whim graph --edn`; doc/GRAPH.md, *EDN*); same.go
                    SameGraph (a graph against the import of its C view, ids
                    aside); hash.go the content hashes, Unison's, beside
                    the ids (a cycle a component hashed as one, its order a
@@ -882,6 +885,7 @@ make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT
 make caprice.hsl      # the Haskell core as one ghc-lisp module, checked, compiled, and the program run on the quick suite (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
 make whim-vim.lc      # the C product as s-expressions (C-lisp): back byte for byte, compiled to bin/whim-vim's bytes (7 s; doc/C-LISP.md)
 go tool whim graph --check FILE  # the graph of FILE: its C view FILE byte for byte, written as Lisp and read back the same graph (doc/GRAPH.md)
+go tool whim graph --edn FILE    # the graph as EDN, for Clojure's reader (--edn --check FILE: written, read back, the same graph)
 go tool whim view callers F      # a read-only view of whim-vim.c's graph as Lisp: callers, callees, uses, member S.M, type T, def; 0.07 s once .cache/graph holds it (doc/GRAPH.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary
