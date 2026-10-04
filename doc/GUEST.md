@@ -660,16 +660,8 @@ for the Go guest and 0.01 s for the C guest. So a Go guest's run costs
 the emulated VM about four times a C guest's, which is what the 8-at-once
 default could not carry.
 
-*What remains.* The parallel `:%s` on several vCPUs (the stretch, not
-done): TamaGo's SMP is `goos.Task` (start an M on another CPU),
-`goos.ProcID` and `goos.Wake`; here that is the monitor creating N vCPUs,
-each on a locked thread with an exit loop of its own and `Host` calls
-serialized, a call block per CPU (found by `ProcID`), `Task` a call that
-hands an idle vCPU the M's stack and entry, and `Idle`/`Wake` a park and a
-kick (a call that blocks in the monitor until another vCPU's wake) since
-there are no IPIs. Worth measuring against the heavy case's matching, which
-is a small part of its 0.75 s here: the exits were 0.33 s of it, and the
-merged wait-and-read (*The merged wait and read*) halved those first: 0.58-0.6 s now.
+*What remained* -- the parallel `:%s` on several vCPUs -- is built:
+*SMP: the Go guest on several vCPUs*, below.
 
 ### The merged wait and read
 
@@ -776,6 +768,133 @@ from a file): 0 of 720 quick runs and 0 of 2,160 wide runs differ from
 their case's first, on either guest.
 arm64: both images built and the module vetted for arm64 (`GOARCH=arm64`,
 and the Go guest by TamaGo), not run in the aarch64 VM since.
+
+### SMP: the Go guest on several vCPUs
+
+*Built on amd64, its gate met; arm64 built and vetted, not run; the Mac's
+backend compiled, not run.* The Go editor's parallel `:%s` (`editor.Chunks`:
+`match_lines` in chunks, on goroutines) now runs on several vCPUs, as the
+design in *The second guest* had it, with one change (the call block).
+
+*The monitor* (`vmm/smp.go`, `vmm.go`). `Config.CPUs` vCPUs (the launcher's
+`WHIM_GUEST_CPUS`, 1 to 32 or `host`; by default four, or the host's CPUs
+when fewer, on Linux amd64 -- below -- and one elsewhere, where several are
+built and not yet run); a C guest always has one. All are created before
+the guest runs, each by `hv.VCPUCreate` on a locked thread of its own --
+`hv_vcpu_create`'s rule, which is how the framework does SMP; on KVM a
+`KVM_CREATE_VCPU` each -- so that the seccomp filter, which goes on every
+thread at once (`TSYNC`), finds them all there and allows no more. The
+boot vCPU's exit loop is `Run`'s goroutine, as before; each other has its
+own, waiting until the guest starts it. Every vCPU has the boot vCPU's
+tables and system registers but its own TSS (amd64: 128 bytes apart in
+the TSS page, so 32 at most) or `SP_EL1` (arm64), each its own 64 KiB fault
+stack: a Go guest's slot has one per vCPU at the top and the runtime's
+first stack under them, so one vCPU's slot is the slot as it was. The
+Host's calls are made one at a time, as the C core makes them -- a vCPU
+waits for the one before to be answered -- and the vCPUs' own calls wait
+for nothing. A deadly signal during a Host call comes back in that call's
+block, to whichever vCPU made it. The run ends with the first end on any
+vCPU -- an exit, a fault, the watchdog (per vCPU: one in a call or parked
+is not running the guest) -- which stops the rest (`hv.VCPUsExit`, and a
+park or a wait for the Host given up) and waits for their loops; an exit's
+counts are every vCPU's, summed, with a line `cpus N started M parked T`
+past one vCPU, and the host's time without the parks'. Found on the way:
+an exit from an AP stopping a vCPU another thread was destroying crashed
+the monitor (13 of 30 runs at 16 vCPUs), and hv's KVM backend now holds
+its VM's lock across `VCPUsExit` and `VCPUDestroy`, so that a vCPU is
+found whole or not at all, as the framework's would be.
+
+*Four calls* (`guest/abi`, 21-24; `vmm`'s `TestABI` holds them):
+`CPUStart` (start vCPU a[0] at the image's `whim_apentry`: its stack, the
+M's `g0`, the function -- the runtime's `mstart` -- and the top of the
+stack TamaGo allocated for the M, whose pages the monitor gives back),
+`CPUPark` (stop until a wake, a[0] ns, or the monitor's limit),
+`CPUWake` (end vCPU a[0]'s park, or its next: a token, so that a wake
+before the park is not lost) and `CPUSelf` (which vCPU this is). There are
+no IPIs: TamaGo's own amd64 boards start an AP by INIT and SIPI and wake
+one by an NMI or an interrupt; here the monitor does both.
+
+*The call block is on the caller's stack*, aligned to its size, one per
+call -- not one per CPU found by `ProcID`, as designed: nothing has to say
+which vCPU a call is made on, and the goroutine that makes the Host's
+calls does move between vCPUs (whichever vCPU readies it after the last
+chunk runs it next, and its calls, the exit's among them, are that vCPU's).
+`Call` is `nosplit` and the doorbell's argument `noescape`, so the block
+stays on the stack and does not move during the call.
+
+*The board* (`board/smp.go`, `whim_apentry` in `boot_ISA.s`). The monitor
+says the vCPUs at the entry (R10; arm64 X5); with more than one, the
+board's `init` sets `goos.Task`, `goos.Wake` and `goos.ProcID` and raises
+`GOMAXPROCS` to their number (TamaGo's `osinit` says one CPU). TamaGo's
+runtime never drops an M and binds one to each P, so `Task` is asked once
+for each AP. The AP runs on its `g0`'s own stack, 16 KiB, as Linux's
+`clone` is given it, so that `g0`'s bounds are the stack's; the 8 MiB
+TamaGo allocates for it -- and clears, so touches -- is unused, and given
+back (`madvise`; nothing on macOS, whose `syscall` has none): resident
+for a `:%s` over 200,000 lines, 408 MB at 32 vCPUs before, 153 after
+(111 at one). `whim_apentry` turns SSE (FP and SIMD) on as `cpuinit` does,
+points FS at the AP's slot in the board's `tls` (the runtime's g at FS
+less 8, as its `settls` lays it; arm64 keeps g in R28), and calls `mstart`.
+`ProcID` is a call (once per M), `Wake` one, and `Idle` a spin of 20 µs,
+then a park.
+
+*When an idle vCPU looks again.* TamaGo's scheduler never wakes an M for
+new work -- its `wakep` finds no idle P, since no M gives its P up -- so an
+idle M must look again by itself, for a fork's goroutines to steal or a
+stop of the world to join (TamaGo's own boards spin there: their idle
+governor halts only for a `semasleep` with no deadline). The monitor
+counts the vCPUs running the guest; while another runs, a park lasts at
+most a limit (`vmm.DefaultPark`, 1 ms; `WHIM_GUEST_PARK`), and while none
+does -- all parked, or in a Host call, as when the editor waits for a key --
+nothing can make work but a Host call's return or a park's end, and a park
+lasts until the next of those that leaves one vCPU running, which wakes
+every vCPU so parked. So an idle editor costs nothing: three seconds
+waiting for a key, 0.02-0.04 s of CPU at 1, 4 or 16 vCPUs alike. The
+limit measured at 100 µs, 250 µs, 1 ms and 5 ms: the heavy case and the
+`:%s` below within their noise from 100 µs to 1 ms, both slower at 5 ms.
+
+*Gate met* (amd64 here). The quick suite 80 of 80 and the wide 240 of 240
+at 1, 4 and 16 vCPUs and by default (4), as the C answers, the controls
+seen by 76, and 94, 0, 0 and 6. At one vCPU the exits are the Go guest's
+before, to the count -- 204,942 and 17,411 -- so one is the guest as it
+was. At 4: 222,497-223,187 (42.9-43.0 a key, 4.1 without `par_*`) and
+19,218-19,296; at 16: 239,048 (46.0) and 19,536 -- the parks and wakes. The
+C guest unchanged: 80 of 80, 204,862 exits. Under the stress test's load
+(48 busy loops on the 64 cores, 10 runs a case, from a file): 0 of 720
+quick runs and 0 of 2,160 wide differ from their case's first, at 4 vCPUs
+and at 16. `guest`'s `TestGoGuestSMP`: a session building 4,000 lines and
+running a `:%s` and a `:g` across them, on a scripted host, answers as the
+native Go editor does at 1, 2 and 4 vCPUs, every AP started and parked;
+`hv`'s `TestVCPUsAMD64`: two vCPUs on two threads, both stopped by one
+`VCPUsExit`, one run from the other's thread refused, one destroyed named
+no more.
+
+*Measured* (amd64 here; each session's median wall time, keys from a file).
+A `:%s/\v(a|b)+c/X/g` over 200,000 lines (*PARALLEL-SUBSTITUTE.md*'s eight
+lines, `ggVGy24999P`), the session less the same session without it; and
+the heavy case:
+
+| vCPUs or Ps | 1 | 2 | 4 | 8 | 16 | 32 |
+|---|---|---|---|---|---|---|
+| `:%s`, the Go guest | 5.84 s | 3.19 | 1.56 | 0.90 | 0.56 | 0.48 |
+| `:%s`, the Go editor natively (`GOMAXPROCS`) | 3.67 s | 1.86 | 0.97 | 0.51 | 0.30 | 0.16 (64) |
+| heavy case, the Go guest | 602 ms | 570 | 578 | 603 | 713 | 706 |
+| heavy case, the Go editor natively | 250 ms | 233 | 228 | 208 | 223 | 235 (64) |
+
+The C: 8.75 s for the `:%s`, 455 ms for the heavy case. **The `:%s` pays**:
+10.4 times as fast on 16 vCPUs as on one (the native editor 12.2 times on
+16 Ps), ahead of the C (at `-O0`) already on one, and 1.6-1.9 times the
+native editor's time throughout. **The heavy case does not**, as expected: its matching is
+a small part of it -- 5,000 lines -- and two to four vCPUs save about 5%,
+eight nothing, 16 and 32 cost 18% (not broken down: more Ps, more of the
+collector's workers to start and stop, and every stop of the world waiting
+for the vCPUs to look again). So the default is four. A start and `:q!`:
+28 ms at one vCPU, 32 at four, 34 at 16, 69 at 32.
+
+*arm64* (`boot_arm64.s`, `vmm/setup_arm64.go`): the same, the count in X5,
+an AP's number in X2, `SP_EL0` its stack and its own `SP_EL1`; built and
+vetted, not run in the aarch64 VM, and the launcher's default there is one
+vCPU.
 
 ## Running on the Mac
 
@@ -1007,7 +1126,9 @@ the signature and its entitlement -- and so milestone 4's gate: the suite,
   in shared memory with a halt-and-kick protocol, with no new hypercall --
   worth it only once a single vCPU is measured. *Measured* on the Go guest
   (*The second guest*): one vCPU, 1.6-1.8x the C in the heavy case, 0.33 s of
-  it exits; its SMP design is there, as the next step.
+  it exits. *Built* (*SMP: the Go guest on several vCPUs*), with four calls
+  and a park in the monitor in place of a kick: a `:%s` over 200,000 lines
+  10.4 times as fast on 16 vCPUs, the heavy case no faster.
 - Where does the guest's C reference come from on the Mac for the suite:
   `whim-vim.c` built there (its host region is POSIX), or outputs recorded
   here? *The aarch64 VM answered it one way:* the C built where the guest

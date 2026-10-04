@@ -10,13 +10,18 @@
 // WHIM_GUEST_STATS=FILE appends the run's counts to FILE when it ends;
 // WHIM_GUEST_WATCHDOG=DURATION (default 60s, 0 off) ends a guest that runs
 // that long without a hypercall; WHIM_GUEST_SECCOMP=0 leaves the system-call
-// filter off, =log logs what it would deny.
+// filter off, =log logs what it would deny.  WHIM_GUEST_CPUS=N gives a Go
+// guest N vCPUs (doc/GUEST.md, *SMP*; at most vmm.MaxCPUs, "host" the
+// host's CPUs so capped; by default defaultCPUs), WHIM_GUEST_PARK=DURATION
+// the longest a parked one waits while another runs (vmm.DefaultPark).
 package main
 
 import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/arbace/go-whim/editor/term"
@@ -54,6 +59,26 @@ func main() {
 		}
 		cfg.Watchdog = d
 	}
+	cfg.CPUs = defaultCPUs()
+	if c := os.Getenv("WHIM_GUEST_CPUS"); c != "" {
+		n, err := strconv.Atoi(c)
+		if c == "host" {
+			n, err = min(runtime.NumCPU(), vmm.MaxCPUs), nil
+		}
+		if err != nil || n < 1 || n > vmm.MaxCPUs {
+			fmt.Fprintf(os.Stderr, "whim-guest: WHIM_GUEST_CPUS=%s: not 1 to %d, or host\n", c, vmm.MaxCPUs)
+			os.Exit(1)
+		}
+		cfg.CPUs = n
+	}
+	if p := os.Getenv("WHIM_GUEST_PARK"); p != "" {
+		d, err := time.ParseDuration(p)
+		if err != nil || d <= 0 {
+			fmt.Fprintln(os.Stderr, "whim-guest: WHIM_GUEST_PARK: not a positive duration:", p)
+			os.Exit(1)
+		}
+		cfg.Park = d
+	}
 	code, err := vmm.Run(cfg)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -64,6 +89,19 @@ func main() {
 		os.Exit(1)
 	}
 	os.Exit(code)
+}
+
+// defaultCPUs is a Go guest's vCPUs when WHIM_GUEST_CPUS does not say:
+// four, or the host's CPUs when fewer, on Linux amd64, where they were
+// measured (doc/GUEST.md, *SMP*: a :%s over 200,000 lines 3.7 times as
+// fast as on one, the heavy case no slower, more costing the heavy case
+// more than its matching gains); one elsewhere, where several are built
+// and not yet run.
+func defaultCPUs() int {
+	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" {
+		return min(runtime.NumCPU(), 4)
+	}
+	return 1
 }
 
 // image is the guest: WHIM_GUEST_IMAGE's file, the image appended to exe,

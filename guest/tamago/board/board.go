@@ -15,12 +15,16 @@
 //	GetRandomData  abi.Random: a call
 //	InitRNG        nothing
 //	Exit           abi.Exit: a call, which never returns
-//	Idle           a spin to the deadline: there is no interrupt to wait for
+//	Idle           one vCPU: a spin to the deadline, there being no
+//	               interrupt to wait for; several: a spin, then abi.CPUPark
 //	RamStart, RamSize, RamStackOffset
 //	               the monitor's, in registers at the entry
+//	Task, Wake, ProcID
+//	               on several vCPUs (smp.go): abi.CPUStart, abi.CPUWake
+//	               and abi.CPUSelf
 //
-// One vCPU, no interrupts, no timer: the runtime schedules its goroutines
-// cooperatively on it, and the vCPU only stops in a hypercall.  An
+// No interrupts, no timer: the runtime schedules its goroutines
+// cooperatively on each vCPU, and a vCPU only stops in a hypercall.  An
 // exception goes through the monitor's IDT to whim_vectors, which reports
 // it by abi.Fault as the C guest's vectors do.
 package board
@@ -51,6 +55,7 @@ var (
 	tickKHz   uint64         // the counter's rate: the monitor's (amd64), CNTFRQ_EL0's (arm64)
 	tickBase  uint64         // the counter at the entry: nanotime's zero
 	nsPerTick uint64         // nanoseconds a tick, 32.32 fixed point
+	ncpu      uint64         // the vCPUs the monitor gave: 1, or more (smp.go)
 	//lint:ignore U1000 the assembly's: whim_vectors, where the IDT's gates go
 	vectors uintptr
 )
@@ -63,33 +68,30 @@ type Block struct {
 	Event uint64
 }
 
-// area holds the call block and faultArea the vectors' one, each aligned
-// to the block's size when used.
-var (
-	area [2 * abi.BlockSize]byte
-	//lint:ignore U1000 the assembly's
-	faultArea [2 * abi.BlockSize]byte
-)
+// faultArea holds the vectors' call block, aligned to the block's size
+// when used.
+//
+//lint:ignore U1000 the assembly's
+var faultArea [2 * abi.BlockSize]byte
 
-func doorbell(cb uintptr)
+//go:noescape
+func doorbell(cb unsafe.Pointer)
 func ticks() uint64 // the time-stamp counter, CNTVCT_EL0
 func pause()
 
-//go:nosplit
-func block() *Block {
-	p := unsafe.Pointer(&area[0])
-	return (*Block)(unsafe.Add(p, -uintptr(p)&(abi.BlockSize-1)))
-}
-
 // Call makes hypercall nr and returns the block as the monitor left it.
-// Pointer arguments are addresses (guest-physical is virtual here); it
-// grows no stack, so an address taken just before it stays good.
+// The block is on the caller's stack, aligned to its size: each call its
+// own, whichever vCPU makes it.  Pointer arguments are addresses
+// (guest-physical is virtual here); it grows no stack, so an address taken
+// just before it stays good.
 //
 //go:nosplit
 func Call(nr uint64, a0, a1, a2, a3, a4 int64) Block {
-	b := block()
+	var area [2 * abi.BlockSize]byte
+	p := unsafe.Pointer(&area[0])
+	b := (*Block)(unsafe.Add(p, -uintptr(p)&(abi.BlockSize-1)))
 	*b = Block{Nr: nr, A: [5]int64{a0, a1, a2, a3, a4}}
-	doorbell(uintptr(unsafe.Pointer(b)))
+	doorbell(unsafe.Pointer(b))
 	return *b
 }
 
@@ -140,12 +142,17 @@ func hwinit1() {
 	goos.Idle = idle
 }
 
-// idle waits for the scheduler's next timer by spinning: nothing but a
-// timer can make a goroutine runnable here (no interrupts, and the vCPU
-// is stopped while a call is answered).  With no timer it returns, and the
-// scheduler looks again: a guest deadlocked spins, and the monitor's
-// watchdog ends it.
+// idle waits for the scheduler's next timer.  On one vCPU it spins: nothing
+// but a timer can make a goroutine runnable (no interrupts, and the vCPU
+// is stopped while a call is answered); with no timer it returns, and the
+// scheduler looks again -- a guest deadlocked spins, and the monitor's
+// watchdog ends it.  On several, another vCPU can, and the idle one parks
+// (smp.go).
 func idle(until int64) {
+	if ncpu > 1 {
+		idleSMP(until)
+		return
+	}
 	if until <= 0 || until == math.MaxInt64 {
 		return
 	}

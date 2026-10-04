@@ -1,6 +1,7 @@
 package hv
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
@@ -135,5 +136,70 @@ func TestSysRegsAMD64(t *testing.T) {
 	}
 	if unsafe.Sizeof(kvmSregs{}) != 312 || unsafe.Sizeof(kvmSegment{}) != 24 {
 		t.Fatalf("struct kvm_sregs is %d bytes here, kvm_segment %d", unsafe.Sizeof(kvmSregs{}), unsafe.Sizeof(kvmSegment{}))
+	}
+}
+
+// TestVCPUsAMD64: a second vCPU created and run on a thread of its own
+// beside the first (doc/GUEST.md, *SMP*), both spinning, both stopped by
+// one VCPUsExit; run from a thread not its own it is refused, and once
+// destroyed VCPUsExit names it no more.
+func TestVCPUsAMD64(t *testing.T) {
+	v0, exit0 := newTinyGuest(t, []byte{0xeb, 0xfe}) // jmp .
+	created := make(chan VCPU)
+	ran := make(chan error)
+	destroy := make(chan struct{})
+	go func() {
+		runtime.LockOSThread()
+		defer runtime.UnlockOSThread()
+		v, exit, err := VCPUCreate()
+		if err != nil {
+			ran <- err
+			return
+		}
+		for _, s := range []struct {
+			r   SysReg
+			val uint64
+		}{{SegCS.Selector(), 0}, {SegCS.Base(), 0}} {
+			VCPUSetSysReg(v, s.r, s.val)
+		}
+		VCPUSetReg(v, RegRIP, 0x1000)
+		VCPUSetReg(v, RegRFLAGS, 2)
+		created <- v
+		err = VCPURun(v)
+		if err == nil && exit.Reason != ExitReasonCanceled {
+			err = fmt.Errorf("vCPU 1: exit %v, not canceled", exit.Reason)
+		}
+		ran <- err
+		<-destroy
+		ran <- VCPUDestroy(v)
+	}()
+	var v1 VCPU
+	select {
+	case v1 = <-created:
+	case err := <-ran:
+		t.Fatal(err)
+	}
+	if v1 == v0 {
+		t.Fatalf("both vCPUs are %d", v0)
+	}
+	if err := VCPURun(v1); err == nil {
+		t.Fatal("vCPU 1 ran on vCPU 0's thread")
+	}
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		VCPUsExit(v0, v1)
+	}()
+	if err := VCPURun(v0); err != nil || exit0.Reason != ExitReasonCanceled {
+		t.Fatalf("vCPU 0: %v, exit %v", err, exit0.Reason)
+	}
+	if err := <-ran; err != nil {
+		t.Fatal(err)
+	}
+	close(destroy)
+	if err := <-ran; err != nil {
+		t.Fatal(err)
+	}
+	if err := VCPUsExit(v1); err != BadArgument {
+		t.Fatalf("VCPUsExit of a destroyed vCPU: %v", err)
 	}
 }

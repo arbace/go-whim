@@ -50,18 +50,24 @@ var pageFormat = ptFormat{
 	},
 }
 
+// tssStride is the distance between two vCPUs' TSSs (doc/GUEST.md,
+// *SMP*): each its own IST1, the fault stack of its own.
+const tssStride = 0x80
+
 // setup writes the system tables and sets the vCPU's registers.
 func setup(v hv.VCPU, mem []byte, l *layout) error {
 	le := binary.LittleEndian
 	le.PutUint64(mem[gdtAddr+0x00:], 0)
 	le.PutUint64(mem[gdtAddr+selCode:], 0x00af9b000000ffff) // P, DPL 0, code exec/read, L, G
 	le.PutUint64(mem[gdtAddr+selData:], 0x00cf93000000ffff) // P, DPL 0, data read/write, D/B, G
-	const tssLimit = 0x67
 	tss := uint64(tssAddr)
 	le.PutUint64(mem[gdtAddr+selTSS:], tssLimit|(tss&0xffffff)<<16|0x8b<<40|(tss>>24&0xff)<<56)
 	le.PutUint64(mem[gdtAddr+selTSS+8:], tss>>32)
-	le.PutUint64(mem[tssAddr+0x24:], l.faultTop) // IST1
-	le.PutUint16(mem[tssAddr+0x66:], tssLimit+1) // no I/O bitmap
+	for i := range max(l.cpus, 1) {
+		t := tssAddr + uint64(i)*tssStride
+		le.PutUint64(mem[t+0x24:], l.faultTopOf(i)) // IST1
+		le.PutUint16(mem[t+0x66:], tssLimit+1)      // no I/O bitmap
+	}
 	for i := range nVectors {
 		h := l.vectors + uint64(i)*vectorSize
 		e := idtAddr + uint64(i)*16
@@ -72,6 +78,34 @@ func setup(v hv.VCPU, mem []byte, l *layout) error {
 	if err != nil {
 		return err
 	}
+	if err := setupSys(v, l, root, 0); err != nil {
+		return err
+	}
+	regs := []struct {
+		r   hv.Reg
+		val uint64
+	}{
+		{hv.RegRIP, l.entry},
+		{hv.RegRSP, l.stackTop},
+		{hv.RegRFLAGS, 0x2},
+		{hv.RegRDI, l.argc},
+		{hv.RegRSI, l.argv},
+		{hv.RegRDX, l.heap},
+	}
+	for _, r := range regs {
+		if err := hv.VCPUSetReg(v, r.r, r.val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+const tssLimit = 0x67
+
+// setupSys sets vCPU i's system registers: every vCPU's the same but TR,
+// which names its own TSS (the descriptor is the GDT's one, loaded by the
+// monitor and never by the guest, so its busy bit says nothing).
+func setupSys(v hv.VCPU, l *layout, root uint64, i int) error {
 	sys := []struct {
 		r   hv.SysReg
 		val uint64
@@ -85,7 +119,7 @@ func setup(v hv.VCPU, mem []byte, l *layout) error {
 		{hv.SysRegIDTRBase, idtAddr},
 		{hv.SysRegIDTRLimit, nVectors*16 - 1},
 		{hv.SegTR.Selector(), selTSS},
-		{hv.SegTR.Base(), tssAddr},
+		{hv.SegTR.Base(), tssAddr + uint64(i)*tssStride},
 		{hv.SegTR.Limit(), tssLimit},
 		{hv.SegTR.AR(), 0x8b},
 	}
@@ -112,18 +146,28 @@ func setup(v hv.VCPU, mem []byte, l *layout) error {
 			return err
 		}
 	}
-	regs := []struct {
+	return nil
+}
+
+// setupAP is vCPU i's state until it starts: the boot vCPU's system
+// registers, its own TSS.
+func setupAP(v hv.VCPU, l *layout, i int) error { return setupSys(v, l, l.root, i) }
+
+// startAP points vCPU v at the image's whim_apentry for abi.CPUStart: a[1]
+// the stack, a[2] the M's g0 in RDI, a[3] the function in RSI, its number
+// a[0] in RDX.
+func startAP(v hv.VCPU, l *layout, a [5]int64) error {
+	for _, r := range []struct {
 		r   hv.Reg
 		val uint64
 	}{
-		{hv.RegRIP, l.entry},
-		{hv.RegRSP, l.stackTop},
+		{hv.RegRIP, l.apEntry},
+		{hv.RegRSP, uint64(a[1])},
 		{hv.RegRFLAGS, 0x2},
-		{hv.RegRDI, l.argc},
-		{hv.RegRSI, l.argv},
-		{hv.RegRDX, l.heap},
-	}
-	for _, r := range regs {
+		{hv.RegRDI, uint64(a[2])},
+		{hv.RegRSI, uint64(a[3])},
+		{hv.RegRDX, uint64(a[0])},
+	} {
 		if err := hv.VCPUSetReg(v, r.r, r.val); err != nil {
 			return err
 		}

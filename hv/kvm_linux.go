@@ -258,17 +258,18 @@ func get(v VCPU) (*vcpu, error) {
 	return vm.vcpus[v], nil
 }
 
-// VCPUDestroy is hv_vcpu_destroy.
+// VCPUDestroy is hv_vcpu_destroy.  It holds the VM's lock, so that a
+// VCPUsExit from another thread finds the vCPU whole or not at all.
 func VCPUDestroy(v VCPU) error {
-	c, err := get(v)
-	if err != nil {
-		return err
+	vm.Lock()
+	defer vm.Unlock()
+	if int(v) >= len(vm.vcpus) || vm.vcpus[v] == nil {
+		return BadArgument
 	}
+	c := vm.vcpus[v]
+	vm.vcpus[v] = nil
 	syscall.Munmap(c.run)
 	syscall.Close(c.fd)
-	vm.Lock()
-	vm.vcpus[v] = nil
-	vm.Unlock()
 	return nil
 }
 
@@ -278,11 +279,13 @@ func VCPUDestroy(v VCPU) error {
 // SIGURG, which the Go runtime takes for a preemption request it did not
 // make, and ignores.
 func VCPUsExit(vcpus ...VCPU) error {
+	vm.Lock()
+	defer vm.Unlock()
 	for _, v := range vcpus {
-		c, err := get(v)
-		if err != nil {
-			return err
+		if int(v) >= len(vm.vcpus) || vm.vcpus[v] == nil {
+			return BadArgument
 		}
+		c := vm.vcpus[v]
 		c.cancel.Store(true)
 		atomic.StoreUint32((*uint32)(unsafe.Pointer(&c.run[0])), 1<<8) // immediate_exit = 1
 		syscall.Tgkill(syscall.Getpid(), c.tid, syscall.SIGURG)

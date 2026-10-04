@@ -7,7 +7,8 @@ import (
 // setupGo is a Go guest's entry state past the C guest's (guest/abi): the
 // RAM the runtime may use, the offset of its first stack under the top,
 // and the time-stamp counter's rate, which TamaGo's nanotime scales -- read
-// from KVM, since amd64 has no register that says it.  The board enables
+// from KVM, since amd64 has no register that says it -- and in R10 the
+// vCPUs it has (doc/GUEST.md, *SMP*).  The board enables
 // SSE itself, as its own first instructions.
 func setupGo(v hv.VCPU, l *layout) error {
 	khz, err := hv.TSCFrequency(v)
@@ -21,6 +22,7 @@ func setupGo(v hv.VCPU, l *layout) error {
 		{hv.RegRDX, l.ramStart},
 		{hv.RegRCX, l.size - l.ramStart},
 		{hv.RegR8, l.size - l.stackTop},
+		{hv.RegR10, uint64(l.cpus)},
 		{hv.RegR9, khz},
 	}
 	for _, r := range regs {

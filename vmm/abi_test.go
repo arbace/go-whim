@@ -16,7 +16,9 @@ func TestABI(t *testing.T) {
 		{callWaitForInput, abi.WaitForInput}, {callReadInput, abi.ReadInput}, {callSuspend, abi.Suspend},
 		{callExit, abi.Exit}, {callMessage, abi.Message}, {callAlloc, abi.Alloc}, {callFree, abi.Free},
 		{callWrite, abi.Write}, {callTime, abi.Time}, {callRaise, abi.Raise}, {callFault, abi.Fault},
-		{callRandom, abi.Random}, {callWaitRead, abi.WaitRead}, {nCalls, abi.NCalls},
+		{callRandom, abi.Random}, {callWaitRead, abi.WaitRead}, {callCPUStart, abi.CPUStart},
+		{callCPUPark, abi.CPUPark}, {callCPUWake, abi.CPUWake}, {callCPUSelf, abi.CPUSelf}, {nCalls, abi.NCalls},
+		{maxCPUs, abi.MaxCPUs},
 		{Doorbell, abi.Doorbell}, {cbNr, abi.BlockNr}, {cbArgs, abi.BlockArgs}, {cbRet, abi.BlockRet},
 		{cbEvent, abi.BlockEvent}, {cbSize, abi.BlockSize},
 	} {
@@ -32,7 +34,7 @@ func TestPlanGo(t *testing.T) {
 	text := &elf.Prog{ProgHeader: elf.ProgHeader{Type: elf.PT_LOAD, Flags: elf.PF_R | elf.PF_X, Vaddr: imageBase, Memsz: 0x200000}}
 	data := &elf.Prog{ProgHeader: elf.ProgHeader{Type: elf.PT_LOAD, Flags: elf.PF_R | elf.PF_W, Vaddr: imageBase + 0x200000, Memsz: 0x145678}}
 	im := &image{entry: imageBase + 0x1000, vectors: imageBase + 0x2000, end: imageBase + 0x345678, loads: []*elf.Prog{text, data}}
-	l := planGo(im)
+	l := planGo(im, 1)
 	if l.ramStart != imageBase || l.size != imageBase+GoRAMBytes {
 		t.Fatalf("ramStart %#x", l.ramStart)
 	}

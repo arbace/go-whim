@@ -41,20 +41,20 @@ func isTamaGo(f *elf.File) bool {
 	return false
 }
 
-// layoutFor is the slot's layout for the image: the C guest's (plan), or
-// a Go guest's (planGo).
-func layoutFor(f *elf.File, im *image) *layout {
+// layoutFor is the slot's layout for the image: the C guest's (plan), one
+// vCPU, or a Go guest's (planGo) on cpus.
+func layoutFor(f *elf.File, im *image, cpus int) *layout {
 	if isTamaGo(f) {
-		return planGo(im)
+		return planGo(im, cpus)
 	}
 	return plan(im)
 }
 
 // planGo lays a Go guest's slot out: the image, then one span read-write
-// to GoRAMBytes above the image's base, its top FaultStackBytes the
-// vectors' stack (IST1) and below that the runtime's first stack.
-func planGo(im *image) *layout {
-	l := &layout{entry: im.entry, vectors: im.vectors, goGuest: true}
+// to GoRAMBytes above the image's base, its top FaultStackBytes for each
+// vCPU the vectors' stacks (IST1) and below them the runtime's first stack.
+func planGo(im *image, cpus int) *layout {
+	l := &layout{entry: im.entry, vectors: im.vectors, goGuest: true, cpus: cpus, apEntry: im.apEntry}
 	l.spans = append(l.spans, span{sysBase, argsEnd, pRead | pWrite})
 	base := uint64(Doorbell)
 	for _, p := range im.loads {
@@ -75,7 +75,7 @@ func planGo(im *image) *layout {
 	l.heap = roundUp(im.end, page)
 	l.size = base + GoRAMBytes
 	l.faultTop = l.size
-	l.stackTop = l.size - FaultStackBytes
+	l.stackTop = l.size - uint64(cpus)*FaultStackBytes
 	l.spans = append(l.spans, span{l.heap, l.size, pRead | pWrite})
 	l.spans = append(l.spans, span{Doorbell, Doorbell + page, pWrite | pDevice})
 	return l

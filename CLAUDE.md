@@ -262,8 +262,9 @@ slim-vim.c  --whim-->  whim-vim.c
   (`GOOS=tamago`, the distribution `TAMAGO_ROOT` or `--tamago DIR`, here
   `/root/tamago-go`) on a board of ours and run by the same monitor, its
   control the launcher with its image's one `" INSERT"` changed; it answers
-  all 80 and all 240 as the C does (39.47 exits a key, 3.78 without
-  `par_*`), and its arm64 build all 80 as the C does inside the aarch64 VM
+  all 80 and all 240 as the C does, on four vCPUs by default and on one
+  (`WHIM_GUEST_CPUS`; *SMP* there: 43.0 exits a key, 4.1 without `par_*`;
+  on one 39.47 and 3.78, as before there were more), and its arm64 build all 80 as the C does inside the aarch64 VM
   (before the merged call, which is built and vetted for arm64, not run
   there since).
   Both suites are exact under load (`internal/suite/stress_test.go`,
@@ -735,7 +736,11 @@ vmm/               the monitor: the guest's ELF in one slot, identity-mapped
                    alignment held by layout_test.go; cmd/whim-guest the
                    launcher, the image appended to it or beside it
                    (WHIM_GUEST_IMAGE, PROGRAM.elf: the Mac's way), run on
-                   editor/term (WHIM_GUEST_STATS, _WATCHDOG, _SECCOMP);
+                   editor/term (WHIM_GUEST_STATS, _WATCHDOG, _SECCOMP,
+                   _CPUS, _PARK); smp.go a Go guest's other vCPUs, each
+                   created on a thread of its own with an exit loop of its
+                   own, the Host's calls one at a time, and the calls that
+                   start, park and wake a vCPU (doc/GUEST.md, *SMP*);
                    tamago*.go a Go guest's slot and registers (an image
                    TamaGo built, told by its runtime's symbol)
 guest/             the guest image's builder (`go tool whim guest`): the core
@@ -750,8 +755,9 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    tamago/ the Go guest, A GO MODULE OF ITS OWN built only
                    by TamaGo: board/ the board for the monitor (its runtime
                    hooks: a call for console, random bytes and exit, the
-                   TSC or the generic timer for the clock; amd64 and
-                   arm64), main.go the Go editor on a Host of hypercalls,
+                   TSC or the generic timer for the clock, and on several
+                   vCPUs goos.Task, Wake and Idle as calls, smp.go; amd64
+                   and arm64), main.go the Go editor on a Host of hypercalls,
                    faulty/ a stand-in; vm/aarch64.sh the arm64 gate.s VM
                    (Alpine Edge aarch64 netbooted by qemu with an emulated
                    EL2, KVM inside, a job agent served by QEMU itself:

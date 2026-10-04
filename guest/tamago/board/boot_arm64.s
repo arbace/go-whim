@@ -12,6 +12,7 @@
 // counter's rate and zero, put the stack where the runtime expects it, and
 // start the runtime.
 TEXT cpuinit(SB),NOSPLIT|NOFRAME,$0
+	MOVD	R5, ·ncpu(SB)
 	MOVD	R0, ·bootArgc(SB)
 	MOVD	R1, ·bootArgv(SB)
 	MOVD	R2, runtime∕goos·RamStart(SB)
@@ -19,6 +20,8 @@ TEXT cpuinit(SB),NOSPLIT|NOFRAME,$0
 	MOVD	R4, runtime∕goos·RamStackOffset(SB)
 	MOVD	$whim_vectors(SB), R5	// kept by the linker: VBAR_EL1 names it
 	MOVD	R5, ·vectors(SB)
+	MOVD	$whim_apentry(SB), R5	// and the monitor starts an AP here
+	MOVD	R5, ·apEntry(SB)
 
 	MRS	CPACR_EL1, R5
 	ORR	$(3<<20), R5
@@ -37,7 +40,21 @@ TEXT cpuinit(SB),NOSPLIT|NOFRAME,$0
 	MOVD	R5, RSP
 	B	_rt0_tamago_start(SB)
 
-// func doorbell(cb uintptr): the hypercall, one STR from X0 to the doorbell
+// whim_apentry is an AP's first instruction (abi.CPUStart, guest/abi): the
+// boot vCPU's mode, tables and system registers, its own SP_EL1, X0 the
+// M's g0, X1 the function to call (the runtime's mstart), SP_EL0 its
+// stack.  FP and SIMD as cpuinit turns them on, g in its register, and
+// the call, which does not return.
+TEXT whim_apentry(SB),NOSPLIT|NOFRAME,$0
+	MRS	CPACR_EL1, R5
+	ORR	$(3<<20), R5
+	MSR	R5, CPACR_EL1
+	ISB	$15
+	MOVD	R0, g
+	CALL	(R1)
+	WORD	$0	// UDF: a fault the vectors report
+
+// func doorbell(cb unsafe.Pointer): the hypercall, one STR from X0 to the doorbell
 // (an ISV data abort the monitor decodes; KVM is checked against X0).
 TEXT ·doorbell(SB),NOSPLIT,$0-8
 	MOVD	cb+0(FP), R0

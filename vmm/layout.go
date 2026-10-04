@@ -65,10 +65,17 @@ type layout struct {
 	size             uint64 // the slot's
 	argc, argv       uint64
 	tablesUsed, root uint64
-	// a Go guest's (vmm/tamago.go): its RAM starts at its image
+	// a Go guest's (vmm/tamago.go): its RAM starts at its image; its
+	// vCPUs, and where one CPUStart starts enters (whim_apentry)
 	goGuest  bool
 	ramStart uint64
+	cpus     int
+	apEntry  uint64
 }
+
+// faultTopOf is the top of vCPU i's fault stack: the boot vCPU's at
+// faultTop, each other's FaultStackBytes under the one before.
+func (l *layout) faultTopOf(i int) uint64 { return l.faultTop - uint64(i)*FaultStackBytes }
 
 func roundUp(v, a uint64) uint64 { return (v + a - 1) &^ (a - 1) }
 
@@ -79,6 +86,7 @@ type image struct {
 	loads   []*elf.Prog
 	entry   uint64
 	vectors uint64
+	apEntry uint64 // whim_apentry, a Go guest's when it has one
 	end     uint64
 }
 
@@ -105,8 +113,11 @@ func loadImage(f *elf.File, machine elf.Machine) (*image, error) {
 		return nil, fmt.Errorf("the guest image's symbols: %w", err)
 	}
 	for _, s := range syms {
-		if s.Name == "whim_vectors" {
+		switch s.Name {
+		case "whim_vectors":
 			im.vectors = s.Value
+		case "whim_apentry":
+			im.apEntry = s.Value
 		}
 	}
 	if im.vectors == 0 {
@@ -117,7 +128,7 @@ func loadImage(f *elf.File, machine elf.Machine) (*image, error) {
 
 // plan lays the slot out around the image.
 func plan(im *image) *layout {
-	l := &layout{entry: im.entry, vectors: im.vectors}
+	l := &layout{entry: im.entry, vectors: im.vectors, cpus: 1}
 	l.spans = append(l.spans, span{sysBase, argsEnd, pRead | pWrite})
 	for _, p := range im.loads {
 		var pm perm

@@ -20,8 +20,11 @@ TEXT cpuinit(SB),NOSPLIT|NOFRAME,$0
 	MOVQ	CX, runtime∕goos·RamSize(SB)
 	MOVQ	R8, runtime∕goos·RamStackOffset(SB)
 	MOVQ	R9, ·tickKHz(SB)
+	MOVQ	R10, ·ncpu(SB)
 	LEAQ	whim_vectors(SB), AX	// kept by the linker: the monitor's IDT names it
 	MOVQ	AX, ·vectors(SB)
+	LEAQ	whim_apentry(SB), AX	// and the monitor starts an AP here
+	MOVQ	AX, ·apEntry(SB)
 
 	MOVQ	CR0, AX
 	ANDQ	$~(1<<2), AX
@@ -42,7 +45,33 @@ TEXT cpuinit(SB),NOSPLIT|NOFRAME,$0
 
 	JMP	_rt0_tamago_start(SB)
 
-// func doorbell(cb uintptr): the hypercall, one 64-bit store from RAX to
+// whim_apentry is an AP's first instruction (abi.CPUStart, guest/abi): the
+// boot vCPU's mode and tables, RDI the M's g0, RSI the function to call
+// (the runtime's mstart), RDX its number, RSP its stack.  SSE as cpuinit
+// turns it on, FS's base 8 past its slot in tls and g there, where the
+// runtime's ABI0 code finds it, and the call, which does not return.
+TEXT whim_apentry(SB),NOSPLIT|NOFRAME,$0
+	CLI
+	MOVQ	CR0, AX
+	ANDQ	$~(1<<2), AX
+	ORQ	$(1<<1), AX
+	MOVQ	AX, CR0
+	MOVQ	CR4, AX
+	ORQ	$(1<<9 | 1<<10), AX
+	MOVQ	AX, CR4
+	LEAQ	·tls(SB), AX
+	SHLQ	$4, DX
+	LEAQ	8(AX)(DX*1), AX
+	MOVQ	AX, DX
+	SHRQ	$32, DX
+	MOVL	$0xc0000100, CX	// IA32_FS_BASE
+	WRMSR
+	MOVQ	DI, R14
+	MOVQ	R14, (TLS)
+	CALL	SI
+	BYTE	$0x0f; BYTE $0x0b	// UD2: a fault the vectors report
+
+// func doorbell(cb unsafe.Pointer): the hypercall, one 64-bit store from RAX to
 // the doorbell, which exits to the monitor; it resumes after the store.
 TEXT ·doorbell(SB),NOSPLIT,$0-8
 	MOVQ	cb+0(FP), AX

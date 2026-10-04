@@ -8,12 +8,14 @@ package vmm
 
 import (
 	"bytes"
+	"cmp"
 	"debug/elf"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
 	"os"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -46,12 +48,16 @@ const (
 	callFault
 	callRandom   // a Go guest's (vmm/tamago.go)
 	callWaitRead // a wait and, when there is input, a read (guest/abi's WaitRead)
+	callCPUStart // a Go guest's on several vCPUs (vmm/smp.go)
+	callCPUPark
+	callCPUWake
+	callCPUSelf
 	nCalls
 )
 
 var callNames = [nCalls]string{"", "host_init", "get_winsize", "term_start", "term_stop", "tty_keys",
 	"now_ms", "delay", "wait_for_input", "read_input", "suspend", "exit", "message", "alloc", "free",
-	"write", "time", "raise", "fault", "random", "wait_read"}
+	"write", "time", "raise", "fault", "random", "wait_read", "cpu_start", "cpu_park", "cpu_wake", "cpu_self"}
 
 // The call block, as guest/rt.c lays it out: nr, a[5], ret, event.
 const (
@@ -76,9 +82,19 @@ type Config struct {
 	// Seccomp, when set, is called on the vCPU's thread once the VM is
 	// built and before the guest first runs: the filter goes on there.
 	Seccomp func() error
+	// CPUs is a Go guest's vCPUs (doc/GUEST.md, *SMP*), 1 to MaxCPUs: 0
+	// or 1 is one, the boot vCPU alone, as before there were more.  A C
+	// guest has one whatever this says.
+	CPUs int
+	// Park is the longest a parked vCPU waits while another runs the
+	// guest (vmm/smp.go): 0 is DefaultPark.
+	Park time.Duration
 }
 
-// Stats is what a run counted.
+// MaxCPUs is the most vCPUs a guest is given (guest/abi's).
+const MaxCPUs = maxCPUs
+
+// Stats is what a run counted, over its vCPUs.
 type Stats struct {
 	Calls    [nCalls]uint64
 	Exits    uint64 // VCPURun's returns
@@ -86,7 +102,7 @@ type Stats struct {
 	Spurious uint64 // of those, interrupted by a signal and run again
 	Guest    time.Duration
 	Longest  time.Duration // the longest run between two exits
-	Host     time.Duration
+	Host     time.Duration // answering calls, a park's wait not counted
 }
 
 // deadly is the panic the host's deathtrap callback unwinds with: a deadly
@@ -99,8 +115,9 @@ type Fault struct{ Msg string }
 
 func (f *Fault) Error() string { return f.Msg }
 
-// Run runs the guest in cfg on the calling goroutine, which it locks to its
-// thread, and returns the guest's exit code.  A Host whose Exit does not
+// Run runs the guest in cfg and returns its exit code: the boot vCPU on
+// the calling goroutine, which it locks to its thread, and each other a
+// goroutine of its own on a thread of its own.  A Host whose Exit does not
 // return (the terminal's) ends the process there; one that panics with
 // editor.Exit has its code returned, as editor.Main does.
 func Run(cfg Config) (code int, err error) {
@@ -109,30 +126,69 @@ func Run(cfg Config) (code int, err error) {
 		return 1, err
 	}
 	defer m.close()
-	defer func() {
-		if r := recover(); r != nil {
-			c, ok := r.(editor.Exit)
-			if !ok {
-				panic(r)
-			}
-			code, err = int(c), nil
+	r := m.run()
+	if r.panic != nil {
+		c, ok := r.panic.(editor.Exit)
+		if !ok {
+			panic(r.panic)
 		}
-	}()
-	return m.loop()
+		return int(c), nil
+	}
+	return r.code, r.err
 }
 
 type machine struct {
-	cfg      Config
-	mem      []byte
-	l        *layout
-	v        hv.VCPU
-	exit     *hv.VCPUExit
-	stats    Stats
-	lastCall atomic.Int64 // when the guest last made a call, for the watchdog (ns)
-	inHost   atomic.Bool
+	cfg  Config
+	mem  []byte
+	l    *layout
+	cpus []*vcpu
+	// calls counts each call, from every vCPU
+	calls [nCalls]atomic.Uint64
+	// host is the Host's lock: one call at a time, as the C core makes
+	// them (vmm/smp.go)
+	host chan struct{}
+	smp  smp
+	// quit is closed when the run ends: every vCPU leaves its loop
+	quit     chan struct{}
+	quitOnce sync.Once
+	end      result
+	endOnce  sync.Once
 	killed   atomic.Bool
-	stop     chan struct{}
 }
+
+// vcpu is one of the machine's vCPUs and its exit loop's own counts.
+type vcpu struct {
+	m    *machine
+	id   int
+	v    hv.VCPU
+	exit *hv.VCPUExit
+	// the loop's counts, written by its goroutine alone
+	exits, runs, spurious        uint64
+	guest, longest, host, parked time.Duration // parked: of host, in CPUPark
+	// the watchdog's: when it last made a call (ns), and whether it is in
+	// one or parked
+	lastCall atomic.Int64
+	inHost   atomic.Bool
+	// an AP's: its CPUStart, whether it has had one, its park
+	start   chan [5]int64
+	started atomic.Bool
+	park    park
+	// loopDone is closed when its loop has ended, done when its goroutine
+	// has (its vCPU destroyed)
+	loopDone chan struct{}
+	done     chan struct{}
+}
+
+// result is how a run ended: an exit code, an error, or a panic the Host
+// made, carried to Run's goroutine.
+type result struct {
+	code  int
+	err   error
+	panic any
+}
+
+// errStopped is a loop's end because another vCPU's ended the run.
+var errStopped = errors.New("stopped")
 
 func newMachine(cfg Config) (*machine, error) {
 	f, err := elf.NewFile(bytes.NewReader(cfg.Image))
@@ -143,7 +199,15 @@ func newMachine(cfg Config) (*machine, error) {
 	if err != nil {
 		return nil, err
 	}
-	m := &machine{cfg: cfg, l: layoutFor(f, im), stop: make(chan struct{})}
+	n := min(max(cfg.CPUs, 1), maxCPUs)
+	if !isTamaGo(f) {
+		n = 1
+	}
+	if n > 1 && im.apEntry == 0 {
+		return nil, fmt.Errorf("the guest image has no whim_apentry: it runs on one vCPU, not %d", n)
+	}
+	m := &machine{cfg: cfg, l: layoutFor(f, im, n), host: make(chan struct{}, 1), quit: make(chan struct{})}
+	m.smp.limit = cmp.Or(cfg.Park, DefaultPark)
 	m.mem, err = syscall.Mmap(-1, 0, int(m.l.size), syscall.PROT_READ|syscall.PROT_WRITE,
 		syscall.MAP_PRIVATE|syscall.MAP_ANON|syscall.MAP_NORESERVE)
 	if err != nil {
@@ -168,21 +232,55 @@ func newMachine(cfg Config) (*machine, error) {
 		m.close()
 		return nil, err
 	}
-	m.v, m.exit, err = hv.VCPUCreate()
+	boot := m.newVCPU(0)
+	boot.v, boot.exit, err = hv.VCPUCreate()
 	if err != nil {
 		hv.VMDestroy()
 		m.close()
 		return nil, err
 	}
-	if err := boot(m.v, m.mem, m.l); err != nil {
+	m.cpus = []*vcpu{boot}
+	if err := boot0(boot.v, m.mem, m.l); err != nil {
 		m.destroy()
 		return nil, err
+	}
+	// The other vCPUs, each created on a thread of its own and kept there
+	// (hv_vcpu_create's rule), all before the guest runs: the filter
+	// (Seccomp) goes on with them all there, and allows no KVM_CREATE_VCPU.
+	for i := 1; i < n; i++ {
+		c := m.newVCPU(i)
+		ready := make(chan error)
+		go c.ap(ready)
+		if err := <-ready; err != nil {
+			<-c.done
+			m.destroy()
+			return nil, err
+		}
+		m.cpus = append(m.cpus, c)
 	}
 	return m, nil
 }
 
+func (m *machine) newVCPU(i int) *vcpu {
+	c := &vcpu{m: m, id: i, loopDone: make(chan struct{}), done: make(chan struct{})}
+	c.park.wake = make(chan struct{}, 1)
+	if i > 0 {
+		c.start = make(chan [5]int64, 1)
+	}
+	return c
+}
+
+// boot0 sets the boot vCPU up for the image.
+func boot0(v hv.VCPU, mem []byte, l *layout) error { return boot(v, mem, l) }
+
+// destroy ends the machine: the other vCPUs told to quit and waited for
+// (each destroys its own, on its own thread), the boot vCPU, the VM.
 func (m *machine) destroy() {
-	hv.VCPUDestroy(m.v)
+	m.halt()
+	for _, c := range m.cpus[1:] {
+		<-c.done
+	}
+	hv.VCPUDestroy(m.cpus[0].v)
 	hv.VMDestroy()
 	m.close()
 }
@@ -194,32 +292,109 @@ func (m *machine) close() {
 	}
 }
 
-// loop runs the vCPU until the guest exits, answering its calls.
-func (m *machine) loop() (int, error) {
+// halt ends the run for every vCPU: those waiting to start, parked or
+// waiting for the Host leave at once, and those in the guest are made to
+// exit (hv_vcpus_exit).
+func (m *machine) halt() {
+	m.quitOnce.Do(func() {
+		close(m.quit)
+		for _, c := range m.cpus {
+			hv.VCPUsExit(c.v)
+		}
+	})
+}
+
+// finish records how the run ended, the first end only, and halts it.
+func (m *machine) finish(r result) {
+	m.endOnce.Do(func() { m.end = r })
+	m.halt()
+}
+
+// run runs the boot vCPU's loop on this goroutine, until the run ends, and
+// tears the machine down.
+func (m *machine) run() result {
 	defer m.destroy()
-	defer close(m.stop)
 	if m.cfg.Seccomp != nil {
 		if err := m.cfg.Seccomp(); err != nil {
-			return 1, fmt.Errorf("seccomp: %w", err)
+			return result{code: 1, err: fmt.Errorf("seccomp: %w", err)}
 		}
 	}
+	stop := make(chan struct{})
+	defer close(stop)
 	if m.cfg.Watchdog > 0 {
-		go m.watchdog()
+		go m.watchdog(stop)
 	}
-	m.lastCall.Store(time.Now().UnixNano())
+	m.smp.running = 1
+	m.cpus[0].serve()
+	close(m.cpus[0].loopDone)
+	for _, c := range m.cpus[1:] {
+		<-c.loopDone
+	}
+	return m.end
+}
+
+// ap is an AP's goroutine: its vCPU created and set up on this thread,
+// then its start waited for and its loop run, until the run ends.
+func (c *vcpu) ap(ready chan<- error) {
+	defer close(c.done)
+	hv.LockThread() // never unlocked: the thread ends with the goroutine
+	var err error
+	c.v, c.exit, err = hv.VCPUCreate()
+	if err != nil {
+		close(c.loopDone)
+		ready <- err
+		return
+	}
+	defer hv.VCPUDestroy(c.v)
+	defer close(c.loopDone)
+	if err := setupAP(c.v, c.m.l, c.id); err != nil {
+		ready <- err
+		return
+	}
+	ready <- nil
+	select {
+	case a := <-c.start:
+		if err := startAP(c.v, c.m.l, a); err != nil {
+			c.m.finish(result{code: 1, err: err})
+			return
+		}
+		c.serve()
+	case <-c.m.quit:
+	}
+}
+
+// serve runs the vCPU's loop and ends the run with its end: an exit, a
+// fault, an error, or a Host's panic.
+func (c *vcpu) serve() {
+	defer func() { c.runs, c.spurious = hv.Stats(c.v) }()
+	defer func() {
+		if r := recover(); r != nil {
+			c.m.finish(result{code: 1, panic: r})
+		}
+	}()
+	code, err := c.loop()
+	if err != errStopped {
+		c.m.finish(result{code: code, err: err})
+	}
+}
+
+// loop runs the vCPU until the guest exits, answering its calls.
+func (c *vcpu) loop() (int, error) {
+	m := c.m
+	c.lastCall.Store(time.Now().UnixNano())
 	for {
 		t0 := time.Now()
-		if err := hv.VCPURun(m.v); err != nil {
+		if err := hv.VCPURun(c.v); err != nil {
 			return 1, err
 		}
 		t1 := time.Now()
-		m.stats.Guest += t1.Sub(t0)
-		m.stats.Longest = max(m.stats.Longest, t1.Sub(t0))
-		m.stats.Exits++
-		switch m.exit.Reason {
+		c.guest += t1.Sub(t0)
+		c.longest = max(c.longest, t1.Sub(t0))
+		c.exits++
+		switch c.exit.Reason {
 		case hv.ExitReasonException:
-			code, done, err := m.exception()
-			m.stats.Host += time.Since(t1)
+			code, done, err := c.exception()
+			c.host += time.Since(t1)
 			if done || err != nil {
 				return code, err
 			}
@@ -227,41 +402,58 @@ func (m *machine) loop() (int, error) {
 			if m.killed.Load() {
 				return 1, m.fault(fmt.Sprintf("the guest ran %s without a hypercall: ended by the watchdog", m.cfg.Watchdog))
 			}
+			if m.stopped() {
+				return 1, errStopped
+			}
 		default:
-			return 1, m.fault(fmt.Sprintf("the guest stopped: %s %s", m.exit.Reason, m.exit.Detail))
+			return 1, m.fault(fmt.Sprintf("the guest stopped: %s %s", c.exit.Reason, c.exit.Detail))
 		}
 	}
 }
 
+// stopped is whether the run has ended.
+func (m *machine) stopped() bool {
+	select {
+	case <-m.quit:
+		return true
+	default:
+		return false
+	}
+}
+
 // exception answers an exception exit: a store to the doorbell is a call.
-func (m *machine) exception() (int, bool, error) {
-	e := m.exit.Exception
+func (c *vcpu) exception() (int, bool, error) {
+	m := c.m
+	e := c.exit.Exception
 	s := hv.Syndrome(e.Syndrome)
 	addr := uint64(e.PhysicalAddress)
-	reg, alt := altCall(m.v, s, addr)
+	reg, alt := altCall(c.v, s, addr)
 	if !alt {
 		if s.EC() != hv.ECDataAbortLower || addr != Doorbell || !s.ISV() || !s.WnR() {
-			return 1, false, m.fault(fmt.Sprintf("the guest touched %#x with no memory there (syndrome %#x, pc %#x)", addr, e.Syndrome, pc(m.v)))
+			return 1, false, m.fault(fmt.Sprintf("the guest touched %#x with no memory there (syndrome %#x, pc %#x)", addr, e.Syndrome, pc(c.v)))
 		}
 		var ok bool
 		if reg, ok = hv.RegForSRT(s.SRT()); !ok {
 			return 1, false, m.fault(fmt.Sprintf("a doorbell store from register %d", s.SRT()))
 		}
 	}
-	cb, err := hv.VCPUGetReg(m.v, reg)
+	cb, err := hv.VCPUGetReg(c.v, reg)
 	if err != nil {
 		return 1, false, err
 	}
-	if err := advance(m.v, s); err != nil {
+	if err := advance(c.v, s); err != nil {
 		return 1, false, err
 	}
 	if cb%cbSize != 0 || cb < imageBase || cb+cbSize > m.l.size {
 		return 1, false, m.fault(fmt.Sprintf("a call block at %#x, outside the guest's memory", cb))
 	}
-	m.lastCall.Store(time.Now().UnixNano())
-	m.inHost.Store(true)
-	defer m.inHost.Store(false)
-	return m.call(m.mem[cb : cb+cbSize])
+	c.lastCall.Store(time.Now().UnixNano())
+	c.inHost.Store(true)
+	defer func() {
+		c.lastCall.Store(time.Now().UnixNano())
+		c.inHost.Store(false)
+	}()
+	return c.call(m.mem[cb : cb+cbSize])
 }
 
 // fault is the end of a guest that did what it must not: the diagnostic,
@@ -286,8 +478,10 @@ func b2i(b bool) int64 {
 	return 0
 }
 
-// call answers the call in block cb, on m.cfg.Host.
-func (m *machine) call(cb []byte) (code int, done bool, err error) {
+// call answers the call in block cb: the vCPUs' own (vmm/smp.go) at
+// once, a Host's on m.cfg.Host, one at a time.
+func (c *vcpu) call(cb []byte) (code int, done bool, err error) {
+	m := c.m
 	le := binary.LittleEndian
 	nr := le.Uint64(cb[cbNr:])
 	var a [5]int64
@@ -297,9 +491,24 @@ func (m *machine) call(cb []byte) (code int, done bool, err error) {
 	if nr == 0 || nr >= nCalls || nr == callAlloc || nr == callFree {
 		return 1, false, m.fault(fmt.Sprintf("an unknown call %d", nr))
 	}
-	m.stats.Calls[nr]++
-	h := m.cfg.Host
+	m.calls[nr].Add(1)
 	ret := int64(0)
+	switch nr {
+	case callCPUStart, callCPUPark, callCPUWake, callCPUSelf:
+		ret, err = c.smpCall(nr, a)
+		if err != nil {
+			return 1, false, err
+		}
+		le.PutUint64(cb[cbRet:], uint64(ret))
+		return 0, false, nil
+	case callFault:
+		return 1, false, m.fault(describeFault(a))
+	}
+	if !c.lockHost() {
+		return 1, false, errStopped
+	}
+	defer c.unlockHost()
+	h := m.cfg.Host
 	defer func() {
 		if r := recover(); r != nil {
 			sig, ok := r.(deadly)
@@ -353,7 +562,8 @@ func (m *machine) call(cb []byte) (code int, done bool, err error) {
 	case callSuspend:
 		h.Suspend()
 	case callExit:
-		m.report()
+		c.stopOthers()
+		m.report(c)
 		h.Exit(int32(a[0]))
 		return int(int32(a[0])), true, nil
 	case callMessage:
@@ -372,8 +582,6 @@ func (m *machine) call(cb []byte) (code int, done bool, err error) {
 		ret = h.Time()
 	case callRaise:
 		h.Raise(int32(a[0]))
-	case callFault:
-		return 1, false, m.fault(describeFault(a))
 	case callRandom:
 		buf, ok := m.guest(a[0], a[1])
 		if !ok {
@@ -388,16 +596,37 @@ func (m *machine) call(cb []byte) (code int, done bool, err error) {
 	return 0, false, nil
 }
 
-// report writes the stats, when asked for.
-func (m *machine) report() {
+// report writes the stats, when asked for: every vCPU's, summed, once
+// the others have stopped.
+func (m *machine) report(self *vcpu) {
 	if m.cfg.Stats == nil {
 		return
 	}
-	m.stats.Runs, m.stats.Spurious = hv.Stats(m.v)
-	s := &m.stats
+	var st Stats
+	var parked time.Duration
+	for _, c := range m.cpus {
+		runs, spurious := c.runs, c.spurious
+		if c == self {
+			runs, spurious = hv.Stats(c.v)
+		}
+		st.Exits += c.exits
+		st.Runs += runs
+		st.Spurious += spurious
+		st.Guest += c.guest
+		st.Longest = max(st.Longest, c.longest)
+		st.Host += c.host - c.parked
+		parked += c.parked
+	}
+	for nr := range st.Calls {
+		st.Calls[nr] = m.calls[nr].Load()
+	}
+	s := &st
 	var calls uint64
 	fmt.Fprintf(m.cfg.Stats, "exits %d runs %d spurious %d guest %dus host %dus longest %dus\n",
 		s.Exits, s.Runs, s.Spurious, s.Guest.Microseconds(), s.Host.Microseconds(), s.Longest.Microseconds())
+	if len(m.cpus) > 1 {
+		fmt.Fprintf(m.cfg.Stats, "cpus %d started %d parked %dus\n", len(m.cpus), m.startedCPUs(), parked.Microseconds())
+	}
 	for nr, n := range s.Calls {
 		if n > 0 {
 			calls += n
@@ -407,24 +636,30 @@ func (m *machine) report() {
 	fmt.Fprintf(m.cfg.Stats, "calls %d\n", calls)
 }
 
-// watchdog ends a guest that has run Watchdog without a call: the vCPU is
-// made to exit (hv_vcpus_exit), and the loop sees it was killed.
-func (m *machine) watchdog() {
+// watchdog ends a guest one of whose vCPUs has run Watchdog without a
+// call: every vCPU is made to exit (hv_vcpus_exit), and the loops see it
+// was killed.  A vCPU in a call or parked is not running the guest.
+func (m *machine) watchdog(stop <-chan struct{}) {
 	t := time.NewTicker(m.cfg.Watchdog / 4)
 	defer t.Stop()
 	for {
 		select {
-		case <-m.stop:
+		case <-stop:
 			return
 		case <-t.C:
-			if m.inHost.Load() {
-				m.lastCall.Store(time.Now().UnixNano())
-				continue
-			}
-			if time.Since(time.Unix(0, m.lastCall.Load())) > m.cfg.Watchdog {
-				m.killed.Store(true)
-				hv.VCPUsExit(m.v)
-				return
+			for _, c := range m.cpus {
+				if c.id > 0 && !c.started.Load() {
+					continue
+				}
+				if c.inHost.Load() {
+					c.lastCall.Store(time.Now().UnixNano())
+					continue
+				}
+				if time.Since(time.Unix(0, c.lastCall.Load())) > m.cfg.Watchdog {
+					m.killed.Store(true)
+					m.halt()
+					return
+				}
 			}
 		}
 	}

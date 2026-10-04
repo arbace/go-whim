@@ -42,8 +42,38 @@ const (
 	// buffer at once.  ret is the wait's answer, and when it is 1, a[0] the
 	// read's: the count, 0 at the end, -1 for a signal.
 	WaitRead
+	// The calls of a Go guest on several vCPUs (doc/GUEST.md, *SMP*): the
+	// runtime's goos.Task, Idle, Wake and ProcID, which TamaGo's own boards
+	// answer with an IPI and a halt, answered by the monitor.  None is a
+	// host function: they are not serialised with the others.
+	//
+	// CPUStart starts vCPU a[0] (1 to the count less one), idle since the
+	// boot, at the image's whim_apentry: a[1] its stack, a[2] the M's g0,
+	// a[3] the function it calls (the runtime's mstart).  a[4] is the top
+	// of the TaskStackBytes the runtime allocated for the M's stack, which
+	// the board does not use (its g0's own is a[1]): the monitor gives
+	// their pages back to the host.  ret is 0, or -1 when that vCPU does
+	// not exist or has started already.
+	CPUStart
+	// CPUPark stops the calling vCPU until a CPUWake names it, a[0]
+	// nanoseconds pass (a[0] < 0: no limit of the guest's), or the monitor
+	// lets it look again (doc/GUEST.md, *SMP*: no longer than a
+	// millisecond while another vCPU runs the guest).
+	CPUPark
+	// CPUWake ends vCPU a[0]'s park, or its next one when it is not parked.
+	CPUWake
+	// CPUSelf is the calling vCPU's number, in ret: 0 the boot vCPU.
+	CPUSelf
 	NCalls
 )
+
+// TaskStackBytes is the stack TamaGo's runtime allocates for each M it
+// starts by goos.Task (runtime/os_tamago.go's stacksize), and clears.
+const TaskStackBytes = 8 << 20
+
+// MaxCPUs is the most vCPUs the monitor gives a guest: one page of the
+// amd64 TSSs, 128 bytes apart.
+const MaxCPUs = 32
 
 // The call block, in guest RAM and aligned to its size: nr, a[5], ret,
 // event -- the last two written by the monitor, event a deadly signal it
@@ -63,3 +93,11 @@ const (
 //	RDI argc        RSI argv (guest-physical, as the C guest's)
 //	RDX RamStart    RCX RamSize      R8 RamStackOffset
 //	R9  the time-stamp counter's rate, in kHz
+//	R10 the vCPUs the guest has, 1 to MaxCPUs (arm64: X5)
+//
+// A vCPU CPUStart starts enters whim_apentry in the same mode, the boot
+// vCPU's tables and the same system registers, its own TSS (amd64) or
+// SP_EL1 (arm64) -- each its own fault stack -- and in registers:
+//
+//	RDI the M's g0        RSI the function to call      (arm64: X0, X1)
+//	RDX its number        RSP the stack                 (arm64: X2, SP_EL0)

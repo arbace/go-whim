@@ -58,21 +58,11 @@ func setup(v hv.VCPU, mem []byte, l *layout) error {
 	if err != nil {
 		return err
 	}
-	for _, s := range []struct {
-		r   hv.SysReg
-		val uint64
-	}{
-		{hv.SysRegMAIREL1, mair},
-		{hv.SysRegTCREL1, tcr},
-		{hv.SysRegTTBR0EL1, root},
-		{hv.SysRegVBAREL1, l.vectors},
-		{hv.SysRegSPEL0, l.stackTop},
-		{hv.SysRegSPEL1, l.faultTop},
-		{hv.SysRegSCTLREL1, sctlr},
-	} {
-		if err := hv.VCPUSetSysReg(v, s.r, s.val); err != nil {
-			return err
-		}
+	if err := setupSys(v, l, root, 0); err != nil {
+		return err
+	}
+	if err := hv.VCPUSetSysReg(v, hv.SysRegSPEL0, l.stackTop); err != nil {
+		return err
 	}
 	for _, r := range []struct {
 		r   hv.Reg
@@ -83,6 +73,55 @@ func setup(v hv.VCPU, mem []byte, l *layout) error {
 		{hv.RegX0, l.argc},
 		{hv.RegX1, l.argv},
 		{hv.RegX2, l.heap},
+	} {
+		if err := hv.VCPUSetReg(v, r.r, r.val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// setupSys sets vCPU i's system registers: every vCPU's the same but
+// SP_EL1, the fault stack of its own.
+func setupSys(v hv.VCPU, l *layout, root uint64, i int) error {
+	for _, s := range []struct {
+		r   hv.SysReg
+		val uint64
+	}{
+		{hv.SysRegMAIREL1, mair},
+		{hv.SysRegTCREL1, tcr},
+		{hv.SysRegTTBR0EL1, root},
+		{hv.SysRegVBAREL1, l.vectors},
+		{hv.SysRegSPEL1, l.faultTopOf(i)},
+		{hv.SysRegSCTLREL1, sctlr},
+	} {
+		if err := hv.VCPUSetSysReg(v, s.r, s.val); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// setupAP is vCPU i's state until it starts: the boot vCPU's system
+// registers, its own fault stack.
+func setupAP(v hv.VCPU, l *layout, i int) error { return setupSys(v, l, l.root, i) }
+
+// startAP points vCPU v at the image's whim_apentry for abi.CPUStart: a[1]
+// the stack (SP_EL0), a[2] the M's g0 in X0, a[3] the function in X1, its
+// number a[0] in X2.
+func startAP(v hv.VCPU, l *layout, a [5]int64) error {
+	if err := hv.VCPUSetSysReg(v, hv.SysRegSPEL0, uint64(a[1])); err != nil {
+		return err
+	}
+	for _, r := range []struct {
+		r   hv.Reg
+		val uint64
+	}{
+		{hv.RegCPSR, cpsrEL1t},
+		{hv.RegPC, l.apEntry},
+		{hv.RegX0, uint64(a[2])},
+		{hv.RegX1, uint64(a[3])},
+		{hv.RegX2, uint64(a[0])},
 	} {
 		if err := hv.VCPUSetReg(v, r.r, r.val); err != nil {
 			return err
