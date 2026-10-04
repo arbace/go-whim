@@ -118,7 +118,7 @@ type mlMember struct {
 
 // mlStats counts what the printer wrote.
 type mlStats struct {
-	functions, recGroups, biggestRec, ignores, clamped, ladders, charMatches, charCmps int
+	functions, recGroups, biggestRec, ignores, clamped, ladders, charMatches, charCmps, strCmps int
 }
 
 // mlKeywords are OCaml's reserved words, and the names the generated code
@@ -135,7 +135,7 @@ glue new_editor data_end host_names chunks fn_ptr fn_index frame_push frame_pop
 ld_s8 ld_u8 ld_char ld_s16 ld_u16 ld_s32 ld_u32 ld_s64 ld_u64 ld_ptr ld_bool
 st_s8 st_u8 st_s16 st_u16 st_s32 st_u32 st_s64 st_u64 st_ptr st_bool
 mem_copy mem_zero mem_fill mem_image to_i8 to_u8 to_i16 to_u16 to_i32 to_u32
-i32_shl u32_add u32_sub u32_mul u32_shl u32_not u64_div u64_rem u64_shr u64_lt u64_le u64_gt u64_ge`) {
+i32_shl u32_add u32_sub u32_mul u32_shl u32_not u64_div u64_rem u64_shr u64_lt u64_le u64_gt u64_ge c_str_is has_prefix c_str_is_ci has_prefix_ci`) {
 		mlReserved[w] = true
 	}
 }
@@ -314,8 +314,8 @@ func (g *gen) writeMl(path string) error {
 	b.WriteString(entries)
 	b.WriteString(m.image())
 	text := b.String()
-	fmt.Fprintf(logw, "ml: %d of %d functions written, %d refused, %d lines; %d cycles of calls as let rec (the largest %d functions), %d values ignored, %d constants past 63 bits saturated; %d function-pointer tables; %d ladders of tests a match, %d matches and %d comparisons on a char\n",
-		len(outs), len(fds), len(fds)-len(outs), strings.Count(text, "\n"), m.st.recGroups, m.st.biggestRec, m.st.ignores, m.st.clamped, len(m.tables), m.st.ladders, m.st.charMatches, m.st.charCmps)
+	fmt.Fprintf(logw, "ml: %d of %d functions written, %d refused, %d lines; %d cycles of calls as let rec (the largest %d functions), %d values ignored, %d constants past 63 bits saturated; %d function-pointer tables; %d ladders of tests a match, %d matches and %d comparisons on a char, %d string comparisons on an OCaml string\n",
+		len(outs), len(fds), len(fds)-len(outs), strings.Count(text, "\n"), m.st.recGroups, m.st.biggestRec, m.st.ignores, m.st.clamped, len(m.tables), m.st.ladders, m.st.charMatches, m.st.charCmps, m.st.strCmps)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}

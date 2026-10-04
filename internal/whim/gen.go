@@ -275,6 +275,9 @@ var Gen = togo.Profile{
 	// (hlf_T, magic_T), counted (CMD_index) or stored as key bytes and
 	// used as indices (key_extra, SpecialKey).
 	MlVariants: []string{"cmd_addr_T", "etype_T", "flush_buffers_T", "keyprot_T", "optmagic_T", "paste_mode_T", "set_op_T"},
+	// and the core's string comparisons, whose test against a literal it
+	// writes on an OCaml string (c_str_is p "NONE", item 9)
+	MlStrings: togo.StrFuncs{Cmp: "musl_strcmp", NCmp: "musl_strncmp", CaseCmp: "musl_strcasecmp", NCaseCmp: "musl_strncasecmp"},
 	// a Clojure state machine split into groups past 50,000 (the backend's
 	// default is the JVM's method limit, 110,000): a group is called on
 	// every jump between groups, so C1 compiles it early and cheaply, where

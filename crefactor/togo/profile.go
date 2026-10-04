@@ -127,6 +127,16 @@ type Profile struct {
 	// backend writes as variants (ml_enum.go): those whose values OCaml
 	// types apart from every integer, which its type checker proves.
 	MlVariants []string
+	// MlStrings are the C's string comparisons, by name, whose test for 0
+	// against a literal the OCaml backend writes on an OCaml string
+	// (ml_expr.go's strEq): strcmp, strncmp, strcasecmp, strncasecmp.
+	MlStrings StrFuncs
+}
+
+// StrFuncs are a program's string comparisons: Cmp(a, b), NCmp(a, b, n)
+// and their ASCII case-folding kin; "" for one it has not.
+type StrFuncs struct {
+	Cmp, NCmp, CaseCmp, NCaseCmp string
 }
 
 // ByteFuncs are the program's memmove and memcpy (Memmove), memset

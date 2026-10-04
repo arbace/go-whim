@@ -134,6 +134,31 @@ let ld_bool ed p = Bytes.unsafe_get ed.mem p <> '\000'
 
 (* a byte as a char: what a match on characters reads *)
 let ld_char ed p = Bytes.unsafe_get ed.mem p
+
+(* The C string at p compared with an OCaml string, as strcmp's and
+   strncmp's tests for 0 are: is s, starts with s; _ci with ASCII's
+   letters folded, as strcasecmp's (doc/OCAML-IDIOMS.md, item 9). *)
+let c_str_is ed p s =
+  let n = String.length s in
+  let rec go i = if i = n then Bytes.unsafe_get ed.mem (p + n) = '\000'
+    else Bytes.unsafe_get ed.mem (p + i) = String.unsafe_get s i && go (i + 1) in
+  go 0
+let has_prefix ed p s =
+  let n = String.length s in
+  let rec go i = i = n || Bytes.unsafe_get ed.mem (p + i) = String.unsafe_get s i && go (i + 1) in
+  go 0
+let c_str_is_ci ed p s =
+  let n = String.length s in
+  let rec go i = if i = n then Bytes.unsafe_get ed.mem (p + n) = '\000'
+    else Char.lowercase_ascii (Bytes.unsafe_get ed.mem (p + i)) = Char.lowercase_ascii (String.unsafe_get s i)
+         && go (i + 1) in
+  go 0
+let has_prefix_ci ed p s =
+  let n = String.length s in
+  let rec go i = i = n || Char.lowercase_ascii (Bytes.unsafe_get ed.mem (p + i))
+                          = Char.lowercase_ascii (String.unsafe_get s i) && go (i + 1) in
+  go 0
+
 let st_u8 ed p v = Bytes.unsafe_set ed.mem p (Char.unsafe_chr (v land 0xff))
 let st_s8 = st_u8
 let st_u16 ed p v = set16u ed.mem p (v land 0xffff)

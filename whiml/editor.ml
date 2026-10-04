@@ -4271,8 +4271,7 @@ let term_color ed s n =
   let join6 i t1 =
     if t1 &&
        ld_u8 ed (s + i) <> nul &&
-       (musl_strcmp ed (s + i + 1) 166774 (* "%p1%dm" *) = 0 ||
-        musl_strcmp ed (s + i + 1) 166781 (* "%dm" *) = 0) &&
+       (c_str_is ed (s + i + 1) "%p1%dm" || c_str_is ed (s + i + 1) "%dm") &&
        (ld_char ed (s + i) = '3' || ld_char ed (s + i) = '4') then
       (let tail =
          if ld_char ed (s + i) = '3' then
@@ -9732,7 +9731,7 @@ let highlight_set_cterm_font ed idx arg init =
   let join3 () =
     if ascii_isdigit (ld_u8 ed arg) then
       join8 (musl_atoi ed arg)
-    else if musl_strcasecmp ed arg 163639 (* "NONE" *) = 0 then join8 (-1) else false
+    else if c_str_is_ci ed arg "NONE" then join8 (-1) else false
   in
   if init &&
      Hl_group_T.sg_set ed (Garray_T.ga_data ed highlight_ga + idx * 88) land sg_cterm <> 0 then
@@ -10162,7 +10161,7 @@ let find_builtin_term ed term =
   loop1 0
 
 let term_is_builtin ed name =
-  musl_strncmp ed name 166732 (* "builtin_" *) 8 = 0
+  has_prefix ed name "builtin_"
 
 let term_is_8bit ed name =
   ed.st.detected_8bit || musl_strstr ed name 166741 (* "8bit" *) <> 0
@@ -15273,7 +15272,7 @@ and parse_command_modifiers ed eap _errormsg cmod skip_only =
   let orig_cmd = Exarg_T.cmd ed eap in
   ignore (musl_memset ed cmod 0 216);
   Cmdmod_T.set_cmod_flags ed cmod ed.st.sticky_cmdmod_flags;
-  if musl_strncmp ed (Exarg_T.cmd ed eap) 163231 (* "'<,'>" *) 5 = 0 then
+  if has_prefix ed (Exarg_T.cmd ed eap) "'<,'>" then
     (Exarg_T.set_cmd ed eap (Exarg_T.cmd ed eap + 5);
      loop4 orig_cmd (Exarg_T.cmd ed eap) true)
   else
@@ -17237,10 +17236,7 @@ and highlight_group_link ed from_hg from_len to_hg to_len dodefault forceit init
     else
       join6 hlgroup
   in
-  if musl_strncmp ed to_hg 163639 (* "NONE" *) 4 = 0 then
-    join3 0 0
-  else
-    join3 (syn_check_group ed to_hg to_len) 0
+  if has_prefix ed to_hg "NONE" then join3 0 0 else join3 (syn_check_group ed to_hg to_len) 0
 
 and highlight_reset_all ed =
   restore_cterm_colors ed;
@@ -17353,21 +17349,21 @@ and highlight_set_cterm_color ed idx key key_start arg is_normal_group init =
     let join5 () =
       if ascii_isdigit (ld_u8 ed arg) then
         join25 (musl_atoi ed arg) lookup_color__o_r__ lookup_color__o_boldp
-      else if musl_strcasecmp ed arg 163658 (* "fg" *) = 0 then
+      else if c_str_is_ci ed arg "fg" then
         (if ed.st.cterm_normal_fg_color = 0 then
            (ignore (emsg ed e_fg_color_unknown);
             frame_pop ed fr;
             false)
          else
            join25 (ed.st.cterm_normal_fg_color - 1) lookup_color__o_r__ lookup_color__o_boldp)
-      else if musl_strcasecmp ed arg 163644 (* "bg" *) = 0 then
+      else if c_str_is_ci ed arg "bg" then
         (if ed.st.cterm_normal_bg_color > 0 then
            join25 (ed.st.cterm_normal_bg_color - 1) lookup_color__o_r__ lookup_color__o_boldp
          else
            (ignore (emsg ed e_bg_color_unknown);
             frame_pop ed fr;
             false))
-      else if musl_strcasecmp ed arg 163661 (* "ul" *) = 0 then
+      else if c_str_is_ci ed arg "ul" then
         (if ed.st.cterm_normal_ul_color > 0 then
            join25 (ed.st.cterm_normal_ul_color - 1) lookup_color__o_r__ lookup_color__o_boldp
          else
@@ -17427,10 +17423,7 @@ and highlight_set_startstop_termcode ed idx key arg init =
   let buf = fr + 0 in
   let p_addr = fr + 104 in
   let join12 () =
-    if musl_strcmp ed buf 163639 (* "NONE" *) = 0 then
-      st_ptr ed p_addr 0
-    else
-      st_ptr ed p_addr (vim_strsave ed buf);
+    if c_str_is ed buf "NONE" then st_ptr ed p_addr 0 else st_ptr ed p_addr (vim_strsave ed buf);
     if ld_char ed (key + 2) = 'A' then
       Hl_group_T.set_sg_start ed (Garray_T.ga_data ed highlight_ga + idx * 88) (ld_ptr ed p_addr)
     else
@@ -17464,7 +17457,7 @@ and highlight_set_startstop_termcode ed idx key arg init =
       loop20 0
   in
   let join2 () =
-    if musl_strncmp ed arg 163664 (* "t_" *) 2 = 0 then
+    if has_prefix ed arg "t_" then
       (st_u8 ed buf 0;
        loop11 0)
     else
@@ -17538,7 +17531,7 @@ and do_highlight ed line forceit init =
             highlight_clear ed idx;
             loop21 line linep idx did_change error_ is_normal_group
           in
-          if musl_strcmp ed key 163639 (* "NONE" *) = 0 then
+          if c_str_is ed key "NONE" then
             (if not init ||
                 Hl_group_T.sg_set ed (Garray_T.ga_data ed highlight_ga + idx * 88) = 0 then
                (if init then
@@ -17571,36 +17564,35 @@ and do_highlight ed line forceit init =
                        Hl_group_T.set_sg_link ed (Garray_T.ga_data ed highlight_ga + idx * 88) 0;
                      loop21 line (skipwhite ed linep) idx did_change error_ is_normal_group
                    in
-                   if musl_strcmp ed key 163685 (* "TERM" *) = 0 ||
-                      musl_strcmp ed key 163690 (* "CTERM" *) = 0 ||
-                      musl_strcmp ed key 163696 (* "GUI" *) = 0 then
+                   if c_str_is ed key "TERM" ||
+                      c_str_is ed key "CTERM" ||
+                      c_str_is ed key "GUI" then
                      (if highlight_set_termgui_attr ed idx key arg init then
                         join49 ()
                       else
                         join63 idx did_change true is_normal_group)
-                   else if musl_strcmp ed key 163700 (* "FONT" *) = 0 then
+                   else if c_str_is ed key "FONT" then
                      join49 ()
-                   else if musl_strcmp ed key 163705 (* "CTERMFG" *) = 0 ||
-                      musl_strcmp ed key 163713 (* "CTERMBG" *) = 0 ||
-                      musl_strcmp ed key 163721 (* "CTERMUL" *) = 0 then
+                   else if c_str_is ed key "CTERMFG" ||
+                      c_str_is ed key "CTERMBG" ||
+                      c_str_is ed key "CTERMUL" then
                      (if highlight_set_cterm_color
                            ed idx key key_start arg is_normal_group init then
                         join49 ()
                       else
                         join63 idx did_change true is_normal_group)
-                   else if musl_strcmp ed key 163729 (* "CTERMFONT" *) = 0 then
+                   else if c_str_is ed key "CTERMFONT" then
                      (if highlight_set_cterm_font ed idx arg init then
                         join49 ()
                       else
                         join63 idx did_change true is_normal_group)
-                   else if musl_strcmp ed key 163739 (* "GUIFG" *) = 0 then
+                   else if c_str_is ed key "GUIFG" then
                      join49 ()
-                   else if musl_strcmp ed key 163745 (* "GUIBG" *) = 0 then
+                   else if c_str_is ed key "GUIBG" then
                      join49 ()
-                   else if musl_strcmp ed key 163751 (* "GUISP" *) = 0 then
+                   else if c_str_is ed key "GUISP" then
                      join49 ()
-                   else if musl_strcmp ed key 163757 (* "START" *) = 0 ||
-                      musl_strcmp ed key 163763 (* "STOP" *) = 0 then
+                   else if c_str_is ed key "START" || c_str_is ed key "STOP" then
                      (if highlight_set_startstop_termcode ed idx key arg init then
                         join49 ()
                       else
@@ -17663,10 +17655,9 @@ and do_highlight ed line forceit init =
               frame_pop ed fr
             else
               (mem_copy ed item_before (Garray_T.ga_data ed highlight_ga + idx * 88) 88;
-               if musl_strcmp ed
-                    (Hl_group_T.sg_name_u ed (Garray_T.ga_data ed highlight_ga + idx * 88))
-                    163678 (* "NORMAL" *) =
-                  0 then
+               if c_str_is ed
+                    (Hl_group_T.sg_name_u ed
+                       (Garray_T.ga_data ed highlight_ga + idx * 88)) "NORMAL" then
                  join16 true
                else
                  join16 is_normal_group)
@@ -18112,8 +18103,7 @@ and set_hl_attr ed idx =
   let fr = frame_push ed 32 in
   let at_en = fr + 0 in
   let sgp = Garray_T.ga_data ed highlight_ga + idx * 88 in
-  if Hl_group_T.sg_name_u ed sgp <> 0 &&
-     musl_strcmp ed (Hl_group_T.sg_name_u ed sgp) 163678 (* "NORMAL" *) = 0 then
+  if Hl_group_T.sg_name_u ed sgp <> 0 && c_str_is ed (Hl_group_T.sg_name_u ed sgp) "NORMAL" then
     frame_pop ed fr
   else
     (if Hl_group_T.sg_start ed sgp = 0 && Hl_group_T.sg_stop ed sgp = 0 then
@@ -18391,11 +18381,10 @@ and parse_winhighlight ed opt len errmsg =
             (0, len, e_invalid_argument))
          else
            (if ld_ptr ed (ids + k * 8) = fromid_addr &&
-               musl_strcmp ed
+               c_str_is ed
                  (Hl_group_T.sg_name_u ed
                     (Garray_T.ga_data ed highlight_ga +
-                     (ld_s32 ed (ld_ptr ed (ids + k * 8)) - 1) * 88)) 163678 (* "NORMAL" *) =
-               0 then
+                     (ld_s32 ed (ld_ptr ed (ids + k * 8)) - 1) * 88)) "NORMAL" then
               st_s32 ed (ld_ptr ed (ids + k * 8)) (-69);
             join33 ()))
     else
@@ -20126,9 +20115,7 @@ and msg_puts_attr ed s attr =
 
 and msg_puts_attr_len ed str maxlen attr =
   let join5 attr =
-    if ed.st.msg_scrolled <> 0 &&
-       not ed.st.msg_scrolled_ign &&
-       musl_strcmp ed str 164399 (* "\x0d" *) <> 0 then
+    if ed.st.msg_scrolled <> 0 && not ed.st.msg_scrolled_ign && not (c_str_is ed str "\x0d") then
       ed.st.need_wait_return <- true;
     ed.st.msg_didany <- true;
     if msg_use_printf ed then
@@ -21267,7 +21254,7 @@ and find_special_key ed srcp modp flags did_simplify =
           if flags land fsk_keep_x_key = 0 then join32 (handle_x_keys key) else join32 key
       in
       if bp >= last_dash then
-        (if musl_strncasecmp ed (last_dash + 1) 164626 (* "char-" *) 5 = 0 &&
+        (if has_prefix_ci ed (last_dash + 1) "char-" &&
             ascii_isdigit (ld_u8 ed (last_dash + 6)) then
            (let l = vim_str2nr ed (last_dash + 6) 0 l 15 0 n_addr 0 true 0 in
             if l = 0 then
@@ -21315,7 +21302,7 @@ and find_special_key ed srcp modp flags did_simplify =
          ld_u8 ed (bp + 2) <> 0 &&
          ld_u8 ed (bp + 3) <> 0 then
         join50 (bp + 3)
-      else if musl_strncasecmp ed bp 164626 (* "char-" *) 5 = 0 then
+      else if has_prefix_ci ed bp "char-" then
         (let l = vim_str2nr ed (bp + 5) 0 l 15 0 0 0 true 0 in
          if l = 0 then
            (ignore (emsg ed e_invalid_argument);
@@ -29925,17 +29912,17 @@ and findmatchlimit ed oap initc flags maxtravel =
         (Pos_T.set_col ed findmatchlimit__pos (to_i32 (ptr - linep));
          let ptr = skipwhite ed (ptr + 1) in
          if hash_dir > 0 then
-           (if musl_strncmp ed ptr 166539 (* "if" *) 2 = 0 then
+           (if has_prefix ed ptr "if" then
               loop50 initc (count + 1) hash_dir find_mps_values__o_initc find_mps_values__o_findc
                 find_mps_values__o_backwards
-            else if musl_strncmp ed ptr 166548 (* "el" *) 2 = 0 then
+            else if has_prefix ed ptr "el" then
               (if count = 0 then
                  (frame_pop ed fr;
                   findmatchlimit__pos)
                else
                  loop50 initc count hash_dir find_mps_values__o_initc find_mps_values__o_findc
                    find_mps_values__o_backwards)
-            else if musl_strncmp ed ptr 166542 (* "endif" *) 5 = 0 then
+            else if has_prefix ed ptr "endif" then
               (if count = 0 then
                  (frame_pop ed fr;
                   findmatchlimit__pos)
@@ -29945,21 +29932,21 @@ and findmatchlimit ed oap initc flags maxtravel =
             else
               loop50 initc count hash_dir find_mps_values__o_initc find_mps_values__o_findc
                 find_mps_values__o_backwards)
-         else if musl_strncmp ed ptr 166539 (* "if" *) 2 = 0 then
+         else if has_prefix ed ptr "if" then
            (if count = 0 then
               (frame_pop ed fr;
                findmatchlimit__pos)
             else
               loop50 initc (count - 1) hash_dir find_mps_values__o_initc find_mps_values__o_findc
                 find_mps_values__o_backwards)
-         else if initc = Char.code '#' && musl_strncmp ed ptr 166548 (* "el" *) 2 = 0 then
+         else if initc = Char.code '#' && has_prefix ed ptr "el" then
            (if count = 0 then
               (frame_pop ed fr;
                findmatchlimit__pos)
             else
               loop50 initc count hash_dir find_mps_values__o_initc find_mps_values__o_findc
                 find_mps_values__o_backwards)
-         else if musl_strncmp ed ptr 166542 (* "endif" *) 5 = 0 then
+         else if has_prefix ed ptr "endif" then
            loop50 initc (count + 1) hash_dir find_mps_values__o_initc find_mps_values__o_findc
              find_mps_values__o_backwards
          else
@@ -30446,10 +30433,9 @@ and findmatchlimit ed oap initc flags maxtravel =
            join49 hash_dir
          else
            let ptr = skipwhite ed (skipwhite ed linep + 1) in
-           if musl_strncmp ed ptr 166539 (* "if" *) 2 = 0 ||
-              musl_strncmp ed ptr 166548 (* "el" *) 2 = 0 then
+           if has_prefix ed ptr "if" || has_prefix ed ptr "el" then
              join49 1
-           else if musl_strncmp ed ptr 166542 (* "endif" *) 5 = 0 then
+           else if has_prefix ed ptr "endif" then
              join49 (-1)
            else
              (frame_pop ed fr;
@@ -30532,9 +30518,7 @@ and findmatchlimit ed oap initc flags maxtravel =
       let ptr = skipwhite ed linep in
       if ld_char ed ptr = '#' && Pos_T.col ed findmatchlimit__pos <= to_i32 (ptr - linep) then
         (let ptr = skipwhite ed (ptr + 1) in
-         if musl_strncmp ed ptr 166539 (* "if" *) 2 = 0 ||
-            musl_strncmp ed ptr 166542 (* "endif" *) 5 = 0 ||
-            musl_strncmp ed ptr 166548 (* "el" *) 2 = 0 then
+         if has_prefix ed ptr "if" || has_prefix ed ptr "endif" || has_prefix ed ptr "el" then
            join22 backwards 1 comment_dir
          else
            join22 backwards hash_dir comment_dir)
@@ -31532,7 +31516,7 @@ and check_for_color_response ed resp len =
                ld_char ed (resp + (j + 16)) = '/'
              in
              if i - j >= 15 &&
-                musl_strncmp ed (resp + j + 3) 166899 (* "rgb:" *) 4 = 0 &&
+                has_prefix ed (resp + j + 3) "rgb:" &&
                 (is_4digit ||
                  ld_char ed (resp + (j + 9)) = '/' && ld_char ed (resp + (j + 12)) = '/') then
                (if is_bg then
@@ -32027,13 +32011,10 @@ and fill_input_buf ed exit_on_error =
     if len > 0 then
       (if ed.st.ctrl_c_interrupts &&
           (ld_u8 ed (inbuf + ed.st.inbufcount) = ctrl_c && not (key_protocol_enabled ed) ||
-           len >= 10 &&
-           musl_strncmp ed (inbuf + ed.st.inbufcount) 167038 (* "\x1b[27;5;99~" *) 10 = 0 ||
-           len >= 10 &&
-           musl_strncmp ed (inbuf + ed.st.inbufcount) 167049 (* "\x1b[27;5;67~" *) 10 = 0 ||
-           len >= 7 && musl_strncmp ed (inbuf + ed.st.inbufcount) 167060 (* "\x1b[99;5u" *) 7 = 0 ||
-           len >= 7 &&
-           musl_strncmp ed (inbuf + ed.st.inbufcount) 167068 (* "\x1b[67;5u" *) 7 = 0) then
+           len >= 10 && has_prefix ed (inbuf + ed.st.inbufcount) "\x1b[27;5;99~" ||
+           len >= 10 && has_prefix ed (inbuf + ed.st.inbufcount) "\x1b[27;5;67~" ||
+           len >= 7 && has_prefix ed (inbuf + ed.st.inbufcount) "\x1b[99;5u" ||
+           len >= 7 && has_prefix ed (inbuf + ed.st.inbufcount) "\x1b[67;5u") then
          (ignore (musl_memmove ed inbuf (inbuf + ed.st.inbufcount) len);
           ed.st.inbufcount <- 0;
           ed.st.got_int <- true_);
@@ -35187,9 +35168,7 @@ let find_file_name_in_path ed ptr len _options _count _rel_fname =
   if len = 0 then 0 else vim_strnsave ed ptr len
 
 let path_is_url ed p =
-  if musl_strncmp ed p 164618 (* "://" *) 3 = 0 then
-    url_slash
-  else if musl_strncmp ed p 164622 (* ":\\\\" *) 3 = 0 then url_backslash else 0
+  if has_prefix ed p "://" then url_slash else if has_prefix ed p ":\\\\" then url_backslash else 0
 
 let file_name_in_line ed line col options count rel_fname file_lnum =
   let fr = frame_push ed 16 in
@@ -35216,7 +35195,7 @@ let file_name_in_line ed line col options count rel_fname file_lnum =
         join22 ()
       else
         (st_ptr ed p_addr (ptr + len);
-         if musl_strncmp ed (ld_ptr ed p_addr) 163496 (* " line " *) 6 = 0 then
+         if has_prefix ed (ld_ptr ed p_addr) " line " then
            (st_ptr ed p_addr (ld_ptr ed p_addr + 6);
             join17 ())
          else
@@ -40667,7 +40646,7 @@ let ex_substitute ed eap =
           old_line_count endcolumn old_cursor_lnum old_cursor_col old_cursor_coladd start_nsubs
       in
       if pat_string <> 0 &&
-         musl_strcmp ed pat_string 162762 (* "\\n" *) = 0 &&
+         c_str_is ed pat_string "\\n" &&
          ld_u8 ed sub = nul &&
          (ld_u8 ed (ld_ptr ed cmd_addr) = nul ||
           ld_u8 ed (ld_ptr ed cmd_addr + 1) = nul &&
@@ -40715,8 +40694,7 @@ let ex_substitute ed eap =
       let p = ld_ptr ed cmd_addr in
       st_ptr ed cmd_addr (skip_substitute ed (ld_ptr ed cmd_addr) delimiter);
       let sub = vim_strsave ed p in
-      if musl_strcmp ed sub 162760 (* "%" *) = 0 &&
-         vim_strchr ed (p_cpo ed) cpo_subpercent <> 0 then
+      if c_str_is ed sub "%" && vim_strchr ed (p_cpo ed) cpo_subpercent <> 0 then
         (if ed.st.old_sub = 0 then
            (ignore (emsg ed e_no_previous_substitute_regular_expression);
             frame_pop ed fr)
@@ -42476,7 +42454,7 @@ let do_execreg ed regname colon addcr silent =
                   166072 (* "\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f" *)
                   ctrl_v false
               in
-              if ed.st.visual_active && musl_strncmp ed p 163231 (* "'<,'>" *) 5 = 0 then
+              if ed.st.visual_active && has_prefix ed p "'<,'>" then
                 join30 (put_in_typebuf ed (p + 5) true true silent) execreg_line_continuation__o_r__
                   execreg_line_continuation__o_idx
               else
@@ -48296,8 +48274,7 @@ let replace_termcodes ed from _sid_arg flags did_simplify =
     if ld_u8 ed (ld_ptr ed src_addr) = nul then
       join24 dlen find_term_bykeys__o_r__ find_term_bykeys__o_matchlen
     else if do_special &&
-       (flags land repterm_do_lt <> 0 ||
-        musl_strncmp ed (ld_ptr ed src_addr) 166928 (* "<lt>" *) 4 <> 0) then
+       (flags land repterm_do_lt <> 0 || not (has_prefix ed (ld_ptr ed src_addr) "<lt>")) then
       (let slen =
          trans_special ed src_addr (result + dlen)
            (fsk_keycode lor (if flags land repterm_no_simplify = 0 then fsk_simplify else 0) lor
@@ -48707,7 +48684,7 @@ let do_map ed maptype arg mode abbrev =
             replace_termcodes__o_bufp
         in
         if hasarg then
-          (if musl_strcasecmp ed rhs 164083 (* "<nop>" *) = 0 then
+          (if c_str_is_ci ed rhs "<nop>" then
              join26 162263 (* "" *) rhs replace_termcodes__o_r__ replace_termcodes__o_bufp
            else
              let (r5, r6) =
@@ -48756,24 +48733,24 @@ let do_map ed maptype arg mode abbrev =
        join15 (p + 1))
   in
   let rec loop6 maptype keys len alt_keys_buf retval abbr_table map_table unique nowait silent special unmap_lhs_only noremap replace_termcodes__o_r__ replace_termcodes__o_bufp =
-    if musl_strncmp ed keys 164037 (* "<buffer>" *) 8 = 0 then
+    if has_prefix ed keys "<buffer>" then
       (let keys = skipwhite ed (keys + 8) in
        let map_table = Buf_T.b_maphash_addr ed.st.curbuf in
        loop6 maptype keys len alt_keys_buf retval (Buf_T.b_first_abbr_addr ed.st.curbuf) map_table
          unique nowait silent special unmap_lhs_only noremap replace_termcodes__o_r__
          replace_termcodes__o_bufp)
-    else if musl_strncmp ed keys 164046 (* "<nowait>" *) 8 = 0 then
+    else if has_prefix ed keys "<nowait>" then
       loop6 maptype (skipwhite ed (keys + 8)) len alt_keys_buf retval abbr_table map_table unique
         true silent special unmap_lhs_only noremap replace_termcodes__o_r__
         replace_termcodes__o_bufp
-    else if musl_strncmp ed keys 164055 (* "<silent>" *) 8 = 0 then
+    else if has_prefix ed keys "<silent>" then
       loop6 maptype (skipwhite ed (keys + 8)) len alt_keys_buf retval abbr_table map_table unique
         nowait true special unmap_lhs_only noremap replace_termcodes__o_r__
         replace_termcodes__o_bufp
-    else if musl_strncmp ed keys 164064 (* "<special>" *) 9 = 0 then
+    else if has_prefix ed keys "<special>" then
       loop6 maptype (skipwhite ed (keys + 9)) len alt_keys_buf retval abbr_table map_table unique
         nowait silent true unmap_lhs_only noremap replace_termcodes__o_r__ replace_termcodes__o_bufp
-    else if musl_strncmp ed keys 164074 (* "<unique>" *) 8 = 0 then
+    else if has_prefix ed keys "<unique>" then
       loop6 maptype (skipwhite ed (keys + 8)) len alt_keys_buf retval abbr_table map_table true
         nowait silent special unmap_lhs_only noremap replace_termcodes__o_r__
         replace_termcodes__o_bufp
@@ -48821,7 +48798,7 @@ let get_map_mode ed cmdp forceit =
             if forceit then join17 p 24 0 0 else join17 p 71 0 0
 
 let map_clear ed cmdp arg forceit abbr =
-  let local = musl_strcmp ed arg 164037 (* "<buffer>" *) = 0 in
+  let local = c_str_is ed arg "<buffer>" in
   if not local && ld_u8 ed arg <> nul then
     ignore (emsg ed e_invalid_argument)
   else
@@ -49368,7 +49345,7 @@ let ex_match ed eap =
      ignore (match_delete ed ed.st.curwin id false);
      if ends_excmd2 ed (Exarg_T.cmd ed eap) (Exarg_T.arg ed eap) then
        join14 (Exarg_T.arg ed eap)
-     else if musl_strncasecmp ed (Exarg_T.arg ed eap) 164243 (* "none" *) 4 = 0 &&
+     else if has_prefix_ci ed (Exarg_T.arg ed eap) "none" &&
         (ld_char ed (Exarg_T.arg ed eap + 4) = ' ' ||
          ld_char ed (Exarg_T.arg ed eap + 4) = '\t' ||
          ends_excmd2 ed (Exarg_T.arg ed eap) (Exarg_T.arg ed eap + 4)) then
@@ -49479,15 +49456,15 @@ let messagesopt_changed ed =
   let p_addr = fr + 0 in
   let rec loop1 messages_flags_new messages_wait_new messages_history_new =
     if ld_u8 ed (ld_ptr ed p_addr) <> nul then
-      (if musl_strncmp ed (ld_ptr ed p_addr) 164308 (* "hit-enter" *) 9 = 0 then
+      (if has_prefix ed (ld_ptr ed p_addr) "hit-enter" then
          (st_ptr ed p_addr (ld_ptr ed p_addr + 9);
           join17 (messages_flags_new lor messages_hit_enter) messages_wait_new messages_history_new)
-       else if musl_strncmp ed (ld_ptr ed p_addr) 164318 (* "wait:" *) 5 = 0 &&
+       else if has_prefix ed (ld_ptr ed p_addr) "wait:" &&
           ascii_isdigit (ld_u8 ed (ld_ptr ed p_addr + 5)) then
          (st_ptr ed p_addr (ld_ptr ed p_addr + 5);
           join17 (messages_flags_new lor messages_wait) (to_i32 (getdigits ed p_addr))
             messages_history_new)
-       else if musl_strncmp ed (ld_ptr ed p_addr) 164324 (* "history:" *) 8 = 0 &&
+       else if has_prefix ed (ld_ptr ed p_addr) "history:" &&
           ascii_isdigit (ld_u8 ed (ld_ptr ed p_addr + 8)) then
          (st_ptr ed p_addr (ld_ptr ed p_addr + 8);
           join17 (messages_flags_new lor messages_history) messages_wait_new
@@ -49532,7 +49509,7 @@ let ex_messages ed eap =
     else
       ed.st.msg_hist_off <- false
   in
-  if musl_strcmp ed (Exarg_T.arg ed eap) 163667 (* "clear" *) = 0 then
+  if c_str_is ed (Exarg_T.arg ed eap) "clear" then
     (let rec loop18 keep =
        if ed.st.msg_hist_len > keep then
          (ignore (delete_first_msg ed);
@@ -53599,9 +53576,7 @@ let set_chars_option ed wp value is_listchars apply_ errbuf errbuflen =
                ld_char ed (p + Charstab.name_length ed (tab' + i * 24)) = ':' then
               (st_ptr ed s_addr (p + Charstab.name_length ed (tab' + i * 24) + 1);
                if is_listchars &&
-                  musl_strcmp
-                    ed (Charstab.name_string ed (tab' + i * 24)) 166428 (* "multispace" *) =
-                  0 then
+                  c_str_is ed (Charstab.name_string ed (tab' + i * 24)) "multispace" then
                  (if round_ = 0 then
                     (let rec loop79 multispace_len =
                        if ld_u8 ed (ld_ptr ed s_addr) <> nul &&
@@ -53644,9 +53619,7 @@ let set_chars_option ed wp value is_listchars apply_ errbuf errbuflen =
                     in
                     loop74 0)
                else if is_listchars &&
-                  musl_strcmp ed (Charstab.name_string ed (tab' + i * 24))
-                    166439 (* "leadmultispace" *) =
-                  0 then
+                  c_str_is ed (Charstab.name_string ed (tab' + i * 24)) "leadmultispace" then
                  (if round_ = 0 then
                     (let rec loop65 lead_multispace_len =
                        if ld_u8 ed (ld_ptr ed s_addr) <> nul &&
@@ -53919,10 +53892,10 @@ let find_dup_item ed origval newval newvallen flags =
   if origval = 0 then 0 else loop2 0 origval
 
 let term_bg_default ed =
-  if musl_strcmp ed (ld_ptr ed term_strings) 166816 (* "linux" *) = 0 ||
-     musl_strcmp ed (ld_ptr ed term_strings) 166822 (* "screen.linux" *) = 0 ||
-     musl_strncmp ed (ld_ptr ed term_strings) 166835 (* "cygwin" *) 6 = 0 ||
-     musl_strncmp ed (ld_ptr ed term_strings) 166842 (* "putty" *) 5 = 0 then
+  if c_str_is ed (ld_ptr ed term_strings) "linux" ||
+     c_str_is ed (ld_ptr ed term_strings) "screen.linux" ||
+     has_prefix ed (ld_ptr ed term_strings) "cygwin" ||
+     has_prefix ed (ld_ptr ed term_strings) "putty" then
     163647 (* "dark" *)
   else
     163652 (* "light" *)
@@ -53948,13 +53921,9 @@ let get_option_prefix ed argp =
     prefix
   in
   let arg = ld_ptr ed argp in
-  if musl_strncmp ed arg 165445 (* "no" *) 2 = 0 &&
-     musl_strncmp ed arg 165448 (* "novice" *) 6 <> 0 then
+  if has_prefix ed arg "no" && not (has_prefix ed arg "novice") then
     join4 prefix_no (arg + 2)
-  else if musl_strncmp ed arg 165455 (* "inv" *) 3 = 0 then
-    join4 prefix_inv (arg + 3)
-  else
-    join4 prefix_none arg
+  else if has_prefix ed arg "inv" then join4 prefix_inv (arg + 3) else join4 prefix_none arg
 
 let parse_option_name ed arg opt_idxp lenp keyp =
   let join18 key len opt_idx _out___r__ _out___opt_idxp _out___lenp _out___keyp =
@@ -55117,7 +55086,7 @@ let do_set ed arg_start opt_flags =
   let rec loop2 did_show do_set_option__o_r__ do_set_option__o_did_show =
     if ld_u8 ed (ld_ptr ed arg_addr) = nul then
       join19 do_set_option__o_r__ do_set_option__o_did_show
-    else if musl_strncmp ed (ld_ptr ed arg_addr) 162459 (* "all" *) 3 = 0 &&
+    else if has_prefix ed (ld_ptr ed arg_addr) "all" &&
        not (ascii_isupper (ld_u8 ed (ld_ptr ed arg_addr + 3)) ||
         ascii_islower (ld_u8 ed (ld_ptr ed arg_addr + 3))) then
       (st_ptr ed arg_addr (ld_ptr ed arg_addr + 3);
@@ -55131,7 +55100,7 @@ let do_set ed arg_start opt_flags =
        else
          (showoptions ed 1 opt_flags;
           join24 true do_set_option__o_r__ do_set_option__o_did_show))
-    else if musl_strncmp ed (ld_ptr ed arg_addr) 165548 (* "termcap" *) 7 = 0 then
+    else if has_prefix ed (ld_ptr ed arg_addr) "termcap" then
       (showoptions ed 2 opt_flags;
        show_termcodes ed opt_flags;
        st_ptr ed arg_addr (ld_ptr ed arg_addr + 7);
@@ -55905,11 +55874,11 @@ let match_keyprotocol ed term =
          ret)
       else
         (st_u8 ed colon nul;
-         if musl_strcmp ed (colon + 1) 164243 (* "none" *) = 0 then
+         if c_str_is ed (colon + 1) "none" then
            join11 r2 Keyprotocol_none r1 r2
-         else if musl_strcmp ed (colon + 1) 166694 (* "mok2" *) = 0 then
+         else if c_str_is ed (colon + 1) "mok2" then
            join11 r2 Keyprotocol_mok2 r1 r2
-         else if musl_strcmp ed (colon + 1) 166636 (* "kitty" *) = 0 then
+         else if c_str_is ed (colon + 1) "kitty" then
            join11 r2 Keyprotocol_kitty r1 r2
          else
            (frame_pop ed fr;
@@ -55991,14 +55960,13 @@ let vim_is_xterm ed name =
   if name = 0 then
     false
   else
-    musl_strncasecmp ed name 165917 (* "xterm" *) 5 = 0 &&
-    musl_strncasecmp ed name 165923 (* "xterm-kitty" *) 11 <> 0 ||
-    musl_strncasecmp ed name 165935 (* "nxterm" *) 6 = 0 ||
-    musl_strncasecmp ed name 165942 (* "kterm" *) 5 = 0 ||
-    musl_strncasecmp ed name 165948 (* "mlterm" *) 6 = 0 ||
-    musl_strncasecmp ed name 165955 (* "rxvt" *) 4 = 0 ||
-    musl_strncasecmp ed name 165960 (* "screen.xterm" *) 12 = 0 ||
-    musl_strcmp ed name 165973 (* "builtin_xterm" *) = 0
+    has_prefix_ci ed name "xterm" && not (has_prefix_ci ed name "xterm-kitty") ||
+    has_prefix_ci ed name "nxterm" ||
+    has_prefix_ci ed name "kterm" ||
+    has_prefix_ci ed name "mlterm" ||
+    has_prefix_ci ed name "rxvt" ||
+    has_prefix_ci ed name "screen.xterm" ||
+    c_str_is ed name "builtin_xterm"
 
 let get_tty_info ed fd info =
   let fr = frame_push ed 16 in
@@ -56090,7 +56058,7 @@ let set_termname ed term =
          apply_builtin_tcap ed term builtin_256colors true;
        let kpc = match_keyprotocol ed term in
        apply_keyprotocol ed term kpc;
-       if musl_strcmp ed term 166708 (* "pcterm" *) = 0 then
+       if c_str_is ed term "pcterm" then
          st_ptr ed (term_strings + 384) 166715 (* "yes" *)
        else
          st_ptr ed (term_strings + 384) ed.st.empty_option;

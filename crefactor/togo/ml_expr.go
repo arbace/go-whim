@@ -1331,6 +1331,9 @@ func (f *mlfn) runtime(h string, args []*sform, sc *mlScope, want int) (mlx, boo
 		return f.unit(mlInfixL(op.op, op.prec, xs), want), true
 	}
 	if op, ok := mlCmpOps[h]; ok {
+		if x, ok := f.strEq(op, args, sc); ok {
+			return f.unit(x, want), true
+		}
 		if x, ok := f.charCmp(op, args, sc); ok {
 			return f.unit(x, want), true
 		}
@@ -1342,6 +1345,9 @@ func (f *mlfn) runtime(h string, args []*sform, sc *mlScope, want int) (mlx, boo
 	}
 	switch h {
 	case "fxzero?", "zero?":
+		if x, ok := f.strEq("=", []*sform{args[0], satom("0")}, sc); ok {
+			return f.unit(x, want), true
+		}
 		xs := vals()
 		return f.unit(mlCmp("=", xs[0], mlAtom("0")), want), true
 	case "->i64", "->u64":
@@ -1396,4 +1402,73 @@ func (f *mlfn) runtime(h string, args []*sform, sc *mlScope, want int) (mlx, boo
 		return x, true
 	}
 	return mlx{}, false
+}
+
+// strEq is a string comparison's test for 0 against a literal -- (fx=?
+// (strcmp ed p (c-str A "lit")) 0) -- on an OCaml string: c_str_is ed p
+// "lit", and has_prefix where strncmp's count is the literal's length or
+// less (the literal cut to it); _ci for the case-folding kin.  ok false
+// for any other comparison.
+func (f *mlfn) strEq(op string, args []*sform, sc *mlScope) (mlx, bool) {
+	if op != "=" || len(args) != 2 {
+		return mlx{}, false
+	}
+	zero := func(x *sform) bool { return !x.isList() && x.atom == "0" }
+	call := args[0]
+	switch {
+	case zero(args[1]):
+	case zero(args[0]):
+		call = args[1]
+	default:
+		return mlx{}, false
+	}
+	sf := f.m.s.g.p.MlStrings
+	var counted, folded bool
+	switch h := call.head(); {
+	case h == "":
+		return mlx{}, false
+	case h == sf.Cmp:
+	case h == sf.NCmp:
+		counted = true
+	case h == sf.CaseCmp:
+		folded = true
+	case h == sf.NCaseCmp:
+		counted, folded = true, true
+	default:
+		return mlx{}, false
+	}
+	ops := call.kids[1:]
+	if len(ops) > 0 && !ops[0].isList() && ops[0].atom == "ed" {
+		ops = ops[1:]
+	}
+	want := 2
+	if counted {
+		want = 3
+	}
+	if len(ops) != want {
+		return mlx{}, false
+	}
+	p, lit := ops[0], ops[1]
+	if p.head() == "c-str" {
+		p, lit = lit, p
+	}
+	if lit.head() != "c-str" || len(lit.kids) != 3 || p.head() == "c-str" {
+		return mlx{}, false
+	}
+	bs := scmUnstring(lit.kids[2].atom)
+	fn := "c_str_is"
+	if counted {
+		k, err := strconv.Atoi(ops[2].atom)
+		if ops[2].isList() || err != nil || k <= 0 {
+			return mlx{}, false
+		}
+		if k <= len(bs) {
+			bs, fn = bs[:k], "has_prefix"
+		}
+	}
+	if folded {
+		fn += "_ci"
+	}
+	f.m.st.strCmps++
+	return f.apply(fn+" "+f.ed(sc), []mlx{f.expr(p, sc, wantValue), mlAtom(mlString(bs))}), true
 }

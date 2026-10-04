@@ -321,3 +321,32 @@ void run(void) { out(high(HIGH)); }
 		t.Errorf("an ordered variant was not refused: %d\n%s", rc, log.String())
 	}
 }
+
+// mlStrEqC is the profile's string comparisons tested for 0 against
+// literals, each case written on an OCaml string (strEq): equal, not, a
+// count shorter than the literal, as long, longer, folded.
+const mlStrEqC = javaHost + `
+static int scmp(const char *l, const char *r) { for (; *l && *l == *r; l++, r++) {} return *(unsigned char *)l - *(unsigned char *)r; }
+static int sncmp(const char *l, const char *r, unsigned long n) { if (!n--) return 0; for (; *l && *r && n && *l == *r; l++, r++, n--) {} return *(unsigned char *)l - *(unsigned char *)r; }
+static int low(int c) { return c >= 'A' && c <= 'Z' ? c | 32 : c; }
+static int scasecmp(const char *l, const char *r) { for (; *l && *r && low(*l) == low(*r); l++, r++) {} return low(*l) - low(*r); }
+static int sncasecmp(const char *l, const char *r, unsigned long n) { if (!n--) return 0; for (; *l && *r && n && low(*l) == low(*r); l++, r++, n--) {} return low(*l) - low(*r); }
+static void t(const char *p) {
+    out(scmp(p, "abc") == 0); out(scmp("abc", p) != 0); out(sncmp(p, "abc", 3) == 0);
+    out(sncmp(p, "abcdef", 2) == 0); out(sncmp(p, "ab", 5) == 0);
+    out(scasecmp(p, "ABC") == 0); out(sncasecmp(p, "aBcD", 3) == 0); out(scmp(p, "") == 0);
+}
+void run(void) { t("abc"); t("abcd"); t("ab"); t("Abc"); t(""); t("x"); }
+`
+
+func TestMlStrEq(t *testing.T) {
+	prog := mlSame(t, mlStrEqC, Profile{MlStrings: StrFuncs{Cmp: "scmp", NCmp: "sncmp", CaseCmp: "scasecmp", NCaseCmp: "sncasecmp"}}, javaHarnessC)
+	for _, want := range []string{`c_str_is ed p "abc"`, `has_prefix ed p "abc"`, `has_prefix ed p "ab"`, `c_str_is_ci ed p "ABC"`, `has_prefix_ci ed p "aBc"`, `c_str_is ed p ""`} {
+		if !strings.Contains(prog, want) {
+			t.Errorf("no %q in the OCaml:\n%s", want, numbered(prog))
+		}
+	}
+	if strings.Contains(prog, "scmp ed p") || strings.Contains(prog, "sncmp ed p") {
+		t.Errorf("a comparison against a literal left a call:\n%s", numbered(prog))
+	}
+}
