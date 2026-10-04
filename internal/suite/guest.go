@@ -76,7 +76,7 @@ func buildGuest(candSrc, dir string) (*jvmEditor, error) {
 // reports the exits a key costs: every VCPURun's return over every byte of
 // input the cases hand the editor.
 func guestExits(w io.Writer, label string, e *jvmEditor, cases []WideCase) error {
-	var exits, keys, calls, reads uint64
+	var exits, keys, calls, reads, waitReads uint64
 	// and without the cases that print thousands of lines (par_*): typing
 	var tExits, tKeys uint64
 	dir, err := os.MkdirTemp("", "guest-stats.")
@@ -100,6 +100,7 @@ func guestExits(w io.Writer, label string, e *jvmEditor, cases []WideCase) error
 		exits += st["exits"]
 		calls += st["calls"]
 		reads += st["call read_input"]
+		waitReads += st["call wait_read"]
 		keys += uint64(len(c.Keys))
 		if !strings.HasPrefix(c.Name, "par_") {
 			tExits += st["exits"]
@@ -109,7 +110,7 @@ func guestExits(w io.Writer, label string, e *jvmEditor, cases []WideCase) error
 	if keys == 0 {
 		return nil
 	}
-	fmt.Fprintf(w, "  %-12s %d exits, %d of them calls (%d reads), for %d bytes of keys: %.2f exits a key", label, exits, calls, reads, keys, float64(exits)/float64(keys))
+	fmt.Fprintf(w, "  %-12s %d exits, %d of them calls (%d waits that read, %d reads of their own), for %d bytes of keys: %.2f exits a key", label, exits, calls, waitReads, reads, keys, float64(exits)/float64(keys))
 	if tKeys > 0 && tKeys < keys {
 		fmt.Fprintf(w, "; %.2f in the cases not par_*", float64(tExits)/float64(tKeys))
 	}

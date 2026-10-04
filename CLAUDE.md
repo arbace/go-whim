@@ -251,17 +251,21 @@ slim-vim.c  --whim-->  whim-vim.c
   **`--guest`** adds the editor as a VIRTUAL MACHINE (`guest/`, `vmm/`,
   `hv/`, `doc/GUEST.md`): the core compiled freestanding into a guest image
   that the monitor runs on KVM, its host calls hypercalls answered by
-  `editor/term`, its control the launcher with its image's one `" INSERT"`
-  changed; it answers all 80 and all 240 as the C does, and reports the
-  exits a key costs (61 over the quick suite, 6.7 without its `par_*`
-  cases), its image kept in `.cache/guest-suite/`.
+  `editor/term` -- a wait and the read after it one call, the read held in
+  the guest (`doc/GUEST.md`, *The merged wait and read*) -- its control the
+  launcher with its image's one `" INSERT"` changed; it answers all 80 and
+  all 240 as the C does, and reports the exits a key costs (39.5 over the
+  quick suite, 3.7 without its `par_*` cases; 61 and 6.7 before the merged
+  call), its image kept in `.cache/guest-suite/`.
   **`--guest-go`** adds the GO GUEST (`guest/tamago/`, `doc/GUEST.md`, *The
   second guest*): the Go editor, `editor/` as it stands, built with TamaGo
   (`GOOS=tamago`, the distribution `TAMAGO_ROOT` or `--tamago DIR`, here
   `/root/tamago-go`) on a board of ours and run by the same monitor, its
   control the launcher with its image's one `" INSERT"` changed; it answers
-  all 80 and all 240 as the C does (61.11 exits a key, 6.71 without `par_*`),
-  and its arm64 build all 80 as the C does inside the aarch64 VM.
+  all 80 and all 240 as the C does (39.47 exits a key, 3.78 without
+  `par_*`), and its arm64 build all 80 as the C does inside the aarch64 VM
+  (before the merged call, which is built and vetted for arm64, not run
+  there since).
   Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
@@ -283,8 +287,7 @@ slim-vim.c  --whim-->  whim-vim.c
   C's, and an editor over 25 times the C's time failing the run (one built
   already, `--haskell-bin`'s, is timed but not held to it: the `-O0`
   ghc-lisp caprice 81-84) -- measured,
-  C++ 0.2-0.3, Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
-  Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, the guest 1.1-1.6 (its 20,786 exits, every one a hypercall), the Go guest 1.6-1.8, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
+  C++ 0.2-0.3, Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, the guest 0.8-0.9 (its 10,416 exits, every one a hypercall; 1.1-1.6 and 20,786 before the merged wait and read), the Go guest 1.3-1.4 (1.6-1.8 before), Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
   its big functions were compiled sooner, `doc/CLOJURE-PROFILE.md`) since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
   huge-method limit left on, which is what it refuses.
@@ -724,7 +727,8 @@ vmm/               the monitor: the guest's ELF in one slot, identity-mapped
                    with each segment's permissions (layout.go), the vCPU set
                    in the mode the core runs in (setup_<isa>.go), the exit
                    loop answering each doorbell store by a call of
-                   editor.Host, the watchdog and the counts (vmm.go), the
+                   editor.Host (wait_read by two: a wait, and the read
+                   when there is input), the watchdog and the counts (vmm.go), the
                    alternative traps measured against the doorbell
                    (alt_<isa>.go), the seccomp filter (seccomp_linux*.go;
                    none on macOS), Die (die_<os>.go), the slot's 16 KiB
@@ -736,8 +740,9 @@ vmm/               the monitor: the guest's ELF in one slot, identity-mapped
                    TamaGo built, told by its runtime's symbol)
 guest/             the guest image's builder (`go tool whim guest`): the core
                    cut, the C host's vim_snprintf and rt/ -- rt.c the
-                   runtime (15 hypercalls, the C host's arena, the fault
-                   report), entry_<isa>.S the entry and the vectors,
+                   runtime (15 hypercalls, the wait and the read one, the
+                   read-ahead it brings held in the guest; the C host's
+                   arena, the fault report), entry_<isa>.S the entry and the vectors,
                    link_<isa>.ld, hello.c and bench.c stand-ins -- compiled
                    freestanding by clang into one ELF (--image: the ELF
                    alone); gotamago.go the Go guest's (`--go`: TamaGo at

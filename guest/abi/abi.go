@@ -12,8 +12,9 @@ package abi
 const Doorbell = 0xf0000000
 
 // The calls: the core's 17 host functions in doc/GUEST.md's order, the
-// runtime's report of a fault, and what a Go runtime asks besides (a Go
-// guest's): random bytes, for its hashes' seeds.
+// runtime's report of a fault, what a Go runtime asks besides (a Go
+// guest's): random bytes, for its hashes' seeds; and the wait and the read
+// merged, which both guests make in place of a wait.
 // Alloc and Free are answered in the guest and never made.
 const (
 	HostInit = iota + 1
@@ -35,6 +36,12 @@ const (
 	Raise
 	Fault
 	Random // a[0] a buffer, a[1] its length: filled with random bytes
+	// WaitRead is wait_for_input and read_input merged (doc/GUEST.md, *The
+	// merged wait and read*): a[0] the wait's ms, a[1] a buffer, a[2] its
+	// length.  The monitor waits; when there is input, it reads into the
+	// buffer at once.  ret is the wait's answer, and when it is 1, a[0] the
+	// read's: the count, 0 at the end, -1 for a signal.
+	WaitRead
 	NCalls
 )
 

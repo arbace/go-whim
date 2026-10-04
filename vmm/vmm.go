@@ -44,13 +44,14 @@ const (
 	callTime
 	callRaise
 	callFault
-	callRandom // a Go guest's (vmm/tamago.go)
+	callRandom   // a Go guest's (vmm/tamago.go)
+	callWaitRead // a wait and, when there is input, a read (guest/abi's WaitRead)
 	nCalls
 )
 
 var callNames = [nCalls]string{"", "host_init", "get_winsize", "term_start", "term_stop", "tty_keys",
 	"now_ms", "delay", "wait_for_input", "read_input", "suspend", "exit", "message", "alloc", "free",
-	"write", "time", "raise", "fault", "random"}
+	"write", "time", "raise", "fault", "random", "wait_read"}
 
 // The call block, as guest/rt.c lays it out: nr, a[5], ret, event.
 const (
@@ -335,6 +336,19 @@ func (m *machine) call(cb []byte) (code int, done bool, err error) {
 		ret = int64(h.ReadInput(buf))
 		if int32(a[1]) < 0 {
 			ret = -1
+		}
+	case callWaitRead:
+		// The wait, and the read the core makes after it, in one exit: the
+		// read into the guest runtime's buffer, which serves the core's
+		// read_input from it.  A deadly signal in either unwinds before a
+		// byte is read (both deliver before they touch stdin), and the guest
+		// makes the call again, as it makes a wait again.
+		buf, ok := m.guest(a[1], a[2])
+		if !ok || a[2] <= 0 {
+			return 1, false, m.fault(fmt.Sprintf("wait_read into %#x+%d, outside the guest's memory", a[1], a[2]))
+		}
+		if ret = b2i(h.WaitForInput(a[0])); ret != 0 {
+			a[0] = int64(h.ReadInput(buf))
 		}
 	case callSuspend:
 		h.Suspend()

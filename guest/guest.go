@@ -54,7 +54,8 @@ var cflags = []string{"-std=c23", "-O2", "-ffreestanding", "-fno-builtin", "-nos
 
 // Source is the guest's translation unit for the whim-vim.c in c: the core,
 // the C host's formatting (everything between its #includes and its first
-// object that is the system's), and rt.c.
+// object that is the system's), and rt.c, its read-ahead held to the core's
+// INBUFLEN.
 func Source(c []byte) ([]byte, error) {
 	core, err := whim.Cut(c)
 	if err != nil {
@@ -74,6 +75,8 @@ func Source(c []byte) ([]byte, error) {
 	b.Write(fmtPart)
 	b.WriteString("\n")
 	b.Write(rt)
+	// The runtime reads ahead as much as the core's one read asks at most.
+	b.WriteString("\nstatic_assert(WHIM_INPUT_BYTES == INBUFLEN, \"the guest's read-ahead is the core's INBUFLEN\");\n")
 	return b.Bytes(), nil
 }
 

@@ -16,7 +16,7 @@ func TestABI(t *testing.T) {
 		{callWaitForInput, abi.WaitForInput}, {callReadInput, abi.ReadInput}, {callSuspend, abi.Suspend},
 		{callExit, abi.Exit}, {callMessage, abi.Message}, {callAlloc, abi.Alloc}, {callFree, abi.Free},
 		{callWrite, abi.Write}, {callTime, abi.Time}, {callRaise, abi.Raise}, {callFault, abi.Fault},
-		{callRandom, abi.Random}, {nCalls, abi.NCalls},
+		{callRandom, abi.Random}, {callWaitRead, abi.WaitRead}, {nCalls, abi.NCalls},
 		{Doorbell, abi.Doorbell}, {cbNr, abi.BlockNr}, {cbArgs, abi.BlockArgs}, {cbRet, abi.BlockRet},
 		{cbEvent, abi.BlockEvent}, {cbSize, abi.BlockSize},
 	} {

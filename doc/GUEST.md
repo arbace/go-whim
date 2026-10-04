@@ -46,7 +46,9 @@ Two of the 17 never leave the guest: `host_alloc` and `host_free` are a
 small allocator over the guest's own RAM (a free-list over a region the VMM
 maps once, lazily backed -- below). The core allocates on most edits; an exit
 for each would dominate. So **15 hypercalls**, and per keystroke a handful:
-`wait_for_input`, `read_input`, one `write` of the buffered screen update.
+`wait_for_input`, `read_input`, one `write` of the buffered screen update --
+and since *The merged wait and read* (below), the wait and the read are one
+call, `wait_read`, the read answered in the guest from what it brought.
 
 ## The shape
 
@@ -234,10 +236,12 @@ roughly a microsecond on bare metal, and 16-18 µs measured here, where the
 VMM's own host is a virtual machine (nested SVM: each exit goes through the
 outer hypervisor; milestone 5). Per keystroke the core makes a handful of
 hypercalls -- 6.7 exits a key measured, a wait and a read for each key and
-a write for the screen -- so interactive use stays far below a millisecond.
+a write for the screen (3.7 since the wait and the read were merged) -- so
+interactive use stays far below a millisecond.
 The heavy case (5,000 lines, three `:s` and a `:g`) turned out to be 20,786
 exits, the C's own selects and reads as `:g` feeds `normal` its keys: 1.0-1.6
 times the native C's time here, of which the exits are about 0.33 s.
+Merged, 10,416 exits and 0.8-0.9 times the C's time.
 `host_alloc` staying in the guest is what keeps it so.
 
 ## Milestones, each with a gate
@@ -499,7 +503,7 @@ SMC64 OEM function ID, reported as the framework reports an HVC, EC 0x16)
 328-339 µs, a twentieth less -- under emulation, so only the ratio says
 anything. The doorbell stays: it is the one trap the same on all three
 targets, and the alternatives save less than the merged wait-and-read
-would.
+did (*The merged wait and read*).
 
 The wide suite in the aarch64 VM, after milestone 3: all 240 answer as the
 C does there -- keys 102, its control seen by 94; Ex commands 98 (with the
@@ -664,8 +668,114 @@ serialized, a call block per CPU (found by `ProcID`), `Task` a call that
 hands an idle vCPU the M's stack and entry, and `Idle`/`Wake` a park and a
 kick (a call that blocks in the monitor until another vCPU's wake) since
 there are no IPIs. Worth measuring against the heavy case's matching, which
-is a small part of its 0.75 s here: the exits are 0.33 s of it, and the
-merged wait-and-read (below) would halve those first.
+is a small part of its 0.75 s here: the exits were 0.33 s of it, and the
+merged wait-and-read (*The merged wait and read*) halved those first: 0.58-0.6 s now.
+
+### The merged wait and read
+
+*The open question answered (*Open questions*), without changing
+`editor.Host`, the core or any other editor: between the guest and the
+monitor only.* The wait and the read were 20,740 of the heavy case's 20,786
+exits and two of the 6.7 a typed key cost. Now a wait is one call that reads.
+
+*The ABI.* A new call, `WaitRead` (`guest/abi`, 20; `vmm`'s `TestABI` holds
+the monitor's `callWaitRead` to it): `a[0]` the wait's ms, `a[1]` a buffer in
+guest memory, `a[2]` its length. The monitor calls `Host.WaitForInput(ms)`
+and, when it says yes, `Host.ReadInput` into the buffer at once; `ret` is the
+wait's answer and, when it is 1, `a[0]` the read's -- the count, 0 at the
+end, -1 for a signal that came first. The monitor still answers
+`wait_for_input` and `read_input` as before; neither guest makes the first
+any more, and both make the second only when they hold nothing.
+
+*The buffer* is the guest runtime's own: `whim_input` in `guest/rt/rt.c`,
+`host.input` in `guest/tamago/main.go`. It is 250 bytes, the core's
+`INBUFLEN`: the core reads in one place, `fill_input_buf`, which asks
+`INBUFLEN - inbufcount`, and after the wait `WaitForChar` makes -- the wait
+of every key typed -- `inbufcount` is 0 (`WaitForChar` returns before
+waiting when vim's `inbuf` holds anything), so the read ahead is exactly the
+read the C makes there. `guest.Source` holds the C's to the core
+(`static_assert(WHIM_INPUT_BYTES == INBUFLEN)`), and the Go guest's is
+`[editor.INBUFLEN]byte`. While the read's answer is kept, a wait answers 1
+with no exit (the C's `select` says yes to bytes in the tty), and a read is
+served from it with no exit -- as many bytes as it asks, in order, or the 0
+or -1 the read returned; once all of it is the core's, a read is a call of
+its own again, as is one of no length.
+
+*Signals.* A deadly one (`SIGHUP`, `SIGTERM`) that the monitor catches during
+the merged call unwinds it before a byte is read -- `editor/term`'s wait and
+read both drain and deliver before they touch stdin -- so it comes back in
+`event`, the core's `deathtrap` runs in the guest, and the call is made
+again: as before, when it was a wait. One the editor reads as input
+(`SIGINT`, `SIGWINCH` and `SIGCONT`, `SIGTSTP`) is written by the host's read
+as its key sequence ahead of the tty's bytes, so it reaches the core first,
+as the C's `read_input` gives it first. A signal at the merged call is
+delivered in the order it was.
+
+*Input read before the core asks for it.* The core does not always read
+after a wait: `mch_delay`'s `WaitForChar` (a delay that input ends:
+`'showmatch'`, `ui_delay(..., FALSE)`), `'writedelay'`'s wait in
+`mch_write`, `inchar_loop` returning on a changed typeahead. What the guest
+read there is held until the core reads. Between, the core may stop or end:
+it has no `:!` (no processes: the shell escape is not a command of this
+core), so the moments are `:suspend` -- `term_stop`, `SIGTSTP`, the shell
+reading the tty while the editor is stopped, `term_start` -- a deadly signal,
+and the exit. The C host reads the tty only in `musl_read_input`, so bytes a
+wait saw and no read took are still the kernel's: across `:suspend` the
+shell reads them, and at the exit they are left to it. **But the core itself
+reads ahead in just this way**: `ui_breakcheck`, which every long
+computation calls, is `mch_breakcheck`: `RealWaitForChar(0)` and, when there
+is input, `fill_input_buf(FALSE)` -- up to `INBUFLEN` bytes into vim's own
+`inbuf`, which `vgetorpeek` then moves to its typeahead (and `char_avail`
+peeks the same way); bytes there survive a `:suspend` and reach the core
+after it, and are lost at the exit. The guest's buffer is that, one level
+down: what it holds is what the C, with the same keys typed a moment
+earlier, holds in `inbuf`. So nothing the C would give the core is lost or
+given to the shell; the shell gets less, never more. A signal that arrives
+between the read ahead and the core's read comes after the held bytes,
+where the C's would come before them -- which is the C's order for the same
+signal a moment later, after the read; the delay is bounded by the held
+bytes, at most 250, which the core's next reads take. One case reads less
+than was read ahead: `fill_input_buf` after `mch_breakcheck`'s wait while
+`inbuf` holds `n` bytes asks `INBUFLEN - n`; the rest is held for the next
+read, in order, and that read gets only it, where the C's would take more
+from the tty (a resize's sequence, which the C host writes only into
+a read of 32 bytes or more, could then arrive in two reads, when `n` > 218).
+
+*Tests* (`guest/readahead_test.go`). `TestReadAheadRuntime`: a stand-in core
+holds `rt.c`'s buffer to its rules call by call -- a wait reads 8 bytes, a
+read takes 3, across `musl_suspend` a wait answers from the buffer and a
+read takes the other 5, then the resize pending since comes from the next
+wait, two bytes more, the end of input kept as the bytes are, and a read
+with nothing kept is its own call: 8 exits, 4 `wait_read`. `TestReadAheadC`
+and `TestReadAheadGo` run the C guest (the core from `src/whim-vim.c`) and
+the Go guest on a scripted host -- chunks of keys, each handed out by one
+read, one typed while `:suspend` writes `stoptermcap`'s bytes with
+`'writedelay'` on -- beside the native Go editor on the same script, and
+require the same screens and exit: *suspend*, the keys read ahead before
+the host's `Suspend` in the guest (after it natively) and still reaching the
+core after it, in order; *winch*, a signal between -- `SIGWINCH` pending once
+those keys are handed out, which the guest holds across `:suspend` -- the
+keys first and the resize after, as natively; *term*, `SIGTERM` at a merged
+call's read, delivered before a byte of it, the call made again.
+
+*Measured* (amd64 here). Quick suite: 80 of 80 for both guests, the
+controls seen by 76; exits 317,193 -> 204,862 for the C guest (61.09 ->
+39.46 a key, 6.68 -> 3.74 without `par_*`) and 317,273 -> 204,942 for the
+Go guest (61.11 -> 39.47, 6.71 -> 3.78), 112,331 waits that read and no
+read of its own -- every read the core made was answered in the guest. Wide
+suite: 240 of 240 for both, the controls seen by 94, 0, 0 and 6; 29,409 ->
+17,181 exits (5.71 -> 3.33 a key) and 29,639 -> 17,411 (5.75 -> 3.38),
+12,226 waits that read and 297 reads of their own. The heavy case, its
+answers byte for byte the C's: 20,786 -> 10,416 exits (20,787 -> 10,417 for
+the Go guest), every `wait_for_input` and `read_input` one `wait_read`; the
+C 428-456 ms, the C guest 524-562 -> 356-383 ms (1.2 -> 0.8-0.9 times the
+C) and the Go guest 761-794 -> 575-612 ms (1.8 -> 1.3-1.4), the time inside
+`KVM_RUN` 0.45-0.49 -> 0.30-0.32 s and 0.67-0.70 -> 0.50-0.51 s. Under
+the stress test's load (48 busy loops on the 64 cores, 10 runs a case, fed
+from a file): 0 of 720 quick runs and 0 of 2,160 wide runs differ from
+their case's first, on either guest.
+arm64: both images built and the module vetted for arm64 (`GOARCH=arm64`,
+and the Go guest by TamaGo), not run in the aarch64 VM since.
 
 ## Running on the Mac
 
@@ -850,8 +960,11 @@ the signature and its entitlement -- and so milestone 4's gate: the suite,
   (wait and read when ready), halving the exits per key? *Measured:* they
   are 20,740 of the heavy case's 20,786 exits and two of the 6.7 a typed
   key costs; merged, the heavy case would lose about 10,370 exits, 0.17 s
-  of its 0.5 s here. Not done: it changes `editor.Host`, which every
-  editor's host shares, for the guest's sake alone.
+  of its 0.5 s here. Not done at first: it would change `editor.Host`,
+  which every editor's host shares, for the guest's sake alone. *Done
+  between the guest and the monitor only* (*The merged wait and read*): a
+  wait is one call that reads into the guest runtime's buffer, `editor.Host`
+  unchanged; the heavy case 10,416 exits, 0.36-0.38 s, 0.8-0.9 times the C.
 - The parallel `:%s` of the translated editors on several vCPUs: a fork/join
   in shared memory with a halt-and-kick protocol, with no new hypercall --
   worth it only once a single vCPU is measured. *Measured* on the Go guest

@@ -20,6 +20,8 @@
 
 typedef typeof(sizeof(0)) whim_usize;
 
+void *memcpy(void *dst, const void *src, whim_usize n);
+
 static int vim_main(int argc, char **argv);
 static void deathtrap(int sigarg);
 
@@ -51,6 +53,8 @@ enum whim_nr
     WHIM_TIME,
     WHIM_RAISE,
     WHIM_FAULT, /* the runtime's own: an exception the vectors took */
+    WHIM_RANDOM, /* a Go guest's; never made here */
+    WHIM_WAIT_READ, /* the wait and the read merged: guest/abi's WaitRead */
 };
 
 struct whim_call
@@ -107,7 +111,7 @@ whim_hcall(enum whim_nr nr, long a0, long a1, long a2, long a3, long a4)
         if (whim_call.event != 0)
         {
             deathtrap((int)whim_call.event);
-            if (nr == WHIM_WAIT_FOR_INPUT || nr == WHIM_READ_INPUT)
+            if (nr == WHIM_WAIT_FOR_INPUT || nr == WHIM_READ_INPUT || nr == WHIM_WAIT_READ)
             {
                 continue;
             }
@@ -172,16 +176,66 @@ musl_delay(long ms, int interruptible)
     whim_hcall(WHIM_DELAY, ms, interruptible, 0, 0, 0);
 }
 
+/* The wait and the read, merged (doc/GUEST.md, *The merged wait and read*).
+ * A wait is one call, WHIM_WAIT_READ: the monitor waits, and when there is
+ * input it reads it at once into whim_input, as the core's read would have
+ * -- WHIM_INPUT_BYTES, the core's INBUFLEN, the most its one read asks (in
+ * fill_input_buf: INBUFLEN less what its own inbuf holds, which is nothing
+ * after a wait in WaitForChar; guest.Source holds the two equal).  The
+ * read's answer is kept, and the core's next read_input is served from it
+ * with no exit: the bytes, as many as it asks, or the 0 or -1 the read
+ * returned.  While any of it is kept a wait answers 1 here, as the C's
+ * select would for bytes in the tty; once it is all the core's, a read
+ * makes its own call again, as before.  A signal the monitor caught before
+ * or during the call comes back as it did: a deadly one as event (before a
+ * byte is read: the call is made again), one the editor reads as input as
+ * its key sequence, which the host's read writes ahead of the tty's bytes. */
+enum
+{
+    WHIM_INPUT_BYTES = 250,
+};
+
+static char whim_input[WHIM_INPUT_BYTES];
+static int whim_input_kept;  /* a read's answer is kept: the core's next read is it */
+static long whim_input_ret;  /* what is left of it: the count not yet the core's, or 0 or -1 */
+static int whim_input_at;    /* where in whim_input that count starts */
+
 static int
 musl_wait_for_input(long ms)
 {
-    return (int)whim_hcall(WHIM_WAIT_FOR_INPUT, ms, 0, 0, 0, 0);
+    if (whim_input_kept)
+    {
+        return 1;
+    }
+    if (whim_hcall(WHIM_WAIT_READ, ms, (long)whim_input, WHIM_INPUT_BYTES, 0, 0) == 0)
+    {
+        return 0;
+    }
+    whim_input_kept = 1;
+    whim_input_ret = whim_call.a[0];
+    whim_input_at = 0;
+    return 1;
 }
 
 static int
 musl_read_input(char *buf, int len)
 {
-    return (int)whim_hcall(WHIM_READ_INPUT, (long)buf, len, 0, 0, 0);
+    long n;
+    if (!whim_input_kept || len <= 0)
+    {
+        return (int)whim_hcall(WHIM_READ_INPUT, (long)buf, len, 0, 0, 0);
+    }
+    if (whim_input_ret <= 0)
+    {
+        whim_input_kept = 0;
+        return (int)whim_input_ret;
+    }
+    n = whim_input_ret < len ? whim_input_ret : len;
+    memcpy(buf, whim_input + whim_input_at, (whim_usize)n);
+    whim_input_at += (int)n;
+    whim_input_ret -= n;
+    whim_input_kept = whim_input_ret > 0;
+    return (int)n;
 }
 
 static void
