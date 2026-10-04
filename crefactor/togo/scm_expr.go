@@ -944,6 +944,15 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 	if d != nil && d.Name() == "__builtin_expect" && len(args) == 2 {
 		return f.conv(f.expr(args[0]), scmTypeOf(x.Type()))
 	}
+	if r := f.s.recordClear(x); r != "" {
+		// memset(p, 0, sizeof *p) of a record: its fields cleared
+		// (ml_record.go)
+		p := f.expr(args[0])
+		f.lines = append(f.lines, p.binds...)
+		v := f.once(sx{val: p.val, st: "ptr", lvl: p.lvl})
+		f.emit("(rec-clear! %s %s)", r, v)
+		return sx{val: v, st: "ptr"}
+	}
 	viaPtr := d == nil
 	// the operands, in C's order: the pointer called through, the
 	// arguments, the variadic ones

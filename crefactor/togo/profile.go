@@ -127,6 +127,11 @@ type Profile struct {
 	// backend writes as variants (ml_enum.go): those whose values OCaml
 	// types apart from every integer, which its type checker proves.
 	MlVariants []string
+	// MlRecords are the C structs, by typedef, the OCaml backend writes as
+	// records (ml_record.go): those no byte of which is ever memory, which
+	// it checks, and that OCaml's type checker proves no pointer meets an
+	// integer.
+	MlRecords []string
 	// MlStrings are the C's string comparisons, by name, whose test for 0
 	// against a literal the OCaml backend writes on an OCaml string
 	// (ml_expr.go's strEq): strcmp, strncmp, strcasecmp, strncasecmp.

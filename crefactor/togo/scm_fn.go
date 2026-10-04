@@ -203,6 +203,9 @@ func (f *sfn) print() string {
 		if isAggr(v.c) || v.c.Kind() == cc.Array {
 			kind = "agg"
 		}
+		if r := f.s.record(v.c); r != "" {
+			kind = "rec:" + r
+		}
 		defs = append(defs, fmt.Sprintf("(define-c-local %s &%s %s %d)", f.base[v], f.base[v], kind, f.mem[v]))
 	}
 	entry := strings.Join(forms, "\n")
@@ -425,6 +428,10 @@ func (f *sfn) placeVars(fd *cc.FunctionDefinition) {
 	rec(fd.CompoundStatement)
 	for _, v := range f.lf.vars {
 		if f.sv[v] != nil {
+			continue
+		}
+		if f.s.record(v.c) != "" {
+			f.mem[v] = 0 // a record the OCaml makes, no room in the frame (ml_record.go)
 			continue
 		}
 		if isAggr(v.c) || v.c.Kind() == cc.Array || v.decl != nil && (taken[v.decl] || f.s.facts.outLazy[v.decl]) {
@@ -957,7 +964,7 @@ func (f *sfn) setVar(v *lvar, x sx) {
 		if isAggr(v.c) {
 			x = f.materialize(x, v.c)
 			src := f.flush(x)
-			f.emit("(mem-copy! %s %s %d)", a.base.val, src, v.c.Size())
+			f.emit("%s", f.copyAgg(a.base.val, src, v.c))
 			return
 		}
 		x = f.conv(x, f.vtype(v))
@@ -1019,7 +1026,7 @@ func (f *sfn) store(lhs cc.ExpressionNode, x sx) {
 	}
 	f.lines = append(f.lines, f.seq(&a.base, &x)...)
 	if isAggr(t) {
-		f.emit("(mem-copy! %s %s %d)", f.addrString(a), x.val, t.Size())
+		f.emit("%s", f.copyAgg(f.addrString(a), x.val, t))
 		return
 	}
 	f.emit("%s", f.storeString(a, scmTypeOf(t), x.val))
@@ -1204,8 +1211,21 @@ func (f *sfn) initVar(s lstep) {
 	}
 	_ = off
 	a := f.localAddr(v)
-	f.emit("(mem-zero! %s %d)", a.base.val, v.c.Size())
+	if r := f.s.record(v.c); r != "" {
+		f.emit("(rec-clear! %s %s)", r, a.base.val)
+	} else {
+		f.emit("(mem-zero! %s %d)", a.base.val, v.c.Size())
+	}
 	f.initInto(a.base.val, v.c, s.in)
+}
+
+// copyAgg is the copy of the struct at src to dst, of type t: its bytes,
+// or a record's fields (ml_record.go).
+func (f *sfn) copyAgg(dst, src string, t cc.Type) string {
+	if r := f.s.record(t); r != "" {
+		return fmt.Sprintf("(rec-copy! %s %s %s)", r, dst, src)
+	}
+	return fmt.Sprintf("(mem-copy! %s %s %d)", dst, src, t.Size())
 }
 
 // initInto writes initializer in, of an object of type t at base, into
@@ -1241,7 +1261,7 @@ func (f *sfn) initInto(base string, t cc.Type, in *cc.Initializer) {
 				return
 			}
 			x = f.materialize(x, it)
-			f.emit("(mem-copy! %s %s %d)", addr, f.flush(x), it.Size())
+			f.emit("%s", f.copyAgg(addr, f.flush(x), it))
 			return
 		}
 		st := scmTypeOf(it)
@@ -1250,6 +1270,15 @@ func (f *sfn) initInto(base string, t cc.Type, in *cc.Initializer) {
 			return // the memory is zeroed
 		}
 		val := f.flush(f.conv(x, st))
+		if f.s.record(t) != "" {
+			// a record's field, by its accessor
+			fl := in.Field()
+			if fl == nil || int(fl.Offset()) != at {
+				f.no(e, "an initializer of a record's member that is not its own")
+			}
+			f.emit("%s", f.storeString(f.member(saddr{base: sx{val: base, st: "ptr"}}, t, fl), st, val))
+			return
+		}
 		f.emit("(%s %s %s)", scmStore(st), addr, val)
 		return
 	}

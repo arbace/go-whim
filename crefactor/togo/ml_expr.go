@@ -248,6 +248,18 @@ func (f *mlfn) body(forms []*sform, up *mlScope, want int) mlx {
 	for _, x := range frames {
 		// (define-c-local name &name kind off)
 		n, kind, off := x.kids[1].atom, x.kids[3].atom, x.kids[4].atom
+		if r, ok := strings.CutPrefix(kind, "rec:"); ok {
+			// a record, made where the function starts (ml_record.go)
+			mod := f.m.modules[r]
+			o := f.localName(n)
+			b := &mlBind{kind: mbFrame, name: o, memKind: "agg"}
+			sc.m[n] = b
+			sc.m["&"+n] = b
+			frameBinds = append(frameBinds, b)
+			frameDefs = append(frameDefs, "let "+o+" = "+mod+".make () in")
+			f.m.use(mod + ".make")
+			continue
+		}
 		o := f.localName(n)
 		if kind != "agg" {
 			o = f.localName(n + "_addr")
@@ -469,6 +481,19 @@ func (f *mlfn) expr(x *sform, sc *mlScope, want int) mlx {
 		return mlx{d: mgroup(mtext("["), mnest(1, mjoin(mcat(mtext(";"), mline), ds)), mtext("]")), prec: precAtom}
 	case "void":
 		return mlAtom("()")
+	case "rec-copy!", "rec-clear!":
+		// a record's fields copied, cleared (ml_record.go)
+		mod := f.m.modules[args[0].atom]
+		fn := mod + ".clear"
+		if h == "rec-copy!" {
+			fn = mod + ".copy_into"
+		}
+		f.m.use(fn)
+		var xs []mlx
+		for _, a := range args[1:] {
+			xs = append(xs, f.expr(a, sc, wantValue))
+		}
+		return f.apply(fn, xs)
 	case "error":
 		return mlx{d: mtext("failwith " + strconv.Quote(x.flat())), prec: precApp}
 	}
@@ -1153,6 +1178,20 @@ func (f *mlfn) memberOp(h string, args []*sform, sc *mlScope, want int) (mlx, bo
 	var xs []mlx
 	for _, a := range args {
 		xs = append(xs, f.expr(a, sc, wantValue))
+	}
+	if mm.record {
+		// a record's field (ml_record.go)
+		p := mlClosed(xs[0], precAtom).d
+		if xs[0].prec < precAtom {
+			p = mlParen(xs[0], precAtom).d
+		}
+		switch op {
+		case "addr":
+			panic(unsupported{"a record's field's address: " + base})
+		case "set":
+			return mlx{d: mgroup(mcat(p, mtext("."+mm.read+" <-")), mnest(2, mline, mlParen(xs[1], precAssign+1).d)), prec: precAssign}, true
+		}
+		return f.unit(mlx{d: mcat(p, mtext("."+mm.read)), prec: precAtom}, want), true
 	}
 	switch op {
 	case "addr":

@@ -350,3 +350,52 @@ func TestMlStrEq(t *testing.T) {
 		t.Errorf("a comparison against a literal left a call:\n%s", numbered(prog))
 	}
 }
+
+// mlRecordsC is a struct the profile names a record: locals made, written,
+// copied, initialized (all, and with {0} in a loop, which clears it each
+// time), passed by pointer to a function that reads and writes it.
+const mlRecordsC = javaHost + `
+typedef struct { int lnum; int fill; long height; _Bool top; } lineoff_T;
+static void step(lineoff_T *lp) { lp->lnum++; lp->height += lp->fill; lp->top = !lp->top; }
+static int sum(lineoff_T *lp) { return lp->lnum + lp->fill + (int)lp->height + lp->top * 100; }
+void run(void) {
+    lineoff_T a, b;
+    a.lnum = 1; a.fill = 2; a.height = 3; a.top = 0;
+    b = a; step(&b); out(sum(&a)); out(sum(&b));
+    lineoff_T c = {5, 6, 7, 1}; step(&c); out(sum(&c));
+    for (int i = 0; i < 3; i++) { lineoff_T d = {0}; d.lnum += i; step(&d); out(sum(&d)); }
+}
+`
+
+func TestMlRecords(t *testing.T) {
+	prog := mlSame(t, mlRecordsC, Profile{MlRecords: []string{"lineoff_T"}}, javaHarnessC)
+	for _, want := range []string{"type lineoff = {", "lp.lnum <- lp.lnum + 1", "Lineoff_T.make ()", "Lineoff_T.copy_into", "Lineoff_T.clear"} {
+		if !strings.Contains(prog, want) {
+			t.Errorf("no %q in the OCaml:\n%s", want, numbered(prog))
+		}
+	}
+	if strings.Contains(prog, "frame_push") {
+		t.Errorf("a record in the frame:\n%s", numbered(prog))
+	}
+}
+
+// A struct the profile names that is memory is refused: here a member's
+// address is taken.
+func TestMlRecordMemory(t *testing.T) {
+	requireMl(t)
+	src := javaHost + `
+typedef struct { int a, b; } pair_T;
+static void inc(int *p) { (*p)++; }
+void run(void) { pair_T p = {1, 2}; inc(&p.a); out(p.a + p.b); }
+`
+	dir := t.TempDir()
+	c := filepath.Join(dir, "prog.c")
+	if err := os.WriteFile(c, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	var log strings.Builder
+	prof := Profile{MlRecords: []string{"pair_T"}, ScmExports: []string{"run"}}
+	if rc := Run([]string{c, dir, "-ml", filepath.Join(dir, "editor.ml")}, &log, prof); rc == 0 || !strings.Contains(log.String(), "a member's address taken") {
+		t.Errorf("a record in memory was not refused: %d\n%s", rc, log.String())
+	}
+}

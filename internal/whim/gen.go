@@ -275,6 +275,9 @@ var Gen = togo.Profile{
 	// (hlf_T, magic_T), counted (CMD_index) or stored as key bytes and
 	// used as indices (key_extra, SpecialKey).
 	MlVariants: []string{"cmd_addr_T", "etype_T", "flush_buffers_T", "keyprot_T", "optmagic_T", "paste_mode_T", "set_op_T"},
+	// and the structs no byte of which is ever memory as records (item 8):
+	// locals passed down by pointer, never null, cleared, copied
+	MlRecords: []string{"bufref_T", "chartabsize_T", "lineoff_T", "searchstat_T", "ttyinfo_T"},
 	// and the core's string comparisons, whose test against a literal it
 	// writes on an OCaml string (c_str_is p "NONE", item 9)
 	MlStrings: togo.StrFuncs{Cmp: "musl_strcmp", NCmp: "musl_strncmp", CaseCmp: "musl_strcasecmp", NCaseCmp: "musl_strncasecmp"},

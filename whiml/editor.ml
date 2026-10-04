@@ -13,6 +13,13 @@ type optmagic = Option_magic_not_set | Option_magic_on | Option_magic_off
 type paste_mode = Paste_insert | Paste_cmdline | Paste_ex | Paste_one_char
 type set_op = Op_none | Op_adding | Op_prepending | Op_removing
 
+(* The C's structs no byte of which is ever memory: records. *)
+type bufref = { mutable br_buf : int; mutable br_fnum : int; mutable br_buf_free_count : int }
+type chartabsize = { mutable cts_win : int; mutable cts_line : int; mutable cts_ptr : int; mutable cts_vcol : int; mutable cts_max_head_vcol : int }
+type lineoff = { mutable lnum : int; mutable height : int }
+type searchstat = { mutable cur : int; mutable cnt : int; mutable exact_match : bool; mutable incomplete : int; mutable last_maxcount : int }
+type ttyinfo = { mutable backspace : int; mutable enter : int; mutable interrupt : int; mutable nl_does_cr : bool }
+
 (* The host's functions, as the core calls them: the editor carries them. *)
 type glue = {
   host_alloc : ed -> int -> int;
@@ -2002,12 +2009,7 @@ module Buffheader_T = struct
 end
 
 module Bufref_T = struct
-  let br_buf ed p = ld_ptr ed (p + 0)
-  let set_br_buf ed p v = st_ptr ed (p + 0) v
-  let br_fnum ed p = ld_s32 ed (p + 8)
-  let set_br_fnum ed p v = st_s32 ed (p + 8) v
-  let br_buf_free_count ed p = ld_s32 ed (p + 12)
-  let set_br_buf_free_count ed p v = st_s32 ed (p + 12) v
+  let make () = { br_buf = 0; br_fnum = 0; br_buf_free_count = 0 }
 end
 
 module Builtin_tcap_T = struct
@@ -2022,15 +2024,8 @@ module Charstab = struct
 end
 
 module Chartabsize_T = struct
-  let cts_win ed p = ld_ptr ed (p + 0)
-  let set_cts_win ed p v = st_ptr ed (p + 0) v
-  let cts_line ed p = ld_ptr ed (p + 8)
-  let set_cts_line ed p v = st_ptr ed (p + 8) v
-  let cts_ptr ed p = ld_ptr ed (p + 16)
-  let set_cts_ptr ed p v = st_ptr ed (p + 16) v
-  let cts_vcol ed p = ld_s32 ed (p + 24)
-  let set_cts_vcol ed p v = st_s32 ed (p + 24) v
-  let set_cts_max_head_vcol ed p v = st_s32 ed (p + 28) v
+  let make () = { cts_win = 0; cts_line = 0; cts_ptr = 0; cts_vcol = 0; cts_max_head_vcol = 0 }
+  let clear r = r.cts_win <- 0; r.cts_line <- 0; r.cts_ptr <- 0; r.cts_vcol <- 0; r.cts_max_head_vcol <- 0
 end
 
 module Clinterval = struct
@@ -2434,10 +2429,7 @@ module Linefound_T = struct
 end
 
 module Lineoff_T = struct
-  let lnum ed p = ld_s64 ed (p + 0)
-  let set_lnum ed p v = st_s64 ed (p + 0) v
-  let height ed p = ld_s32 ed (p + 8)
-  let set_height ed p v = st_s32 ed (p + 8) v
+  let make () = { lnum = 0; height = 0 }
 end
 
 module Llpos_T = struct
@@ -2964,14 +2956,8 @@ module Searchit_arg_T = struct
 end
 
 module Searchstat_T = struct
-  let cur ed p = ld_s32 ed (p + 0)
-  let set_cur ed p v = st_s32 ed (p + 0) v
-  let cnt ed p = ld_s32 ed (p + 4)
-  let set_cnt ed p v = st_s32 ed (p + 4) v
-  let set_exact_match ed p v = st_bool ed (p + 8) v
-  let incomplete ed p = ld_s32 ed (p + 12)
-  let set_incomplete ed p v = st_s32 ed (p + 12) v
-  let set_last_maxcount ed p v = st_s32 ed (p + 16) v
+  let make () = { cur = 0; cnt = 0; exact_match = false; incomplete = 0; last_maxcount = 0 }
+  let clear r = r.cur <- 0; r.cnt <- 0; r.exact_match <- false; r.incomplete <- 0; r.last_maxcount <- 0
 end
 
 module Signalinfo = struct
@@ -3092,12 +3078,7 @@ module Termrequest_T = struct
 end
 
 module Ttyinfo_T = struct
-  let backspace ed p = ld_s32 ed (p + 0)
-  let set_backspace ed p v = st_s32 ed (p + 0) v
-  let set_enter ed p v = st_s32 ed (p + 4) v
-  let interrupt ed p = ld_s32 ed (p + 8)
-  let set_interrupt ed p v = st_s32 ed (p + 8) v
-  let set_nl_does_cr ed p v = st_bool ed (p + 12) v
+  let make () = { backspace = 0; enter = 0; interrupt = 0; nl_does_cr = false }
 end
 
 module Typebuf_T = struct
@@ -4691,20 +4672,18 @@ let prepare_to_exit ed =
   out_flush ed
 
 let set_bufref ed bufref buf =
-  Bufref_T.set_br_buf ed bufref buf;
-  Bufref_T.set_br_fnum ed bufref (if buf = 0 then 0 else Buf_T.b_fnum ed buf);
-  Bufref_T.set_br_buf_free_count ed bufref ed.st.buf_free_count
+  bufref.br_buf <- buf;
+  bufref.br_fnum <- (if buf = 0 then 0 else Buf_T.b_fnum ed buf);
+  bufref.br_buf_free_count <- ed.st.buf_free_count
 
 let buf_valid ed buf =
   buf = ed.st.curbuf
 
 let bufref_valid ed bufref =
-  (if Bufref_T.br_buf_free_count ed bufref = ed.st.buf_free_count then
+  (if bufref.br_buf_free_count = ed.st.buf_free_count then
      true_
    else
-     Bool.to_int
-       (buf_valid ed (Bufref_T.br_buf ed bufref) &&
-        Bufref_T.br_fnum ed bufref = Buf_T.b_fnum ed (Bufref_T.br_buf ed bufref))) <>
+     Bool.to_int (buf_valid ed bufref.br_buf && bufref.br_fnum = Buf_T.b_fnum ed bufref.br_buf)) <>
   0
 
 let utf_printable ed c =
@@ -4795,12 +4774,12 @@ let stuff_empty ed =
 let can_get_old_char ed =
   ed.st.old_char <> -1 && (ed.st.old_KeyStuffed || stuff_empty ed)
 
-let init_chartabsize_arg ed cts wp _lnum col line ptr =
-  ignore (musl_memset ed cts 0 32);
-  Chartabsize_T.set_cts_win ed cts wp;
-  Chartabsize_T.set_cts_vcol ed cts col;
-  Chartabsize_T.set_cts_line ed cts line;
-  Chartabsize_T.set_cts_ptr ed cts ptr
+let init_chartabsize_arg _ed cts wp _lnum col line ptr =
+  Chartabsize_T.clear cts;
+  cts.cts_win <- wp;
+  cts.cts_vcol <- col;
+  cts.cts_line <- line;
+  cts.cts_ptr <- ptr
 
 let win_col_off ed wp =
   if Win_T.w_onebuf_opt_wo_nu ed wp <> 0 || Win_T.w_onebuf_opt_wo_rnu ed wp <> 0 then 8 else 0
@@ -4827,9 +4806,9 @@ let in_win_border ed wp vcol =
       if width2 <= 0 then false else (vcol - width1) mod width2 = width2 - 1
 
 let win_nolbr_chartabsize ed cts headp =
-  let wp = Chartabsize_T.cts_win ed cts in
-  let s = Chartabsize_T.cts_ptr ed cts in
-  let col = Chartabsize_T.cts_vcol ed cts in
+  let wp = cts.cts_win in
+  let s = cts.cts_ptr in
+  let col = cts.cts_vcol in
   if ld_u8 ed s = tab &&
      (Win_T.w_onebuf_opt_wo_list ed wp = 0 || Win_T.w_lcs_chars_tab1 ed wp <> 0) then
     (let n = to_i32 (Buf_T.b_p_ts ed (Win_T.w_buffer ed wp)) in
@@ -4845,13 +4824,13 @@ let win_nolbr_chartabsize ed cts headp =
 let lbr_chartabsize ed cts =
   if Win_T.w_onebuf_opt_wo_wrap ed ed.st.curwin <> 0 then
     win_nolbr_chartabsize ed cts 0
-  else if ld_u8 ed (Chartabsize_T.cts_ptr ed cts) = tab &&
+  else if ld_u8 ed cts.cts_ptr = tab &&
      (Win_T.w_onebuf_opt_wo_list ed ed.st.curwin = 0 ||
       Win_T.w_lcs_chars_tab1 ed ed.st.curwin <> 0) then
     (let ts = to_i32 (Buf_T.b_p_ts ed ed.st.curbuf) in
-     ts - Chartabsize_T.cts_vcol ed cts mod ts)
+     ts - cts.cts_vcol mod ts)
   else
-    ptr2cells ed (Chartabsize_T.cts_ptr ed cts)
+    ptr2cells ed cts.cts_ptr
 
 let skipwhite ed q =
   let rec loop1 p =
@@ -4919,9 +4898,9 @@ let get_rel_pos ed wp buf buflen =
       r3
 
 let win_lbr_chartabsize ed cts headp _tailp =
-  let wp = Chartabsize_T.cts_win ed cts in
-  let s = Chartabsize_T.cts_ptr ed cts in
-  let vcol = Chartabsize_T.cts_vcol ed cts in
+  let wp = cts.cts_win in
+  let s = cts.cts_ptr in
+  let vcol = cts.cts_vcol in
   if Win_T.w_onebuf_opt_wo_wrap ed wp <> 0 then
     win_nolbr_chartabsize ed cts headp
   else if ld_u8 ed s = tab &&
@@ -6320,28 +6299,24 @@ let cleanup_subexpr ed re =
 
 let win_linetabsize_cts ed cts len =
   let rec loop1 vcol =
-    if ld_u8 ed (Chartabsize_T.cts_ptr ed cts) <> nul &&
-       (len = maxcol || Chartabsize_T.cts_ptr ed cts < Chartabsize_T.cts_line ed cts + len) then
+    if ld_u8 ed cts.cts_ptr <> nul && (len = maxcol || cts.cts_ptr < cts.cts_line + len) then
       (let t1 = win_lbr_chartabsize ed cts 0 0 in
        let vcol = vcol + t1 in
        if vcol > maxcol then
-         Chartabsize_T.set_cts_vcol ed cts maxcol
+         cts.cts_vcol <- maxcol
        else
-         (Chartabsize_T.set_cts_vcol ed cts (to_i32 vcol);
-          let t2 = utfc_ptr2len ed (Chartabsize_T.cts_ptr ed cts) in
-          Chartabsize_T.set_cts_ptr ed cts (Chartabsize_T.cts_ptr ed cts + t2);
+         (cts.cts_vcol <- to_i32 vcol;
+          let t2 = utfc_ptr2len ed cts.cts_ptr in
+          cts.cts_ptr <- cts.cts_ptr + t2;
           loop1 vcol))
   in
-  loop1 (Chartabsize_T.cts_vcol ed cts)
+  loop1 cts.cts_vcol
 
 let win_linetabsize ed wp lnum line len =
-  let fr = frame_push ed 32 in
-  let cts = fr + 0 in
+  let cts = Chartabsize_T.make () in
   init_chartabsize_arg ed cts wp lnum 0 line line;
   win_linetabsize_cts ed cts len;
-  let r1 = Chartabsize_T.cts_vcol ed cts in
-  frame_pop ed fr;
-  r1
+  cts.cts_vcol
 
 let vim_isIDc ed c =
   c > 0 && c < 256 && ld_u8 ed (g_chartab + c) land ct_id_char <> 0
@@ -7534,8 +7509,8 @@ let changedOneline ed buf lnum =
 
 let lbr_chartabsize_adv ed cts =
   let retval = lbr_chartabsize ed cts in
-  let t1 = utfc_ptr2len ed (Chartabsize_T.cts_ptr ed cts) in
-  Chartabsize_T.set_cts_ptr ed cts (Chartabsize_T.cts_ptr ed cts + t1);
+  let t1 = utfc_ptr2len ed cts.cts_ptr in
+  cts.cts_ptr <- cts.cts_ptr + t1;
   retval
 
 let unchanged ed buf _ff always_inc_changedtick =
@@ -10974,20 +10949,16 @@ and vim_memsave ed p len =
   ret
 
 and open_buffer ed =
-  let fr = frame_push ed 16 in
-  let old_curbuf = fr + 0 in
+  let old_curbuf = Bufref_T.make () in
   let join10 retval =
     let join15 () =
-      frame_pop ed fr;
       retval
     in
     if Win_T.w_valid ed ed.st.curwin land valid_topline = 0 then
       Win_T.set_w_topline ed ed.st.curwin 1;
     if not retval then
-      (frame_pop ed fr;
-       retval)
-    else if bufref_valid ed old_curbuf &&
-       Buf_T.b_ml_ml_root ed (Bufref_T.br_buf ed old_curbuf) <> 0 then
+      retval
+    else if bufref_valid ed old_curbuf && Buf_T.b_ml_ml_root ed old_curbuf.br_buf <> 0 then
       (let r2 = ed.st.curbuf in
        Buf_T.set_b_flags ed r2 (Buf_T.b_flags ed r2 land -7);
        join15 ())
@@ -11043,8 +11014,7 @@ and can_unload_buffer ed buf =
     join3 can_unload
 
 and close_buffer ed win buf action abort_if_last ignore_abort set_context =
-  let fr = frame_push ed 16 in
-  let bufref = fr + 0 in
+  let bufref = Bufref_T.make () in
   let unload_buf = action <> 0 in
   let wipe_buf = action = dobuf_wipe || action = dobuf_wipe_reuse in
   let win_valid = win_valid_any_tab ed win in
@@ -11056,8 +11026,7 @@ and close_buffer ed win buf action abort_if_last ignore_abort set_context =
         (win_valid || closed_popup) && Win_T.w_buffer ed win = buf && Buf_T.b_nwindows ed buf = 1
       in
       if not hiding_buf || not unload_buf then
-        (frame_pop ed fr;
-         false)
+        false
       else if buf_freeall ed buf
            ((if true then bfa_del else 0) + (if wipe_buf then bfa_wipe else 0) +
             (if ignore_abort then bfa_ignore_abort else 0)) then
@@ -11070,11 +11039,9 @@ and close_buffer ed win buf action abort_if_last ignore_abort set_context =
             Buf_T.set_b_flags ed buf 6;
             Buf_T.set_b_p_initialized ed buf false);
          buf_clear_file ed buf;
-         frame_pop ed fr;
          true)
       else
-        (frame_pop ed fr;
-         false)
+        false
     in
     set_bufref ed bufref buf;
     if (win_valid || closed_popup) &&
@@ -11082,7 +11049,6 @@ and close_buffer ed win buf action abort_if_last ignore_abort set_context =
        Buf_T.b_nwindows ed buf = 1 then
       (if abort_if_last then
          (ignore (emsg ed e_autocommands_caused_command_to_abort);
-          frame_pop ed fr;
           false)
        else
          join8 (win_valid && win_valid_any_tab ed win))
@@ -11090,8 +11056,7 @@ and close_buffer ed win buf action abort_if_last ignore_abort set_context =
       join8 win_valid
   in
   if ((action = dobuf_del || wipe_buf) || wipe_buf) && not (can_unload_buffer ed buf) then
-    (frame_pop ed fr;
-     false)
+    false
   else if set_context && win_valid && Win_T.w_buffer ed win = buf then
     (if Buf_T.b_nwindows ed buf = 1 then set_last_cursor ed win;
      buflist_setfpos ed buf win
@@ -11102,8 +11067,7 @@ and close_buffer ed win buf action abort_if_last ignore_abort set_context =
     join5 ()
 
 and buf_freeall ed buf flags =
-  let fr = frame_push ed 16 in
-  let bufref = fr + 0 in
+  let bufref = Bufref_T.make () in
   let is_curbuf = buf = ed.st.curbuf in
   Buf_T.set_b_locked ed buf (Buf_T.b_locked ed buf + 1);
   Buf_T.set_b_locked_split ed buf (Buf_T.b_locked_split ed buf + 1);
@@ -11111,15 +11075,13 @@ and buf_freeall ed buf flags =
   Buf_T.set_b_locked ed buf (Buf_T.b_locked ed buf - 1);
   Buf_T.set_b_locked_split ed buf (Buf_T.b_locked_split ed buf - 1);
   if buf = ed.st.curbuf && not is_curbuf then
-    (frame_pop ed fr;
-     false)
+    false
   else
     (if buf = ed.st.curbuf && ed.st.visual_active then end_visual_mode ed;
      ml_close ed buf true;
      Buf_T.set_b_ml_ml_line_count ed buf 0;
      if flags land bfa_keep_undo = 0 then u_clearallandblockfree ed buf;
      Buf_T.set_b_flags ed buf (Buf_T.b_flags ed buf land -65);
-     frame_pop ed fr;
      true)
 
 and free_buffer_stuff ed buf free_options =
@@ -11743,10 +11705,10 @@ and linetabsize_eol ed wp lnum =
   (if Win_T.w_onebuf_opt_wo_list ed wp <> 0 && Win_T.w_lcs_chars_eol ed wp <> nul then 1 else 0)
 
 and getvcol ed wp pos start cursor' end_' flags =
-  let fr = frame_push ed 48 in
+  let fr = frame_push ed 16 in
   let head_addr = fr + 0 in
   let tail_addr = fr + 4 in
-  let cts = fr + 8 in
+  let cts = Chartabsize_T.make () in
   let join20 vcol ptr line incr =
     if ld_u8 ed ptr = nul && Pos_T.col ed pos < maxcol && Pos_T.col ed pos > ptr - line then
       Pos_T.set_col ed pos (to_i32 (ptr - line));
@@ -11779,8 +11741,8 @@ and getvcol ed wp pos start cursor' end_' flags =
     frame_pop ed fr
   in
   let join6 line incr =
-    let vcol = Chartabsize_T.cts_vcol ed cts in
-    join20 vcol (Chartabsize_T.cts_ptr ed cts) line incr
+    let vcol = cts.cts_vcol in
+    join20 vcol cts.cts_ptr line incr
   in
   let rec loop8 vcol ptr line ts =
     st_s32 ed head_addr 0;
@@ -11818,7 +11780,7 @@ and getvcol ed wp pos start cursor' end_' flags =
   let ts = to_i32 (Buf_T.b_p_ts ed (Win_T.w_buffer ed wp)) in
   let ptr = ml_get_buf ed (Win_T.w_buffer ed wp) (Pos_T.lnum ed pos) false in
   init_chartabsize_arg ed cts wp (Pos_T.lnum ed pos) 0 ptr ptr;
-  Chartabsize_T.set_cts_max_head_vcol ed cts (-1);
+  cts.cts_max_head_vcol <- -1;
   if Win_T.w_onebuf_opt_wo_list ed wp = 0 || Win_T.w_lcs_chars_tab1 ed wp <> nul then
     loop8 0 ptr ptr ts
   else
@@ -11826,16 +11788,16 @@ and getvcol ed wp pos start cursor' end_' flags =
       st_s32 ed head_addr 0;
       st_s32 ed tail_addr 0;
       let incr = win_lbr_chartabsize ed cts head_addr tail_addr in
-      if ld_u8 ed (Chartabsize_T.cts_ptr ed cts) = nul then
+      if ld_u8 ed cts.cts_ptr = nul then
         join6 ptr 1
       else
-        let r1 = Chartabsize_T.cts_ptr ed cts in
-        let next_ptr_2 = r1 + utfc_ptr2len ed (Chartabsize_T.cts_ptr ed cts) in
+        let r1 = cts.cts_ptr in
+        let next_ptr_2 = r1 + utfc_ptr2len ed cts.cts_ptr in
         if next_ptr_2 - ptr > Pos_T.col ed pos then
           join6 ptr incr
         else
-          (Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + incr);
-           Chartabsize_T.set_cts_ptr ed cts next_ptr_2;
+          (cts.cts_vcol <- cts.cts_vcol + incr;
+           cts.cts_ptr <- next_ptr_2;
            loop2 ())
     in
     loop2 ()
@@ -12055,15 +12017,15 @@ and draw_screen_line ed wp wlv =
   Winlinevars_T.set_screen_row ed wlv (Winlinevars_T.screen_row ed wlv + 1)
 
 and win_line ed wp lnum startrow endrow number_only =
-  let fr = frame_push ed 352 in
+  let fr = frame_push ed 320 in
   let wlv = fr + 0 in
   let pos = fr + 264 in
   let area_attr_addr = fr + 280 in
   let u8cc = fr + 284 in
   let match_conc_addr = fr + 308 in
-  let cts = fr + 312 in
-  let head_addr = fr + 344 in
-  let has_match_conc_addr = fr + 348 in
+  let cts = Chartabsize_T.make () in
+  let head_addr = fr + 312 in
+  let has_match_conc_addr = fr + 316 in
   let rec loop85 line ptr in_curline lcs_eol_one lcs_prec_todo n_attr saved_attr2 n_attr3 saved_attr3 skip_cells skipped_cells attr_pri area_highlighting vi_attr search_attr extra_check multi_attr trailcol leadcol in_multispace multispace_pos sign_present num_attr did_line_attr on_last_col prepare_search_hl_line__o_r__ prepare_search_hl_line__o_line prepare_search_hl_line__o_search_attr update_search_hl__o_r__ update_search_hl__o_line update_search_hl__o_on_last_col =
     let join300 _update_search_hl__o_r__ _update_search_hl__o_line _update_search_hl__o_on_last_col =
       let r8 = Winlinevars_T.row ed wlv in
@@ -12947,11 +12909,11 @@ and win_line ed wp lnum startrow endrow number_only =
             if v > 0 && number_only = 0 then
               (st_s32 ed head_addr 0;
                init_chartabsize_arg ed cts wp lnum (to_i32 (Winlinevars_T.vcol ed wlv)) line ptr;
-               Chartabsize_T.set_cts_max_head_vcol ed cts (to_i32 v);
+               cts.cts_max_head_vcol <- to_i32 v;
                let rec loop58 in_multispace multispace_pos prev_ptr charsize =
                  let join70 prev_ptr charsize =
-                   Winlinevars_T.set_vcol ed wlv (Chartabsize_T.cts_vcol ed cts);
-                   let ptr = Chartabsize_T.cts_ptr ed cts in
+                   Winlinevars_T.set_vcol ed wlv cts.cts_vcol;
+                   let ptr = cts.cts_ptr in
                    let join74 ptr =
                      let join76 skip_cells =
                        if Winlinevars_T.tocol ed wlv <= Winlinevars_T.vcol ed wlv then
@@ -12978,27 +12940,27 @@ and win_line ed wp lnum startrow endrow number_only =
                    else
                      join74 ptr
                  in
-                 if Chartabsize_T.cts_vcol ed cts < v then
+                 if cts.cts_vcol < v then
                    (st_s32 ed head_addr 0;
                     let charsize = win_lbr_chartabsize ed cts head_addr 0 in
-                    Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + charsize);
-                    let prev_ptr = Chartabsize_T.cts_ptr ed cts in
+                    cts.cts_vcol <- cts.cts_vcol + charsize;
+                    let prev_ptr = cts.cts_ptr in
                     if ld_u8 ed prev_ptr = nul then
                       join70 prev_ptr charsize
                     else
-                      let t1 = utfc_ptr2len ed (Chartabsize_T.cts_ptr ed cts) in
-                      Chartabsize_T.set_cts_ptr ed cts (Chartabsize_T.cts_ptr ed cts + t1);
+                      let t1 = utfc_ptr2len ed cts.cts_ptr in
+                      cts.cts_ptr <- cts.cts_ptr + t1;
                       if Win_T.w_onebuf_opt_wo_list ed wp = 0 then
                         loop58 in_multispace multispace_pos prev_ptr charsize
                       else
                         let in_multispace =
                           ld_char ed prev_ptr = ' ' &&
-                          (ld_char ed (Chartabsize_T.cts_ptr ed cts) = ' ' ||
+                          (ld_char ed cts.cts_ptr = ' ' ||
                            prev_ptr > line && ld_char ed (prev_ptr - 1) = ' ')
                         in
                         if not in_multispace then
                           loop58 in_multispace 0 prev_ptr charsize
-                        else if Chartabsize_T.cts_ptr ed cts >= line + leadcol &&
+                        else if cts.cts_ptr >= line + leadcol &&
                            Win_T.w_lcs_chars_multispace ed wp <> 0 then
                           (let multispace_pos = multispace_pos + 1 in
                            if ld_s32 ed (Win_T.w_lcs_chars_multispace ed wp + multispace_pos * 4) =
@@ -13006,7 +12968,7 @@ and win_line ed wp lnum startrow endrow number_only =
                              loop58 in_multispace 0 prev_ptr charsize
                            else
                              loop58 in_multispace multispace_pos prev_ptr charsize)
-                        else if Chartabsize_T.cts_ptr ed cts < line + leadcol &&
+                        else if cts.cts_ptr < line + leadcol &&
                            Win_T.w_lcs_chars_leadmultispace ed wp <> 0 then
                           (let multispace_pos = multispace_pos + 1 in
                            if ld_s32 ed
@@ -16753,8 +16715,7 @@ and handle_mapping ed keylenp timedout mapdepth =
     join2 0 0 0 0 keylenp false 0 0 false 0
 
 and vgetorpeek ed advance =
-  let fr = frame_push ed 32 in
-  let cts = fr + 0 in
+  let cts = Chartabsize_T.make () in
   let rec loop4 timedout mapdepth mode_deleted handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth =
     let join8 c =
       if c <> nul && ed.st.got_int = 0 then
@@ -16889,14 +16850,13 @@ and vgetorpeek ed advance =
       join18 timedout 0 handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout
         handle_mapping__o_mapdepth
   and loop30 c timedout mapdepth mode_deleted old_wcol old_wrow keylen ptr handle_mapping__o_r__ handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth =
-    if Chartabsize_T.cts_ptr ed cts < ptr + Win_T.w_cursor_col ed ed.st.curwin then
-      (if not (ld_char ed (Chartabsize_T.cts_ptr ed cts) = ' ' ||
-           ld_char ed (Chartabsize_T.cts_ptr ed cts) = '\t') then
-         Win_T.set_w_wcol ed ed.st.curwin (Chartabsize_T.cts_vcol ed cts);
+    if cts.cts_ptr < ptr + Win_T.w_cursor_col ed ed.st.curwin then
+      (if not (ld_char ed cts.cts_ptr = ' ' || ld_char ed cts.cts_ptr = '\t') then
+         Win_T.set_w_wcol ed ed.st.curwin cts.cts_vcol;
        let t2 = lbr_chartabsize ed cts in
-       Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + t2);
-       let t3 = utfc_ptr2len ed (Chartabsize_T.cts_ptr ed cts) in
-       Chartabsize_T.set_cts_ptr ed cts (Chartabsize_T.cts_ptr ed cts + t3);
+       cts.cts_vcol <- cts.cts_vcol + t2;
+       let t3 = utfc_ptr2len ed cts.cts_ptr in
+       cts.cts_ptr <- cts.cts_ptr + t3;
        loop30 c timedout mapdepth mode_deleted old_wcol old_wrow keylen ptr handle_mapping__o_r__
          handle_mapping__o_keylenp handle_mapping__o_timedout handle_mapping__o_mapdepth)
     else
@@ -17121,12 +17081,10 @@ and vgetorpeek ed advance =
                  ignore (showmode ed)));
        if timedout && c = esc then gotchars_ignore ed;
        ed.st.vgetc_busy <- ed.st.vgetc_busy - 1;
-       frame_pop ed fr;
        c)
   in
   if ed.st.vgetc_busy > 0 && ed.st.ex_normal_busy = 0 then
-    (frame_pop ed fr;
-     nul)
+    nul
   else
     (ed.st.vgetc_busy <- ed.st.vgetc_busy + 1;
      if advance then ed.st.keystuffed <- false;
@@ -20640,50 +20598,42 @@ and plines_win ed wp lnum limit_winheight =
     join4 (plines_win_nofold ed wp lnum)
 
 and plines_win_nofold ed wp lnum =
-  let fr = frame_push ed 32 in
-  let cts = fr + 0 in
+  let cts = Chartabsize_T.make () in
   let join3 col =
     let r1 = Win_T.w_width ed wp in
     let width = r1 - win_col_off ed wp in
     if width <= 0 then
-      (frame_pop ed fr;
-       32000)
+      32000
     else if col <= width then
-      (frame_pop ed fr;
-       1)
+      1
     else
       let col = col - width in
       let t1 = win_col_off2 ed wp in
       let width = width + t1 in
-      frame_pop ed fr;
       to_i32 ((col + (width - 1)) / width + 1)
   in
   let s = ml_get_buf ed (Win_T.w_buffer ed wp) lnum false in
   init_chartabsize_arg ed cts wp lnum 0 s s;
   if ld_u8 ed s = nul then
-    (frame_pop ed fr;
-     1)
+    1
   else
     (win_linetabsize_cts ed cts 2147483647;
-     let col = Chartabsize_T.cts_vcol ed cts in
+     let col = cts.cts_vcol in
      if Win_T.w_onebuf_opt_wo_list ed wp <> 0 && Win_T.w_lcs_chars_eol ed wp <> nul then
        join3 (col + 1)
      else
        join3 col)
 
 and plines_win_col ed wp lnum column =
-  let fr = frame_push ed 32 in
-  let cts = fr + 0 in
+  let cts = Chartabsize_T.make () in
   let join9 lines =
-    frame_pop ed fr;
     lines
   in
   let join6 col lines =
     let r1 = Win_T.w_width ed wp in
     let width = r1 - win_col_off ed wp in
     if width <= 0 then
-      (frame_pop ed fr;
-       9999)
+      9999
     else
       let lines = lines + 1 in
       if col > width then
@@ -20692,25 +20642,22 @@ and plines_win_col ed wp lnum column =
         join9 lines
   in
   if Win_T.w_onebuf_opt_wo_wrap ed wp = 0 then
-    (frame_pop ed fr;
-     0 + 1)
+    0 + 1
   else if Win_T.w_width ed wp = 0 then
-    (frame_pop ed fr;
-     0 + 1)
+    0 + 1
   else
     let line = ml_get_buf ed (Win_T.w_buffer ed wp) lnum false in
     init_chartabsize_arg ed cts wp lnum 0 line line;
     let rec loop3 () =
-      if ld_u8 ed (Chartabsize_T.cts_ptr ed cts) <> nul &&
-         Chartabsize_T.cts_ptr ed cts < line + column then
+      if ld_u8 ed cts.cts_ptr <> nul && cts.cts_ptr < line + column then
         (let t1 = win_lbr_chartabsize ed cts 0 0 in
-         Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + t1);
-         let t2 = utfc_ptr2len ed (Chartabsize_T.cts_ptr ed cts) in
-         Chartabsize_T.set_cts_ptr ed cts (Chartabsize_T.cts_ptr ed cts + t2);
+         cts.cts_vcol <- cts.cts_vcol + t1;
+         let t2 = utfc_ptr2len ed cts.cts_ptr in
+         cts.cts_ptr <- cts.cts_ptr + t2;
          loop3 ())
       else
-        let col = Chartabsize_T.cts_vcol ed cts in
-        if ld_u8 ed (Chartabsize_T.cts_ptr ed cts) = tab &&
+        let col = cts.cts_vcol in
+        if ld_u8 ed cts.cts_ptr = tab &&
            ed.st.state land mode_normal <> 0 &&
            (Win_T.w_onebuf_opt_wo_list ed wp = 0 || Win_T.w_lcs_chars_tab1 ed wp <> 0) then
           join6 (col + (win_lbr_chartabsize ed cts 0 0 - 1)) 0
@@ -20924,10 +20871,10 @@ and getvpos ed pos wantcol =
   coladvance2 ed pos false (virtual_active ed) wantcol
 
 and coladvance2 ed pos addspaces finetune wcol_arg =
-  let fr = frame_push ed 48 in
-  let cts = fr + 0 in
-  let scol_addr = fr + 32 in
-  let ecol_addr = fr + 36 in
+  let fr = frame_push ed 16 in
+  let cts = Chartabsize_T.make () in
+  let scol_addr = fr + 0 in
+  let ecol_addr = fr + 4 in
   let join39 wcol idx col one_more =
     let join49 col =
       mb_adjustpos ed ed.st.curbuf pos;
@@ -21003,14 +20950,13 @@ and coladvance2 ed pos addspaces finetune wcol_arg =
     let join6 wcol csize =
       init_chartabsize_arg ed cts ed.st.curwin (Pos_T.lnum ed pos) 0 line line;
       let rec loop7 csize =
-        if Chartabsize_T.cts_vcol ed cts <= wcol &&
-           ld_u8 ed (Chartabsize_T.cts_ptr ed cts) <> nul then
+        if cts.cts_vcol <= wcol && ld_u8 ed cts.cts_ptr <> nul then
           (let csize = lbr_chartabsize_adv ed cts in
-           Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + csize);
+           cts.cts_vcol <- cts.cts_vcol + csize;
            loop7 csize)
         else
-          let col = Chartabsize_T.cts_vcol ed cts in
-          let idx = to_i32 (Chartabsize_T.cts_ptr ed cts - line) in
+          let col = cts.cts_vcol in
+          let idx = to_i32 (cts.cts_ptr - line) in
           let join10 idx col =
             if virtual_active ed <> 0 &&
                addspaces &&
@@ -21455,9 +21401,9 @@ and comp_botline ed wp =
     join3 lnum (Win_T.w_cline_row ed wp) 0
 
 and update_topline ed =
-  let fr = frame_push ed 32 in
+  let fr = frame_push ed 16 in
   let vcol_addr = fr + 0 in
-  let loff = fr + 8 in
+  let loff = Lineoff_T.make () in
   let so_ptr =
     if Win_T.w_onebuf_opt_wo_so ed ed.st.curwin >= 0 then
       Win_T.w_onebuf_opt_wo_so_addr ed.st.curwin
@@ -21527,8 +21473,8 @@ and update_topline ed =
                   (if Win_T.w_cursor_lnum ed ed.st.curwin >=
                       Win_T.w_botline ed ed.st.curwin - ld_s64 ed so_ptr then
                      (let n = if eof_pressure then 0 else Win_T.w_empty_rows ed ed.st.curwin in
-                      Lineoff_T.set_lnum ed loff (Win_T.w_cursor_lnum ed ed.st.curwin);
-                      Lineoff_T.set_height ed loff 0;
+                      loff.lnum <- Win_T.w_cursor_lnum ed ed.st.curwin;
+                      loff.height <- 0;
                       let rec loop34 n =
                         let join37 n =
                           if n >= ld_s64 ed so_ptr && not eof_pressure then
@@ -21536,8 +21482,8 @@ and update_topline ed =
                           else
                             join39 check_botline
                         in
-                        if Lineoff_T.lnum ed loff < Win_T.w_botline ed ed.st.curwin then
-                          (let n = n + Lineoff_T.height ed loff in
+                        if loff.lnum < Win_T.w_botline ed ed.st.curwin then
+                          (let n = n + loff.height in
                            if n >= ld_s64 ed so_ptr then
                              join37 n
                            else
@@ -21610,35 +21556,23 @@ and update_topline ed =
        frame_pop ed fr)
 
 and check_top_offset ed =
-  let fr = frame_push ed 16 in
-  let loff = fr + 0 in
-  let join6 () =
-    frame_pop ed fr;
-    false
-  in
+  let loff = Lineoff_T.make () in
   let so = get_scrolloff_value ed in
   if Win_T.w_cursor_lnum ed ed.st.curwin < Win_T.w_topline ed ed.st.curwin + so then
-    (Lineoff_T.set_lnum ed loff (Win_T.w_cursor_lnum ed ed.st.curwin);
+    (loff.lnum <- Win_T.w_cursor_lnum ed ed.st.curwin;
      let rec loop2 n =
        let join5 () =
-         if n < so then
-           (frame_pop ed fr;
-            true)
-         else
-           join6 ()
+         n < so
        in
        if n < so then
          (topline_back ed loff;
-          if Lineoff_T.lnum ed loff < Win_T.w_topline ed ed.st.curwin then
-            join5 ()
-          else
-            loop2 (n + Lineoff_T.height ed loff))
+          if loff.lnum < Win_T.w_topline ed ed.st.curwin then join5 () else loop2 (n + loff.height))
        else
          join5 ()
      in
      loop2 0)
   else
-    join6 ()
+    false
 
 and update_curswant_force ed =
   validate_virtcol ed;
@@ -22213,21 +22147,21 @@ and adjust_skipcol ed =
              (sms_marker_overlap ed ed.st.curwin (Win_T.w_width ed ed.st.curwin - width2)))))
 
 and topline_back_winheight ed lp winheight =
-  Lineoff_T.set_lnum ed lp (Lineoff_T.lnum ed lp - 1);
-  if Lineoff_T.lnum ed lp < 1 then
-    Lineoff_T.set_height ed lp maxcol
+  lp.lnum <- lp.lnum - 1;
+  if lp.lnum < 1 then
+    lp.height <- maxcol
   else
-    Lineoff_T.set_height ed lp (plines_win ed ed.st.curwin (Lineoff_T.lnum ed lp) winheight)
+    lp.height <- plines_win ed ed.st.curwin lp.lnum winheight
 
 and topline_back ed lp =
   topline_back_winheight ed lp true
 
 and botline_forw ed lp =
-  Lineoff_T.set_lnum ed lp (Lineoff_T.lnum ed lp + 1);
-  if Lineoff_T.lnum ed lp > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
-    Lineoff_T.set_height ed lp maxcol
+  lp.lnum <- lp.lnum + 1;
+  if lp.lnum > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+    lp.height <- maxcol
   else
-    Lineoff_T.set_height ed lp (plines ed (Lineoff_T.lnum ed lp))
+    lp.height <- plines ed lp.lnum
 
 and scroll_cursor_top ed min_scroll always =
   let join28 () =
@@ -22319,9 +22253,8 @@ and scroll_cursor_top ed min_scroll always =
   if ed.st.mouse_dragging > 0 then join2 0 0 (ed.st.mouse_dragging - 1) else join2 0 0 off
 
 and scroll_cursor_bot ed min_scroll set_topbot =
-  let fr = frame_push ed 32 in
-  let loff = fr + 0 in
-  let boff = fr + 16 in
+  let loff = Lineoff_T.make () in
+  let boff = Lineoff_T.make () in
   let rec loop28 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms =
     let join44 used scrolled =
       let join54 line_count =
@@ -22339,46 +22272,45 @@ and scroll_cursor_bot ed min_scroll set_topbot =
            Win_T.set_w_valid ed ed.st.curwin (to_i32 old_valid));
         let r5 = ed.st.curwin in
         Win_T.set_w_valid ed r5 (Win_T.w_valid ed r5 lor valid_topline);
-        if set_topbot then cursor_correct_sms ed;
-        frame_pop ed fr
+        if set_topbot then cursor_correct_sms ed
       in
       if scrolled <= 0 then
         join54 0
       else if used > Win_T.w_height ed ed.st.curwin then
         join54 used
       else
-        (Lineoff_T.set_lnum ed boff (Win_T.w_topline ed ed.st.curwin - 1);
+        (boff.lnum <- Win_T.w_topline ed ed.st.curwin - 1;
          let rec loop47 i line_count =
-           if i < scrolled && Lineoff_T.lnum ed boff < Win_T.w_botline ed ed.st.curwin then
+           if i < scrolled && boff.lnum < Win_T.w_botline ed ed.st.curwin then
              (botline_forw ed boff;
-              loop47 (i + Lineoff_T.height ed boff) (line_count + 1))
+              loop47 (i + boff.height) (line_count + 1))
            else if i < scrolled then join54 9999 else join54 line_count
          in
          loop47 0 0)
     in
-    if Lineoff_T.lnum ed loff > 1 then
+    if loff.lnum > 1 then
       (if ((scrolled <= 0 || scrolled >= min_scroll) &&
            extra >= (if ed.st.mouse_dragging > 0 then ed.st.mouse_dragging - 1 else so) ||
-           Lineoff_T.lnum ed boff + 1 > Buf_T.b_ml_ml_line_count ed ed.st.curbuf) &&
-          Lineoff_T.lnum ed loff <= Win_T.w_botline ed ed.st.curwin then
+           boff.lnum + 1 > Buf_T.b_ml_ml_line_count ed ed.st.curbuf) &&
+          loff.lnum <= Win_T.w_botline ed ed.st.curwin then
          join44 used scrolled
        else
-         let loff_lnum_before = Lineoff_T.lnum ed loff in
+         let loff_lnum_before = loff.lnum in
          let join33 used =
            let join37 scrolled =
-             if Lineoff_T.lnum ed boff < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
-               (let boff_lnum_before = Lineoff_T.lnum ed boff in
+             if boff.lnum < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+               (let boff_lnum_before = boff.lnum in
                 botline_forw ed boff;
-                let used = used + Lineoff_T.height ed boff in
+                let used = used + boff.height in
                 if used > Win_T.w_height ed ed.st.curwin then
                   join44 used scrolled
                 else if extra <
                    (if ed.st.mouse_dragging > 0 then ed.st.mouse_dragging - 1 else so) ||
                    scrolled < min_scroll then
-                  (let extra = extra + Lineoff_T.height ed boff in
-                   if Lineoff_T.lnum ed boff >= Win_T.w_botline ed ed.st.curwin then
-                     (let scrolled = scrolled + Lineoff_T.height ed boff in
-                      if Lineoff_T.lnum ed boff >= Win_T.w_botline ed ed.st.curwin &&
+                  (let extra = extra + boff.height in
+                   if boff.lnum >= Win_T.w_botline ed ed.st.curwin then
+                     (let scrolled = scrolled + boff.height in
+                      if boff.lnum >= Win_T.w_botline ed ed.st.curwin &&
                          boff_lnum_before < Win_T.w_botline ed ed.st.curwin then
                         loop28 used (scrolled - Win_T.w_empty_rows ed ed.st.curwin) extra
                           old_topline old_skipcol old_botline old_valid old_empty_rows cln so do_sms
@@ -22397,9 +22329,9 @@ and scroll_cursor_bot ed min_scroll set_topbot =
            in
            if used > Win_T.w_height ed ed.st.curwin then
              join44 used scrolled
-           else if Lineoff_T.lnum ed loff >= Win_T.w_botline ed ed.st.curwin then
-             (let scrolled = scrolled + Lineoff_T.height ed loff in
-              if Lineoff_T.lnum ed loff = Win_T.w_botline ed ed.st.curwin &&
+           else if loff.lnum >= Win_T.w_botline ed ed.st.curwin then
+             (let scrolled = scrolled + loff.height in
+              if loff.lnum = Win_T.w_botline ed ed.st.curwin &&
                  loff_lnum_before > Win_T.w_botline ed ed.st.curwin then
                 join37 (scrolled - Win_T.w_empty_rows ed ed.st.curwin)
               else
@@ -22408,10 +22340,7 @@ and scroll_cursor_bot ed min_scroll set_topbot =
              join37 scrolled
          in
          topline_back ed loff;
-         if Lineoff_T.height ed loff = maxcol then
-           join33 maxcol
-         else
-           join33 (used + Lineoff_T.height ed loff))
+         if loff.height = maxcol then join33 maxcol else join33 (used + loff.height))
     else
       join44 used scrolled
   in
@@ -22431,8 +22360,8 @@ and scroll_cursor_bot ed min_scroll set_topbot =
     let used = Win_T.w_cline_height ed ed.st.curwin in
     let join16 used =
       let join27 scrolled =
-        Lineoff_T.set_lnum ed loff cln;
-        Lineoff_T.set_lnum ed boff cln;
+        loff.lnum <- cln;
+        boff.lnum <- cln;
         loop28 used scrolled extra old_topline old_skipcol old_botline old_valid old_empty_rows cln
           so do_sms
       in
@@ -22474,7 +22403,7 @@ and scroll_cursor_bot ed min_scroll set_topbot =
   in
   if set_topbot then
     (Win_T.set_w_botline ed ed.st.curwin (cln + 1);
-     Lineoff_T.set_lnum ed loff (cln + 1);
+     loff.lnum <- cln + 1;
      let rec loop3 used =
        let join9 used scrolled extra =
          set_empty_rows ed ed.st.curwin used;
@@ -22494,15 +22423,14 @@ and scroll_cursor_bot ed min_scroll set_topbot =
            join13 scrolled extra
        in
        topline_back_winheight ed loff false;
-       if Lineoff_T.height ed loff = maxcol then
+       if loff.height = maxcol then
          join9 used 0 0
-       else if used + Lineoff_T.height ed loff > Win_T.w_height ed ed.st.curwin then
+       else if used + loff.height > Win_T.w_height ed ed.st.curwin then
          (if do_sms then
             (if used < Win_T.w_height ed ed.st.curwin then
-               (let plines_offset = used + Lineoff_T.height ed loff - Win_T.w_height ed ed.st.curwin
-                in
+               (let plines_offset = used + loff.height - Win_T.w_height ed ed.st.curwin in
                 let used = Win_T.w_height ed ed.st.curwin in
-                Win_T.set_w_topline ed ed.st.curwin (Lineoff_T.lnum ed loff);
+                Win_T.set_w_topline ed ed.st.curwin loff.lnum;
                 let r1 = ed.st.curwin in
                 Win_T.set_w_skipcol ed r1 (skipcol_from_plines ed ed.st.curwin plines_offset);
                 join9 used 0 0)
@@ -22511,8 +22439,8 @@ and scroll_cursor_bot ed min_scroll set_topbot =
           else
             join9 used 0 0)
        else
-         (Win_T.set_w_topline ed ed.st.curwin (Lineoff_T.lnum ed loff);
-          loop3 (used + Lineoff_T.height ed loff))
+         (Win_T.set_w_topline ed ed.st.curwin loff.lnum;
+          loop3 (used + loff.height))
      in
      loop3 0)
   else
@@ -22520,9 +22448,8 @@ and scroll_cursor_bot ed min_scroll set_topbot =
      join13 0 0)
 
 and scroll_cursor_halfway ed atend prefer_above =
-  let fr = frame_push ed 32 in
-  let loff = fr + 0 in
-  let boff = fr + 16 in
+  let loff = Lineoff_T.make () in
+  let boff = Lineoff_T.make () in
   let join33 topline skipcol do_sms =
     if Win_T.w_topline ed ed.st.curwin <> topline ||
        skipcol <> 0 ||
@@ -22536,31 +22463,30 @@ and scroll_cursor_halfway ed atend prefer_above =
     let r1 = ed.st.curwin in
     Win_T.set_w_valid ed r1 (Win_T.w_valid ed r1 land -114);
     let r2 = ed.st.curwin in
-    Win_T.set_w_valid ed r2 (Win_T.w_valid ed r2 lor valid_topline);
-    frame_pop ed fr
+    Win_T.set_w_valid ed r2 (Win_T.w_valid ed r2 lor valid_topline)
   in
   let rec loop5 above topline skipcol below used want_height do_sms =
     if topline > 1 then
       (if do_sms then
          (topline_back_winheight ed loff false;
-          if Lineoff_T.height ed loff = maxcol then
+          if loff.height = maxcol then
             join33 topline skipcol do_sms
           else
-            let used = used + Lineoff_T.height ed loff in
+            let used = used + loff.height in
             let join29 used =
               if used > want_height then
-                (if used - Lineoff_T.height ed loff < want_height then
-                   (let topline = Lineoff_T.lnum ed loff in
+                (if used - loff.height < want_height then
+                   (let topline = loff.lnum in
                     join33
                       topline (skipcol_from_plines ed ed.st.curwin (used - want_height)) do_sms)
                  else
                    join33 topline skipcol do_sms)
               else
-                loop5 above (Lineoff_T.lnum ed loff) skipcol below used want_height do_sms
+                loop5 above loff.lnum skipcol below used want_height do_sms
             in
-            if atend = 0 && Lineoff_T.lnum ed boff < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+            if atend = 0 && boff.lnum < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
               (botline_forw ed boff;
-               join29 (used + Lineoff_T.height ed boff))
+               join29 (used + boff.height))
             else
               join29 used)
        else
@@ -22582,8 +22508,8 @@ and scroll_cursor_halfway ed atend prefer_above =
         if used > Win_T.w_height ed ed.st.curwin then
           join24 below used true
         else
-          let above = above + Lineoff_T.height ed loff in
-          join21 above (Lineoff_T.lnum ed loff) used
+          let above = above + loff.height in
+          join21 above loff.lnum used
       in
       if (if prefer_above = 0 then
             Bool.to_int (round_ = 1 && below > above)
@@ -22593,10 +22519,7 @@ and scroll_cursor_halfway ed atend prefer_above =
         join21 above topline used
       else
         (topline_back ed loff;
-         if Lineoff_T.height ed loff = maxcol then
-           join19 maxcol
-         else
-           join19 (used + Lineoff_T.height ed loff))
+         if loff.height = maxcol then join19 maxcol else join19 (used + loff.height))
     in
     if round_ <= 2 then
       (if (if prefer_above = 0 then
@@ -22605,23 +22528,23 @@ and scroll_cursor_halfway ed atend prefer_above =
              Bool.to_int (round_ = 2 && below < above)) =
           0 then
          join15 below used
-       else if Lineoff_T.lnum ed boff < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
+       else if boff.lnum < Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
          (botline_forw ed boff;
-          let used = used + Lineoff_T.height ed boff in
+          let used = used + boff.height in
           if used > Win_T.w_height ed ed.st.curwin then
             join24 below used true
           else
-            join15 (below + Lineoff_T.height ed boff) used)
+            join15 (below + boff.height) used)
        else
          let below = below + 1 in
          if atend = 0 then join15 below used else join15 below (used + 1))
     else
       join24 below used done_
   in
-  Lineoff_T.set_lnum ed boff (Win_T.w_cursor_lnum ed ed.st.curwin);
-  Lineoff_T.set_lnum ed loff (Lineoff_T.lnum ed boff);
-  let used = plines ed (Lineoff_T.lnum ed loff) in
-  let topline = Lineoff_T.lnum ed loff in
+  boff.lnum <- Win_T.w_cursor_lnum ed ed.st.curwin;
+  loff.lnum <- boff.lnum;
+  let used = plines ed loff.lnum in
+  let topline = loff.lnum in
   let do_sms =
     Win_T.w_onebuf_opt_wo_wrap ed ed.st.curwin <> 0 &&
     Win_T.w_onebuf_opt_wo_sms ed ed.st.curwin <> 0
@@ -30639,13 +30562,12 @@ and showmatch ed c =
   loop1 (Buf_T.b_p_mps ed ed.st.curbuf)
 
 and cmdline_search_stat ed dirc pos cursor_pos show_top_bot_msg msgbuf msgbuflen recompute maxcount timeout =
-  let fr = frame_push ed 48 in
-  let stat = fr + 0 in
-  let t = fr + 20 in
+  let fr = frame_push ed 16 in
+  let stat = Searchstat_T.make () in
+  let t = fr + 0 in
   let join12 len =
     ignore (musl_memmove ed (msgbuf + msgbuflen + -len) t len);
-    if dirc = Char.code '?' && Searchstat_T.cur ed stat = maxcount + 1 then
-      Searchstat_T.set_cur ed stat (-1);
+    if dirc = Char.code '?' && stat.cur = maxcount + 1 then stat.cur <- -1;
     ed.st.msg_hist_off <- true;
     give_warning ed msgbuf false;
     ed.st.msg_hist_off <- false;
@@ -30664,30 +30586,26 @@ and cmdline_search_stat ed dirc pos cursor_pos show_top_bot_msg msgbuf msgbuflen
       join10 len
   in
   update_search_stat ed dirc pos cursor_pos stat recompute maxcount timeout;
-  if Searchstat_T.cur ed stat <= 0 then
+  if stat.cur <= 0 then
     frame_pop ed fr
-  else if Searchstat_T.incomplete ed stat = 1 then
+  else if stat.incomplete = 1 then
     join8 (vim_snprintf ed t search_stat_buf_len 166551 (* "[?/??]" *) [])
-  else if Searchstat_T.cnt ed stat > maxcount && Searchstat_T.cur ed stat > maxcount then
+  else if stat.cnt > maxcount && stat.cur > maxcount then
     join8 (vim_snprintf ed t search_stat_buf_len 166558 (* "[>%d/>%d]" *) [maxcount; maxcount])
-  else if Searchstat_T.cnt ed stat > maxcount then
-    join8
-      (vim_snprintf ed t search_stat_buf_len 166568 (* "[%d/>%d]" *)
-         [Searchstat_T.cur ed stat; maxcount])
+  else if stat.cnt > maxcount then
+    join8 (vim_snprintf ed t search_stat_buf_len 166568 (* "[%d/>%d]" *) [stat.cur; maxcount])
   else
-    join8
-      (vim_snprintf ed t search_stat_buf_len 166577 (* "[%d/%d]" *)
-         [Searchstat_T.cur ed stat; Searchstat_T.cnt ed stat])
+    join8 (vim_snprintf ed t search_stat_buf_len 166577 (* "[%d/%d]" *) [stat.cur; stat.cnt])
 
 and update_search_stat ed dirc pos cursor_pos stat recompute maxcount _timeout =
   let fr = frame_push ed 16 in
   let endpos = fr + 0 in
   let join17 save_ws =
-    Searchstat_T.set_cur ed stat ed.st.update_search_stat__cur;
-    Searchstat_T.set_cnt ed stat ed.st.update_search_stat__cnt;
-    Searchstat_T.set_exact_match ed stat ed.st.update_search_stat__exact_match;
-    Searchstat_T.set_incomplete ed stat ed.st.update_search_stat__incomplete;
-    Searchstat_T.set_last_maxcount ed stat ed.st.update_search_stat__last_maxcount;
+    stat.cur <- ed.st.update_search_stat__cur;
+    stat.cnt <- ed.st.update_search_stat__cnt;
+    stat.exact_match <- ed.st.update_search_stat__exact_match;
+    stat.incomplete <- ed.st.update_search_stat__incomplete;
+    stat.last_maxcount <- ed.st.update_search_stat__last_maxcount;
     set_p_ws ed save_ws;
     frame_pop ed fr
   in
@@ -30745,17 +30663,17 @@ and update_search_stat ed dirc pos cursor_pos stat recompute maxcount _timeout =
   let p_lnum = Pos_T.lnum ed pos in
   let p_col = Pos_T.col ed pos in
   let p_coladd = Pos_T.coladd ed pos in
-  ignore (musl_memset ed stat 0 20);
+  Searchstat_T.clear stat;
   if dirc = 0 &&
      not recompute &&
      not (Pos_T.lnum ed update_search_stat__lastpos = 0 &&
       Pos_T.col ed update_search_stat__lastpos = 0 &&
       Pos_T.coladd ed update_search_stat__lastpos = 0) then
-    (Searchstat_T.set_cur ed stat ed.st.update_search_stat__cur;
-     Searchstat_T.set_cnt ed stat ed.st.update_search_stat__cnt;
-     Searchstat_T.set_exact_match ed stat ed.st.update_search_stat__exact_match;
-     Searchstat_T.set_incomplete ed stat ed.st.update_search_stat__incomplete;
-     Searchstat_T.set_last_maxcount ed stat ed.st.update_search_stat__last_maxcount;
+    (stat.cur <- ed.st.update_search_stat__cur;
+     stat.cnt <- ed.st.update_search_stat__cnt;
+     stat.exact_match <- ed.st.update_search_stat__exact_match;
+     stat.incomplete <- ed.st.update_search_stat__incomplete;
+     stat.last_maxcount <- ed.st.update_search_stat__last_maxcount;
      frame_pop ed fr)
   else
     (ed.st.update_search_stat__last_maxcount <- maxcount;
@@ -32590,17 +32508,15 @@ and win_new_width ed wp width =
   Win_T.set_w_redr_status ed wp true
 
 and getout ed exitval =
-  let fr = frame_push ed 32 in
-  let bufref = fr + 0 in
-  let bufref_2 = fr + 16 in
+  let bufref = Bufref_T.make () in
+  let bufref_2 = Bufref_T.make () in
   let join7 () =
     if ed.st.did_emsg <> 0 then
       (ed.st.no_wait_return <- false_;
        wait_return ed false_);
     windgoto ed (to_i32 (rows ed) - 1) 0;
     term_disable_dec ed;
-    mch_exit ed exitval;
-    frame_pop ed fr
+    mch_exit ed exitval
   in
   let join5 () =
     if Buf_T.b_ml_ml_root ed ed.st.curbuf <> 0 then set_bufref ed bufref_2 ed.st.curbuf;
@@ -32743,9 +32659,8 @@ let buf_copy_options ed buf flags =
     join3 true 0 false
 
 let buflist_new ed lnum flags =
-  let fr = frame_push ed 32 in
-  let bufref = fr + 0 in
-  let bufref_2 = fr + 16 in
+  let bufref = Bufref_T.make () in
+  let bufref_2 = Bufref_T.make () in
   let join5 buf =
     let join12 () =
       Wininfo_T.set_wi_fpos_lnum ed (Buf_T.b_wininfo ed buf) lnum;
@@ -32757,7 +32672,6 @@ let buflist_new ed lnum flags =
       buf_clear_file ed buf;
       clrallmarks ed buf;
       if flags land bln_dummy = 0 then set_bufref ed bufref_2 buf;
-      frame_pop ed fr;
       buf
     in
     clear_wininfo ed buf;
@@ -33218,28 +33132,25 @@ let check_isopt ed var =
   parse_isopt ed var 0 true
 
 let linetabsize_col ed startcol s =
-  let fr = frame_push ed 32 in
-  let cts = fr + 0 in
+  let cts = Chartabsize_T.make () in
   let join6 () =
-    let r1 = Chartabsize_T.cts_vcol ed cts in
-    frame_pop ed fr;
-    r1
+    cts.cts_vcol
   in
   init_chartabsize_arg ed cts ed.st.curwin 0 startcol s s;
   let rec loop1 vcol =
-    if ld_u8 ed (Chartabsize_T.cts_ptr ed cts) = nul then
+    if ld_u8 ed cts.cts_ptr = nul then
       join6 ()
     else
       let t1 = lbr_chartabsize_adv ed cts in
       let vcol = vcol + t1 in
       if vcol > maxcol then
-        (Chartabsize_T.set_cts_vcol ed cts maxcol;
+        (cts.cts_vcol <- maxcol;
          join6 ())
       else
-        (Chartabsize_T.set_cts_vcol ed cts (to_i32 vcol);
+        (cts.cts_vcol <- to_i32 vcol;
          loop1 vcol)
   in
-  loop1 (Chartabsize_T.cts_vcol ed cts)
+  loop1 cts.cts_vcol
 
 let linetabsize_str ed s =
   linetabsize_col ed 0 s
@@ -34553,25 +34464,17 @@ let get_new_sw_indent ed left round_ amount sw_val =
     join12 (count + sw_val * amount)
 
 let rec change_indent ed type_ amount round_ replaced call_changed_bytes =
-  let fr = frame_push ed 32 in
-  let cts = fr + 0 in
-  let join48 () =
-    frame_pop ed fr
-  in
+  let cts = Chartabsize_T.make () in
   let join45 orig_col orig_line =
-    if ed.st.state land vreplace_flag = 0 then
-      join48 ()
-    else if orig_line = 0 then
-      frame_pop ed fr
-    else
-      let len_2 = ml_get_curline_len ed in
-      let new_line = vim_strnsave ed (ml_get_curline ed) len_2 in
-      st_u8 ed (new_line + Win_T.w_cursor_col ed ed.st.curwin) nul;
-      ignore (ml_replace ed (Win_T.w_cursor_lnum ed ed.st.curwin) orig_line false);
-      Win_T.set_w_cursor_col ed ed.st.curwin orig_col;
-      backspace_until_column ed 0;
-      ins_bytes ed new_line;
-      join48 ()
+    if ed.st.state land vreplace_flag <> 0 then
+      (if orig_line <> 0 then
+         (let len_2 = ml_get_curline_len ed in
+          let new_line = vim_strnsave ed (ml_get_curline ed) len_2 in
+          st_u8 ed (new_line + Win_T.w_cursor_col ed ed.st.curwin) nul;
+          ignore (ml_replace ed (Win_T.w_cursor_lnum ed ed.st.curwin) orig_line false);
+          Win_T.set_w_cursor_col ed ed.st.curwin orig_col;
+          backspace_until_column ed 0;
+          ins_bytes ed new_line))
   in
   let rec loop44 replaced start_col orig_col orig_line =
     let join52 replaced =
@@ -34627,7 +34530,7 @@ let rec change_indent ed type_ amount round_ replaced call_changed_bytes =
   in
   let rec loop14 replaced last_vcol save_p_list start_col orig_col orig_line =
     let join19 last_vcol =
-      let new_cursor_col = to_i32 (Chartabsize_T.cts_ptr ed cts - Chartabsize_T.cts_line ed cts) in
+      let new_cursor_col = to_i32 (cts.cts_ptr - cts.cts_line) in
       let join23 new_cursor_col =
         join29 replaced maxcol new_cursor_col save_p_list start_col orig_col orig_line
       in
@@ -34651,19 +34554,19 @@ let rec change_indent ed type_ amount round_ replaced call_changed_bytes =
          in
          loop21 i)
     in
-    if Chartabsize_T.cts_vcol ed cts <= Win_T.w_virtcol ed ed.st.curwin then
-      (let last_vcol = Chartabsize_T.cts_vcol ed cts in
+    if cts.cts_vcol <= Win_T.w_virtcol ed ed.st.curwin then
+      (let last_vcol = cts.cts_vcol in
        let join17 () =
-         if ld_u8 ed (Chartabsize_T.cts_ptr ed cts) = nul then
+         if ld_u8 ed cts.cts_ptr = nul then
            join19 last_vcol
          else
            let t2 = lbr_chartabsize ed cts in
-           Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + t2);
+           cts.cts_vcol <- cts.cts_vcol + t2;
            loop14 replaced last_vcol save_p_list start_col orig_col orig_line
        in
-       if Chartabsize_T.cts_vcol ed cts > 0 then
-         (let t1 = utfc_ptr2len ed (Chartabsize_T.cts_ptr ed cts) in
-          Chartabsize_T.set_cts_ptr ed cts (Chartabsize_T.cts_ptr ed cts + t1);
+       if cts.cts_vcol > 0 then
+         (let t1 = utfc_ptr2len ed cts.cts_ptr in
+          cts.cts_ptr <- cts.cts_ptr + t1;
           join17 ())
        else
          join17 ())
@@ -35512,14 +35415,14 @@ let msgmore ed n =
        (if n > 0 then join5 n else join5 (-n)))
 
 let do_put ed regname expr_result dir count flags =
-  let fr = frame_push ed 96 in
+  let fr = frame_push ed 64 in
   let col_addr = fr + 0 in
   let vcol_addr = fr + 4 in
   let insert_string = fr + 8 in
   let endcol2_addr = fr + 24 in
-  let cts = fr + 32 in
-  let pos = fr + 64 in
-  let pos_2 = fr + 80 in
+  let cts = Chartabsize_T.make () in
+  let pos = fr + 32 in
+  let pos_2 = fr + 48 in
   let join190 orig_start_lnum orig_start_col orig_start_coladd orig_end_lnum orig_end_col orig_end_coladd _get_spec_reg__o_r__ _get_spec_reg__o_allocated =
     if Cmdmod_T.cmod_flags ed cmdmod land cmod_lockmarks <> 0 then
       (Buf_T.set_b_op_start_lnum ed ed.st.curbuf orig_start_lnum;
@@ -35836,14 +35739,13 @@ let do_put ed regname expr_result dir count flags =
       let oldlen = ml_get_curline_len ed in
       init_chartabsize_arg ed cts ed.st.curwin (Win_T.w_cursor_lnum ed ed.st.curwin) 0 oldp oldp;
       let rec loop155 incr =
-        if Chartabsize_T.cts_vcol ed cts < ld_s32 ed col_addr &&
-           ld_u8 ed (Chartabsize_T.cts_ptr ed cts) <> nul then
+        if cts.cts_vcol < ld_s32 ed col_addr && ld_u8 ed cts.cts_ptr <> nul then
           (let incr = lbr_chartabsize_adv ed cts in
-           Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + incr);
+           cts.cts_vcol <- cts.cts_vcol + incr;
            loop155 incr)
         else
-          (st_s32 ed vcol_addr (Chartabsize_T.cts_vcol ed cts);
-           let ptr = Chartabsize_T.cts_ptr ed cts in
+          (st_s32 ed vcol_addr cts.cts_vcol;
+           let ptr = cts.cts_ptr in
            let bd_textcol = to_i32 (ptr - oldp) in
            let shortline =
              Bool.to_int
@@ -35873,9 +35775,9 @@ let do_put ed regname expr_result dir count flags =
                (init_chartabsize_arg ed cts ed.st.curwin 0 0 (String_T.string ed (y_array + i * 16))
                   (String_T.string ed (y_array + i * 16));
                 let rec loop163 spaces =
-                  if ld_u8 ed (Chartabsize_T.cts_ptr ed cts) <> nul then
+                  if ld_u8 ed cts.cts_ptr <> nul then
                     (let t5 = lbr_chartabsize_adv ed cts in
-                     Chartabsize_T.set_cts_vcol ed cts 0;
+                     cts.cts_vcol <- 0;
                      loop163 (spaces - t5))
                   else if spaces < 0 then join166 0 else join166 spaces
                 in
@@ -37228,47 +37130,40 @@ let cursor_correct ed =
     join2 0 0 (to_i32 so) (to_i32 so)
 
 let get_scroll_overlap ed dir =
-  let fr = frame_push ed 16 in
-  let loff = fr + 0 in
+  let loff = Lineoff_T.make () in
   let min_height = Win_T.w_height ed ed.st.curwin - 2 in
   validate_botline ed;
   if dir = -1 && Win_T.w_topline ed ed.st.curwin = 1 ||
      dir = forward &&
      Win_T.w_botline ed ed.st.curwin > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
-    (frame_pop ed fr;
-     min_height + 2)
+    min_height + 2
   else
-    (Lineoff_T.set_lnum ed loff
+    (loff.lnum <-
        (if dir = forward then
           Win_T.w_botline ed ed.st.curwin
         else
           Win_T.w_topline ed ed.st.curwin - 1);
-     Lineoff_T.set_height ed loff (plines ed (Lineoff_T.lnum ed loff));
-     let h1 = Lineoff_T.height ed loff in
+     loff.height <- plines ed loff.lnum;
+     let h1 = loff.height in
      if h1 > min_height then
-       (frame_pop ed fr;
-        min_height + 2)
+       min_height + 2
      else
        (if dir = forward then topline_back ed loff else botline_forw ed loff;
-        let h2 = Lineoff_T.height ed loff in
+        let h2 = loff.height in
         if h2 = maxcol || h2 + h1 > min_height then
-          (frame_pop ed fr;
-           min_height + 2)
+          min_height + 2
         else
           (if dir = forward then topline_back ed loff else botline_forw ed loff;
-           let h3 = Lineoff_T.height ed loff in
+           let h3 = loff.height in
            if h3 = maxcol || h3 + h2 > min_height then
-             (frame_pop ed fr;
-              min_height + 2)
+             min_height + 2
            else
              (if dir = forward then topline_back ed loff else botline_forw ed loff;
-              let h4 = Lineoff_T.height ed loff in
+              let h4 = loff.height in
               if h4 = maxcol || h4 + h3 + h2 > min_height || h3 + h2 + h1 > min_height then
-                (frame_pop ed fr;
-                 min_height + 1)
+                min_height + 1
               else
-                (frame_pop ed fr;
-                 min_height)))))
+                min_height))))
 
 let scrolldown ed line_count _byfold =
   let rec loop23 wrow moved =
@@ -37756,12 +37651,12 @@ let ins_pagedown ed =
     frame_pop ed fr
 
 let ins_tab ed =
-  let fr = frame_push ed 80 in
+  let fr = frame_push ed 48 in
   let pos = fr + 0 in
   let fpos = fr + 16 in
   let want_vcol_addr = fr + 32 in
   let vcol_addr = fr + 36 in
-  let cts = fr + 40 in
+  let cts = Chartabsize_T.make () in
   let join39 () =
     frame_pop ed fr;
     false
@@ -37772,18 +37667,17 @@ let ins_tab ed =
         Win_T.set_w_onebuf_opt_wo_list ed ed.st.curwin save_list;
         join39 ()
       in
-      st_s32 ed vcol_addr (Chartabsize_T.cts_vcol ed cts);
+      st_s32 ed vcol_addr cts.cts_vcol;
       if change_col >= 0 then
         (init_chartabsize_arg ed cts ed.st.curwin 0 (ld_s32 ed vcol_addr) ptr ptr;
          let rec loop29 repl_off =
-           if Chartabsize_T.cts_vcol ed cts < ld_s32 ed want_vcol_addr &&
-              ld_char ed (Chartabsize_T.cts_ptr ed cts) = ' ' then
+           if cts.cts_vcol < ld_s32 ed want_vcol_addr && ld_char ed cts.cts_ptr = ' ' then
              (let t2 = lbr_chartabsize ed cts in
-              Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + t2);
-              Chartabsize_T.set_cts_ptr ed cts (Chartabsize_T.cts_ptr ed cts + 1);
+              cts.cts_vcol <- cts.cts_vcol + t2;
+              cts.cts_ptr <- cts.cts_ptr + 1;
               loop29 (repl_off + 1))
            else
-             let ptr = Chartabsize_T.cts_ptr ed cts in
+             let ptr = cts.cts_ptr in
              let join32 ptr repl_off =
                Pos_T.set_col ed fpos (Pos_T.col ed fpos + repl_off);
                let i = Pos_T.col ed cursor' - Pos_T.col ed fpos in
@@ -37811,7 +37705,7 @@ let ins_tab ed =
                else
                  join36 ()
              in
-             st_s32 ed vcol_addr (Chartabsize_T.cts_vcol ed cts);
+             st_s32 ed vcol_addr cts.cts_vcol;
              if ld_s32 ed vcol_addr > ld_s32 ed want_vcol_addr then
                join32 (ptr - 1) (repl_off - 1)
              else
@@ -37825,10 +37719,10 @@ let ins_tab ed =
       (let i = lbr_chartabsize ed cts in
        let join26 change_col =
          Pos_T.set_col ed fpos (Pos_T.col ed fpos + 1);
-         Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + i);
+         cts.cts_vcol <- cts.cts_vcol + i;
          loop20 (ptr + 1) saved_line cursor' change_col save_list
        in
-       if Chartabsize_T.cts_vcol ed cts + i > ld_s32 ed want_vcol_addr then
+       if cts.cts_vcol + i > ld_s32 ed want_vcol_addr then
          join27 ()
        else if ld_u8 ed ptr = tab then
          join26 change_col
@@ -37926,33 +37820,29 @@ let ins_tab ed =
      true)
 
 let ins_copychar ed lnum =
-  let fr = frame_push ed 32 in
-  let cts = fr + 0 in
+  let cts = Chartabsize_T.make () in
   let join6 ptr =
     let c = utf_ptr2char ed ptr in
     if c = nul then vim_beep ed bo_copy;
-    frame_pop ed fr;
     c
   in
   if lnum < 1 || lnum > Buf_T.b_ml_ml_line_count ed ed.st.curbuf then
     (vim_beep ed bo_copy;
-     frame_pop ed fr;
      nul)
   else
     (validate_virtcol ed;
      let line = ml_get ed lnum in
      init_chartabsize_arg ed cts ed.st.curwin lnum 0 line line;
      let rec loop2 prev_ptr =
-       if Chartabsize_T.cts_vcol ed cts < Win_T.w_virtcol ed ed.st.curwin &&
-          ld_u8 ed (Chartabsize_T.cts_ptr ed cts) <> nul then
-         (let prev_ptr = Chartabsize_T.cts_ptr ed cts in
+       if cts.cts_vcol < Win_T.w_virtcol ed ed.st.curwin && ld_u8 ed cts.cts_ptr <> nul then
+         (let prev_ptr = cts.cts_ptr in
           let t1 = lbr_chartabsize_adv ed cts in
-          Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + t1);
+          cts.cts_vcol <- cts.cts_vcol + t1;
           loop2 prev_ptr)
-       else if Chartabsize_T.cts_vcol ed cts > Win_T.w_virtcol ed ed.st.curwin then
+       else if cts.cts_vcol > Win_T.w_virtcol ed ed.st.curwin then
          join6 prev_ptr
        else
-         join6 (Chartabsize_T.cts_ptr ed cts)
+         join6 cts.cts_ptr
      in
      loop2 line)
 
@@ -38137,9 +38027,9 @@ let win_ensure_size ed =
   if Win_T.w_width ed ed.st.curwin = 0 then win_setwidth ed 1
 
 let edit ed cmdchar startln count_in =
-  let fr = frame_push ed 32 in
+  let fr = frame_push ed 16 in
   let count_addr = fr + 0 in
-  let save_curbuf = fr + 8 in
+  let save_curbuf = Bufref_T.make () in
   let rec loop47 c esc_now lastc did_backspace old_topline inserted_space replaceState nomove ins_just_started ins_bs__o_r__ ins_bs__o_inserted_space_p inserted_string inserted_length =
     let join58 () =
       if ld_s64 ed count_addr <= 1 then update_topline ed;
@@ -38374,7 +38264,7 @@ let edit ed cmdchar startln count_in =
             ignore (do_cmdkey_command ed c 0);
             if Buf_T.b_u_synced ed ed.st.curbuf ||
                bufref_valid ed save_curbuf &&
-               ed.st.curbuf = Bufref_T.br_buf ed save_curbuf &&
+               ed.st.curbuf = save_curbuf.br_buf &&
                tick <> Buf_T.b_changedtick ed ed.st.curbuf then
               ed.st.ins_need_undo <- true;
             join179 c did_backspace inserted_space ins_bs__o_r__ ins_bs__o_inserted_space_p
@@ -41118,31 +41008,27 @@ let get_sw_value_indent ed buf left =
   r1
 
 let block_prep ed oap bdp lnum is_del =
-  let fr = frame_push ed 32 in
-  let cts = fr + 0 in
+  let cts = Chartabsize_T.make () in
   let rec loop1 incr line prev_pstart =
-    if Chartabsize_T.cts_vcol ed cts < Oparg_T.start_vcol ed oap &&
-       ld_u8 ed (Chartabsize_T.cts_ptr ed cts) <> nul then
+    if cts.cts_vcol < Oparg_T.start_vcol ed oap && ld_u8 ed cts.cts_ptr <> nul then
       (let incr = lbr_chartabsize ed cts in
-       Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + incr);
-       if ld_char ed (Chartabsize_T.cts_ptr ed cts) = ' ' ||
-          ld_char ed (Chartabsize_T.cts_ptr ed cts) = '\t' then
+       cts.cts_vcol <- cts.cts_vcol + incr;
+       if ld_char ed cts.cts_ptr = ' ' || ld_char ed cts.cts_ptr = '\t' then
          (Block_def.set_pre_whitesp ed bdp (Block_def.pre_whitesp ed bdp + incr);
           Block_def.set_pre_whitesp_c ed bdp (Block_def.pre_whitesp_c ed bdp + 1))
        else
          (Block_def.set_pre_whitesp ed bdp 0;
           Block_def.set_pre_whitesp_c ed bdp 0);
-       let prev_pstart = Chartabsize_T.cts_ptr ed cts in
-       let t1 = utfc_ptr2len ed (Chartabsize_T.cts_ptr ed cts) in
-       Chartabsize_T.set_cts_ptr ed cts (Chartabsize_T.cts_ptr ed cts + t1);
+       let prev_pstart = cts.cts_ptr in
+       let t1 = utfc_ptr2len ed cts.cts_ptr in
+       cts.cts_ptr <- cts.cts_ptr + t1;
        loop1 incr line prev_pstart)
     else
-      (Block_def.set_start_vcol ed bdp (Chartabsize_T.cts_vcol ed cts);
-       let pstart = Chartabsize_T.cts_ptr ed cts in
+      (Block_def.set_start_vcol ed bdp cts.cts_vcol;
+       let pstart = cts.cts_ptr in
        let join28 pstart =
          Block_def.set_textcol ed bdp (to_i32 (pstart - line));
-         Block_def.set_textstart ed bdp pstart;
-         frame_pop ed fr
+         Block_def.set_textstart ed bdp pstart
        in
        let join23 incr pend =
          let join25 pstart =
@@ -41195,15 +41081,14 @@ let block_prep ed oap bdp lnum is_del =
           else
             (init_chartabsize_arg ed cts ed.st.curwin lnum (Block_def.end_vcol ed bdp) line pstart;
              let rec loop7 incr prev_pend =
-               if Chartabsize_T.cts_vcol ed cts <= Oparg_T.end_vcol ed oap &&
-                  ld_u8 ed (Chartabsize_T.cts_ptr ed cts) <> nul then
-                 (let prev_pend = Chartabsize_T.cts_ptr ed cts in
+               if cts.cts_vcol <= Oparg_T.end_vcol ed oap && ld_u8 ed cts.cts_ptr <> nul then
+                 (let prev_pend = cts.cts_ptr in
                   let incr = lbr_chartabsize_adv ed cts in
-                  Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + incr);
+                  cts.cts_vcol <- cts.cts_vcol + incr;
                   loop7 incr prev_pend)
                else
-                 (Block_def.set_end_vcol ed bdp (Chartabsize_T.cts_vcol ed cts);
-                  let pend = Chartabsize_T.cts_ptr ed cts in
+                 (Block_def.set_end_vcol ed bdp cts.cts_vcol;
+                  let pend = cts.cts_ptr in
                   if Block_def.end_vcol ed bdp <= Oparg_T.end_vcol ed oap &&
                      (is_del = 0 ||
                       Oparg_T.op_type ed oap = op_append ||
@@ -41245,10 +41130,10 @@ let block_prep ed oap bdp lnum is_del =
   loop1 0 line line
 
 let shift_block ed oap amount =
-  let fr = frame_push ed 128 in
+  let fr = frame_push ed 64 in
   let bd = fr + 0 in
-  let cts = fr + 56 in
-  let cts_2 = fr + 88 in
+  let cts = Chartabsize_T.make () in
+  let cts_2 = Chartabsize_T.make () in
   let left = Oparg_T.op_type ed oap = op_lshift in
   let oldstate = ed.st.state in
   let oldcol = Win_T.w_cursor_col ed ed.st.curwin in
@@ -41283,14 +41168,13 @@ let shift_block ed oap amount =
             init_chartabsize_arg ed cts_2 ed.st.curwin (Win_T.w_cursor_lnum ed ed.st.curwin)
               non_white_col (Block_def.textstart ed bd) non_white;
             let rec loop6 () =
-              if ld_char ed (Chartabsize_T.cts_ptr ed cts_2) = ' ' ||
-                 ld_char ed (Chartabsize_T.cts_ptr ed cts_2) = '\t' then
+              if ld_char ed cts_2.cts_ptr = ' ' || ld_char ed cts_2.cts_ptr = '\t' then
                 (let incr = lbr_chartabsize_adv ed cts_2 in
-                 Chartabsize_T.set_cts_vcol ed cts_2 (Chartabsize_T.cts_vcol ed cts_2 + incr);
+                 cts_2.cts_vcol <- cts_2.cts_vcol + incr;
                  loop6 ())
               else
-                let non_white_col = Chartabsize_T.cts_vcol ed cts_2 in
-                let non_white = Chartabsize_T.cts_ptr ed cts_2 in
+                let non_white_col = cts_2.cts_vcol in
+                let non_white = cts_2.cts_ptr in
                 let block_space_width = non_white_col - Oparg_T.start_vcol ed oap in
                 let shift_amount =
                   if u64_lt block_space_width total then block_space_width else total
@@ -41303,8 +41187,8 @@ let shift_block ed oap amount =
                     (Block_def.textstart ed bd) verbatim_copy_end;
                   let rec loop10 () =
                     let join13 () =
-                      let verbatim_copy_width = Chartabsize_T.cts_vcol ed cts_2 in
-                      let verbatim_copy_end = Chartabsize_T.cts_ptr ed cts_2 in
+                      let verbatim_copy_width = cts_2.cts_vcol in
+                      let verbatim_copy_end = cts_2.cts_ptr in
                       let fill = destination_col - verbatim_copy_width in
                       let fixedlen = verbatim_copy_end - oldp in
                       let new_line_len = fixedlen + fill + (oldlen - (non_white - oldp)) in
@@ -41314,15 +41198,14 @@ let shift_block ed oap amount =
                       ignore (musl_strcpy ed (newp + fixedlen + fill) non_white);
                       join27 newp new_line_len
                     in
-                    if Chartabsize_T.cts_vcol ed cts_2 < destination_col then
+                    if cts_2.cts_vcol < destination_col then
                       (let incr = lbr_chartabsize ed cts_2 in
-                       if Chartabsize_T.cts_vcol ed cts_2 + incr > destination_col then
+                       if cts_2.cts_vcol + incr > destination_col then
                          join13 ()
                        else
-                         (Chartabsize_T.set_cts_vcol ed cts_2
-                            (Chartabsize_T.cts_vcol ed cts_2 + incr);
-                          let t2 = utfc_ptr2len ed (Chartabsize_T.cts_ptr ed cts_2) in
-                          Chartabsize_T.set_cts_ptr ed cts_2 (Chartabsize_T.cts_ptr ed cts_2 + t2);
+                         (cts_2.cts_vcol <- cts_2.cts_vcol + incr;
+                          let t2 = utfc_ptr2len ed cts_2.cts_ptr in
+                          cts_2.cts_ptr <- cts_2.cts_ptr + t2;
                           loop10 ()))
                     else
                       join13 ()
@@ -41368,14 +41251,13 @@ let shift_block ed oap amount =
                in
                if tabs > 0 then join26 ((ws_vcol mod ts_val + total) mod ts_val) else join26 total
              in
-             if ld_char ed (Chartabsize_T.cts_ptr ed cts) = ' ' ||
-                ld_char ed (Chartabsize_T.cts_ptr ed cts) = '\t' then
+             if ld_char ed cts.cts_ptr = ' ' || ld_char ed cts.cts_ptr = '\t' then
                (let incr = lbr_chartabsize_adv ed cts in
-                Chartabsize_T.set_cts_vcol ed cts (Chartabsize_T.cts_vcol ed cts + incr);
+                cts.cts_vcol <- cts.cts_vcol + incr;
                 loop20 (total + incr))
              else
-               (Block_def.set_textstart ed bd (Chartabsize_T.cts_ptr ed cts);
-                Block_def.set_start_vcol ed bd (Chartabsize_T.cts_vcol ed cts);
+               (Block_def.set_textstart ed bd cts.cts_ptr;
+                Block_def.set_start_vcol ed bd cts.cts_vcol;
                 if Buf_T.b_p_et ed ed.st.curbuf = 0 then
                   join23 ((ws_vcol mod ts_val + total) / ts_val)
                 else
@@ -55979,10 +55861,10 @@ let get_tty_info ed fd info =
   st_s32 ed cr_addr 0;
   st_s32 ed nlcr_addr 0;
   if musl_tty_keys ed fd bs_addr intr_addr cr_addr nlcr_addr = ok then
-    (Ttyinfo_T.set_backspace ed info (to_u8 (ld_s32 ed bs_addr));
-     Ttyinfo_T.set_interrupt ed info (to_u8 (ld_s32 ed intr_addr));
-     Ttyinfo_T.set_enter ed info (if ld_s32 ed cr_addr = 0 then car else nl);
-     Ttyinfo_T.set_nl_does_cr ed info ((if ld_s32 ed nlcr_addr = 0 then false_ else true_) <> 0);
+    (info.backspace <- to_u8 (ld_s32 ed bs_addr);
+     info.interrupt <- to_u8 (ld_s32 ed intr_addr);
+     info.enter <- (if ld_s32 ed cr_addr = 0 then car else nl);
+     info.nl_does_cr <- (if ld_s32 ed nlcr_addr = 0 then false_ else true_) <> 0;
      frame_pop ed fr;
      true)
   else
@@ -55990,12 +55872,12 @@ let get_tty_info ed fd info =
      false)
 
 let get_stty ed =
-  let fr = frame_push ed 32 in
-  let info = fr + 0 in
-  let buf = fr + 16 in
+  let fr = frame_push ed 16 in
+  let info = Ttyinfo_T.make () in
+  let buf = fr + 0 in
   if get_tty_info ed ed.st.read_cmd_fd info then
-    (ed.st.intr_char <- Ttyinfo_T.interrupt ed info;
-     st_u8 ed buf (to_u8 (Ttyinfo_T.backspace ed info));
+    (ed.st.intr_char <- info.interrupt;
+     st_u8 ed buf (to_u8 info.backspace);
      st_u8 ed (buf + 1) nul;
      add_termcode ed 162726 (* "kb" *) buf false_;
      let p = find_termcode ed 162729 (* "kD" *) in

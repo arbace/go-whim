@@ -66,6 +66,7 @@ type mlgen struct {
 	variant map[string]*mlEnum // a Scheme enumerator of a variant -> the variant
 	ctorOf  map[string]string  // a Scheme enumerator of a variant -> its constructor
 	venums  []*mlEnum          // the variants, in the order they are declared
+	recs    []*mlRecord        // the records (ml_record.go), made by recordList
 	unitFn  map[string]bool    // a Scheme function name -> its value is ()
 	tables  map[string]bool    // the call-ptr tables used
 	used    map[string]bool    // the names at file scope the functions use
@@ -114,6 +115,7 @@ type mlMember struct {
 	kind                    string
 	off                     int
 	variant                 *mlEnum // the variant its values are, nil for none: read and written through the conversions
+	record                  bool    // a record's field (ml_record.go), named read: p.read
 }
 
 // mlStats counts what the printer wrote.
@@ -199,6 +201,9 @@ func (g *gen) writeMl(path string) error {
 		modules: map[string]string{}, modTake: map[string]bool{}, enumVal: map[string]string{}, unitFn: map[string]bool{},
 		tables: map[string]bool{}, used: map[string]bool{}, variant: map[string]*mlEnum{}, ctorOf: map[string]string{}}
 	if err := m.variants(); err != nil {
+		return err
+	}
+	if err := m.records(); err != nil {
 		return err
 	}
 	var report strings.Builder
@@ -459,6 +464,35 @@ func (m *mlgen) nameAll(taken, read map[string]bool) {
 		}
 		m.members[n] = mm
 	}
+	// a record's fields are named in the module's one name space of
+	// fields: the state's, the runtime's, the host's, the other records'
+	recNames := map[string]bool{}
+	for _, r := range s.records {
+		recNames[r] = true
+	}
+	fieldNames := map[string]bool{}
+	for _, ob := range m.objOf {
+		if ob.field {
+			fieldNames[ob.read] = true
+		}
+	}
+	for _, n := range ms {
+		st, _, _ := strings.Cut(n, ".")
+		mm := m.members[n]
+		if !recNames[st] || mm.kind == "agg" {
+			continue
+		}
+		mm.record = true
+		f := mm.read
+		for fieldNames[f] || mlRtFields[f] || m.hostField(f) {
+			f = mlVariantType(st) + "_" + mm.read
+			for fieldNames[f] {
+				f += "'"
+			}
+		}
+		fieldNames[f] = true
+		mm.read = f
+	}
 }
 
 // mlRtFields are the fields of the runtime's records, which a field of the
@@ -598,6 +632,7 @@ func (m *mlgen) glueType(mli bool) string {
 	s := m.s
 	var b strings.Builder
 	b.WriteString(m.variantTypes())
+	b.WriteString(m.recordTypes())
 	b.WriteString("(* The host's functions, as the core calls them: the editor carries them. *)\n")
 	b.WriteString("type glue = {\n")
 	for _, n := range s.hostList {
@@ -811,8 +846,16 @@ func (m *mlgen) header() string {
 			return ns[i] < ns[j]
 		})
 		var defs []string
+		for _, r := range m.recordList() {
+			if r.module == mod {
+				defs = append(defs, m.recordModule(r)...)
+			}
+		}
 		for _, n := range ns {
 			mm := m.members[n]
+			if mm.record {
+				continue
+			}
 			if m.used[mod+"."+mm.addr] {
 				defs = append(defs, fmt.Sprintf("  let %s p = p + %d\n", mm.addr, mm.off))
 			}

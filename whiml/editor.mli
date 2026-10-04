@@ -13,6 +13,13 @@ type optmagic = Option_magic_not_set | Option_magic_on | Option_magic_off
 type paste_mode = Paste_insert | Paste_cmdline | Paste_ex | Paste_one_char
 type set_op = Op_none | Op_adding | Op_prepending | Op_removing
 
+(* The C's structs no byte of which is ever memory: records. *)
+type bufref = { mutable br_buf : int; mutable br_fnum : int; mutable br_buf_free_count : int }
+type chartabsize = { mutable cts_win : int; mutable cts_line : int; mutable cts_ptr : int; mutable cts_vcol : int; mutable cts_max_head_vcol : int }
+type lineoff = { mutable lnum : int; mutable height : int }
+type searchstat = { mutable cur : int; mutable cnt : int; mutable exact_match : bool; mutable incomplete : int; mutable last_maxcount : int }
+type ttyinfo = { mutable backspace : int; mutable enter : int; mutable interrupt : int; mutable nl_does_cr : bool }
+
 (* The host's functions, as the core calls them: the editor carries them. *)
 type glue = {
   host_alloc : ed -> int -> int;
