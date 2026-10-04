@@ -26,3 +26,5 @@ options are unknown and that `%` on `(a ; b)` now matches across the `;`.
 
 **None the harnesses record** — no case sets `'lisp'`. Measured: 109,039 →
 **108,651 lines**.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): this part runs on `crefactor/graph` inside its phase's front, registered with `phase.RegisterGraph`, its report the text version's and its boundary byte for byte.

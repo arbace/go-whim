@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // Not written into the C any more -- the canonical form has no comments --
@@ -23,138 +24,135 @@ const relativeTime = `    long seconds = (long)(vim_time() - tt);
 
     vim_snprintf((char *)buf, buflen, NGETTEXT("%ld second ago", "%ld seconds ago", seconds), seconds);`
 
-var recoverymodeWord = regexp.MustCompile(`\brecoverymode\b`)
-
-// recoverBlock returns the start-of-line, opening brace and closing brace for
-// the `if` that pattern matches.
-func recoverBlock(text []byte, pattern string) (k, o, c int, err error) {
-	blanked := edit.Blank(text)
-	m := regexp.MustCompile(pattern).FindIndex(text)
+// ifLines is the text's count of an if on the C view of its function: the
+// lines from the one head begins through its block's closing brace.
+func ifLines(fn []byte, head string) (int, error) {
+	m := regexp.MustCompile(edit.Head(head)).FindIndex(fn)
 	if m == nil {
-		return 0, 0, 0, fmt.Errorf("norecover: no match for %s", edit.PyRepr(pattern))
+		return 0, fmt.Errorf("no match for %s", edit.PyRepr(head))
 	}
-	k = bytes.LastIndexByte(text[:m[0]], '\n') + 1
-	o = m[1] + bytes.IndexByte(blanked[m[1]:], '{')
-	c = edit.Match(blanked, o)
+	b := edit.Blank(fn)
+	k := bytes.LastIndexByte(fn[:m[0]], '\n') + 1
+	o := m[1] + bytes.IndexByte(b[m[1]:], '{')
+	c := edit.Match(b, o)
 	if c < 0 {
-		return 0, 0, 0, fmt.Errorf("norecover: unbalanced block for %s", edit.PyRepr(pattern))
+		return 0, fmt.Errorf("unbalanced block for %s", edit.PyRepr(head))
 	}
-	return k, o, c, nil
-}
-
-// unwrapIf keeps the body of an `if` whose condition is now always true.
-func unwrapIf(text []byte, pattern, what string, w io.Writer) ([]byte, error) {
-	k, o, c, err := recoverBlock(text, pattern)
-	if err != nil {
-		return nil, err
-	}
-	tail := text[c+1:]
-	if len(tail) > 39 {
-		tail = tail[:39]
-	}
-	if regexp.MustCompile(`^[ \t]*\n[ \t]*else\b`).Match(tail) {
-		return nil, fmt.Errorf("norecover: %s -- the block has an else", what)
-	}
-	body := text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1]
-	end := c + bytes.IndexByte(text[c:], '\n') + 1
-	fmt.Fprintf(w, "  norecover    %s, %d lines that always ran\n",
-		what, bytes.Count(text[k:end], []byte{'\n'}))
-	out := make([]byte, 0, len(text))
-	out = append(out, text[:k]...)
-	out = append(out, body...)
-	return append(out, text[end:]...), nil
-}
-
-// keepElse keeps the `else` body of an `if` whose condition is now always false.
-func keepElse(text []byte, pattern, what string, w io.Writer) ([]byte, error) {
-	k, _, c, err := recoverBlock(text, pattern)
-	if err != nil {
-		return nil, err
-	}
-	m := regexp.MustCompile(`^[ \t]*\n[ \t]*else\n`).FindIndex(text[c+1:])
-	if m == nil {
-		return nil, fmt.Errorf("norecover: %s -- no else to keep", what)
-	}
-	blanked := edit.Blank(text)
-	o2 := c + 1 + m[1] + bytes.IndexByte(blanked[c+1+m[1]:], '{')
-	c2 := edit.Match(blanked, o2)
-	if c2 < 0 {
-		return nil, fmt.Errorf("norecover: %s -- the else block is unbalanced", what)
-	}
-	body := text[o2+bytes.IndexByte(text[o2:], '\n')+1 : bytes.LastIndexByte(text[:c2], '\n')+1]
-	end := c2 + bytes.IndexByte(text[c2:], '\n') + 1
-	fmt.Fprintf(w, "  norecover    %s, and the %d lines it guarded\n",
-		what, bytes.Count(text[k:c], []byte{'\n'})+1)
-	out := make([]byte, 0, len(text))
-	out = append(out, text[:k]...)
-	out = append(out, body...)
-	return append(out, text[end:]...), nil
+	return bytes.Count(fn[k:c], []byte{'\n'}) + 1, nil
 }
 
 // NoRecover takes recovery away: nothing can set recoverymode any more.
-func NoRecover(text []byte, w io.Writer) ([]byte, error) {
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): a DeleteDefinition, the folds
+// by their conditions (FoldNever for the arm whose else is kept, FoldAlways
+// for the two that always ran, refused where one has an else, DropIf), an
+// operand dropped, add_time's body FRAG; the line counts the text's on the
+// C view (history keeps the text version).
+func NoRecover(e *graph.Editor, w io.Writer) error {
 	// -r and -L, the only two things that set recoverymode, went with the
 	// command line (argvfront, the reform's D1)
-	var err error
+	v := graph.NewVerbs("norecover", e, w)
 
 	// recover_names is the one reader of p_dir left, and dropoptions --strict
 	// refuses 'directory' later in this phase with no sweep between; the
 	// other two are the sweep's.
-	for _, name := range []string{"recover_names"} {
-		before := bytes.Count(text, []byte{'\n'})
-		var ok bool
-		if text, ok = edit.DeleteDefinition(text, name); !ok {
-			return nil, fmt.Errorf("norecover: %s is not defined at file scope", name)
-		}
-		fmt.Fprintf(w, "  norecover    %s, %d lines\n",
-			name, before-bytes.Count(text, []byte{'\n'}))
+	if e.Defn("recover_names") == nil {
+		v.Die("recover_names is not defined at file scope")
+		return v.Done()
 	}
+	// its lines on its own C view: the file's count would take the blank line
+	// the print puts between forms too
+	lines := 0
+	v.InFunction("recover_names", func(v *graph.Verbs) { lines = bytes.Count(v.Text(), []byte{'\n'}) })
+	q := graph.NewVerbs("norecover", e, io.Discard)
+	q.DeleteDefinition("recover_names", "recover_names")
+	if err := q.Done(); err != nil {
+		return err
+	}
+	v.Sayf("recover_names, %d lines", lines)
 
-	if text, err = edit.DropIf(text,
-		edit.Head("if (recoverymode && params.fname == nullptr)"), 2); err != nil {
-		return nil, err
+	q = graph.NewVerbs("norecover", e, io.Discard)
+	q.DropIf("(&& recoverymode (== (. params fname) nullptr))", 2, "the -r arms")
+	if err := q.Done(); err != nil {
+		return err
 	}
-	fmt.Fprintln(w, "  norecover    the two `-r with no file` arms of main and vim_main2")
+	v.Say("the two `-r with no file` arms of main and vim_main2")
 
 	// vim_main2's stdin arm read edit_type, which nothing writes once the
 	// command line is cut: the fall-out closure took it (argvfront, D1)
-	var hit bool
-	if text, err = keepElse(text, edit.Head("if (recoverymode)"),
-		"the recovery arm of create_windows", w); err != nil {
-		return nil, err
+	foldCounted := func(fn, head, cond string, never bool, say string) {
+		if v.Failed() {
+			return
+		}
+		n := 0
+		v.InFunction(fn, func(v *graph.Verbs) {
+			var err error
+			if n, err = ifLines(v.Text(), head); err != nil {
+				v.Die("%v", err)
+				return
+			}
+			ifs := v.Find("(if " + cond + " _*)")
+			if len(ifs) == 1 && !never && len(ifs[0].Kids) > 3 {
+				v.Die("%s -- the block has an else", say)
+				return
+			}
+			q := graph.NewVerbs("norecover", e, io.Discard)
+			q.In(v.Scope(), func(q *graph.Verbs) {
+				if never {
+					q.FoldNever(cond, 1, say)
+				} else {
+					q.FoldAlways(cond, 1, say)
+				}
+			})
+			if q.Err != nil {
+				v.Die("%v", q.Err)
+			}
+		})
+		if v.Failed() {
+			return
+		}
+		if never {
+			v.Sayf("%s, and the %d lines it guarded", say, n)
+		} else {
+			v.Sayf("%s, %d lines that always ran", say, n)
+		}
 	}
+	foldCounted("create_windows", "if (recoverymode)", "recoverymode", true,
+		"the recovery arm of create_windows")
 
 	// readfile() had to know whether it was filling a buffer from a swap file
 	// rather than from the file itself.  It never is.
-	if text, hit = replaceFirst(
-		regexp.MustCompile(`(?m)if \(!recoverymode && !filtering && !\(flags & READ_DUMMY\)\)`),
-		text, "if (!filtering && !(flags & READ_DUMMY))"); !hit {
-		return nil, fmt.Errorf("norecover: readfile's `reading from stdin` message is not " +
-			"where this expects")
-	}
-	if text, err = unwrapIf(text, edit.Head("if (!recoverymode)"),
-		"readfile's redraw and line count", w); err != nil {
-		return nil, err
-	}
-	if text, err = unwrapIf(text, edit.Head("if (!(recoverymode && error))"),
-		"readfile's return value", w); err != nil {
-		return nil, err
-	}
+	v.InFunction("readfile", func(v *graph.Verbs) {
+		c := v.Find("(&& (! recoverymode) (! filtering) (! (& flags READ_DUMMY)))")
+		if len(c) != 1 {
+			v.Die("readfile's `reading from stdin` message is not where this expects")
+			return
+		}
+		q := graph.NewVerbs("norecover", e, io.Discard)
+		q.In(c[0], func(q *graph.Verbs) { q.DropOperand("(! recoverymode)", 1, "readfile's message") })
+		if q.Err != nil {
+			v.Die("%v", q.Err)
+		}
+	})
+	foldCounted("readfile", "if (!recoverymode)", "(! recoverymode)", false,
+		"readfile's redraw and line count")
+	foldCounted("readfile", "if (!(recoverymode && error))", "(! (&& recoverymode error))", false,
+		"readfile's return value")
 
-	o, c, found, balanced := edit.Body(text, "add_time")
-	if !found || !balanced {
-		return nil, fmt.Errorf("norecover: add_time is not defined at file scope")
+	if !v.Failed() && e.Defn("add_time") == nil {
+		v.Die("add_time is not defined at file scope")
 	}
-	var buf []byte
-	buf = append(buf, text[:o]...)
-	buf = append(buf, "{\n"...)
-	buf = append(buf, relativeTime...)
-	buf = append(buf, "\n}"...)
-	text = append(buf, text[c+1:]...)
-	fmt.Fprintln(w, "  norecover    add_time says how long ago, not when; localtime_r and "+
+	if v.Failed() {
+		return v.Done()
+	}
+	q = graph.NewVerbs("norecover", e, io.Discard)
+	q.BodyC("add_time", relativeTime, "add_time")
+	if err := q.Done(); err != nil {
+		return err
+	}
+	v.Say("add_time says how long ago, not when; localtime_r and " +
 		"strftime go with it")
 
-	fmt.Fprintf(w, "  norecover    %d recoverymode mentions left for the sweep\n",
-		len(recoverymodeWord.FindAll(text, -1)))
-	return text, nil
+	v.Sayf("%d recoverymode mentions left for the sweep", v.TextCount(`\brecoverymode\b`))
+	return v.Done()
 }

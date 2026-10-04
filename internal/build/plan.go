@@ -61,12 +61,14 @@ type (
 // programs of part 4a and phases 15, 15a, 19, 20, 23 and 25 -- and B3a's:
 // the cutters onebuffer, nowild, nowildmenu, noconv, noglob, nofind,
 // nohome, nogetenv, nochdir and oneoptset, and the programs of parts 4b-4f
-// and 5a-5d and phases 21, 22 and 26.  Phases 4-26 begin on the graph --
+// and 5a-5d and phases 21, 22 and 26 -- and B4's: the front, phases 1-3,
+// every cutter and part a graph step (steps' front.go), FoldX the closure,
+// and noruntime and query-empty.  Phases 1-26 begin on the graph --
 // the first step, sweeps aside, is a graph step -- so the run hands them
 // the graph the phase before left when it ended on one, and the check reads
 // it from qNNN.g; the rest import the text where their graph steps begin.
-// Phases 3-26 end on the graph: collected, not swept, phases 4-26 with no
-// import between them.
+// Phases 1-26 end on the graph: collected, not swept; phase 1 imports phase
+// 0's text and phases 2-26 run with no import between them.
 var Plan = []Phase{
 	// Phase 0 seeds the input canonically and spells it in C23 there:
 	// whim0a's `nullptr` and `usize` (internal/phase/000/a), whim0b's
@@ -82,17 +84,17 @@ var Plan = []Phase{
 		}},
 	{N: 1, Block: "d01-front", Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
-			{Op: "front", Declared: true},
-			{Op: "noruntime"},
+			{Op: "front", Declared: true, Graph: true},
+			{Op: "noruntime", Graph: true},
 		}},
 	{N: 2, Name: "the front, continued; and the options for features that are not here",
 		Steps: []Step{
-			{Op: "front2"},
-			{Op: "query-empty", Args: []string{"whim2"}},
+			{Op: "front2", Graph: true},
+			{Op: "query-empty", Args: []string{"whim2"}, Graph: true},
 		}},
 	{N: 3, Name: "the front, continued; and no introduction, and the command line says only what the editor still decides",
 		Steps: []Step{
-			{Op: "front3"},
+			{Op: "front3", Graph: true},
 			{Op: "nointro", Graph: true},
 			{Op: "optreaders", Graph: true},
 		}},

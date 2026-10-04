@@ -37,3 +37,5 @@ The phase checks `:jumps` is refused, CTRL-O after `3G` leaves the cursor on lin
 ## The delta
 
 `:jumps` and `:clearjumps`, now `ex_ni`. Measured: 100,643 → **100,354 lines**.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): this part runs on `crefactor/graph` inside its phase's front, registered with `phase.RegisterGraph`, its report the text version's and its boundary byte for byte.

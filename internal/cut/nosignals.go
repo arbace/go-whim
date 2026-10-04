@@ -1,48 +1,22 @@
 package cut
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"regexp"
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/crefactor/dead"
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
-const signalTable = `{
-    {SIGHUP, "HUP", TRUE},
-    {SIGTERM, "TERM", TRUE},
-    {SIGINT, "INT", FALSE},
-    {SIGWINCH, "WINCH", FALSE},
-    {SIGTSTP, "TSTP", FALSE},
-    {-1, "Unknown!", FALSE},
-}`
-
+// signalsKeep are the rows of signal_info the editor can still be sent, in
+// the table's order, before the -1 that ends it.
 var signalsKeep = []string{"SIGHUP", "SIGTERM", "SIGINT", "SIGWINCH", "SIGTSTP"}
 
-var (
-	sigRow   = regexp.MustCompile(`\{SIG`)
-	sigNames = regexp.MustCompile(`\bSIG[A-Z0-9]+\b`)
-)
+var sigNames = regexp.MustCompile(`\bSIG[A-Z0-9]+\b`)
 
-var nosignalsCuts = []struct {
-	pat, what string
-	count     int
-}{
-	{edit.Line("mch_signal(SIGUSR1, catch_sigusr1);"), "the SIGUSR1 install", 1},
-	{edit.Line("mch_signal(SIGPWR, catch_sigpwr);"), "the SIGPWR install", 1},
-	{edit.Line("may_core_dump();"), "the may_core_dump calls", 2},
-	{edit.Line("signal_stack = alloc(get_signal_stack_size());"), "the signal stack", 1},
-	{edit.Line("init_signal_stack();"), "its install", 1},
-	{`(?m)^static char \*signal_stack;\n`, "signal_stack", 1},
-	{`(?m)^static stack_t sigstk;\n`, "sigstk", 1},
-	{`(?m)^static volatile sig_atomic_t got_sigusr1 = FALSE;\n`, "got_sigusr1", 1},
-}
-
-// cookTerminal is what prepare_to_exit's settmode line becomes.
+// cookTerminal is what prepare_to_exit's settmode statement becomes.
 //
 // THE CLAIM WAS FALSE WHEN THIS PHASE WAS WRITTEN.  prepare_to_exit() calls
 // settmode(TMODE_COOK) to put the terminal back, and settmode opens with
@@ -51,125 +25,122 @@ var nosignalsCuts = []struct {
 // deadly signal TERM", emitted stoptermcap's escapes, exited, and left the
 // terminal with ICANON and ECHO off.  Measured on the slave side of a pty,
 // before and after this phase: identical, and wrong both times.  Upstream has
-// the same hole.
-// Not written into the C any more -- the canonical form has no comments --
-// and kept as the account of this cut, for whoever reads the program.
+// the same hole.  The guard is there to avoid drawing on a screen that is
+// not there, and putting the terminal back is not drawing, so it is lent
+// full_screen for the length of the call.
 //
-//lint:ignore U1000 the account of this cut, kept for its reader; the canonical C has no comments to carry it
-const cookTerminalNote = `// settmode() returns at once when !full_screen, and deathtrap()
-// clears it before this runs -- so on the way out from a signal
-// the one thing this function exists for never happened: the
-// terminal was left with ICANON and ECHO off and the shell that
-// got it back was unusable.  The guard is there to avoid drawing
-// on a screen that is not there, and putting the terminal back is
-// not drawing, so it is lent full_screen for the length of the
-// call.  Upstream has the same hole.
-`
-
-const cookTerminal = `        {
-            int was_full_screen = full_screen;
-
-            full_screen = TRUE;
-            settmode(TMODE_COOK);
-            full_screen = was_full_screen;
-        }
-`
+// It uses settmode() rather than mch_settmode(), because mch_settmode() is
+// defined 89,000 lines further down with no forward declaration left to
+// reach it -- record 8 removed the ones nothing needed.
+const cookTerminal = `{
+    int was_full_screen = full_screen;
+    full_screen = TRUE;
+    settmode(TMODE_COOK);
+    full_screen = was_full_screen;
+}`
 
 // NoSignals leaves the five signals this editor can still be sent.
-func NoSignals(text []byte, w io.Writer) ([]byte, error) {
-	b := edit.Blank(text)
-	k := bytes.Index(text, []byte("} signal_info[] ="))
-	if k < 0 {
-		return nil, fmt.Errorf("nosignals: signal_info is not where this expects")
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): signal_info's other rows
+// deleted (INITROW, nothing names a row's position), the calls cut before
+// the definitions they name (DeleteDefinition refuses while one remains),
+// the folds by form, and prepare_to_exit's statement by FRAG, scoped to it
+// (`settmode(TMODE_COOK);` is in buf_write too).  The text version wrote
+// the table anew whole; history keeps it.
+func NoSignals(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nosignals", e, w)
+	q := graph.NewVerbs("nosignals", e, io.Discard)
+	keep := map[string]bool{"-1": true}
+	for _, s := range signalsKeep {
+		keep[s] = true
 	}
-	o := k + 10 + bytes.IndexByte(b[k+10:], '{')
-	c := edit.Match(b, o)
-	if c < 0 {
-		return nil, fmt.Errorf("nosignals: signal_info is unbalanced")
+	was := 0
+	var gone []string
+	q.InTable("signal_info", func(q *graph.Verbs) {
+		for _, r := range q.Rows() {
+			sig := r.Args()
+			if len(sig) == 0 {
+				continue
+			}
+			name := sig[0].Atom
+			if sig[0].Is("-") {
+				name = "-1"
+			}
+			if strings.HasPrefix(name, "SIG") {
+				was++
+			}
+			if !keep[name] {
+				gone = append(gone, "(init "+name+" _ _)")
+			}
+		}
+		deleteRowsTyped(q, gone, "signal_info's rows")
+	})
+	if q.Failed() {
+		return q.Done()
 	}
-	was := len(sigRow.FindAll(text[o:c], -1))
-	var buf []byte
-	buf = append(buf, text[:o]...)
-	buf = append(buf, signalTable...)
-	text = append(buf, text[c+1:]...)
-	fmt.Fprintf(w, "  nosignals    signal_info: %d entries -> %d\n", was, len(signalsKeep))
+	v.Sayf("signal_info: %d entries -> %d", was, len(signalsKeep))
 
+	q.InFunction("set_signals", func(q *graph.Verbs) {
+		q.Cut("(call mch_signal SIGUSR1 catch_sigusr1)", 1, "the SIGUSR1 install")
+		q.Cut("(call mch_signal SIGPWR catch_sigpwr)", 1, "the SIGPWR install")
+	})
+	q.Cut("(call may_core_dump)", 2, "the may_core_dump calls")
+	q.Cut("(= signal_stack (call alloc (call get_signal_stack_size)))", 1, "the signal stack")
+	q.Cut("(call init_signal_stack)", 1, "its install")
 	for _, name := range []string{"catch_sigusr1", "catch_sigpwr", "may_core_dump",
 		"init_signal_stack", "get_signal_stack_size"} {
-		var ok bool
-		if text, ok = edit.DeleteDefinition(text, name); !ok {
-			return nil, fmt.Errorf("nosignals: %s is not defined at file scope", name)
-		}
+		q.DeleteDefinition(name, name)
 	}
-	var err error
-	for _, e := range nosignalsCuts {
-		if text, err = cutCounted(text, e.pat, "nosignals", e.what, e.count); err != nil {
-			return nil, err
-		}
+	q.Cut("(def static signal_stack (ptr char))", 1, "signal_stack")
+	q.Cut("(def static sigstk stack_t)", 1, "sigstk")
+	q.Cut("(def static got_sigusr1 _ FALSE)", 1, "got_sigusr1")
+	if q.Failed() {
+		return q.Done()
 	}
-	fmt.Fprintln(w, "  nosignals    SIGPWR, whose handler called an empty function; "+
-		"SIGUSR1, whose flag nothing reads")
+	v.Say("SIGPWR, whose handler called an empty function; SIGUSR1, whose flag nothing reads")
 
-	text = bytes.Replace(text, []byte("            sa.sa_flags = SA_ONSTACK;\n"),
-		[]byte("            sa.sa_flags = 0;\n"), 1)
-	fmt.Fprintln(w, "  nosignals    the alternate signal stack: sigaltstack, sysconf")
-
-	if text, err = cutCounted(text,
-		`(?m)[ \t]*if \(sig != SIGPWR\)\n[ \t]*\{\n[ \t]*got_int = TRUE;\n[ \t]*\}\n`,
-		"nosignals", "the SIGPWR test", 1); err != nil {
-		return nil, err
+	var onstack []*graph.Node
+	for _, s := range q.Find("(= (. sa sa_flags) SA_ONSTACK)") {
+		onstack = append(onstack, s.Args()[1])
 	}
-	text = bytes.Replace(text,
-		[]byte("        got_signal = sig;\n"),
-		[]byte("        got_signal = sig;\n"+
-			"        got_int = TRUE;\n"), 1)
-	fmt.Fprintln(w, "  nosignals    the test for a signal that can no longer arrive")
+	q.ReplaceEachC(onstack, "0", 1, "the alternate signal stack")
+	if q.Failed() {
+		return q.Done()
+	}
+	v.Say("the alternate signal stack: sigaltstack, sysconf")
+
+	q.FoldAlways("(if (!= sig SIGPWR) _)", 1, "the SIGPWR test")
+	if q.Failed() {
+		return q.Done()
+	}
+	v.Say("the test for a signal that can no longer arrive")
 
 	// `in_mch_delay && sigarg == SIGQUIT` and the early return for
 	// HUP/QUIT/TERM/PWR/USR1/USR2 were written when all six could arrive here.
 	// Two can.  Left alone they would be a lie in the one function whose
 	// remaining job is to be trustworthy.
-	if text, err = edit.DropIf(text,
-		edit.Head("if (in_mch_delay && sigarg == SIGQUIT)"), 1); err != nil {
-		return nil, err
+	q.InFunction("deathtrap", func(q *graph.Verbs) {
+		q.DropIf("(&& in_mch_delay (== sigarg SIGQUIT))", 1, "deathtrap's SIGQUIT test")
+		q.CountIs(earlyTest, 1, "deathtrap's early-return test")
+		q.Rewrite("(|| 0 ?hup (== sigarg SIGQUIT) ?term "+
+			"(== sigarg SIGPWR) (== sigarg SIGUSR1) (== sigarg SIGUSR2))",
+			"(|| ?hup ?term)", 1, "deathtrap's early-return test")
+	})
+	if q.Failed() {
+		return q.Done()
 	}
-	early := regexp.MustCompile(
-		`\(0 \|\| sigarg == SIGHUP \|\| sigarg == SIGQUIT \|\| sigarg == SIGTERM` +
-			` \|\| sigarg == SIGPWR \|\| sigarg == SIGUSR1 \|\| sigarg == SIGUSR2\)`)
-	var hit bool
-	if text, hit = replaceFirst(early, text, "(sigarg == SIGHUP || sigarg == SIGTERM)"); !hit {
-		return nil, fmt.Errorf("nosignals: deathtrap's early-return test is not where this expects")
-	}
-	fmt.Fprintln(w, "  nosignals    deathtrap stops testing for signals it cannot be sent")
+	v.Say("deathtrap stops testing for signals it cannot be sent")
 
-	// SCOPED TO prepare_to_exit: `settmode(TMODE_COOK);` at this indent also
-	// appears in buf_write(), and an unanchored substitution took that one --
-	// the same mistake this pipeline has made twice before with `case 't':`
-	// and `char_u *tagname;`.
-	//
-	// And it uses settmode() rather than mch_settmode(), because mch_settmode()
-	// is defined 89,000 lines further down with no forward declaration left to
-	// reach it -- record 8 removed the ones nothing needed.
-	blanked := edit.Blank(text)
-	span, ok := dead.FuncDefinitions(text, blanked)["prepare_to_exit"]
-	if !ok {
-		return nil, fmt.Errorf("nosignals: prepare_to_exit is not defined at file scope")
+	q.InFunction("prepare_to_exit", func(q *graph.Verbs) {
+		q.ReplaceC("(call settmode TMODE_COOK)", cookTerminal, 1, "prepare_to_exit's settmode")
+	})
+	if q.Failed() {
+		return q.Done()
 	}
-	body := text[span[0]:span[1]]
-	old := []byte("        settmode(TMODE_COOK);\n")
-	if !bytes.Contains(body, old) {
-		return nil, fmt.Errorf("nosignals: prepare_to_exit's settmode is not where this expects")
-	}
-	body = bytes.Replace(body, old, []byte(cookTerminal), 1)
-	var rebuilt []byte
-	rebuilt = append(rebuilt, text[:span[0]]...)
-	rebuilt = append(rebuilt, body...)
-	text = append(rebuilt, text[span[1]:]...)
-	fmt.Fprintln(w, "  nosignals    a killed editor puts the terminal back, which is what "+
-		"SIGHUP and SIGTERM are kept for")
+	v.Say("a killed editor puts the terminal back, which is what SIGHUP and SIGTERM are kept for")
 
 	seen := map[string]bool{}
-	for _, m := range sigNames.FindAll(text, -1) {
+	for _, m := range sigNames.FindAll(v.Text(), -1) {
 		seen[string(m)] = true
 	}
 	left := make([]string, 0, len(seen))
@@ -177,6 +148,14 @@ func NoSignals(text []byte, w io.Writer) ([]byte, error) {
 		left = append(left, s)
 	}
 	sort.Strings(left)
-	fmt.Fprintf(w, "  nosignals    signals named in the file: %s\n", strings.Join(left, " "))
-	return text, nil
+	v.Sayf("signals named in the file: %s", strings.Join(left, " "))
+	if err := v.Done(); err != nil {
+		return fmt.Errorf("%v", err)
+	}
+	return nil
 }
+
+// earlyTest is deathtrap's early return as the seed wrote it, for six
+// signals.
+const earlyTest = "(|| 0 (== sigarg SIGHUP) (== sigarg SIGQUIT) (== sigarg SIGTERM) " +
+	"(== sigarg SIGPWR) (== sigarg SIGUSR1) (== sigarg SIGUSR2))"

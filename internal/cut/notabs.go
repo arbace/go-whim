@@ -1,268 +1,135 @@
 package cut
 
 import (
-	"bytes"
-	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
-// notabsBody replaces a definition's body, scoped to its own span.
-func notabsBody(text []byte, name, newBody string) ([]byte, error) {
-	a, z, ok := edit.FindDefinition(text, edit.Blank(text), name)
-	if !ok {
-		return nil, fmt.Errorf("notabs: %s is not defined at file scope", name)
-	}
-	seg := text[a:z]
-	b := edit.Blank(seg)
-	o := bytes.IndexByte(b, '{')
-	c := edit.Match(b, o)
-	if o < 0 || c < 0 {
-		return nil, fmt.Errorf("notabs: %s is unbalanced", name)
-	}
-	out := make([]byte, 0, len(text))
-	out = append(out, text[:a]...)
-	out = append(out, seg[:o]...)
-	out = append(out, "{\n"...)
-	out = append(out, newBody...)
-	out = append(out, '}')
-	out = append(out, seg[c+1:]...)
-	return append(out, text[z:]...), nil
-}
-
 // NoTabs removes tab pages: nothing makes or reaches a second one.
-func NoTabs(text []byte, w io.Writer) ([]byte, error) {
-	e := ed{"notabs", w}
-	var err error
-
-	var tabMod = edit.Head(`if (checkforcmd_noparen(&p, "tab", 3))`)
-	if n := len(regexp.MustCompile(tabMod).FindAll(text, -1)); n != 1 {
-		return nil, fmt.Errorf("notabs: the :tab modifier is not where this expects")
-	}
-	if text, err = edit.DropIf(text, tabMod, 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  notabs       the :tab modifier")
-
-	for _, b := range []struct{ name, body string }{
-		{"tabline_height", "    return 0;\n"},
-		{"draw_tabline", "    redraw_tabline = FALSE;\n"},
-	} {
-		if text, err = notabsBody(text, b.name, b.body); err != nil {
-			return nil, err
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the text's line folds are
+// folds by condition, its literals Rewrites, operands dropped, bodies and
+// runs by template, CTRL-W T's case run cut, each counted and reported as
+// the text did (history keeps the text version).
+func NoTabs(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("notabs", e, w)
+	q := graph.NewVerbs("notabs", e, io.Discard)
+	quiet := func(acts func(*graph.Verbs), what string) {
+		if v.Failed() {
+			return
 		}
+		acts(q)
+		if q.Err != nil {
+			v.Err = q.Err
+			return
+		}
+		v.Say(what)
 	}
-	fmt.Fprintln(w, "  notabs       the tab line is 0 lines and draws nothing")
+
+	v.DropIf(`(call checkforcmd_noparen (addr p) "tab" 3)`, 1, "the :tab modifier")
+	quiet(func(q *graph.Verbs) {
+		q.Body("tabline_height", "(return 0)", "tabline_height")
+		q.Body("draw_tabline", "(= redraw_tabline FALSE)", "draw_tabline")
+	}, "the tab line is 0 lines and draws nothing")
 
 	// A stub answers the question; it does not remove the caller.  win_split()
 	// asked may_open_tabpage() whether a :tab-modified split had become a tab
 	// page, and nothing can modify one now -- so the question goes, and the
 	// sweep takes the function.
-	if text, err = e.inFunction(text, "win_split", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(may_open_tabpage\(\) == OK\)$`,
-			"win_split opening a tab page for :tab")
-	}); err != nil {
-		return nil, err
-	}
-
-	for _, l := range []struct{ old, new, what string }{
-		{" || cmod->cmod_tab != 0 ", "", "has_cmdmod counting :tab"},
-		{" && cmdmod.cmod_tab == 0)", ")", "CTRL-W's 'switchbuf' test for :tab"},
-		{"    cmdmod.cmod_tab = 0;\n    cmdmod.cmod_flags |= CMOD_NOSWAPFILE;\n",
-			"    cmdmod.cmod_flags |= CMOD_NOSWAPFILE;\n",
-			"the command-line window clearing :tab"},
-	} {
-		if text, err = e.literal(text, l.old, l.new, l.what, 1); err != nil {
-			return nil, err
-		}
-	}
+	v.InFunction("win_split", func(v *graph.Verbs) {
+		v.FoldNever("(== (call may_open_tabpage) OK)", 1, "win_split opening a tab page for :tab")
+	})
+	v.DropOperand("(!= (-> cmod cmod_tab) 0)", 1, "has_cmdmod counting :tab")
+	v.DropOperand("(== (. cmdmod cmod_tab) 0)", 1, "CTRL-W's 'switchbuf' test for :tab")
+	v.InFunction("open_cmdwin", func(v *graph.Verbs) {
+		v.Cut("(= (. cmdmod cmod_tab) 0)", 1, "the command-line window clearing :tab")
+	})
 	// :argedit's, :drop's and :wincmd's tests for :tab, and :ball's, :all's
 	// and :tabdo's tab-page loops, died with those commands, retired at
 	// phase 1 (exfront, the reform's D2)
 
-	if text, err = e.inFunction(text, "ex_splitview", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(use_tab\)$`, "ex_splitview opening a tab page")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.literal(text,
-		" || eap->cmdidx == CMD_tabnew || eap->cmdidx == CMD_tabedit || eap->cmdidx == CMD_vnew)",
-		" || eap->cmdidx == CMD_vnew)",
-		":tabnew and :tabedit with no file in do_exedit", 1); err != nil {
-		return nil, err
-	}
+	v.InFunction("ex_splitview", func(v *graph.Verbs) {
+		v.FoldNever("use_tab", 1, "ex_splitview opening a tab page")
+	})
+	v.InFunction("do_exedit", func(v *graph.Verbs) {
+		quiet(func(q *graph.Verbs) {
+			q.In(v.Scope(), func(q *graph.Verbs) {
+				q.DropOperand("(== (-> eap cmdidx) CMD_tabnew)", 1, "")
+				q.DropOperand("(== (-> eap cmdidx) CMD_tabedit)", 1, "")
+			})
+		}, ":tabnew and :tabedit with no file in do_exedit")
+	})
 	// close_disallowed falls out in phase 2's closure (window_layout_lock()'s
 	// callers, autocommand triggers, went with the front's cuts), and its
 	// term with it
-	if text, err = e.foldNever(text,
-		`^[ \t]*if \(cmd == CMD_tabnew\)$`,
-		"window_layout_locked naming :tabnew"); err != nil {
-		return nil, err
-	}
+	v.FoldNever("(== cmd CMD_tabnew)", 1, "window_layout_locked naming :tabnew")
 
-	if text, err = e.inFunction(text, "nv_g_cmd", func(s []byte) ([]byte, error) {
-		var err error
-		for _, l := range []struct{ old, new, what string }{
-			{`    case 't':
-        if (!checkclearop(oap))
-        {
-            goto_tabpage((int)cap->count0);
-        }
-        break;
-`, `    case 't':
-        if (!checkclearop(oap) && cap->count0 > 1)
-        {
-            beep_flush();
-        }
-        break;
-`, "gt: a count above 1 beeps, as with one tab page"},
-			{`    case 'T':
-        if (!checkclearop(oap))
-        {
-            goto_tabpage(-(int)cap->count1);
-        }
-        break;
-`, `    case 'T':
-        (void)checkclearop(oap);
-        break;
-`, "gT: nothing, as with one tab page"},
-			{"if (!checkclearop(oap) && goto_tabpage_lastused() == FAIL)",
-				"if (!checkclearop(oap))",
-				"g<Tab>: beeps, there being no last-used tab page"},
-		} {
-			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
-				return nil, err
-			}
-		}
-		return s, nil
-	}); err != nil {
-		return nil, err
-	}
-
-	if text, err = e.inFunction(text, "nv_pcmark", func(s []byte) ([]byte, error) {
-		return e.foldAlways(s, `^[ \t]*if \(goto_tabpage_lastused\(\) == FAIL\)$`,
-			"CTRL-Tab: beeps")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "nv_page", func(s []byte) ([]byte, error) {
-		return e.literal(s, `        if (cap->arg == (-1))
-        {
-            goto_tabpage(-(int)cap->count1);
-        }
-        else
-        {
-            goto_tabpage((int)cap->count0);
-        }
-`, `        if (cap->arg !=  (-1)  && cap->count0 > 1)
-        {
-            beep_flush();
-        }
-`, "CTRL-PageUp and CTRL-PageDown: the one-tab-page answer", 1)
-	}); err != nil {
-		return nil, err
-	}
+	v.InFunction("nv_g_cmd", func(v *graph.Verbs) {
+		v.Rewrite("(if (! (call checkclearop oap)) (block (call goto_tabpage (cast int (-> cap count0)))))",
+			"(if (&& (! (call checkclearop oap)) (> (-> cap count0) 1)) (block (call beep_flush)))", 1,
+			"gt: a count above 1 beeps, as with one tab page")
+		v.Rewrite("(if (! (call checkclearop oap)) (block (call goto_tabpage (- (cast int (-> cap count1))))))",
+			"(cast void (call checkclearop oap))", 1, "gT: nothing, as with one tab page")
+		v.Rewrite("(&& ?a (== (call goto_tabpage_lastused) FAIL))", "?a", 1,
+			"g<Tab>: beeps, there being no last-used tab page")
+	})
+	v.InFunction("nv_pcmark", func(v *graph.Verbs) {
+		v.FoldAlways("(== (call goto_tabpage_lastused) FAIL)", 1, "CTRL-Tab: beeps")
+	})
+	v.InFunction("nv_page", func(v *graph.Verbs) {
+		v.Rewrite("(if (== (-> cap arg) ?m) (block (call goto_tabpage _)) (block (call goto_tabpage _)))",
+			"(if (&& (!= (-> cap arg) ?m) (> (-> cap count0) 1)) (block (call beep_flush)))", 1,
+			"CTRL-PageUp and CTRL-PageDown: the one-tab-page answer")
+	})
 	for _, fn := range []string{"ins_pageup", "ins_pagedown"} {
-		fn := fn
-		if text, err = e.inFunction(text, fn, func(s []byte) ([]byte, error) {
-			return e.foldNever(s, `^[ \t]*if \(first_tabpage->tp_next != nullptr\)$`,
-				fn+": no second tab page to reach")
-		}); err != nil {
-			return nil, err
-		}
+		v.InFunction(fn, func(v *graph.Verbs) {
+			v.FoldNever("(!= (-> first_tabpage tp_next) nullptr)", 1, fn+": no second tab page to reach")
+		})
 	}
 
-	if text, err = e.inFunction(text, "do_window", func(s []byte) ([]byte, error) {
-		caseT := regexp.MustCompile(`(?m)^    case 'T':\n`)
-		locs := caseT.FindAllIndex(s, -1)
-		if len(locs) != 1 {
-			return nil, fmt.Errorf("notabs: CTRL-W T is not where this expects")
+	v.InFunction("do_window", func(v *graph.Verbs) {
+		run := v.Run("CTRL-W T is not where this expects", "(case 'T')", "(if (!= cmdwin_type 0) _)",
+			"(if (call one_window) _ _)", "(break)", "(case 't')")
+		if run == nil {
+			return
 		}
-		m := locs[0]
-		end := regexp.MustCompile(`(?m)^    case 't':\n`).FindIndex(s[m[1]:])
-		if end == nil {
-			return nil, fmt.Errorf("notabs: CTRL-W T is not followed by CTRL-W t")
-		}
-		block := s[m[0] : m[1]+end[0]]
-		if !bytes.Contains(block, []byte("win_new_tabpage")) {
-			return nil, fmt.Errorf("notabs: the CTRL-W T block does not open a tab page")
-		}
-		out := make([]byte, 0, len(s))
-		out = append(out, s[:m[0]]...)
-		s = append(out, s[m[1]+end[0]:]...)
-		fmt.Fprintln(w, "  notabs       CTRL-W T: moving a window to a new tab page")
-
-		var err error
-		for _, l := range []struct{ old, new, what string }{
-			{`        case 'f':
-        case 'F':
-            cmdmod.cmod_tab = tabpage_index(curtab) + 1;
-            nchar = xchar;
-            goto wingotofile;
-`, `        case 'f':
-        case 'F':
-            beep_flush();
-            break;
-`, "CTRL-W gf and gF: editing a file in a new tab page"},
-			// CTRL-W gf was the only goto to it; CTRL-W f falls into the code
-			// directly.
-			{"    wingotofile:\n", "", "the label only CTRL-W gf jumped to"},
-			{`        case 't':
-            goto_tabpage((int)Prenum);
-            break;
-`, `        case 't':
-            if (Prenum > 1)
-            {
-                beep_flush();
-            }
-            break;
-`, "CTRL-W gt: the one-tab-page answer"},
-			{`        case 'T':
-            goto_tabpage(-(int)Prenum1);
-            break;
-`, `        case 'T':
-            break;
-`, "CTRL-W gT: the one-tab-page answer"},
-		} {
-			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
-				return nil, err
+		ok := false
+		v.In(run[2], func(v *graph.Verbs) { ok = v.Count("(call win_new_tabpage _)") == 1 })
+		v.Expect(ok, "the CTRL-W T block does not open a tab page")
+		quiet(func(q *graph.Verbs) {
+			if err := e.ReplaceRun(run[0], run[3]); err != nil {
+				q.Die("CTRL-W T -- %v", err)
 			}
-		}
-		return e.foldAlways(s, `^[ \t]*if \(goto_tabpage_lastused\(\) == FAIL\)$`,
-			"CTRL-W g<Tab>: beeps")
-	}); err != nil {
-		return nil, err
-	}
+		}, "CTRL-W T: moving a window to a new tab page")
+		v.Splice("(= (. cmdmod cmod_tab) (+ (call tabpage_index curtab) 1))", "(goto wingotofile)",
+			"(call beep_flush) (break)", "CTRL-W gf and gF: editing a file in a new tab page")
+		// CTRL-W gf was the only goto to it; CTRL-W f falls into the code
+		// directly.
+		v.Cut("(label wingotofile)", 1, "the label only CTRL-W gf jumped to")
+		v.Rewrite("(call goto_tabpage (cast int Prenum))", "(if (> Prenum 1) (block (call beep_flush)))", 1,
+			"CTRL-W gt: the one-tab-page answer")
+		v.Cut("(call goto_tabpage (- (cast int Prenum1)))", 1, "CTRL-W gT: the one-tab-page answer")
+		v.FoldAlways("(== (call goto_tabpage_lastused) FAIL)", 1, "CTRL-W g<Tab>: beeps")
+	})
 
 	// With no row nothing sets tcl_flags, so it is 0 for ever: "use the
 	// last-used tab page" is never asked for, and "go left" never is either.
-	if text, err = e.inFunction(text, "alt_tabpage", func(s []byte) ([]byte, error) {
-		s, err := e.foldNever(s,
-			`^[ \t]*if \(\(tcl_flags & TCL_USELAST\) && valid_tabpage\(lastused_tabpage\)\)$`,
+	v.InFunction("alt_tabpage", func(v *graph.Verbs) {
+		v.FoldNever("(&& (paren (& tcl_flags TCL_USELAST)) (call valid_tabpage lastused_tabpage))", 1,
 			"alt_tabpage: 'tabclose' asking for the last-used tab page")
-		if err != nil {
-			return nil, err
-		}
-		return e.literal(s,
-			"    forward = curtab->tp_next != nullptr && ((tcl_flags & TCL_LEFT) == 0 || curtab == first_tabpage);\n",
-			"    forward = curtab->tp_next != nullptr;\n",
-			"alt_tabpage: 'tabclose' asking to go left", 1)
-	}); err != nil {
-		return nil, err
-	}
-
-	if text, err = e.literal(text,
-		"    (void)opt_strings_flags(p_tcl, p_tcl_values, &tcl_flags, TRUE);\n", "",
-		"didset_string_options reading 'tabclose'", 1); err != nil {
-		return nil, err
-	}
+		v.Rewrite("(&& ?a (|| (== (& tcl_flags TCL_LEFT) 0) (== curtab first_tabpage)))", "?a", 1,
+			"alt_tabpage: 'tabclose' asking to go left")
+	})
+	v.Cut("(cast void (call opt_strings_flags p_tcl p_tcl_values (addr tcl_flags) TRUE))", 1,
+		"didset_string_options reading 'tabclose'")
 
 	// cmod_tab is not counted here: this runs at phase 3 (the reform's D9),
 	// where the retired commands' handlers and what the phases after it take
 	// still name it.
-
-	e.say("nothing makes or reaches a second tab page")
-	return text, nil
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Say("nothing makes or reaches a second tab page")
+	return v.Done()
 }

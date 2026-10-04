@@ -36,61 +36,70 @@ package p003d
 // The probes check g?g? no longer encodes, that g?? and ?-with-operator-pending
 // do not either, that g@g@ is refused, and that gu/gU/g~ still work, since they
 // share swapchar() with the arms that go.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the labels and statements as
+// items found by form, the operator function's case as a run, each scoped to
+// its function (history keeps the text version).
 
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// opFunctionCase is g@'s arm in do_pending_operator.  It is matched as a
-// literal because it is a whole block with its own braces and a saved
-// redo_VIsual, and a pattern for it would be longer than the block.
-const opFunctionCase = "        case OP_FUNCTION:\n" +
-	"            {\n" +
-	"                redo_VIsual_T save_redo_VIsual = redo_VIsual;\n" +
-	"                op_function(oap);\n" +
-	"                redo_VIsual = save_redo_VIsual;\n" +
-	"                break;\n" +
-	"            }\n"
+// cutRunAfter deletes the items of the run pats says but its first, the run
+// found once in the scope.
+func cutRunAfter(v *graph.Verbs, what string, pats ...string) {
+	r := v.Run(what, pats...)
+	if r == nil {
+		return
+	}
+	for _, x := range r[1:] {
+		if err := v.Editor().Delete(x); err != nil {
+			v.Die("%s -- %v", what, err)
+			return
+		}
+	}
+	v.Say(what)
+}
 
-// Whim3d takes g? and g@ -- rot13 and the operator function -- and an empty
+// Edit takes g? and g@ -- rot13 and the operator function -- and an empty
 // call left behind by completion.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("norot13", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("norot13", e, w)
 
 	// The case labels are scoped to nv_g_cmd: another switch entirely has '?'
 	// and '@' next to each other, and an unscoped edit would have two places to
 	// choose from.
-	e.InFunction("nv_g_cmd", func(e *edit.E) {
-		e.Sub(`(?m)^([ \t]*case 'U':\n)[ \t]*case '\?':\n[ \t]*case '@':\n`, "${1}", 1, "g? and g@ as operators")
+	v.InFunction("nv_g_cmd", func(v *graph.Verbs) {
+		cutRunAfter(v, "g? and g@ as operators", "(case 'U')", "(case '?')", "(case '@')")
 	})
-	e.InFunction("nv_search", func(e *edit.E) {
-		e.DropIf(edit.Head("if (cap->cmdchar == '?' && cap->oap->op_type == OP_ROT13)"), 1,
+	v.InFunction("nv_search", func(v *graph.Verbs) {
+		v.DropIf("(&& (== (-> cap cmdchar) '?') (== (-> cap oap op_type) OP_ROT13))", 1,
 			"g? reaching the operator with a search pending")
 	})
-	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Cut(edit.Line("case OP_ROT13:"), 1, "rot13 sharing the case-change dispatch")
+	v.InFunction("do_pending_operator", func(v *graph.Verbs) {
+		v.Cut("(case OP_ROT13)", 1, "rot13 sharing the case-change dispatch")
 	})
-	e.InFunction("swapchar", func(e *edit.E) {
-		e.DropIf(edit.Head("if (c >= 0x80 && op_type == OP_ROT13)"), 1, "rot13 refusing a multibyte character")
-		e.FoldNever(edit.Head("if (op_type == OP_ROT13)"), 2, "rot13 rotating a letter")
+	v.InFunction("swapchar", func(v *graph.Verbs) {
+		v.DropIf("(&& (>= c 0x80) (== op_type OP_ROT13))", 1, "rot13 refusing a multibyte character")
+		v.FoldNever("(== op_type OP_ROT13)", 2, "rot13 rotating a letter")
 	})
 
 	// The operator function.
-	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Literal(opFunctionCase, "", 1, "g@ reaching the operator function")
-	})
-	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Literal(" || oap->op_type == OP_FUNCTION", "", 1, "the operator function deciding whether the motion is inclusive")
+	v.InFunction("do_pending_operator", func(v *graph.Verbs) {
+		v.CutRun("g@ reaching the operator function", "(case OP_FUNCTION)",
+			"(block (def save_redo_VIsual redo_VIsual_T redo_VIsual) (call op_function oap) (= redo_VIsual save_redo_VIsual) (break))")
+		v.DropOperand("(== (-> oap op_type) OP_FUNCTION)", 1,
+			"the operator function deciding whether the motion is inclusive")
 	})
 
 	// An empty call.
-	e.InFunction("edit", func(e *edit.E) {
-		e.Sub(`(?m)^([ \t]*case Ctrl_X:\n)[ \t]*ins_ctrl_x\(\);\n`, "${1}", 1, "CTRL-X calling an empty function")
+	v.InFunction("edit", func(v *graph.Verbs) {
+		cutRunAfter(v, "CTRL-X calling an empty function", "(case Ctrl_X)", "(call ins_ctrl_x)")
 	})
-	return e.Done()
+	return v.Done()
 }
 
-func init() { phase.Register("whim3d", Edit) }
+func init() { phase.RegisterGraph("whim3d", Edit) }

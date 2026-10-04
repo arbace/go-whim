@@ -18,7 +18,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/dead"
@@ -33,67 +32,7 @@ import (
 // A Step is one transformation: the tree in, the tree out, its report on w.
 type Step func(text []byte, args []string, w io.Writer) ([]byte, error)
 
-// editStep runs a registered phase edit by name, as the "edit" op does.
-func editStep(name string) Step {
-	return func(t []byte, _ []string, w io.Writer) ([]byte, error) {
-		return runEdit(t, []string{name}, w)
-	}
-}
-
-// plain wraps a cutter that takes no arguments of its own.
-func plain(f func([]byte, io.Writer) ([]byte, error)) Step {
-	return func(t []byte, _ []string, w io.Writer) ([]byte, error) { return f(t, w) }
-}
-
 var ops = map[string]Step{
-	"noabbr":    plain(cut.NoAbbr),
-	"noarglist": plain(cut.NoArgList),
-	// the command line cut at the front, and what that leaves unwritten
-	// folded; read_cmd_fd is held: the product keeps it
-	// The reform's drop packages, each a plain cut (doc/PIPELINE-REFORM.md
-	// §7): the command line (D1), the Ex commands retired and their rows
-	// deleted (D2), the commands that name a file (D4), the options (D3).
-	"argvfront": plain(cut.ArgvFront),
-	"exfront":   Step(exFront),
-	"extable":   plain(cut.ExTable),
-	"filefront": plain(cut.FileFront),
-	"optfront":  plain(cut.OptFront),
-	// and phase 1's one step: the five in order, and ONE fall-out closure
-	// over what they leave unwritten together
-	"front":       Step(xform.FallOutOf(xform.Step(front), frontHold...)),
-	"front2":      Step(xform.FallOutOf(xform.Step(front2), frontHold...)),
-	"front3":      Step(xform.FallOutOf(xform.Step(front3), frontHold...)),
-	"nobuflist":   plain(cut.NoBufList),
-	"nocindent":   plain(cut.NoCindent),
-	"nocmdopts":   plain(cut.NoCmdOpts),
-	"nocompl":     plain(cut.NoCompl),
-	"nocomplkeys": plain(cut.NoComplKeys),
-	"noenc":       plain(cut.NoEnc),
-	"noequiclass": plain(cut.NoEquiClass),
-	"nofenc":      plain(cut.NoFenc),
-	"nofencs":     plain(cut.NoFencs),
-	"nofnamemod":  plain(cut.NoFnameMod),
-	"noident":     plain(cut.NoIdent),
-	"noinert":     plain(cut.NoInert),
-	"nolocale":    plain(cut.NoLocale),
-	"nomemfile":   plain(cut.NoMemfile),
-	"nomouse":     plain(cut.NoMouse),
-	"nonfa":       plain(cut.NoNfa),
-	"norecover":   plain(cut.NoRecover),
-	"noruntime":   plain(cut.NoRuntime),
-	"nosession":   plain(cut.NoSession),
-	"noshellout":  plain(cut.NoShellOut),
-	"nosignals":   plain(cut.NoSignals),
-	"nostartup":   plain(cut.NoStartup),
-	"noswap":      plain(cut.NoSwap),
-	"notabs":      plain(cut.NoTabs),
-	"notags":      plain(cut.NoTags),
-	"noterm":      plain(cut.NoTerm),
-	"noucmd":      plain(cut.NoUcmd),
-	"nowindows":   plain(cut.NoWindows),
-	"nowinsizes":  plain(cut.NoWinSizes),
-	"utf8only":    plain(cut.Utf8Only),
-
 	// The four that take arguments, and the three that only ask a question;
 	// droplocal is a graph step (graphOps).
 	"funcreach": funcReach,
@@ -182,6 +121,12 @@ var graphOps = map[string]GraphStep{
 	"nogetenv":   plainGraph(cut.NoGetEnv),
 	"nochdir":    plainGraph(cut.NoChdir),
 	"oneoptset":  plainGraph(cut.OneOptSet),
+	// B4: the front, phases 1-3
+	"front":       frontGraph(1),
+	"front2":      frontGraph(2),
+	"front3":      frontGraph(3),
+	"noruntime":   plainGraph(cut.NoRuntime),
+	"query-empty": queryEmptyGraph,
 }
 
 // LookupGraph returns the graph step of that name, and whether there is one.
@@ -258,46 +203,6 @@ func runGraphEdit(e *graph.Editor, args []string, w io.Writer) error {
 	return f(e, w, args[1:])
 }
 
-// front runs phase 1's front cuts in order, D1-D5: the command line, the Ex
-// commands, the files, `:q`, reading, the command syntax, the options and the
-// swap file.
-func front(t []byte, args []string, w io.Writer) ([]byte, error) {
-	return runCuts(t, args, w, []Step{plain(cut.ArgvFront), exFront, plain(cut.ExTable),
-		plain(cut.FileFront), plain(cut.QuitFront), plain(cut.ReadFront), plain(cut.OneCmdFront),
-		plain(cut.OptFront), plain(cut.NoSwap), plain(cut.NoRecover), plain(cut.NoMemfile)})
-}
-
-// front2 runs phase 2's, D6-D8: startup, the encoding, the terminal.  The
-// front is three phases so that the parallel check runs them side by side.
-func front2(t []byte, args []string, w io.Writer) ([]byte, error) {
-	return runCuts(t, args, w, []Step{plain(cut.NoLocale), plain(cut.NoStartup),
-		plain(cut.NoCmdOpts), plain(cut.NoSession), editStep("whim18"),
-		plain(cut.NoEnc), plain(cut.NoFencs), plain(cut.NoFenc),
-		plain(cut.Utf8Only), plain(cut.NoTerm), plain(cut.NoMouse), editStep("whim2a")})
-}
-
-// front3 runs phase 3's, D9-D12: one of each, the editing features, one
-// regexp engine, the process.
-func front3(t []byte, args []string, w io.Writer) ([]byte, error) {
-	return runCuts(t, args, w, []Step{plain(cut.NoInert), plain(cut.NoTabs),
-		plain(cut.NoArgList), plain(cut.NoWindows), plain(cut.NoWinSizes),
-		plain(cut.NoBufList), plain(cut.NoNfa), plain(cut.NoShellOut), plain(cut.NoTags),
-		plain(cut.NoSignals), plain(cut.NoEquiClass), plain(cut.NoCindent), plain(cut.NoUcmd),
-		plain(cut.NoIdent), plain(cut.NoFnameMod), plain(cut.NoCompl), plain(cut.NoComplKeys),
-		plain(cut.NoAbbr), editStep("whim3a"), editStep("whim3b"), editStep("whim3c"),
-		editStep("whim3d"), editStep("whim3e"), editStep("whim3f")})
-}
-
-func runCuts(t []byte, args []string, w io.Writer, cuts []Step) ([]byte, error) {
-	var err error
-	for _, op := range cuts {
-		if t, err = op(t, args, w); err != nil {
-			return nil, err
-		}
-	}
-	return t, nil
-}
-
 // frontHold is what the closure after the front cuts leaves to the phases
 // that fold it by hand: read_cmd_fd, sticky_cmdmod_flags,
 // aucmd_cmdline_changed_count and skip_win_fix_cursor, which the product
@@ -330,33 +235,6 @@ var optfrontHold = []string{
 	// phase 20 cuts :!'s and :stop's whole `autowrite_all()` blocks, where
 	// the closure would empty autowrite_all() and leave the blocks
 	"p_aw", "p_awa", "p_write",
-}
-
-// exFront points every row phase 1 declares (internal/phase/001/delta.md,
-// handed as REMOVED) at ex_ni: the 489 commands the product has not, 271 of
-// them stubs in the seed already.
-func exFront(t []byte, _ []string, w io.Writer) ([]byte, error) {
-	names := strings.Fields(os.Getenv("REMOVED"))
-	if len(names) == 0 {
-		return nil, fmt.Errorf("exfront: no rows declared")
-	}
-	// a row ex_script_ni already is a stub as it stands
-	var want []string
-	script := 0
-	for _, n := range names {
-		q := regexp.QuoteMeta(n)
-		if regexp.MustCompile(`\[CMD_\w+\] = \{\(char_u \*\)"` + q + `", sizeof\("` + q + `"\) - 1,\s*ex_script_ni\b`).Match(t) {
-			script++
-			continue
-		}
-		want = append(want, n)
-	}
-	out, done, already, err := cut.Retire(t, want)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Fprintf(w, "  exfront      %d commands retired, %d were stubs already\n", len(done), len(already)+script)
-	return out, nil
 }
 
 // funcReach is `funcreach [--delete]`: the floor is the tool's and refusing on

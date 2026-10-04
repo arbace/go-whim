@@ -8,12 +8,10 @@ package cut
 // that fold it, and what nothing calls any more to the sweep.
 
 import (
-	"bytes"
-	"fmt"
 	"io"
-	"regexp"
+	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // argvScanBody is command_line_scan()'s body as the product has it, in the
@@ -56,70 +54,67 @@ const argvScanBody = `{
     }
 }`
 
-const (
-	argvEnumsOld = "enum { ME_UNKNOWN_OPTION = 0 };\n\nenum { ME_TOO_MANY_ARGS = 1 };\n\nenum { ME_ARG_MISSING = 2 };\n\nenum { ME_GARBAGE = 3 };\n\nenum { ME_EXTRA_CMD = 4 };\n"
-	argvEnumsNew = "enum { ME_UNKNOWN_OPTION = 0 };\n\nenum { ME_EXTRA_CMD = 1 };\n"
-	argvRowsOld  = "    \"Unknown option argument\",\n    \"Too many edit arguments\",\n    \"Argument missing after\",\n    \"Garbage after option argument\",\n"
-	argvRowsNew  = "    \"Unknown option argument\",\n"
-)
-
 // ArgvFront cuts the command line to `+{command}`: command_line_scan()'s
 // body, the calls of parse_command_name() and early_arg_scan() (argv[0]'s
 // mode and the options read before the rest), main()'s prescan for
 // --clean, and the errors it can no longer give, mainerr_arg_missing()
-// with them.  Each is asserted to be
-// where the seed has it, once.
-func ArgvFront(text []byte, w io.Writer) ([]byte, error) {
-	// command_line_scan's body, found by brace matching from its head
-	head := regexp.MustCompile(`(?m)^command_line_scan\(mparm_T \*parmp\)\n`)
-	m := head.FindAllIndex(text, -1)
-	if len(m) != 1 {
-		return nil, fmt.Errorf("argvfront: command_line_scan is defined %d times, not once", len(m))
+// with them.  Each is asserted to be where the seed has it, once.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the body by FRAG (BodyC), the
+// calls and the prescan cut by form, main_errors[]'s three rows deleted
+// with the ME_* enumerators said as their index (INITROW), so that the
+// three that indexed them go and ME_EXTRA_CMD is 1 where it was 4 -- what
+// the text program spelled out as a replacement of both (history keeps
+// it); B2b's TestRowsArgvFront first proved it.
+func ArgvFront(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("argvfront", e, w)
+	q := graph.NewVerbs("argvfront", e, io.Discard)
+	if e.Defn("command_line_scan") == nil {
+		v.Die("command_line_scan is not defined")
+		return v.Done()
 	}
-	blanked := edit.Blank(text)
-	open := m[0][1] + bytes.IndexByte(blanked[m[0][1]:], '{')
-	close := edit.Match(blanked, open)
-	if close < 0 {
-		return nil, fmt.Errorf("argvfront: command_line_scan is unbalanced")
-	}
-	was := bytes.Count(text[open:close+1], []byte("\n"))
-	text = append(append(append([]byte{}, text[:open]...), argvScanBody...), text[close+1:]...)
-	// the calls, and main()'s prescan
-	for _, c := range []struct{ pat, what string }{
-		{edit.Line("parse_command_name(&params);"), "parse_command_name's call"},
-		{edit.Line("early_arg_scan(paramp);"), "early_arg_scan's call"},
-		{`(?m)^    for \(i = 1; i < argc; \+\+i\)\n    \{\n        if \(strcasecmp\(\(char \*\)\(argv\[i\]\), \(char \*\)\("--clean"\)\) == 0\)\n        \{\n            params\.clean = TRUE;\n            break;\n        \}\n    \}\n`, "main's --clean prescan"},
-	} {
-		re := regexp.MustCompile(c.pat)
-		out, n := edit.ReplaceAllCounted(re, text, nil)
-		if n != 1 {
-			return nil, fmt.Errorf("argvfront: %s is there %d times, not once", c.what, n)
-		}
-		text = out
-	}
+	was := 0
+	v.InFunction("command_line_scan", func(v *graph.Verbs) { was = bodyLines(v.Text()) })
+	body := strings.TrimSuffix(strings.TrimPrefix(argvScanBody, "{\n"), "}")
+	q.BodyC("command_line_scan", body, "command_line_scan's body")
+	q.InFunction("main", func(q *graph.Verbs) {
+		q.Cut("(call parse_command_name (addr params))", 1, "parse_command_name's call")
+		q.Cut(`(for (= i 1) (< i argc) (pre++ i) (block (if (== (call strcasecmp _ (cast (ptr char) (paren "--clean"))) 0) _)))`,
+			1, "main's --clean prescan")
+	})
+	q.Cut("(call early_arg_scan paramp)", 1, "early_arg_scan's call")
 	// the errors it can still give: the enumerators are main_errors[]'s
-	// indices, so the two are rewritten together, to the two the parser
-	// names and the row nothing names that the product keeps
-	for _, c := range []struct{ old, new, what string }{
-		{argvEnumsOld, argvEnumsNew, "the ME_* enumerators"},
-		{argvRowsOld, argvRowsNew, "main_errors[]"},
-	} {
-		if n := bytes.Count(text, []byte(c.old)); n != 1 {
-			return nil, fmt.Errorf("argvfront: %s are there %d times, not once", c.what, n)
+	// indices, so the rows go with them said, to the two the parser names
+	// and the row nothing names that the product keeps
+	var ix graph.RowIndex
+	for _, n := range []string{"ME_UNKNOWN_OPTION", "ME_TOO_MANY_ARGS", "ME_ARG_MISSING", "ME_GARBAGE", "ME_EXTRA_CMD"} {
+		var en *graph.Node
+		for _, d := range e.Decls(n) {
+			if e.IsEnumerator(d) {
+				en = d
+			}
 		}
-		text = bytes.Replace(text, []byte(c.old), []byte(c.new), 1)
+		if en == nil {
+			v.Die("%s is not an enumerator", n)
+			return v.Done()
+		}
+		ix.Enumerators = append(ix.Enumerators, en)
 	}
+	q.InTable("main_errors", func(q *graph.Verbs) {
+		done := q.DeleteRowsEach([]string{`"Too many edit arguments"`, `"Argument missing after"`, `"Garbage after option argument"`},
+			ix, "main_errors[]")
+		q.Expect(done == nil || len(done.GoneEnumerators) == 3 && len(done.Renumbered) == 1 && done.Renumbered[0].New == 1,
+			"the ME_* enumerators did not become ME_UNKNOWN_OPTION 0 and ME_EXTRA_CMD 1")
+	})
 	// the one helper that named an error gone: nothing calls it now
-	t2, ok := edit.DeleteDefinition(text, "mainerr_arg_missing")
-	if !ok {
-		return nil, fmt.Errorf("argvfront: mainerr_arg_missing is not defined")
+	q.DeleteDefinition("mainerr_arg_missing", "mainerr_arg_missing")
+	q.Cut("(def static mainerr_arg_missing _*)", 1, "mainerr_arg_missing's prototype")
+	if err := q.Done(); err != nil {
+		return err
 	}
-	proto := []byte("static void mainerr_arg_missing(char_u *str);\n")
-	if bytes.Count(t2, proto) != 1 {
-		return nil, fmt.Errorf("argvfront: mainerr_arg_missing's prototype is there %d times, not once", bytes.Count(t2, proto))
-	}
-	text = bytes.Replace(t2, proto, nil, 1)
-	fmt.Fprintf(w, "  argvfront    the command line is +{command} alone: command_line_scan %d lines -> %d, argv[0], the early scan and the --clean prescan gone\n",
-		was, bytes.Count([]byte(argvScanBody), []byte("\n")))
-	return text, nil
+	now := 0
+	v.InFunction("command_line_scan", func(v *graph.Verbs) { now = bodyLines(v.Text()) })
+	v.Sayf("the command line is +{command} alone: command_line_scan %d lines -> %d, argv[0], the early scan and the --clean prescan gone",
+		was, now)
+	return v.Done()
 }

@@ -30,3 +30,5 @@ refused, and CTRL-^ in Insert mode inserts nothing.
 
 `:lmap`, `:lnoremap` and `:lmapclear`, now `ex_ni`. Measured: 108,651 →
 **108,374 lines**.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): this part runs on `crefactor/graph` inside its phase's front, registered with `phase.RegisterGraph`, its report the text version's and its boundary byte for byte.

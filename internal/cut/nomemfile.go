@@ -1,13 +1,9 @@
 package cut
 
 import (
-	"bytes"
-	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/dead"
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // The four replacement bodies are generated from the Python module's own
@@ -60,8 +56,6 @@ const mfSyncBody = "    mfp->mf_dirty = MF_DIRTY_NO;\n" +
 const mfGetMissNote = "// A block that is not in the hash is not anywhere: it could only\n" +
 	"// ever have come back from the file, and there is no file.\n"
 
-const mfGetMissBody = "            return nullptr;"
-
 // Not written into the C any more -- the canonical form has no comments --
 // and kept as the account of this cut, for whoever reads the program.
 //
@@ -79,229 +73,199 @@ const lallocBody = "    p = malloc(size);\n" +
 	"        releasing = FALSE;\n" +
 	"    }"
 
-// nomemfileBody replaces a definition's body and reports its old line count.
-func nomemfileBody(text []byte, name, replacement, tag string, w io.Writer) ([]byte, error) {
-	o, c, found, balanced := edit.Body(text, name)
-	if !found || !balanced {
-		return nil, fmt.Errorf("nomemfile: %s is not defined at file scope", name)
-	}
-	was := bytes.Count(text[o:c], []byte{'\n'})
-	fmt.Fprintf(w, "  nomemfile    %-16s was %3d lines -- %s\n", name, was, tag)
-	out := make([]byte, 0, len(text))
-	out = append(out, text[:o]...)
-	out = append(out, "{\n"...)
-	if replacement != "" {
-		out = append(out, replacement...)
-		out = append(out, '\n')
-	}
-	out = append(out, '}')
-	return append(out, text[c+1:]...), nil
-}
-
 // NoMemfile takes the memfile's file away: there is no descriptor, no block is
 // ever in a file, and the page size is ours to choose.
-func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
-	for _, r := range []struct{ old, new string }{
-		{"static memfile_T *mf_open(char_u *fname, int flags);", "static memfile_T *mf_open(void);"},
-		{"mf_open(char_u *fname, int flags)", "mf_open(void)"},
-		{"mfp = mf_open(nullptr, 0);", "mfp = mf_open();"},
-	} {
-		text = bytes.Replace(text, []byte(r.old), []byte(r.new), 1)
-	}
-	text, err := nomemfileBody(text, "mf_open", mfOpenBody, "no caller can name a file", w)
-	if err != nil {
-		return nil, err
-	}
-	if text, err = nomemfileBody(text, "mf_sync", mfSyncBody, "nothing to sync to", w); err != nil {
-		return nil, err
-	}
-
-	// mf_release reads p_mmt, which dropoptions --strict refuses later in this
-	// phase with no sweep between; the rest of the file back-end is the sweep's.
-	var ok bool
-	if text, ok = edit.DeleteDefinition(text, "mf_release"); !ok {
-		return nil, fmt.Errorf("nomemfile: mf_release is not defined at file scope")
-	}
-
-	for _, c := range []struct{ pat, what string }{
-		{edit.Line("mf_fullname(buf->b_ml.ml_mfp);"), "mf_fullname's caller"},
-		{edit.Line("if (mfp->mf_fd >= 0)") +
-			`[ \t]*\{\n` +
-			`[ \t]*if \(close\(mfp->mf_fd\) < 0\)\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*emsg\(_\(e_close_error_on_swap_file\)\);\n` +
-			`[ \t]*\}\n` +
-			`[ \t]*\}\n` +
-			`[ \t]*if \(del_file && mfp->mf_fname != nullptr\)\n` +
-			`[ \t]*\{\n[ \t]* unlink\(\(char \*\)\(mfp->mf_fname\)\);\n[ \t]*\}\n`,
-			"mf_close's descriptor and unlink"},
-		{edit.Line("vim_free(mfp->mf_fname);", "vim_free(mfp->mf_ffname);"),
-			"mf_close's two names"},
-	} {
-		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
-			return nil, err
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the bodies FRAG (BodyC, a
+// loop's items by ReplaceC), mf_open's two parameters PARAM's, the
+// statements cut by form and run, a block rebuilt, the folds by condition,
+// the operands dropped; the old lengths and the mentions the text's on the
+// C view.  mf_release's definition goes once its last caller has (the
+// graph refuses it before; the text deleted it first).  PARAM drops the
+// arguments at EVERY call: the text left ml_recover's `mf_open(fname_used,
+// O_RDONLY)` passing two arguments to a function of none, which the sweep
+// took with ml_recover; so before the collection the C view differs from
+// the text's at that call alone (history keeps the text version).
+func NoMemfile(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nomemfile", e, w)
+	quiet := func(acts func(q *graph.Verbs)) {
+		if v.Failed() {
+			return
+		}
+		q := graph.NewVerbs("nomemfile", e, io.Discard)
+		acts(q)
+		if q.Err != nil {
+			v.Die("%v", q.Err)
 		}
 	}
+	body := func(name, src, tag string) {
+		if v.Failed() {
+			return
+		}
+		if e.Defn(name) == nil {
+			v.Die("%s is not defined at file scope", name)
+			return
+		}
+		was := 0
+		v.InFunction(name, func(v *graph.Verbs) { was = bodyLines(v.Text()) })
+		quiet(func(q *graph.Verbs) { q.BodyC(name, src, name) })
+		if !v.Failed() {
+			v.Sayf("%-16s was %3d lines -- %s", name, was, tag)
+		}
+	}
+	body("mf_open", mfOpenBody, "no caller can name a file")
+	quiet(func(q *graph.Verbs) {
+		f := e.Defn("mf_open")
+		q.DropParams([]graph.ParamDrop{{Decl: f, I: 0}, {Decl: f, I: 1}}, graph.ParamOptions{}, "mf_open's parameters")
+	})
+	body("mf_sync", mfSyncBody, "nothing to sync to")
+
+	quiet(func(q *graph.Verbs) {
+		q.Cut("(call mf_fullname (. (-> buf b_ml) ml_mfp))", 1, "mf_fullname's caller")
+		q.InFunction("mf_close", func(q *graph.Verbs) {
+			q.CutRun("mf_close's descriptor and unlink",
+				"(if (>= (-> mfp mf_fd) 0) (block (if (< (call close (-> mfp mf_fd)) 0) (block (call emsg (call _ e_close_error_on_swap_file))))))",
+				"(if (&& del_file (!= (-> mfp mf_fname) nullptr)) (block (call unlink (cast (ptr char) (paren (-> mfp mf_fname))))))")
+			q.CutRun("mf_close's two names", "(call vim_free (-> mfp mf_fname))", "(call vim_free (-> mfp mf_ffname))")
+		})
+	})
 
 	// buf_write matched the swap file's permissions and group to the file's.
 	// mf_fname is NULL for ever, so the block never ran; it is the last
 	// mention of mf_fd, and swap_mode exists only for it.
-	if text, err = edit.DropIf(text,
-		`(?m)^[ \t]*if \(swap_mode > 0 && curbuf->b_ml\.ml_mfp != nullptr `+
-			`&& curbuf->b_ml\.ml_mfp->mf_fname != nullptr\)$`, 1); err != nil {
-		return nil, err
+	quiet(func(q *graph.Verbs) {
+		q.DropIf("(&& (> swap_mode 0) (!= (. (-> curbuf b_ml) ml_mfp) nullptr) (!= (-> (. (-> curbuf b_ml) ml_mfp) mf_fname) nullptr))", 1, "the swap file's permissions")
+		q.Cut("(= swap_mode (| (paren (& (. st st_mode) 0644)) 0600))", 1, "swap_mode's one assignment")
+	})
+	if !v.Failed() {
+		v.Say("buf_write stops matching a swap file's permissions")
 	}
-	for _, c := range []struct{ pat, what string }{
-		{edit.Line("swap_mode = (st.st_mode & 0644) | 0600;"), "swap_mode's one assignment"},
-	} {
-		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
-			return nil, err
-		}
-	}
-	fmt.Fprintln(w, "  nomemfile    buf_write stops matching a swap file's permissions")
-	text = bytes.Replace(text, []byte("    hp = mf_release(mfp, page_count);\n"),
-		[]byte("    hp = nullptr;\n"), 1)
 
 	// mf_get's cache miss: the block could only have come back from the file.
-	blanked := edit.Blank(text)
-	k := bytes.Index(text, []byte("        if (nr < 0 || nr >= mfp->mf_infile_count)"))
-	if k < 0 {
-		return nil, fmt.Errorf("nomemfile: mf_get's cache miss is not where this expects")
+	quiet(func(q *graph.Verbs) {
+		q.InFunction("mf_get", func(q *graph.Verbs) {
+			miss := "(if (== hp nullptr) ?b _*)"
+			var it []*graph.Node
+			for _, n := range q.Find(miss) {
+				ok := false
+				q.In(n, func(q *graph.Verbs) { ok = q.Count("(|| (< nr 0) (>= nr (-> mfp mf_infile_count)))") == 1 })
+				if ok {
+					it = append(it, n)
+				}
+			}
+			if len(it) != 1 {
+				q.Die("mf_get's cache miss is not where this expects")
+				return
+			}
+			blk := it[0].Kids[2]
+			with, err := e.Build(blk, "(block (return nullptr))", nil)
+			if err == nil {
+				err = e.Replace(blk, with...)
+			}
+			if err != nil {
+				q.Die("the cache miss -- %v", err)
+			}
+		})
+	})
+	if !v.Failed() {
+		v.Say("mf_get stops trying to read a block back")
 	}
-	at := k - 400 + bytes.Index(text[k-400:], []byte("if (hp == nullptr)"))
-	o := at + bytes.IndexByte(blanked[at:], '{')
-	c := edit.Match(blanked, o)
-	if c < 0 {
-		return nil, fmt.Errorf("nomemfile: mf_get's cache miss is unbalanced")
-	}
-	var buf []byte
-	buf = append(buf, text[:o]...)
-	buf = append(buf, "{\n"...)
-	buf = append(buf, mfGetMissBody...)
-	buf = append(buf, "\n        }"...)
-	text = append(buf, text[c+1:]...)
-	fmt.Fprintln(w, "  nomemfile    mf_get stops trying to read a block back")
+	// mf_release reads p_mmt, which dropoptions --strict refuses later in this
+	// phase with no sweep between; the rest of the file back-end is the
+	// sweep's.
+	quiet(func(q *graph.Verbs) {
+		q.Rewrite("(= hp (call mf_release mfp page_count))", "(= hp nullptr)", 1, "mf_release's caller")
+		q.DeleteDefinition("mf_release", "mf_release")
+	})
 
-	blanked = edit.Blank(text)
-	k = bytes.Index(text, []byte("    for (;;)\n    {\n        if ((p = malloc(size)) != nullptr)"))
-	if k < 0 {
-		return nil, fmt.Errorf("nomemfile: lalloc's retry loop is not where this expects")
+	quiet(func(q *graph.Verbs) {
+		q.InFunction("lalloc", func(q *graph.Verbs) {
+			q.ReplaceC("(for () () () (block (if (!= (= p (call malloc size)) nullptr) (block (goto theend))) _*))",
+				lallocBody, 1, "lalloc's retry loop")
+			// The label was the loop's only exit; -Wunused-label is not a shape
+			// the dead-code sweep deletes, so it is named here.
+			q.Cut("(label theend)", 1, "lalloc's theend label")
+		})
+	})
+	if !v.Failed() {
+		v.Say("lalloc stops retrying: there is nothing to page out")
 	}
-	o = k + 12 + bytes.IndexByte(blanked[k+12:], '{')
-	c = edit.Match(blanked, o)
-	if c < 0 {
-		return nil, fmt.Errorf("nomemfile: lalloc's retry loop is unbalanced")
-	}
-	end := c + bytes.IndexByte(text[c:], '\n') + 1
-	buf = nil
-	buf = append(buf, text[:k]...)
-	buf = append(buf, lallocBody...)
-	buf = append(buf, '\n')
-	text = append(buf, text[end:]...)
-	for _, c := range []struct{ pat, what string }{
-		// The label was the loop's only exit; -Wunused-label is not a shape
-		// the dead-code sweep deletes, so it is named here.
-		{`(?m)^theend:\n`, "lalloc's theend label"},
-	} {
-		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
-			return nil, err
-		}
-	}
-	fmt.Fprintln(w, "  nomemfile    lalloc stops retrying: there is nothing to page out")
 
-	for _, c := range []struct{ pat, what string }{
-		{edit.Line("mfp->mf_used_count += hp->bh_page_count;") +
-			`[ \t]*total_mem_used \+= \(long_u\)hp->bh_page_count \* mfp->mf_page_size;\n`,
-			"mf_ins_used's accounting"},
-		{edit.Line("mfp->mf_used_count -= hp->bh_page_count;") +
-			`[ \t]*total_mem_used -= \(long_u\)hp->bh_page_count \* mfp->mf_page_size;\n`,
-			"mf_rem_used's accounting"},
-		{edit.Line("total_mem_used -= (long_u)hp->bh_page_count * mfp->mf_page_size;"),
-			"mf_close's accounting"},
-	} {
-		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
-			return nil, err
-		}
+	quiet(func(q *graph.Verbs) {
+		q.InFunction("mf_ins_used", func(q *graph.Verbs) {
+			q.CutRun("mf_ins_used's accounting", "(+= (-> mfp mf_used_count) (-> hp bh_page_count))",
+				"(+= total_mem_used (* (cast long_u (-> hp bh_page_count)) (-> mfp mf_page_size)))")
+		})
+		q.InFunction("mf_rem_used", func(q *graph.Verbs) {
+			q.CutRun("mf_rem_used's accounting", "(-= (-> mfp mf_used_count) (-> hp bh_page_count))",
+				"(-= total_mem_used (* (cast long_u (-> hp bh_page_count)) (-> mfp mf_page_size)))")
+		})
+		q.Cut("(-= total_mem_used (* (cast long_u (-> hp bh_page_count)) (-> mfp mf_page_size)))", 1, "mf_close's accounting")
+		// set_init_default_maxmemtot looks "maxmem" up by name, which
+		// dropoptions --strict refuses later in this phase with no sweep
+		// between; mch_total_mem is the sweep's.  Its call first: the
+		// definition is refused while it is called.
+		q.Cut("(call set_init_default_maxmemtot)", 1, "its call")
+		q.DeleteDefinition("set_init_default_maxmemtot", "set_init_default_maxmemtot")
+	})
+	if !v.Failed() {
+		v.Say("'maxmem' and 'maxmemtot' sized a cache that never " +
+			"evicts; sysinfo and getrlimit go with them")
 	}
-	// set_init_default_maxmemtot looks "maxmem" up by name, which dropoptions
-	// --strict refuses later in this phase with no sweep between; mch_total_mem
-	// is the sweep's.
-	if text, ok = edit.DeleteDefinition(text, "set_init_default_maxmemtot"); !ok {
-		return nil, fmt.Errorf("nomemfile: set_init_default_maxmemtot is not defined at file scope")
-	}
-	if text, err = cutCounted(text, edit.Line("set_init_default_maxmemtot();"),
-		"nomemfile", "its call", 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nomemfile    'maxmem' and 'maxmemtot' sized a cache that never "+
-		"evicts; sysinfo and getrlimit go with them")
 
-	if text, err = cutCounted(text,
-		edit.Line("mch_get_host_name(b0p->b0_hname, B0_HNAME_SIZE);")+
-			`[ \t]*b0p->b0_hname\[B0_HNAME_SIZE - 1\] = NUL;\n`,
-		"nomemfile", "block zero's host name", 1); err != nil {
-		return nil, err
+	quiet(func(q *graph.Verbs) {
+		q.CutRun("block zero's host name", "(call mch_get_host_name (-> b0p b0_hname) B0_HNAME_SIZE)",
+			"(= (index (-> b0p b0_hname) (- B0_HNAME_SIZE 1)) NUL)")
+	})
+	if !v.Failed() {
+		v.Say("the machine name in block zero; uname goes with it")
 	}
-	fmt.Fprintln(w, "  nomemfile    the machine name in block zero; uname goes with it")
 
 	// check_overwrite's `is another vim editing this` warning, the last
 	// reader of p_dir, went with :write at phase 1 (filefront, D4)
 
 	// Stubbed rather than deleted, so ml_upd_block0()'s UB_SAME_DIR arm keeps
 	// its shape.
-	if text, err = nomemfileBody(text, "set_b0_dir_flag", "",
-		"the swap file is nowhere, let alone beside the file", w); err != nil {
-		return nil, err
-	}
+	body("set_b0_dir_flag", "", "the swap file is nowhere, let alone beside the file")
 
-	// SCOPED TO THE FUNCTION: `for ((buf) = firstbuf; ...)` is the expansion of
-	// FOR_ALL_BUFFERS and appears dozens of times, so an unanchored cut takes
-	// the first one in the file -- which is somebody else's loop entirely.
-	blanked = edit.Blank(text)
-	span, found := dead.FuncDefinitions(text, blanked)["preserve_exit"]
-	if !found {
-		return nil, fmt.Errorf("nomemfile: preserve_exit is not defined at file scope")
-	}
-	fn := text[span[0]:span[1]]
-	fk := bytes.Index(fn, []byte(" for ((buf) = firstbuf;"))
-	if fk < 0 {
-		return nil, fmt.Errorf("nomemfile: preserve_exit has no FOR_ALL_BUFFERS loop")
-	}
-	fk = bytes.LastIndexByte(fn[:fk], '\n') + 1
-	fb := edit.Blank(fn)
-	fo := fk + bytes.IndexByte(fb[fk:], '{')
-	fc := edit.Match(fb, fo)
-	if fc < 0 {
-		return nil, fmt.Errorf("nomemfile: preserve_exit's loop is unbalanced")
-	}
-	fend := fc + bytes.IndexByte(fn[fc:], '\n') + 1
-	if !bytes.Contains(fn[fk:fend], []byte("mf_fname")) {
-		return nil, fmt.Errorf("nomemfile: preserve_exit loop is not the mf_fname one")
-	}
-	buf = nil
-	buf = append(buf, text[:span[0]]...)
-	buf = append(buf, fn[:fk]...)
-	buf = append(buf, fn[fend:]...)
-	text = append(buf, text[span[1]:]...)
-	fmt.Fprintln(w, "  nomemfile    preserve_exit stops announcing what it cannot preserve")
-
-	for _, r := range []struct{ old, new string }{
-		{"else if (*arg == '>' && (varp == (char_u *)&p_dir || varp == (char_u *)&p_bdir))",
-			"else if (*arg == '>' && varp == (char_u *)&p_bdir)"},
-		// on the seed p_path's term follows (phase 1, the reform's D5)
-		{"if (p == (char_u *)&p_bdir || p == (char_u *)&p_dir || ",
-			"if (p == (char_u *)&p_bdir || "},
-	} {
-		if k := bytes.Count(text, []byte(r.old)); k != 1 {
-			return nil, fmt.Errorf("nomemfile: %q occurs %d times, expected 1", r.old, k)
+	// SCOPED TO THE FUNCTION: FOR_ALL_BUFFERS's expansion appears dozens of
+	// times; preserve_exit's first is the mf_fname one.
+	quiet(func(q *graph.Verbs) {
+		if e.Defn("preserve_exit") == nil {
+			q.Die("preserve_exit is not defined at file scope")
+			return
 		}
-		text = bytes.Replace(text, []byte(r.old), []byte(r.new), 1)
+		q.InFunction("preserve_exit", func(q *graph.Verbs) {
+			loops := q.Find("(for (= (paren buf) firstbuf) _*)")
+			if len(loops) == 0 {
+				q.Die("preserve_exit has no FOR_ALL_BUFFERS loop")
+				return
+			}
+			ok := false
+			q.In(loops[0], func(q *graph.Verbs) { ok = q.Count("(-> _ mf_fname)") > 0 })
+			if !ok {
+				q.Die("preserve_exit loop is not the mf_fname one")
+				return
+			}
+			q.In(loops[0], func(q *graph.Verbs) { q.Cut("(for (= (paren buf) firstbuf) _*)", 1, "the loop") })
+		})
+	})
+	if !v.Failed() {
+		v.Say("preserve_exit stops announcing what it cannot preserve")
 	}
-	fmt.Fprintln(w, "  nomemfile    the two `is this option a directory list?` tests")
+
+	quiet(func(q *graph.Verbs) {
+		q.Rewrite("(|| (== varp (cast (ptr char_u) (addr p_dir))) ?x)", "?x", 1, "the '>' test")
+		// on the seed p_path's term follows (phase 1, the reform's D5)
+		q.DropOperand("(== p (cast (ptr char_u) (addr p_dir)))", 1, "the directory list test")
+	})
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Say("the two `is this option a directory list?` tests")
 
 	for _, g := range []string{"mf_fd", "total_mem_used", "p_mmt"} {
-		fmt.Fprintf(w, "  nomemfile    %-14s %d mentions left for the sweep\n",
-			g, len(regexp.MustCompile(`\b`+g+`\b`).FindAll(text, -1)))
+		v.Sayf("%-14s %d mentions left for the sweep", g, v.TextCount(`\b`+g+`\b`))
 	}
-	return text, nil
+	return v.Done()
 }

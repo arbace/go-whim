@@ -708,59 +708,59 @@ phase 0 | 0 | build/plan.go s00-seed | 343 | 2591 | d | - | - | the seed: canoni
 0a | 0 | phase/000/a + crefactor/xform/nullptr.go | 7+229 | - | d | (RENAME FRAG INCLUDE) | - | NULL->nullptr, size_t->usize, (void *) casts dropped; not typed
 0b | 0 | phase/000/b | 330 | 2591 | d | (FRAG CLONE) | - | 7 printf-style wrappers expanded at 297 calls
 0c | 0 | phase/000/c + crefactor/xform/attrs.go | 6+309 | - | d | (RETYPE RENAME) | - | 113 unused attributes go, 20 fallthrough respelled; not typed
-phase 1 | 1 | front + noruntime | - | - | c | FallOutOf; FRAG INITROW MOVE RENAME RETYPE | B4 | the front's D1-D5, one closure over them
-FallOutOf | 1-3 | crefactor/xform/fallout.go; steps.go frontHold | 1686 | - | c | step 6 (or an UNWRITTEN seed over write edges + FOLDX) | B4 | the closure after each front phase's cuts, typed twice a round
-argvfront | 1 | cut/argvfront.go | 99 | - | b | FRAG INITROW | B4 | command_line_scan's new body, main_errors rows
-exfront | 1 | steps.go exFront + cut/retire.go + phase/001/delta.md | 22+37 | - | b | INITROW TEXTQ | B4 | 489 cmdnames rows' handler to ex_ni, found by name string
-extable | 1 | cut/extable.go | 270 | - | b | INITROW MOVE RENAME RETYPE FRAG TEXTQ | B4 | shortest-abbreviation lookup, prefix index gone; the hardest front unit; after exfront
-filefront | 1 | cut/extable.go | 41 | - | b | INITROW MOVE | B4 | 13 file-command rows; enumerators moved after CMD_SIZE
-quitfront | 1 | cut/extable.go | 12 | - | a | - | B4 | one FoldNever
-readfront | 1 | cut/extable.go | 15 | - | a | - | B4 | two FoldNever
-onecmdfront | 1 | cut/onecmdfront.go | 45 | - | b | FRAG | B4 | condition shrinks (a), two new small bodies
-optfront | 1 | cut/optfront.go, droprow.go, optfront.md | 112 | - | b | INITROW TEXTQ | B4 | 375 options[] rows and their names in string lists
-noswap | 1 | cut/noswap.go | 69 | - | b | BUILD | B4 | 4 bodies stubbed, an else-if arm
-norecover | 1 | cut/norecover.go | 123 | - | a | - | B4 | recovery cut; add_time's body flattened (the declaring splice: B0's Unwrap)
-nomemfile | 1 | cut/nomemfile.go | 241 | - | b | PARAM FRAG | B4 | mf_open's parameters, two bodies, lalloc's retry block
-noruntime | 1 | cut/noruntime.go | 34 | - | b | RENAME BUILD TEXTQ | B4 | runtime strings to "", vimruntime = FALSE
-phase 2 | 2 | front2 + query-empty | - | - | c | FallOutOf; FRAG FOLDX INITROW MOVE RENAME | B4 | D6-D8
-nolocale | 2 | cut/nolocale.go | 66 | - | b | BUILD INITROW | B4 | a call statement, 3 table rows
-nostartup | 2 | cut/nostartup.go | 42 | - | a | - | B4 | a body emptied, 2 calls
-nocmdopts | 2 | cut/nocmdopts.go | 51 | - | a | - | B4 | 3 ifs, a member (after the ifs)
-nosession | 2 | cut/nosession.go | 123 | - | b | BUILD TEXTQ | B4 | 18 stubs, 6 DropIf, a get_varp case
-whim18 | 2 | phase/018 (Edit) | 44 | - | a | - | B4 | shell redirection and runtime completion
-noenc | 2 | cut/noenc.go | 191 | - | b | FRAG | B4 | mb_init's dispatch, 6 iconv stubs
-nofencs | 2 | cut/nofencs.go | 23 | - | a | - | B4 | an else-if arm
-nofenc | 2 | cut/nofenc.go | 113 | - | b | BUILD FRAG | B4 | 'fileencoding' reads and stores
-utf8only | 2 | cut/utf8only.go | 491 | - | b | FOLDX BUILD | B4 | five encoding flags constant, every test folded
-noterm | 2 | cut/noterm.go | 57 | - | b | RENAME TEXTQ | B4 | "xterm" -> "xterm-256color"
-nomouse | 2 | cut/nomouse.go | 211 | - | b | INITROW MOVE TEXTQ | B4 | 22 rows retargeted (a), 14 key rows, a body inlined
-whim2a | 2 | phase/002/a | 52 | - | a | - | B4 | no title
-query-empty whim2 | 2 | phase/002 + steps.go | 43 | - | b | TEXTQ INITROW(read) | B4 | asserts 24 rows are ex_ni
-phase 3 | 3 | front3 + nointro + optreaders | - | - | c | FallOutOf; FRAG INITROW MOVE RENAME | B4 | D9-D12
-noinert | 3 | cut/noinert.go | 69 | - | b | INITROW TEXTQ | B4 | :browse :confirm :behave
-notabs | 3 | cut/notabs.go | 232 | - | b | FRAG | B4 | one tab page; 4 rewritten cases
-noarglist | 3 | cut/noarglist.go | 30 | - | b | INITROW | B4 | completion of the arglist
-nowindows | 3 | cut/nowindows.go | 328 | - | a | - | B4 | one window: 24 FoldNever, arms, stores
-nowinsizes | 3 | cut/nowinsizes.go | 135 | - | b | BUILD FRAG | B4 | 9 initialisers added
-nobuflist | 3 | cut/nobuflist.go | 65 | - | a | - | B4 | :bnext/:bprevious only
-nonfa | 3 | cut/nonfa.go | 74 | - | b | FRAG | B4 | vim_regcomp's tail
-noshellout | 3 | cut/noshellout.go | 39 | - | b | BUILD | B4 | 3 bodies
-notags | 3 | cut/notags.go | 53 | - | b | FOLDX INITROW | B4 | `if (!f()) {X}` -> `(void)f();`
-nosignals | 3 | cut/nosignals.go | 132 | - | b | INITROW FRAG | B4 | signal_info[] to 6 rows, a block
-noequiclass | 3 | cut/small.go | 33 | - | a | - | B4 | [= classes
-nocindent | 3 | cut/nocindent.go | 145 | - | a | BUILD | B4 | 'cindent'
-noucmd | 3 | cut/noucmd.go | 80 | - | b | INITROW BUILD | B4 | user commands
-noident | 3 | cut/noident.go | 148 | - | b | FRAG | B4 | nv_ident's 90-line body (maybe deletions: check)
-nofnamemod | 3 | cut/nofnamemod.go | 53 | - | a | - | B4 | % modifiers
-nocompl | 3 | cut/nocompl.go | 107 | - | a | BUILD | B4 | 9 stubs
-nocomplkeys | 3 | cut/nocomplkeys.go | 309 | - | a | BUILD | B4 | 12 stubs; gotos kept by moved nodes
-noabbr | 3 | cut/noabbr.go | 97 | - | a | - | B4 | abbreviations
-3a | 3 | phase/003/a | 56 | - | a | - | B4 | lisp
-3b | 3 | phase/003/b | 69 | - | a | - | B4 | langmap
-3c | 3 | phase/003/c | 53 | - | a | BUILD | B4 | jump list
-3d | 3 | phase/003/d | 41 | - | a | - | B4 | rot13
-3e | 3 | phase/003/e | 49 | - | b | RENAME | B4 | sentence motions; 2 string respells
-3f | 3 | phase/003/f | 33 | 3206 | b | FRAG | B4 | file marks: 2 bodies
+phase 1 | 1 | front + noruntime | - | - | done | - | B4 | the front's D1-D5 on the graph, FoldX their closure; imports q000 (phase 0 ends on text)
+FallOutOf | 1-3 | crefactor/xform/fallout.go; steps.go frontHold | 1686 | - | done | - | B4 | replaced by FoldX (B2d) on the graph; FallOutOf deleted, FallOut kept as FoldX's tests' oracle
+argvfront | 1 | cut/argvfront.go | 99 | - | done | - | B4 | command_line_scan's new body, main_errors rows
+exfront | 1 | steps.go exFront + cut/retire.go + phase/001/delta.md | 22+37 | - | done | - | B4 | 489 cmdnames rows' handler to ex_ni, found by name string
+extable | 1 | cut/extable.go | 270 | - | done | - | B4 | shortest-abbreviation lookup, prefix index gone; the hardest front unit; after exfront
+filefront | 1 | cut/extable.go | 41 | - | done | - | B4 | 13 file-command rows; enumerators moved after CMD_SIZE
+quitfront | 1 | cut/extable.go | 12 | - | done | - | B4 | one FoldNever
+readfront | 1 | cut/extable.go | 15 | - | done | - | B4 | two FoldNever
+onecmdfront | 1 | cut/onecmdfront.go | 45 | - | done | - | B4 | condition shrinks (a), two new small bodies
+optfront | 1 | cut/optfront.go, droprow.go, optfront.md | 112 | - | done | - | B4 | 375 options[] rows and their names in string lists
+noswap | 1 | cut/noswap.go | 69 | - | done | - | B4 | 4 bodies stubbed, an else-if arm
+norecover | 1 | cut/norecover.go | 123 | - | done | - | B4 | recovery cut; add_time's body flattened (the declaring splice: B0's Unwrap)
+nomemfile | 1 | cut/nomemfile.go | 241 | - | done | - | B4 | mf_open's parameters, two bodies, lalloc's retry block
+noruntime | 1 | cut/noruntime.go | 34 | - | done | - | B4 | runtime strings to "", vimruntime = FALSE
+phase 2 | 2 | front2 + query-empty | - | - | done | - | B4 | D6-D8 on the graph, handed phase 1's; query-empty asks the C view
+nolocale | 2 | cut/nolocale.go | 66 | - | done | - | B4 | a call statement, 3 table rows
+nostartup | 2 | cut/nostartup.go | 42 | - | done | - | B4 | a body emptied, 2 calls
+nocmdopts | 2 | cut/nocmdopts.go | 51 | - | done | - | B4 | 3 ifs, a member (after the ifs)
+nosession | 2 | cut/nosession.go | 123 | - | done | - | B4 | 18 stubs, 6 DropIf, a get_varp case
+whim18 | 2 | phase/018 (Edit) | 44 | - | done | - | B4 | shell redirection and runtime completion
+noenc | 2 | cut/noenc.go | 191 | - | done | - | B4 | mb_init's dispatch, 6 iconv stubs
+nofencs | 2 | cut/nofencs.go | 23 | - | done | - | B4 | an else-if arm
+nofenc | 2 | cut/nofenc.go | 113 | - | done | - | B4 | 'fileencoding' reads and stores
+utf8only | 2 | cut/utf8only.go | 491 | - | done | - | B4 | five encoding flags constant, every test folded: DRAFT (its text simplifier on the C view, committed as FRAG), the one front unit not on the verbs
+noterm | 2 | cut/noterm.go | 57 | - | done | - | B4 | "xterm" -> "xterm-256color"
+nomouse | 2 | cut/nomouse.go | 211 | - | done | - | B4 | 22 rows retargeted (a), 14 key rows, a body inlined
+whim2a | 2 | phase/002/a | 52 | - | done | - | B4 | no title
+query-empty whim2 | 2 | phase/002 + steps.go | 43 | - | done | - | B4 | asserts 24 rows are ex_ni
+phase 3 | 3 | front3 + nointro + optreaders | - | - | done | - | B4 | D9-D12 on the graph, handed phase 2's; hands phase 4 the graph
+noinert | 3 | cut/noinert.go | 69 | - | done | - | B4 | :browse :confirm :behave
+notabs | 3 | cut/notabs.go | 232 | - | done | - | B4 | one tab page; 4 rewritten cases
+noarglist | 3 | cut/noarglist.go | 30 | - | done | - | B4 | completion of the arglist
+nowindows | 3 | cut/nowindows.go | 328 | - | done | - | B4 | one window: 24 FoldNever, arms, stores
+nowinsizes | 3 | cut/nowinsizes.go | 135 | - | done | - | B4 | 9 initialisers added
+nobuflist | 3 | cut/nobuflist.go | 65 | - | done | - | B4 | :bnext/:bprevious only
+nonfa | 3 | cut/nonfa.go | 74 | - | done | - | B4 | vim_regcomp's tail
+noshellout | 3 | cut/noshellout.go | 39 | - | done | - | B4 | 3 bodies
+notags | 3 | cut/notags.go | 53 | - | done | - | B4 | `if (!f()) {X}` -> `(void)f();`
+nosignals | 3 | cut/nosignals.go | 132 | - | done | - | B4 | signal_info[] to 6 rows, a block
+noequiclass | 3 | cut/small.go | 33 | - | done | - | B4 | [= classes
+nocindent | 3 | cut/nocindent.go | 145 | - | done | - | B4 | 'cindent'
+noucmd | 3 | cut/noucmd.go | 80 | - | done | - | B4 | user commands
+noident | 3 | cut/noident.go | 148 | - | done | - | B4 | nv_ident's 90-line body (maybe deletions: check)
+nofnamemod | 3 | cut/nofnamemod.go | 53 | - | done | - | B4 | % modifiers
+nocompl | 3 | cut/nocompl.go | 107 | - | done | - | B4 | 9 stubs
+nocomplkeys | 3 | cut/nocomplkeys.go | 309 | - | done | - | B4 | 12 stubs; gotos kept by moved nodes
+noabbr | 3 | cut/noabbr.go | 97 | - | done | - | B4 | abbreviations
+3a | 3 | phase/003/a | 56 | - | done | - | B4 | lisp
+3b | 3 | phase/003/b | 69 | - | done | - | B4 | langmap
+3c | 3 | phase/003/c | 53 | - | done | - | B4 | jump list
+3d | 3 | phase/003/d | 41 | - | done | - | B4 | rot13
+3e | 3 | phase/003/e | 49 | - | done | - | B4 | sentence motions; 2 string respells
+3f | 3 | phase/003/f | 33 | 3206 | done | - | B4 | file marks: 2 bodies
 nointro | 3 | cut/small.go | 11 | - | done | - | B1a | 2 calls cut, counted
 optreaders | 3 | cut/optreaders.go | 57 | - | done | - | B1a | a statement found by its string; the leftover check TextCount; phase 3 ends on the graph
 phase 4 | 4 | 13 steps, 1 sweep | - | - | done | - | B3a | graph end to end, handed phase 3's graph; the in-phase sweep a collection; no import
@@ -2571,3 +2571,97 @@ Handed the graph a phase costs 0.21-1.0 s against 1.6-4.6 s on text (86:
 4.6 s to 0.22 s; 67, 71, 72, 73, 82: 0.8-1.5 s, their FRAG units); where
 it imports (57, 61, 63, 75, 77, 93, 96) it costs what the text did, 1.9-2.7
 s (63 and 75 about 1 s more: an import against a cheap sweep).
+## B4 as built (2026-10-04): the front
+
+Phases 1-3 run on the graph, byte for byte, every text program of theirs
+replaced (history keeps them, `19c8e86` and before): the 47 cutters and
+parts the three front steps call -- D1-D5, D6-D8 with part 2a and phase
+18's program, D9-D12 with parts 3a-3f -- each a function of
+`*graph.Editor` (`internal/cut`) or a program registered with
+`phase.RegisterGraph`, and phase 1's `noruntime` and phase 2's
+`query-empty` graph steps. **`front`, `front2` and `front3` are graph
+steps** (`internal/steps/front.go`): what is unwritten asked first
+(`Editor.Unwritten`), the cutters in order, and then **FoldX** (`Before`
+that, `Hold: frontHold`) where `xform.FallOutOf` was, its report the text
+closure's line for line but the order-dependent counts B2d named. Phase 0
+ends on text; **phase 1 imports q000, and phases 2-26 are each handed the
+graph** -- no import, no sweep, no canonical print between phase 1 and
+phase 27's own text neighbours. `xform.FallOutOf` is deleted (and its
+`unwrittenNames`/`unwrittenOf`), with `steps.FrontCut` and
+`TestFoldXFront`; **`xform.FallOut` stays**: `crefactor/graph`'s
+`foldx_test.go` and graphcheck's `TestFoldXEverySeed` hold FoldX to it.
+About 5,150 lines of text programs became 4,200 on the graph (non-blank,
+non-comment; `utf8only`'s text simplifier counted in both).
+
+**How each unit was proved.** Before any conversion, the front's cutters
+ran one at a time on q(N-1) as text, each one's raw output and its
+canonical print kept; each graph cutter was then run on the import of the
+raw text before it and its C view -- no closure, no sweep -- held to the
+text cutter's output printed canonically, byte for byte, its report line
+for line (`TestB4Record`/`TestB4Unit`, gone with the text cutters; history
+keeps them). All 47 matched, but nomemfile at one call, below.
+
+**Written on the verbs** (B0, B3a's runverbs, FRAG, INITROW, RENUM,
+RENAME, PARAM), but one:
+- **extable** reads the table, the `CMD_index` enum and the prefix index
+  as forms and runs the text's old-and-new lookup model on them; the stub
+  rows' enumerators move after `CMD_SIZE` FIRST (`MoveEnumerators`,
+  Renumber) and then the rows go by `ArrangeRowsTyped`, so the table is
+  typed for its new length (rows deleted first left `cmdnames`' typed edge
+  cleared); 111 abbreviations in one FRAG unit; the member retyped and
+  renamed before the `(int)` cast is dropped. argvfront, filefront: B2b's
+  proofs (`renum_test.go`) now hold the graph cutters. exfront is
+  `cut.ExFront`, `cut.Retire` and steps' `exFront` gone.
+- **utf8only is a DRAFT** (B3e): its acts are a text simplifier's, ~600
+  one-rewrite rounds over marker tokens in 231 functions, and its report
+  counts those rounds (321 simplifications, 309 folds), which a port to
+  forms could not keep without reimplementing it. It runs on the C view and
+  commits as FRAG (0 untyped), plus `labelsBeforeDecls`: the `(empty)`
+  statement the print writes between a label and a declaration the folds
+  leave adjacent. It costs about 14 s of phase 2's 17 -- the one front unit
+  worth rewriting on the verbs next.
+- **Typed tables.** `DeleteRows` leaves a table's definition untyped (no
+  array type of the new length); FoldX's member seed then cannot see the
+  table as an initialised instance, and phase 2 folded `tab[i].context` to
+  0 in ExpandOther (116 bytes off q002.c). Every front table deletion is
+  typed (`ArrangeRowsTyped`; `cut`'s `deleteRowsTyped`, which took the four
+  `DeleteRows` of nolocale, nosignals and noucmd): each unit leaves 0
+  expressions untyped.
+- **The text's ill-typed accidents are not reproduced where PARAM does
+  better**: nomemfile's text rewrote only the first `mf_open` call and left
+  ml_recover's passing two arguments to a function of none; PARAM drops
+  them at every call, so the C view differs at that line before the
+  collection (ml_recover goes) and not after -- as B3a's 5a.
+- **Order.** The graph refuses deleting a definition still called
+  (`mf_release`, `set_init_default_maxmemtot`, nocomplkeys' `docomplete`
+  label after its gotos): the calls go first, the bytes the same.
+
+**Library**: `crefactor/graph/b42_rows.go` (`Editor.DeleteRowsAsWritten`,
+with a test): a table's rows deleted with no constant subscript renumbered
+-- `options[0]` and `&options[0]` mean the first row whatever it is, which
+`DeleteRows` refuses. Nothing else in `crefactor/graph` changed. Two gaps
+the converters met and worked around: a pattern that binds a node and
+constrains its shape (`?x:pat`), and a verb for a typed row deletion.
+
+**The proof.** `rm -rf .cache/boundaries; make whim-build-check` in order:
+whim-vim.c byte for byte (77,635 lines), 104 boundaries compiling, **182
+s** wall, 10 min 24 s of CPU, at a load of 12-34 (92 graph snapshots).
+Again, in parallel: byte for byte, **49 s**, 92 phases begun on the graph,
+80 from their snapshot. The control -- noruntime writing `vimruntime =
+TRUE`, noterm respelling `"xterm-88color"`, nofnamemod keeping
+`skip_mod = TRUE` -- is named exactly: phases 1, 2 and 3, `3 of 103 phases
+do not reproduce their snapshot`. `TestPhasesOnGraph` 1-3 (imported and
+handed), `whim-editor-check`, `whim-test`, `go test ./...` in both
+modules, gofmt, vet and staticcheck on what changed.
+
+**Measured** (one run each, the text in, as a run in order takes phase 1;
+main `19c8e86` beside it at the same hour):
+
+| phase | main (text), wall / CPU s | B4, wall / CPU s | how |
+| --- | ---: | ---: | --- |
+| 1 | 30.0 / 73 | 15.1 / 33 (13 in order) | an import (3.5 s), the cutters, FoldX, a collection |
+| 2 | 23.0 / 43 | 21.2 / 48 (17 in order, handed) | handed; utf8only's DRAFT 14 s |
+| 3 | 28.4 / 52 | 11.9 / 25 (8 in order, handed) | handed |
+
+In order the three are 38 s against main's ~81; with B3's phases on the
+graph beside them the whole build in order is 182 s.

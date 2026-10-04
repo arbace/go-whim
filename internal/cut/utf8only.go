@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 const (
@@ -457,7 +458,57 @@ func foldControls(body string) (string, int, error) {
 }
 
 // Utf8Only leaves no test of the encoding to answer.
-func Utf8Only(text []byte, w io.Writer) ([]byte, error) {
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4) AS A DRAFT (B3e): its acts are a
+// text simplifier's -- five names made marker tokens, every expression holding
+// one folded a rewrite a round, the controls on a marker folded by head --
+// and its report counts those rounds, so they stay the text's, made on the C
+// view (utf8OnlyText) and committed as FRAG of the runs they changed.
+func Utf8Only(e *graph.Editor, w io.Writer) error {
+	d, err := e.Draft()
+	if err != nil {
+		return err
+	}
+	out, err := utf8OnlyText([]byte(d.Text()), w)
+	if err != nil {
+		return err
+	}
+	if _, err = d.Commit(string(out)); err != nil {
+		return err
+	}
+	return labelsBeforeDecls(e)
+}
+
+// labelsBeforeDecls gives every label or case the folds left right before a
+// declaration the null statement the text's canonical print puts there
+// (`case X:` then `;`), as the import of that text has it: `(case X)
+// (empty)`.
+func labelsBeforeDecls(e *graph.Editor) error {
+	var at []*graph.Node
+	for _, f := range e.Graph().Forms {
+		if !f.Is("defn") {
+			continue
+		}
+		graph.Walk(f, func(n *graph.Node) bool {
+			for i := 0; i+1 < len(n.Kids); i++ {
+				k := n.Kids[i]
+				if (k.Is("label") || k.Is("case") || k.Is("default")) && n.Kids[i+1].Is("def") && e.Live(k) {
+					at = append(at, k)
+				}
+			}
+			return true
+		})
+	}
+	for _, k := range at {
+		if err := e.InsertAfter(k, graph.NewList(graph.NewAtom("empty"))); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// utf8OnlyText is the text simplifier Utf8Only drafts.
+func utf8OnlyText(text []byte, w io.Writer) ([]byte, error) {
 	if n := len(flagDecls.FindAll(text, -1)); n != 5 {
 		return nil, fmt.Errorf("utf8only: expected five flag declarations, found %d", n)
 	}

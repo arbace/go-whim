@@ -2,11 +2,9 @@ package graphcheck
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -17,16 +15,12 @@ import (
 	"github.com/arbace/go-whim/crefactor/sweep"
 	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/cut"
-	"github.com/arbace/go-whim/internal/steps"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
-// FOLDX on the front (doc/GRAPH-MIGRATION.md, B2d): each front phase's cuts
-// run as text on q(N-1), and then its closure two ways -- the text's
-// xform.FallOutOf, and FoldX on the cut's graph read back from its Lisp,
-// seeded with what q(N-1)'s graph had unwritten -- each swept and printed:
-// the same C byte for byte, and the same report line for line.  For phase
-// 2, whose other step only asks, that is q002.c too.
+// FOLDX on the front was held here to xform.FallOutOf on the text cutters'
+// output (B2d); since B4 the front runs on the graph, FoldX its closure,
+// and the phases are held to their snapshots (TestPhasesOnGraph).
 
 // declaredRows are phase 1's rows (internal/build's declared).
 func declaredRows(t *testing.T) string {
@@ -46,117 +40,6 @@ func declaredRows(t *testing.T) string {
 		}
 	}
 	return strings.Join(toks, " ")
-}
-
-// orderFree is a closure's report with the two numbers the order of its
-// parameter rule moves left out: the text takes the first parameter of Go's
-// map order each round (19 to 23 in phase 3, run after run, the bytes the
-// same), the graph the first in the file's.
-func orderFree(rep []string) string {
-	params := regexp.MustCompile(`\d+ (parameters every call passes one constant)`)
-	rounds := regexp.MustCompile(`; \d+ rounds$`)
-	var out []string
-	for _, l := range rep {
-		out = append(out, rounds.ReplaceAllString(params.ReplaceAllString(l, "N $1"), "; N rounds"))
-	}
-	return strings.Join(out, "\n")
-}
-
-func TestFoldXFront(t *testing.T) {
-	dir, _, _, _ := setup(t)
-	for _, n := range []int{1, 2, 3} {
-		t.Run(fmt.Sprintf("phase%d", n), func(t *testing.T) {
-			if n == 1 {
-				t.Setenv("REMOVED", declaredRows(t))
-			}
-			in := snapOf(t, dir, n-1)
-			cut, hold := steps.FrontCut(n)
-			out, err := cut(in, nil, io.Discard)
-			if err != nil {
-				t.Fatal(err)
-			}
-			// the text's closure, swept and printed
-			var tlog bytes.Buffer
-			t0 := time.Now()
-			text, err := xform.FallOutOf(func(b []byte, _ []string, _ io.Writer) ([]byte, error) { return out, nil }, hold...)(in, nil, &tlog)
-			if err != nil {
-				t.Fatal(err)
-			}
-			tText := time.Since(t0)
-			path := filepath.Join(t.TempDir(), "whim-vim.c")
-			swept, _, err := sweep.Prune(text, path, whim.Profile.Sweep)
-			if err != nil {
-				t.Fatal(err)
-			}
-			want, err := cemit.Canonical(path, swept)
-			if err != nil {
-				t.Fatal(err)
-			}
-			// the graph's: what q(N-1) had unwritten, and the closure on
-			// the cut's graph read back
-			g0, _, err := graph.Import(path, in)
-			if err != nil {
-				t.Fatal(err)
-			}
-			before := graph.NewEditor(g0).Unwritten(nil)
-			g1, _, err := graph.Import(path, out)
-			if err != nil {
-				t.Fatal(err)
-			}
-			h, err := graph.Read(g1.Lisp())
-			if err != nil {
-				t.Fatal(err)
-			}
-			e := graph.NewEditor(h)
-			t1 := time.Now()
-			st, err := e.FoldX(graph.FoldX{Before: before, Hold: hold})
-			if err != nil {
-				t.Fatal(err)
-			}
-			t.Logf("phase %d: the text's closure %v (its two analyses' parses included), FoldX %v", n, tText.Round(time.Millisecond), time.Since(t1).Round(time.Millisecond))
-			if err := e.Check(); err != nil {
-				t.Fatal(err)
-			}
-			if _, err := e.Collect(whim.GraphCollect()); err != nil {
-				t.Fatal(err)
-			}
-			got, err := h.C()
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !bytes.Equal(got, want) {
-				t.Errorf("phase %d: FoldX is not the text's closure: %s", n, firstDiff(got, want))
-			}
-			var wantRep []string
-			for _, l := range strings.Split(strings.TrimSpace(tlog.String()), "\n") {
-				wantRep = append(wantRep, strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(l), "fallout")))
-			}
-			if g, w := orderFree(st.Report), orderFree(wantRep); g != w {
-				t.Errorf("phase %d: the report\n%s\nthe text's\n%s", n, g, w)
-			}
-			if n != 2 {
-				return
-			}
-			if !bytes.Equal(got, snapOf(t, dir, 2)) {
-				t.Errorf("phase 2: not q002.c")
-			}
-			// the control: the && and || rule left out moves the bytes
-			h, err = graph.Read(g1.Lisp())
-			if err != nil {
-				t.Fatal(err)
-			}
-			e = graph.NewEditor(h)
-			if _, err := e.FoldX(graph.FoldX{Before: before, Hold: hold, Off: []string{"logic"}}); err != nil {
-				t.Fatal(err)
-			}
-			if _, err := e.Collect(whim.GraphCollect()); err != nil {
-				t.Fatal(err)
-			}
-			if c, _ := h.C(); bytes.Equal(c, want) {
-				t.Error("the control: FoldX without its && and || rule gives the same bytes")
-			}
-		})
-	}
 }
 
 // coreForms says a form is above the first #include: the core
@@ -238,11 +121,15 @@ func TestKeepConditionNoTags(t *testing.T) {
 	dir, _, _, _ := setup(t)
 	in := snapOf(t, dir, 2)
 	path := filepath.Join(t.TempDir(), "whim-vim.c")
-	text, err := cut.NoTags(in, io.Discard)
+	// the cutter itself, on the graph (B4)
+	gc, _, err := graph.Import(path, in)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, err := cemit.Canonical(path, text)
+	if err := cut.NoTags(graph.NewEditor(gc), io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	want, err := gc.C()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -58,3 +58,5 @@ runs, with a bare `ix` as the control — that `[{` still walks out to the enclo
 and `'{,'}d` is refused.
 
 Measured: 97,684 → **96,848 lines**.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): this part runs on `crefactor/graph` inside its phase's front, registered with `phase.RegisterGraph`, its report the text version's and its boundary byte for byte.

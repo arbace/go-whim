@@ -16,68 +16,80 @@ package p003c
 //
 // THE DELTA: :jumps and :clearjumps, now ex_ni.  The probes check CTRL-O no longer
 // jumps back, '' still does, and :jumps is refused.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the row by RewriteAt, the
+// loops and runs by form, each scoped to its function (history keeps the
+// text version).
 
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// Whim3c takes the jump list: :jumps and :clearjumps, CTRL-I and CTRL-O, and
+// Edit takes the jump list: :jumps and :clearjumps, CTRL-I and CTRL-O, and
 // every place a line or column change moved its marks.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nojumplist", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nojumplist", e, w)
 
 	// :jumps and :clearjumps point at ex_ni from phase 1 (exfront, D2)
-	e.Sub(`(?m)^([ \t]*\{Ctrl_I, )nv_pcmark(, 0, 0\},)`, "${1}nv_error${2}", 1,
-		"CTRL-I in Normal mode points at nv_error")
-
-	// The append is cut from its test to the last line of its Body.  It is
-	// matched by its two ends because the Body is the whole of building a
-	// jump-list entry, which shares no shape with the test above it.
-	e.InFunction("setpcmark", func(e *edit.E) {
-		e.Splice("    if (++curwin->w_jumplistlen > JUMPLISTSIZE)\n", "fm->fname = nullptr;\n", "",
-			"setpcmark appending to the jump list")
+	v.InTable("nv_cmds", func(v *graph.Verbs) {
+		v.RewriteAt("(init Ctrl_I ?h 0 0)", "h", "nv_error", 1, "CTRL-I in Normal mode points at nv_error")
 	})
 
-	e.InFunction("nv_ctrlo", func(e *edit.E) {
-		e.Sub(`(?m)^([ \t]*)cap->count1 = -cap->count1;\n[ \t]*nv_pcmark\(cap\);\n`,
-			"${1}clearopbeep(cap->oap);\n", 1, "CTRL-O walking back through the jump list")
+	// The append is cut from its test to the last statement of its body: the
+	// body is the whole of building a jump-list entry.
+	v.InFunction("setpcmark", func(v *graph.Verbs) {
+		v.CutRun("setpcmark appending to the jump list",
+			"(if (> (pre++ (-> curwin w_jumplistlen)) JUMPLISTSIZE) _)",
+			"(= (-> curwin w_jumplistidx) (-> curwin w_jumplistlen))",
+			"(= fm _)", "(= (. (-> fm fmark) mark) _)", "(= (. (-> fm fmark) fnum) _)", "(= (-> fm fname) nullptr)")
 	})
-	e.InFunction("nv_pcmark", func(e *edit.E) {
-		e.DropIf(edit.Head("if (cap->cmdchar == TAB && mod_mask == MOD_MASK_CTRL)"), 1,
+
+	v.InFunction("nv_ctrlo", func(v *graph.Verbs) {
+		v.SpliceFirst("(= (-> cap count1) (- (-> cap count1)))", "(call nv_pcmark cap)",
+			"(call clearopbeep (-> cap oap))", "CTRL-O walking back through the jump list")
+	})
+	v.InFunction("nv_pcmark", func(v *graph.Verbs) {
+		v.DropIf("(&& (== (-> cap cmdchar) TAB) (== mod_mask MOD_MASK_CTRL))", 1,
 			"CTRL-Tab refused by the jump-list command")
-		e.Sub(`(?m)^([ \t]*)if \(cap->cmdchar == 'g'\)\n[ \t]*\{\n[ \t]*pos = movechangelist\(\(int\)cap->count1\);\n[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*pos = movemark\(\(int\)cap->count1\);\n[ \t]*\}\n`,
-			"${1}pos = movechangelist((int)cap->count1);\n", 1,
+		v.FoldAlwaysElse("(if (== (-> cap cmdchar) 'g') (block (= pos (call movechangelist _))) (block (= pos (call movemark _))))", 1,
 			"the jump list as the other half of nv_pcmark")
-		e.Sub(`(?m)^([ \t]*)else if \(cap->cmdchar == 'g'\)$`, "${1}else", 1,
-			"the change-list messages no longer choosing by key")
-		e.Cut(edit.Line("else", "{", "clearopbeep(cap->oap);", "}"), 1,
-			"a jump-list miss beeping")
+		// the arm that chose the change-list messages by key is its block,
+		// the else that beeped on a jump-list miss with it
+		if arm := v.One("(if (== (-> cap cmdchar) 'g') (block (if (== (-> curbuf b_changelistlen) 0) _ _)) (block (call clearopbeep (-> cap oap))))",
+			"the change-list messages no longer choosing by key"); arm != nil {
+			if err := e.Replace(arm, arm.Kids[2]); err != nil {
+				v.Die("the change-list messages no longer choosing by key -- %v", err)
+				return
+			}
+			v.Say("the change-list messages no longer choosing by key")
+			v.Say("a jump-list miss beeping")
+		}
 	})
-	e.InFunction("mark_adjust_internal", func(e *edit.E) {
-		e.DropIf(edit.Head("for (i = 0; i < win->w_jumplistlen; ++i)"), 1, "line changes moving jump-list marks")
-		e.Cut(edit.Line("if ((cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0)", "{", "}"), 1,
+	v.InFunction("mark_adjust_internal", func(v *graph.Verbs) {
+		v.Cut("(for (= i 0) (< i (-> win w_jumplistlen)) (pre++ i) _)", 1, "line changes moving jump-list marks")
+		v.Cut("(if (== (& (. cmdmod cmod_flags) CMOD_LOCKMARKS) 0) (block))", 1,
 			"the now-empty 'lockmarks' test around them")
 	})
-	e.InFunction("mark_col_adjust", func(e *edit.E) {
-		e.DropIf(edit.Head("for (i = 0; i < win->w_jumplistlen; ++i)"), 1, "column changes moving jump-list marks")
+	v.InFunction("mark_col_adjust", func(v *graph.Verbs) {
+		v.Cut("(for (= i 0) (< i (-> win w_jumplistlen)) (pre++ i) _)", 1, "column changes moving jump-list marks")
 	})
-	e.InFunction("mark_forget_file", func(e *edit.E) {
-		e.DropIf(edit.Head("for (i = wp->w_jumplistlen - 1; i >= 0; --i)"), 1, "a forgotten file leaving the jump list")
+	v.InFunction("mark_forget_file", func(v *graph.Verbs) {
+		v.Cut("(for (= i (- (-> wp w_jumplistlen) 1)) _ _ _)", 1, "a forgotten file leaving the jump list")
 	})
-	e.InFunction("fmarks_check_names", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*for \(\(wp\) = firstwin; \(wp\) != nullptr; \(wp\) = \(wp\)->w_next\)\s*\n[ \t]*\{\n[ \t]*for \(i = 0; i < wp->w_jumplistlen; \+\+i\)\n[ \t]*\{\n[ \t]*fmarks_check_one\(&wp->w_jumplist\[i\], name, buf\);\n[ \t]*\}\n[ \t]*\}\n`,
+	v.InFunction("fmarks_check_names", func(v *graph.Verbs) {
+		v.Cut("(for (= (paren wp) firstwin) _ _ (block (for (= i 0) (< i (-> wp w_jumplistlen)) _ _)))",
 			1, "a named buffer resolving jump-list file names")
 	})
-	e.InFunction("win_init", func(e *edit.E) {
-		e.Cut(edit.Line("copy_jumplist(oldp, newp);"), 1, "a new window copying the jump list")
+	v.InFunction("win_init", func(v *graph.Verbs) {
+		v.Cut("(call copy_jumplist oldp newp)", 1, "a new window copying the jump list")
 	})
-	e.InFunction("win_free", func(e *edit.E) {
-		e.Cut(edit.Line("free_jumplist(wp);"), 1, "a closed window freeing the jump list")
+	v.InFunction("win_free", func(v *graph.Verbs) {
+		v.Cut("(call free_jumplist wp)", 1, "a closed window freeing the jump list")
 	})
-	return e.Done()
+	return v.Done()
 }
 
-func init() { phase.Register("whim3c", Edit) }
+func init() { phase.RegisterGraph("whim3c", Edit) }

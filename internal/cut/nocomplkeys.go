@@ -1,382 +1,177 @@
 package cut
 
 import (
-	"bytes"
-	"fmt"
 	"io"
-	"regexp"
+	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // complkeysStubs are predicates the rest of the editor asks on its own
 // account.  Each already had only one honest answer; saying it in the body is
-// what lets the sweep reach everything behind it.
+// what lets the collection reach everything behind it.
 var complkeysStubs = []struct{ name, ret string }{
-	{"ins_compl_win_active", "    return FALSE;"},
-	{"ins_compl_lnum_in_range", "    return FALSE;"},
-	{"ins_compl_col_range_attr", "    return -1;"},
-	{"ins_compl_preinsert_effect", "    return FALSE;"},
-	{"ins_compl_autocomplete_pending", "    return FALSE;"},
-	{"ins_compl_autocomplete_elapsed", "    return 0;"},
-	{"pum_under_menu", "    return FALSE;"},
-	{"pum_get_height", "    return 0;"},
-	{"vim_is_ctrl_x_key", "    return FALSE;"},
+	{"ins_compl_win_active", "(return FALSE)"},
+	{"ins_compl_lnum_in_range", "(return FALSE)"},
+	{"ins_compl_col_range_attr", "return -1;"}, // C: BUILD leaves a unary minus untyped, FRAG types it
+	{"ins_compl_preinsert_effect", "(return FALSE)"},
+	{"ins_compl_autocomplete_pending", "(return FALSE)"},
+	{"ins_compl_autocomplete_elapsed", "(return 0)"},
+	{"pum_under_menu", "(return FALSE)"},
+	{"pum_get_height", "(return 0)"},
+	{"vim_is_ctrl_x_key", "(return FALSE)"},
 	// With ins_ctrl_x() empty, `ctrl_x_mode` is never assigned and stays
 	// CTRL_X_NORMAL, so these two are decided.  ins_ctrl_ey() then takes its
 	// else branch, which is CTRL-Y and CTRL-E's ordinary meaning.
-	{"ctrl_x_mode_scroll", "    return FALSE;"},
-	{"at_ins_compl_key", "    return FALSE;"},
+	{"ctrl_x_mode_scroll", "(return FALSE)"},
+	{"at_ins_compl_key", "(return FALSE)"},
 }
 
-// complkeysStub replaces a definition's body with a constant answer.
-//
-// TWO SHAPES, and only looking for one of them cost this phase a pass.  Most
-// definitions here put the return type on its own line and the name at column
-// zero, so `^name\(` finds them.  The ctrl_x_mode_*() predicates are one-liners
-// -- `static int ctrl_x_mode_scroll(void)` with the body on the next line --
-// and the anchored search does not see them at all.
-//
-// So find the name, and LET THE C DECIDE: a definition is the occurrence whose
-// matching `)` is followed by `{`.  A prototype ends in `;` and is skipped.
-func complkeysStub(text []byte, name, ret string) ([]byte, error) {
-	blanked := edit.Blank(text)
-	re := regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\s*\(`)
-	pos := 0
-	for {
-		m := re.FindIndex(blanked[pos:])
-		if m == nil {
-			return nil, fmt.Errorf("nocomplkeys: %s is not defined", name)
-		}
-		lp := pos + m[1] - 1
-		rp := edit.Match(blanked, lp)
-		if rp < 0 {
-			return nil, fmt.Errorf("nocomplkeys: %s has an unbalanced argument list", name)
-		}
-		hi := rp + 40
-		if hi > len(blanked) {
-			hi = len(blanked)
-		}
-		rest := bytes.TrimLeft(blanked[rp+1:hi], " \t\n\r\v\f")
-		pos = rp + 1
-		if len(rest) > 0 && rest[0] == '{' {
-			o := rp + bytes.IndexByte(blanked[rp:], '{')
-			c := edit.Match(blanked, o)
-			if c < 0 {
-				return nil, fmt.Errorf("nocomplkeys: %s is unbalanced", name)
-			}
-			out := make([]byte, 0, len(text))
-			out = append(out, text[:o]...)
-			out = append(out, "{\n"...)
-			if ret != "" {
-				out = append(out, ret...)
-				out = append(out, '\n')
-			}
-			out = append(out, '}')
-			return append(out, text[c+1:]...), nil
-		}
-	}
-}
-
-// complkeysDropUnique is DropIf, but only when the condition occurs exactly
-// once.
-//
-// The first version of this phase dropped
-// `if (c != KE_CURSORHOLD && c != KE_COMPLETE_DELAY)` by pattern.  That
-// condition appears three times inside edit(), and the one it took was
-// `{ lastc = c; }` -- the last-character save, which has nothing to do with
-// completion.  It compiled, it swept clean, and the island still shrank by
-// 2,400 lines, so nothing downstream objected.
-//
-// A CUT THAT IS NOT UNIQUE IS NOT A CUT, IT IS A GUESS.
-func complkeysDropUnique(text []byte, cond, what string) ([]byte, error) {
-	n := bytes.Count(text, []byte(cond))
-	if n != 1 {
-		return nil, fmt.Errorf("nocomplkeys: %s -- the condition occurs %d times, not once",
-			what, n)
-	}
-	return edit.DropIf(text, `(?m)^[ \t]*`+regexp.QuoteMeta(cond), 1)
-}
-
-// complkeysDropUniqueAfter is complkeysDropUnique where the condition is NOT
-// unique on its own and the line above it is what tells the copies apart.
-//
-// The autocomplete arm is written four times in edit(): once after
-// `ins_just_started = FALSE;` and three times inside a `if (did_backspace)`
-// blob this phase removes further down.  The macro expander used to leave the
-// three spelled differently, so the condition read as unique; on a text with
-// one form per construct it does not, and the unique thing is the pair of
-// lines.  The cut is the same cut.
-func complkeysDropUniqueAfter(text []byte, lead, cond, what string) ([]byte, error) {
-	pair := regexp.MustCompile(`(?m)^[ \t]*` + regexp.QuoteMeta(lead) + `\n[ \t]*` +
-		regexp.QuoteMeta(cond) + `$`)
-	ms := pair.FindAllIndex(text, -1)
-	if len(ms) != 1 {
-		return nil, fmt.Errorf("nocomplkeys: %s -- the condition occurs %d times, not once",
-			what, len(ms))
-	}
-	at := ms[0][0] + bytes.Index(text[ms[0][0]:ms[0][1]], []byte(cond))
-	at = bytes.LastIndexByte(text[:at], '\n') + 1
-	out, err := edit.DropIf(text[at:], `(?m)^[ \t]*`+regexp.QuoteMeta(cond), 1)
-	if err != nil {
-		return nil, err
-	}
-	return append(append([]byte{}, text[:at]...), out...), nil
-}
-
-// complkeysDropIn is DropIf restricted to one function.
-//
-// The pattern that names do_put's cleanup also matches four copies inside the
-// completion code itself, and a bare search takes the first.  That edits the
-// island instead of the caller keeping it alive -- and the island then does
-// not die, because the reachable call is still there.
-func complkeysDropIn(text []byte, fn, pattern, what string) ([]byte, error) {
-	a, z, ok := edit.FindDefinition(text, edit.Blank(text), fn)
-	if !ok {
-		return nil, fmt.Errorf("nocomplkeys: %s is not defined", fn)
-	}
-	inner, err := edit.DropIf(text[a:z], pattern, 1)
-	if err != nil {
-		return nil, err
-	}
-	if bytes.Equal(inner, text[a:z]) {
-		return nil, fmt.Errorf("nocomplkeys: %s -- nothing dropped in %s", what, fn)
-	}
-	out := make([]byte, 0, len(text))
-	out = append(out, text[:a]...)
-	out = append(out, inner...)
-	return append(out, text[z:]...), nil
-}
-
-func complkeysSub(text []byte, old, new, what string, count int) ([]byte, error) {
-	n := edit.CountAnchorB(text, old)
-	if n != count {
-		return nil, fmt.Errorf("nocomplkeys: %s -- expected %d, found %d", what, count, n)
-	}
-	return edit.ReplaceAnchorB(text, old, []byte(new), count), nil
-}
-
-const complkeysDisarm = `        if (c != (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))) && c != (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))))
-        {
-            ins_compl_clear_autocomplete_delay();
-            ins_compl_disarm_autostart();
-            if (!ins_compl_active())
-            {
-                ins_compl_disable_autocomplete();
-            }
-        }
-        `
-
-const complkeysDelayArm = `            ins_compl_clear_autocomplete_delay();
-            if (!ins_compl_has_autocomplete() || char_avail() || curwin->w_cursor.col == 0)
-            {
-                break;
-            }
-            c = char_before_cursor();
-            if (!vim_isprintc(c))
-            {
-                break;
-            }
-            ins_compl_enable_autocomplete();
-            ins_compl_arm_autostart();
-            goto docomplete;
-`
-
-const complkeysDoCompleteOld = `            if (!ctrl_x_mode_whole_line())
-            {
-                if (p_im)
-                {
-                    if (echeck_abbr(Ctrl_L + ABBR_OFF))
-                    {
-                        break;
-                    }
-                    goto doESCkey;
-                }
-                goto normalchar;
-            }
-            [[fallthrough]];
-        case Ctrl_P:
-        case Ctrl_N:
-        docomplete:
-            ins_compl_clear_autocomplete_delay();
-            compl_busy = TRUE;
-            if (ins_complete(c, TRUE) == FAIL)
-            {
-                compl_status_clear();
-            }
-            compl_busy = FALSE;
-            can_si = may_do_si();
-            break;
-`
-
-const complkeysDoCompleteNew = `            if (p_im)
-            {
-                if (echeck_abbr(Ctrl_L + ABBR_OFF))
-                {
-                    break;
-                }
-                goto doESCkey;
-            }
-            goto normalchar;
-        case Ctrl_P:
-        case Ctrl_N:
-            break;
-`
-
-var (
-	// The macro left the whole inner body on one line, so this used to be able
-	// to say `\{[^\n]*\n`; on a text with one statement per line it spells the
-	// block out, which is the stronger anchor of the two.
-	complkeysBlob = regexp.MustCompile(
-		`(?m)[ \t]*if \(did_backspace\)\n[ \t]*\{\n` +
-			`[ \t]*if \(ins_compl_has_autocomplete\(\) && !char_avail\(\) && curwin->w_cursor\.col > 0\)\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*\(c\) = char_before_cursor\(\);\n` +
-			`[ \t]*if \(vim_isprintc\(c\)\)\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*update_screen\(UPD_VALID\);\n` +
-			`[ \t]*\}\n` +
-			`[ \t]*out_flush\(\);\n` +
-			`[ \t]*ins_compl_enable_autocomplete\(\);\n` +
-			`[ \t]*ins_compl_arm_autostart\(\);\n` +
-			`[ \t]*if \(!ins_compl_arm_autocomplete_delay\(\)\)\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*goto docomplete;\n` +
-			`[ \t]*\}\n` +
-			`[ \t]*\}\n` +
-			`[ \t]*\}\n`)
-	complkeysPumArm = regexp.MustCompile(
-		`[ \t]*if \(pum_visible\(\)\)\n[ \t]*\{\n[ \t]*goto docomplete;\n[ \t]*\}\n`)
-)
+// the autocomplete arm, written four times in edit(): after
+// `ins_just_started = FALSE;` and in three `if (did_backspace)` blobs
+const complkeysAutoArm = "(if (&& (call ins_compl_has_autocomplete) (! (call char_avail)) (> (. (-> curwin w_cursor) col) 0)) _)"
 
 // NoComplKeys takes the completion keys away.
-func NoComplKeys(text []byte, w io.Writer) ([]byte, error) {
-	text, err := complkeysStub(text, "ins_ctrl_x", "")
-	if err != nil {
-		return nil, err
+//
+// A CUT THAT IS NOT UNIQUE IS NOT A CUT, IT IS A GUESS: the text's first
+// version dropped `if (c != KE_CURSORHOLD && c != KE_COMPLETE_DELAY)` by
+// pattern, and took `{ lastc = c; }`.  So every condition is counted, in the
+// file where the text counted it there, and in edit() or do_put() where a
+// bare search would take a copy in the completion code itself.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the stubs by Body, the guards
+// by DropIf and Rewrite by form, the runs of items by Run; `docomplete`'s
+// label goes last, after every goto to it (history keeps the text version).
+func NoComplKeys(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("complkeys", e, w)
+	q := graph.NewVerbs("nocomplkeys", e, io.Discard)
+	q.Body("ins_ctrl_x", "", "ins_ctrl_x")
+	if err := q.Done(); err != nil {
+		return err
 	}
-	fmt.Fprintln(w, "  complkeys    CTRL-X opens no submode; ctrl_x_mode stays normal")
+	v.Say("CTRL-X opens no submode; ctrl_x_mode stays normal")
 
-	for _, s := range []struct{ old, new, what string }{
-		{"    if (textlock != 0 || ins_compl_active() || compl_busy || pum_visible())",
-			"    if (textlock != 0)", "edit()'s entry guard"},
-		{"    ins_compl_clear();\n", "", "edit()'s ins_compl_clear"},
-		{"        if (stop_insert_mode && !ins_compl_active())",
-			"        if (stop_insert_mode)", "the stop_insert_mode guard"},
-	} {
-		if text, err = complkeysSub(text, s.old, s.new, s.what, 1); err != nil {
-			return nil, err
+	q.Rewrite("(|| ?t (call ins_compl_active) compl_busy (call pum_visible))", "?t", 1, "edit()'s entry guard")
+	q.InFunction("edit", func(q *graph.Verbs) {
+		q.Cut("(call ins_compl_clear)", 1, "edit()'s ins_compl_clear")
+		q.Rewrite("(&& stop_insert_mode (! (call ins_compl_active)))", "stop_insert_mode", 1, "the stop_insert_mode guard")
+		if r := q.Run("the ins_just_started autocomplete arm", "(= ins_just_started FALSE)", complkeysAutoArm); r != nil {
+			if err := e.Delete(r[1]); err != nil {
+				q.Die("the ins_just_started autocomplete arm -- %v", err)
+			}
 		}
-	}
-
-	if text, err = complkeysDropUniqueAfter(text, "ins_just_started = FALSE;",
-		"if (ins_compl_has_autocomplete() && !char_avail() && curwin->w_cursor.col > 0)",
-		"the ins_just_started autocomplete arm"); err != nil {
-		return nil, err
-	}
-	if text, err = complkeysSub(text, "                    ins_compl_prep(ESC);\n", "",
-		"the ESC hook", 1); err != nil {
-		return nil, err
-	}
-	if text, err = complkeysSub(text, complkeysDisarm, "",
-		"the per-key autocomplete disarm", 1); err != nil {
-		return nil, err
-	}
-	if text, err = complkeysDropUnique(text,
-		"if (ins_compl_active() && curwin->w_cursor.col >= ins_compl_col() && ins_compl_has_shown_match() && pum_wanted())",
-		"a completion arm"); err != nil {
-		return nil, err
-	}
-	if text, err = complkeysSub(text, "        ins_compl_init_get_longest();\n", "",
-		"edit()'s init_get_longest", 1); err != nil {
-		return nil, err
-	}
-	for _, d := range []struct{ cond, what string }{
-		{"if (ins_compl_prep(c))", "the per-key prep hook"},
-		{"if ((c == Ctrl_V || c == Ctrl_Q) && ctrl_x_mode_cmdline())",
-			"CTRL-V in cmdline completion"},
-	} {
-		if text, err = complkeysDropUnique(text, d.cond, d.what); err != nil {
-			return nil, err
+		q.Cut("(call ins_compl_prep ESC)", 1, "the ESC hook")
+		q.Cut("(if (&& (!= c _) (!= c _)) (block (call ins_compl_clear_autocomplete_delay) (call ins_compl_disarm_autostart) _))",
+			1, "the per-key autocomplete disarm")
+	})
+	q.DropIf("(&& (call ins_compl_active) (>= (. (-> curwin w_cursor) col) (call ins_compl_col)) (call ins_compl_has_shown_match) (call pum_wanted))",
+		1, "a completion arm")
+	q.InFunction("edit", func(q *graph.Verbs) {
+		q.Cut("(call ins_compl_init_get_longest)", 1, "edit()'s init_get_longest")
+	})
+	q.DropIf("(call ins_compl_prep c)", 1, "the per-key prep hook")
+	q.DropIf("(&& (|| (== c Ctrl_V) (== c Ctrl_Q)) (call ctrl_x_mode_cmdline))", 1, "CTRL-V in cmdline completion")
+	q.InFunction("edit", func(q *graph.Verbs) {
+		if r := q.Run("the doESCkey disarm", "(label doESCkey)", "(call ins_compl_clear_autocomplete_delay)"); r != nil {
+			if err := e.Delete(r[1]); err != nil {
+				q.Die("the doESCkey disarm -- %v", err)
+			}
 		}
-	}
-	if text, err = complkeysSub(text,
-		"doESCkey:\n            ins_compl_clear_autocomplete_delay();\n",
-		"doESCkey:\n", "the doESCkey disarm", 1); err != nil {
-		return nil, err
-	}
-	if text, err = complkeysDropUnique(text,
-		"if (ctrl_x_mode_register() && !ins_compl_active())", "a completion arm"); err != nil {
-		return nil, err
+	})
+	q.DropIf("(&& (call ctrl_x_mode_register) (! (call ins_compl_active)))", 1, "a completion arm")
+	if err := q.Done(); err != nil {
+		return err
 	}
 
-	// The three one-line blobs macro expansion left behind, each inside an
-	// `if (did_backspace)` that is then empty.
-	n := len(complkeysBlob.FindAll(text, -1))
-	if n != 3 {
-		return nil, fmt.Errorf("nocomplkeys: the backspace autocomplete blobs -- "+
-			"expected 3, matched %d", n)
-	}
-	text = complkeysBlob.ReplaceAll(text, nil)
-	fmt.Fprintf(w, "  complkeys    autocomplete disarmed at %d sites\n", n+3)
-
-	if text, err = complkeysSub(text, complkeysDelayArm, "            break;\n",
-		"the KE_COMPLETE_DELAY arm", 1); err != nil {
-		return nil, err
-	}
-
-	if n = len(complkeysPumArm.FindAll(text, -1)); n != 4 {
-		return nil, fmt.Errorf("nocomplkeys: the arrow-key pum arms -- expected 4, matched %d", n)
-	}
-	text = complkeysPumArm.ReplaceAll(text, nil)
-	fmt.Fprintln(w, "  complkeys    Up, Down, PageUp and PageDown no longer move a selection")
-
-	for _, k := range []struct{ key, mode string }{
-		{"Ctrl_RSB", "ctrl_x_mode_tags"},
-		{"Ctrl_F", "ctrl_x_mode_files"},
-		{"Ctrl_S", "ctrl_x_mode_spell"},
-	} {
-		old := "            if (!" + k.mode + "())\n" +
-			"            {\n" +
-			"                goto normalchar;\n" +
-			"            }\n" +
-			"            goto docomplete;\n"
-		if text, err = complkeysSub(text, old, "            goto normalchar;\n",
-			"the "+k.key+" arm", 1); err != nil {
-			return nil, err
+	// The three autocomplete arms inside an `if (did_backspace)` each, the
+	// if going with its only statement.
+	blob := "(if did_backspace (block " + complkeysAutoArm + "))"
+	var n int
+	q.InFunction("edit", func(q *graph.Verbs) {
+		if n = q.Count(blob); n != 3 {
+			q.Die("the backspace autocomplete blobs -- expected 3, matched %d", n)
+			return
 		}
+		q.Cut(blob, 3, "the backspace autocomplete blobs")
+	})
+	if err := q.Done(); err != nil {
+		return err
 	}
+	v.Sayf("autocomplete disarmed at %d sites", n+3)
 
-	if text, err = complkeysSub(text, complkeysDoCompleteOld, complkeysDoCompleteNew,
-		"the docomplete label", 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  complkeys    docomplete is gone; CTRL-N and CTRL-P do nothing")
-
-	for _, d := range []struct{ cond, what string }{
-		{"if (ins_compl_has_autocomplete() && !char_avail() && vim_isprintc(c))",
-			"the printable-character autocomplete arm"},
-		{"if (ins_compl_active() && !ins_compl_win_active(curwin))",
-			"the end-of-loop cancel"},
-	} {
-		if text, err = complkeysDropUnique(text, d.cond, d.what); err != nil {
-			return nil, err
+	q.InFunction("edit", func(q *graph.Verbs) {
+		if r := q.Run("the KE_COMPLETE_DELAY arm",
+			"(call ins_compl_clear_autocomplete_delay)",
+			"(if (|| (! (call ins_compl_has_autocomplete)) (call char_avail) _) (block (break)))",
+			"(= c (call char_before_cursor))",
+			"(if (! (call vim_isprintc c)) (block (break)))",
+			"(call ins_compl_enable_autocomplete)",
+			"(call ins_compl_arm_autostart)",
+			"(goto docomplete)"); r != nil {
+			if err := e.ReplaceRun(r[0], r[len(r)-1], graph.Break()); err != nil {
+				q.Die("the KE_COMPLETE_DELAY arm -- %v", err)
+			}
 		}
+		const pum = "(if (call pum_visible) (block (goto docomplete)))"
+		if n := q.Count(pum); n != 4 {
+			q.Die("the arrow-key pum arms -- expected 4, matched %d", n)
+			return
+		}
+		q.Cut(pum, 4, "the arrow-key pum arms")
+	})
+	if err := q.Done(); err != nil {
+		return err
 	}
+	v.Say("Up, Down, PageUp and PageDown no longer move a selection")
 
-	if text, err = complkeysDropIn(text, "do_put",
-		`(?m)^[ \t]*`+regexp.QuoteMeta("if (ins_compl_preinsert_effect())"),
-		"do_put's preinsert cleanup"); err != nil {
-		return nil, err
+	q.InFunction("edit", func(q *graph.Verbs) {
+		for _, k := range []struct{ key, mode string }{
+			{"Ctrl_RSB", "ctrl_x_mode_tags"},
+			{"Ctrl_F", "ctrl_x_mode_files"},
+			{"Ctrl_S", "ctrl_x_mode_spell"},
+		} {
+			q.SpliceFirst("(if (! (call "+k.mode+")) (block (goto normalchar)))", "(goto docomplete)",
+				"(goto normalchar)", "the "+k.key+" arm")
+		}
+		// the last gotos to docomplete, before its label goes
+		q.DropIf("(&& (call ins_compl_has_autocomplete) (! (call char_avail)) (call vim_isprintc c))", 1,
+			"the printable-character autocomplete arm")
+		// CTRL-L completes no whole line; CTRL-N and CTRL-P do nothing
+		q.FoldAlways("(! (call ctrl_x_mode_whole_line))", 1, "the docomplete label")
+		if r := q.Run("the docomplete label",
+			"(attributed (std-attr fallthrough))", "(case Ctrl_P)", "(case Ctrl_N)", "(label docomplete)",
+			"(call ins_compl_clear_autocomplete_delay)", "(= compl_busy TRUE)", "(if (== (call ins_complete c TRUE) FAIL) _)",
+			"(= compl_busy FALSE)", "(= can_si (call may_do_si))"); r != nil {
+			for _, x := range append([]*graph.Node{r[0]}, r[3:]...) {
+				if err := e.Delete(x); err != nil {
+					q.Die("the docomplete label -- %v", err)
+					return
+				}
+			}
+		}
+	})
+	if err := q.Done(); err != nil {
+		return err
 	}
+	v.Say("docomplete is gone; CTRL-N and CTRL-P do nothing")
 
+	q.DropIf("(&& (call ins_compl_active) (! (call ins_compl_win_active curwin)))", 1, "the end-of-loop cancel")
+	if e.Defn("do_put") == nil {
+		q.Die("do_put is not defined")
+	}
+	q.InFunction("do_put", func(q *graph.Verbs) {
+		q.DropIf("(call ins_compl_preinsert_effect)", 1, "do_put's preinsert cleanup")
+	})
 	for _, s := range complkeysStubs {
-		if text, err = complkeysStub(text, s.name, s.ret); err != nil {
-			return nil, err
+		if strings.HasSuffix(s.ret, ";") {
+			q.BodyC(s.name, s.ret, s.name)
+		} else {
+			q.Body(s.name, s.ret, s.name)
 		}
 	}
-	fmt.Fprintf(w, "  complkeys    %d predicates answer without the machinery\n",
-		len(complkeysStubs))
-
-	return text, nil
+	if err := q.Done(); err != nil {
+		return err
+	}
+	v.Sayf("%d predicates answer without the machinery", len(complkeysStubs))
+	return v.Done()
 }

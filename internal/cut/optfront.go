@@ -5,11 +5,11 @@ package cut
 // dropped them a few at a time.
 
 import (
-	"bytes"
 	_ "embed"
-	"fmt"
 	"io"
 	"strings"
+
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 //go:embed optfront.md
@@ -29,57 +29,77 @@ func optfrontNames() []string {
 // static zero until the phase that removes its readers, which is what every
 // drop without --strict did, and a buffer- or window-local option's field is
 // its own phase's.
-func OptFront(text []byte, w io.Writer) ([]byte, error) {
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the rows are options[]'s
+// elements whose first element is the name's string (DeleteRowsAsWritten:
+// the text said no position again -- options[0] is the first row, whichever
+// it is), and the names out of the lists are the elements that are
+// that string alone of every declaration's outermost initialiser -- what
+// the text's `"name",` beginning a line was, since the canonical print
+// writes such a list one element per line (history keeps the text
+// version).
+func OptFront(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("optfront", e, w)
 	names := optfrontNames()
 	if len(names) == 0 {
-		return nil, fmt.Errorf("optfront: optfront.md lists no rows")
+		v.Die("optfront.md lists no rows")
+		return v.Done()
 	}
-	// Each table on its own: a name like "arabic" also begins a row of the
-	// encoding table, which DropOptions over the whole file would take first.
-	region := func(t []byte, head string) (int, int, error) {
-		a := bytes.Index(t, []byte(head))
-		if a < 0 || bytes.Count(t, []byte(head)) != 1 {
-			return 0, 0, fmt.Errorf("optfront: %q is not there once", head)
-		}
-		z := bytes.Index(t[a:], []byte("\n};\n"))
-		if z < 0 {
-			return 0, 0, fmt.Errorf("optfront: %q does not end", head)
-		}
-		return a, a + z + 4, nil
-	}
-	a, z, err := region(text, "static struct vimoption options[] =\n{\n")
-	if err != nil {
-		return nil, err
-	}
-	table := append([]byte(nil), text[a:z]...)
+	want := map[string]bool{}
 	for _, n := range names {
-		var ok bool
-		if table, ok = DropRow(table, n); !ok {
-			return nil, fmt.Errorf("optfront: no options[] row for '%s'", n)
-		}
+		want[`"`+n+`"`] = true
 	}
-	text = append(append(append([]byte(nil), text[:a]...), table...), text[z:]...)
+	v.InTable("options", func(v *graph.Verbs) {
+		byName := map[string]*graph.Node{}
+		for _, r := range graph.TableInit(v.Scope()).Args() {
+			if a := r.Args(); r.Is("init") && len(a) > 0 && !a[0].IsList() && want[a[0].Atom] {
+				if _, ok := byName[a[0].Atom]; !ok {
+					byName[a[0].Atom] = r
+				}
+			}
+		}
+		var rows []*graph.Node
+		for _, n := range names {
+			r := byName[`"`+n+`"`]
+			if r == nil {
+				v.Die("no options[] row for '%s'", n)
+				return
+			}
+			rows = append(rows, r)
+		}
+		if err := e.DeleteRowsAsWritten(v.Scope(), rows); err != nil {
+			v.Die("the rows -- %v", err)
+		}
+	})
+	if v.Failed() {
+		return v.Done()
+	}
 	// A name's line goes from every list, not only modeline_whitelist[]:
 	// DropOptions has always removed `"name",` wherever it begins a line, and
 	// so the value lists of other options lost the words they shared with a
 	// dropped option ("key" from 'selectmode''s, "debug" from the history
 	// names).  The product keeps that, so this does it the same way.
 	whitelisted := 0
-	for _, n := range names {
-		spans := indentedLit(text, `"`+n+`",`+"\n")
-		if len(spans) == 0 {
+	for _, in := range v.Find("(init _*)") {
+		def := e.Parent(in)
+		if def == nil || graph.TableInit(def) != in {
 			continue
 		}
-		var buf []byte
-		last := 0
-		for _, sp := range spans {
-			buf = append(buf, text[last:sp[0]]...)
-			last = sp[1]
+		var rows []*graph.Node
+		for _, el := range in.Args() {
+			if !el.IsList() && want[el.Atom] {
+				rows = append(rows, el)
+			}
 		}
-		text = append(buf, text[last:]...)
-		whitelisted += len(spans)
+		if len(rows) == 0 {
+			continue
+		}
+		if err := e.DeleteRowsAsWritten(def, rows); err != nil {
+			v.Die("the names in %s -- %v", graph.DeclName(def), err)
+			return v.Done()
+		}
+		whitelisted += len(rows)
 	}
-	out := text
-	fmt.Fprintf(w, "  optfront     %d options[] rows dropped, %d of their names out of the lists that held them\n", len(names), whitelisted)
-	return out, nil
+	v.Sayf("%d options[] rows dropped, %d of their names out of the lists that held them", len(names), whitelisted)
+	return v.Done()
 }

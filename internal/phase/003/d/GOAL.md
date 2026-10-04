@@ -53,3 +53,5 @@ never encodes anything. The probes check `g?g?` and `g??` no longer encode, that
 `swapchar()` with the arms that went), and that `zyy` still yanks.
 
 Measured: 97,734 → **97,684 lines**.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): this part runs on `crefactor/graph` inside its phase's front, registered with `phase.RegisterGraph`, its report the text version's and its boundary byte for byte.

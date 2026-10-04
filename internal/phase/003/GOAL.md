@@ -109,3 +109,5 @@ is `clicheck.py`'s to check, because nothing else ever passes an option.
 Measured: **180,328 → 178,431 lines**, 1,368 of them taken by the sweep in three
 rounds, and libc symbols 146 → 146 — the introduction and the command line were
 never what the editor needed from the world.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): the front's cutters (D9-D12, with parts 3a-3f) run on `crefactor/graph`, handed phase 2's graph, the closure after them FoldX, and the phase hands phase 4 the graph; byte for byte (`whim-build-check`). 8 s in order (28 s on text).

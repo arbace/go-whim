@@ -224,3 +224,5 @@ help, `$VIMRUNTIME` is consulted by the vimrc search, and `:runtime` is what
 `:packadd` was built on. Cutting the commands without cutting the option
 defaults leaves an editor that still tries to open a file it will never find —
 which is why the option defaults are part of *this* phase and not a later one.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): the front's cutters (D1-D5) and `noruntime` run on `crefactor/graph`, the closure after them FoldX; the phase imports q000 once and hands phase 2 the graph, its boundary byte for byte (`whim-build-check`). 13 s in order (30 s on text).

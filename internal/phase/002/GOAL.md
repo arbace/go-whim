@@ -31,3 +31,5 @@ and `:set all` stops listing seven options, but the Ex sweep exercises commands
 rather than settings, so it records nothing new. The evidence that this phase
 did something is the score, not the delta — which is the honest way round, and
 better than inventing a delta to point at.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): the front's cutters (D6-D8, with parts 2a and phase 18's program) run on `crefactor/graph`, handed phase 1's graph, the closure after them FoldX, the query asked of the C view; byte for byte (`whim-build-check`). 17 s in order (23 s on text), 14 of them `utf8only`'s, a DRAFT.

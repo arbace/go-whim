@@ -69,3 +69,5 @@ and neither reaches stderr — so they are no-crash checks only, and the script 
 rather than letting a later reader mistake them for proof.
 
 Measured: 91,329 → **90,972 lines**.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): this part runs on `crefactor/graph` inside its phase's front, registered with `phase.RegisterGraph`, its report the text version's and its boundary byte for byte.

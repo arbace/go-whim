@@ -2,18 +2,19 @@ package cut
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
-var nolocaleEdits = []struct {
-	what, pat, repl string
-	want            int
-}{
-	{"the setlocale at startup", edit.Line("init_locale();"), "", 1},
+// NoLocale stops the editor asking the locale anything.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): each of the text's line cuts is
+// a Cut, a CutRun or a DropCase by form, the rows DeleteRows, and the
+// `(void)mb_init();` a Rewrite (history keeps the text version).
+func NoLocale(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nolocale", e, w)
+	v.Cut("(call init_locale)", 1, "the setlocale at startup")
 	// NOT a deletion.  set_init_default_encoding() did three things: ask the
 	// locale, re-initialise the multibyte layer for whatever it answered, and
 	// write that back as the option's default.  Only the first is locale.  The
@@ -22,80 +23,49 @@ var nolocaleEdits = []struct {
 	// the call outright and 'encoding' reports utf-8 while enc_utf8 is still
 	// FALSE -- the editor says UTF-8 and behaves like latin1, which is worse
 	// than either, and which five multibyte behaviour cases caught.
-	{"deriving 'encoding' from the locale, keeping the mbyte init it also did",
-		`(?m)^([ \t]*)set_init_default_encoding\(\);$`, "${1}(void)mb_init();", 1},
+	v.ReplaceC("(call set_init_default_encoding)", "(void)mb_init();", 1,
+		"deriving 'encoding' from the locale, keeping the mbyte init it also did")
 	// 'encoding''s row, whose default was latin1, is dropped at phase 1 with
 	// every option the product has not (optfront, the reform's D3)
 	// :sort's locale-aware collation died with :sort, retired at phase 1
 	// (exfront, the reform's D2)
-	{"the $LANG-gated maintainer line in :messages",
-		`(?m)[ \t]*s = \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"LANG"\)\);\n` +
-			`[ \t]*if \(s != nullptr && \*s != NUL\)\n[ \t]*\{\n[ \t]*msg_attr\([^\n]*\n[ \t]*\}\n`, "", 1},
-	{"the :language completion case",
-		`(?m)[ \t]*case CMD_language:\n[ \t]*return set_context_in_lang_cmd\(xp, arg\);\n`, "", 1},
-	{"the two locale rows of the completion dispatch table",
-		`(?m)[ \t]*\{EXPAND_LANGUAGE, get_lang_arg, TRUE, FALSE\},\n` +
-			`[ \t]*\{EXPAND_LOCALES, get_locales, TRUE, FALSE\},\n`, "", 1},
-	{"-complete=locale as a name :command accepts",
-		`(?m)[ \t]*\{\(EXPAND_LOCALES\), \{\(\(char_u \*\)"locale"\),[^\n]*\n`, "", 1},
-}
-
-// dropDbcsConversion is the one that kept `setlocale` alive after everything
-// else had gone, and the one that cannot be done with a regex.
-//
-// mb_init() asks the locale what a DBCS terminal is speaking so it can convert
-// messages into it; the block is guarded by `if (enc_dbcs)`, which made it easy
-// to miss and impossible to reach for any encoding this build has.
-//
-// A lazy `(?:[^\n]*\n)*?\}` stops at the FIRST line that is just a brace, which
-// here is the inner `if (p == NULL || ...)`'s -- leaving `vim_free(p);` and a
-// stray `}` at file scope.  gcc reports that four hundred lines away as "data
-// definition has no type or storage class".  Match braces.
-func dropDbcsConversion(text []byte) ([]byte, error) {
-	i := bytes.Index(text, []byte("    vimconv.vc_type = CONV_NONE;\n"))
-	if i < 0 {
-		return nil, fmt.Errorf("nolocale: mb_init no longer sets up a conversion here")
-	}
-	blanked := edit.Blank(text)
-	at := i + bytes.Index(text[i:], []byte("if (enc_dbcs)"))
-	opening := at + bytes.IndexByte(blanked[at:], '{')
-	closing := edit.Match(blanked, opening)
-	if closing < 0 {
-		return nil, fmt.Errorf("nolocale: the enc_dbcs block is unbalanced")
-	}
-	end := closing + 1
-	for end < len(text) && (text[end] == ' ' || text[end] == '\t' || text[end] == '\n') {
-		end++
-	}
-	// Only the block.  `vimconv` and its CONV_NONE initialiser STAY: mb_init
-	// tests vimconv.vc_type again two hundred lines further down, and taking
-	// the declaration on the strength of one visible use is how a phase turns
-	// into a compile error four hundred lines from the edit.
-	start := i + bytes.Index(text[i:], []byte("    if (enc_dbcs)"))
-	out := make([]byte, 0, len(text))
-	out = append(out, text[:start]...)
-	return append(out, text[end:]...), nil
-}
-
-// NoLocale stops the editor asking the locale anything.
-func NoLocale(text []byte, w io.Writer) ([]byte, error) {
-	for _, e := range nolocaleEdits {
-		re := regexp.MustCompile(e.pat)
-		out, n := edit.ReplaceAllCounted(re, text, []byte(e.repl))
-		if n != e.want {
-			return nil, fmt.Errorf("nolocale: %s -- expected %d, matched %d", e.what, e.want, n)
+	v.CutRun("the $LANG-gated maintainer line in :messages",
+		`(= s (cast (ptr char_u) (call getenv (cast (ptr char) (paren (cast (ptr char_u) "LANG"))))))`,
+		"(if (&& (!= s nullptr) (!= (deref s) NUL)) (block (call msg_attr _ _)))")
+	v.DropCase("(case CMD_language)", 1, "the :language completion case")
+	v.InFunction("ExpandOther", func(v *graph.Verbs) {
+		tab := v.One("(def static tab _ _)", "the completion dispatch table")
+		if tab == nil {
+			return
 		}
-		text = out
-		fmt.Fprintf(w, "  nolocale     %s\n", e.what)
+		v.In(tab, func(v *graph.Verbs) {
+			deleteRowsTyped(v, []string{"(init EXPAND_LANGUAGE get_lang_arg TRUE FALSE)",
+				"(init EXPAND_LOCALES get_locales TRUE FALSE)"},
+				"the two locale rows of the completion dispatch table")
+		})
+	})
+	v.InTable("command_complete_tab", func(v *graph.Verbs) {
+		deleteRowTyped(v, "(init (paren EXPAND_LOCALES) _)",
+			"-complete=locale as a name :command accepts")
+	})
+	// dropDbcsConversion was the one that kept `setlocale` alive after
+	// everything else had gone: mb_init() asks the locale what a DBCS
+	// terminal is speaking so it can convert messages into it; the block is
+	// guarded by `if (enc_dbcs)`, which made it easy to miss and impossible
+	// to reach for any encoding this build has.  Only the block: `vimconv`
+	// and its CONV_NONE initialiser STAY, since mb_init tests vimconv.vc_type
+	// again further down.
+	v.InFunction("mb_init", func(v *graph.Verbs) {
+		v.Muted(func(v *graph.Verbs) {
+			v.Run("mb_init no longer sets up a conversion here",
+				"(= (. vimconv vc_type) CONV_NONE)", "(if enc_dbcs _)")
+			v.Cut("(if enc_dbcs _)", 1, "the enc_dbcs block")
+		})
+	})
+	v.Say("the DBCS locale conversion in mb_init, and its local")
+	if v.Failed() {
+		return v.Done()
 	}
-
-	text, err := dropDbcsConversion(text)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nolocale     the DBCS locale conversion in mb_init, and its local")
-
-	fmt.Fprintf(w, "  nolocale     %d setlocale calls left for the sweep\n",
-		bytes.Count(text, []byte("setlocale(")))
-	return text, nil
+	v.Sayf("%d setlocale calls left for the sweep", bytes.Count(v.Text(), []byte("setlocale(")))
+	return v.Done()
 }

@@ -104,47 +104,29 @@ func NoWild(e *graph.Editor, w io.Writer) error {
 	return v.Done()
 }
 
-const equiOld = `                            c_class = get_equi_class(&regparse);
-                            if (c_class != 0)
-                            {
-                                reg_equi_class(c_class);
-                            }
-                            else if ((c_class = get_coll_element(&regparse)) != 0)
-`
-
-const equiNew = `                                if ((c_class = get_coll_element(&regparse)) != 0)
-`
-
 var equiMentions = regexp.MustCompile(`\b(?:reg_equi_class|get_equi_class)\b`)
 
 // NoEquiClass makes [= in a bracket expression no longer an equivalence
 // class.
 //
-// Both edits are exact text, which is a dependency on spelling and is
-// deliberate here: the bracket parser is a shape a regex would match in more
-// places than it should.
-func NoEquiClass(text []byte, w io.Writer) ([]byte, error) {
-	if !bytes.Contains(text, []byte(equiOld)) {
-		return nil, fmt.Errorf("noequiclass: the bracket parser is not where this expects")
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the bracket parser's
+// statement cut and its if folded never (its else-if arm stays), and
+// skip_regexp's operand dropped, each counted once; the text version
+// matched exact text (history keeps it).
+func NoEquiClass(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("noequiclass", e, w)
+	q := graph.NewVerbs("noequiclass", e, io.Discard)
+	q.Cut("(= c_class (call get_equi_class (addr regparse)))", 1, "the bracket parser's equivalence class")
+	q.FoldNever("(if (!= c_class 0) (block (call reg_equi_class c_class)) _)", 1, "the bracket parser's test")
+	if q.Failed() {
+		return fmt.Errorf("noequiclass: the bracket parser is not where this expects -- %v", q.Err)
 	}
-	text = bytes.Replace(text, []byte(equiOld), []byte(equiNew), 1)
-	fmt.Fprintln(w, "  noequiclass  [= in a bracket expression is no longer an "+
-		"equivalence class")
-
-	skip := regexp.MustCompile(
-		`get_char_class\(&p\) == CLASS_NONE && get_equi_class\(&p\) == 0 && `)
-	locs := skip.FindAllIndex(text, -1)
-	if len(locs) < 1 {
-		return nil, fmt.Errorf("noequiclass: skip_regexp's scan is not where this expects")
+	v.Say("[= in a bracket expression is no longer an equivalence class")
+	q.DropOperand("(== (call get_equi_class (addr p)) 0)", 1, "skip_regexp's scan")
+	if q.Failed() {
+		return fmt.Errorf("noequiclass: skip_regexp's scan is not where this expects -- %v", q.Err)
 	}
-	l := locs[0]
-	var buf []byte
-	buf = append(buf, text[:l[0]]...)
-	buf = append(buf, "get_char_class(&p) == CLASS_NONE && "...)
-	buf = append(buf, text[l[1]:]...)
-	text = buf
-	fmt.Fprintln(w, "  noequiclass  skip_regexp stops asking the same question")
-	fmt.Fprintf(w, "  noequiclass  %d mentions left for the sweep\n",
-		len(equiMentions.FindAll(text, -1)))
-	return text, nil
+	v.Say("skip_regexp stops asking the same question")
+	v.Sayf("%d mentions left for the sweep", len(equiMentions.FindAll(v.Text(), -1)))
+	return v.Done()
 }

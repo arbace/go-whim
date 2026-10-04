@@ -166,8 +166,8 @@ slim-vim.c  --whim-->  whim-vim.c
     `nostat` (record 13's), part 4a, `onebuffer` (record 42's) and parts
     4b-4e (4f after `nowildmenu`) at phase 4; `nobackup` (phase 12's),
     `lfonly`, `keepbytes` and `noconv` (records 50, 51 and 53's) and parts
-    5a-5d at phase 5. The fall-out closure (`crefactor/xform`'s `FallOut`)
-    folds what each of phases 1-3 left unwritten.
+    5a-5d at phase 5. The fall-out closure (`crefactor/graph`'s `FoldX`, on the graph since
+    B4) folds what each of phases 1-3 left unwritten.
   - **The rest are named in blocks.** `d02`-`d13` are the drops that count
     text only their predecessors leave, `r01`-`r14` the rewires, and
     `g01`-`g11` the generic steps (`doc/GOALS.md`, *The pipeline as it runs*).
@@ -285,7 +285,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 15, 19-73, 75, 77-86, 89-93 and 96-98 and parts 4a-4f, 5a-5d, 15a, 38a, 38b, 49a, 49b, 51a, 71a, 71b, 77a and 86a so far, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
+phase converted to the graph (phases 1-3, 15, 19-73, 75, 77-86, 89-93 and 96-98 and parts 2a, 3a-3f, 4a-4f, 5a-5d, 15a, 38a, 38b, 49a, 49b, 51a, 71a, 71b, 77a and 86a so far, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -327,12 +327,12 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    into the phases, B3f), B3f's phases each held to its
                    snapshot with a diff and to the import of it
                    (b3f_test.go), and FOLDX held to the text's
-                   closures (the front's three, every seed, phase 62's
-                   empties, notags' conditions), and phases 43-52 each
+                   closures (every seed, phase 62's empties, notags'
+                   conditions), and phases 43-52 each
                    held to the import of its snapshot (B3d's chain), and
                    phases 53-56's drafts held to the import of their C view:
                    GRAPH_SNAPS), steps'
-                   FrontCut (a front phase's cuts without their closure),
+                   front.go (the front's cutters on the graph and FoldX),
                    build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
@@ -501,8 +501,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    Check, the snapshots, Seed -- told everything through a
                    Config; hybrid.go its text and graph steps, the
                    conversions between them, and the graph snapshots. xform/: the generic transforms (fallout.go: the
-                   fall-out closure, what a drop's cut leaves unwritten
-                   folded, and what that makes constant). edit/: the C-text
+                   text's fall-out closure, what a drop's cut leaves unwritten
+                   folded, and what that makes constant -- FoldX's tests'
+                   oracle since B4 put the front on the graph). edit/: the C-text
                    substrate that was cutil, and the one verb set -- E, every act
                    counted (driver.go, blocks.go); Ph, the driver of the phases
                    whose cut is a computation; the counted acts both and
@@ -799,12 +800,12 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 104 phases, **382 s** with every boundary compiled after (976 s of CPU, gcc's included), 77,634 lines, at a load of 20-35 after B1a, the two run side by side (main before it: 408 s and 982 s; at a load of 3-13, stage A's 348 s and 936 s, and main before step 5 352 s and 958 s
+  before the reason. Measured: 104 phases, **182 s** with every boundary compiled after (624 s of CPU, gcc's included), 77,635 lines, at a load of 12-34 after B4 (phases 1-3 13, 17 and 8 s, 30, 23 and 28 s on text); 382 s and 976 s at a load of 20-35 after B1a, the two run side by side (main before it: 408 s and 982 s; at a load of 3-13, stage A's 348 s and 936 s, and main before step 5 352 s and 958 s
   the same hour; 451 s and 563 s of CPU under a load of 54-62; 815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
   the boundary before each phase that begins on the graph the graph it
-  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: eighty-nine now), and seals the
+  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: ninety-two now), and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
@@ -825,7 +826,7 @@ make help            # every target, with a line each
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
   committed `whim-vim.c`. Measured: **105 s** under a load of 54-69 (118 s at 107-139, 76-77 s at a
   lighter one), 103 links 64 at a time, bound by
-  the machine's load and no longer by one link (in order, the front's three closures, phases 1-3, take 37, 25 and 33 s, phases 4 and 5 12 and 7 s, the seed 12 s; phase 43 15 s until B3d asked its questions of the graph instead of gcc, 1-3 s now; phase 1 alone was 89 s), against 451 s in
+  the machine's load and no longer by one link (in order, the front's three phases took 37, 25 and 33 s before B4 put them on the graph, 13, 17 and 8 s now; phases 4 and 5 12 and 7 s, the seed 12 s; phase 43 15 s until B3d asked its questions of the graph instead of gcc, 1-3 s now; phase 1 alone was 89 s), against 451 s in
   order then (348-352 s now, at a load of 3-13); and a phase whose program was changed -- on purpose (a control),
   or phase 96's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -942,7 +943,10 @@ was the input boundary's digest and the implementation's together, so a moved
   5a-5d and the programs of phases 21, 22 and 26, so that phases 4-26 run
   on the graph from end to end with no import between them -- and B3f's,
   phases 57, 59, 61, 63, 65-73, 75, 78-85, 93 and 96-98, parts 71a, 71b and
-  77a and phase 86's own step. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
+  77a and phase 86's own step -- and B4's, the front: phases 1-3 and
+  their parts 2a and 3a-3f, every cutter a graph step and FoldX the closure, so
+  that phase 1 imports q000 and phases 1-26 run with no import between them
+  (`utf8only` a DRAFT). The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
   record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).

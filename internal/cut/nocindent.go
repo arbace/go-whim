@@ -1,177 +1,110 @@
 package cut
 
 import (
-	"bytes"
-	"fmt"
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
-)
-
-const (
-	eqCArm = `                        if (cindent_on())
-                        {
-                            indent = get_c_indent();
-                        }
-                        else
-                        {
-                            indent = get_indent();
-                        }
-`
-	eqCNew      = "                        indent = get_indent();\n"
-	preprocsOld = "(curbuf->b_p_si && !curbuf->b_p_cin) || " +
-		"(curbuf->b_p_cin && in_cinkeys('#', ' ', TRUE) && curbuf->b_ind_hash_comment == 0);"
-	preprocsNew  = "curbuf->b_p_si;"
-	fixIndentOld = `    if (curbuf->b_p_lisp && curbuf->b_p_ai)
-    {
-        if (use_indentexpr_for_lisp())
-        {
-            do_c_expr_indent();
-        }
-        else
-        {
-            fixthisline(get_lisp_indent);
-        }
-    }
-    else if (cindent_on())
-    {
-        do_c_expr_indent();
-    }`
-	fixIndentNew = `    if (curbuf->b_p_lisp && curbuf->b_p_ai)
-    {
-        fixthisline(get_lisp_indent);
-    }`
-	mayDoSiOld = "    return curbuf->b_p_si && !curbuf->b_p_cin && !p_paste;"
-	mayDoSiNew = "    return curbuf->b_p_si\n        && !p_paste;"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 var cindentLeft = regexp.MustCompile(`\b(?:get_c_indent|in_cinkeys)\b`)
 
 // NoCindent removes 'cindent': the editor cannot read C any more, and says so
 // by indenting the way 'autoindent' does.
-func NoCindent(text []byte, w io.Writer) ([]byte, error) {
-	var err error
-	for _, p := range []string{
-		edit.Head("if (cindent_on() && ctrl_x_mode_none())"),
-		edit.Head("if (can_cindent && cindent_on() && ctrl_x_mode_normal())"),
-	} {
-		if text, err = edit.DropIf(text, p, 1); err != nil {
-			return nil, err
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the text's folds and line cuts
+// as DropIf, FoldNever, DropOperand and Cut by form, each counted and scoped
+// where the text anchored on its function; the literals that rewrote a
+// return as Rewrite, and cindent_on's body by Body (history keeps the text
+// version).
+func NoCindent(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nocindent", e, w)
+	q := graph.NewVerbs("nocindent", e, io.Discard)
+	say := func(what string) bool {
+		if q.Failed() {
+			return false
 		}
+		v.Say(what)
+		return true
 	}
-	fmt.Fprintln(w, "  nocindent    insert mode stops re-indenting, and the goto between "+
-		"its two tests goes with them")
+	q.DropIf("(&& (call cindent_on) (call ctrl_x_mode_none))", 1, "insert mode's re-indent")
+	q.DropIf("(&& can_cindent (call cindent_on) (call ctrl_x_mode_normal))", 1, "its second test")
+	if !say("insert mode stops re-indenting, and the goto between its two tests goes with them") {
+		return q.Done()
+	}
 
-	var hit bool
-	if text, hit = replaceFirst(regexp.MustCompile(
-		`(?m)[ \t]*do_cindent = !p_paste && \(curbuf->b_p_cin\) && in_cinkeys\([^\n]* && !\(flags & OPENLINE_FORCE_INDENT\);\n`),
-		text, ""); !hit {
-		return nil, fmt.Errorf("nocindent: open_line's do_cindent is not where this expects")
+	q.InFunction("open_line", func(q *graph.Verbs) {
+		q.Cut("(= do_cindent (&& (! p_paste) (paren (-> curbuf b_p_cin)) (call in_cinkeys _ _ _) "+
+			"(! (& flags OPENLINE_FORCE_INDENT))))", 1, "open_line's do_cindent")
+		if c := q.One("(&& (== lead_len 0) (-> curbuf b_p_cin) do_cindent (== dir FORWARD) _)", "open_line's comment test"); c != nil {
+			q.In(c, func(q *graph.Verbs) {
+				q.DropOperand("(-> curbuf b_p_cin)", 1, "open_line's comment test")
+				q.DropOperand("do_cindent", 1, "open_line's comment test")
+			})
+		}
+		q.DropIf("(|| do_cindent (paren (&& (-> curbuf b_p_ai) (call use_indentexpr_for_lisp))))", 1,
+			"open_line's C indent")
+	})
+	if !say("open_line stops asking whether to indent as C") {
+		return q.Done()
 	}
-	text = bytes.Replace(text,
-		[]byte("if (lead_len == 0 && curbuf->b_p_cin && do_cindent && dir == FORWARD"),
-		[]byte("if (lead_len == 0 && dir == FORWARD"), 1)
-	if text, err = edit.DropIf(text,
-		edit.Head("else if (do_cindent || (curbuf->b_p_ai && use_indentexpr_for_lisp()))"),
-		1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nocindent    open_line stops asking whether to indent as C")
 
-	if !bytes.Contains(text, []byte(eqCArm)) {
-		return nil, fmt.Errorf("nocindent: the `=` operator's C arm is not where this expects")
+	q.FoldNever("(if (call cindent_on) (block (= indent (call get_c_indent))) _)", 1, "the `=` operator's C arm")
+	if !say("`=` indents by the line above, which is what 'autoindent' does") {
+		return q.Done()
 	}
-	text = bytes.Replace(text, []byte(eqCArm), []byte(eqCNew), 1)
-	fmt.Fprintln(w, "  nocindent    `=` indents by the line above, which is what "+
-		"'autoindent' does")
 
-	if !bytes.Contains(text, []byte(preprocsOld)) {
-		return nil, fmt.Errorf("nocindent: preprocs_left is not where this expects")
-	}
-	text = bytes.Replace(text, []byte(preprocsOld), []byte(preprocsNew), 1)
-
-	if !bytes.Contains(text, []byte(fixIndentOld)) {
-		return nil, fmt.Errorf("nocindent: fix_indent is not where this expects")
-	}
-	text = bytes.Replace(text, []byte(fixIndentOld), []byte(fixIndentNew), 1)
-
+	q.InFunction("preprocs_left", func(q *graph.Verbs) {
+		q.Rewrite("(return (|| (paren (&& ?si (! (-> curbuf b_p_cin)))) "+
+			"(paren (&& (-> curbuf b_p_cin) (call in_cinkeys '#' ' ' TRUE) (== (-> curbuf b_ind_hash_comment) 0)))))",
+			"(return ?si)", 1, "preprocs_left")
+	})
+	q.InFunction("fix_indent", func(q *graph.Verbs) {
+		q.FoldNever("(if (call use_indentexpr_for_lisp) (block (call do_c_expr_indent)) _)", 1, "fix_indent's lisp arm")
+		q.DropIf("(if (call cindent_on) (block (call do_c_expr_indent)))", 1, "fix_indent's C arm")
+	})
 	// want_cindent is (get_can_cindent() && cindent_on()), so it is FALSE.  Its
-	// declaration, like do_cindent's, is the sweep's; so are parse_cino and
+	// declaration, like do_cindent's, is the collection's; so are parse_cino and
 	// do_c_expr_indent once their calls are gone.
-	for _, c := range []struct{ pat, what string }{
-		{edit.Line("want_cindent = (get_can_cindent() && cindent_on());"),
-			"ins_compl_stop's want_cindent"},
-		{`(?m)[ \t]*if \(want_cindent\)\n[ \t]*\{\n` +
-			`[ \t]*do_c_expr_indent\(\);\n[ \t]*want_cindent = FALSE;\n[ \t]*\}\n`,
-			"its first use"},
-		{`(?m)[ \t]*if \(want_cindent && in_cinkeys\(KEY_COMPLETE, ' ', inindent\(0\)\)\)\n` +
-			`[ \t]*\{\n[ \t]*do_c_expr_indent\(\);\n[ \t]*\}\n`, "its second use"},
-	} {
-		if text, err = cutCounted(text, c.pat, "nocindent", c.what, 1); err != nil {
-			return nil, err
-		}
-	}
-
+	q.Cut("(= want_cindent (paren (&& (call get_can_cindent) (call cindent_on))))", 1, "ins_compl_stop's want_cindent")
+	q.Cut("(if want_cindent (block (call do_c_expr_indent) (= want_cindent FALSE)))", 1, "its first use")
+	q.Cut("(if (&& want_cindent (call in_cinkeys KEY_COMPLETE ' ' (call inindent 0))) (block (call do_c_expr_indent)))", 1,
+		"its second use")
 	// op_reindent() takes the indenter as a FUNCTION POINTER, which is why a
 	// grep for `get_c_indent(` does not find this one.  Without a C indenter,
 	// `=` sets each line's indent to the indent it already has: a no-op, which
 	// is the honest answer for a buffer whose language the editor cannot read.
-	text = bytes.Replace(text, []byte("                op_reindent(oap, get_c_indent);"),
-		[]byte("                op_reindent(oap, get_indent);"), 1)
-
-	if text, err = edit.DropIf(text,
-		edit.Head("if (leader_len == 0 && curbuf->b_p_cin)"), 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nocindent    preprocs_left, fix_indent, completion, `=` and the "+
-		"comment hunt in internal_format")
-
-	if !bytes.Contains(text, []byte(mayDoSiOld)) {
-		return nil, fmt.Errorf("nocindent: may_do_si is not where this expects")
-	}
-	text = bytes.Replace(text, []byte(mayDoSiOld), []byte(mayDoSiNew), 1)
-	fmt.Fprintln(w, "  nocindent    'smartindent' stops deferring to an option that is gone")
-
-	if text, hit = replaceFirst(regexp.MustCompile(
-		`(?m)[ \t]*else if \(last_char != ';' && last_char != '\}' && cin_is_cinword\(ptr\)\)\n`+
-			`[ \t]*\{\n[ \t]*did_si = TRUE;\n[ \t]*\}\n`), text, ""); !hit {
-		return nil, fmt.Errorf("nocindent: 'smartindent' does not consult cin_is_cinword here")
+	q.Rewrite("(call op_reindent oap get_c_indent)", "(call op_reindent oap get_indent)", 1, "`=`'s indenter")
+	q.DropIf("(&& (== leader_len 0) (-> curbuf b_p_cin))", 1, "internal_format's comment hunt")
+	if !say("preprocs_left, fix_indent, completion, `=` and the comment hunt in internal_format") {
+		return q.Done()
 	}
 
+	q.InFunction("may_do_si", func(q *graph.Verbs) {
+		q.DropOperand("(! (-> curbuf b_p_cin))", 1, "may_do_si")
+	})
+	if !say("'smartindent' stops deferring to an option that is gone") {
+		return q.Done()
+	}
+
+	q.DropIf("(&& (!= last_char ';') (!= last_char '}') (call cin_is_cinword ptr))", 1,
+		"'smartindent' consulting cin_is_cinword")
 	// FOUR callers, not two: 'shiftwidth' re-parses 'cinoptions' because some
 	// of them are expressed in shiftwidths, and check_buf_options() re-parses
 	// on every option check.  Neither is about indenting; both just keep the
 	// b_ind_* fields in step with a string that no longer exists.
-	if text, err = cutCounted(text, edit.Line("parse_cino(curbuf);"),
-		"nocindent", "a parse_cino call", 3); err != nil {
-		return nil, err
+	q.Cut("(call parse_cino curbuf)", 3, "a parse_cino call")
+	q.Cut("(call parse_cino buf)", 1, "check_buf_options' parse_cino")
+	if !say("'cinwords' for 'smartindent', and 'cinoptions' parsing") {
+		return q.Done()
 	}
-	if text, err = cutCounted(text, edit.Line("parse_cino(buf);"),
-		"nocindent", "check_buf_options' parse_cino", 1); err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  nocindent    'cinwords' for 'smartindent', and 'cinoptions' parsing")
 
 	// cindent_on() stays and answers no: five of its seven callers only ask in
 	// order to do something else instead.
-	blanked := edit.Blank(text)
-	m := regexp.MustCompile(`(?m)^cindent_on\(void\)\n`).FindIndex(text)
-	if m == nil {
-		return nil, fmt.Errorf("nocindent: cindent_on is not defined at file scope")
+	q.Body("cindent_on", "(return FALSE)", "cindent_on")
+	if !say("cindent_on() answers no, which is now true") {
+		return q.Done()
 	}
-	o := m[1] + bytes.IndexByte(blanked[m[1]:], '{')
-	c := edit.Match(blanked, o)
-	if c < 0 {
-		return nil, fmt.Errorf("nocindent: cindent_on is unbalanced")
-	}
-	var buf []byte
-	buf = append(buf, text[:o]...)
-	buf = append(buf, "{\n    return FALSE;\n}"...)
-	text = append(buf, text[c+1:]...)
-	fmt.Fprintln(w, "  nocindent    cindent_on() answers no, which is now true")
-
-	fmt.Fprintf(w, "  nocindent    %d get_c_indent/in_cinkeys mentions left for the sweep\n",
-		len(cindentLeft.FindAll(text, -1)))
-	return text, nil
+	v.Sayf("%d get_c_indent/in_cinkeys mentions left for the sweep", len(cindentLeft.FindAll(v.Text(), -1)))
+	return v.Done()
 }

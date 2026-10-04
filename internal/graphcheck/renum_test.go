@@ -3,7 +3,6 @@ package graphcheck
 import (
 	"bytes"
 	"io"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/cut"
-	"github.com/arbace/go-whim/internal/steps"
 )
 
 // B2b's capabilities on the real snapshots (doc/GRAPH-MIGRATION.md, *B2b
@@ -119,12 +117,16 @@ const argvScan = `(def argc int (-> parmp argc))
 // 4, and the bytes move.
 func TestRowsArgvFront(t *testing.T) {
 	dir, _, _, _ := setup(t)
-	in := snapOf(t, dir, 0)
-	want, err := cut.ArgvFront(in, io.Discard)
+	lisp := lispOf(t, snapOf(t, dir, 0))
+	// the cutter itself, on the graph since B4: what the verbs below must give
+	prod := readBackOne(t, lisp)
+	if err := cut.ArgvFront(prod, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	want, err := prod.Graph().C()
 	if err != nil {
 		t.Fatal(err)
 	}
-	lisp := lispOf(t, in)
 	run := func(said bool) (*graph.Editor, *graph.RowsDone, string) {
 		e := readBackOne(t, lisp)
 		var log bytes.Buffer
@@ -182,33 +184,20 @@ func TestRowsArgvFront(t *testing.T) {
 // program's moved lines move them.
 func TestRenumFileFront(t *testing.T) {
 	dir, _, _, _ := setup(t)
-	text := snapOf(t, dir, 0)
-	delta, err := os.ReadFile("internal/phase/001/delta.md")
-	if err != nil {
-		t.Fatal(err)
-	}
-	var removed []string
-	for i, part := range strings.Split(string(delta), "```") {
-		if i%2 == 1 {
-			removed = append(removed, strings.Fields(part)...)
-		}
-	}
-	t.Setenv("REMOVED", strings.Join(removed, " "))
-	for _, name := range []string{"exfront", "extable"} {
-		if name == "exfront" {
-			if text, err = cut.ArgvFront(text, io.Discard); err != nil {
-				t.Fatal(err)
-			}
-		}
-		op, ok := steps.Lookup(name)
-		if !ok {
-			t.Fatalf("no step %s", name)
-		}
-		if text, err = op(text, nil, io.Discard); err != nil {
+	t.Setenv("REMOVED", declaredRows(t))
+	// argvfront, exfront and extable, on the graph since B4
+	pre := readBackOne(t, lispOf(t, snapOf(t, dir, 0)))
+	for _, f := range []func(*graph.Editor, io.Writer) error{cut.ArgvFront, cut.ExFront, cut.ExTable} {
+		if err := f(pre, io.Discard); err != nil {
 			t.Fatal(err)
 		}
 	}
-	want, err := cut.FileFront(text, io.Discard)
+	lisp := pre.Graph().Lisp()
+	prod := readBackOne(t, lisp)
+	if err := cut.FileFront(prod, io.Discard); err != nil {
+		t.Fatal(err)
+	}
+	want, err := prod.Graph().C()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,7 +207,7 @@ func TestRenumFileFront(t *testing.T) {
 		names = append(names, "CMD_"+c)
 		pats = append(pats, "(at (idx CMD_"+c+") _)")
 	}
-	e := readBackOne(t, lispOf(t, text))
+	e := readBackOne(t, lisp)
 	var log bytes.Buffer
 	v := graph.NewVerbs("filefront", e, &log)
 	v.InTable("cmdnames", func(v *graph.Verbs) {

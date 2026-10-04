@@ -1,142 +1,63 @@
 package cut
 
 import (
-	"bytes"
-	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 var nofencStubs = []struct{ name, body string }{
-	{"bomb_size", "    return 0;"},
+	{"bomb_size", "(return 0)"},
 	{"add_b0_fenc", ""},
 }
 
-// nofencEdits: a nil pattern means the edit is brace-matched below, because
-// the block holds inner blocks and a lazy line scan would stop at the first
-// one's closing brace.
-var nofencEdits = []struct {
-	what, pat, repl string
-	want            int
-}{
-	{"buf_write taking the buffer's 'fileencoding' as its target",
-		`(?m)([ \t]*else\n[ \t]*\{\n)[ \t]*fenc = buf->b_p_fenc;\n`,
-		"${1}        fenc = (char_u *)\"\";\n", 1},
+// NoFenc takes 'fileencoding' and 'bomb' away.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): each of the text's line cuts is
+// a Cut or a CutRun by form, buf_write's target a ReplaceC, file_ff_differs'
+// tail a Splice, the stubs Body (history keeps the text version).
+func NoFenc(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nofenc", e, w)
+	v.InFunction("buf_write", func(v *graph.Verbs) {
+		v.ReplaceC("(= fenc (-> buf b_p_fenc))", `fenc = (char_u *)"";`, 1,
+			"buf_write taking the buffer's 'fileencoding' as its target")
+	})
 	// readfile's 'fileencoding', its 'bomb' set and cleared and its BOM test went
 	// with readfile, which dies at record 13 since ml_recover went at phase 1
 	// (norecover, the reform's D5); so did the swap file's block-zero
 	// encoding and its restore.
-	{"save_file_ff remembering the BOM and the encoding",
-		`(?m)[ \t]*buf->b_start_bomb = buf->b_p_bomb;\n` +
-			`[ \t]*if \(buf->b_start_fenc == nullptr \|\| strcmp[^\n]*\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*vim_free\(buf->b_start_fenc\);\n` +
-			`[ \t]*buf->b_start_fenc = vim_strsave\(buf->b_p_fenc\);\n[ \t]*\}\n`, "", 1},
-	{"file_ff_differs comparing them",
-		`(?m)[ \t]*if \(!buf->b_p_bin && buf->b_start_bomb != buf->b_p_bomb\)\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*return TRUE;\n` +
-			`[ \t]*\}\n` +
-			`[ \t]*if \(buf->b_start_fenc == nullptr\)\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*return \(\*buf->b_p_fenc != NUL\);\n[ \t]*\}\n[ \t]*return \(strcmp[^\n]*\n`, "    return FALSE;\n", 1},
-	{"g8 converting to the buffer's 'fileencoding' to find an illegal byte",
-		`(?m)[ \t]*if \(enc_utf8 && \(enc_canon_props\(curbuf->b_p_fenc\) & ENC_8BIT\)\)\n` +
-			`[ \t]*\{\n[ \t]*convert_setup\(&vimconv, p_enc, curbuf->b_p_fenc\);\n[ \t]*\}\n`,
-		"", 1},
-	{"buf_write writing a BOM it no longer makes", "", "", 0},
+	v.CutRun("save_file_ff remembering the BOM and the encoding",
+		"(= (-> buf b_start_bomb) (-> buf b_p_bomb))",
+		"(if (|| (== (-> buf b_start_fenc) nullptr) _) (block (call vim_free (-> buf b_start_fenc)) (= (-> buf b_start_fenc) (call vim_strsave (-> buf b_p_fenc)))))")
+	v.InFunction("file_ff_differs", func(v *graph.Verbs) {
+		v.Splice("(if (&& (! (-> buf b_p_bin)) (!= (-> buf b_start_bomb) (-> buf b_p_bomb))) (block (return TRUE)))",
+			"(return (paren (!= (call strcmp _ _) 0)))", "(return FALSE)", "file_ff_differs comparing them")
+	})
+	v.Cut("(if (&& enc_utf8 (paren (& (call enc_canon_props (-> curbuf b_p_fenc)) ENC_8BIT))) "+
+		"(block (call convert_setup (addr vimconv) p_enc (-> curbuf b_p_fenc))))", 1,
+		"g8 converting to the buffer's 'fileencoding' to find an illegal byte")
+	v.Cut("(if (&& (-> buf b_p_bomb) (! write_bin) _) _)", 1, "buf_write writing a BOM it no longer makes")
 	// did_set_encoding's arm for 'fileencoding', the empty test record 15 left
 	// there and gvarp went with the encoding rows, dropped at phase 1
 	// (optfront, the reform's D3).
-	{"freeing the remembered encoding",
-		`(?m)^[ \t]* vim_free\(buf->b_start_fenc\);\n[ \t]* \(buf->b_start_fenc\) = nullptr;\n`,
-		"", 1},
+	v.CutRun("freeing the remembered encoding", "(call vim_free (-> buf b_start_fenc))",
+		"(= (paren (-> buf b_start_fenc)) nullptr)")
 	// three: at phase 2 (the reform's D7) readfile and the recovery are
 	// still in the text, and two of them are theirs
-	{"clearing the remembered BOM",
-		`(?m)^[ \t]*(?:cur)?buf->b_start_bomb = FALSE;\n`, "", 3},
+	v.Cut("(= (-> _ b_start_bomb) FALSE)", 3, "clearing the remembered BOM")
 	// LOOKUPS BY NAME, and the reason this phase needed two attempts (three,
 	// before readfile's and the recovered swap file's went with them).
 	// set_string_option_direct((char_u *)"fenc", ...) resolves the option
 	// through findoption(), which answers -1 for a row that is not there; the
 	// caller does not check, so silent Ex mode exits 1 without printing
 	// anything, and every recorded exit status in the harness moves at once.
-	{"`:e ++enc=` forcing one",
-		`(?m)[ \t]*char_u \*fenc = enc_canonize\(eap->cmd \+ eap->force_enc\);\n` +
-			`[ \t]*if \(fenc != nullptr\)\n` +
-			`[ \t]*\{\n` +
-			`[ \t]*set_string_option_direct\(\(char_u \*\)"fenc",[^\n]*\n` +
-			`[ \t]*\}\n[ \t]*vim_free\(fenc\);\n`, "", 1},
-}
-
-// dropIfBlock removes an `if` and the block it guards, found by BRACE
-// MATCHING from the condition's own parenthesis.
-func dropIfBlock(text []byte, pat, what string) ([]byte, error) {
-	blanked := edit.Blank(text)
-	m := regexp.MustCompile(pat).FindIndex(text)
-	if m == nil {
-		return nil, fmt.Errorf("nofenc: %s is not where this expects", what)
-	}
-	lp := m[0] + bytes.IndexByte(text[m[0]:], '(')
-	rp := edit.Match(blanked, lp)
-	i := rp + 1
-	for i < len(text) && (text[i] == ' ' || text[i] == '\t' || text[i] == '\n') {
-		i++
-	}
-	closing := edit.Match(blanked, i)
-	if closing < 0 {
-		return nil, fmt.Errorf("nofenc: %s is unbalanced", what)
-	}
-	end := closing + 1
-	for end < len(text) && (text[end] == ' ' || text[end] == '\t') {
-		end++
-	}
-	out := make([]byte, 0, len(text))
-	out = append(out, text[:m[0]]...)
-	return append(out, text[end:]...), nil
-}
-
-// NoFenc takes 'fileencoding' and 'bomb' away.
-func NoFenc(text []byte, w io.Writer) ([]byte, error) {
-	var err error
-	for _, e := range nofencEdits {
-		if e.pat == "" {
-			// the one block found by brace matching
-			text, err = dropIfBlock(text,
-				`(?m)^[ \t]*if \(buf->b_p_bomb && !write_bin`,
-				"buf_write no longer writes a BOM")
-			if err != nil {
-				return nil, fmt.Errorf("nofenc: buf_write no longer writes a BOM")
-			}
-		} else {
-			re := regexp.MustCompile(e.pat)
-			out, n := edit.ReplaceAllCounted(re, text, []byte(e.repl))
-			if n != e.want {
-				return nil, fmt.Errorf("nofenc: %s -- expected %d, matched %d",
-					e.what, e.want, n)
-			}
-			text = out
-		}
-		fmt.Fprintf(w, "  nofenc       %s\n", e.what)
-	}
+	v.CutRun("`:e ++enc=` forcing one",
+		"(def fenc (ptr char_u) (call enc_canonize (+ (-> eap cmd) (-> eap force_enc))))",
+		`(if (!= fenc nullptr) (block (call set_string_option_direct (cast (ptr char_u) "fenc") _*)))`,
+		"(call vim_free fenc)")
 
 	for _, s := range nofencStubs {
-		o, c, found, balanced := edit.Body(text, s.name)
-		if !found || !balanced {
-			return nil, fmt.Errorf("nofenc: %s is not defined at file scope any more", s.name)
-		}
-		var buf []byte
-		buf = append(buf, text[:o]...)
-		buf = append(buf, "{\n"...)
-		if s.body != "" {
-			buf = append(buf, s.body...)
-			buf = append(buf, '\n')
-		}
-		buf = append(buf, '}')
-		text = append(buf, text[c+1:]...)
-		fmt.Fprintf(w, "  nofenc       %s answers for a file that has no BOM\n", s.name)
+		v.Body(s.name, s.body, s.name+" answers for a file that has no BOM")
 	}
-	return text, nil
+	return v.Done()
 }

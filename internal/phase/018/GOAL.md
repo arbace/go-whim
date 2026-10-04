@@ -37,3 +37,5 @@ the text's said 5).
 ## The delta
 
 **None the harnesses record.** Measured: 109,655 → **109,039 lines**. Handed the graph it costs 0.23 s (main's 2.3 s, which imported; `TestMeasureGraphPhases`, 5 runs, medians, beside main at a load of 20-30).
+
+**whim18 on the graph** (B4): the program phase 2's front calls runs on `crefactor/graph`, registered with `phase.RegisterGraph`, byte for byte.

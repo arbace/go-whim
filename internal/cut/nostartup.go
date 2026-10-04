@@ -2,57 +2,37 @@ package cut
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/edit"
-)
-
-var (
-	startupCall = regexp.MustCompile(edit.Line("source_startup_scripts(&params);"))
-	xdgRtpCall  = regexp.MustCompile(edit.Line("set_init_xdg_rtp();"))
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // NoStartup stops the editor reading anything at startup.
 //
-// source_startup_scripts() keeps its name and loses its body ENTIRELY -- the
-// braces go back empty, which is why this splices the offsets itself rather
-// than ReplaceBody: a body of "" through that helper would leave a blank line
-// between the braces, and this file has no run of two blank lines anywhere.
-func NoStartup(text []byte, w io.Writer) ([]byte, error) {
-	o, c, found, balanced := edit.Body(text, "source_startup_scripts")
-	if !found {
-		return nil, fmt.Errorf("nostartup: source_startup_scripts is not defined at file scope")
+// source_startup_scripts() keeps its name and loses its body ENTIRELY.  On
+// the graph (doc/GRAPH-MIGRATION.md, B4) the body is emptied (Body) and the
+// two calls are cut as items, counted (history keeps the text version).
+func NoStartup(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nostartup", e, w)
+	if e.Defn("source_startup_scripts") == nil {
+		v.Die("source_startup_scripts is not defined at file scope")
+		return v.Done()
 	}
-	if !balanced {
-		return nil, fmt.Errorf("nostartup: source_startup_scripts is unbalanced")
-	}
-	was := bytes.Count(text[o:c], []byte{'\n'})
-	var buf []byte
-	buf = append(buf, text[:o]...)
-	buf = append(buf, "{\n}"...)
-	text = append(buf, text[c+1:]...)
-	fmt.Fprintf(w, "  nostartup    source_startup_scripts was %d lines; it now has no body\n", was)
+	was := 0
+	v.InFunction("source_startup_scripts", func(v *graph.Verbs) { was = bodyLines(v.Text()) })
+	v.Muted(func(v *graph.Verbs) { v.Body("source_startup_scripts", "", "source_startup_scripts") })
+	v.Sayf("source_startup_scripts was %d lines; it now has no body", was)
 
-	if n := len(startupCall.FindAll(text, -1)); n != 1 {
-		return nil, fmt.Errorf("nostartup: expected one source_startup_scripts call, "+
-			"matched %d", n)
-	}
-	text = startupCall.ReplaceAll(text, nil)
-	fmt.Fprintln(w, "  nostartup    startup reads nothing, so it does not call the "+
-		"function that read")
+	v.Cut("(call source_startup_scripts (addr params))", 1,
+		"startup reads nothing, so it does not call the function that read")
 
 	// -u NONE's test in main() reads what nothing writes once the command
 	// line is cut: the fall-out closure took it (argvfront, the reform's D1)
 
-	if n := len(xdgRtpCall.FindAll(text, -1)); n != 1 {
-		return nil, fmt.Errorf("nostartup: expected one set_init_xdg_rtp call, matched %d", n)
+	v.Cut("(call set_init_xdg_rtp)", 1, "'runtimepath' stops being rebuilt from $XDG_CONFIG_HOME")
+	if v.Failed() {
+		return v.Done()
 	}
-	text = xdgRtpCall.ReplaceAll(text, nil)
-	fmt.Fprintln(w, "  nostartup    'runtimepath' stops being rebuilt from $XDG_CONFIG_HOME")
-
-	fmt.Fprintf(w, "  nostartup    %d process_env mentions left for the sweep\n",
-		bytes.Count(text, []byte("process_env")))
-	return text, nil
+	v.Sayf("%d process_env mentions left for the sweep", bytes.Count(v.Text(), []byte("process_env")))
+	return v.Done()
 }

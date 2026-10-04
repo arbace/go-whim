@@ -1,11 +1,10 @@
 package cut
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // runtimePaths are the path strings the runtime layer assembles or defaults
@@ -23,34 +22,48 @@ var runtimePaths = []string{
 		`~/.config/vim/after"`,
 }
 
-const getenvTest = `vimruntime = (strcmp((char *)(name), (char *)("VIMRUNTIME")) == 0);`
+// getenvTest is vim_getenv's `vimruntime = (strcmp(name, "VIMRUNTIME") == 0);`.
+const getenvTest = `(= vimruntime (paren (== (call strcmp (cast (ptr char) (paren name)) ` +
+	`(cast (ptr char) (paren "VIMRUNTIME"))) 0)))`
 
 // NoRuntime takes away the runtime directory: the paths that name it, and the
 // derivation that invented one.
 //
 // vim_getenv() derives a runtime directory from argv[0]'s directory when
 // $VIMRUNTIME is unset.  Making the test never fire is enough -- the code
-// behind it becomes unreachable and the sweep takes it.
-func NoRuntime(text []byte, w io.Writer) ([]byte, error) {
+// behind it becomes unreachable and the collection takes it.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): each path literal respelled
+// "" (RespellString, every occurrence, at least one), the test a Rewrite
+// (history keeps the text version).
+func NoRuntime(e *graph.Editor, w io.Writer) error {
 	// :help, :runtime and their kin point at ex_ni from phase 1's first
 	// steps (exfront, the reform's D2)
+	v := graph.NewVerbs("noruntime", e, w)
+	q := graph.NewVerbs("noruntime", e, io.Discard)
 	nPath := 0
 	for _, s := range runtimePaths {
-		c := edit.CountAnchorB(text, s)
+		c := 0
+		for _, n := range q.Strings() {
+			if n.Atom == s {
+				c++
+			}
+		}
 		if c == 0 {
-			return nil, fmt.Errorf("noruntime: this runtime path is not here any more, so "+
+			return fmt.Errorf("noruntime: this runtime path is not here any more, so "+
 				"the file has moved under this phase: %s", s)
 		}
 		nPath += c
-		text = edit.ReplaceAnchorB(text, s, []byte(`""`), -1)
+		q.RespellString(s, `""`, c, "a runtime path")
 	}
-
-	if !bytes.Contains(text, []byte(getenvTest)) {
-		return nil, fmt.Errorf("noruntime: vim_getenv no longer tests for VIMRUNTIME")
+	n := q.Count(getenvTest)
+	if n == 0 {
+		return fmt.Errorf("noruntime: vim_getenv no longer tests for VIMRUNTIME")
 	}
-	text = bytes.ReplaceAll(text, []byte(getenvTest), []byte("vimruntime = FALSE;"))
-
-	fmt.Fprintf(w, "  noruntime    %d runtime paths emptied, "+
-		"vim_getenv no longer derives one\n", nPath)
-	return text, nil
+	q.Rewrite(getenvTest, "(= vimruntime FALSE)", n, "vim_getenv's test")
+	if err := q.Done(); err != nil {
+		return err
+	}
+	v.Sayf("%d runtime paths emptied, vim_getenv no longer derives one", nPath)
+	return v.Done()
 }

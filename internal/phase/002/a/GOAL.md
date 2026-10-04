@@ -30,3 +30,5 @@ a copy of the Phase 59 boundary, since this phase touches nothing Phase 60 does.
 ## The delta
 
 **None the harnesses record.** Measured: 101,826 → **101,188 lines**.
+
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): this part runs on `crefactor/graph` inside its phase's front, registered with `phase.RegisterGraph`, its report the text version's and its boundary byte for byte.

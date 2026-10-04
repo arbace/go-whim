@@ -7,336 +7,212 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
-
-// nwBreak is `{ break; }` as the expander leaves it.
-const nwBreak = `[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n`
-
-const cmdwinPlain = `^[ \t]*if \(cmdwin_type != 0\)$`
 
 var (
 	nwSplitMod = regexp.MustCompile(`cmod->cmod_split \|=`)
 	nwNvWindow = regexp.MustCompile(`\{Ctrl_W, nv_window`)
 )
 
-// dropIfPlain is DropIf with no count assertion, matching the Python's own
-// helper here.
-func (e ed) dropIfPlain(seg []byte, pattern, what string) ([]byte, error) {
-	out, err := edit.DropIf(seg, "(?m)"+pattern, 1)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
-	}
-	e.say(what)
-	return out, nil
+// nwCheck is checkforcmd_noparen on the modifier's name.
+func nwCheck(name string, n int) string {
+	return fmt.Sprintf(`(call checkforcmd_noparen (addr (-> eap cmd)) %q %d)`, name, n)
+}
+
+// nwOnly is a case of the modifier parser that is one split modifier: its
+// label, the refusal of any other word, the flag and the continue.
+func nwOnly(label, name string, n int, flag string) []string {
+	return []string{"(case '" + label + "')", "(if (! " + nwCheck(name, n) + ") (block (break)))",
+		"(|= (-> cmod cmod_split) " + flag + ")", "(continue)"}
 }
 
 // NoWindows leaves one window: nothing makes, reaches, resizes or binds a
 // second.
-func NoWindows(text []byte, w io.Writer) ([]byte, error) {
-	e := ed{"nowindows", w}
-	var err error
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the text's line regexps and
+// literals are runs of items cut or replaced, folds and drops by
+// condition, operands dropped, the CTRL-W row's handler pointed at
+// nv_error; the leftover check is the text's own regexps on the C view
+// (history keeps the text version).
+func NoWindows(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nowindows", e, w)
 
-	text, err = e.inFunction(text, "parse_command_modifiers", func(s []byte) ([]byte, error) {
-		var err error
-		for _, m := range []struct{ pat, repl, what string }{
-			{`^[ \t]*case 'a':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "aboveleft", 3\)\)\n` + nwBreak +
-				`[ \t]*cmod->cmod_split \|= WSP_ABOVE;\n[ \t]*continue;\n`, "", ":aboveleft"},
-			{`^[ \t]*case 'b':\n[ \t]*if \(checkforcmd_noparen\(&eap->cmd, "belowright", 3\)\)\n` +
-				`[ \t]*\{\n[ \t]*cmod->cmod_split \|= WSP_BELOW;\n[ \t]*continue;\n[ \t]*\}\n` +
-				`[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "botright", 2\)\)\n` + nwBreak +
-				`[ \t]*cmod->cmod_split \|= WSP_BOT;\n[ \t]*continue;\n`, "",
-				":belowright and :botright"},
-			{`^[ \t]*if \(checkforcmd_noparen\(&eap->cmd, "horizontal", 3\)\)\n` +
-				`[ \t]*\{\n[ \t]*cmod->cmod_split \|= WSP_HOR;\n[ \t]*continue;\n[ \t]*\}\n`, "",
-				":horizontal"},
-			{`^([ \t]*)if \(!checkforcmd_noparen\(&eap->cmd, "leftabove", 5\)\)\n` + nwBreak +
-				`[ \t]*cmod->cmod_split \|= WSP_ABOVE;\n[ \t]*continue;\n`, "${1}break;\n", ":leftabove"},
-			{`^[ \t]*case 'r':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "rightbelow", 6\)\)\n` + nwBreak +
-				`[ \t]*cmod->cmod_split \|= WSP_BELOW;\n[ \t]*continue;\n`, "", ":rightbelow"},
-			{`^[ \t]*case 't':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "topleft", 2\)\)\n` + nwBreak +
-				`[ \t]*cmod->cmod_split \|= WSP_TOP;\n[ \t]*continue;\n`, "", ":topleft"},
-			{`^[ \t]*if \(checkforcmd_noparen\(&eap->cmd, "vertical", 4\)\)\n` +
-				`[ \t]*\{\n[ \t]*cmod->cmod_split \|= WSP_VERT;\n[ \t]*continue;\n[ \t]*\}\n`, "",
-				":vertical"},
-		} {
-			if s, err = e.subCountRepl(s, "(?m)"+m.pat, m.repl, m.what, 1); err != nil {
-				return nil, err
-			}
+	v.InFunction("parse_command_modifiers", func(v *graph.Verbs) {
+		v.CutRun(":aboveleft", nwOnly("a", "aboveleft", 3, "WSP_ABOVE")...)
+		v.CutRun(":belowright and :botright", "(case 'b')",
+			"(if "+nwCheck("belowright", 3)+" (block (|= (-> cmod cmod_split) WSP_BELOW) (continue)))",
+			"(if (! "+nwCheck("botright", 2)+") (block (break)))",
+			"(|= (-> cmod cmod_split) WSP_BOT)", "(continue)")
+		v.Cut("(if "+nwCheck("horizontal", 3)+" (block (|= (-> cmod cmod_split) WSP_HOR) (continue)))", 1,
+			":horizontal")
+		if run := v.Run(":leftabove", nwOnly("l", "leftabove", 5, "WSP_ABOVE")[1:]...); run != nil {
+			nwReplaceRun(v, run, "(break)", ":leftabove")
 		}
-		return s, nil
+		v.CutRun(":rightbelow", nwOnly("r", "rightbelow", 6, "WSP_BELOW")...)
+		v.CutRun(":topleft", nwOnly("t", "topleft", 2, "WSP_TOP")...)
+		v.Cut("(if "+nwCheck("vertical", 4)+" (block (|= (-> cmod cmod_split) WSP_VERT) (continue)))", 1,
+			":vertical")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	if text, err = e.inFunction(text, "has_cmdmod", func(s []byte) ([]byte, error) {
-		return e.literal(s, " || cmod->cmod_split != 0 ", "",
-			"has_cmdmod counting a split modifier", 1)
-	}); err != nil {
-		return nil, err
-	}
+	v.InFunction("has_cmdmod", func(v *graph.Verbs) {
+		v.DropOperand("(!= (-> cmod cmod_split) 0)", 1, "has_cmdmod counting a split modifier")
+	})
 
 	// A ROW IS NEVER DELETED FROM nv_cmds[], IT IS POINTED AT nv_error.
-	if text, err = e.subCountRepl(text, `(?m)^([ \t]*\{Ctrl_W, )nv_window(, 0, 0\},)$`,
-		"${1}nv_error${2}", "CTRL-W's row points at nv_error", 1); err != nil {
-		return nil, err
-	}
+	v.InTable("nv_cmds", func(v *graph.Verbs) {
+		v.RewriteAt("(init Ctrl_W ?h 0 0)", "h", "nv_error", 1, "CTRL-W's row points at nv_error")
+	})
 
-	if text, err = e.inFunction(text, "nv_record", func(s []byte) ([]byte, error) {
-		return e.foldNever(s,
-			`^[ \t]*if \(cap->nchar == ':' \|\| cap->nchar == '/' \|\| cap->nchar == '\?'\)$`,
+	v.InFunction("nv_record", func(v *graph.Verbs) {
+		v.FoldNever("(|| (== (-> cap nchar) ':') (== (-> cap nchar) '/') (== (-> cap nchar) '?'))", 1,
 			"q: q/ q? opening it")
-	}); err != nil {
-		return nil, err
+	})
+	v.InFunction("getcmdline_int", func(v *graph.Verbs) {
+		v.FoldNever("(|| (== c cedit_key) (== c _))", 1, "CTRL-F on the command line opening it")
+	})
+	for _, name := range []string{"ex_quit", "text_locked", "get_text_locked_msg", "nv_normal"} {
+		v.InFunction(name, func(v *graph.Verbs) {
+			v.FoldNever("(!= cmdwin_type 0)", 1, name+" asking whether it is open")
+		})
 	}
-	if text, err = e.inFunction(text, "getcmdline_int", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(c == cedit_key \|\| c == [^\n]*KE_CMDWIN[^\n]*\)$`,
-			"CTRL-F on the command line opening it")
-	}); err != nil {
-		return nil, err
-	}
-	for _, name := range []string{"ex_quit", "text_locked",
-		"get_text_locked_msg", "nv_normal"} {
-		name := name
-		if text, err = e.inFunction(text, name, func(s []byte) ([]byte, error) {
-			return e.foldNever(s, cmdwinPlain, name+" asking whether it is open")
-		}); err != nil {
-			return nil, err
-		}
-	}
-	if text, err = e.inFunction(text, "edit", func(s []byte) ([]byte, error) {
-		var err error
-		for _, f := range []struct{ pat, what string }{
-			{`^[ \t]*if \(c == Ctrl_C && cmdwin_type != 0\)$`, "insert-mode CTRL-C closing it"},
-			{cmdwinPlain, "insert-mode Enter executing it"},
-			{`^[ \t]*if \(curwin->w_onebuf_opt\.wo_scb\)$`, "insert mode's 'scrollbind'"},
-			{`^[ \t]*if \(curwin->w_onebuf_opt\.wo_crb\)$`, "insert mode's 'cursorbind'"},
-		} {
-			if s, err = e.foldNever(s, f.pat, f.what); err != nil {
-				return nil, err
-			}
-		}
-		return s, nil
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "do_one_cmd", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(cmdwin_type != 0 && !\(ea\.argt & EX_CMDWIN\)\)$`,
-			"commands refused inside it")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "goto_tabpage_tp", func(s []byte) ([]byte, error) {
-		return e.dropIfPlain(s,
-			`^[ \t]*if \(trigger_enter_autocmds \|\| trigger_leave_autocmds\)$`,
-			"goto_tabpage_tp refusing inside it")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "nv_down", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(cmdwin_type != 0 && cap->cmdchar == CAR\)$`,
-			"normal-mode Enter executing it")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "nv_esc", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "cmdwin_type == 0 && ", "",
-			"nv_esc asking before the abandon hint", 1)
-		if err != nil {
-			return nil, err
-		}
-		if s, err = e.foldNever(s, cmdwinPlain, "normal-mode Esc closing it"); err != nil {
-			return nil, err
-		}
-		return e.foldNever(s,
-			`^[ \t]*else if \(cmdwin_type != 0 && ex_normal_busy && typebuf_was_empty\)$`,
-			":normal Esc closing it")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "vgetorpeek", func(s []byte) ([]byte, error) {
-		var err error
-		for _, l := range []struct{ old, what string }{
-			{" || (cmdwin_type > 0 && tc == ESC)", "an interrupted Esc closing it"},
-			// tc remembered the previous key for that test alone.  Its store goes
-			// here and its declaration is the sweep's.
-			{"                    tc = c;\n", "vgetorpeek remembering it"},
-		} {
-			if s, err = e.literal(s, l.old, "", l.what, 1); err != nil {
-				return nil, err
-			}
-		}
-		return s, nil
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "            int save_cmdwin_type = cmdwin_type;\n"+
-			"            win_T *save_cmdwin_win = cmdwin_win;\n"+
-			"            cmdwin_type = 0;\n            cmdwin_win = nullptr;\n", "",
-			"do_ecmd hiding it", 1)
-		if err != nil {
-			return nil, err
-		}
-		return e.literal(s, "            cmdwin_type = save_cmdwin_type;\n"+
-			"            cmdwin_win = save_cmdwin_win;\n", "", "do_ecmd restoring it", 1)
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "win_line", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(wp == cmdwin_win\)$`, "its column drawn")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "win_col_off", func(s []byte) ([]byte, error) {
-		return e.literal(s, " + (wp != cmdwin_win ? 0 : 1)", "", "its column counted", 1)
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "buf_spname", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(buf == cmdwin_buf\)$`, "its buffer name")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "comp_textwidth", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(curbuf == cmdwin_buf\)$`, "its textwidth")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "main_loop", func(s []byte) ([]byte, error) {
-		return e.literal(s, "while (!cmdwin || cmdwin_result == 0)", "while (!cmdwin)",
-			"main_loop waiting for its result", 1)
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "didset_options", func(s []byte) ([]byte, error) {
-		return e.literal(s, "    (void)did_set_cedit(nullptr);\n", "",
-			"startup reading 'cedit'", 1)
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "check_num_option_bounds", func(s []byte) ([]byte, error) {
-		return e.dropIfPlain(s, `^[ \t]*if \(p_cwh < 1\)$`, "'cmdwinheight' clamped")
-	}); err != nil {
-		return nil, err
-	}
+	v.InFunction("edit", func(v *graph.Verbs) {
+		v.FoldNever("(&& (== c Ctrl_C) (!= cmdwin_type 0))", 1, "insert-mode CTRL-C closing it")
+		v.FoldNever("(!= cmdwin_type 0)", 1, "insert-mode Enter executing it")
+		v.FoldNever("(. (-> curwin w_onebuf_opt) wo_scb)", 1, "insert mode's 'scrollbind'")
+		v.FoldNever("(. (-> curwin w_onebuf_opt) wo_crb)", 1, "insert mode's 'cursorbind'")
+	})
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.FoldNever("(&& (!= cmdwin_type 0) (! (& (. ea argt) EX_CMDWIN)))", 1, "commands refused inside it")
+	})
+	v.InFunction("goto_tabpage_tp", func(v *graph.Verbs) {
+		v.DropIf("(|| trigger_enter_autocmds trigger_leave_autocmds)", 1, "goto_tabpage_tp refusing inside it")
+	})
+	v.InFunction("nv_down", func(v *graph.Verbs) {
+		v.FoldNever("(&& (!= cmdwin_type 0) (== (-> cap cmdchar) CAR))", 1, "normal-mode Enter executing it")
+	})
+	v.InFunction("nv_esc", func(v *graph.Verbs) {
+		v.DropOperand("(== cmdwin_type 0)", 1, "nv_esc asking before the abandon hint")
+		v.FoldNever("(!= cmdwin_type 0)", 1, "normal-mode Esc closing it")
+		v.FoldNever("(&& (!= cmdwin_type 0) ex_normal_busy typebuf_was_empty)", 1, ":normal Esc closing it")
+	})
+	v.InFunction("vgetorpeek", func(v *graph.Verbs) {
+		v.DropOperand("(paren (&& (> cmdwin_type 0) (== tc ESC)))", 1, "an interrupted Esc closing it")
+		// tc remembered the previous key for that test alone.  Its store goes
+		// here and its declaration is the sweep's.
+		v.Cut("(= tc c)", 1, "vgetorpeek remembering it")
+	})
+	v.InFunction("do_ecmd", func(v *graph.Verbs) {
+		v.CutRun("do_ecmd hiding it", "(def save_cmdwin_type int cmdwin_type)",
+			"(def save_cmdwin_win (ptr win_T) cmdwin_win)", "(= cmdwin_type 0)", "(= cmdwin_win nullptr)")
+		v.CutRun("do_ecmd restoring it", "(= cmdwin_type save_cmdwin_type)", "(= cmdwin_win save_cmdwin_win)")
+	})
+	v.InFunction("win_line", func(v *graph.Verbs) {
+		v.FoldNever("(== wp cmdwin_win)", 1, "its column drawn")
+	})
+	v.InFunction("win_col_off", func(v *graph.Verbs) {
+		v.Rewrite("(+ ?a (? (!= wp cmdwin_win) 0 1))", "(paren ?a)", 1, "its column counted")
+	})
+	v.InFunction("buf_spname", func(v *graph.Verbs) {
+		v.FoldNever("(== buf cmdwin_buf)", 1, "its buffer name")
+	})
+	v.InFunction("comp_textwidth", func(v *graph.Verbs) {
+		v.FoldNever("(== curbuf cmdwin_buf)", 1, "its textwidth")
+	})
+	v.InFunction("main_loop", func(v *graph.Verbs) {
+		v.DropOperand("(== cmdwin_result 0)", 1, "main_loop waiting for its result")
+	})
+	v.InFunction("didset_options", func(v *graph.Verbs) {
+		v.Cut("(cast void (call did_set_cedit nullptr))", 1, "startup reading 'cedit'")
+	})
+	v.InFunction("check_num_option_bounds", func(v *graph.Verbs) {
+		v.DropIf("(< p_cwh 1)", 1, "'cmdwinheight' clamped")
+	})
 
 	// -o and -O are the command line's own, cut with it (argvfront, the
 	// reform's D1)
-	if text, err = e.inFunction(text, "create_windows", func(s []byte) ([]byte, error) {
-		var err error
-		if s, err = e.dropIfPlain(s, `^[ \t]*if \(parmp->window_count == -1\)$`,
-			"create_windows defaulting the count"); err != nil {
-			return nil, err
-		}
-		if s, err = e.dropIfPlain(s, `^[ \t]*if \(parmp->window_count == 0\)$`,
-			"create_windows counting the files"); err != nil {
-			return nil, err
-		}
-		if s, err = e.foldNever(s, `^[ \t]*if \(parmp->window_count > 1\)$`,
-			"create_windows making a window per file"); err != nil {
-			return nil, err
-		}
-		return e.literal(s, "    parmp->window_count = 1;\n", "",
-			"create_windows settling on one", 1)
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.subOnce(text, `^[ \t]+edit_buffers\([^\n]*\);\n`,
-		"startup editing a file in each window"); err != nil {
-		return nil, err
-	}
-	if text, err = e.literal(text, "    params.window_count = -1;\n", "",
-		"main initialising the window count", 1); err != nil {
-		return nil, err
-	}
+	v.InFunction("create_windows", func(v *graph.Verbs) {
+		v.DropIf("(== (-> parmp window_count) (- 1))", 1, "create_windows defaulting the count")
+		v.DropIf("(== (-> parmp window_count) 0)", 1, "create_windows counting the files")
+		v.FoldNever("(> (-> parmp window_count) 1)", 1, "create_windows making a window per file")
+		v.Cut("(= (-> parmp window_count) 1)", 1, "create_windows settling on one")
+	})
+	v.Cut("(call edit_buffers _ _)", 1, "startup editing a file in each window")
+	v.Cut("(= (. params window_count) (- 1))", 1, "main initialising the window count")
 
-	if text, err = e.subCount(text,
-		`^[ \t]*\((?:curwin|wp)\)->w_onebuf_opt\.wo_(?:scb|crb) = FALSE;\n`,
-		// 14: four more died with the commands retired at phase 1 (D2)
-		"every assignment of 'scrollbind' and 'cursorbind'", 14); err != nil {
-		return nil, err
-	}
-	for _, v := range []struct{ wv, fld string }{
-		{"SCBIND", "scb"}, {"CRBIND", "crb"}, {"WFB", "wfb"},
-	} {
-		if text, err = e.subOnce(text,
-			`^[ \t]*case \(idopt_T\)\(PV_WIN \+ \(int\)\(WV_`+v.wv+`\)\):\n`+
-				`[ \t]*return \(char_u \*\)&\(curwin->w_onebuf_opt\.wo_`+v.fld+`\);\n`,
-			"get_varp for WV_"+v.wv); err != nil {
-			return nil, err
+	// 14: four more died with the commands retired at phase 1 (D2)
+	if !v.Failed() {
+		q := graph.NewVerbs("nowindows", e, io.Discard)
+		n := 0
+		for _, f := range []string{"scb", "crb"} {
+			for _, x := range []string{"curwin", "wp"} {
+				pat := "(= (. (-> (paren " + x + ") w_onebuf_opt) wo_" + f + ") FALSE)"
+				c := q.Count(pat)
+				n += c
+				if c > 0 {
+					q.Cut(pat, c, "")
+				}
+			}
+		}
+		if n != 14 {
+			v.Die("every assignment of 'scrollbind' and 'cursorbind' -- expected 14, matched %d", n)
+		} else if q.Err != nil {
+			v.Err = q.Err
+		} else {
+			v.Say("every assignment of 'scrollbind' and 'cursorbind'")
 		}
 	}
-	for _, l := range []struct{ old, what string }{
-		{"    to->wo_scb = from->wo_scb;\n    to->wo_scb_save = from->wo_scb_save;\n",
-			"copy_winopt copying 'scrollbind'"},
-		{"    to->wo_crb = from->wo_crb;\n    to->wo_crb_save = from->wo_crb_save;\n",
-			"copy_winopt copying 'cursorbind'"},
-	} {
-		if text, err = e.literal(text, l.old, "", l.what, 1); err != nil {
-			return nil, err
+	v.InFunction("get_varp", func(v *graph.Verbs) {
+		for _, x := range []struct{ wv, fld string }{{"SCBIND", "scb"}, {"CRBIND", "crb"}, {"WFB", "wfb"}} {
+			v.CutRun("get_varp for WV_"+x.wv,
+				"(case (cast idopt_T (+ PV_WIN (cast int (paren WV_"+x.wv+")))))",
+				"(return (cast (ptr char_u) (addr (paren (. (-> curwin w_onebuf_opt) wo_"+x.fld+")))))")
 		}
-	}
-	if text, err = e.inFunction(text, "normal_cmd", func(s []byte) ([]byte, error) {
-		s, err := e.foldNever(s, `^[ \t]*if \(curwin->w_onebuf_opt\.wo_scb && toplevel\)$`,
-			"normal mode's 'scrollbind'")
-		if err != nil {
-			return nil, err
-		}
-		return e.foldNever(s, `^[ \t]*if \(curwin->w_onebuf_opt\.wo_crb && toplevel\)$`,
-			"normal mode's 'cursorbind'")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "ex_substitute", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(curwin->w_onebuf_opt\.wo_crb\)$`, ":s's 'cursorbind'")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "set_shellsize_inner", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(curwin->w_onebuf_opt\.wo_scb\)$`,
-			"a resize's 'scrollbind'")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "scroll_to_fraction", func(s []byte) ([]byte, error) {
-		return e.literal(s, "(!wp->w_onebuf_opt.wo_scb || wp == curwin) && ", "",
-			"scroll_to_fraction's 'scrollbind'", 1)
-	}); err != nil {
-		return nil, err
-	}
-	for _, name := range []string{"check_can_set_curbuf_disabled", "check_can_set_curbuf_forceit"} {
-		name := name
-		if text, err = e.inFunction(text, name, func(s []byte) ([]byte, error) {
-			return e.foldNever(s,
-				`^[ \t]*if \((?:!forceit && )?curwin->w_onebuf_opt\.wo_wfb\)$`,
-				name+"'s 'winfixbuf'")
-		}); err != nil {
-			return nil, err
-		}
-	}
+	})
+	v.InFunction("copy_winopt", func(v *graph.Verbs) {
+		v.CutRun("copy_winopt copying 'scrollbind'",
+			"(= (-> to wo_scb) (-> from wo_scb))", "(= (-> to wo_scb_save) (-> from wo_scb_save))")
+		v.CutRun("copy_winopt copying 'cursorbind'",
+			"(= (-> to wo_crb) (-> from wo_crb))", "(= (-> to wo_crb_save) (-> from wo_crb_save))")
+	})
+	v.InFunction("normal_cmd", func(v *graph.Verbs) {
+		v.FoldNever("(&& (. (-> curwin w_onebuf_opt) wo_scb) toplevel)", 1, "normal mode's 'scrollbind'")
+		v.FoldNever("(&& (. (-> curwin w_onebuf_opt) wo_crb) toplevel)", 1, "normal mode's 'cursorbind'")
+	})
+	v.InFunction("ex_substitute", func(v *graph.Verbs) {
+		v.FoldNever("(. (-> curwin w_onebuf_opt) wo_crb)", 1, ":s's 'cursorbind'")
+	})
+	v.InFunction("set_shellsize_inner", func(v *graph.Verbs) {
+		v.FoldNever("(. (-> curwin w_onebuf_opt) wo_scb)", 1, "a resize's 'scrollbind'")
+	})
+	v.InFunction("scroll_to_fraction", func(v *graph.Verbs) {
+		v.DropOperand("(|| (! (. (-> wp w_onebuf_opt) wo_scb)) (== wp curwin))", 1,
+			"scroll_to_fraction's 'scrollbind'")
+	})
+	v.InFunction("check_can_set_curbuf_disabled", func(v *graph.Verbs) {
+		v.FoldNever("(. (-> curwin w_onebuf_opt) wo_wfb)", 1, "check_can_set_curbuf_disabled's 'winfixbuf'")
+	})
+	v.InFunction("check_can_set_curbuf_forceit", func(v *graph.Verbs) {
+		v.FoldNever("(&& (! forceit) (. (-> curwin w_onebuf_opt) wo_wfb))", 1,
+			"check_can_set_curbuf_forceit's 'winfixbuf'")
+	})
 
 	// :drop, do_argfile, goto_buffer and do_buffer_ext splitting a window,
 	// before_quit_all asking about the command-line window, and :windo's walk
 	// in ex_listdo died with the commands that reached them, retired at phase
 	// 1 (exfront, the reform's D2)
-	if text, err = e.inFunction(text, "buflist_getfile", func(s []byte) ([]byte, error) {
-		return e.dropIfPlain(s, `^[ \t]*if \(options & GETF_SWITCH\)$`,
-			"buflist_getfile's 'switchbuf'")
-	}); err != nil {
-		return nil, err
-	}
-	if text, err = e.literal(text,
-		"    (void)opt_strings_flags(p_swb, p_swb_values, &swb_flags, TRUE);\n", "",
-		"didset_string_options reading 'switchbuf'", 1); err != nil {
-		return nil, err
-	}
-	if text, err = e.inFunction(text, "set_context_by_cmdname", func(s []byte) ([]byte, error) {
-		return e.subOnce(s, `^[ \t]*case CMD_windo:\n`, "completion for :windo")
-	}); err != nil {
-		return nil, err
+	v.InFunction("buflist_getfile", func(v *graph.Verbs) {
+		v.DropIf("(& options GETF_SWITCH)", 1, "buflist_getfile's 'switchbuf'")
+	})
+	v.Cut("(cast void (call opt_strings_flags p_swb p_swb_values (addr swb_flags) TRUE))", 1,
+		"didset_string_options reading 'switchbuf'")
+	v.InFunction("set_context_by_cmdname", func(v *graph.Verbs) {
+		v.Cut("(case CMD_windo)", 1, "completion for :windo")
+	})
+	if v.Failed() {
+		return v.Done()
 	}
 
+	text := v.Text()
 	var left []string
 	for _, c := range []struct {
 		what string
@@ -353,9 +229,22 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if len(left) > 0 {
-		return nil, fmt.Errorf("nowindows: still present: [%s]", strings.Join(left, ", "))
+		return fmt.Errorf("nowindows: still present: [%s]", strings.Join(left, ", "))
 	}
+	v.Say("nothing makes, reaches, resizes or binds a second window")
+	return v.Done()
+}
 
-	e.say("nothing makes, reaches, resizes or binds a second window")
-	return text, nil
+// nwReplaceRun replaces a run of items by a template's, reported.
+func nwReplaceRun(v *graph.Verbs, run []*graph.Node, tmpl, what string) {
+	e := v.Editor()
+	with, err := e.Build(run[0], tmpl, nil)
+	if err == nil {
+		err = e.ReplaceRun(run[0], run[len(run)-1], with...)
+	}
+	if err != nil {
+		v.Die("%s -- %v", what, err)
+		return
+	}
+	v.Say(what)
 }

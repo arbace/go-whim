@@ -2,80 +2,52 @@ package cut
 
 import (
 	"io"
+
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // NoBufList leaves only :bnext and :bprevious walking the buffer list.
-func NoBufList(text []byte, w io.Writer) ([]byte, error) {
-	e := ed{"nobuflist", w}
-	var err error
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the text's folds by line head
+// are folds by condition, its literals a Rewrite and a DropOperand, its
+// line cuts case labels and a case's run cut (history keeps the text
+// version).
+func NoBufList(e *graph.Editor, w io.Writer) error {
+	v := graph.NewVerbs("nobuflist", e, w)
+	const added = "(& flags (| ECMD_ADDBUF ECMD_ALTBUF))"
 
 	// ex_edit and do_exedit went with :edit at phase 1 (filefront, D4)
-
-	text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
-		s, err := e.foldNever(s, `^[ \t]*if \(\(flags & \(ECMD_ADDBUF \| ECMD_ALTBUF\)\) `+
-			`&& \(ffname == nullptr \|\| \*ffname == NUL\)\)$`,
+	v.InFunction("do_ecmd", func(v *graph.Verbs) {
+		v.FoldNever("(&& (paren "+added+") (|| (== ffname nullptr) (== (deref ffname) NUL)))", 1,
 			"do_ecmd adding a buffer with no name")
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.literal(s, "(ECMD_HIDE | ECMD_ADDBUF | ECMD_ALTBUF)", "(ECMD_HIDE)",
-			"do_ecmd sparing an added buffer the changed check", 1)
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.foldAlways(s, `^[ \t]*if \(!\(flags & \(ECMD_ADDBUF \| ECMD_ALTBUF\)\)\)$`,
-			"do_ecmd keeping the alternate file")
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.foldNever(s, `^[ \t]*if \(flags & \(ECMD_ADDBUF \| ECMD_ALTBUF\)\)$`,
-			"do_ecmd adding a buffer without editing it")
-		if err != nil {
-			return nil, err
-		}
-		return e.literal(s, "(flags & (ECMD_ADDBUF | ECMD_ALTBUF)) || ", "",
-			"do_ecmd stopping after an added buffer", 1)
+		v.Rewrite("(| ECMD_HIDE ECMD_ADDBUF ECMD_ALTBUF)", "(paren ECMD_HIDE)", 1,
+			"do_ecmd sparing an added buffer the changed check")
+		v.FoldAlways("(! "+added+")", 1, "do_ecmd keeping the alternate file")
+		v.FoldNever(added, 1, "do_ecmd adding a buffer without editing it")
+		v.DropOperand("(paren "+added+")", 1, "do_ecmd stopping after an added buffer")
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	text, err = e.inFunction(text, "do_one_cmd", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(ea\.cmdidx == CMD_bdelete \|\| `+
-			`ea\.cmdidx == CMD_bwipeout \|\| ea\.cmdidx == CMD_bunload\)$`,
+	v.InFunction("do_one_cmd", func(v *graph.Verbs) {
+		v.FoldNever("(|| (== (. ea cmdidx) CMD_bdelete) (== (. ea cmdidx) CMD_bwipeout) (== (. ea cmdidx) CMD_bunload))", 1,
 			"do_one_cmd reading a buffer list argument")
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// do_buffer_ext's unloading and goto_buffer's :bNext died with the buffer
 	// commands, retired at phase 1 (exfront, the reform's D2)
-
-	text, err = e.inFunction(text, "set_context_by_cmdname", func(s []byte) ([]byte, error) {
-		s, err := e.subOnce(s, `^[ \t]*case CMD_bufdo:\n`, "completion for :bufdo")
-		if err != nil {
-			return nil, err
-		}
-		s, err = e.subOnce(s, `^[ \t]*case CMD_bdelete:\n[ \t]*case CMD_bwipeout:\n`+
-			`[ \t]*case CMD_bunload:\n`+
-			`[ \t]*while \(\(xp->xp_pattern = vim_strchr\(arg, ' '\)\) != nullptr\)\n`+
-			`[ \t]*\{\n[ \t]*arg = xp->xp_pattern \+ 1;\n[ \t]*\}\n`+
-			`[ \t]*\[\[fallthrough\]\];\n`,
-			"completion for :bdelete, :bwipeout and :bunload")
-		if err != nil {
-			return nil, err
-		}
-		return e.subOnce(s, `^[ \t]*case CMD_buffer:\n`, "completion for :buffer")
+	v.InFunction("set_context_by_cmdname", func(v *graph.Verbs) {
+		v.Cut("(case CMD_bufdo)", 1, "completion for :bufdo")
+		v.CutRun("completion for :bdelete, :bwipeout and :bunload",
+			"(case CMD_bdelete)", "(case CMD_bwipeout)", "(case CMD_bunload)",
+			"(while (!= (= (-> xp xp_pattern) (call vim_strchr arg ' ')) nullptr) (block (= arg (+ (-> xp xp_pattern) 1))))",
+			"(attributed (std-attr fallthrough))")
+		v.Cut("(case CMD_buffer)", 1, "completion for :buffer")
 	})
-	if err != nil {
-		return nil, err
-	}
 
 	// Nothing is counted here: this runs at phase 3 (the reform's D9),
 	// where ex_listdo() and ex_bunload() and the code that set ECMD_ADDBUF and
 	// ECMD_ALTBUF are still in the text, for the sweep.
-
-	e.say("only :bnext and :bprevious walk the buffer list")
-	return text, nil
+	if v.Failed() {
+		return v.Done()
+	}
+	v.Say("only :bnext and :bprevious walk the buffer list")
+	return v.Done()
 }

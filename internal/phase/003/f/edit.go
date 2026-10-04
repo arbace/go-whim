@@ -33,44 +33,67 @@ package p003f
 // THE DELTA: none expected.  :marks and :delmarks keep their exit status and write
 // nothing to stderr for the arguments exsweep uses, and an exsweep row is
 // `exit= left= err=`.  Declared empty and left for the delta check to correct.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B4): the folds and cuts by form,
+// each scoped to its function, the two bodies FRAG in one unit (Together);
+// the acts run quietly and the report is written after them, in the text's
+// order, since Together reports its FRAG acts last (history keeps the text
+// version).
 
 import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// markArm is the macro-expanded test for an uppercase letter or a digit, which
-// is how a file mark is spelled.
-const markArm = `\(\(\(unsigned\)\(c\) - 'A' < 26\) \|\| \(\(unsigned\)\(c\) - '0' < 10\)\)$`
+// markArm is the test for an uppercase letter or a digit, which is how a
+// file mark is spelled.
+const markArm = "(|| (paren (< (- (cast unsigned (paren c)) 'A') 26)) (paren (< (- (cast unsigned (paren c)) '0') 10)))"
 
-// Whim3f takes file marks: the uppercase and numbered marks, the table that
+// Edit takes file marks: the uppercase and numbered marks, the table that
 // held them, and the type that carried a filename with each.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("nofmark", text, w)
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("nofmark", e, w)
+	q := graph.NewVerbs("nofmark", e, io.Discard)
+	var said []string
+	say := func(what string) string { said = append(said, what); return what }
 
-	e.InFunction("getmark_buf_fnum", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*else if `+markArm, 1, "reading an uppercase or numbered mark")
+	q.Together(func(q *graph.Verbs) {
+		q.InFunction("getmark_buf_fnum", func(q *graph.Verbs) {
+			q.FoldNever(markArm, 1, say("reading an uppercase or numbered mark"))
+		})
+		q.InFunction("setmark_pos", func(q *graph.Verbs) {
+			q.DropIf(markArm, 1, say("setting an uppercase or numbered mark"))
+		})
+		q.BodyC("clrallmarks", w3flit2, say("clrallmarks initialising the file marks once"))
+		q.InFunction("ex_marks", func(q *graph.Verbs) {
+			q.Cut("(for (= i 0) (< i (+ (paren (+ (- 'z' 'a') 1)) EXTRA_MARKS)) (pre++ i) _)", 1,
+				say(":marks listing the file marks"))
+		})
+		q.BodyC("ex_delmarks", w3flit3, say(":delmarks clearing an uppercase or numbered mark"))
+		for _, fn := range []string{"mark_adjust_internal", "mark_col_adjust"} {
+			q.InFunction(fn, func(q *graph.Verbs) {
+				q.Cut("(if (== (. (index namedfm i) fmark fnum) fnum) _)", 2,
+					say(fmt.Sprintf("adjusting the file marks in %s", fn)))
+				q.Cut("(for (= i (paren (+ (- 'z' 'a') 1))) _ _ _)", 1,
+					say(fmt.Sprintf("and the loop over the numbered marks in %s", fn)))
+			})
+		}
+		// fmarks_check_names existed to reattach a file mark to a buffer by
+		// name; with no file marks there is nothing to reattach.  With its two
+		// calls gone the collection takes it, fname2fnum (folded empty in
+		// phase 22), namedfm and EXTRA_MARKS.
+		q.Cut("(call fmarks_check_names buf)", 2, say("the two calls that rematched file marks"))
 	})
-	e.InFunction("setmark_pos", func(e *edit.E) { e.DropIf(`(?m)^[ \t]*if `+markArm, 1, "setting an uppercase or numbered mark") })
-	e.Body("clrallmarks", w3flit2, "clrallmarks initialising the file marks once")
-	e.DropBlocks("ex_marks", edit.Head("for (i = 0; i < ('z' - 'a' + 1) + EXTRA_MARKS; ++i)"), 1,
-		":marks listing the file marks")
-	e.Body("ex_delmarks", w3flit3, ":delmarks clearing an uppercase or numbered mark")
-	for _, fn := range []string{"mark_adjust_internal", "mark_col_adjust"} {
-		e.DropBlocks(fn, edit.Head("if (namedfm[i].fmark.fnum == fnum)"), 2,
-			fmt.Sprintf("adjusting the file marks in %s", fn))
-		e.DropBlocks(fn, edit.Head("for (i = ('z' - 'a' + 1); i < ('z' - 'a' + 1) + EXTRA_MARKS; i++)"), 1,
-			fmt.Sprintf("and the loop over the numbered marks in %s", fn))
+	if err := q.Done(); err != nil {
+		return err
 	}
-	// fmarks_check_names existed to reattach a file mark to a buffer by name;
-	// with no file marks there is nothing to reattach.  With its two calls
-	// gone the sweep takes it, fname2fnum (folded empty in phase 22), namedfm
-	// and EXTRA_MARKS.
-	e.Cut(edit.Line("fmarks_check_names(buf);"), 2, "the two calls that rematched file marks")
-	return e.Done()
+	for _, s := range said {
+		v.Say(s)
+	}
+	return v.Done()
 }
 
-func init() { phase.Register("whim3f", Edit) }
+func init() { phase.RegisterGraph("whim3f", Edit) }

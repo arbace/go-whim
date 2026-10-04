@@ -54,84 +54,6 @@ func FallOut() Step {
 	}
 }
 
-// FallOutOf is the step that runs cut and then the closure, seeded with
-// what the cut left unwritten: each object and member nothing writes after
-// it that something wrote before, save the names in hold -- what the
-// product keeps, and a later phase folds or leaves.
-func FallOutOf(cut Step, hold ...string) Step {
-	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := edit.Ph{Tag: "fallout", W: w}
-		before, _, err := unwrittenNames(text)
-		if err != nil {
-			return nil, p.Die("before the cut: %v", err)
-		}
-		out, err := cut(text, args, w)
-		if err != nil {
-			return nil, err
-		}
-		after, ast, err := unwrittenNames(out)
-		if err != nil {
-			return nil, p.Die("after the cut: %v", err)
-		}
-		held := map[string]bool{}
-		for _, h := range hold {
-			held[h] = true
-		}
-		// A FIXED POINT OVER THE SEEDS TOO: what the closure folds can take an
-		// object's last write -- `if (params.no_swap_file) p_uc = 0;` goes with
-		// the flag -- so what is unwritten is asked again after every closure,
-		// against the text before the cut, until nothing new is.
-		seeds := map[string]bool{}
-		for pass := 0; ; pass++ {
-			var names []string
-			for k := range after {
-				if !before[k] && !held[k] && !seeds[k] {
-					seeds[k] = true
-					names = append(names, k)
-				}
-			}
-			sort.Strings(names)
-			if len(names) == 0 {
-				return foUndeclare(out), nil
-			}
-			if pass == 0 {
-				p.Sayf("%d left unwritten by the cut: %s", len(names), strings.Join(names, " "))
-			} else {
-				p.Sayf("%d more left unwritten by what fell out: %s", len(names), strings.Join(names, " "))
-			}
-			if out, ast, err = fallOutMarked(p, out, seeds, ast); err != nil {
-				return nil, err
-			}
-			after = unwrittenOf(out, ast)
-		}
-	}
-}
-
-// unwrittenNames is the name of every object, and the struct.member of
-// every member, nothing writes in text.
-func unwrittenNames(text []byte) (map[string]bool, *cc.AST, error) {
-	ast, err := translate(append([]byte(nil), text...))
-	if err != nil {
-		return nil, nil, err
-	}
-	return unwrittenOf(text, ast), ast, nil
-}
-
-// unwrittenOf is unwrittenNames on a text already parsed.
-func unwrittenOf(text []byte, ast *cc.AST) map[string]bool {
-	f := newFO(text, ast)
-	f.noIndex = true
-	f.index()
-	out := map[string]bool{}
-	for d := range f.unwrittenObjects() {
-		out[d.Name()] = true
-	}
-	for k := range f.unwrittenMembers() {
-		out[k] = true
-	}
-	return out
-}
-
 const (
 	foMark    = "/*fallout*/"
 	foEnumTag = "enum { fallout_values"
@@ -309,7 +231,6 @@ type fo struct {
 	done     map[*cc.FunctionDefinition]bool
 	refs     map[string]map[string]bool // the functions a function names; "" the file scope
 	live     map[string]bool            // what main reaches
-	noIndex  bool                       // analysis only: no rule runs
 }
 
 // walk is sweep.Walk over the nodes indexed once: fn on every node under
@@ -674,9 +595,6 @@ func (f *fo) index() {
 				work = append(work, r)
 			}
 		}
-	}
-	if f.noIndex {
-		return
 	}
 	for nm := range need {
 		f.ensure(f.fns[nm])
