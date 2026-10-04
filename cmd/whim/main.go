@@ -32,7 +32,7 @@ var order = []string{
 	"funcreach",
 	"score", "cmdnames", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit", "c2lisp", "lisp2c", "graph", "view",
-	"parse", "fieldref", "reach", "measure", "cdiff", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "whimsical", "pre", "gocat", "hscat",
+	"parse", "fieldref", "reach", "measure", "cdiff", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "whimsical", "whiml", "pre", "gocat", "hscat",
 }
 
 var tools = map[string]tool{
@@ -112,10 +112,11 @@ var tools = map[string]tool{
 	"caprice":     {runCaprice, "caprice [--out DIR] [FILE]"},
 	"whimsy":      {runWhimsy, "whimsy [--out DIR] [FILE]"},
 	"whimsical":   {runWhimsical, "whimsical [--debug] [--out DIR] [FILE]"},
+	"whiml":       {runWhiml, "whiml [--out DIR] [FILE]"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
 	"gocat":       {runGocat, "gocat <dir>"},
 	"hscat":       {runHscat, "hscat [--ghc GHC] [--hsl FILE] [--out DIR] [--no-test] [SRC]"},
-	"test":        {runTest, "test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--limit DURATION] [--ref REV] [FILE]"},
+	"test":        {runTest, "test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--limit DURATION] [--ref REV] [FILE]"},
 	"measure":     {runMeasure, "measure <dir of qNNN.c>"},
 	"reach":       {runReach, "reach <file.c> [--no-control]"},
 }

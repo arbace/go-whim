@@ -69,6 +69,11 @@ type sgen struct {
 	structNames map[string]string   // a struct type (its first member) -> its name
 	structTaken map[string]string   // a name -> the struct type it names
 	enums       map[string]string   // an enumerator named -> its value
+
+	// ml: the forms are for the OCaml backend (newSgen); unitFns, the
+	// functions written whose value is nothing (no result, no values)
+	ml      bool
+	unitFns map[string]bool
 }
 
 // sobj is a file-scope object by name: at addr, of the kind its accessors
@@ -127,45 +132,12 @@ func scmName(s string) string {
 // path.host, the host's functions, in the order of the vector the editor
 // carries.
 func (g *gen) writeScm(path string) error {
-	s := &sgen{g: g, library: g.p.ScmLibrary, defined: map[string]*cc.FunctionDefinition{},
-		hostFns: map[string]*cc.Declarator{}, names: map[string]string{}, fnIdx: map[string]int{},
-		fixups: map[int]string{}, lits: map[string]int{}, objects: map[string]*sobj{}, objNames: map[string]bool{},
-		members: map[string]*smember{}, structNames: map[string]string{}, structTaken: map[string]string{},
-		enums: map[string]string{}}
-	if s.library == "" {
-		s.library = "(editor)"
-	}
-	s.facts = s.analyses()
-	var fds []*cc.FunctionDefinition
-	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
-		if ed := tu.ExternalDeclaration; ed.Case == cc.ExternalDeclarationFuncDef {
-			fd := ed.FunctionDefinition
-			s.defined[fd.Declarator.Name()] = fd
-			fds = append(fds, fd)
-		}
-	}
-	for name, d := range g.a.fnDecls {
-		if s.defined[name] == nil && !strings.HasPrefix(name, "__") {
-			s.hostFns[name] = d
-			s.hostList = append(s.hostList, name)
-		}
-	}
-	sort.Strings(s.hostList)
-	for name := range s.defined {
-		s.names[name] = scmName(name)
-	}
-	for name := range s.hostFns {
-		s.names[name] = scmName(name)
-	}
-
+	s := newSgen(g, false)
+	fds, failed := s.prepare()
 	var report strings.Builder
-	// the initial values first: they make the segment's last objects (the
-	// compound literals of initializers)
-	failed := s.initializers()
 	for _, f := range failed {
 		fmt.Fprintf(&report, "initial value of %s\n", f)
 	}
-	s.litBase = scmAlign(scmBase+s.facts.segSize, 16)
 	var funcs []string
 	written := 0
 	for _, fd := range fds {
@@ -211,6 +183,57 @@ func (g *gen) writeScm(path string) error {
 		return err
 	}
 	return os.WriteFile(path, []byte(text), 0o644)
+}
+
+// newSgen is the Scheme printer's state for g's unit; ml, the state the
+// OCaml backend reads the Scheme's forms from (ml.go), which differs
+// where OCaml's integers do: an unsigned long's order, a call through a
+// pointer that says its arity, an 8-byte initial value in 63 bits.
+func newSgen(g *gen, ml bool) *sgen {
+	s := &sgen{g: g, library: g.p.ScmLibrary, defined: map[string]*cc.FunctionDefinition{},
+		hostFns: map[string]*cc.Declarator{}, names: map[string]string{}, fnIdx: map[string]int{},
+		fixups: map[int]string{}, lits: map[string]int{}, objects: map[string]*sobj{}, objNames: map[string]bool{},
+		members: map[string]*smember{}, structNames: map[string]string{}, structTaken: map[string]string{},
+		enums: map[string]string{}, ml: ml, unitFns: map[string]bool{}}
+	if s.library == "" {
+		s.library = "(editor)"
+	}
+	s.facts = s.analyses()
+	return s
+}
+
+// prepare finds the unit's functions -- those it defines, in order, and
+// the host's -- names them, and writes the objects' initial values into
+// the image: the functions, and the objects whose initial value it could
+// not write.
+func (s *sgen) prepare() ([]*cc.FunctionDefinition, []string) {
+	g := s.g
+	var fds []*cc.FunctionDefinition
+	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
+		if ed := tu.ExternalDeclaration; ed.Case == cc.ExternalDeclarationFuncDef {
+			fd := ed.FunctionDefinition
+			s.defined[fd.Declarator.Name()] = fd
+			fds = append(fds, fd)
+		}
+	}
+	for name, d := range g.a.fnDecls {
+		if s.defined[name] == nil && !strings.HasPrefix(name, "__") {
+			s.hostFns[name] = d
+			s.hostList = append(s.hostList, name)
+		}
+	}
+	sort.Strings(s.hostList)
+	for name := range s.defined {
+		s.names[name] = scmName(name)
+	}
+	for name := range s.hostFns {
+		s.names[name] = scmName(name)
+	}
+	// the initial values first: they make the segment's last objects (the
+	// compound literals of initializers)
+	failed := s.initializers()
+	s.litBase = scmAlign(scmBase+s.facts.segSize, 16)
+	return fds, failed
 }
 
 // memNames are the names of the file-scope objects the library defines
@@ -674,6 +697,9 @@ func (s *sgen) initInto(off int, t cc.Type, in *cc.Initializer) {
 		return
 	}
 	st := scmTypeOf(it)
+	if s.ml && it.Size() == 8 {
+		v = ml63(v)
+	}
 	if st == "ptr" {
 		s.poke(at, 8, uint64(v))
 		return
@@ -926,4 +952,11 @@ func (s *sgen) nameDefs() string {
 		fmt.Fprintf(&b, "(define-c-member %s %s %d)\n", n, m.kind, m.off)
 	}
 	return b.String()
+}
+
+// ml63 is an 8-byte value as OCaml's int holds it (ml.go): its 64 bits
+// read as a signed long -- an unsigned long's too -- and saturated to the
+// 63 bits OCaml has.
+func ml63(v int64) int64 {
+	return min(max(v, -1<<62), 1<<62-1)
 }

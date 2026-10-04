@@ -879,6 +879,10 @@ func (f *sfn) compare(op string, le, re cc.ExpressionNode) sx {
 		s = "(not (= " + a.val + " " + b.val + "))"
 	case op == "!=":
 		s = "(not (fx=? " + a.val + " " + b.val + "))"
+	case st == "u64" && f.s.ml:
+		// OCaml's int holds an unsigned long's bits: its order is the
+		// runtime's (ml.go)
+		s = "(u64" + op + "? " + a.val + " " + b.val + ")"
 	case scmWide(st):
 		s = "(" + op + " " + a.val + " " + b.val + ")"
 	default:
@@ -1015,6 +1019,14 @@ func (f *sfn) call(x *cc.PostfixExpression) sx {
 	}
 	if viaPtr {
 		head = []string{"call-ptr", p.val, "ed"}
+		if f.s.ml {
+			// the table of the pointer's arity and result (ml.go)
+			k := fmt.Sprint("call-ptr", len(as))
+			if scmTypeOf(ft.Result()) == "void" {
+				k += "v"
+			}
+			head[0] = k
+		}
 	}
 	rt := ft.Result()
 	st := scmTypeOf(rt)

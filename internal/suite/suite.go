@@ -32,6 +32,7 @@ import (
 	"github.com/arbace/go-whim/caprice"
 	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/vijure"
+	"github.com/arbace/go-whim/whiml"
 	"github.com/arbace/go-whim/whimsical"
 	"github.com/arbace/go-whim/whimsy"
 )
@@ -320,6 +321,8 @@ type JVM struct {
 	// build (whimsical.Debug) instead: --scheme-debug
 	Scheme      whimsical.Gen
 	SchemeDebug bool
+	// OCaml, when set, writes the OCaml module of a core: --ocaml
+	OCaml whiml.Gen
 	// HaskellBin, a caprice program built already, is run as the Haskell
 	// editor instead of one built from the candidate: --haskell-bin PATH.
 	// Its control is the same program with the one copy of the control's
@@ -392,7 +395,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return nil
 		},
 	}
-	var java, clj, hs, rs, scm *jvmEditor
+	var java, clj, hs, rs, scm, ml *jvmEditor
 	if jvm.HaskellBin != "" {
 		jobs = append(jobs, func() (err error) { hs, err = prebuiltHaskell(jvm.HaskellBin, dir); return })
 	} else if jvm.Haskell != nil {
@@ -407,6 +410,9 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			mode = whimsical.Debug
 		}
 		jobs = append(jobs, func() (err error) { scm, err = buildScheme(jvm.Scheme, candSrc, mode); return })
+	}
+	if jvm.OCaml != nil {
+		jobs = append(jobs, func() (err error) { ml, err = buildOCaml(jvm.OCaml, candSrc); return })
 	}
 	if jvm.Java != nil {
 		jobs = append(jobs, func() (err error) { java, err = buildJava(jvm.Java, candSrc, dir); return })
@@ -429,7 +435,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return fail(err)
 		}
 	}
-	for _, e := range []*jvmEditor{java, clj, hs, rs, scm} {
+	for _, e := range []*jvmEditor{java, clj, hs, rs, scm, ml} {
 		if e != nil {
 			e.limit = jvm.limit()
 			b.jvm = append(b.jvm, e)

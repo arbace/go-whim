@@ -88,6 +88,7 @@ func (s *sgen) function(fd *cc.FunctionDefinition) (src string, why string) {
 	f.sret = isAggr(ft.Result()) && !f.tuple
 	f.ret = scmTypeOf(ft.Result())
 	f.outVars()
+	s.unitFns[d.Name()] = (f.ret == "void" || f.sret) && len(f.outs) == 0 && !f.tuple
 	f.structVars()
 	f.placeVars(fd)
 	f.nameVars()
