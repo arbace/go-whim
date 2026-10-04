@@ -615,8 +615,13 @@ alignment test, `hv` (the framework's own tests, signed), `build`, `hello`,
 `run`, `c`, `suite` and `suite --wide` -- all passing. So the guest runs
 under Hypervisor.framework through the purego backend with no cgo, the
 same `hv` code and image as on KVM/arm64, and answers the quick and wide
-suites as the C built there does. The heavy case on the Mac is not yet
-recorded here.
+suites as the C built there does. The quick suite on the Mac: 80 of 80,
+the control seen by 76; the guest's runs 1,590 ms (1,850-1,920 ms on
+nested KVM here); **317,193 exits, 317,193 of them calls (112,331 reads),
+61.09 a key, 6.68 without the `par_*` cases -- the same counts as on KVM
+amd64**: the guest asks its host the same things, call for call, under
+either hypervisor. The heavy case on the Mac is not yet measured
+(`TestGuestPrebuilt` runs the suite's cases, not the heavy one).
 
 Milestone 4's groundwork is done here, so that on the M2 Max only building,
 signing and running remain. Everything below was built for `darwin/arm64`
