@@ -333,8 +333,7 @@ internal/          whim's Go: cut (the cutters, each a function on crefactor/gra
                    closure's recorded results, phase 88's include rule to
                    gcc, and every phase's graph to the import of its C view,
                    ids aside (s6_test.go, SameGraph); GRAPH_SNAPS),
-                   treepilot (doc/C-LISP-TREE.md's pilot: outside the plan,
-                   imported by nothing, its tests alone), build (whim's
+                   build (whim's
                    pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, the collection's roots,
@@ -445,10 +444,11 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    edit/: the C-text substrate that was cutil: Ph's text
                    questions (a literal's spans, a word's mentions, a
                    definition found), which the graph's verbs and the
-                   phases still ask of a C view, shared.go's helpers, and
-                   E, the text verb set, every act counted (driver.go,
-                   blocks.go), which no program runs now: the graph's verb
-                   tests hold each verb to it.
+                   phases still ask of a C view, and shared.go's helpers.
+                   E, the text verb set, is removed (864655e has it): the
+                   graph's verb tests hold each verb to its results,
+                   recorded (graph/testdata/textverbs/,
+                   internal/graphcheck/testdata/frag_text_verbs.md).
                    togo/: the C-to-Go translator internal/gen runs, and its
                    instance pass (instance.go: the state a struct's fields,
                    the functions reaching it its methods), its Java
@@ -664,7 +664,8 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    whim-vim.lc), C-LISP-TREE.md (a pilot: phases editing
                    that tree instead of the text -- DropLocal and phase 24
                    rewritten in internal/treepilot, byte for byte on their
-                   14 phases, measured; it advised against migrating that
+                   14 phases, measured, the package removed since (864655e
+                   has it); it advised against migrating that
                    tree, and the graph is what the pipeline moved to) and
                    GRAPH.md (the program as one resolved, typed graph, cuts
                    as deletions whose fall-out is the constraints' closure,

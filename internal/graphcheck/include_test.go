@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -190,11 +189,13 @@ func r3SilentSame(t *testing.T, dir, name string, text, ref []byte) (bool, strin
 func TestIncludesPhase73(t *testing.T) {
 	dir, _, _, _ := setup(t)
 	in := snapOf(t, dir, 72)
-	te := edit.New("selfpipe", in, io.Discard)
-	te.Literal("#include <fcntl.h>\n", "", 1, "<fcntl.h> out")
-	te.Literal("#include <termios.h>\n", "#include <termios.h>\n#include <fcntl.h>\n", 1, "<fcntl.h> beside <termios.h>")
-	want, err := te.Done()
+	// the text's two acts were edit.E's Literal: edit.ReplaceLiteral on the
+	// whole text, counted
+	want, err := edit.ReplaceLiteral(in, "#include <fcntl.h>\n", "", 1)
 	if err != nil {
+		t.Fatal(err)
+	}
+	if want, err = edit.ReplaceLiteral(want, "#include <termios.h>\n", "#include <termios.h>\n#include <fcntl.h>\n", 1); err != nil {
 		t.Fatal(err)
 	}
 	g, e := readBack(t, in)

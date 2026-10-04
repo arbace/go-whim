@@ -73,7 +73,8 @@ definition, a typedef, an enumerator, a tag, a unique and an ambiguous member,
 a goto before its label; `Mentions`.
 
 **The pilot**, `internal/treepilot` (whim's: it knows vim's names), outside
-the plan:
+the plan, imported by nothing but its own tests, and removed since:
+`864655e` is the last commit that has it, and the commands below ran there:
 
 - `DropLocal` -- `internal/cut/droplocal.go` as it was then (six regexps, run
   on the lines around the field since `doc/PIPELINE-REFORM.md` §7 step 9;

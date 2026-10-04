@@ -298,61 +298,6 @@ f(int p)
 	}
 }
 
-// E runs a phase's acts in order, reports each as it succeeds under its tag,
-// and stops at the first refusal: nothing after it runs or reports, Done
-// returns the refusal, and the text is what the last act that succeeded left.
-func TestEDriver(t *testing.T) {
-	src := "static int count;\n\nstatic void\nbump(void)\n{\n    count++;\n    if (count > 9)\n    {\n        count = 0;\n    }\n}\n\nint\nmain(void)\n{\n    bump();\n    return count;\n}\n"
-	var log bytes.Buffer
-	e := New("tiny", []byte(src), &log)
-	e.Literal("count++;", "count += 2;", 1, "bump steps by two")
-	e.InFunction("bump", func(e *E) {
-		e.FoldNever(Head("if (count > 9)"), 1, "no wrap")
-	})
-	e.CountIs(`\bcount\b`, 3, "count's mentions")
-	e.Lines(`bump\(\);`, 1, "main calls nothing")
-	e.DeleteDefinition("bump", "bump goes")
-	got, err := e.Done()
-	if err != nil {
-		t.Fatal(err)
-	}
-	// The blank lines on both sides of bump survive it: the canonical print,
-	// not the edit, owns the spacing.
-	want := "static int count;\n\n\nint\nmain(void)\n{\n    return count;\n}\n"
-	if string(got) != want {
-		t.Errorf("E left\n%s\nwant\n%s", got, want)
-	}
-	wantLog := "  tiny         bump steps by two\n  tiny         no wrap\n  tiny         main calls nothing\n  tiny         bump goes\n"
-	if log.String() != wantLog {
-		t.Errorf("reported\n%s\nwant\n%s", log.String(), wantLog)
-	}
-
-	log.Reset()
-	e = New("tiny", []byte(src), &log)
-	e.Literal("count++;", "count--;", 1, "first")
-	e.Literal("count", "n", 1, "second, miscounted")
-	e.Literal("count--;", "count -= 1;", 1, "third")
-	if !e.Failed() {
-		t.Fatal("a miscounted act did not refuse")
-	}
-	if _, err := e.Done(); err == nil || !strings.Contains(err.Error(), "second, miscounted -- occurs 5 times, expected 1") {
-		t.Errorf("Done = %v", err)
-	}
-	if !strings.Contains(string(e.Text()), "count--;") || strings.Contains(string(e.Text()), "count -= 1;") {
-		t.Errorf("the text is not what the first act left:\n%s", e.Text())
-	}
-	if log.String() != "  tiny         first\n" {
-		t.Errorf("reported after the refusal:\n%s", log.String())
-	}
-
-	// A definition that is not there refuses, naming it.
-	e = New("tiny", []byte(src), &log)
-	e.InFunction("missing", func(*E) { t.Error("the acts ran on a missing definition") })
-	if _, err := e.Done(); err == nil || !strings.Contains(err.Error(), "missing is not defined") {
-		t.Errorf("Done = %v", err)
-	}
-}
-
 // Ph returns its refusal rather than accumulating it; its acts are the same
 // counted ones, reported the same way.
 func TestPhDriver(t *testing.T) {

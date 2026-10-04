@@ -1089,7 +1089,8 @@ removed. Its byte gate is the build check's now, its control (the guards
 taken as always) was repeated against the parallel check, and its
 refusal test is `internal/cut`'s `TestDropLocalRefuses`.
 `internal/treepilot`'s step test, which held the pilot's tree to the text
-`DropLocal`, now holds it to the graph's. `internal/graphcheck`'s
+`DropLocal`, held it to the graph's from then until the pilot was removed
+(`864655e` is the last commit that has it). `internal/graphcheck`'s
 `TestPhasesOnGraph` holds each phase with a graph step to its snapshot in
 seconds, both from text and handed the graph.
 

@@ -4,31 +4,27 @@
 // number of its own; doc/PHASES.md).
 //
 // A phase is a directory: GOAL.md says what it removes and why, and edit.go,
-// where the phase has one, is its program, written in crefactor/edit's verb
-// set and internal/whim/vimtext's shared shapes.  The program registers itself
-// here in an init(), so SOMETHING HAS TO IMPORT IT: cmd/whim/phases.go names
-// every phase directory that holds Go.  internal/build looks a program up here
-// by its name: whimN for phase N's, whimNx for its part x.
+// where the phase has one, is its program, a GraphFunc: it edits
+// crefactor/graph's graph through the editor it is handed (doc/GRAPH.md), and
+// the plan runs it as a graph step.  The program registers itself here in an
+// init() (RegisterGraph), so SOMETHING HAS TO IMPORT IT: cmd/whim/phases.go
+// names every phase directory that holds Go.  internal/build looks a program
+// up here by its name: whimN for phase N's, whimNx for its part x.
 //
 // The programs were `python3 - "$f" <<'PY'` blocks inside the phase programs:
 // 225 of them across whim and zero, 34,284 lines, the larger half of the port,
 // and they do not collapse.  Measured over all 225: 94 were bespoke drivers
 // over cutil, 60 bespoke regex programs, and exactly ONE the simple "assert a
-// literal occurs once and replace it" shape.
+// literal occurs once and replace it" shape.  They became programs on the
+// text first (Register, crefactor/edit's text verb set, which 864655e
+// still has), then programs on the graph.
 //
-// THE SHAPE IS THE CUTTERS', deliberately: func([]byte, io.Writer) ([]byte,
-// error), rewrite in place, report each act on stdout as it succeeds, refuse
-// with an error rather than writing a half-done tree.  ORDER IS OUTPUT -- a
-// phase program's log is read by a human comparing two phase commits.
+// A program reports each act on w as it succeeds and refuses with an error
+// rather than leaving a half-done edit.  ORDER IS OUTPUT -- a phase program's
+// log is read by a human comparing two phase commits.
 //
 // They are reached as `whim edit <phase> <file>` through this one registry
 // rather than as subcommands of their own.
-//
-// A PHASE ON THE GRAPH (doc/GRAPH.md, step 5) registers a GraphFunc instead
-// (RegisterGraph): its program edits crefactor/graph's graph through the
-// editor it is handed, and the plan runs it as a graph step.  A name is one
-// or the other: converting a phase replaces its text program, and the
-// build check is the proof the two agree.
 package phase
 
 import (
@@ -38,50 +34,11 @@ import (
 	"github.com/arbace/go-whim/crefactor/graph"
 )
 
-// A Func is one phase's edit: it takes the tree and returns it rewritten.
-type Func func(text []byte, w io.Writer) ([]byte, error)
-
-// An ArgFunc is a Func that is handed the phase program's remaining arguments.
-// ONE phase needs it -- whim26 writes the prefix table its check dispatches to
-// a second path -- and it is a separate registration rather than a wider Func
-// so that the other 33 ports keep a signature with nothing in it to ignore.
-type ArgFunc func(text []byte, w io.Writer, args []string) ([]byte, error)
-
-// phases is populated by each phase file's init(), NOT by a literal here, and
-// that is a working arrangement rather than a style: two sessions port whim and
-// zero in parallel, and a shared map literal is the one file they would both
-// have to edit for every phase.  register() makes each phase's registration
-// live beside its code, so the packages never collide.
-var phases = map[string]ArgFunc{}
-
-func Register(name string, f Func) {
-	RegisterArgs(name, func(t []byte, w io.Writer, _ []string) ([]byte, error) { return f(t, w) })
-}
-
-func RegisterArgs(name string, f ArgFunc) {
-	if _, dup := phases[name]; dup {
-		panic("edit: " + name + " registered twice")
-	}
-	if _, dup := graphPhases[name]; dup {
-		panic("edit: " + name + " registered on the text and on the graph")
-	}
-	phases[name] = f
-}
-
-// Lookup returns the edit for a phase, and whether there is one.
-func Lookup(phase string) (ArgFunc, bool) {
-	f, ok := phases[phase]
-	return f, ok
-}
-
 // Names returns every phase that has an edit here, sorted, for the usage
 // message -- ranging a Go map yields a different order every run, and a usage
 // message that reorders itself is a diff nobody wanted.
 func Names() []string {
-	Out := make([]string, 0, len(phases)+len(graphPhases))
-	for k := range phases {
-		Out = append(Out, k)
-	}
+	Out := make([]string, 0, len(graphPhases))
 	for k := range graphPhases {
 		Out = append(Out, k)
 	}
@@ -91,22 +48,17 @@ func Names() []string {
 
 // A GraphFunc is a phase's edit on the graph (crefactor/graph, doc/GRAPH.md):
 // it edits the program through the editor it is handed -- deletions and
-// replacements, their fall-out the editor's closure -- and reports to w as a
-// Func does.  The plan runs it as a graph step (`edit whimN` with Graph set),
+// replacements, their fall-out the editor's closure -- and reports to w as
+// it goes.  The plan runs it as a graph step (`edit whimN` with Graph set),
 // on the graph the pipeline holds.
 type GraphFunc func(e *graph.Editor, w io.Writer, args []string) error
 
 var graphPhases = map[string]GraphFunc{}
 
-// RegisterGraph registers a phase's edit on the graph.  A name is a text
-// edit or a graph edit, never both: a phase converted to the graph replaces
-// its text program.
+// RegisterGraph registers a phase's edit on the graph.
 func RegisterGraph(name string, f GraphFunc) {
 	if _, dup := graphPhases[name]; dup {
 		panic("edit: " + name + " registered twice")
-	}
-	if _, dup := phases[name]; dup {
-		panic("edit: " + name + " registered on the text and on the graph")
 	}
 	graphPhases[name] = f
 }

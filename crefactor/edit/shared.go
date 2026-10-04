@@ -18,39 +18,6 @@ import (
 // walks, the command table's shapes, the swap file's fields -- is in
 // internal/whim/vimtext.
 
-// From phase 4d.
-// bindsToWalk names a `break` or `continue` in the Body that is not inside a
-// loop or switch of the Body's own, or "" if there is none.
-func BindsToWalk(raw []byte) string {
-	rb := Blank(raw)
-	type span struct{ a, z int }
-	var spans []span
-	for _, mm := range EnclosingLoop.FindAllIndex(rb, -1) {
-		j := IndexFrom(rb, []byte("{"), mm[1])
-		if j >= 0 {
-			if k := Match(rb, j); k > 0 {
-				spans = append(spans, span{j, k})
-			}
-		}
-	}
-	for _, kw := range []string{"break", "continue"} {
-		re := regexp.MustCompile(`\b` + kw + `\b[ \t]*;`)
-		for _, mm := range re.FindAllIndex(rb, -1) {
-			inside := false
-			for _, s := range spans {
-				if s.a < mm[0] && mm[0] < s.z {
-					inside = true
-					break
-				}
-			}
-			if !inside {
-				return kw
-			}
-		}
-	}
-	return ""
-}
-
 // From phase 5b.
 func CountNewlines(b []byte) int {
 	n := 0
@@ -221,9 +188,6 @@ func dropCasts(cond string) string {
 	return b.String()
 }
 
-// From phase 4d.
-var EnclosingLoop = regexp.MustCompile(`\b(for|while|switch|do)\b`)
-
 // From phase 62: EmptyGuardedBlock is an `if`, `else if` or `else` whose
 // block is empty (its indentation, head and the block's indentation as
 // groups); ElseLine is a line that begins with `else`; callToken and
@@ -234,17 +198,6 @@ var (
 	writeToken        = regexp.MustCompile(`(^|[^=!<>])=($|[^=])|\+\+|--`)
 	ElseLine          = regexp.MustCompile(`^[ \t]*else\b`)
 )
-
-// From phase 5d.
-var (
-	BareDeclOnly = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*[ \t]+\*?[A-Za-z_][A-Za-z0-9_]*;$`)
-)
-
-// From phase 25.
-var returnStub = regexp.MustCompile(`(?s)\Areturn\s+(.+);\z`)
-
-// From phase 25.
-func pyRepr(s string) string { return "'" + s + "'" }
 
 // IncludeCount is how many `#include` lines text has: the system headers a
 // phase is handed.  Phases 36-54 once asserted a number -- eighteen, twelve,

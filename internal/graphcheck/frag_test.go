@@ -2,6 +2,8 @@ package graphcheck
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -16,7 +18,6 @@ import (
 	"time"
 
 	"github.com/arbace/go-whim/crefactor/cemit"
-	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/steps"
 )
@@ -47,27 +48,27 @@ import (
 func TestFragOnSnapshots(t *testing.T) {
 	dir, _, _, _ := setup(t)
 	lit := func(file, name string) string { return phaseLit(t, file, name) }
+	rows := fragTextRows(t)
 	for _, c := range []struct {
 		name   string
 		before int
 		in     func(in []byte) []byte // the text the act runs on: q(N-1), or made from a snapshot
 		text   func(in []byte) []byte // the text program's act
+		golden string                 // or its result's row in testdata/frag_text_verbs.md
 		graph  func(v *graph.Verbs)
 		refuse string // what FRAG says, for a splice it refuses
 	}{
 		{
 			name: "body/68", before: 67,
-			text: func(in []byte) []byte {
-				return textAct(t, in, func(e *edit.E) { e.Body("syn_name2id_len", lit("068/edit.go", "W68LookupBody"), "body") })
-			},
-			graph: func(v *graph.Verbs) { v.BodyC("syn_name2id_len", lit("068/edit.go", "W68LookupBody"), "body") },
+			// e.Body("syn_name2id_len", lit("068/edit.go", "W68LookupBody"), "body")
+			golden: "body/68",
+			graph:  func(v *graph.Verbs) { v.BodyC("syn_name2id_len", lit("068/edit.go", "W68LookupBody"), "body") },
 		},
 		{
 			name: "body/61", before: 60,
-			text: func(in []byte) []byte {
-				return textAct(t, in, func(e *edit.E) { e.Body("buflist_findnr", lit("061/edit.go", "W61FindnrBody"), "body") })
-			},
-			graph: func(v *graph.Verbs) { v.BodyC("buflist_findnr", lit("061/edit.go", "W61FindnrBody"), "body") },
+			// e.Body("buflist_findnr", lit("061/edit.go", "W61FindnrBody"), "body")
+			golden: "body/61",
+			graph:  func(v *graph.Verbs) { v.BodyC("buflist_findnr", lit("061/edit.go", "W61FindnrBody"), "body") },
 		},
 		{
 			// phase 72's body names bh_data, a member the phase adds in an
@@ -79,13 +80,10 @@ func TestFragOnSnapshots(t *testing.T) {
 		},
 		{
 			name: "run/22", before: 21,
-			text: func(in []byte) []byte {
-				return textAct(t, in, func(e *edit.E) {
-					e.InFunction("do_ecmd", func(e *edit.E) {
-						e.Literal(lit("022/editlit.go", "w22OldOpen"), lit("022/editlit.go", "w22NewOpen"), 1, "run")
-					})
-				})
-			},
+			//	e.InFunction("do_ecmd", func(e *edit.E) {
+			//		e.Literal(lit("022/editlit.go", "w22OldOpen"), lit("022/editlit.go", "w22NewOpen"), 1, "run")
+			//	})
+			golden: "run/22",
 			graph: func(v *graph.Verbs) {
 				v.InFunction("do_ecmd", func(v *graph.Verbs) {
 					v.LiteralC(lit("022/editlit.go", "w22OldOpen"), lit("022/editlit.go", "w22NewOpen"), 1, "run")
@@ -97,24 +95,21 @@ func TestFragOnSnapshots(t *testing.T) {
 			// import (Together): two bodies, six runs in six functions, two
 			// of them the same run twice
 			name: "together/21", before: 20,
-			text: func(in []byte) []byte {
-				return textAct(t, in, func(e *edit.E) {
-					l := func(n string) string { return lit("021/editlit.go", n) }
-					e.Body("check_more", l("w21lit1"), "")
-					e.Body("append_arg_number", l("w21lit2"), "")
-					e.InFunction("parse_cmd_address", func(e *edit.E) { e.Literal(l("w21lit3"), l("w21lit4"), 1, "") })
-					e.InFunction("address_default_all", func(e *edit.E) { e.Literal(l("w21lit5"), l("w21lit6"), 1, "") })
-					e.InFunction("default_address", func(e *edit.E) { e.Literal(l("w21lit7"), l("w21lit8"), 1, "") })
-					e.InFunction("get_address", func(e *edit.E) {
-						e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = curwin->w_arg_idx \+ 1;\n[ \t]*break;\n`,
-							"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 2, "")
-						e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = \(\(curwin\)->w_alist->al_ga\.ga_len\);\n[ \t]*break;\n`,
-							"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 1, "")
-					})
-					e.InFunction("invalid_range", func(e *edit.E) { e.Literal(l("w21lit12"), l("w21lit13"), 1, "") })
-					e.InFunction("eval_vars", func(e *edit.E) { e.Literal(l("w21lit16"), l("w21lit17"), 1, "") })
-				})
-			},
+			//	l := func(n string) string { return lit("021/editlit.go", n) }
+			//	e.Body("check_more", l("w21lit1"), "")
+			//	e.Body("append_arg_number", l("w21lit2"), "")
+			//	e.InFunction("parse_cmd_address", func(e *edit.E) { e.Literal(l("w21lit3"), l("w21lit4"), 1, "") })
+			//	e.InFunction("address_default_all", func(e *edit.E) { e.Literal(l("w21lit5"), l("w21lit6"), 1, "") })
+			//	e.InFunction("default_address", func(e *edit.E) { e.Literal(l("w21lit7"), l("w21lit8"), 1, "") })
+			//	e.InFunction("get_address", func(e *edit.E) {
+			//		e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = curwin->w_arg_idx \+ 1;\n[ \t]*break;\n`,
+			//			"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 2, "")
+			//		e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = \(\(curwin\)->w_alist->al_ga\.ga_len\);\n[ \t]*break;\n`,
+			//			"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 1, "")
+			//	})
+			//	e.InFunction("invalid_range", func(e *edit.E) { e.Literal(l("w21lit12"), l("w21lit13"), 1, "") })
+			//	e.InFunction("eval_vars", func(e *edit.E) { e.Literal(l("w21lit16"), l("w21lit17"), 1, "") })
+			golden: "together/21",
 			graph: func(v *graph.Verbs) {
 				l := func(n string) string { return lit("021/editlit.go", n) }
 				v.Together(func(v *graph.Verbs) {
@@ -167,6 +162,10 @@ func TestFragOnSnapshots(t *testing.T) {
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			in := snapOf(t, dir, c.before)
+			row, golden := rows[c.golden]
+			if c.golden != "" && (!golden || row.in != fmt.Sprintf("%x", sha256.Sum256(in))) {
+				t.Skipf("q%03d: not the snapshot testdata/frag_text_verbs.md records for %s; skipped", c.before, c.golden)
+			}
 			if c.in != nil {
 				in = c.in(in)
 			}
@@ -228,7 +227,12 @@ func TestFragOnSnapshots(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !bytes.Equal(got, want) {
+			if golden {
+				if d := fmt.Sprintf("%x", sha256.Sum256(got)); d != row.want || len(got) != row.n {
+					t.Fatalf("the graph's C view is not the text verbs' (testdata/frag_text_verbs.md, %s): %d bytes, sha256 %s, against %d, %s",
+						c.golden, len(got), d, row.n, row.want)
+				}
+			} else if !bytes.Equal(got, want) {
 				t.Fatalf("the graph's C view is not the text's: %d bytes against %d\n%s", len(got), len(want), diffAt(got, want))
 			}
 			back, _, err := graph.Import(path, got)
@@ -249,16 +253,38 @@ func TestFragOnSnapshots(t *testing.T) {
 	}
 }
 
-// textAct is a crefactor/edit act on in.
-func textAct(t *testing.T, in []byte, act func(*edit.E)) []byte {
-	t.Helper()
-	e := edit.New("text", in, io.Discard)
-	act(e)
-	out, err := e.Done()
+// fragTextRow is a row of testdata/frag_text_verbs.md: the digest of the
+// snapshot a case runs on, and the digest and length of what the text
+// verbs gave there, printed canonically.
+type fragTextRow struct {
+	in, want string
+	n        int
+}
+
+// fragTextRows reads testdata/frag_text_verbs.md's fenced block, by case.
+func fragTextRows(t *testing.T) map[string]fragTextRow {
+	b, err := os.ReadFile("internal/graphcheck/testdata/frag_text_verbs.md")
 	if err != nil {
 		t.Fatal(err)
 	}
-	return out
+	rows := map[string]fragTextRow{}
+	fence := false
+	for _, ln := range strings.Split(string(b), "\n") {
+		if strings.HasPrefix(ln, "```") {
+			fence = !fence
+			continue
+		}
+		if fence {
+			var name string
+			var before int
+			var r fragTextRow
+			if _, err := fmt.Sscan(ln, &name, &before, &r.in, &r.want, &r.n); err != nil {
+				t.Fatalf("frag_text_verbs.md: %q: %v", ln, err)
+			}
+			rows[name] = r
+		}
+	}
+	return rows
 }
 
 // phaseLit is the string constant name in internal/phase/FILE, read from

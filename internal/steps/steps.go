@@ -28,10 +28,9 @@ import (
 type Step func(text []byte, args []string, w io.Writer) ([]byte, error)
 
 var ops = map[string]Step{
-	// The four that take arguments, and the three that only ask a question;
-	// droplocal is a graph step (graphOps).
+	// The two that take arguments, and the two that do not; droplocal and
+	// edit are graph steps (graphOps).
 	"funcreach": funcReach,
-	"edit":      runEdit,
 	"query":     runQuery,
 
 	"cemit":       Step(pipeline.Canonical),
@@ -136,9 +135,9 @@ func GraphNames() []string {
 
 // OnText is the step of that name as a function of text, for a caller with
 // a file and no graph (`whim droplocal F`, `whim edit whimN F`): a text
-// step as it is; a graph step -- or an `edit` of a phase whose program is
-// on the graph -- on the text imported, its C view returned.  The plan
-// never runs this: it runs a graph step on the graph it holds.
+// step as it is; a graph step -- `edit whimN` among them, every phase's
+// program being on the graph -- on the text imported, its C view returned.
+// The plan never runs this: it runs a graph step on the graph it holds.
 func OnText(name string) (Step, bool) {
 	gs, isGraph := graphOps[name]
 	if !isGraph {
@@ -154,17 +153,12 @@ func OnText(name string) (Step, bool) {
 			}
 		}
 	}
-	if s, ok := ops[name]; ok && name != "edit" {
+	if s, ok := ops[name]; ok {
 		return s, true
 	} else if !isGraph {
 		return nil, false
 	}
 	return func(t []byte, args []string, w io.Writer) ([]byte, error) {
-		if name == "edit" && len(args) > 0 {
-			if _, ok := phase.Lookup(args[0]); ok {
-				return runEdit(t, args, w)
-			}
-		}
 		g, _, err := graph.Import(filepath.Join(os.TempDir(), "whim-vim.c"), t)
 		if err != nil {
 			return nil, err
@@ -261,18 +255,6 @@ func funcReach(t []byte, args []string, w io.Writer) ([]byte, error) {
 		fmt.Fprintf(w, "  funcreach    %d deleted\n", len(deadNames))
 	}
 	return t, nil
-}
-
-// runEdit is `edit <phase> [args...]`: the phase's own transformation.
-func runEdit(t []byte, args []string, w io.Writer) ([]byte, error) {
-	if len(args) == 0 {
-		return nil, fmt.Errorf("edit: no phase named")
-	}
-	f, ok := phase.Lookup(args[0])
-	if !ok {
-		return nil, fmt.Errorf("edit: no edit for phase %q", args[0])
-	}
-	return f(t, w, args[1:])
 }
 
 // runQuery is `query <phase>`: it asks and changes nothing.  What the phase

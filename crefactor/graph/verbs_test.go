@@ -2,6 +2,8 @@ package graph
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -9,11 +11,15 @@ import (
 	"github.com/arbace/go-whim/crefactor/edit"
 )
 
-// The verbs held to crefactor/edit's: each case runs the text verb on the
-// canonical text and the graph verb on the graph read back from its Lisp (no
-// cc node behind it), and the text's result printed canonically must be the
-// graph's C view, byte for byte.  The cases are crefactor/edit's own
-// (acts_test.go), then one for each verb they do not cover.
+// The verbs held to crefactor/edit's: each case runs the graph verb on the
+// graph read back from its Lisp (no cc node behind it), and its C view must
+// be, byte for byte, what the text verb gives on the canonical text,
+// printed canonically.  Where that text verb is one of crefactor/edit's
+// functions (FoldNever, ReplaceLiteral, ...) the test runs it; where it was
+// one of the text verb set's (edit.E, deleted after 864655e, the last
+// commit that has it), its result is a golden file, testdata/textverbs/
+// (textGolden).  The cases are crefactor/edit's own (acts_test.go), then
+// one for each verb they do not cover.
 
 // verbsOn is src's graph, read back from its Lisp, with verbs reporting
 // into log; path and the canonical text are the text side's.
@@ -40,6 +46,41 @@ func sameAsText(t *testing.T, src string, text func([]byte) ([]byte, error), gra
 	if err != nil {
 		t.Fatalf("the text verb's result does not print: %v\n%s", err, out)
 	}
+	sameAs(t, v, want, "text", graph)
+}
+
+// sameAsGolden holds the graph verbs' result on src to the text verb set's,
+// recorded in testdata/textverbs/NAME.c (textGolden).
+func sameAsGolden(t *testing.T, src, name string, graph func(*Verbs)) {
+	t.Helper()
+	_, canon, v, _ := verbsOn(t, src)
+	sameAs(t, v, textGolden(t, name, canon), "testdata/textverbs/"+name+".c", graph)
+}
+
+// textGolden is testdata/textverbs/NAME.c: what crefactor/edit's text verb
+// set (edit.E) gave on canon, printed canonically.  Each file was written
+// once at 864655e, the last commit with the text verbs, by the acts its
+// use's comment lists, run on the sample's canonical text with
+// edit.New("tiny", canon, log), Done's result put through cemit.Canonical
+// with the sample's path -- the steps this test then ran itself.  Every
+// file differs from its sample (every act there changed it), so a golden
+// that has become its sample is refused; a byte changed in one fails the
+// test that reads it, which names it.
+func textGolden(t *testing.T, name string, canon []byte) []byte {
+	t.Helper()
+	want, err := os.ReadFile(filepath.Join("testdata", "textverbs", name+".c"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Equal(want, canon) {
+		t.Fatalf("testdata/textverbs/%s.c is its sample unchanged", name)
+	}
+	return want
+}
+
+// sameAs runs the graph verbs and holds the C view to want, which is what's.
+func sameAs(t *testing.T, v *Verbs, want []byte, what string, graph func(*Verbs)) {
+	t.Helper()
 	graph(v)
 	if err := v.Done(); err != nil {
 		t.Fatalf("the graph verb: %v", err)
@@ -52,7 +93,7 @@ func sameAsText(t *testing.T, src string, text func([]byte) ([]byte, error), gra
 		t.Fatal(err)
 	}
 	if !bytes.Equal(got, want) {
-		t.Fatalf("%s\ngraph:\n%s\ntext:\n%s", firstDiff(got, want), got, want)
+		t.Fatalf("%s\ngraph:\n%s\n%s:\n%s", firstDiff(got, want), got, what, want)
 	}
 }
 
@@ -152,11 +193,8 @@ func TestVerbFoldRefusals(t *testing.T) {
 // cutters' keepThenChain shape.
 func TestVerbKeepThen(t *testing.T) {
 	src := "void h(int);\nvoid\ng(int a)\n{\n    if (a)\n    {\n        h(1);\n    }\n    else\n    {\n        h(2);\n    }\n    if (a > 1)\n    {\n        h(3);\n    }\n    else if (a > 2)\n    {\n        h(4);\n    }\n    else\n    {\n        h(5);\n    }\n}\n"
-	sameAsText(t, src, func(s []byte) ([]byte, error) {
-		e := edit.New("x", s, &bytes.Buffer{})
-		e.FoldAlwaysElse(edit.Head("if (a)"), 1, "x")
-		return e.Done()
-	}, func(v *Verbs) { v.FoldAlwaysElse("a", 1, "x") })
+	// keepthen-else.c: e.FoldAlwaysElse(edit.Head("if (a)"), 1, "x")
+	sameAsGolden(t, src, "keepthen-else", func(v *Verbs) { v.FoldAlwaysElse("a", 1, "x") })
 	sameAsText(t, src, func(s []byte) ([]byte, error) {
 		return edit.ReplaceLiteral(s, "    if (a > 1)\n    {\n        h(3);\n    }\n    else if (a > 2)\n    {\n        h(4);\n    }\n    else\n    {\n        h(5);\n    }\n", "        h(3);\n", 1)
 	}, func(v *Verbs) { v.KeepThen("(> a 1)", 1, "x") })
@@ -166,18 +204,17 @@ func TestVerbKeepThen(t *testing.T) {
 // tag as it succeeds, the first refusal stopping the rest.
 func TestVerbDriver(t *testing.T) {
 	src := "static int count;\n\nstatic void\nbump(void)\n{\n    count++;\n    if (count > 9)\n    {\n        count = 0;\n    }\n}\n\nint\nmain(void)\n{\n    bump();\n    return count;\n}\n"
-	var textLog bytes.Buffer
-	sameAsText(t, src, func(s []byte) ([]byte, error) {
-		e := edit.New("tiny", s, &textLog)
-		e.Literal("count++;", "count += 2;", 1, "bump steps by two")
-		e.InFunction("bump", func(e *edit.E) {
-			e.FoldNever(edit.Head("if (count > 9)"), 1, "no wrap")
-		})
-		e.CountIs(`\bcount\b`, 3, "count's mentions")
-		e.Lines(`bump\(\);`, 1, "main calls nothing")
-		e.DeleteDefinition("bump", "bump goes")
-		return e.Done()
-	}, func(v *Verbs) {
+	// driver.c, and textLog what the text verbs reported doing it:
+	//
+	//	e.Literal("count++;", "count += 2;", 1, "bump steps by two")
+	//	e.InFunction("bump", func(e *edit.E) {
+	//		e.FoldNever(edit.Head("if (count > 9)"), 1, "no wrap")
+	//	})
+	//	e.CountIs(`\bcount\b`, 3, "count's mentions")
+	//	e.Lines(`bump\(\);`, 1, "main calls nothing")
+	//	e.DeleteDefinition("bump", "bump goes")
+	textLog := "  tiny         bump steps by two\n  tiny         no wrap\n  tiny         main calls nothing\n  tiny         bump goes\n"
+	sameAsGolden(t, src, "driver", func(v *Verbs) {
 		v.Rewrite("(post++ count)", "(+= count 2)", 1, "bump steps by two")
 		v.InFunction("bump", func(v *Verbs) {
 			v.FoldNever("(> count 9)", 1, "no wrap")
@@ -186,7 +223,7 @@ func TestVerbDriver(t *testing.T) {
 		v.Expect(len(v.UsesOf("count")) == 2 && v.Mentions("count") == 3, "count: %d uses, %d mentions", len(v.UsesOf("count")), v.Mentions("count"))
 		v.Cut("(call bump)", 1, "main calls nothing")
 		v.DeleteDefinition("bump", "bump goes")
-		if got, want := v.W.(*bytes.Buffer).String(), textLog.String(); got != want {
+		if got, want := v.W.(*bytes.Buffer).String(), textLog; got != want {
 			t.Errorf("reported\n%s\nthe text reported\n%s", got, want)
 		}
 	})
@@ -262,22 +299,19 @@ clashes(void)
 // as the text splices them; the refusals, a break that would rebind and a
 // declaration that would clash.
 func TestVerbWalks(t *testing.T) {
-	head := "for (bp = firstbuf; bp != 0; bp = bp->next)"
-	sameAsText(t, walks, func(s []byte) ([]byte, error) {
-		e := edit.New("x", s, &bytes.Buffer{})
-		e.FoldWalk("walk", "bp", "curbuf", head, 1, "one buffer")
-		return e.Done()
-	}, func(v *Verbs) {
+	// walks-foldwalk.c:
+	//
+	//	e.FoldWalk("walk", "bp", "curbuf", "for (bp = firstbuf; bp != 0; bp = bp->next)", 1, "one buffer")
+	sameAsGolden(t, walks, "walks-foldwalk", func(v *Verbs) {
 		v.InFunction("walk", func(v *Verbs) { v.FoldWalk("(for (= bp firstbuf) _*)", "(= bp curbuf)", 1, "one buffer") })
 	})
-	sameAsText(t, walks, func(s []byte) ([]byte, error) {
-		e := edit.New("x", s, &bytes.Buffer{})
-		e.InFunction("walk", func(e *edit.E) {
-			e.FoldWalks(`for \((bp) = firstbuf; bp != 0; bp = bp->next\)`, func([]string) bool { return true },
-				func(g []string) string { return g[2] + " = curbuf;" }, "one buffer")
-		})
-		return e.Done()
-	}, func(v *Verbs) {
+	// walks-foldwalks.c:
+	//
+	//	e.InFunction("walk", func(e *edit.E) {
+	//		e.FoldWalks(`for \((bp) = firstbuf; bp != 0; bp = bp->next\)`, func([]string) bool { return true },
+	//			func(g []string) string { return g[2] + " = curbuf;" }, "one buffer")
+	//	})
+	sameAsGolden(t, walks, "walks-foldwalks", func(v *Verbs) {
 		v.InFunction("walk", func(v *Verbs) {
 			v.FoldWalks("(for (= ?v firstbuf) _*)", func(Bindings) bool { return true },
 				func(b Bindings) string { return "(= " + b["v"].Atom + " curbuf)" }, "one buffer")
@@ -342,30 +376,20 @@ sw(int c)
 // The block verbs: DropBareBlock, Splice, Body and DeleteDefinition, and the
 // shapes the cutters wrote by hand -- a case dropped, an operand dropped.
 func TestVerbBlocks(t *testing.T) {
-	sameAsText(t, blocks, func(s []byte) ([]byte, error) {
-		e := edit.New("x", s, &bytes.Buffer{})
-		e.DropBareBlock("h", "g2();", "the husk")
-		return e.Done()
-	}, func(v *Verbs) { v.InFunction("h", func(v *Verbs) { v.DropBareBlock("(call g2)", "the husk") }) })
-	sameAsText(t, blocks, func(s []byte) ([]byte, error) {
-		e := edit.New("x", s, &bytes.Buffer{})
-		e.Splice("    if (a)\n", "    a = a + 1;\n", "    f();\n", "the run")
-		return e.Done()
-	}, func(v *Verbs) { v.Splice("(if a _*)", "(= a _)", "(call f)", "the run") })
-	sameAsText(t, blocks, func(s []byte) ([]byte, error) {
-		e := edit.New("x", s, &bytes.Buffer{})
-		e.Body("h", "    f();\n    return 0;\n", "a stub")
-		return e.Done()
-	}, func(v *Verbs) { v.Body("h", "(call f) (return 0)", "a stub") })
-	sameAsText(t, blocks, func(s []byte) ([]byte, error) {
-		e := edit.New("x", s, &bytes.Buffer{})
-		e.InFunction("sw", func(e *edit.E) {
-			e.Lines(`case 'a':`, 1, "a shares b's")
-			e.Cut(edit.Line("case 'n':", "x = 1;", "break;"), 1, "n's run")
-			e.Literal("c && x > 1 && x < 9", "c && x < 9", 1, "an operand")
-		})
-		return e.Done()
-	}, func(v *Verbs) {
+	// blocks-dropbareblock.c: e.DropBareBlock("h", "g2();", "the husk")
+	sameAsGolden(t, blocks, "blocks-dropbareblock", func(v *Verbs) { v.InFunction("h", func(v *Verbs) { v.DropBareBlock("(call g2)", "the husk") }) })
+	// blocks-splice.c: e.Splice("    if (a)\n", "    a = a + 1;\n", "    f();\n", "the run")
+	sameAsGolden(t, blocks, "blocks-splice", func(v *Verbs) { v.Splice("(if a _*)", "(= a _)", "(call f)", "the run") })
+	// blocks-body.c: e.Body("h", "    f();\n    return 0;\n", "a stub")
+	sameAsGolden(t, blocks, "blocks-body", func(v *Verbs) { v.Body("h", "(call f) (return 0)", "a stub") })
+	// blocks-cases.c:
+	//
+	//	e.InFunction("sw", func(e *edit.E) {
+	//		e.Lines(`case 'a':`, 1, "a shares b's")
+	//		e.Cut(edit.Line("case 'n':", "x = 1;", "break;"), 1, "n's run")
+	//		e.Literal("c && x > 1 && x < 9", "c && x < 9", 1, "an operand")
+	//	})
+	sameAsGolden(t, blocks, "blocks-cases", func(v *Verbs) {
 		v.InFunction("sw", func(v *Verbs) {
 			v.DropCase("(case 'a')", 1, "a shares b's")
 			v.DropCase("(case 'n')", 1, "n's run")

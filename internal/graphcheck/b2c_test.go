@@ -3,18 +3,15 @@ package graphcheck
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/internal/whim"
 )
 
 // PARAM, RETYPE and MOVE (doc/GRAPH-MIGRATION.md, B2c) on the real
@@ -26,66 +23,6 @@ import (
 // asserted where it is made (the counts the text program asserted), and
 // nothing is left untyped where the edit's types follow plainly.
 
-// b2cPhase holds one phase: text is its text program, onGraph the same
-// acts on the graph.
-func b2cPhase(t *testing.T, n int, text func([]byte, io.Writer) ([]byte, error), onGraph func(t *testing.T, e *graph.Editor, v *graph.Verbs)) {
-	dir, _, _, _ := setup(t)
-	in, want := snapOf(t, dir, n-1), snapOf(t, dir, n)
-	path := filepath.Join(t.TempDir(), "whim-vim.c")
-	out, err := text(in, io.Discard)
-	if err != nil {
-		t.Fatalf("the text program: %v", err)
-	}
-	pre, err := cemit.Canonical(path, out)
-	if err != nil {
-		t.Fatalf("the text program's output does not print: %v", err)
-	}
-	g, _, err := graph.Import(path, in)
-	if err != nil {
-		t.Fatal(err)
-	}
-	h, err := graph.Read(g.Lisp())
-	if err != nil {
-		t.Fatal(err)
-	}
-	e := graph.NewEditor(h)
-	v := graph.NewVerbs(fmt.Sprint(n), e, io.Discard)
-	t0 := time.Now()
-	onGraph(t, e, v)
-	t.Logf("phase %d on the graph: %v, %d acts logged", n, time.Since(t0).Round(time.Millisecond), len(e.Log))
-	if err := v.Done(); err != nil {
-		t.Fatal(err)
-	}
-	if err := e.Check(); err != nil {
-		t.Fatal(err)
-	}
-	got, err := h.C()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(got, pre) {
-		t.Fatalf("before the sweep: the graph's C view is not the text program's (%d bytes against %d)\n%s", len(got), len(pre), diffAtB2c(got, pre))
-	}
-	// read back, the same graph
-	r, err := graph.Read(h.Lisp())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := graph.Equal(h, r); err != nil {
-		t.Fatalf("read back: %v", err)
-	}
-	if _, err := e.Collect(whim.GraphCollect()); err != nil {
-		t.Fatal(err)
-	}
-	got, err = h.C()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(got, want) {
-		t.Fatalf("collected: %d bytes, q%03d.c %d\n%s", len(got), n, len(want), diffAtB2c(got, want))
-	}
-}
-
 // diffAtB2c is the first differing line of a and b, with a line around it.
 func diffAtB2c(a, b []byte) string {
 	al, bl := strings.Split(string(a), "\n"), strings.Split(string(b), "\n")
@@ -96,28 +33,6 @@ func diffAtB2c(a, b []byte) string {
 		}
 	}
 	return fmt.Sprintf("one is a prefix of the other: %d lines against %d", len(al), len(bl))
-}
-
-// drop drops the parameters named of the function fn, as one edit.
-func drop(t *testing.T, e *graph.Editor, fn string, names ...string) graph.ParamStats {
-	t.Helper()
-	var ds []graph.ParamDrop
-	d := e.FileDecls(fn)
-	if len(d) == 0 {
-		t.Fatalf("no %s", fn)
-	}
-	for _, name := range names {
-		i := e.ParamIndex(fn, name)
-		if i < 0 {
-			t.Fatalf("%s has no parameter %s", fn, name)
-		}
-		ds = append(ds, graph.ParamDrop{Decl: d[0], I: i})
-	}
-	st, err := e.DropParams(ds, graph.ParamOptions{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	return st
 }
 
 // paramOf is the parameter named name of the definition f.
@@ -133,17 +48,20 @@ func paramOf(f *graph.Node, name string) *graph.Node {
 // Phase 86's parameter made a local: cmdline_handle_ctrl_bsl's c, held to
 // the text program's two literals (the phase's other acts are statements).
 func TestB2cParamToLocal(t *testing.T) {
-	text := func(in []byte, w io.Writer) ([]byte, error) {
-		x := edit.New("deadstore", in, w)
-		x.Literal("cmdline_handle_ctrl_bsl(int c, int *gotesc)\n{\n",
-			"cmdline_handle_ctrl_bsl(int *gotesc)\n{\n    int c;\n", 1, "c is a local")
-		x.Literal("cmdline_handle_ctrl_bsl(c, &gotesc)", "cmdline_handle_ctrl_bsl(&gotesc)", 1, "its one caller")
-		return x.Done()
+	// the text program's two acts were edit.E's Literal, which is
+	// edit.ReplaceLiteral on the whole text, counted, and a line reported
+	text := func(in []byte) ([]byte, error) {
+		x, err := edit.ReplaceLiteral(in, "cmdline_handle_ctrl_bsl(int c, int *gotesc)\n{\n",
+			"cmdline_handle_ctrl_bsl(int *gotesc)\n{\n    int c;\n", 1)
+		if err != nil {
+			return nil, fmt.Errorf("c is a local -- %v", err)
+		}
+		return edit.ReplaceLiteral(x, "cmdline_handle_ctrl_bsl(c, &gotesc)", "cmdline_handle_ctrl_bsl(&gotesc)", 1)
 	}
 	dir, _, _, _ := setup(t)
 	in := snapOf(t, dir, 85)
 	path := filepath.Join(t.TempDir(), "whim-vim.c")
-	out, err := text(in, io.Discard)
+	out, err := text(in)
 	if err != nil {
 		t.Fatal(err)
 	}

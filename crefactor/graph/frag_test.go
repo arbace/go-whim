@@ -6,9 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/clisp"
-	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const fragSample = `#include <errno.h>
@@ -90,23 +88,6 @@ func asImported(t *testing.T, path string, e *Editor, want []byte) {
 	}
 }
 
-// textDo is a text verb's result, printed canonically.
-func textDo(t *testing.T, path string, canon []byte, act func(*edit.E)) []byte {
-	t.Helper()
-	var log bytes.Buffer
-	x := edit.New("tiny", canon, &log)
-	act(x)
-	out, err := x.Done()
-	if err != nil {
-		t.Fatal(err)
-	}
-	want, err := cemit.Canonical(path, out)
-	if err != nil {
-		t.Fatalf("%v\n%s", err, out)
-	}
-	return want
-}
-
 // A whole body: a parameter, the file's object over nothing, a local, a
 // call, members by type (two structs have `next` and `n`), a label and its
 // goto, a header's macro (errno), a builtin, a header's function.
@@ -127,7 +108,8 @@ func TestFragBody(t *testing.T) {
 out:
     return g(k) + sum(2, k, total);
 `
-	want := textDo(t, path, canon, func(x *edit.E) { x.Body("f", body, "f") })
+	// frag-body.c: x.Body("f", body, "f")
+	want := textGolden(t, "frag-body", canon)
 	v := NewVerbs("tiny", e, &bytes.Buffer{})
 	maxBefore := maxID(e.Graph())
 	v.BodyC("f", body, "f's body")
@@ -196,10 +178,11 @@ func TestFragRun(t *testing.T) {
 	if err := v.Done(); err != nil {
 		t.Fatal(err)
 	}
-	want := textDo(t, path, canon, func(x *edit.E) {
-		x.Literal("    if (a)\n    {\n        k = g(k);\n    }\n    total = k;\n", "    int total = k * 2;\n    k = total;\n", 1, "a run")
-		x.Literal("    return total;\n", "    k++;\n    return total;\n", 1, "before")
-	})
+	// frag-run.c:
+	//
+	//	x.Literal("    if (a)\n    {\n        k = g(k);\n    }\n    total = k;\n", "    int total = k * 2;\n    k = total;\n", 1, "a run")
+	//	x.Literal("    return total;\n", "    k++;\n    return total;\n", 1, "before")
+	want := textGolden(t, "frag-run", canon)
 	asImported(t, path, e, want)
 	ret := One(e.Defn("f"), "(return total)")
 	if ret == nil || !ret.Kids[1].Ref().Is("def") || e.Function(ret.Kids[1].Ref()) == nil {
@@ -250,17 +233,13 @@ func TestFragExprHoles(t *testing.T) {
 // the declaration that was first; a new function definition; a new type
 // node and a new external.
 func TestFragTop(t *testing.T) {
-	path, canon, e := fragOn(t, fragSample)
+	path, _, e := fragOn(t, fragSample)
 	v := NewVerbs("tiny", e, &bytes.Buffer{})
 	top := "static int g(int x);\n\nstatic char ***triple(void)\n{\n    return nullptr;\n}\n\nstatic size_t len2(const char *s)\n{\n    return strlen(s) + strspn(s, \"ab\");\n}\n"
 	v.TopBeforeC("total", top, "before total")
 	if err := v.Done(); err != nil {
 		t.Fatal(err)
 	}
-	want := textDo(t, path, canon, func(x *edit.E) {
-		x.Literal("static int total = 0;\n", strings.ReplaceAll(top, "static int g(int x);", "int g(int x);")+"\nstatic int total = 0;\n", 1, "top")
-	})
-	_ = want // the prototype's storage class differs on purpose: the text below is the graph's own
 	asImported(t, path, e, nil)
 	proto := e.FileDecls("g")[0]
 	if !hasPrefix(proto, "static") {
@@ -274,7 +253,7 @@ func TestFragTop(t *testing.T) {
 // A body's place (an if's), and several fragments in one import, two in
 // one list.
 func TestFragMany(t *testing.T) {
-	path, canon, e := fragOn(t, fragSample)
+	path, _, e := fragOn(t, fragSample)
 	iff := One(e.Defn("f"), "(if a _*)")
 	ret := One(e.Defn("g"), "(return _)")
 	store := One(e.Defn("f"), "(= total k)")
@@ -287,11 +266,6 @@ func TestFragMany(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := textDo(t, path, canon, func(x *edit.E) {
-		x.Literal("        k = g(k);\n", "        k = 7;\n        k += a;\n", 1, "then")
-		x.Literal("    total = k;\n", "    k--;\n    total = k;\n    k++;\n", 1, "around")
-	})
-	_ = want
 	asImported(t, path, e, nil)
 	out, _ := e.Graph().C()
 	for _, s := range []string{"        k = 7;\n        k += a;\n", "    k--;\n    total = k;\n    k++;\n", "    if (x < 0)\n    {\n        return -x;\n    }\n    return x;\n"} {
@@ -324,12 +298,13 @@ func TestFragMacros(t *testing.T) {
 	if err := v.Done(); err != nil {
 		t.Fatal(err)
 	}
-	want := textDo(t, path, canon, func(x *edit.E) {
-		x.Literal("MIN(lo, hi)", "(((lo)<(hi))?(lo):(hi))", 1, "")
-		x.Literal("MAX(w, wp->n)", "(((w)>(wp->n))?(w):(wp->n))", 1, "")
-		x.Literal("MIN(hi, 3)", "(((hi)<(3))?(hi):(3))", 1, "")
-		x.Literal("s += va_arg(ap, int);", "s += va_arg(ap, int) * 2;", 1, "")
-	})
+	// frag-macros.c:
+	//
+	//	x.Literal("MIN(lo, hi)", "(((lo)<(hi))?(lo):(hi))", 1, "")
+	//	x.Literal("MAX(w, wp->n)", "(((w)>(wp->n))?(w):(wp->n))", 1, "")
+	//	x.Literal("MIN(hi, 3)", "(((hi)<(3))?(hi):(3))", 1, "")
+	//	x.Literal("s += va_arg(ap, int);", "s += va_arg(ap, int) * 2;", 1, "")
+	want := textGolden(t, "frag-macros", canon)
 	asImported(t, path, e, want)
 	m := One(e.Defn("sum"), "(+= s (* (macro _) 2))")
 	if m == nil || len(m.Kids[2].Kids[1].Refs) == 0 {

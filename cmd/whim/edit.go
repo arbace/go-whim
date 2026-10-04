@@ -15,15 +15,13 @@ func runEdit(args []string) int {
 			strings.Join(phase.Names(), " "))
 		return 1
 	}
-	_, onText := phase.Lookup(args[0])
-	_, onGraph := phase.LookupGraph(args[0])
-	if !onText && !onGraph {
+	if _, ok := phase.LookupGraph(args[0]); !ok {
 		fmt.Fprintf(os.Stderr, "whim edit: no edit for phase %q\n  phases: %s\n",
 			args[0], strings.Join(phase.Names(), " "))
 		return 1
 	}
-	// a phase whose program is on the graph runs on the file imported, and
-	// writes its C view (steps.OnText)
+	// the phase's program runs on the graph of the file imported, and writes
+	// its C view (steps.OnText)
 	f, _ := steps.OnText("edit")
 	rest := append([]string{args[0]}, args[2:]...)
 	return oneFile(args[1:2], "edit "+args[0], func(t []byte, w *os.File) ([]byte, error) {
