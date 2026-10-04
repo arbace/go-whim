@@ -1,6 +1,6 @@
 # GUEST.md -- whim's core as a bare-metal guest, its host behind hypercalls
 
-2026-10-04. A design, not a plan of record: nothing here is built. It asks
+2026-10-04. A design, and its milestones as built (*As built*, below). It asks
 whether the editor's core can run as a virtual machine's only code -- no
 operating system, no libc, no syscalls -- at the processor's native speed,
 with everything it needs from the outside world asked through the 17 host
@@ -312,6 +312,26 @@ guest is possible beside the C core:
 
 Recommended order: the C core first (milestones 1-5), then this as a later
 milestone once the hypercall surface is proven on it.
+## As built
+
+### Milestone 1: a guest that writes and exits
+
+`hv/` is the framework's shape (`hv.go`: `Return`, `VCPUExit`, the
+syndrome's fields; `regs_arm64.go` Apple's register names and values,
+`regs_amd64.go` x86 names behind the same shape), its KVM backend
+(`kvm_linux.go`, `kvm_linux_amd64.go`: raw `ioctl`, no cgo; the general
+registers through `kvm_run`'s synced area, so reading the doorbell's
+register costs no system call) and `hvf_darwin.go`, the framework's cgo
+written out and kept out of every build by the tag `hvf`. `vmm/` is the
+monitor: the image loaded, the slot laid out (`layout.go`), the vCPU put in
+long mode (`setup_amd64.go`), the exit loop and the calls (`vmm.go`).
+`guest/` builds the image: `rt/rt.c` the runtime, `rt/entry_amd64.S` the
+entry and vectors, `rt/hello.c` the stand-in core. *Gate met:* `go tool whim
+guest --hello` writes `bin/whim-guest-hello`, which prints `hello` and
+exits 3; `guest`'s `TestHello` runs it on a recording host and counts 2
+exits for its 2 calls, and `hv`'s tests run a real-mode guest of 11 bytes:
+a store where no memory is, reported as a 4-byte data abort from RAX with
+RIP past it, a halt, and a spin ended by `VCPUsExit`.
 
 ## Open questions
 
