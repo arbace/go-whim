@@ -872,10 +872,10 @@ phase 50 | 50 | crefactor/xform/unions.go | 6+311 | - | b | RETYPE | B3d | degen
 51a | 51 | phase/051/a | 374 | - | b | INITROW RENAME TEXTQ | B3d | terminal names; before 51
 phase 51 | 51 | whim51a, whim51 | 389 | - | b | PARAM MOVE FOLDX RENAME | B3d | -T goes
 phase 52 | 52 | whim52 @state | 218 | 2918 | b | FRAG | B3d | the arena; header types (max_align_t)
-phase 53 | 53 | whim53 @state | 695 | - | done | - | B3e, R1 | swap-file residue; mostly deletions -- on the verbs (R1): PARAM, Cut/CutRun, a body built, the numbers and messages rewritten in place; partitions on FormLines
-phase 54 | 54 | whim54 @state | 628 | - | done | - | B3e, R1 | a block number becomes a reference; after 53 -- on the verbs (R1): the numbers RETYPEd and RENAMEd, ml_root InsertMember, mf_get by PARAM, the runs of forms deleted
-phase 55 | 55 | whim55 @state | 448 | - | done | - | B3e, R1 | de-page the leaf; after 54 -- on the verbs (R1): two FRAG units (the types and ml_alloc_line; the typedef), InsertMember, the regions built where they stood, PARAM
-phase 56 | 56 | whim56 @state | 574 | - | done | - | B3e, R1 | fold the node types; after 55 -- on the verbs (R1): one FRAG unit (the enumerator, ml_free_tree), InsertMember, RETYPE, RetargetAs, the constructors built, PARAM
+phase 53 | 53 | whim53 | 676 | - | done | - | B3e, R1, Fin | swap-file residue; mostly deletions -- on the verbs (R1): PARAM, Cut/CutRun, a body built, the numbers and messages rewritten in place; partitions on FormLines; no whole C view (Fin): its questions asked of the forms that hold their words (FormsWith)
+phase 54 | 54 | whim54 | 616 | - | done | - | B3e, R1, Fin | a block number becomes a reference; after 53 -- on the verbs (R1): the numbers RETYPEd and RENAMEd, ml_root InsertMember, mf_get by PARAM, the runs of forms deleted; no whole C view (Fin): its questions asked of the forms that hold their words (FormsWith)
+phase 55 | 55 | whim55 | 443 | - | done | - | B3e, R1, Fin | de-page the leaf; after 54 -- on the verbs (R1): two FRAG units (the types and ml_alloc_line; the typedef), InsertMember, the regions built where they stood, PARAM; no whole C view (Fin): its questions asked of the forms that hold their words (FormsWith)
+phase 56 | 56 | whim56 | 608 | - | done | - | B3e, R1, Fin | fold the node types; after 55 -- on the verbs (R1): one FRAG unit (the enumerator, ml_free_tree), InsertMember, RETYPE, RetargetAs, the constructors built, PARAM; no whole C view (Fin): its questions asked of the forms that hold their words (FormsWith)
 phase 57 | 57 | whim57 | 13 | - | b | RETYPE | B3f | p_emoji int
 phase 58 | 58 | whim58 | 13 | - | done | - | B1c | three (pos_T *)-1 tests fold; on the graph (B1c), a FoldNever by form
 phase 59 | 59 | whim59 | 23 | - | b | RETYPE RENAME | B3f | garray_T *
@@ -3128,3 +3128,62 @@ is 120-210 ms of each figure.
 - Left: the C view printed twice in 53-56 for the reports' line counts and
   the `edit.c` state file nothing reads -- the one place these phases
   still pay for text.
+
+## Fin as built (2026-10-04)
+
+### Phases 53-56 at a verb-written phase's cost
+
+R1 left 53-56 printing the whole C view twice each (~60 ms a print), and
+56 asking its partitions of it. **No phase prints the whole C view now**:
+
+- **The state files are gone**, and `@state` with them: `edit.c`
+  (53, 54), `boundary-in` (54), `gone` and `dbmax` (55), `gone`,
+  `forsweep` and `fanout` (56) were written for checks removed after
+  `448e9a8`, and nothing read them. Nothing else passed `@state`, so the
+  plan no longer has it and `internal/build`'s resolver no longer knows it
+  (`@minmax` is the one argument left that is not literal; the generic
+  driver's `Resolve` and scratch directory stay, for it and for the
+  imports).
+- **Every question of the whole file is asked of the forms that can answer
+  it** (`crefactor/graph`'s `fin_textq.go`, generic, tested): a word's
+  mentions, a regular expression's matches, the lines saying a name and the
+  function each is in, asked of the C view of only the top-level forms some
+  atom of which HOLDS a word every match needs within one token
+  (`FormsWith`: one walk for all of a phase's words; an identifier holds
+  only itself, a literal or a macro's text what it contains; `FormsWhere`
+  for a predicate). Every token the C view prints is an atom of its form,
+  so the answer on those forms is the whole file's. 54's literals are
+  `Quoted`: the literal atoms and the verbatim texts (an include's operand,
+  a macro's invocation) as the C view prints them -- 6,274, the text's
+  count, where the literal atoms alone are 6,354 (the 41 include operands
+  and the macros' texts are quoted atoms in C-lisp). 56's partitions,
+  word counts, fanout and the open-buffer predicate are asked form by form
+  (`w56Saying`, two walks, each form printed once), the enclosing function
+  found in the form's own lines as the text found it.
+- **The counts dropped, plainly**: every report line that counted the
+  file's lines or placed the first `#include` by line had the whole-file
+  print as its only source -- the graph has no lines -- and says the rest
+  of what it said without them: 53's first line ("the input has 41
+  preprocessor directives -- ...", not "is 77539 lines with ..., the first
+  at line 75706") and last ("the 41 `#include`s untouched and still
+  contiguous", not "77539 -> 77292 lines before the sweep, 247 fewer,
+  ..."), 54's the same two, 55's and 56's last ("the leaf is an array of
+  64 records ...", "a node is ONE allocation ...", without "76866 -> 76780
+  lines:"). Every other line is the text's, its numbers included. 56's
+  refusal of an input holding a run of two blank lines (the text's
+  `need 128 swept`) went too: a C view, the canonical print, never holds
+  one (no boundary q000-q103 does).
+
+**Measured** (`TestMeasureGraphPhases`, 3 runs, medians, handed, at a load
+of 1-11; the figures include the pipeline's C view, ~50-70 ms, and the
+collection, 110-210 ms):
+
+| phase | R1, wall ms | Fin, wall ms | Fin, collection and C view aside |
+| --- | ---: | ---: | --- |
+| 53 | 622 | 500-551 | ~0.3 s |
+| 54 | 727 | 516-523 | ~0.28 s |
+| 55 | 926 | 831-854 | ~0.6 s, of which its two FRAG imports ~0.45 s |
+| 56 | 908 | 576-580 | ~0.4 s, of which its FRAG import ~0.25 s |
+
+The first try asked each word its own walk (a few ms each over ~60 words):
+55 and 56 did not move; one walk per state of the file did it.

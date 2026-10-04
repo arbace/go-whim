@@ -136,12 +136,14 @@ package p055
 // stood -- the ones the text carried kept with their nodes -- with
 // ml_new_data() losing its page count by PARAM, at every call.  The
 // partitions are the text's, on the lines of the forms that say the names
-// (graph.FormLines) and, for what the output must not say, on its C view.
+// (graph.FormLines) and, for what the output must not say, on the C view of
+// the forms that could say it (graph.FormsWith): no whole C view is printed;
+// the line counts its report gave were the whole file's, and went with it,
+// as did the state files nothing read (*Fin as built*).
 
 import (
 	"fmt"
 	"io"
-	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -203,10 +205,9 @@ ml_alloc_line(char_u *line, colnr_T len)
 // over a text arena and becomes `DATA_LN db_line[DB_LINE_MAX]`, so a line's text
 // is its own allocation valid for the lifetime of the process.
 func Edit(e *graph.Editor, w io.Writer, args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("  leaf         usage: edit whim55 <file> <state-dir>")
+	if len(args) != 0 {
+		return fmt.Errorf("  leaf         usage: edit whim55 <file>")
 	}
-	state := args[0]
 	// die here prints on stdout, which is the heredoc's own `die`: this
 	// phase writes its refusals into the report and not onto stderr.
 	die := func(format string, a ...interface{}) error {
@@ -324,11 +325,6 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	for _, n := range w55Gone {
 		sum += before[n]
 	}
-	t0, err := e.Graph().C()
-	if err != nil {
-		return err
-	}
-	nIn := strings.Count(string(t0), "\n") + 1
 	say("the input mentions %s -- %d times between them, the top bit %d more -- and every "+
 		"mention is in the struct, the enumerator or one of the eight memline functions "+
 		"this edit rewrites", strings.Join(w55Gone, ", "), sum, before[w55Bit])
@@ -542,12 +538,25 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	}
 
 	// --- the partition again, on the output ----------------------------------
-	out, err := e.Graph().C()
-	if err != nil {
-		return err
+	// Each question is asked of the forms that could answer it, found in one
+	// walk (graph.FormsWith): a mention holds its name, the top bit `sizeof`,
+	// an offsetof its type's name, each within one token; an interior pointer
+	// is a cast of an identifier `dp...`, a token holding `dp`.
+	landed := []string{"dl_text", "dl_len", "dl_marked", "DB_LINE_MAX", "ml_alloc_line"}
+	saying := e.FormsWith(append(append([]string{"sizeof", "DATA_BL", "PTR_BL"}, w55Gone...), landed...)...)
+	textOf := func(forms []*graph.Node) []byte {
+		if v.Err != nil {
+			return nil
+		}
+		t, err := graph.FormsC(forms)
+		if err != nil {
+			v.Die("%v", err)
+		}
+		return t
 	}
-	t := string(out)
+	textWith := func(word string) []byte { return textOf(saying[word]) }
 	for _, name := range w55Gone {
+		out := textWith(name)
 		want := 0
 		if name == "ML_APPEND_MARK" {
 			want = 1 // its enumerator, the sweep's
@@ -556,23 +565,26 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 			return die("%s survives the edit with %d mentions", name, k)
 		}
 	}
-	if k := strings.Count(t, w55Bit); k != 0 {
+	if k := strings.Count(string(textWith("sizeof")), w55Bit); k != 0 {
 		return die("the stolen top bit survives the edit %d times", k)
 	}
-	if interiorRe.MatchString(strings.ReplaceAll(t, "(char *)dp", "(char_u *)dp")) {
+	if interiorRe.MatchString(strings.ReplaceAll(string(textOf(e.FormsWhere(func(a string) bool { return strings.Contains(a, "dp") }))), "(char *)dp", "(char_u *)dp")) {
 		return die("an interior pointer into a data block survives the edit")
 	}
-	if strings.Contains(t, "offsetof(DATA_BL") {
+	if strings.Contains(string(textWith("DATA_BL")), "offsetof(DATA_BL") {
 		return die("a data block is still being measured with offsetof")
 	}
-	if strings.Count(t, "offsetof(PTR_BL") != 1 {
+	if strings.Count(string(textWith("PTR_BL")), "offsetof(PTR_BL") != 1 {
 		return die("ml_new_ptr's offsetof is not where it was: a POINTER block is still a " +
 			"page and is not this phase's")
 	}
-	for _, name := range []string{"dl_text", "dl_len", "dl_marked", "DB_LINE_MAX", "ml_alloc_line"} {
-		if edit.MentionCount(out, name) == 0 {
+	for _, name := range landed {
+		if edit.MentionCount(textWith(name), name) == 0 {
 			return die("%s is not in the output, so the replacement did not land", name)
 		}
+	}
+	if err := failed(); err != nil {
+		return err
 	}
 
 	// The lifetime rule, as a partition over every assignment to a record's text.
@@ -610,18 +622,8 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 		"so a pointer ml_get() returned stays readable for the life of the process",
 		total, strings.Join(shown, ", "))
 
-	var gone strings.Builder
-	for _, n := range append(append([]string{}, w55Gone...), w55Bit) {
-		fmt.Fprintf(&gone, "%s\t%d\n", n, before[n])
-	}
-	if err := os.WriteFile(state+"/gone", []byte(gone.String()), 0o644); err != nil {
-		return die("%v", err)
-	}
-	if err := os.WriteFile(state+"/dbmax", []byte(fmt.Sprintf("%d\n", w55DbLineMax)), 0o644); err != nil {
-		return die("%v", err)
-	}
-	say("%d -> %d lines: the leaf is an array of %d records and a line's text is its own "+
-		"allocation", nIn, strings.Count(t, "\n")+1, w55DbLineMax)
+	say("the leaf is an array of %d records and a line's text is its own allocation",
+		w55DbLineMax)
 	return nil
 }
 

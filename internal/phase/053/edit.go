@@ -86,8 +86,6 @@ package p053
 // unreachable EVIDENCE and not unreachable code, and the bit stays.
 //
 // THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and the check records from it.
-// The edit also leaves its own output in $state/edit.c, so the check can state what the
-// EDIT removed and what the SWEEP removed separately rather than as one number.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
@@ -99,12 +97,13 @@ package p053
 // body built, the definitions, the prototype, the typedef and the member
 // deleted, the writes cut by pattern -- and every partition is the text's,
 // its regular expressions on the lines of the forms that say the name,
-// found by edge (graph.FormLines).  The line counts are the C view's.
+// found by edge (graph.FormLines).  It prints no whole C view: the line
+// counts its report gave were the whole file's, and went with it (*Fin
+// as built*).
 
 import (
 	"fmt"
 	"io"
-	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -162,10 +161,9 @@ var w53Locals = []string{"ml_open", "set_b0_fname", "ml_find_line", "ml_append_i
 // has no warning for a file-scope object in either direction.
 func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	p := edit.Ph{Tag: "swapres", W: w}
-	if len(args) != 1 {
-		return p.Die("usage: edit whim53 <file> <state-dir>")
+	if len(args) != 0 {
+		return p.Die("usage: edit whim53 <file>")
 	}
-	state := args[0]
 	v := graph.NewVerbs("swapres", e, io.Discard)
 
 	// decls are a name's declarations: the file's, a member's, a local's or
@@ -277,19 +275,12 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 		return ds
 	}
 
-	t0, err := e.Graph().C()
-	if err != nil {
-		return err
-	}
-	linesBefore := strings.Count(string(t0), "\n")
 	incs := e.Includes()
 	if len(incs) == 0 {
 		return p.Die("the input has no #include")
 	}
-	firstInc := 1 + strings.Count(string(t0[:strings.Index(string(t0), "\n#include ")+1]), "\n")
-	p.Sayf("the input is %d lines with %d preprocessor directives, the first at line %d -- "+
-		"this phase adds no directive and removes none",
-		linesBefore, len(incs), firstInc)
+	p.Sayf("the input has %d preprocessor directives -- this phase adds no directive and "+
+		"removes none", len(incs))
 
 	// ==== PART 1 -- THE SWAP FILE'S HEADER BLOCK ===============================
 	// The field list is READ OUT OF THE STRUCT and not written here: phase 49
@@ -847,19 +838,6 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 		return p.Die("the output does not have the same %d contiguous directives the input had -- "+
 			"this phase adds none and removes none", len(incs))
 	}
-	// The check states what the EDIT took and what the SWEEP took, separately, and
-	// this is how it can: the text the edit hands on, kept beside the text it was
-	// handed.
-	t, err := e.Graph().C()
-	if err != nil {
-		return err
-	}
-	if err := os.WriteFile(state+"/edit.c", t, 0o644); err != nil {
-		return p.Die("%v", err)
-	}
-	linesAfter := strings.Count(string(t), "\n")
-	p.Sayf("%d -> %d lines before the sweep, %d fewer, the %d `#include`s untouched and still "+
-		"contiguous",
-		linesBefore, linesAfter, linesBefore-linesAfter, len(incs2))
+	p.Sayf("the %d `#include`s untouched and still contiguous", len(incs2))
 	return nil
 }

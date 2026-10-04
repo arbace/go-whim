@@ -340,7 +340,7 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
-                   @state, @minmax and phase 1's delta.md), cmdtab (the Ex command
+                   @minmax and phase 1's delta.md), cmdtab (the Ex command
                    table: its names), score (bytes and
                    symbols, the input beside the product)
 crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
@@ -519,7 +519,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    a token or a macro's text respelled, the types above it
                    kept -- DeleteAttr, RespellAttr) and r3_spare.go (88:
                    Spares, the rule's account in gcc's order, and
-                   DeleteIncludes);
+                   DeleteIncludes); and Fin's fin_textq.go (FormsWith,
+                   FormsWhere, Quoted: a text question asked of the forms
+                   whose atoms hold its words, not of the whole C view);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -960,7 +962,7 @@ was the input boundary's digest and the implementation's together, so a moved
   plan, the op table (`internal/steps`) and its graph table (`graphOps`), the
   collection's options (`whim.GraphCollect`), the work file `whim-vim.c`, `SnapDir`
   `.cache/boundaries`, the sweep's options (`internal/whim`'s `Profile`), the
-  `@state`/`@minmax` arguments and phase 1's `delta.md` -- and keeps its old
+  `@minmax` argument and phase 1's `delta.md` -- and keeps its old
   names (`build.Run`, `Check`, `Advance`, `Options`) as wrappers.
 - **There are no stages.** Every phase is its steps, the sweep, and the
   canonical print; a `sweep` step inside a phase's steps is for an edit that

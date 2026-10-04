@@ -23,12 +23,9 @@
 // moves those bytes, so the table is checked by `whim build --check` and
 // not by reading it.
 //
-// THREE ARGUMENTS ARE NOT LITERAL, because three phases need something the
+// TWO ARGUMENTS ARE NOT LITERAL, because two phases need something the
 // source does not carry:
 //
-//	@state     a scratch directory.  Four phases' edits (53-56) write a file there
-//	           for their check to read; a build gives them one and throws it
-//	           away.  No edit reads anything from it -- measured.
 //	@minmax    the host's MIN and MAX, asked of the preprocessor
 //	           (steps.MinMax) exactly as phase 42's program asked.
 //	Declared   phase 1 alone: its front retires the command rows the phase
@@ -368,19 +365,19 @@ var Plan = []Phase{
 		}},
 	{N: 53, Block: "r06-memline", Name: "the swap file's residue, and what no sweep could find",
 		Steps: []Step{
-			{Op: "edit", Graph: true, Args: []string{"whim53", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim53"}},
 		}},
 	{N: 54, Name: "a block number becomes a reference",
 		Steps: []Step{
-			{Op: "edit", Graph: true, Args: []string{"whim54", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim54"}},
 		}},
 	{N: 55, Name: "de-page the leaf",
 		Steps: []Step{
-			{Op: "edit", Graph: true, Args: []string{"whim55", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim55"}},
 		}},
 	{N: 56, Name: "fold the node types",
 		Steps: []Step{
-			{Op: "edit", Graph: true, Args: []string{"whim56", "@state"}},
+			{Op: "edit", Graph: true, Args: []string{"whim56"}},
 		}},
 	{N: 57, Block: "r07-types", Name: "`p_emoji` is an `int`",
 		Steps: []Step{

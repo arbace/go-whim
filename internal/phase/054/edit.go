@@ -89,12 +89,14 @@ package p054
 // list and the hash go as the runs of forms the text cut; the types and
 // members last, once nothing names them.  Every partition is the text's,
 // on the lines of the forms that say the name (graph.FormLines); the
-// literals and the line counts are the C view's.
+// literals are the graph's literal atoms, and a new name's absence is asked
+// of the forms that could say it (graph.FormsWith).  It prints no whole C
+// view: the line counts its report gave were the whole file's, and went
+// with it, as did the state files nothing read (*Fin as built*).
 
 import (
 	"fmt"
 	"io"
-	"os"
 	"regexp"
 	"sort"
 	"strings"
@@ -134,10 +136,9 @@ var w54Locals = []string{"ml_find_line", "ml_append_int", "mf_get", "mf_new", "m
 // integer into a page goes with the free list and `mf_blocknr_max`.
 func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	p := edit.Ph{Tag: "refblocks", W: w}
-	if len(args) != 1 {
-		return p.Die("usage: edit whim54 <file> <state-dir>")
+	if len(args) != 0 {
+		return p.Die("usage: edit whim54 <file>")
 	}
-	state := args[0]
 	v := graph.NewVerbs("refblocks", e, io.Discard)
 	failed := func() error { return v.Err }
 
@@ -319,13 +320,12 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	}
 
 	// ---- 0. the file this edit is handed --------------------------------------
-	t0, err := e.Graph().C()
-	if err != nil {
-		return err
+	// The literals are the graph's literal atoms, each read as the text read the
+	// file: a match of w54Lit begins at a quote, and only a literal holds one.
+	var literals []string
+	for _, a := range e.Quoted() {
+		literals = append(literals, w54Lit.FindAllString(a, -1)...)
 	}
-	t := string(t0)
-	nIn := strings.Count(t, "\n")
-	literals := w54Lit.FindAllString(t, -1)
 	var inlit []string
 	for _, n := range w54Names {
 		re := regexp.MustCompile(`\b` + n + `\b`)
@@ -340,7 +340,13 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 		return p.Die("%s appear inside a string literal, so a line-oriented partition would read "+
 			"data as code", strings.Join(inlit, ", "))
 	}
-	for _, n := range []string{"ml_root", "pe_block", "ip_block"} {
+	newNames := []string{"ml_root", "pe_block", "ip_block"}
+	saying := e.FormsWith(newNames...)
+	for _, n := range newNames {
+		t, err := graph.FormsC(saying[n])
+		if err != nil {
+			return err
+		}
 		if k := edit.WordPatternCount(t, n); k != 0 {
 			return p.Die("`%s` is already said %d times, and this phase is what introduces it", n, k)
 		}
@@ -352,9 +358,8 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	if len(incs) == 0 {
 		return p.Die("the input has no preprocessor directive, and this phase adds none and removes none")
 	}
-	boundary := strings.Count(t[:strings.Index(t, "\n#include ")+1], "\n")
-	p.Sayf("the input is %d lines with %d `#include`s and no other directive, the first at "+
-		"line %d -- the line between the core and the host", nIn, len(incs), boundary+1)
+	p.Sayf("the input has %d `#include`s and no other directive, the first the line between "+
+		"the core and the host", len(incs))
 
 	// ---- 1. where every name this phase removes is said -----------------------
 	for _, pl := range []struct {
@@ -767,21 +772,6 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 			return p.Die("the eleven `#include`s are not contiguous any more")
 		}
 	}
-	out, err := e.Graph().C()
-	if err != nil {
-		return err
-	}
-	nOut := strings.Count(string(out), "\n")
-	p.Sayf("%d -> %d lines before the sweep, %d fewer, the %d `#include`s untouched and still "+
-		"contiguous", nIn, nOut, nIn-nOut, len(incs2))
-
-	// The edit leaves its own output beside the input, so the check can say what
-	// the EDIT removed and what the SWEEP removed separately.
-	if err := os.WriteFile(state+"/edit.c", out, 0o644); err != nil {
-		return p.Die("%v", err)
-	}
-	if err := os.WriteFile(state+"/boundary-in", []byte(fmt.Sprintf("%d\n", boundary+1)), 0o644); err != nil {
-		return p.Die("%v", err)
-	}
+	p.Sayf("the %d `#include`s untouched and still contiguous", len(incs2))
 	return nil
 }

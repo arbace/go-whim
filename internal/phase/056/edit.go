@@ -115,13 +115,17 @@ package p056
 // constructors' bodies are built with the id constants moved in from the
 // bodies they replace, and both lose `mfp` by PARAM, at every call.  The
 // enumerator and ml_free_tree() are C spliced in one synthesized import
-// (FRAG).  The partitions are the text's, on the C view of the input and
-// of the output.
+// (FRAG).  The partitions are the text's, on the lines of the forms that
+// could say the name, each form apart (graph.FormsWith): no whole C view is
+// printed.  The line counts its report gave were the whole file's and went
+// with it, as did the state files nothing read and the check that the
+// input held no run of two blank lines -- a text's question whether it
+// had been swept, which a C view, printed canonically, never holds
+// (*Fin as built*).
 
 import (
 	"fmt"
 	"io"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -169,7 +173,6 @@ var w56Homes = []string{"<file scope>",
 
 var (
 	w56PageSize = regexp.MustCompile(`enum \{ MEMFILE_PAGE_SIZE = (\d+) \};`)
-	w56BlankRun = regexp.MustCompile(`\n\n\n`)
 )
 
 const (
@@ -196,6 +199,37 @@ ml_free_tree(bhdr_T *hp)
 `
 )
 
+// w56Saying are the top-level forms saying each of a set of words, found
+// in one walk (graph.FormsWith), each printed once.
+type w56Saying struct {
+	forms   map[string][]*graph.Node
+	printed map[*graph.Node][]byte
+}
+
+func w56Say(e *graph.Editor, words ...string) *w56Saying {
+	return &w56Saying{e.FormsWith(words...), map[*graph.Node][]byte{}}
+}
+
+// lines are the lines of each form saying word, as the C view prints it,
+// and the C of those forms together.
+func (s *w56Saying) lines(word string) ([][]string, string, error) {
+	var out [][]string
+	var all strings.Builder
+	for _, f := range s.forms[word] {
+		c, ok := s.printed[f]
+		if !ok {
+			var err error
+			if c, err = graph.FormsC([]*graph.Node{f}); err != nil {
+				return nil, "", err
+			}
+			s.printed[f] = c
+		}
+		all.Write(c)
+		out = append(out, strings.Split(strings.TrimRight(string(c), "\n"), "\n"))
+	}
+	return out, all.String(), nil
+}
+
 // w56Enclosing is the function the line i of ls is in, as the text read it:
 // the head above it, `static` on the line over that, before a `}` at column 0.
 func w56Enclosing(ls []string, i int) string {
@@ -215,10 +249,9 @@ func w56Enclosing(ls []string, i int) string {
 // bh_id; }`, `memfile_T` goes entirely, and a node is ONE allocation at its own
 // size.
 func Edit(e *graph.Editor, w io.Writer, args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("  node         usage: edit whim56 <file> <state-dir>")
+	if len(args) != 0 {
+		return fmt.Errorf("  node         usage: edit whim56 <file>")
 	}
-	state := args[0]
 	die := func(format string, a ...interface{}) error {
 		fmt.Fprintf(w, "  node         %s\n", fmt.Sprintf(format, a...))
 		return fmt.Errorf("")
@@ -281,23 +314,25 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	}
 
 	// --- the partition, before anything is changed ---------------------------
-	t0b, err := e.Graph().C()
-	if err != nil {
-		return err
-	}
-	t0 := string(t0b)
-	lines := strings.Split(t0, "\n")
-	nIn := len(lines)
+	// Each question is asked of the forms that could answer it, each form's
+	// lines apart (w56Saying): a mention holds its name within one token.
+	said0 := w56Say(e, append(append([]string{"MEMFILE_PAGE_SIZE", "ml_root"}, w56Gone...), w56ForSweep...)...)
 	before := map[string]int{}
 	var strays []string
 	for _, name := range append(append([]string{}, w56Gone...), w56ForSweep...) {
 		re := regexp.MustCompile(`\b` + name + `\b`)
+		forms, t0, err := said0.lines(name)
+		if err != nil {
+			return err
+		}
 		hits := 0
-		for i, l := range lines {
-			if strings.Contains(l, name) && re.MatchString(l) {
-				hits++
-				if f := w56Enclosing(lines, i); !edit.Contains(w56Homes, f) {
-					strays = append(strays, fmt.Sprintf("%s in %s (line %d)", name, f, i+1))
+		for _, lines := range forms {
+			for i, l := range lines {
+				if strings.Contains(l, name) && re.MatchString(l) {
+					hits++
+					if f := w56Enclosing(lines, i); !edit.Contains(w56Homes, f) {
+						strays = append(strays, fmt.Sprintf("%s in %s", name, f))
+					}
 				}
 			}
 		}
@@ -323,7 +358,11 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 		strings.Join(w56Gone, ", "), sum)
 
 	// The fanout, read off the INPUT rather than written here.
-	pm := w56PageSize.FindStringSubmatch(t0)
+	_, tPage, err := said0.lines("MEMFILE_PAGE_SIZE")
+	if err != nil {
+		return err
+	}
+	pm := w56PageSize.FindStringSubmatch(tPage)
 	if pm == nil {
 		return die("the input has no MEMFILE_PAGE_SIZE enumerator")
 	}
@@ -339,6 +378,16 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	say("the input's fanout is (%d - 8) / 16 = %d, and that is the number this phase "+
 		"fixes: record 123 reaches a ROOT SPLIT in one of sixteen cases because that "+
 		"case builds more data blocks than this", page, w56Fanout)
+
+	// THE OPEN-BUFFER PREDICATE, asked of the input before anything changes.
+	wasForms, _, err := said0.lines("ml_mfp")
+	if err != nil {
+		return err
+	}
+	rootForms, _, err := said0.lines("ml_root")
+	if err != nil {
+		return err
+	}
 
 	// --- 1. struct block_hdr becomes the node's tag, and nothing else --------
 	bh := structOf("block_hdr")
@@ -675,12 +724,17 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 		len(dropped), strings.Join(dropped, " "))
 
 	// --- the partition again, on the output ----------------------------------
-	outb, err := e.Graph().C()
-	if err != nil {
-		return err
+	landed := []string{"PB_COUNT_MAX", "bh_id", "pb_hdr", "db_hdr", "ml_free_tree"}
+	said1 := w56Say(e, append(append(append([]string{"ml_root"}, w56Gone...), w56ForSweep...), landed...)...)
+	textWith := func(name string) (string, error) {
+		_, t, err := said1.lines(name)
+		return t, err
 	}
-	t := string(outb)
 	for _, name := range w56Gone {
+		t, err := textWith(name)
+		if err != nil {
+			return err
+		}
 		want := 0
 		if name == "memfile" || name == "memfile_T" {
 			want = 1 // the typedef, the sweep's
@@ -690,25 +744,34 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 		}
 	}
 	for _, name := range w56ForSweep {
+		t, err := textWith(name)
+		if err != nil {
+			return err
+		}
 		if k := edit.WordCount(t, name); k != 1 {
 			return die("%s is left at %d mentions and the edit leaves exactly one -- its own "+
 				"definition -- for the sweep to take", name, k)
 		}
 	}
-	for _, name := range []string{"PB_COUNT_MAX", "bh_id", "pb_hdr", "db_hdr", "ml_free_tree"} {
+	for _, name := range landed {
+		t, err := textWith(name)
+		if err != nil {
+			return err
+		}
 		if edit.WordCount(t, name) == 0 {
 			return die("%s is not in the output, so the replacement did not land", name)
 		}
 	}
 	// THE OPEN-BUFFER PREDICATE MOVED 1:1, stated as a partition over the
 	// FUNCTIONS that ask it rather than as a count of mentions.
-	askers := func(text, field string) []string {
-		ls := strings.Split(text, "\n")
+	askers := func(forms [][]string, field string) []string {
 		re := regexp.MustCompile(`\b` + field + `\b *(==|!=) *nullptr`)
 		seen := map[string]bool{}
-		for i, l := range ls {
-			if re.MatchString(l) {
-				seen[w56Enclosing(ls, i)] = true
+		for _, ls := range forms {
+			for i, l := range ls {
+				if re.MatchString(l) {
+					seen[w56Enclosing(ls, i)] = true
+				}
 			}
 		}
 		var Out []string
@@ -718,8 +781,12 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 		sort.Strings(Out)
 		return Out
 	}
-	was, now := askers(t0, "ml_mfp"), askers(t, "ml_root")
-	if len(askers(t0, "ml_root")) > 0 {
+	nowForms, _, err := said1.lines("ml_root")
+	if err != nil {
+		return err
+	}
+	was, now := askers(wasForms, "ml_mfp"), askers(nowForms, "ml_root")
+	if len(askers(rootForms, "ml_root")) > 0 {
 		return die("ml_root is already compared with nullptr in the input, so this edit cannot " +
 			"say that the open-buffer question moved onto it")
 	}
@@ -741,26 +808,7 @@ func Edit(e *graph.Editor, w io.Writer, args []string) error {
 		"all %d functions that asked it, plus ml_delete_int, which asked it through its own "+
 		"copy of the handle -- and ml_root was compared with nullptr in none of them before",
 		len(was))
-	// THE INPUT IS ASKED FIRST, and that is what `need 128 swept` is.
-	if w56BlankRun.MatchString(t0) {
-		return die("the input already has a run of two blank lines, so this edit cannot say it " +
-			"left none: it needs swept text (internal/phase/STAGES.md, `need 128 swept`)")
-	}
-
-	var goneB strings.Builder
-	for _, n := range w56Gone {
-		fmt.Fprintf(&goneB, "%s\t%d\n", n, before[n])
-	}
-	if err := os.WriteFile(state+"/gone", []byte(goneB.String()), 0o644); err != nil {
-		return die("%v", err)
-	}
-	if err := os.WriteFile(state+"/forsweep", []byte(strings.Join(w56ForSweep, "\n")+"\n"), 0o644); err != nil {
-		return die("%v", err)
-	}
-	if err := os.WriteFile(state+"/fanout", []byte(fmt.Sprintf("%d\n", w56Fanout)), 0o644); err != nil {
-		return die("%v", err)
-	}
-	say("%d -> %d lines: a node is ONE allocation at its own size, `bhdr_T` is its tag and "+
-		"the first member of both kinds, and there is no memfile", nIn, len(strings.Split(t, "\n")))
+	say("a node is ONE allocation at its own size, `bhdr_T` is its tag and the first member " +
+		"of both kinds, and there is no memfile")
 	return nil
 }

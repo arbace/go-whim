@@ -71,9 +71,8 @@ func Advance(p Phase, text []byte, w io.Writer) ([]byte, error) {
 	return config.Advance(p, text, w)
 }
 
-// RunPhase applies one phase's steps, with scratch as the directory its @state
-// arguments name.  A few edits still write files there that their checks read
-// when the pipeline had checks (448e9a8 and before); the build discards them.
+// RunPhase applies one phase's steps, with scratch as the phase's own
+// directory: @minmax's file is written there.
 func RunPhase(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error) {
 	return config.RunPhase(p, text, scratch, w)
 }
@@ -83,10 +82,6 @@ func resolve(p Phase, args []string, scratch string) ([]string, error) {
 	out := make([]string, 0, len(args))
 	for _, a := range args {
 		switch {
-		case a == "@state":
-			out = append(out, scratch)
-		case strings.HasPrefix(a, "@state/"):
-			out = append(out, filepath.Join(scratch, strings.TrimPrefix(a, "@state/")))
 		case a == "@minmax":
 			probe, err := steps.MinMax()
 			if err != nil {
