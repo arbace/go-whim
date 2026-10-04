@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/pipeline"
 )
 
 // Phase 94's step on the graph (doc/GRAPH-MIGRATION.md, Step6):
@@ -17,7 +17,7 @@ func init() { graphOps["memberout"] = s6MemberOut }
 
 func s6MemberOut(e *graph.Editor, args []string, w io.Writer) error {
 	v := graph.NewVerbs("memberout", e, w)
-	f, err := xform.Flags(v.Tag, args, "--at-least")
+	f, err := pipeline.Flags(v.Tag, args, "--at-least")
 	if err != nil {
 		return err
 	}

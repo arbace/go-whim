@@ -7,7 +7,9 @@ import (
 )
 
 // FOLDX: xform.FallOut's closure on the graph (doc/GRAPH-MIGRATION.md,
-// FOLDX).  What the closure's base rules (fallout.go) take is what a cut
+// FOLDX; crefactor/xform, the text closure, is deleted since Fin, and what
+// it gave on foldx_test.go's samples and three snapshots is recorded as
+// that test's and graphcheck's golden files).  What the closure's base rules (fallout.go) take is what a cut
 // left dangling; what FoldX takes is what a cut left UNWRITTEN, and what
 // that makes constant, in the text closure's rules and shapes, so that a
 // front phase can end on the graph with the bytes its text closure gives:

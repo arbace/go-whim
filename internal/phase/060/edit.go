@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
@@ -29,7 +29,7 @@ func init() { phase.RegisterGraph("whim60", Edit) }
 // points the host's at its own.
 func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	v := graph.NewVerbs("free", e, w)
-	f, err := xform.Flags(v.Tag, args, "--calls", "--redirected")
+	f, err := pipeline.Flags(v.Tag, args, "--calls", "--redirected")
 	if err != nil {
 		return err
 	}

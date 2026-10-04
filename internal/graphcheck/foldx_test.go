@@ -2,6 +2,8 @@ package graphcheck
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -9,11 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/crefactor/sweep"
-	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/cut"
 	"github.com/arbace/go-whim/internal/whim"
 )
@@ -176,27 +175,21 @@ func TestKeepConditionNoTags(t *testing.T) {
 	}
 }
 
-// FoldX with every unwritten object and member a seed, xform.FallOut's own
-// step, on snapshots where the text closure runs (before q040 it refuses
-// itself: a declaration it cuts is used after), each swept: the same C.
+// FoldX with every unwritten object and member a seed, the text closure's
+// own step, on snapshots where the text closure ran (before q040 it refused
+// itself: a declaration it cuts is used after), collected: what the text
+// closure gave there, swept, by its digest (testdata/foldx_every_seed.md,
+// recorded before crefactor/xform was deleted).
 func TestFoldXEverySeed(t *testing.T) {
 	dir, _, _, _ := setup(t)
+	rows := everySeedRows(t)
 	for _, n := range []int{40, 70, 103} {
 		in := snapOf(t, dir, n)
 		path := filepath.Join(t.TempDir(), "whim-vim.c")
-		t0 := time.Now()
-		text, err := xform.FallOut()(in, nil, io.Discard)
-		if err != nil {
-			t.Fatalf("q%03d: the text closure: %v", n, err)
-		}
-		tText := time.Since(t0)
-		swept, _, err := sweep.Prune(text, path, whim.Profile.Sweep)
-		if err != nil {
-			t.Fatal(err)
-		}
-		want, err := cemit.Canonical(path, swept)
-		if err != nil {
-			t.Fatal(err)
+		row, ok := rows[n]
+		if !ok || row.in != fmt.Sprintf("%x", sha256.Sum256(in)) {
+			t.Logf("q%03d: not the snapshot testdata/foldx_every_seed.md records; skipped", n)
+			continue
 		}
 		g, _, err := graph.Import(path, in)
 		if err != nil {
@@ -219,9 +212,42 @@ func TestFoldXEverySeed(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Equal(got, want) {
-			t.Errorf("q%03d: %s", n, firstDiff(got, want))
+		if d := fmt.Sprintf("%x", sha256.Sum256(got)); d != row.want || len(got) != row.n {
+			t.Errorf("q%03d: FoldX gives %d bytes, %s; the text closure gave %d, %s", n, len(got), d, row.n, row.want)
 		}
-		t.Logf("q%03d: the text closure %v, FoldX %v", n, tText.Round(time.Millisecond), tGraph.Round(time.Millisecond))
+		if bytes.Equal(got, in) {
+			t.Errorf("q%03d: FoldX changed nothing", n)
+		}
+		t.Logf("q%03d: FoldX %v", n, tGraph.Round(time.Millisecond))
 	}
+}
+
+type everySeedRow struct {
+	in, want string
+	n        int
+}
+
+// everySeedRows reads testdata/foldx_every_seed.md's fenced block.
+func everySeedRows(t *testing.T) map[int]everySeedRow {
+	b, err := os.ReadFile("internal/graphcheck/testdata/foldx_every_seed.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows := map[int]everySeedRow{}
+	fence := false
+	for _, ln := range strings.Split(string(b), "\n") {
+		if strings.HasPrefix(ln, "```") {
+			fence = !fence
+			continue
+		}
+		var n int
+		var r everySeedRow
+		if fence {
+			if _, err := fmt.Sscan(ln, &n, &r.in, &r.want, &r.n); err != nil {
+				t.Fatalf("foldx_every_seed.md: %q: %v", ln, err)
+			}
+			rows[n] = r
+		}
+	}
+	return rows
 }

@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/pipeline"
 )
 
 // Phase 100's first step on the graph (doc/GRAPH-MIGRATION.md, Step6):
@@ -19,7 +19,7 @@ func init() {
 
 func s6LocalOut(e *graph.Editor, args []string, w io.Writer) error {
 	const tag = "localout"
-	f, err := xform.Flags(tag, args, "--at-least")
+	f, err := pipeline.Flags(tag, args, "--at-least")
 	if err != nil {
 		return err
 	}

@@ -710,7 +710,7 @@ phase 0 | 0 | build/plan.go s00-seed + pipeline/seed.go SeedGraph | 343 | 2591 |
 0b | 0 | phase/000/b/graph.go | 280 | 1500 | done | - | R3 | 7 printf-style wrappers expanded at 297 calls: one FRAG unit, the arguments holes, the format copied
 0c | 0 | phase/000/c + crefactor/graph/r3_seed.go | 14+170 | - | done | - | R3 | 306 unused attributes go (DeleteAttr), 37 fallthrough respelled [[fallthrough]] (RespellAttr)
 phase 1 | 1 | front + noruntime | - | - | done | - | B4 | the front's D1-D5 on the graph, FoldX their closure; imports q000 (phase 0 ends on text)
-FallOutOf | 1-3 | crefactor/xform/fallout.go; steps.go frontHold | 1686 | - | done | - | B4 | replaced by FoldX (B2d) on the graph; FallOutOf deleted, FallOut kept as FoldX's tests' oracle
+FallOutOf | 1-3 | crefactor/xform/fallout.go (deleted); steps.go frontHold | 1686 | - | done | - | B4, Fin | replaced by FoldX (B2d) on the graph; FallOutOf deleted, FallOut kept as FoldX's tests' oracle until Fin recorded its results as golden files and deleted crefactor/xform
 argvfront | 1 | cut/argvfront.go | 99 | - | done | - | B4 | command_line_scan's new body, main_errors rows
 exfront | 1 | steps.go exFront + cut/retire.go + phase/001/delta.md | 22+37 | - | done | - | B4 | 489 cmdnames rows' handler to ex_ni, found by name string
 extable | 1 | cut/extable.go | 270 | - | done | - | B4 | shortest-abbreviation lookup, prefix index gone; the hardest front unit; after exfront
@@ -3187,3 +3187,31 @@ collection, 110-210 ms):
 
 The first try asked each word its own walk (a few ms each over ~60 words):
 55 and 56 did not move; one walk per state of the file did it.
+
+### crefactor/xform deleted
+
+What R3 left in `crefactor/xform` -- the text's fall-out closure
+(`fallout.go`, `kept.go`, `rewrite.go`, `terminates.go`, 2,214 lines with
+their tests), kept only as the oracle FoldX's tests compared against, and
+`Flags` with `Step` -- is gone, and the package with it.
+
+- **FoldX's tests stand on their own**, on golden files written once by
+  the text closure before it went (the procedure in each test's comment;
+  1c227af has the code):
+  `crefactor/graph/testdata/foldx/NAME.c`, the 13 samples of
+  `TestFoldXAgainstText` through `xform.FallOut`, printed canonically --
+  each required to differ from its sample (the closure does something on
+  every one), and a byte changed in one fails the test by name -- and
+  `internal/graphcheck/testdata/foldx_every_seed.md`, the digest and length
+  of what the text closure gave on q040, q070 and q103, swept and printed,
+  each row keyed by its snapshot's own digest (a snapshot of another input
+  is skipped, said so): whole files of 2 MB each are no test data. FoldX
+  with every seed gives all three, 0.65-0.73 s each.
+- **`Flags`** (the steps' counted arguments, `--at-least N`) is
+  `crefactor/pipeline`'s now, beside `Op` and `GraphOp`, with a test of its
+  own; its nine callers (phases 60, 62, 74 and `internal/steps`' goto and
+  typed-transform steps) call it there. **`Step`** had no user
+  (`internal/steps.Step` and `pipeline.Op` are the step's shape) and went
+  without a successor.
+- Code comments that name an xform function as where a graph function came
+  from are left as provenance (history keeps the code).

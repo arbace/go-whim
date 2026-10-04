@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
@@ -18,7 +18,7 @@ func init() { graphOps["structscalar"] = s6StructScalar }
 
 func s6StructScalar(e *graph.Editor, args []string, w io.Writer) error {
 	v := graph.NewVerbs("structscalar", e, w)
-	f, err := xform.Flags(v.Tag, args, "--at-least")
+	f, err := pipeline.Flags(v.Tag, args, "--at-least")
 	if err != nil {
 		return err
 	}

@@ -20,7 +20,7 @@ import (
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
@@ -31,7 +31,7 @@ func init() { phase.RegisterGraph("whim62", Edit) }
 // values.
 func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	v := graph.NewVerbs("empty", e, w)
-	f, err := xform.Flags(v.Tag, args, "--at-least")
+	f, err := pipeline.Flags(v.Tag, args, "--at-least")
 	if err != nil {
 		return err
 	}

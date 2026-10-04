@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
@@ -22,7 +22,7 @@ func init() {
 
 func b3gGotoTail(e *graph.Editor, args []string, w io.Writer) error {
 	v := graph.NewVerbs("gototail", e, w)
-	f, err := xform.Flags(v.Tag, args, "--at-least")
+	f, err := pipeline.Flags(v.Tag, args, "--at-least")
 	if err != nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func b3gGotoTail(e *graph.Editor, args []string, w io.Writer) error {
 
 func b3gGotoBreak(e *graph.Editor, args []string, w io.Writer) error {
 	v := graph.NewVerbs("gotobreak", e, w)
-	f, err := xform.Flags(v.Tag, args, "--at-least")
+	f, err := pipeline.Flags(v.Tag, args, "--at-least")
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func b3gGotoBreak(e *graph.Editor, args []string, w io.Writer) error {
 
 func b3gGotoLoop(e *graph.Editor, args []string, w io.Writer) error {
 	v := graph.NewVerbs("gotoloop", e, w)
-	f, err := xform.Flags(v.Tag, args, "--at-least")
+	f, err := pipeline.Flags(v.Tag, args, "--at-least")
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func b3gGotoLoop(e *graph.Editor, args []string, w io.Writer) error {
 
 func b3gGotoBlock(e *graph.Editor, args []string, w io.Writer) error {
 	v := graph.NewVerbs("gotoblock", e, w)
-	f, err := xform.Flags(v.Tag, args, "--at-least")
+	f, err := pipeline.Flags(v.Tag, args, "--at-least")
 	if err != nil {
 		return err
 	}

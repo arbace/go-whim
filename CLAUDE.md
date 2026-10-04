@@ -331,8 +331,8 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    whim-vim.c's functions (57, 66, 78, 80 and 83's moved
                    into the phases, B3f), a phase's diff against its
                    snapshot (b3f_test.go), and FOLDX held to the text's
-                   closures (every seed, phase 62's empties, notags'
-                   conditions), and every phase on the graph from end to
+                   closures (every seed, by the digests testdata/ records,
+                   phase 62's empties, notags' conditions), and every phase on the graph from end to
                    end held to the import of its C view, ids aside
                    (s6_test.go, step 6: SameGraph, every typed edge):
                    GRAPH_SNAPS), steps'
@@ -538,13 +538,12 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    imported, its C view the canonical print) -- told everything through a
                    Config; hybrid.go its text and graph steps, the
                    conversions between them, the re-check before every
-                   collection, and the graph snapshots. xform/: what is left of the text transforms (fallout.go: the
-                   text's fall-out closure, what a drop's cut leaves unwritten
-                   folded, and what that makes constant -- FoldX's tests'
-                   oracle since B4 put the front on the graph; Flags, the
-                   steps' argument parser; the typed transforms went to
-                   crefactor/graph in step 6, the seed's attrs.go and
-                   nullptr.go and phase 88's includes.go in R3). edit/: the C-text
+                   collection, and the graph snapshots; flags.go Flags,
+                   the steps' counted arguments (`--at-least N`). The
+                   text transforms' package, xform/, is gone: its last
+                   code, the text's fall-out closure, was FoldX's tests'
+                   oracle until Fin recorded what it gave as their golden
+                   files. edit/: the C-text
                    substrate that was cutil, and the one verb set -- E, every act
                    counted (driver.go, blocks.go); Ph, the driver of the phases
                    whose cut is a computation; the counted acts both and

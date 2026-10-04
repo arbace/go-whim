@@ -15,7 +15,7 @@ import (
 	"io"
 
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
@@ -25,7 +25,7 @@ func init() { phase.RegisterGraph("whim74", Edit) }
 // Edit folds the core's tests of a never-NULL function's result.
 func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	v := graph.NewVerbs("allocnull", e, w)
-	f, err := xform.Flags(v.Tag, args, "--at-least")
+	f, err := pipeline.Flags(v.Tag, args, "--at-least")
 	if err != nil {
 		return err
 	}

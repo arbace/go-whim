@@ -2,30 +2,34 @@ package graph
 
 import (
 	"bytes"
-	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/arbace/go-whim/crefactor/cemit"
 	"github.com/arbace/go-whim/crefactor/edit"
-	"github.com/arbace/go-whim/crefactor/xform"
 )
 
-// FOLDX held to xform.FallOut: each sample run through the text closure
-// (every unwritten object and member a seed) and printed canonically, and
-// through FoldX on the sample's graph read back from its Lisp: the same C,
-// byte for byte.
+// FOLDX held to the text's fall-out closure: each sample's graph, read
+// back from its Lisp, through FoldX is testdata/foldx/NAME.c byte for byte
+// -- what crefactor/xform's FallOut (every unwritten object and member a
+// seed) gave on the sample, printed canonically.  The files were written
+// once, before xform was deleted (doc/GRAPH-MIGRATION.md, *Fin as built*):
+// at 1c227af, by `cd crefactor && go test ./graph -run X` with a test that,
+// for each sample, wrote cemit.Canonical(path, xform.FallOut()(canon, nil,
+// io.Discard)) -- this file's foldxSame there, its want written out.  Each
+// differs from its sample's canonical text: the closure does something on
+// every one.
 
 func foldxSame(t *testing.T, name, src string) FoldXStats {
 	t.Helper()
-	path, canon, g := importSample(t, src)
-	text, err := xform.FallOut()(canon, nil, io.Discard)
+	_, canon, g := importSample(t, src)
+	want, err := os.ReadFile(filepath.Join("testdata", "foldx", name+".c"))
 	if err != nil {
-		t.Fatalf("%s: the text closure: %v", name, err)
+		t.Fatal(err)
 	}
-	want, err := cemit.Canonical(path, text)
-	if err != nil {
-		t.Fatalf("%s: the text closure's result does not print: %v\n%s", name, err, text)
+	if bytes.Equal(want, canon) {
+		t.Fatalf("%s: the text closure's result is the sample itself", name)
 	}
 	h, err := Read(g.Lisp())
 	if err != nil {
