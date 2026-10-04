@@ -16,3 +16,5 @@ reading the code around it.
 **Declared delta: nothing.** The check requires the typed prototypes, no cast
 outside a class, and the binary byte-identical. Its probe is a Visual-mode put,
 which saves and restores a register, and the control moves.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the result, the parameter and the locals are retyped by RETYPE and the two casts rewritten by form, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

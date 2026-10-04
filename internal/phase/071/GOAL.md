@@ -23,3 +23,5 @@ response. Whether the pty delivers the two writes as two reads is up to the
 kernel, so for that path the byte-for-byte `else` is the evidence.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 143-145 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the jump is replaced by FRAG and the code it skipped moved into the if's new else by MOVE, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

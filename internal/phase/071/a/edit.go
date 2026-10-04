@@ -13,19 +13,13 @@ package p071a
 
 import (
 	"io"
-	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/clisp"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim71a", Edit) }
-
-const (
-	w71aDelimHead = "            case 't':\n            delimiter_atom:\n"
-	w71aTail      = "\n                break;\n"
-	w71aMagic     = "((int)('[') - 256)"
-)
+func init() { phase.RegisterGraph("whim71a", Edit) }
 
 // W71aCall is what replaces a jump to delimiter_atom, and the block itself, at
 // an indentation: the helper's node, or a return of the NULL it gives after
@@ -47,7 +41,7 @@ func W71aHelper(block string) string {
 		block + "    return ret;\n}\n\n"
 }
 
-// Whim71a takes the three jumps Out of regatom().
+// Edit takes the three jumps out of regatom().
 //
 // regatom() jumped into the middle of other cases three ways (internal/gen/FINDINGS.md,
 // 11): `\_%)` to the delimiter atom inside the `\%` case's own switch, and
@@ -62,84 +56,167 @@ func W71aHelper(block string) string {
 //   - the switch dispatches on sw, not c, in a loop that runs once: the `\_[`
 //     path sets sw to the `[` case and continues, and c is '[' as the jump
 //     left it.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "regatom", W: w}
-	blank := edit.Blank(text)
-	a, z, ok := edit.FindDefinition(text, blank, "regatom")
-	if !ok {
-		return nil, p.Die("regatom is not defined")
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): found by form -- the label, the
+// block it marks and the break after it, the jumps, the statements -- and
+// written in one FRAG unit: regatom_delim() before regatom() (the block's
+// items printed into it: its uses become the helper's parameters, which
+// MOVE refuses), the call at the case and at both jumps, the multibyte
+// node at its jump; then the loop by BUILD, the switch moved into it whole
+// (its nodes kept) and the `\_[` jump a store and a continue.  History keeps
+// the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("regatom", e, w)
+	fn := e.Defn("regatom")
+	if fn == nil {
+		v.Die("regatom is not defined")
+		return v.Done()
 	}
-	s := string(text[a:z])
-
-	// 1. the delimiter atom
-	h := strings.Index(s, w71aDelimHead)
-	if h < 0 || strings.Count(s, "delimiter_atom:") != 1 {
-		return nil, p.Die("the delimiter_atom label is not where this phase expects it")
+	is := func(n *graph.Node, pat string) bool {
+		p, err := clisp.Pattern(pat)
+		return err == nil && n != nil && graph.Matches(p, n)
 	}
-	bo := h + len(w71aDelimHead)
-	if !strings.HasPrefix(s[bo:], "                {\n") {
-		return nil, p.Die("delimiter_atom does not label a block")
-	}
-	bs := edit.Blank([]byte(s))
-	bc := edit.Match(bs, bo+strings.Index(s[bo:], "{"))
-	if bc < 0 || !strings.HasPrefix(s[bc+1:], w71aTail) {
-		return nil, p.Die("the delimiter block does not end in a break")
-	}
-	Inner := s[bo+len("                {\n") : bc]
-	helper := W71aHelper(Inner)
-	s = s[:h] + "            case 't':\n" + W71aCall("                ") + s[bc+1+len(w71aTail):]
-	n := 0
-	for _, ind := range []string{"                ", "                    "} {
-		g := "\n" + ind + "goto delimiter_atom;\n"
-		if strings.Count(s, g) == 1 {
-			s = strings.Replace(s, g, "\n"+W71aCall(ind), 1)
-			n++
+	// sibling is the item k places after n in its list, or nil
+	sibling := func(n *graph.Node, k int) *graph.Node {
+		ks := e.Parent(n).Kids
+		for i, x := range ks {
+			if x == n && i+k >= 0 && i+k < len(ks) {
+				return ks[i+k]
+			}
 		}
+		return nil
 	}
-	if n != 2 || strings.Contains(s, "delimiter_atom") {
-		return nil, p.Die("%d jumps to delimiter_atom at the expected places, and this phase was written against 2", n)
+	put := func(at *graph.Node, tmpl string, how string) []*graph.Node {
+		if v.Failed() {
+			return nil
+		}
+		ns, err := e.Build(at, tmpl, nil)
+		if err == nil {
+			switch how {
+			case "replace":
+				err = e.Replace(at, ns...)
+			case "before":
+				err = e.InsertBefore(at, ns...)
+			case "after":
+				err = e.InsertAfter(at, ns...)
+			}
+		}
+		if err != nil {
+			v.Die("regatom(): %s -- %v", tmpl, err)
+		}
+		return ns
 	}
-	p.Say("the delimiter atom is regatom_delim(), called from its case and from the two jumps")
-
-	// 2. the multibyte node
-	mbGoto := "            c = getchr();\n            goto do_multibyte;\n"
-	mbLabel := "            do_multibyte:\n                ret = regnode(MULTIBYTECODE);\n                regmbc(c);\n                *flagp |= HASWIDTH | SIMPLE;\n                break;\n"
-	if strings.Count(s, mbGoto) != 1 || strings.Count(s, mbLabel) != 1 {
-		return nil, p.Die("the do_multibyte jump or label is not what this phase expects")
-	}
-	s = strings.Replace(s, mbGoto, "            c = getchr();\n            ret = regnode(MULTIBYTECODE);\n            regmbc(c);\n            *flagp |= HASWIDTH | SIMPLE;\n            break;\n", 1)
-	s = strings.Replace(s, mbLabel, strings.TrimPrefix(mbLabel, "            do_multibyte:\n"), 1)
-	p.Say("`.` with a composing character makes its multibyte node where it was")
-
-	// 3. the collection
-	colGoto := "            goto collection;\n"
-	colLabel := "    case " + w71aMagic + ":\n    collection:\n"
-	if strings.Count(s, colGoto) != 1 || strings.Count(s, colLabel) != 1 {
-		return nil, p.Die("the collection jump or label is not what this phase expects")
-	}
-	s = strings.Replace(s, colGoto, "            sw = "+w71aMagic+";\n            continue;\n", 1)
-	s = strings.Replace(s, colLabel, "    case "+w71aMagic+":\n", 1)
-	head := "    c = getchr();\n    switch (c)\n    {\n"
-	tail := "\n    }\n    return ret;\n}"
-	hi := strings.Index(s, head)
-	if hi < 0 || !strings.HasSuffix(strings.TrimRight(s, "\n"), strings.TrimPrefix(tail, "\n")) {
-		return nil, p.Die("regatom()'s switch is not where this phase expects it")
-	}
-	ti := strings.LastIndex(s, tail)
-	Body := s[hi+len(head) : ti]
-	s = s[:hi] + "    c = getchr();\n    sw = c;\n    for (;;)\n    {\n        switch (sw)\n        {\n" +
-		Body + "\n        }\n        break;\n    }\n    return ret;\n}" + s[ti+len(tail):]
-	decl := "    int c;\n"
-	if strings.Count(s, decl) != 1 {
-		return nil, p.Die("regatom()'s c is not declared where this phase expects")
-	}
-	s = strings.Replace(s, decl, decl+"    int sw;\n", 1)
-	if strings.Contains(s, "goto ") || strings.Contains(s, "collection:") {
-		return nil, p.Die("regatom() still jumps")
-	}
-	p.Say("regatom() dispatches on sw in a loop that runs once, and `\\_[` dispatches again to the collection: no goto left")
-
-	// the helper goes before regatom(), whose head starts the definition
-	Out := string(text[:a]) + helper + s + string(text[z:])
-	return []byte(Out), nil
+	v.In(fn, func(v *graph.Verbs) {
+		// 1. the delimiter atom
+		lbl := v.One("(label delimiter_atom)", "the delimiter_atom label")
+		if v.Failed() {
+			return
+		}
+		blk, brk := sibling(lbl, 1), sibling(lbl, 2)
+		if !is(sibling(lbl, -1), "(case 't')") {
+			v.Die("the delimiter_atom label is not where this phase expects it")
+			return
+		}
+		if blk == nil || !blk.Is("block") {
+			v.Die("delimiter_atom does not label a block")
+			return
+		}
+		if !is(brk, "(break)") {
+			v.Die("the delimiter block does not end in a break")
+			return
+		}
+		var inner []*clisp.Node
+		for _, x := range blk.Kids[1:] {
+			inner = append(inner, graph.Lisp(x))
+		}
+		c, err := clisp.PrintItems(inner)
+		if err != nil {
+			v.Die("%v", err)
+			return
+		}
+		jumps := v.Find("(goto delimiter_atom)")
+		if len(jumps) != 2 {
+			v.Die("%d jumps to delimiter_atom at the expected places, and this phase was written against 2", len(jumps))
+			return
+		}
+		// 2. the multibyte node
+		mb := v.Find("(goto do_multibyte)")
+		ml := v.Find("(label do_multibyte)")
+		if len(mb) != 1 || len(ml) != 1 || !is(sibling(mb[0], -1), "(= c (call getchr))") ||
+			!is(sibling(ml[0], 1), "(= ret (call regnode MULTIBYTECODE))") || !is(sibling(ml[0], 2), "(call regmbc c)") ||
+			!is(sibling(ml[0], 3), "(|= (deref flagp) (| HASWIDTH SIMPLE))") || !is(sibling(ml[0], 4), "(break)") {
+			v.Die("the do_multibyte jump or label is not what this phase expects")
+			return
+		}
+		call := W71aCall("")
+		if _, err := e.SpliceC(graph.Frag{At: e.SpotBefore(fn), Src: W71aHelper(string(c))},
+			graph.Frag{At: e.SpotRun(lbl, brk), Src: call},
+			graph.Frag{At: e.SpotOf(jumps[0]), Src: call},
+			graph.Frag{At: e.SpotOf(jumps[1]), Src: call},
+			graph.Frag{At: e.SpotOf(mb[0]), Src: "ret = regnode(MULTIBYTECODE);\nregmbc(c);\n*flagp |= HASWIDTH | SIMPLE;\nbreak;\n"},
+		); err != nil {
+			v.Die("the delimiter atom is regatom_delim() -- %v", err)
+			return
+		}
+		v.Say("the delimiter atom is regatom_delim(), called from its case and from the two jumps")
+		if err := e.Delete(ml[0]); err != nil {
+			v.Die("%v", err)
+			return
+		}
+		v.Say("`.` with a composing character makes its multibyte node where it was")
+		// 3. the collection
+		cg := v.Find("(goto collection)")
+		cl := v.Find("(label collection)")
+		if len(cg) != 1 || len(cl) != 1 || !is(sibling(cl[0], -1), "(case (paren (- (cast int (paren '[')) 256)))") {
+			v.Die("the collection jump or label is not what this phase expects")
+			return
+		}
+		var sw *graph.Node
+		for _, x := range fn.Kids {
+			if x.Is("switch") {
+				if sw != nil {
+					sw = nil
+					break
+				}
+				sw = x
+			}
+		}
+		if sw == nil || !is(sw, "(switch c _)") || !is(sibling(sw, -1), "(= c (call getchr))") || !is(sibling(sw, 1), "(return ret)") {
+			v.Die("regatom()'s switch is not where this phase expects it")
+			return
+		}
+		ds := v.Find("(def c int)")
+		if len(ds) != 1 {
+			v.Die("regatom()'s c is not declared where this phase expects")
+			return
+		}
+		put(ds[0], "(def sw int)", "after")
+		put(sw, "(= sw c)", "before")
+		put(sw.Kids[1], "sw", "replace")
+		if v.Failed() {
+			return
+		}
+		loop, err := e.Build(sw, "(for () () () (block ?s (break)))", graph.Bindings{"s": sw})
+		if err == nil {
+			err = e.Replace(sw, loop...)
+		}
+		if err != nil {
+			v.Die("regatom()'s loop -- %v", err)
+			return
+		}
+		if _, err := e.SpliceC(graph.Frag{At: e.SpotOf(cg[0]), Src: "sw = ((int)('[') - 256);\ncontinue;\n"}); err != nil {
+			v.Die("regatom(): the `\\_[` jump -- %v", err)
+			return
+		}
+		if err := e.Delete(cl[0]); err != nil {
+			v.Die("%v", err)
+			return
+		}
+		if v.Count("(goto _)") != 0 || v.Count("(label _)") != 0 {
+			v.Die("regatom() still jumps")
+			return
+		}
+		v.Say("regatom() dispatches on sw in a loop that runs once, and `\\_[` dispatches again to the collection: no goto left")
+	})
+	return v.Done()
 }

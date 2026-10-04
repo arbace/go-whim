@@ -285,7 +285,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 15, 19-56, 58, 60, 62, 64, 74 and 77 and parts 4a-4f, 5a-5d, 15a, 38a, 38b, 49a, 49b, 51a and 86a so far, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
+phase converted to the graph (phases 15, 19-73, 75, 77-86, 89-93 and 96-98 and parts 4a-4f, 5a-5d, 15a, 38a, 38b, 49a, 49b, 51a, 71a, 71b, 77a and 86a so far, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -322,8 +322,11 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    and 99 and the line on every snapshot, B2b's rows,
                    enumerators and renames held to argvfront, filefront and
                    phase 51a, eight phases' literal C spliced by FRAG, PARAM,
-                   RETYPE and MOVE on phases 57, 66, 78, 80, 83 and
-                   86's parameter and on whim-vim.c's functions, and FOLDX held to the text's
+                   RETYPE and MOVE on phase 31 and 86's parameter and on
+                   whim-vim.c's functions (57, 66, 78, 80 and 83's moved
+                   into the phases, B3f), B3f's phases each held to its
+                   snapshot with a diff and to the import of it
+                   (b3f_test.go), and FOLDX held to the text's
                    closures (the front's three, every seed, phase 62's
                    empties, notags' conditions), and phases 43-52 each
                    held to the import of its snapshot (B3d's chain), and
@@ -479,6 +482,10 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    items that hold them -- linediff.go the line diff --
                    the uses of a struct, member, enumerator or tag written
                    anew carried to the new declaration by name);
+                   and B3f's protoparam.go (a prototype's parameter
+                   names) and fragmore.go (FRAG verbs for an expression by
+                   its C, a spot, nodes the caller found, a node wrapped
+                   as a hole);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -933,7 +940,9 @@ was the input boundary's digest and the implementation's together, so a moved
   to 56 -- and B3a's: the cutters onebuffer, nowild, nowildmenu, noconv,
   noglob, nofind, nohome, nogetenv, nochdir and oneoptset, parts 4b-4f and
   5a-5d and the programs of phases 21, 22 and 26, so that phases 4-26 run
-  on the graph from end to end with no import between them. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
+  on the graph from end to end with no import between them -- and B3f's,
+  phases 57, 59, 61, 63, 65-73, 75, 78-85, 93 and 96-98, parts 71a, 71b and
+  77a and phase 86's own step. The rest is `doc/GRAPH-MIGRATION.md`'s. `internal/phase/STAGES.md` is the
   record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).

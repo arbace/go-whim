@@ -28,3 +28,5 @@ a control. Then it finds by bisection, on the input's binary, the exact
 `'maxmempattern'` at which a complex star over 600 characters stops failing
 with E363. The output's binary must fail at one less and succeed at that
 value, drawing the same bytes at both.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: every literal is a FRAG act of one unit, found by its C or its form, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

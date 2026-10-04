@@ -380,7 +380,7 @@ var Plan = []Phase{
 		}},
 	{N: 57, Block: "r07-types", Name: "`p_emoji` is an `int`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim57"}},
+			{Op: "edit", Graph: true, Args: []string{"whim57"}},
 		}},
 	{N: 58, Name: "the `(pos_T *)-1` tests go",
 		Steps: []Step{
@@ -388,7 +388,7 @@ var Plan = []Phase{
 		}},
 	{N: 59, Name: "the saved input buffer is a `garray_T *`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim59"}},
+			{Op: "edit", Graph: true, Args: []string{"whim59"}},
 		}},
 	{N: 60, Block: "r08-memory", Name: "nothing frees",
 		Steps: []Step{
@@ -398,7 +398,7 @@ var Plan = []Phase{
 		}},
 	{N: 61, Name: "one buffer needs no hash table",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim61"}},
+			{Op: "edit", Graph: true, Args: []string{"whim61"}},
 		}},
 	{N: 62, Block: "g03-empty-blocks", Name: "the empty blocks fold",
 		Steps: []Step{
@@ -406,7 +406,7 @@ var Plan = []Phase{
 		}},
 	{N: 63, Block: "r09-regex", Name: "one regexp program type",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim63"}},
+			{Op: "edit", Graph: true, Args: []string{"whim63"}},
 		}},
 	{N: 64, Name: "the engine is called directly",
 		Steps: []Step{
@@ -414,41 +414,41 @@ var Plan = []Phase{
 		}},
 	{N: 65, Block: "r10-types", Name: "the changedtick is a number",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim65"}},
+			{Op: "edit", Graph: true, Args: []string{"whim65"}},
 		}},
 	{N: 66, Name: "no parameter carries an eval value",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim66"}},
+			{Op: "edit", Graph: true, Args: []string{"whim66"}},
 		}},
 	{N: 67, Name: "the core sorts and searches typed arrays",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim67"}},
+			{Op: "edit", Graph: true, Args: []string{"whim67"}},
 		}},
 	{N: 68, Name: "highlight groups are found in their array",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim68"}},
+			{Op: "edit", Graph: true, Args: []string{"whim68"}},
 		}},
 	{N: 69, Block: "r11-gotos", Name: "`regrepeat()` does not jump into a case",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim69"}},
+			{Op: "edit", Graph: true, Args: []string{"whim69"}},
 		}},
 	{N: 70, Name: "the version names no build date or time",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim70"}},
+			{Op: "edit", Graph: true, Args: []string{"whim70"}},
 		}},
 	{N: 71, Name: "`regatom()`, `edit()` and `check_termcode()` have no goto",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim71a"}},
-			{Op: "edit", Args: []string{"whim71b"}},
-			{Op: "edit", Args: []string{"whim71"}},
+			{Op: "edit", Graph: true, Args: []string{"whim71a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim71b"}},
+			{Op: "edit", Graph: true, Args: []string{"whim71"}},
 		}},
 	{N: 72, Block: "r12-memline-and-host", Name: "a memline node names its block",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim72"}},
+			{Op: "edit", Graph: true, Args: []string{"whim72"}},
 		}},
 	{N: 73, Name: "`deathtrap()` runs at the host's next wait",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim73"}},
+			{Op: "edit", Graph: true, Args: []string{"whim73"}},
 		}},
 	{N: 74, Block: "g04-never-null", Name: "allocation cannot fail, and its branches fold",
 		Steps: []Step{
@@ -457,7 +457,7 @@ var Plan = []Phase{
 		}},
 	{N: 75, Block: "r13-translation", Name: "the regexp stack is three typed stacks",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim75"}},
+			{Op: "edit", Graph: true, Args: []string{"whim75"}},
 		}},
 	{N: 76, Name: "the option table's defaults and its variables, typed",
 		Steps: []Step{
@@ -466,45 +466,45 @@ var Plan = []Phase{
 		}},
 	{N: 77, Name: "`free_one_termoption()` compares without a cast, and its NULL write is gone",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim77a"}},
+			{Op: "edit", Graph: true, Args: []string{"whim77a"}},
 			{Op: "edit", Graph: true, Args: []string{"whim77"}},
 		}},
 	{N: 78, Name: "call arguments with effects are evaluated in gcc's order",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim78"}},
+			{Op: "edit", Graph: true, Args: []string{"whim78"}},
 		}},
 	{N: 79, Name: "the regex size pass's node is a static byte, not (char_u *) -1",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim79"}},
+			{Op: "edit", Graph: true, Args: []string{"whim79"}},
 		}},
 	{N: 80, Name: "get_register() and put_register() carry a yankreg_T *, not a void *",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim80"}},
+			{Op: "edit", Graph: true, Args: []string{"whim80"}},
 		}},
 	{N: 81, Name: "a highlight's terminal font is read only from a colour entry",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim81"}},
+			{Op: "edit", Graph: true, Args: []string{"whim81"}},
 		}},
 	{N: 82, Name: "a struct's text is a pointer to an allocation of its own",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim82"}},
+			{Op: "edit", Graph: true, Args: []string{"whim82"}},
 		}},
 	{N: 83, Name: "no line getter takes a cookie",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim83"}},
+			{Op: "edit", Graph: true, Args: []string{"whim83"}},
 		}},
 	{N: 84, Name: "no goto jumps into a block",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim84"}},
+			{Op: "edit", Graph: true, Args: []string{"whim84"}},
 		}},
 	{N: 85, Name: "no two function pointers are compared",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim85"}},
+			{Op: "edit", Graph: true, Args: []string{"whim85"}},
 		}},
 	{N: 86, Block: "g05-dead", Name: "what the Go's linters found dead",
 		Steps: []Step{
 			{Op: "edit", Graph: true, Args: []string{"whim86a"}},
-			{Op: "edit", Args: []string{"whim86"}},
+			{Op: "edit", Graph: true, Args: []string{"whim86"}},
 		}},
 	{N: 87, Block: "g06-bool-and-keys", Name: "`bool` and key names",
 		Steps: []Step{
@@ -533,7 +533,7 @@ var Plan = []Phase{
 		}},
 	{N: 93, Block: "r14-parallel-substitute", Name: "no address of a position's line or column",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim93"}},
+			{Op: "edit", Graph: true, Args: []string{"whim93"}},
 		}},
 	{N: 94, Name: "a member's address a call hands back is a local's",
 		Steps: []Step{
@@ -545,15 +545,15 @@ var Plan = []Phase{
 		}},
 	{N: 96, Name: "a line's match on its own",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim96"}},
+			{Op: "edit", Graph: true, Args: []string{"whim96"}},
 		}},
 	{N: 97, Name: ":g marks the lines match_lines finds",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim97"}},
+			{Op: "edit", Graph: true, Args: []string{"whim97"}},
 		}},
 	{N: 98, Name: "no mark is cleared when none was set",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim98"}},
+			{Op: "edit", Graph: true, Args: []string{"whim98"}},
 		}},
 	{N: 99, Name: "the host's clock can be held still",
 		Steps: []Step{

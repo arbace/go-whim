@@ -19,3 +19,5 @@ be the old tail statement for statement. The error path is vim's internal
 error for a line the memline cannot give, and no key reaches it, so no probe
 can; the textual identity is the evidence for it. The probe draws, joins,
 moves through and deletes lines, and the control moves.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the tail, the jump and ml_get_invalid() are written by FRAG in one unit, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

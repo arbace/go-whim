@@ -190,7 +190,15 @@ func (e *Editor) SpliceC(fs ...Frag) ([][]*Node, error) {
 	}
 	// the splices: in each list, the last spot first, so that the others'
 	// indexes hold (lists are independent: no spot is in what another
-	// replaces)
+	// replaces); an edge from one fragment into another is held whichever
+	// is spliced first
+	e.pending = map[*Node]bool{}
+	for _, j := range s.jobs {
+		for _, n := range j.nodes {
+			Walk(n, func(x *Node) bool { e.pending[x] = true; return true })
+		}
+	}
+	defer func() { e.pending = nil }()
 	for _, j0 := range s.jobs {
 		js := s.spots[j0.f.At.p]
 		if js[0] != j0 {

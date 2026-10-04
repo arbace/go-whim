@@ -27,3 +27,5 @@ heads. It requires the same partition on the output, with `sizeof(T)` where the
 `bh_create_newblock` set, and that only a new block, made current, clears it.
 It probes a repeated change, a recorded register and an empty one, a long
 message redisplayed by `g<`, and a pattern. Each control moves.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the members are retyped by RETYPE and the allocations and heads written by FRAG in one unit, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

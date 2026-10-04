@@ -18,3 +18,5 @@ of assignments, that `curbuf` is only ever `nullptr`, `curwin->w_buffer` or
 current buffer is the one buffer whenever a mark can be set. Its probe sets
 and jumps to the marks that go through `buflist_findnr()` (`m[`, `m]`,
 `m"`); the control jumps to a mark never set.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the body by FRAG, the three statements cut by their forms, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

@@ -15,14 +15,12 @@ package p073
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim73", Edit) }
+func init() { phase.RegisterGraph("whim73", Edit) }
 
-// W73Handler and W73Deliver are the host's new functions, exported so the
-// check requires the identical text.
 const (
 	W73Handler = `    static void
 host_on_death(int sigarg)
@@ -60,10 +58,10 @@ host_deliver_death(void)
 `
 )
 
-// Whim73 runs deathtrap() at the host's next wait, woken by a self-pipe.
+// Edit runs deathtrap() at the host's next wait, woken by a self-pipe.
 //
 // SIGHUP and SIGTERM ran deathtrap() as their handler: the core's whole way
-// Out -- preserving, restoring the terminal, writing its message -- inside a
+// out -- preserving, restoring the terminal, writing its message -- inside a
 // signal handler, at whatever point the signal found the core, which is
 // undefined behaviour in C and not expressible in Go, whose runtime takes the
 // signal and hands it to a goroutine (internal/gen/FINDINGS.md, 12).  The handler now
@@ -78,22 +76,48 @@ host_deliver_death(void)
 // an interrupt and raises it again when that wait unblocks.  So deathtrap() only
 // ever ran in that window, and now runs at the wait or read inside it -- the
 // same moment but for the few statements between the unblock and the wait.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("selfpipe", text, w)
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): the objects, the functions and
+// the statements written by FRAG in one unit (Together), then <fcntl.h> moved
+// beside <termios.h> (INCLUDE: one form moved, its id kept, under the extern
+// rule).  History keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("selfpipe", e, w)
+	v.Together(func(v *graph.Verbs) {
+		v.TopAfterC("host_int_pending", "static volatile sig_atomic_t host_death_pending = 0;\nstatic int host_death_pipe[2] = {-1, -1};\n",
+			"a deadly signal is recorded, beside a pipe that wakes the wait")
+		v.TopAfterC("host_on_int", W73Handler+"\n"+W73Deliver,
+			"host_on_death() records it and writes to the pipe; host_deliver_death() drains the pipe and runs deathtrap()")
+		v.LiteralC("    host_catch(SIGHUP, deathtrap);\n    host_catch(SIGTERM, deathtrap);\n", "    if (pipe2(host_death_pipe, O_NONBLOCK | O_CLOEXEC) != 0)\n    {\n        host_death_pipe[0] = -1;\n        host_death_pipe[1] = -1;\n    }\n    host_catch(SIGHUP, host_on_death);\n    host_catch(SIGTERM, host_on_death);\n", 1,
+			"SIGHUP and SIGTERM are caught by host_on_death(), not deathtrap()")
+		v.LiteralC("    for (;;)\n    {\n        if (host_winch_pending || host_tstp_pending || host_int_pending)\n        {\n            return 1;\n        }\n        FD_ZERO(&rfds);\n        FD_SET(0, &rfds);\n        ret = select(1, &rfds, nullptr, nullptr, tvp);\n        if (ret == -1 && errno == EINTR)\n        {\n            continue;\n        }\n        return ret > 0 && FD_ISSET(0, &rfds);\n    }\n", "    for (;;)\n    {\n        host_deliver_death();\n        if (host_winch_pending || host_tstp_pending || host_int_pending)\n        {\n            return 1;\n        }\n        FD_ZERO(&rfds);\n        FD_SET(0, &rfds);\n        if (host_death_pipe[0] >= 0)\n        {\n            FD_SET(host_death_pipe[0], &rfds);\n        }\n        ret = select(host_death_pipe[0] >= 0 ? host_death_pipe[0] + 1 : 1, &rfds, nullptr, nullptr, tvp);\n        if (ret == -1 && errno == EINTR)\n        {\n            continue;\n        }\n        if (ret > 0 && host_death_pipe[0] >= 0 && FD_ISSET(host_death_pipe[0], &rfds))\n        {\n            continue;\n        }\n        return ret > 0 && FD_ISSET(0, &rfds);\n    }\n", 1,
+			"the wait delivers a deadly signal first, and selects on the pipe beside the input")
+		v.InFunction("musl_read_input", func(v *graph.Verbs) {
+			v.BeforeC("(if host_int_pending _)", "host_deliver_death();\n", 1, "and so does the read")
+		})
+	})
+	if v.Failed() {
+		return v.Done()
+	}
 	// <fcntl.h> is still there, since phase 88 drops the unused headers last: it
 	// moves to where this phase has always put it.
-	e.Literal("#include <fcntl.h>\n", "", 1, "<fcntl.h>, never dropped, moves to beside <termios.h>")
-	e.Literal("#include <termios.h>\n", "#include <termios.h>\n#include <fcntl.h>\n", 1,
-		"the host includes <fcntl.h> for the pipe's flags")
-	e.Literal("static volatile sig_atomic_t host_int_pending = FALSE;\n", "static volatile sig_atomic_t host_int_pending = FALSE;\nstatic volatile sig_atomic_t host_death_pending = 0;\nstatic int host_death_pipe[2] = {-1, -1};\n", 1,
-		"a deadly signal is recorded, beside a pipe that wakes the wait")
-	e.Literal("    static void\nhost_on_int(int sigarg)\n{\n    host_int_pending = TRUE;\n}\n", "    static void\nhost_on_int(int sigarg)\n{\n    host_int_pending = TRUE;\n}\n\n"+W73Handler+"\n"+W73Deliver, 1,
-		"host_on_death() records it and writes to the pipe; host_deliver_death() drains the pipe and runs deathtrap()")
-	e.Literal("    host_catch(SIGHUP, deathtrap);\n    host_catch(SIGTERM, deathtrap);\n", "    if (pipe2(host_death_pipe, O_NONBLOCK | O_CLOEXEC) != 0)\n    {\n        host_death_pipe[0] = -1;\n        host_death_pipe[1] = -1;\n    }\n    host_catch(SIGHUP, host_on_death);\n    host_catch(SIGTERM, host_on_death);\n", 1,
-		"SIGHUP and SIGTERM are caught by host_on_death(), not deathtrap()")
-	e.Literal("    for (;;)\n    {\n        if (host_winch_pending || host_tstp_pending || host_int_pending)\n        {\n            return 1;\n        }\n        FD_ZERO(&rfds);\n        FD_SET(0, &rfds);\n        ret = select(1, &rfds, nullptr, nullptr, tvp);\n        if (ret == -1 && errno == EINTR)\n        {\n            continue;\n        }\n        return ret > 0 && FD_ISSET(0, &rfds);\n    }\n", "    for (;;)\n    {\n        host_deliver_death();\n        if (host_winch_pending || host_tstp_pending || host_int_pending)\n        {\n            return 1;\n        }\n        FD_ZERO(&rfds);\n        FD_SET(0, &rfds);\n        if (host_death_pipe[0] >= 0)\n        {\n            FD_SET(host_death_pipe[0], &rfds);\n        }\n        ret = select(host_death_pipe[0] >= 0 ? host_death_pipe[0] + 1 : 1, &rfds, nullptr, nullptr, tvp);\n        if (ret == -1 && errno == EINTR)\n        {\n            continue;\n        }\n        if (ret > 0 && host_death_pipe[0] >= 0 && FD_ISSET(host_death_pipe[0], &rfds))\n        {\n            continue;\n        }\n        return ret > 0 && FD_ISSET(0, &rfds);\n    }\n", 1,
-		"the wait delivers a deadly signal first, and selects on the pipe beside the input")
-	e.Literal("musl_read_input(char *buf, int len)\n{\n", "musl_read_input(char *buf, int len)\n{\n    host_deliver_death();\n", 1,
-		"and so does the read")
-	return e.Done()
+	var fcntl, termios *graph.Node
+	for _, inc := range e.Includes() {
+		switch graph.IncludeSpec(inc) {
+		case "<fcntl.h>":
+			fcntl = inc
+		case "<termios.h>":
+			termios = inc
+		}
+	}
+	if fcntl == nil || termios == nil {
+		v.Die("<fcntl.h> or <termios.h> is not included")
+		return v.Done()
+	}
+	if err := e.MoveFormsAfter(termios, fcntl); err != nil {
+		v.Die("<fcntl.h> moves beside <termios.h> -- %v", err)
+		return v.Done()
+	}
+	v.Say("<fcntl.h>, never dropped, moves beside <termios.h>, where the host includes it for the pipe's flags")
+	return v.Done()
 }

@@ -18,3 +18,5 @@ the output. It requires the flag to be set by exactly the calls that pass
 only `DOCMD_VERBOSE`. It probes `@:` after a command typed at `:`, and after a
 `<Cmd>` mapping, which must not replace the last command line. Each control
 moves.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the enum, the flags and the four tests are written by FRAG in one unit, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

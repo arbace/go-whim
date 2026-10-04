@@ -14,3 +14,5 @@ cannot cast a struct to the larger one it heads, kept a registry
 **Declared delta: nothing**, and more: every field keeps its offset, so the
 check requires the input and the output, built with the boundary's flags and
 `SOURCE_DATE_EPOCH=0`, to be **the same bytes**.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the casts are rewritten by form and the two typedefs written as one by FRAG, which resolves every use of the struct again, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

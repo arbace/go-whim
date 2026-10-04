@@ -35,3 +35,5 @@ only in the two functions and their callers (176 lines). The phase changes
 nothing the editor does: `whim test` 45/45 as HEAD's, and the Go, Java and
 Clojure editors all 45 and all 240 (`--wide`) as the C; the heavy case's
 times as before; `whim-build-check` gives the product back.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: each expansion is found by its form and replaced by its call, and the functions and locals written, by FRAG in one unit, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

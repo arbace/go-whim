@@ -19,3 +19,5 @@ therefore measures it itself. It requires `__DATE__` and `__TIME__` gone. It bui
 the same bytes; the input built the same two ways, the control, differs. It
 runs `-T` without its argument and reads the version line from both
 binaries: the new one, and the input's with `, compiled Jan  1 1970 00:00:00`.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the format string is respelled and the length's term and the argument taken by form, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

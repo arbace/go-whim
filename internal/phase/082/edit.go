@@ -12,17 +12,17 @@ package p082
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim82", Edit) }
+func init() { phase.RegisterGraph("whim82", Edit) }
 
 // W82Types are the three structs whose last member was a one-element array
 // sized at allocation.
 var W82Types = []string{"buffblock_T", "msgchunk_T", "regprog_T"}
 
-// Whim82 makes each of the three struct hacks a pointer to an allocation of
+// Edit makes each of the three struct hacks a pointer to an allocation of
 // its own.
 //
 // buffblock_T's b_str, msgchunk_T's sb_text and regprog_T's program were
@@ -33,26 +33,31 @@ var W82Types = []string{"buffblock_T", "msgchunk_T", "regprog_T"}
 // the head of each of the five buffer lists, whose one byte is written only
 // with NUL (delete_buff_tail() of nothing) and read never.  Each head points
 // at a one-byte array of its own, a compound literal with static storage.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("structhack", text, w)
-	e.Literal("    usize b_strlen;\n    char_u b_str[1];\n", "    usize b_strlen;\n    char_u *b_str;\n", 1,
-		"a buffblock_T's text is a char_u *")
-	e.Literal("        p = alloc(__builtin_offsetof(buffblock_T, b_str) + len + 1);\n", "        p = alloc(sizeof(buffblock_T));\n        p->b_str = alloc(len + 1);\n", 1,
-		"allocated apart from the block")
-	e.Literal("    int sb_attr;\n    char_u sb_text[1];\n", "    int sb_attr;\n    char_u *sb_text;\n", 1,
-		"a msgchunk_T's text is a char_u *")
-	e.Literal("        mp = alloc(__builtin_offsetof(msgchunk_T, sb_text) + (s - *sb_str) + 1);\n", "        mp = alloc(sizeof(msgchunk_T));\n        mp->sb_text = alloc((s - *sb_str) + 1);\n", 1,
-		"allocated apart from the chunk")
-	e.Literal("    int regmlen;\n    char_u program[1];\n", "    int regmlen;\n    char_u *program;\n", 1,
-		"a regprog_T's program is a char_u *")
-	e.Literal("    r = alloc(__builtin_offsetof(regprog_T, program) + regsize);\n", "    r = alloc(sizeof(regprog_T));\n    r->program = alloc(regsize);\n", 1,
-		"allocated apart from the regprog_T")
-	for _, h := range []string{"redobuff", "old_redobuff", "recordbuff", "readbuf1", "readbuf2"} {
-		// The canonical text writes an aggregate initialiser one element per
-		// line, with the brace under the `=`, so the head is the first element's
-		// line and not the first field of a one-line row.
-		old := "static buffheader_T " + h + " =\n{\n    {nullptr, 0, {NUL}},\n"
-		e.Literal(old, "static buffheader_T "+h+" =\n{\n    {nullptr, 0, (char_u[1]){NUL}},\n", 1, "the head of "+h+" points at a byte of its own")
-	}
-	return e.Done()
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): each member retyped (RETYPE),
+// then the allocations and the five heads' bytes written by FRAG in one unit
+// (Together); history keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("structhack", e, w)
+	v.Retype("(b_str (array 1 char_u))", "(ptr char_u)", "a buffblock_T's text is a char_u *")
+	v.Retype("(sb_text (array 1 char_u))", "(ptr char_u)", "a msgchunk_T's text is a char_u *")
+	v.Retype("(program (array 1 char_u))", "(ptr char_u)", "a regprog_T's program is a char_u *")
+	v.Together(func(v *graph.Verbs) {
+		v.LiteralC("        p = alloc(__builtin_offsetof(buffblock_T, b_str) + len + 1);\n", "        p = alloc(sizeof(buffblock_T));\n        p->b_str = alloc(len + 1);\n", 1,
+			"allocated apart from the block")
+		v.LiteralC("        mp = alloc(__builtin_offsetof(msgchunk_T, sb_text) + (s - *sb_str) + 1);\n", "        mp = alloc(sizeof(msgchunk_T));\n        mp->sb_text = alloc((s - *sb_str) + 1);\n", 1,
+			"allocated apart from the chunk")
+		v.LiteralC("    r = alloc(__builtin_offsetof(regprog_T, program) + regsize);\n", "    r = alloc(sizeof(regprog_T));\n    r->program = alloc(regsize);\n", 1,
+			"allocated apart from the regprog_T")
+		for _, h := range []string{"redobuff", "old_redobuff", "recordbuff", "readbuf1", "readbuf2"} {
+			v.InTable(h, func(v *graph.Verbs) {
+				var bs []*graph.Node
+				for _, m := range v.Find("(init nullptr 0 (init NUL))") {
+					bs = append(bs, m.Kids[3])
+				}
+				v.ReplaceEachC(bs, "(char_u[1]){NUL}", 1, "the head of "+h+" points at a byte of its own")
+			})
+		}
+	})
+	return v.Done()
 }

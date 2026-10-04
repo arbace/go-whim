@@ -29,3 +29,5 @@ table found, and its id is its index + 1, which is what `hn_id` held. So:
 
 Its probes are a new group looked up in another case, a group a failed
 `:hi` added and took back, and a link; each control moves.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the bodies and the block by FRAG in one unit, the table's statements cut by their forms, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

@@ -24,3 +24,5 @@ the input's `musl_bsearch()` with its two byte steps made element steps. It
 requires each search to use the table and comparator it had. Its probes are
 `:hi` attributes, a colour name, a key name in a mapping, a character class
 in a pattern, and `:undolist` over two branches; each control moves.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the comparators' declarations and the typed searches are written by FRAG in one unit and the four calls rebuilt by form, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

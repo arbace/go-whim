@@ -62,6 +62,11 @@ type Editor struct {
 	// sanctioned path past "a function's parameters are its type".
 	argLists bool
 
+	// pending are the nodes SpliceC is about to put in, every fragment's
+	// of one unit: a fragment's edge into another's is held, whichever is
+	// spliced first (frag.go).
+	pending map[*Node]bool
+
 	// Log is every edit, in order.
 	Log []Act
 	// Untyped are the expressions an edit left without a typed edge.
@@ -539,11 +544,11 @@ func (e *Editor) spliceAs(op string, p *Node, lo, hi int, with []*Node, pl int) 
 	}
 	for _, x := range fresh {
 		for _, r := range x.Refs {
-			if !e.Live(r) && !seen[r] || old[r] && !seen[r] {
+			if !e.Live(r) && !seen[r] && !e.pending[r] || old[r] && !seen[r] {
 				return fmt.Errorf("%s: a refers edge from %s to #%d (%s), which the graph does not hold", what(), label(x), r.ID, label(r))
 			}
 		}
-		if t := x.Type; t != nil && (!e.Live(t) && !seen[t] || old[t] && !seen[t]) {
+		if t := x.Type; t != nil && (!e.Live(t) && !seen[t] && !e.pending[t] || old[t] && !seen[t]) {
 			return fmt.Errorf("%s: a typed edge from %s to #%d, which the graph does not hold", what(), label(x), t.ID)
 		}
 	}

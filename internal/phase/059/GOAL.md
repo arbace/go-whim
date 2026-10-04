@@ -16,3 +16,5 @@ saved input buffer is one of seven, each saying `garray_T` where the input
 said `char_u`; the two casts are gone and no other appeared; and the silent
 compile is itself the proof that nothing passed a string where the growarray
 goes.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the member, the result and the parameter are retyped (RETYPE), and the parameter takes the local's uses and name (RENAME), in its prototype too, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

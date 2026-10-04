@@ -40,3 +40,5 @@ the build, 64 cores, every output the same bytes), before and after:
 
 What is left of each is the command's: the two middle ones delete 62,500
 lines one after another, and `:v/the/d` 187,500.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the loop is found by its form and its locals and first statement written by FRAG, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

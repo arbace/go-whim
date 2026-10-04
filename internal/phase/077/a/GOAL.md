@@ -25,3 +25,5 @@ string. Its probes reach `ttest()` through the terminal colour options, and
 each control moves.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 154, as the first of the group 153-154, which was one idea split for history's sake. There is no boundary q153 of its own any more; everything above still says what the steps do and why.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the comparison is found by its form and written anew by FRAG, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

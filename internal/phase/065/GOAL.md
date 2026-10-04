@@ -17,3 +17,5 @@ of `b_ct_di` is the field, `init_changedtick()`'s cast or a use of the
 number; on the output each use is the input's, rewritten in place by the
 same rule (`edit.W137Tick`). Every insert, undo and search in the recording
 reads the tick.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the member is retyped and renamed (RETYPE, RENAME), the body written by FRAG and the 18 expansions rewritten by form, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

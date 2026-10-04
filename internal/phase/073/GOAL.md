@@ -37,3 +37,5 @@ same output, stderr and exit status on both binaries. The controls:
 - SIGTERM and SIGHUP differ, because the message names the signal;
 - the busy run is interrupted and never finishes its substitution, so the
   signal did land mid-computation. It says `Interrupted`, as it did before.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the objects, functions and statements are written by FRAG in one unit and <fcntl.h> moved by INCLUDE, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

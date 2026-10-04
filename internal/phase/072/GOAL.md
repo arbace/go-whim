@@ -24,3 +24,5 @@ function, the tree's stack, or an assignment from such a node.
 **Declared delta: nothing.** The memline corpus in the recording exercises the
 tree. The check's probe makes 300 lines, deletes 100 and undoes the deletion,
 splitting leaves and making pointer blocks; one line fewer moves the output.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the header's definition, the two bodies and the nineteen fields are written by FRAG, the assertion's term and string by form, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

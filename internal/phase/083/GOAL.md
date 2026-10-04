@@ -36,3 +36,5 @@ it and the phase says so and cuts nothing (`edit.Ph.LiteralOrGone`). The
 second class exists for the sweep's closure (`crefactor/sweep`,
 the sweep itself since the six deleters went), whose closure takes a typedef nothing names in
 an earlier sweep. Anything else refuses as it always did.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: one PARAM edit drops the cookie from the whole family of function types and every call, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

@@ -25,3 +25,5 @@ evidence is a partition and a probe:
 - **the probe**: `iab<U+1F600>cd<Esc>:q!` is written in the same bytes by the
   binary the phase was handed and the one it made; and **the control**,
   `+set noemoji`, writes different bytes, so the probe sees the option at all.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: its declaration is retyped by RETYPE, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

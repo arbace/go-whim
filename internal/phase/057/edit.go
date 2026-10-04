@@ -18,13 +18,13 @@ package p057
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim57", Edit) }
+func init() { phase.RegisterGraph("whim57", Edit) }
 
-// Whim57 declares p_emoji an int.
+// Edit declares p_emoji an int.
 //
 // 'emoji' is a P_BOOL option and the options table writes and reads every
 // boolean option through an int *, but its variable was declared char_u *:
@@ -35,9 +35,12 @@ func init() { phase.Register("whim57", Edit) }
 // panicked on the first run (internal/gen/FINDINGS.md, 1).  The table row, the reader
 // and every writer are unchanged; only the declaration says what the storage
 // holds.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("emoji", text, w)
-	e.Literal("static char_u *p_emoji;\n", "static int p_emoji;\n", 1,
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): the declaration retyped
+// (RETYPE), its uses typed again; history keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("emoji", e, w)
+	v.Retype("(def static p_emoji (ptr char_u))", "int",
 		"p_emoji is declared int, the type every boolean option's variable has")
-	return e.Done()
+	return v.Done()
 }

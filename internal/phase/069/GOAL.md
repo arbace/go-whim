@@ -22,3 +22,5 @@ the input's jumps and another from the output's switch, each with its own
 parse, and requires them equal with 18 entries. It requires the loop
 unchanged byte for byte. Its probe substitutes with all eighteen classes, one
 per line; the control swaps `\s` for `\S` and moves.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the class cases are read as a run of items and the head written anew by FRAG, the loop keeping its nodes, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

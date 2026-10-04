@@ -15,11 +15,13 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"strings"
+
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim67", Edit) }
+func init() { phase.RegisterGraph("whim67", Edit) }
 
 // W67Search is a typed binary search over an array of T, compared by cmp: the
 // vendored musl_bsearch() line for line, on a T * instead of a char * stepped
@@ -74,10 +76,7 @@ const W67SortBody = `    int         i;
         files[j] = s;
     }`
 
-// w67Site is a search through musl_bsearch(), after the cast of its result.
-const w67Site = `musl_bsearch\(&target, &(\w+), \((sizeof\(\w+\) / sizeof\(\(\w+\)\[0\]\))\), sizeof\(\w+\[0\]\), (\w+)\)`
-
-// Whim67 sorts and searches typed arrays.
+// Edit sorts and searches typed arrays.
 //
 // The core sorted one array and searched four through the vendored musl_qsort()
 // and musl_bsearch(), which see an array as a void * stepped by a byte width
@@ -86,29 +85,94 @@ const w67Site = `musl_bsearch\(&target, &(\w+), \((sizeof\(\w+\) / sizeof\(\(\w+
 // first Go signature was wrong -- and typed each by hand (internal/gen/FINDINGS.md, 7).
 // Here the four searches call a typed copy of musl's search, one per element
 // type, the comparators take the type they always cast to, and :undolist's one
-// sort is an insertion sort; the sweep takes musl_qsort(), musl_bsearch() and
+// sort is an insertion sort; the collection takes musl_qsort(), musl_bsearch() and
 // sort_compare().
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("typed", text, w)
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): a comparator's type changes
+// while its address is a value, which RETYPE refuses, so the comparators'
+// prototypes and definitions are written anew by FRAG -- each the C of the
+// form it replaces with the text program's literals applied to that form
+// alone -- in ONE unit with the two typed searches, which retargets every use
+// of them; then the four calls are rebuilt by form (BUILD) and sort_strings()'s
+// call replaced by its loop (FRAG); history keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("typed", e, w)
+	// the forms the text program's literals rewrote, each found once
+	form := func(name string, defn bool) *graph.Node {
+		var out []*graph.Node
+		for _, d := range e.FileDecls(name) {
+			if d.Is("defn") == defn {
+				out = append(out, d)
+			}
+		}
+		if len(out) != 1 {
+			v.Die("%s: %d %s, expected 1", name, len(out), map[bool]string{true: "definitions", false: "prototypes"}[defn])
+			return nil
+		}
+		return out[0]
+	}
+	// lit is the text program's Literal on the C of some forms alone
+	lit := func(c, old, new string, n int, what string) string {
+		if k := strings.Count(c, old); k != n {
+			v.Die("%s -- occurs %d times, expected %d", what, k, n)
+			return c
+		}
+		return strings.ReplaceAll(c, old, new)
+	}
+	cOf := func(fs ...*graph.Node) string {
+		b, err := graph.FormsC(fs)
+		if err != nil {
+			v.Die("%v", err)
+		}
+		return string(b)
+	}
+	kv := []string{"cmp_keyvalue_value_n", "cmp_keyvalue_value_i", "cmp_keyvalue_value_ni"}
+	var protos, defs []*graph.Node
+	for _, n := range kv {
+		protos = append(protos, form(n, false))
+		defs = append(defs, form(n, true))
+	}
+	kn := form("cmp_key_name_entry", true)
+	if v.Failed() {
+		return v.Done()
+	}
 	kvCast := "    keyvalue_T *kv1 = (keyvalue_T *)a;\n    keyvalue_T *kv2 = (keyvalue_T *)b;\n"
-	e.Literal("(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_i(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_ni(const void *a, const void *b);\n", "(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *));\n", 1,
+	var fs []graph.Frag
+	pc := lit(cOf(protos...), "(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_i(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_ni(const void *a, const void *b);\n", "(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *));\n", 1,
 		"the keyvalue_T comparators take keyvalue_T: their prototypes, and the typed search's")
-	e.Literal("(const void *a, const void *b)\n{\n"+kvCast, "(keyvalue_T *kv1, keyvalue_T *kv2)\n{\n", 3,
-		"their definitions, without the casts")
-	e.Literal("cmp_key_name_entry(const void *a, const void *b)\n", "cmp_key_name_entry(struct key_name_entry *a, struct key_name_entry *b)\n", 1,
+	fs = append(fs, graph.Frag{At: e.SpotRun(protos[0], protos[2]), Src: pc})
+	for i, d := range defs {
+		c := lit(cOf(d), "(const void *a, const void *b)\n{\n"+kvCast, "(keyvalue_T *kv1, keyvalue_T *kv2)\n{\n", 1,
+			"their definitions, without the casts")
+		if i == 2 {
+			c += "\n" + W67Search("keyvalue_bsearch", "keyvalue_T")
+		}
+		fs = append(fs, graph.Frag{At: e.SpotOf(d), Src: c})
+	}
+	c := lit(cOf(kn), "cmp_key_name_entry(const void *a, const void *b)\n", "cmp_key_name_entry(struct key_name_entry *a, struct key_name_entry *b)\n", 1,
 		"the key name comparator takes a key_name_entry")
-	e.Literal("((struct key_name_entry *)a)->name.string;", "a->name.string;", 1,
-		"and reads it without a cast")
-	e.Literal("((struct key_name_entry *)b)->name.string;", "b->name.string;", 1,
-		"twice")
-	// the typed searches, each after the comparators of its type
-	e.Sub(`(?s)\ncmp_keyvalue_value_ni\(.*?\n\}\n`, "${0}\n"+W67Search("keyvalue_bsearch", "keyvalue_T"), 1,
-		"keyvalue_bsearch() is musl_bsearch() on a keyvalue_T *")
-	e.Sub(`(?s)\ncmp_key_name_entry\(.*?\n\}\n`, "${0}\n"+W67Search("key_name_bsearch", "struct key_name_entry"), 1,
-		"key_name_bsearch() on a struct key_name_entry *")
-	e.Sub(`\(keyvalue_T \*\)`+w67Site, "keyvalue_bsearch(&target, ${1}, ${2}, ${3})", 3, "three of the four searches call keyvalue_bsearch()")
-	e.Sub(`\(struct key_name_entry \*\)`+w67Site, "key_name_bsearch(&target, ${1}, ${2}, ${3})", 1, "and one key_name_bsearch()")
-	e.Literal("    musl_qsort((void *)files, (usize)count, sizeof(char_u *), sort_compare);\n", W67SortBody+"\n", 1,
-		"sort_strings() sorts the pointers itself")
-	return e.Done()
+	c = lit(c, "((struct key_name_entry *)a)->name.string;", "a->name.string;", 1, "and reads it without a cast")
+	c = lit(c, "((struct key_name_entry *)b)->name.string;", "b->name.string;", 1, "twice")
+	fs = append(fs, graph.Frag{At: e.SpotOf(kn), Src: c + "\n" + W67Search("key_name_bsearch", "struct key_name_entry")})
+	if v.Failed() {
+		return v.Done()
+	}
+	if _, err := e.SpliceC(fs...); err != nil {
+		v.Die("the comparators take their type -- %v", err)
+		return v.Done()
+	}
+	v.Say("the keyvalue_T comparators take keyvalue_T: their prototypes, and the typed search's")
+	v.Say("their definitions, without the casts")
+	v.Say("the key name comparator takes a key_name_entry, and reads it without a cast")
+	v.Say("keyvalue_bsearch() is musl_bsearch() on a keyvalue_T *")
+	v.Say("key_name_bsearch() on a struct key_name_entry *")
+	v.Rewrite("(cast (ptr keyvalue_T) (call musl_bsearch (addr target) (addr ?t) (paren ?n) (sizeof (index ?t 0)) ?c))",
+		"(call keyvalue_bsearch (addr target) ?t ?n ?c)", 3, "three of the four searches call keyvalue_bsearch()")
+	v.Rewrite("(cast (ptr (struct key_name_entry)) (call musl_bsearch (addr target) (addr ?t) (paren ?n) (sizeof (index ?t 0)) ?c))",
+		"(call key_name_bsearch (addr target) ?t ?n ?c)", 1, "and one key_name_bsearch()")
+	v.InFunction("sort_strings", func(v *graph.Verbs) {
+		v.ReplaceC("(call musl_qsort (cast (ptr void) files) (cast usize count) (sizeof-type (ptr char_u)) sort_compare)",
+			W67SortBody+"\n", 1, "sort_strings() sorts the pointers itself")
+	})
+	return v.Done()
 }

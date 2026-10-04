@@ -28,3 +28,5 @@ code at every rewritten call, and requires no argument pair left. It requires
 each remaining binary pair to be called left to right in the output's code.
 Its probes run `:copy`, `:move`, opening a line, CTRL-G, g CTRL-G and a Tab,
 and each control moves.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: each argument is moved into a new local's value by MOVE, keeping its nodes, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

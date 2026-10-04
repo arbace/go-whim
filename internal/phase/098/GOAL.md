@@ -22,3 +22,5 @@ so nothing the walk cleared is left uncleared.
 **Measured:** one line of `ml_clearmarked`; the C answers every case as the
 commit before, and `par_gnomatch` -- `:g/nomatch/d` and `:v/./d` over 3,000
 lines -- now answers on the Go, Java and Clojure editors as on the C.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the condition is found by its form and written anew by FRAG, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

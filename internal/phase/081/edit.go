@@ -13,19 +13,18 @@ package p081
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim81", Edit) }
+func init() { phase.RegisterGraph("whim81", Edit) }
 
-// W81Font is the test phase 81 finds and the one it writes.
 const (
 	W81Font  = "        if (aep->ae_u.cterm.font > 0 && aep->ae_u.cterm.font < 12)\n"
 	W81Guard = "        if (t_colors > 1 && aep->ae_u.cterm.font > 0 && aep->ae_u.cterm.font < 12)\n"
 )
 
-// Whim81 reads a highlight's terminal font only from a colour entry.
+// Edit reads a highlight's terminal font only from a colour entry.
 //
 // attrentry_T holds either a term entry (the start and stop strings) or a
 // cterm entry (the colours and a font) in one union, and which one is
@@ -34,8 +33,15 @@ const (
 // term entry: the top two bytes of term.start, which no x86-64 user-space
 // pointer has set.  The one union member read where its discriminant does not
 // say it holds (internal/ccx's Unions).  The test now asks t_colors first.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("font", text, w)
-	e.Literal(W81Font, W81Guard, 1, "screen_start_highlight() reads cterm.font only when t_colors > 1 says the entry is a cterm entry")
-	return e.Done()
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): the condition, found by its C,
+// written anew by FRAG; history keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("font", e, w)
+	cond := func(line string) string { return line[len("        if (") : len(line)-len(")\n")] }
+	v.InFunction("screen_start_highlight", func(v *graph.Verbs) {
+		v.LiteralExprC("(&& _ _)", cond(W81Font), cond(W81Guard), 1,
+			"screen_start_highlight() reads cterm.font only when t_colors > 1 says the entry is a cterm entry")
+	})
+	return v.Done()
 }

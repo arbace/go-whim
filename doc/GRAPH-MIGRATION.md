@@ -882,18 +882,29 @@ phase 60 | 60 | phase/060 + graph/dropcalls.go | 34+126 | - | done | - | B3g | n
 phase 61 | 61 | whim61 | 23 | - | b | FRAG | B3f | buflist_findnr
 phase 62 | 62 | phase/062 + graph/foldmore.go | 34 | - | done | - | B3g | empty blocks fold: B2d's Editor.EmptyBlocks on the core, PureCond
 phase 63 | 63 | whim63 | 58 | - | b | MOVE RENAME RETYPE | B3f | one regprog type
+phase 53 | 53 | whim53 @state | 817 | 4723 | b | PARAM FOLDX FRAG | B3e | swap-file residue; mostly deletions
+phase 54 | 54 | whim54 @state | 589 | 15478 | b | FRAG RETYPE RENAME PARAM | B3e | a block number becomes a reference; after 53
+phase 55 | 55 | whim55 @state | 665 | 4418 | b | FRAG PARAM MOVE | B3e | de-page the leaf; after 54
+phase 56 | 56 | whim56 @state | 791 | 4045 | b | FRAG RETYPE PARAM | B3e | fold the node types; after 55
+phase 57 | 57 | whim57 | 13 | - | done | - | B3f | p_emoji int; on the graph (B3f): RETYPE: the declaration retyped
+phase 58 | 58 | whim58 | 13 | - | done | - | B1c | three (pos_T *)-1 tests fold; on the graph (B1c), a FoldNever by form
+phase 59 | 59 | whim59 | 23 | - | done | - | B3f | garray_T *; on the graph (B3f): RETYPE x3, RetargetAs/RENAME, RenamePrototypeParams (new)
+phase 60 | 60 | crefactor/xform/dropcalls.go | 7+94 | - | a | BUILD FOLDX(dead stores) | B3g | no-op frees go; not typed
+phase 61 | 61 | whim61 | 23 | - | done | - | B3f | buflist_findnr; on the graph (B3f): BodyC, three Cuts
+phase 62 | 62 | crefactor/xform/emptyblocks.go | 7+89 | - | b | FOLDX(empties everywhere) | B3g | empty blocks fold; not typed
+phase 63 | 63 | whim63 | 58 | - | done | - | B3f | one regprog type; on the graph (B3f): casts by Rewrite; three declarations RetargetAs; the two typedefs one by FRAG with the offsetof
 phase 64 | 64 | whim64 | 21 | - | done | - | B1c | the engine called directly; on the graph (B1c): 4 statements rebuilt by template, 1 cut
-phase 65 | 65 | whim65 | 14 | - | b | RETYPE RENAME FRAG | B3f | changedtick a number
-phase 66 | 66 | whim66 | 58 | - | b | PARAM FOLDX TEXTQ | B3f | parameters never used
-phase 67 | 67 | whim67 | 72 | - | b | FRAG RETYPE RENAME | B3f | typed sort and search
-phase 68 | 68 | whim68 | 57 | - | b | FRAG | B3f | highlight groups by scan
-phase 69 | 69 | whim69 | 66 | - | b | FRAG MOVE | B3f | regrepeat's goto into a case
-phase 70 | 70 | whim70 | 17 | - | b | RENAME PARAM | B3f | no build date
-71a | 71 | phase/071/a | 98 | - | b | MOVE FRAG | B3f | regatom: an outlined block
-71b | 71 | phase/071/b | 207 | - | b | FRAG MOVE | B3f | edit(): 17 gotos
-phase 71 | 71 | whim71a, whim71b, whim71 | 59 | - | b | FRAG MOVE | B3f | check_termcode; after 71a, 71b
-phase 72 | 72 | whim72 | 58 | - | b | FRAG TEXTQ | B3f | a node names its block
-phase 73 | 73 | whim73 | 58 | - | b | INCLUDE FRAG | B3f | deathtrap at the next wait (host)
+phase 65 | 65 | whim65 | 14 | - | done | - | B3f | changedtick a number; on the graph (B3f): RETYPE + RENAME of the member, BodyC, 18 Rewrites
+phase 66 | 66 | whim66 | 58 | - | done | - | B3f | parameters never used; on the graph (B3f): folds by form, PARAM (B2c's test moved in)
+phase 67 | 67 | whim67 | 72 | - | done | - | B3f | typed sort and search; on the graph (B3f): comparators' forms written anew by FRAG (RETYPE refuses a function used as a value), the searches rebuilt by Rewrite, sort by ReplaceC
+phase 68 | 68 | whim68 | 57 | - | done | - | B3f | highlight groups by scan; on the graph (B3f): BodyC x2, LiteralC, Cuts, one unit
+phase 69 | 69 | whim69 | 66 | - | done | - | B3f | regrepeat's goto into a case; on the graph (B3f): the class run read as items, its head FRAG, the loop kept
+phase 70 | 70 | whim70 | 17 | - | done | - | B3f | no build date; on the graph (B3f): RespellString, two Rewrites
+71a | 71 | phase/071/a | 98 | - | done | - | B3f | regatom: an outlined block; on the graph (B3f): outlined by FRAG (MOVE refuses: uses become parameters), switch moved into a BUILD loop
+71b | 71 | phase/071/b | 207 | - | done | - | B3f | edit(): 17 gotos; on the graph (B3f): jumps classified by ancestors; one FRAG unit
+phase 71 | 71 | whim71a, whim71b, whim71 | 59 | - | done | - | B3f | check_termcode; after 71a, 71b; on the graph (B3f): FRAG for the jump, MOVE (MoveRun) for the skipped items into a BUILD else
+phase 72 | 72 | whim72 | 58 | - | done | - | B3f | a node names its block; on the graph (B3f): struct, bodies and 19 casts by FRAG (selection chains as cc reads them), assertion by Rewrite and RespellString
+phase 73 | 73 | whim73 | 58 | - | done | - | B3f | deathtrap at the next wait (host); on the graph (B3f): one FRAG unit, then INCLUDE's MoveFormsAfter
 74a | 74 | phase/074/a | 20 | - | b | FRAG | B3f | lalloc's body
 phase 74 | 74 | whim74a, phase/074 + graph/nevernull.go | 35+381 | - | b | FRAG (74a) | B3g, B3f | whim74 on the graph (B3g): Editor.NeverNull, the set by forms, its locals by spelling as the text's; 74a still text, so the phase imports after it
 phase 75 | 75 | whim75 | 73 | - | b | FRAG INITROW TEXTQ | B3f | three typed stacks
@@ -919,16 +930,40 @@ phase 90 | 90 | graph/gotobreak.go, gotoflow.go | 90+256 | - | done | - | B3g | 
 phase 91 | 91 | graph/gotoloop.go, gotoflow.go | 211+256 | - | done | - | B3g | goto back -> loop: Editor.GotoLoop, the region moved; handed the graph
 phase 92 | 92 | graph/gotoblock.go | 314 | - | done | - | B3g | goto out -> do-while(0) break: Editor.GotoBlock, the region moved; handed the graph
 phase 93 | 93 | whim93 | 71 | - | b | FRAG MOVE TEXTQ | B3f | one_adjust as functions
+phase 74 | 74 | whim74a, xform/nevernull.go | 7+253 | - | b | FOLDX(label) | B3g | never-NULL tests fold; not typed
+phase 75 | 75 | whim75 | 73 | - | done | - | B3f | three typed stacks; on the graph (B3f): one FRAG unit: LiteralC, LiteralExprC (new), ReplaceEachC (new), FragAt (new)
+76a | 76 | phase/076/a | 96 | - | b | INITROW RETYPE RENAME FRAG | B3f/step 6 | def_val split; a typed transform in text; B3f: left text, for step 6
+phase 76 | 76 | whim76a, whim76 | 294 | - | b | INITROW RETYPE FRAG RENAME | B3f/step 6 | optvar_T: kinds from typed edges; B3f: left text, for step 6
+77a | 77 | phase/077/a | 13 | - | done | - | B3f | a comparison; on the graph (B3f): ReplaceC; phase 77 is graph end to end
+phase 77 | 77 | whim77a, whim77 | 13 | - | done | - | B3f | an if cut (B1c) and a comparison (B3f): graph end to end
+phase 78 | 78 | whim78 | 27 | - | done | - | B3f | gcc's argument order through locals; on the graph (B3f): BUILD + MoveTo (B2c's test moved in)
+phase 79 | 79 | whim79 | 16 | - | done | - | B3f | a static byte for (char_u *)-1; on the graph (B3f): one FRAG unit
+phase 80 | 80 | whim80 | 23 | - | done | - | B3f | yankreg_T *; on the graph (B3f): RetypeResult, Retype x3, two Rewrites (B2c's test moved in)
+phase 81 | 81 | whim81 | 16 | - | done | - | B3f | a font read guarded; on the graph (B3f): LiteralExprC
+phase 82 | 82 | whim82 | 28 | - | done | - | B3f | flexible arrays become pointers; on the graph (B3f): RETYPE x3, one FRAG unit
+phase 83 | 83 | whim83 | 29 | - | done | - | B3f | no cookie; on the graph (B3f): one DropParams over the family (B2c's test moved in)
+phase 84 | 84 | whim84 | 37 | - | done | - | B3f | ml_get_invalid outlined; on the graph (B3f): one FRAG unit
+phase 85 | 85 | whim85 | 19 | - | done | - | B3f | a flag for a pointer comparison; on the graph (B3f): one FRAG unit
+86a | 86 | phase/086/a + graph/deadstmt.go | 21+104 | - | done | - | B1c | statements after a jump; on the graph (B1c): Editor.DeadStmt, StmtTerminates on nodes; xform.Terminates stays for fallout.go and the gotos
+phase 86 | 86 | whim86a, whim86 | 35 | - | done | - | B3f | six dead stores; one parameter becomes a local; on the graph (B3f): 86a (B1c) and whim86 (B3f): Cuts by form and context, Rewrite, ParamToLocal
+87a | 87 | phase/087/a + xform/boolret.go | 7+1020 | - | b | RETYPE BUILD | B3f | bool for 278 functions; cc.Parse only; B3f: left text (B3f as built)
+phase 87 | 87 | whim87a, whim87 | 167 | - | b | FRAG TEXTQ | B3f | 153 key codes named; B3f: left text (B3f as built)
+phase 88 | 88 | crefactor/xform/includes.go | 159 | - | d | - | - | each #include tried under gcc
+phase 89 | 89 | crefactor/xform/gototail.go | 366 | - | b | CLONE FOLDX(label) | B3g | goto tails; cc.Parse only
+phase 90 | 90 | crefactor/xform/gotobreak.go, gotoflow.go | 84+186 | - | a | BUILD FOLDX(label) | B3g | goto -> break
+phase 91 | 91 | crefactor/xform/gotoloop.go, gotoflow.go | 232+186 | - | b | MOVE | B3g | goto back -> loop
+phase 92 | 92 | crefactor/xform/gotoblock.go | 404 | - | b | MOVE | B3g | goto out -> do-while(0) break
+phase 93 | 93 | whim93 | 71 | - | done | - | B3f | one_adjust as functions; on the graph (B3f): expansions by form, one FRAG unit with the lvalue a hole twice
 phase 94 | 94 | crefactor/xform/memberout.go, rewrite.go | 703+147 | - | c | step 6 | 6 | member out-parameters
 phase 95 | 95 | crefactor/xform/stateparam.go | 429 | - | c | step 6 | 6 | the engine's state a parameter
-phase 96 | 96 | whim96 | 232 | - | b | FRAG MOVE | B3f | a line's match alone; after 95
-phase 97 | 97 | whim97 | 19 | - | b | FRAG | B3f | :g asks match_range; after 96
-phase 98 | 98 | whim98 | 16 | - | b | FRAG | B3f | ml_clearmarked's guard
+phase 96 | 96 | whim96 | 232 | - | done | - | B3f | a line's match alone; after 95; on the graph (B3f): one FRAG unit (WrapEachC, AfterEachC, BeforeEachC new)
+phase 97 | 97 | whim97 | 19 | - | done | - | B3f | :g asks match_range; after 96; on the graph (B3f): one FRAG unit
+phase 98 | 98 | whim98 | 16 | - | done | - | B3f | ml_clearmarked's guard; on the graph (B3f): ReplaceC
 phase 99 | 99 | whim99 | 16 | - | b | INCLUDE FRAG | B3f | WHIM_TIME (host)
 phase 100 | 100 | crefactor/xform/localout.go, structscalar.go | 1148+420 | - | c | step 6 | 6 | values for out-parameters and struct locals
 phase 101 | 101 | crefactor/xform/plainc.go | 308 | - | c | step 6 | 6 | identity, ascii classes, constant ifs
-phase 102 | 102 | crefactor/xform/boolret.go (Globals) | 11 | - | b | RETYPE BUILD | B3f | file-scope flags bool
-phase 103 | 103 | crefactor/xform/boolret.go (Relax) | 12 | - | b | RETYPE BUILD | B3f | more flags bool
+phase 102 | 102 | crefactor/xform/boolret.go (Globals) | 11 | - | b | RETYPE BUILD | B3f | file-scope flags bool; B3f: left text (B3f as built)
+phase 103 | 103 | crefactor/xform/boolret.go (Relax) | 12 | - | b | RETYPE BUILD | B3f | more flags bool; B3f: left text (B3f as built)
 ```
 
 190 rows: 23 (a), 119 (b), 8 (c: the `FallOutOf` wrapper and the three
@@ -1018,7 +1053,7 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
     committed as FRAG.
   - **B3f** phases 57-87 but 58/60/62/64/74/77/86a, and 93, 96-99 (~2,100 of
     programs, BoolRet's 1,020): FRAG, RETYPE, PARAM, MOVE, INITROW; 76/76a
-    may wait for step 6 (a typed transform written in text); 96 after 95.
+    may wait for step 6 (a typed transform written in text); 96 after 95. **Done** but 76a/76, 87a/87, 102 and 103, *B3f as built* below.
   - **B3g** phases 60, 62, 74 and 89-92: the `crefactor/xform` text
     transforms (DropCalls, EmptyBlocks, NeverNull, the gotos: ~1,600 lines)
     on the graph: CLONE, MOVE, FOLDX -- **done**, *B3g as built* below.
@@ -2426,3 +2461,113 @@ inserted a call above its callee's prototype must order its acts
 `Rederive`; a typedef made anew needs the declarations naming it typed
 again (42); RETYPE on a typedef whose result is a function's leaves it
 untyped where a fragment in its place does not.
+## B3f as built (2026-10-03)
+
+Thirty units of phases 57-98 run on the graph, byte for byte, their text
+programs replaced (history keeps them, `16717ab` and before): phases 57,
+59, 61, 63, 65-70, 72, 73, 75, 78-85, 93 and 96-98, phase 71 with its
+parts 71a and 71b, part 77a and phase 86's own step (`whim86`). With
+B1c's 58, 64, 77 and 86a, **phases 57-59, 61, 63-73, 75, 77-86, 93 and
+96-98 are graph end to end**; in a run in order 58-59, 64-73, 78-86 and
+97-98 are handed the graph by the phase before, and 57, 61, 63, 75, 77, 93
+and 96 import (after a text phase: 56, 60, 62, 74, 76, 92, 95). Once B3g's
+60, 62 and 74 are on the graph, 57-75 is one run.
+
+**Left text, and why.**
+
+- **76a and 76** (`optvar_T`, 390 lines of regular expressions): every
+  option variable's kind is read off its declared type and every read
+  rewritten by the kind -- a typed transform written in text. It waits for
+  step 6, as the catalogue allowed; it is the one break in 57-86.
+- **87a, 102 and 103** (`xform.BoolRet`, 1,020 lines): untyped (cc.Parse
+  only), but an analysis over cc's tree -- the greatest fixed point of what
+  only ever holds an answer -- whose port is a rewrite of the analysis on
+  the graph's edges, the size of a B2 capability, not a conversion. Not
+  attempted in this batch's budget.
+- **87** (the key names): after 87a in the same phase, so on the graph it
+  would import and end on the graph only to hand phase 88 (text) a C view:
+  no saving until 87a moves. Not attempted.
+
+**crefactor/graph, additively but one fix**:
+
+- `protoparam.go`: `Editor.RenamePrototypeParams(fn, i, to)` -- a
+  prototype's parameter names are its own (Rename respells the
+  definition's); phases 59 and 67 rename one.
+- `fragmore.go`: `Verbs.LiteralExprC(pat, old, new, n, what)` (a text
+  literal that named part of an item: the pattern's matches whose C,
+  printed alone, is old), `FragAt(spot, src, what)` (C at a spot no pattern
+  names: before a definition that follows its prototype), `ReplaceEachC`,
+  `AfterEachC`/`BeforeEachC` and `WrapEachC` (the caller's nodes; Wrap moves
+  the node into its replacement as a hole, its ids kept: 96's error calls
+  in their else). Each one act, counted, deferred in `Together`.
+- **The fix, in `frag.go` and `edit.go`** (nine lines): SpliceC refused a
+  fragment whose node referred to another fragment's node of the same unit
+  when that one was spliced later ("a refers edge ... which the graph does
+  not hold") -- order-dependent: 71a's helper and its calls passed, 71b's
+  `esc_now` and 73's objects did not. The editor now holds the unit's nodes
+  as pending while it splices (`Editor.pending`), so a unit's fragments
+  name each other whichever goes first. `TestFragPendingEdges` is its test;
+  its control (pending not set) fails it.
+- Tests: `fragmore_test.go`, every verb and refusal against the text
+  verb's C and the import of the result.
+
+**Refinements of the catalogue's vocabulary.**
+
+- **A member is no FRAG spot, so a struct that gains members is written
+  whole**: 63's two typedefs, 72's `block_hdr`, 96's engine state -- FRAG
+  at the definition's spot, its C the form's own C view (`FormsC`) with the
+  text's literal applied. FRAG resolves every use again in the unit; but
+  the typed edges of declarations elsewhere that name the old definition
+  keep pointing at its type node, which the collection then empties:
+  `internal/graphcheck`'s `TestB3fSame` (each phase on q(N-1)'s graph, held
+  to the import of qN.c by `SameGraph`) names `typedef bhdr_T` (72) and
+  `re_multiline`'s parameter (63). Unknown, not wrong; the bytes are the
+  text's on every boundary and through the run. A MEMBER capability (or
+  FRAG retargeting type nodes) is what would close it.
+- **RETYPE refuses a function used as a value** (67's comparators, passed
+  to the search), so their declarations are written anew by FRAG in one
+  unit with the typed searches, which retargets every use.
+- **RETYPE's and PARAM's `f(void)`** is a function type of no parameters
+  where the importer's is one `void` parameter (`TestB3fSame` on 59 and
+  66): a B2c difference in the type node, bytes unaffected.
+- **BUILD leaves arithmetic untyped** (`(- 1)`, `'[' - 256`); where the
+  type matters to the graph being the import's, FRAG writes it (71, 71a).
+- **A selection chain is one form**: `x->bh_ptr->pb_pointer` is `(-> x
+  bh_ptr pb_pointer)` as cc reads it, so a cast that was the operand of
+  `->` is replaced together with that selection (72); the parentheses the
+  text kept -- `(hp->bh_data)->db_...`, its cast matched inside the
+  printer's parentheses -- are written where the text wrote them.
+- **The text's literals that named part of an item** (75's grow
+  conditions, 81's, 85's calls) are `LiteralExprC`; those whose overlap
+  the text resolved by order (75's two `rp = ...` statements, 96's two
+  `nmatch = ...`) are scoped or told apart by their context.
+- **`?x:pat` would have helped** (a binding with a shape, B1a's wish too):
+  73, 75, 82, 96 find the nodes and hand them to the `...EachC` verbs.
+- **A text program that computed C** (69's switch, 71a's helper, 71b's
+  calls) is a graph program that reads the shapes from the forms and
+  writes the new C by FRAG; the nodes it keeps it moves (71's skipped
+  code by MoveRun into a BUILD else; 71a's switch into a BUILD loop; 78's
+  arguments by MoveTo).
+- B2c's whole-phase tests for 57, 66, 78, 80 and 83 became those phases'
+  programs and left `b2c_test.go`.
+
+**The proof** (rebased on main `4f96189`). `rm -rf .cache/boundaries; make
+whim-build-check` in order: whim-vim.c byte for byte, 77,635 lines, 317 s
+wall, 1,073 s CPU (868 user, 205 system) at a load of 10-22, 48 graph
+snapshots written (21 before); before the rebase, on 16717ab, 310 s and
+869 s. Again, in parallel: byte for byte, 104 boundaries compiling, 107 s at
+a load of 37-69; 48 links began on the graph, 36 read from their snapshot,
+12 imported. The control, five faults at once -- 59's cast kept, 69's
+switch on `((int)*(p)) + 0`, 75's count `0`, 86's `col = 0` kept, 96's
+report alone -- named exactly 59, 69, 75 and 86 (`4 of 103 phases do not
+reproduce their snapshot`): a report is not a byte. `whim-editor-check`,
+`whim-test` (80 as HEAD; the Go editor 80 as the C), `go test ./...` in
+both modules, gofmt, go vet and staticcheck on what changed: clean.
+
+**Measured**, one phase at a time (`TestMeasureGraphPhases`, 3 runs,
+medians, load 10-30), main 16717ab's text beside B3f the way a run in
+order takes each phase: the 28 converted phases 59.2 s against 27.7 s.
+Handed the graph a phase costs 0.21-1.0 s against 1.6-4.6 s on text (86:
+4.6 s to 0.22 s; 67, 71, 72, 73, 82: 0.8-1.5 s, their FRAG units); where
+it imports (57, 61, 63, 75, 77, 93, 96) it costs what the text did, 1.9-2.7
+s (63 and 75 about 1 s more: an import against a cheap sweep).

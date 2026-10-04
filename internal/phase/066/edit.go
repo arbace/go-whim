@@ -14,13 +14,13 @@ package p066
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim66", Edit) }
+func init() { phase.RegisterGraph("whim66", Edit) }
 
-// Whim66 takes Out the parameters that carry an eval value.
+// Edit takes out the parameters that carry an eval value.
 //
 // Four functions still take one, and every call passes nullptr: the
 // substitute string's expression (vim_regsub_both's typval_T *expr, for
@@ -31,62 +31,78 @@ func init() { phase.Register("whim66", Edit) }
 // nullptr, and each test of it becomes what it always was.  So do
 // find_ex_command()'s Vim9 lookup and compile context, which it never read,
 // and with them the builtin function types cfunc_T and cfunc_free_T, which
-// the sweep takes.  They are the last
+// the collection takes.  They are the last
 // things naming typval_T, list_T and dict_T outside their own definitions, so
-// the sweep takes the eval layer's value types with them.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("evalparm", text, w)
-	// vim_regsub_both
-	e.Literal("static int vim_regsub_both(char_u *source, typval_T *expr, char_u *dest,", "static int vim_regsub_both(char_u *source, char_u *dest,", 1,
-		"vim_regsub_both() takes no expression: its prototype")
-	e.Literal("vim_regsub_both(char_u *source, typval_T *expr, char_u *dest,", "vim_regsub_both(char_u *source, char_u *dest,", 1,
-		"its definition")
-	e.Literal("vim_regsub_both(source, nullptr, dest, destlen, flags)", "vim_regsub_both(source, dest, destlen, flags)", 1,
-		"its one call")
-	e.Literal("if ((source == nullptr && expr == nullptr) || dest == nullptr)", "if (source == nullptr || dest == nullptr)", 1,
-		"a NULL source is refused whatever the expression was")
-	e.Literal("if (expr != nullptr || (source[0] == '\\\\' && source[1] == '='))", "if (source[0] == '\\\\' && source[1] == '=')", 1,
-		"and only a \\= source is an expression")
-	// match_add
-	e.Literal("int id, list_T *pos_list, char_u *conceal_char)", "int id, char_u *conceal_char)", 1,
-		"match_add() takes no list of positions, which it never read")
-	e.Literal("match_add(curwin, g, p + 1, 10, id, nullptr, nullptr);", "match_add(curwin, g, p + 1, 10, id, nullptr);", 1,
-		"its one call")
-	// cursor_pos_info
-	e.Literal("static void cursor_pos_info(dict_T *dict);", "static void cursor_pos_info(void);", 1,
-		"cursor_pos_info() fills no dictionary: its prototype")
-	e.Literal("\ncursor_pos_info(dict_T *dict)\n", "\ncursor_pos_info(void)\n", 1,
-		"its definition")
-	e.Literal("cursor_pos_info(nullptr);", "cursor_pos_info();", 1,
-		"its one call")
-	// the host's formatter
-	e.Literal("static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap, typval_T *tvs)", "static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap)", 1,
-		"the formatter takes no argument list: its prototype")
-	e.Literal("va_list ap_start, typval_T *tvs)", "va_list ap_start)", 1,
-		"its definition")
-	e.Literal("vim_vsnprintf_typval(str, str_m, fmt, ap, nullptr)", "vim_vsnprintf_typval(str, str_m, fmt, ap)", 1,
-		"its one call")
-	e.Literal("const char *fmt, typval_T *tvs)", "const char *fmt)", 1,
-		"parse_fmt_types() takes none either")
-	e.Literal("parse_fmt_types(&ap_types, &num_posarg, fmt, tvs)", "parse_fmt_types(&ap_types, &num_posarg, fmt)", 1,
-		"its one call")
-	e.Literal(", tvs != nullptr) == FAIL)", ", FALSE) == FAIL)", 10,
-		"and no number in a format is read from a list")
-	// find_ex_command, whose lookup and compile context were Vim9 script's
-	e.Literal("static char_u *find_ex_command(exarg_T *eap, int *full, int (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T *cctx);", "static char_u *find_ex_command(exarg_T *eap, int *full);", 1,
-		"find_ex_command() takes no Vim9 lookup or context, which it never read: its prototype")
-	e.Literal("find_ex_command(exarg_T *eap, int *full, int (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T *cctx)", "find_ex_command(exarg_T *eap, int *full)", 1,
-		"its definition")
-	e.Literal("find_ex_command(&ea, nullptr, nullptr, nullptr)", "find_ex_command(&ea, nullptr)", 1,
-		"its one call")
-	e.InFunction("cursor_pos_info", func(e *edit.E) {
-		e.FoldAlways(`if \(dict == nullptr\)`, 3, "cursor_pos_info() always gives its message")
+// the collection takes the eval layer's value types with them.
+// layer's value types with them.
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): the tests folded first, then
+// each parameter dropped with its argument (PARAM) -- the formatter's and
+// the parse's it hands tvs to as one edit; history keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("evalparm", e, w)
+	v.InFunction("vim_regsub_both", func(v *graph.Verbs) {
+		v.Rewrite("(|| (paren (&& ?s (== expr nullptr))) ?d)", "(|| ?s ?d)", 1,
+			"a NULL source is refused whatever the expression was")
+		v.Rewrite("(|| (!= expr nullptr) (paren ?c))", "?c", 1, "and only a \\= source is an expression")
 	})
-	e.InFunction("vim_vsnprintf_typval", func(e *edit.E) {
-		e.FoldNever(`if \(tvs != nullptr\)`, 2, "and the formatter always clamps an overlong width or precision")
-		e.FoldNever(`if \(tvs != nullptr && tvs\[num_posarg != 0 \? num_posarg : arg_idx - 1\]\.v_type != VAR_UNKNOWN\)`, 1, "and never counts arguments left over in a list")
+	v.InFunction("cursor_pos_info", func(v *graph.Verbs) {
+		v.FoldAlways("(== dict nullptr)", 3, "cursor_pos_info() always gives its message")
 	})
-	n := e.Mentions("tvs")
-	e.Expect(n == 0, "tvs has %d mentions left", n)
-	return e.Done()
+	v.InFunction("vim_vsnprintf_typval", func(v *graph.Verbs) {
+		v.FoldNever("(!= tvs nullptr)", 2, "and the formatter always clamps an overlong width or precision")
+		v.FoldNever("(&& (!= tvs nullptr) _)", 1, "and never counts arguments left over in a list")
+	})
+	// no number in a format is read from a list: 10 arguments
+	var tests []*graph.Node
+	for _, fn := range []string{"parse_fmt_types", "vim_vsnprintf_typval"} {
+		v.InFunction(fn, func(v *graph.Verbs) {
+			for _, n := range v.Find("(!= tvs nullptr)") {
+				if p := e.Parent(n); p != nil && p.Is("call") {
+					tests = append(tests, n)
+				}
+			}
+		})
+	}
+	if v.Failed() {
+		return v.Done()
+	}
+	if len(tests) != 10 {
+		v.Die("no number in a format is read from a list -- %d tests of tvs as arguments, expected 10", len(tests))
+		return v.Done()
+	}
+	for _, n := range tests {
+		p := e.Parent(n)
+		f, err := e.Build(n, "FALSE", nil)
+		if err == nil {
+			err = e.Replace(n, f...)
+		}
+		if err != nil {
+			v.Die("no number in a format is read from a list -- %v", err)
+			return v.Done()
+		}
+		e.Rederive(p) // FALSE is an int's enumerator: the call's type again
+	}
+	v.Say("and no number in a format is read from a list")
+	v.DropParam("vim_regsub_both", "expr", "vim_regsub_both() takes no expression: its prototype, its definition and its one call")
+	v.DropParam("match_add", "pos_list", "match_add() takes no list of positions, which it never read, nor its one call")
+	v.DropParam("cursor_pos_info", "dict", "cursor_pos_info() fills no dictionary: its prototype, its definition and its one call")
+	// the formatter and the parse it hands tvs to: one edit
+	if !v.Failed() {
+		v.DropParams([]graph.ParamDrop{
+			{Decl: e.FileDecls("vim_vsnprintf_typval")[0], I: e.ParamIndex("vim_vsnprintf_typval", "tvs")},
+			{Decl: e.FileDecls("parse_fmt_types")[0], I: e.ParamIndex("parse_fmt_types", "tvs")},
+		}, graph.ParamOptions{}, "the formatter takes no argument list, and parse_fmt_types() takes none either")
+	}
+	if !v.Failed() {
+		v.DropParams([]graph.ParamDrop{
+			{Decl: e.FileDecls("find_ex_command")[0], I: e.ParamIndex("find_ex_command", "lookup")},
+			{Decl: e.FileDecls("find_ex_command")[0], I: e.ParamIndex("find_ex_command", "cctx")},
+		}, graph.ParamOptions{}, "find_ex_command() takes no Vim9 lookup or context, which it never read")
+	}
+	if !v.Failed() {
+		n := v.Mentions("tvs")
+		v.Expect(n == 0, "tvs has %d mentions left", n)
+	}
+	return v.Done()
 }

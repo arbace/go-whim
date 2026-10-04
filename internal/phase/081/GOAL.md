@@ -31,3 +31,5 @@ input's own types; the control, offset 4, is refused. It requires `Unions` to
 leave exactly those three reads on the input and nothing on the output. It
 probes a term entry with a `start` string on a terminal without colours, and a
 cterm entry with a font; each control moves.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: the condition is found by its C and written anew by FRAG, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

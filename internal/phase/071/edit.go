@@ -12,90 +12,101 @@ package p071
 
 import (
 	"io"
-	"regexp"
-	"strings"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/clisp"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// w71LabelLine is the label with the whole of its line: the indentation before
-// it and the newline after it.
-var w71LabelLine = regexp.MustCompile(edit.Line("handle_osc:"))
+func init() { phase.RegisterGraph("whim71", Edit) }
 
-func init() { phase.Register("whim71", Edit) }
-
-const (
-	w71Jump = `        if (osc_state.processing)
-        {
-            tp[len] = NUL;
-            key_name[0] = NUL;
-            key_name[1] = NUL;
-            modifiers = 0;
-            goto handle_osc;
-        }
-`
-	w71Label = "handle_osc:\n"
-	w71Block = "        if (key_name[0] == NUL)\n        {\n"
-)
-
-// Whim71 takes the jump into an if Body Out of check_termcode().
+// Edit takes the jump into an if body out of check_termcode().
 //
 // While an OSC response was arriving over several reads, check_termcode()
 // jumped from the top of its loop to handle_osc, a label inside the OSC branch
 // of the if-chain in `if (key_name[0] == NUL)`, skipping everything between
 // (internal/gen/FINDINGS.md, 11).  Nothing follows that chain inside its block, so the
 // jump did exactly this: the OSC handling, then the code after the block.  So
-// the jump's if gets the handling as its Body, and everything it skipped --
+// the jump's if gets the handling as its body, and everything it skipped --
 // from the key's first byte through the end of the block -- becomes its else.
 // A continue or break in that code binds to the loop it bound to: an if does
 // not catch either.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "oscgoto", W: w}
-	return p.InFunction(text, "check_termcode", func(seg []byte) ([]byte, error) {
-		s := string(seg)
-		j := strings.Index(s, w71Jump)
-		l := strings.Index(s, w71Label)
-		if j < 0 || strings.Count(s, w71Jump) != 1 || l < 0 || strings.Count(s, "handle_osc:") != 1 {
-			return nil, p.Die("the jump to handle_osc or its label is not where this phase expects it")
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): the jump replaced by the
+// handling (FRAG), the jump's if given an else whose items are the ones it
+// skipped, moved there with their nodes (MOVE: a declaration a later use
+// needs, or a jump that would bind elsewhere, is refused), and the label
+// deleted.  History keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("oscgoto", e, w)
+	is := func(n *graph.Node, pat string) bool {
+		p, err := clisp.Pattern(pat)
+		return err == nil && n != nil && graph.Matches(p, n)
+	}
+	v.InFunction("check_termcode", func(v *graph.Verbs) {
+		gs, ls := v.Find("(goto handle_osc)"), v.Find("(label handle_osc)")
+		if len(gs) != 1 || len(ls) != 1 {
+			v.Die("the jump to handle_osc or its label is not where this phase expects it")
+			return
 		}
-		// the block holding the label: the last `if (key_name[0] == NUL)` before it
-		bi := strings.LastIndex(s[:l], w71Block)
-		if bi < 0 {
-			return nil, p.Die("the label is not inside `if (key_name[0] == NUL)`")
+		g, lbl := gs[0], ls[0]
+		then := e.Parent(g)
+		jump := e.Parent(then)
+		if !is(jump, "(if (. osc_state processing) (block (= (index tp len) NUL) (= (index key_name 0) NUL) (= (index key_name 1) NUL) (= modifiers 0) (goto handle_osc)))") {
+			v.Die("the jump to handle_osc or its label is not where this phase expects it")
+			return
 		}
-		b := edit.Blank([]byte(s))
-		open := bi + len(w71Block) - 2
-		cl := edit.Match(b, open)
-		if cl < 0 || l > cl {
-			return nil, p.Die("the label is not inside that block")
+		// the item of the jump's list that holds the label: the block of
+		// `if (key_name[0] == NUL)`, which ends the code the jump skipped
+		list := e.Parent(jump)
+		var key *graph.Node
+		for p := lbl; p != nil; p = e.Parent(p) {
+			if e.Parent(p) == list {
+				key = p
+				break
+			}
 		}
-		// the chain ends where the block does: nothing but the closing brace after
-		// the last branch
-		end := cl + 1 + strings.Index(s[cl:], "\n")
-		mid := s[j+len(w71Jump) : end]
-		// THE LABEL'S WHOLE LINE, indentation included: the canonical text
-		// writes `            handle_osc:` twelve spaces in.  Measured on
-		// q144 of the old numbering: one line, and it is the label's.  The skipped code keeps its
-		// indentation as the else's body; the canonical print re-lays it.
-		if n := len(w71LabelLine.FindAllString(mid, -1)); n != 1 {
-			return nil, p.Die("the label's line is in the skipped code %d times, expected 1", n)
+		if !is(key, "(if (== (index key_name 0) NUL) _)") {
+			v.Die("the label is not inside `if (key_name[0] == NUL)`")
+			return
 		}
-		mid = w71LabelLine.ReplaceAllString(mid, "")
-		Body := strings.Replace(w71Jump, "            goto handle_osc;\n",
-			"            if (handle_osc(tp, len, key_name, &slen) == FAIL)\n            {\n                return -1;\n            }\n", 1)
-		// w71Jump ends at the if's own closing brace and its newline, so the
-		// else follows it directly.  It used to end at the BLANK LINE the
-		// residue wrote after that brace, and the TrimSuffix here was what took
-		// it back off; the canonical text writes no blank line there, and with
-		// the literal ending in a newline a TrimSuffix would run the brace and
-		// the `else` together.
-		Body = Body + "        else\n        {\n" + mid + "        }\n"
-		s = s[:j] + Body + s[end:]
-		if strings.Contains(s, "handle_osc:") || strings.Contains(s, "goto ") {
-			return nil, p.Die("check_termcode() still jumps")
+		var first *graph.Node
+		for i, x := range list.Kids {
+			if x == jump {
+				first = list.Kids[i+1]
+			}
 		}
-		p.Say("while an OSC response is arriving, the loop handles it in the jump's own if, and everything the jump skipped is its else: no goto left")
-		return []byte(s), nil
+		if _, err := e.SpliceC(graph.Frag{At: e.SpotOf(g), Src: "if (handle_osc(tp, len, key_name, &slen) == FAIL)\n{\n    return -1;\n}\n"}); err != nil {
+			v.Die("check_termcode(): the handling -- %v", err)
+			return
+		}
+		// the else: a placeholder, the skipped items after it, the placeholder gone
+		ni, err := e.Build(jump, "(if ?c ?t (block (empty)))", graph.Bindings{"c": jump.Kids[1], "t": then})
+		if err == nil {
+			err = e.Replace(jump, ni...)
+		}
+		if err != nil {
+			v.Die("check_termcode(): the else -- %v", err)
+			return
+		}
+		hold := ni[0].Kids[3].Kids[1]
+		if err := e.MoveRun(first, key, hold, true); err != nil {
+			v.Die("check_termcode(): the skipped code -- %v", err)
+			return
+		}
+		if err := e.Delete(hold); err != nil {
+			v.Die("%v", err)
+			return
+		}
+		if err := e.Delete(lbl); err != nil {
+			v.Die("%v", err)
+			return
+		}
+		if v.Count("(goto _)") != 0 || v.Count("(label handle_osc)") != 0 {
+			v.Die("check_termcode() still jumps")
+			return
+		}
+		v.Say("while an OSC response is arriving, the loop handles it in the jump's own if, and everything the jump skipped is its else: no goto left")
 	})
+	return v.Done()
 }

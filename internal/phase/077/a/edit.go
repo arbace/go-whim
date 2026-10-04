@@ -13,13 +13,13 @@ package p077a
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim77a", Edit) }
+func init() { phase.RegisterGraph("whim77a", Edit) }
 
-// Whim77a says what free_one_termoption() compares.
+// Edit says what free_one_termoption() compares.
 //
 // free_one_termoption(var) looks for the option whose variable is var: it
 // compared each row's variable ADDRESS, cast to char_u *, with the string
@@ -32,9 +32,14 @@ func init() { phase.Register("whim77a", Edit) }
 // no pointer is cast to a pointer of another type; what it does is unchanged,
 // the latent NULL write included (internal/gen/FINDINGS.md).  The Go transpilation of
 // phase 76 already wrote it this way, since Go cannot compare the two types.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("termopt", text, w)
-	e.Literal("        if ((char_u *)p->var.ov_str == var)\n", "        if (p->var.ov_str == nullptr && var == nullptr)\n", 1,
-		"free_one_termoption() compares the only way the two can be equal: both NULL")
-	return e.Done()
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): the comparison, found by its
+// form, written anew by FRAG; history keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("termopt", e, w)
+	v.InFunction("free_one_termoption", func(v *graph.Verbs) {
+		v.ReplaceC("(== (cast (ptr char_u) (. (-> p var) ov_str)) var)", "p->var.ov_str == nullptr && var == nullptr", 1,
+			"free_one_termoption() compares the only way the two can be equal: both NULL")
+	})
+	return v.Done()
 }

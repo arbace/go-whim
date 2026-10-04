@@ -111,3 +111,5 @@ registers"): interpreted, the Clojure's `dense` took 6.0 s at 100,000 lines
 against 1.75 once `match_range` and `search_found` took the code out. The
 heavy case moved with it: the Java 2.4 -> 1.9 times the C, the Clojure 8-10
 -> 4.5.
+
+Since step 5 (`doc/GRAPH-MIGRATION.md`, B3f) it runs on the graph: every act is FRAG in one unit, each place found by its form, on `crefactor/graph`'s editor and verbs, its report the text version's, and `whim-build-check` holds it to the bytes the text version made (which is in history, `16717ab` and before).

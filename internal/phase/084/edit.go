@@ -12,14 +12,12 @@ package p084
 import (
 	"io"
 
-	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { phase.Register("whim84", Edit) }
+func init() { phase.RegisterGraph("whim84", Edit) }
 
-// W84Tail is the error path ml_get_buf()'s goto jumped back into, and
-// W84Func the function it becomes.
 const (
 	W84Tail = `    errorret:
         musl_strcpy((char *)(questions), (char *)("???"));
@@ -43,7 +41,7 @@ ml_get_invalid(buf_T *buf, linenr_T lnum)
 `
 )
 
-// Whim84 takes ml_get_buf()'s goto Out of a block.
+// Edit takes ml_get_buf()'s goto Out of a block.
 //
 // ml_get_buf() answers a line it cannot give with "???": the tail of its
 // first if block, labelled errorret, which a goto further down jumps back
@@ -52,13 +50,24 @@ ml_get_invalid(buf_T *buf, linenr_T lnum)
 // becomes ml_get_invalid(), with the static buffer it returns, and both
 // paths return what it returns.  ml_get_buf()'s own buffer is then read by
 // nothing, and the sweep takes it.
-func Edit(text []byte, w io.Writer) ([]byte, error) {
-	e := edit.New("errorret", text, w)
-	e.Literal("        ml_flush_line(buf);\n"+W84Tail, "        ml_flush_line(buf);\n        return ml_get_invalid(buf, lnum);\n", 1,
-		"ml_get_buf() returns ml_get_invalid() for a line past the end")
-	e.Literal("            goto errorret;\n", "            return ml_get_invalid(buf, lnum);\n", 1,
-		"and for a line it cannot find, with no goto")
-	e.Literal("    static char_u *\nml_get_buf(buf_T *buf,", W84Func+"    static char_u *\nml_get_buf(buf_T *buf,", 1,
-		"ml_get_invalid() is the tail the goto jumped into")
-	return e.Done()
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, B3f): the labelled tail and the jump
+// replaced, and ml_get_invalid() put before ml_get_buf()'s definition, by
+// FRAG in one unit (Together); history keeps the text version.
+func Edit(e *graph.Editor, w io.Writer, _ []string) error {
+	v := graph.NewVerbs("errorret", e, w)
+	f := e.Defn("ml_get_buf")
+	if f == nil {
+		v.Die("ml_get_buf is not defined")
+		return v.Done()
+	}
+	v.Together(func(v *graph.Verbs) {
+		v.InFunction("ml_get_buf", func(v *graph.Verbs) {
+			v.LiteralC("        ml_flush_line(buf);\n"+W84Tail, "        ml_flush_line(buf);\n        return ml_get_invalid(buf, lnum);\n", 1,
+				"ml_get_buf() returns ml_get_invalid() for a line past the end")
+			v.ReplaceC("(goto errorret)", "return ml_get_invalid(buf, lnum);\n", 1, "and for a line it cannot find, with no goto")
+		})
+		v.FragAt(e.SpotBefore(f), W84Func, "ml_get_invalid() is the tail the goto jumped into")
+	})
+	return v.Done()
 }
