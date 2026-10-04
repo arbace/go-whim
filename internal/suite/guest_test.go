@@ -20,7 +20,11 @@ import (
 // literal (controlLiteral).  WHIM_SUITE_GUEST_IMAGE names the
 // image when the launcher carries none -- the Mac's, signed, which cannot --
 // and the control is then that image changed, each run by a script that
-// hands the monitor its image (WHIM_GUEST_IMAGE).  The test
+// hands the monitor its image (WHIM_GUEST_IMAGE).  WHIM_SUITE_HEAVY=1 runs
+// the heavy case after the cases (heavy.go: 5,000 lines, three :s and a :g),
+// the C and then the guest, one at a time, the answers compared and the
+// times reported -- a native speed figure where the suite has no toolset,
+// the Mac's; WHIM_SUITE_HEAVY=only runs it alone.  The test
 // binary is built here, `GOARCH=arm64 go test -c ./internal/suite`, and run
 // there: the cases are compiled into it.
 func TestGuestPrebuilt(t *testing.T) {
@@ -106,7 +110,16 @@ func TestGuestPrebuilt(t *testing.T) {
 	}
 	b := &builds{cand: abs(c)}
 	var out strings.Builder
-	err = checkJVM(&out, "guest", groups, all, b, e)
+	heavy := os.Getenv("WHIM_SUITE_HEAVY")
+	if heavy != "only" {
+		err = checkJVM(&out, "guest", groups, all, b, e)
+	}
+	if err == nil && heavy != "" {
+		// the C is the reference and the timed candidate both: one run
+		// untimed, then each editor timed alone
+		b.ref, b.jvm = b.cand, []*jvmEditor{e}
+		err = checkHeavy(&out, "the C", b)
+	}
 	t.Log("\n" + out.String())
 	if err != nil {
 		t.Fatal(err)

@@ -792,7 +792,8 @@ nested KVM here); **317,193 exits, 317,193 of them calls (112,331 reads),
 61.09 a key, 6.68 without the `par_*` cases -- the same counts as on KVM
 amd64**: the guest asks its host the same things, call for call, under
 either hypervisor. The heavy case on the Mac is not yet measured
-(`TestGuestPrebuilt` runs the suite's cases, not the heavy one). The wide suite on the Mac first hung in its pseudo-terminal cases: Go's
+(`mac.sh heavy` runs it now: *The Go guest and the heavy case on the Mac*,
+below). The wide suite on the Mac first hung in its pseudo-terminal cases: Go's
 poller (kqueue) does not poll a tty on macOS, so the suite stopped reading
 the master, the editor stalled, and once killed could not finish exiting
 with its output undrained (fixed in `internal/suite/pty_darwin.go`: the
@@ -875,6 +876,31 @@ has run on macOS.
   maps a slot as the monitor does and holds its host address to the page
   (16 KiB where that is the page: on the Mac it checks the real thing).
 
+**The Go guest and the heavy case on the Mac.** The Go guest runs under the
+same signed `bin/whim-guest` as the C guest, its image beside it as
+`bin/whim-guest-go.elf` (`go tool whim guest --go --arch arm64 --image`
+writes `bin/whim-guest-go-arm64.elf`, 5.6 MB): `mac.sh` takes `--go` after
+its step's name -- `hello --go` (the Go guest has no stand-in: the editor
+itself, `ihello<Esc>:q!` from a file, exit 0), `run --go`, `suite --go
+[--wide]`, `heavy [--go]` -- and hands the monitor that image by
+`WHIM_GUEST_IMAGE`. `TestGuestPrebuilt` tells the Go image from the C's by
+its control's literal as it told the launchers (`controlLiteral`: no
+`" INSERT"` followed by a NUL in it). The heavy case is
+`WHIM_SUITE_HEAVY` in `TestGuestPrebuilt`: `1` runs it after the cases,
+`only` alone (`mac.sh heavy`); `heavy.go`'s 5,000 lines, three `:s` and a
+`:g`, the C first as the reference, then the C and the guest timed one at
+a time, the answers held to the C's and the guest to the suite's bound of
+25 times the C's time, the times on the suite's heavy line. *Checked on
+KVM here* (2026-10-04), the Mac's flow with the amd64 images standing in --
+the monitor with no image appended, the images beside it, the C by clang
+with the shim, `codesign` a stand-in that prints its arguments: `hello
+--go` exits 0 with hello on its screen; `suite --go` 80 of 80, the control
+seen by 76; `suite --go --wide` 320 of 320 (80, 102, 98, 30, 10), the
+controls seen by 76, 94, 0, 0, 6; `suite` 80 of 80, seen by 76, as before;
+`heavy` C 446-463 ms, the guest 359-397 ms (0.8-0.9x); `heavy --go` C
+434-464 ms, the Go guest 594-608 ms (1.3-1.4x) -- the C here the shim's,
+by clang at `-O0`, dynamic.
+
 **Signing, and the sandbox.** `guest/mac/whim-guest.entitlements` holds
 `com.apple.security.hypervisor` alone; `codesign --sign - --entitlements
 guest/mac/whim-guest.entitlements --force bin/whim-guest` signs ad hoc.
@@ -892,12 +918,15 @@ Mac-only follow-up, not tried.
 
 **The checklist**, in order:
 
-1. *On Linux, here:* the two images, `go tool whim guest --arch arm64
-   --image` and `go tool whim guest --arch arm64 --hello --image` (clang
-   and `aarch64-none-elf-ld`: Apple's clang has no ELF linker); copy them
-   to the Mac's checkout: `scp bin/whim-guest-arm64.elf
-   mac:go-whim/bin/whim-guest.elf` and `scp bin/whim-guest-hello-arm64.elf
-   mac:go-whim/bin/`. The arm64 image is the one KVM/arm64 boots.
+1. *On Linux, here:* the three images, `go tool whim guest --arch arm64
+   --image`, `go tool whim guest --arch arm64 --hello --image` (clang
+   and `aarch64-none-elf-ld`: Apple's clang has no ELF linker) and
+   `TAMAGO_ROOT=/root/tamago-go go tool whim guest --go --arch arm64
+   --image` (TamaGo); copy them to the Mac's checkout: `scp
+   bin/whim-guest-arm64.elf mac:go-whim/bin/whim-guest.elf`, `scp
+   bin/whim-guest-hello-arm64.elf mac:go-whim/bin/` and `scp
+   bin/whim-guest-go-arm64.elf mac:go-whim/bin/whim-guest-go.elf`. The
+   arm64 images are the ones KVM/arm64 boots.
 2. *On the Mac*, in the checkout (Go and Xcode's command-line tools; every
    Go build native and `CGO_ENABLED=0`), `guest/mac/mac.sh` runs each step:
    - `mac.sh check` -- `sw_vers`, `uname -m` (`arm64`, not Rosetta),
@@ -913,8 +942,15 @@ Mac-only follow-up, not tried.
      -O0 -w -include guest/mac/shim.h` (an older Xcode: `-std=gnu2x`);
    - `mac.sh suite`, then `mac.sh suite --wide` -- `TestGuestPrebuilt`,
      the guest held to the C with its control: milestone 4's gate, 80 and
-     240. The heavy case is not in it: `bin/whim-guest` and
-     `bin/whim-vim-mac` timed on the same keys by hand.
+     240 (done);
+   - `mac.sh heavy` -- the heavy case, the C and the C guest timed one at a
+     time: the native speed figure; paste its `heavy` line;
+   - the Go guest, the same monitor (no `build` again): `mac.sh hello
+     --go` (hello on its screen, exit 0), `mac.sh run --go FILE` by hand,
+     `mac.sh suite --go`, `mac.sh suite --go --wide`, `mac.sh heavy --go`.
+     Paste back from each suite its case lines (`N cases: ... answers all
+     exactly as the C does; its control seen by M`), the exits line and
+     the `PASS`/`FAIL`; from each heavy, its `heavy` line.
 
 **What to look for when it fails.**
 
@@ -931,6 +967,11 @@ Mac-only follow-up, not tried.
   says which of the address, the IPA and the size.
 - `HV_NO_RESOURCES` from `hv_vm_map`: the 1.1 GiB slot refused; the slot is
   mapped lazily by `mmap`, so this would be the framework's own limit.
+- The Go guest failing where the C guest passes: its slot is 3 GiB above
+  its base (`vmm/tamago.go`), not 1.1 GiB -- `HV_NO_RESOURCES` there is that
+  size; a start that spins until the watchdog is the runtime's clock
+  (`CNTFRQ_EL0`, `CNTVCT_EL0`, read by the board at EL1), which KVM/arm64
+  gave without a trap and the framework may not.
 - `the guest stopped: HV_EXIT_REASON_VTIMER_ACTIVATED`: the guest's virtual
   timer fired, which it never arms; the framework would want it masked
   (`hv_vcpu_set_vtimer_mask`), a function `hv` does not bind yet.

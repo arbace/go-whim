@@ -37,7 +37,8 @@ const heavyBound = 25
 const heavyLimit = 5 * time.Minute
 
 // checkHeavy runs the heavy case on the reference and the candidate, then
-// the Go editor and the JVM editors of b, and reports their times.
+// the Go editor (when b has one) and the JVM editors of b, and reports
+// their times.
 func checkHeavy(w io.Writer, rev string, b *builds) error {
 	ref, refCode, err := runLimit(b.ref, nil, heavyKeys, heavyLimit)
 	if err != nil {
@@ -52,7 +53,10 @@ func checkHeavy(w io.Writer, rev string, b *builds) error {
 		limit     time.Duration
 		unbound   bool // a program built already: timed, not held to heavyBound
 	}
-	eds := []editor{{"C", b.cand, heavyLimit, false}, {"Go", b.goBin, heavyLimit, false}}
+	eds := []editor{{"C", b.cand, heavyLimit, false}}
+	if b.goBin != "" { // none in a guest's prebuilt run (TestGuestPrebuilt)
+		eds = append(eds, editor{"Go", b.goBin, heavyLimit, false})
+	}
 	for _, e := range b.jvm {
 		eds = append(eds, editor{e.label(""), e.bin, max(heavyLimit, e.limit), e.prebuilt})
 	}
