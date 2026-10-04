@@ -136,6 +136,8 @@ type Profile struct {
 	// against a literal the OCaml backend writes on an OCaml string
 	// (ml_expr.go's strEq): strcmp, strncmp, strcasecmp, strncasecmp.
 	MlStrings StrFuncs
+	// CppNamespace is the namespace -cpp writes the editor in; "" is whimpp.
+	CppNamespace string
 }
 
 // StrFuncs are a program's string comparisons: Cmp(a, b), NCmp(a, b, n)
@@ -183,6 +185,10 @@ type RuntimeBody struct {
 	// C's parameter names in scope, the editor ed and its memory mem -- for
 	// the Scheme kind the C gives its result.
 	Scm func(result string) string
+	// Cpp, when set, is the C++ member function's body -- its statements, the
+	// C's parameter names in scope, the editor `this` -- for the C++ type
+	// the C gives its result.
+	Cpp func(result string) string
 }
 
 // profile is a Profile's lists as sets, for the lookups.

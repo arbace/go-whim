@@ -151,7 +151,7 @@ func keep(t *testing.T, bin, mode string, c WideCase, which string, out []byte, 
 
 // stressArgs reads BINS (space-separated absolute paths of editors: the C
 // binary, the Go one, bin/braaam, bin/vijure, bin/caprice, bin/whimsy,
-// bin/whimsical or bin/whimsical-debug -- anything run as the suite runs an
+// bin/whimsical, bin/whimsical-debug, bin/whiml or bin/whim++ -- anything run as the suite runs an
 // editor), REPS (the runs of each case, default 40), MODES (default "file
 // pipe"; "trickle" and "slow" too), LIMIT (a run's limit, a Go duration,
 // default DefaultLimit), or skips.  DIFFS, a directory, keeps what differed

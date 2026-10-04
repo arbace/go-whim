@@ -18,7 +18,8 @@ import (
 
 // runGen writes editor/editor.go, braaam/Editor.java,
 // vijure/src/whim/editor.clj, caprice/Caprice/Editor.hs (with its hs-boot),
-// whimsy/src/editor.rs, whimsical/whimsical/editor.ss and whiml/editor.ml
+// whimsy/src/editor.rs, whimsical/whimsical/editor.ss, whiml/editor.ml and
+// wpp/src/editor.cpp with its header
 // from the core of src/whim-vim.c (or FILE), and
 // internal/gen/sigs.md beside them -- or, with --check, refuses when any is
 // not what the generator writes.  It cuts the core itself (whim.Cut), as `whim
@@ -172,7 +173,31 @@ func runGen(args []string) int {
 		fmt.Fprintf(os.Stderr, "whim gen: the OCaml backend refused part of the core:\n%s", r)
 		return 1
 	}
+	// And in C++ (doc/CPP.md): the header and the source of whim++,
+	// refusing nothing.
+	pdir, err := os.MkdirTemp("", "cppgen")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+		return 1
+	}
+	defer os.RemoveAll(pdir)
+	cppDir := filepath.Join(out, "cpp")
+	if err := os.MkdirAll(cppDir, 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+		return 1
+	}
+	cppOut := filepath.Join(cppDir, "editor.cpp")
+	if err := cppGen(editorC, pdir, cppOut); err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
+	if r, err := os.ReadFile(cppOut + ".refused"); err == nil && len(bytes.TrimSpace(r)) > 0 {
+		fmt.Fprintf(os.Stderr, "whim gen: the C++ backend refused part of the core:\n%s", r)
+		return 1
+	}
 	files := []struct{ made, tracked string }{
+		{cppOut, "wpp/src/editor.cpp"},
+		{filepath.Join(cppDir, "editor.hpp"), "wpp/src/editor.hpp"},
 		{filepath.Join(out, "editor.go"), "editor/editor.go"},
 		{filepath.Join(out, "sigs.md"), "internal/gen/sigs.md"},
 		{cljOut, "vijure/src/whim/editor.clj"},
@@ -272,6 +297,7 @@ func runGen(args []string) int {
 		fmt.Printf("  %-12s is what the Rust backend writes from whim-vim.c\n", "editor.rs")
 		fmt.Printf("  %-12s is what the Scheme backend writes from whim-vim.c\n", "editor.ss")
 		fmt.Printf("  %-12s is what the OCaml backend writes from whim-vim.c\n", "editor.ml")
+		fmt.Printf("  %-12s is what the C++ backend writes from whim-vim.c\n", "editor.cpp")
 	case changed:
 		b, _ := os.ReadFile("editor/editor.go")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.go", bytes.Count(b, []byte("\n")))
@@ -301,6 +327,9 @@ func runGen(args []string) int {
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.ss", bytes.Count(ss, []byte("\n")))
 		ml, _ := os.ReadFile("whiml/editor.ml")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.ml", bytes.Count(ml, []byte("\n")))
+		cpp, _ := os.ReadFile("wpp/src/editor.cpp")
+		hpp, _ := os.ReadFile("wpp/src/editor.hpp")
+		fmt.Printf("  %-12s %d lines, and %d in editor.hpp, generated from whim-vim.c\n", "editor.cpp", bytes.Count(cpp, []byte("\n")), bytes.Count(hpp, []byte("\n")))
 	default:
 		fmt.Printf("  %-12s current -- what internal/gen writes from whim-vim.c\n", "editor.go")
 	}

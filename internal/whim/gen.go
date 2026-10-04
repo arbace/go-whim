@@ -139,6 +139,17 @@ chunks(n, |from, to| {
 })`
 }
 
+// matchLinesCpp is match_lines()'s body in C++: the chunks on std::jthread
+// (wpp/rt.cpp's chunks_run), each on an engine the core's alloc_clear makes,
+// the editor shared by the threads as the Rust's and the Go's is.
+func matchLinesCpp(string) string {
+	return `return chunks(n, [&](long from, long to) {
+    regengine_T *re = (regengine_T *)alloc_clear(sizeof(regengine_T));
+    match_chunk(re, rmp, do_all, buf, lines, line1, from, to, found);
+    return !re->failed;
+});`
+}
+
 // matchLinesScm is match_lines()'s body in Scheme: the chunks on
 // fork-thread's threads (whimsical/whimsical/rt.ss's chunks), each with a
 // stack of its own and on an engine the core's alloc_clear makes, the C's
@@ -230,7 +241,7 @@ var Gen = togo.Profile{
 	// the C's loop over lines in parallel chunks.
 	RuntimeBodies: []togo.RuntimeBody{
 		{Name: "ga_grow_inner", Body: gaGrowInnerFor, Java: gaGrowInnerJava, Clj: gaGrowInnerClj},
-		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs, Rs: matchLinesRs, Scm: matchLinesScm},
+		{Name: "match_lines", Body: matchLinesGo, Java: matchLinesJava, Clj: matchLinesClj, Hs: matchLinesHs, Rs: matchLinesRs, Scm: matchLinesScm, Cpp: matchLinesCpp},
 		// the memory functions in Scheme: the bytevector's own copy (which
 		// R6RS defines for regions that overlap) and the runtime's fill, not
 		// the musl's loop a byte at a time (doc/SCHEME-IDIOMS.md, item 16)

@@ -25,7 +25,7 @@
 #                        (the core in Go), bin/whim-vim and bin/slim-vim, bin/braaam
 #                        and braaam.jar (Java), bin/vijure and vijure.jar (Clojure),
 #                        bin/caprice (Haskell), bin/whimsy (Rust), bin/whimsical (Scheme),
-#                        bin/whiml (OCaml)
+#                        bin/whiml (OCaml), bin/whim++ (C++)
 #   make whim-build      the 104 phases in one process: slim-vim.c -> whim-vim.c,
 #                        about eight minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
@@ -56,7 +56,7 @@ LDFLAGS = -static -no-pie -s
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: bin/whim bin/whim-vim bin/slim-vim bin/braaam braaam.jar bin/vijure vijure.jar bin/caprice bin/whimsy bin/whimsical bin/whiml  ## everything: fetch if the upstream moved, then the eight editors and the jars
+all: bin/whim bin/whim-vim bin/slim-vim bin/braaam braaam.jar bin/vijure vijure.jar bin/caprice bin/whimsy bin/whimsical bin/whiml bin/whim++  ## everything: fetch if the upstream moved, then the nine editors and the jars
 
 # --- help -----------------------------------------------------------------
 # Every target worth asking for carries its own one-line description, as a `##`
@@ -194,7 +194,8 @@ bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one l
 #
 # editor/editor.go is GENERATED, and so are braaam/editor/ (package whim.editor),
 # vijure/src/whim/editor.clj, caprice/Caprice/Editor.hs and its parts,
-# whimsy/src/editor.rs, whimsical/whimsical/editor.ss and whiml/editor.ml: `go tool whim gen`
+# whimsy/src/editor.rs, whimsical/whimsical/editor.ss, whiml/editor.ml and
+# wpp/src/editor.cpp with its header: `go tool whim gen`
 # writes them whole from whim-vim.c's core, and they are tracked, so they
 # must be what the program writes from the tracked whim-vim.c.  Each is written only when that differs, so
 # a current file keeps its mtime.  whim-build writes them after producing
@@ -202,7 +203,7 @@ bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one l
 # whim-editor-check run on whim-vim.c as it stands: through whim-vim.c's own rule
 # they would start a build.
 .PHONY: editor/editor.go
-editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml(i)
+editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml(i), editor.cpp/hpp
 	@go tool whim gen
 
 .PHONY: whim-editor
@@ -210,7 +211,7 @@ whim-editor:
 	@go tool whim gen
 
 .PHONY: whim-editor-check
-whim-editor-check:  ## refuse if a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss or editor.ml(i) is not what the generator writes
+whim-editor-check:  ## refuse if a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml(i) or editor.cpp/hpp is not what the generator writes
 	@go tool whim gen --check
 
 # ==== the editor in Go
@@ -413,6 +414,20 @@ bin/whiml: src/whim-vim.c force  ## the editor in OCaml: the module Editor gener
 whim-test-ml:  ## the quick suite with the OCaml editor too, required to answer as the C does
 	@go tool whim test --ocaml
 
+# whim++, the editor in C++ (wpp/, doc/CPP.md): the core cut from
+# src/whim-vim.c and written as editor.hpp and editor.cpp by the C++
+# backend, compiled by g++ -std=c++23 -O2 with whim++'s runtime, host,
+# printf, terminal host and launcher in lib/wpp into the program bin/whim++.
+# Half a minute of g++'s time when the core moved; a build whose core has
+# not moved skips it.
+.PHONY: bin/whim++
+bin/whim++: src/whim-vim.c force  ## the editor in C++: editor.hpp and editor.cpp generated, compiled by g++
+	@go tool whim wpp
+
+.PHONY: whim-test-cpp
+whim-test-cpp:  ## the quick suite with the C++ editor too, required to answer as the C does
+	@go tool whim test --cpp
+
 # ==== the tests
 .PHONY: whim-test
 whim-test:  ## the quick suite: 80 key sessions, required to behave as HEAD's whim-vim.c does
@@ -434,8 +449,8 @@ go-test:  ## the Go tests of both modules: this one and crefactor/
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and jars
-	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical bin/whimsical-debug bin/whiml braaam.jar vijure.jar editor.lgo caprice.hsl whim-vim.lc
-	rm -rf lib/braaam lib/vijure lib/caprice lib/whimsy lib/whimsical lib/whimsical-debug lib/whiml .cache/caprice-suite .cache/whimsy-suite .cache/whimsical-suite .cache/whimsical-suite-debug .cache/whiml-suite
+	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical bin/whimsical-debug bin/whiml bin/whim++ braaam.jar vijure.jar editor.lgo caprice.hsl whim-vim.lc
+	rm -rf lib/braaam lib/vijure lib/caprice lib/whimsy lib/whimsical lib/whimsical-debug lib/whiml lib/wpp .cache/caprice-suite .cache/whimsy-suite .cache/whimsical-suite .cache/whimsical-suite-debug .cache/whiml-suite .cache/wpp-suite
 
 .PHONY: clean-cache
 clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)

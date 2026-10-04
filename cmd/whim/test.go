@@ -9,7 +9,7 @@ import (
 )
 
 // testUsage is runTest's usage line.
-const testUsage = "usage: whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--limit DURATION] [--ref REV] [FILE]"
+const testUsage = "usage: whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--limit DURATION] [--ref REV] [FILE]"
 
 // runTest is the minimal behaviour check (internal/suite): every session in
 // internal/suite/cases.md on the editor built from src/whim-vim.c at REV
@@ -26,11 +26,11 @@ const testUsage = "usage: whim test [--wide] [--java] [--clojure] [--clojure-edi
 // and --scheme the Scheme editor (whimsical/, doc/SCHEME.md); --scheme-debug
 // adds it as its debugging build (optimize-level 2, safe, the inspector's
 // information kept).  --ocaml adds the OCaml editor (whiml/,
-// doc/OCAML.md).  --limit D is how long one run of a case may take on
+// doc/OCAML.md), --cpp the C++ editor (wpp/, doc/CPP.md).  --limit D is how long one run of a case may take on
 // the editors these add and their controls (default 10s; the C and the Go
 // editor keep 10s), for a build slow on purpose.
 //
-//	whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--limit DURATION] [--ref REV] [FILE]
+//	whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--limit DURATION] [--ref REV] [FILE]
 func runTest(args []string) int {
 	o, err := parseTest(args)
 	if err != nil {
@@ -87,6 +87,8 @@ func parseTest(args []string) (testOpts, error) {
 			o.jvm.Scheme, o.jvm.SchemeDebug = scmGen, true
 		case args[i] == "--ocaml":
 			o.jvm.OCaml = mlGen
+		case args[i] == "--cpp":
+			o.jvm.Cpp = cppGen
 		case args[i] == "--clojure-editor" && i+1 < len(args):
 			i++
 			o.jvm.Clojure = copyGen(args[i])

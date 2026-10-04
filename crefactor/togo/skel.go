@@ -32,7 +32,7 @@ func Run(args []string, errw io.Writer, prof Profile) int {
 	logw = errw
 	osArgs := append([]string{"run"}, args...)
 	if len(osArgs) < 3 {
-		fmt.Fprintln(errw, "usage: skel <editor.c> <outdir> [-bodies | -editor <editor.go> | -java <Class.java> | -clj <editor.clj> | -hs <Editor.hs> | -rs <editor.rs> | -scm <editor.ss> | -ml <editor.ml> | -lowerc <lowered.c>]")
+		fmt.Fprintln(errw, "usage: skel <editor.c> <outdir> [-bodies | -editor <editor.go> | -java <Class.java> | -clj <editor.clj> | -hs <Editor.hs> | -rs <editor.rs> | -scm <editor.ss> | -ml <editor.ml> | -cpp <editor.cpp> | -lowerc <lowered.c>]")
 		return 2
 	}
 	ast, err := parse(osArgs[1])
@@ -88,6 +88,12 @@ func Run(args []string, errw io.Writer, prof Profile) int {
 	}
 	if len(osArgs) > 4 && osArgs[3] == "-ml" {
 		if err := g.writeMl(osArgs[4]); err != nil {
+			fmt.Fprintln(errw, "skel:", err)
+			return 1
+		}
+	}
+	if len(osArgs) > 4 && osArgs[3] == "-cpp" {
+		if err := g.writeCpp(osArgs[1], osArgs[4]); err != nil {
 			fmt.Fprintln(errw, "skel:", err)
 			return 1
 		}
