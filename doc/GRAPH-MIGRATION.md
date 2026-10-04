@@ -107,7 +107,7 @@ The new ones, each a batch's job (B0 and B2 below):
 | MOVE | **done (B2c)**: `Editor.MoveBefore`/`MoveAfter`/`MoveRun` (items beside an item, ids and edges kept) and `MoveTo` (a node into a placeholder's place, a fill in its own), refused where a use would not resolve, a declaration would hide or repeat one, or a jump would bind elsewhere (*B2c as built*) | ~15 |
 | INCLUDE | `#include` forms added, deleted or moved, and the first one as the core/host boundary: "is X above it", "the host region" | ~15 |
 | FOLDX | **done (B2d)**: `Editor.FoldX` -- xform.FallOut's closure on the graph: the UNWRITTEN seed over write edges (`Editor.Unwritten`, `FoldX.Before`/`Hold`), the reads of objects and members nothing writes, `a && K`/`a \|\| K` and the constants (cc's evaluation: `!K`, `K == 0`, sizeof, offsetof), the branches, the statements after a revealed jump, a function whose body is `return K;` K at its calls, a parameter every call passes alike, a function left empty uncalled; a cut's own literals as marks (`Marks`, `NoSeeds`); and beside the closure, opted into (`FallOutOptions`): the empty blocks everywhere with the locals only given values (`EmptyBlocks`, phase 62's), a label no goto reaches, `if (!f()) {}` made `(void)f();` (`KeepCondition`), an if whose only effect was a store to a deleted location (`StoreIfs`), the value a cut gives a deleted object (`Values`). The walk fold and the declaring splice are B0's: *B2d as built* | ~30 |
-| DRAFT | **done (B3e)**: `Editor.Draft()`/`Draft.Commit(text)` -- a program's text acts on the C view made the graph's: the changes widened to the innermost runs of whole items, written anew in one FRAG import (fragments naming one another allowed) or deleted, the uses of a struct's members, enumerators and tags written anew carried by name (*B3e as built*) | 4 |
+| DRAFT | **retired (R1)**: B3e's `Editor.Draft()`/`Draft.Commit(text)` -- a program's text acts on the C view committed as FRAG of the innermost runs of whole items (*B3e as built*) -- carried phases 53-56 and utf8only until R1 wrote them on the verbs; deleted with its line diff and clisp's span hook (*R1 as built*) | 0 |
 
 ## B0 as built (2026-10-03)
 
@@ -732,7 +732,7 @@ whim18 | 2 | phase/018 (Edit) | 44 | - | done | - | B4 | shell redirection and r
 noenc | 2 | cut/noenc.go | 191 | - | done | - | B4 | mb_init's dispatch, 6 iconv stubs
 nofencs | 2 | cut/nofencs.go | 23 | - | done | - | B4 | an else-if arm
 nofenc | 2 | cut/nofenc.go | 113 | - | done | - | B4 | 'fileencoding' reads and stores
-utf8only | 2 | cut/utf8only.go | 491 | - | done | - | B4 | five encoding flags constant, every test folded: DRAFT (its text simplifier on the C view, committed as FRAG), the one front unit not on the verbs
+utf8only | 2 | cut/utf8only.go + crefactor/graph/r1_markfold.go | 163+943 | - | done | - | B4, R1 | five encoding flags constant, every test folded: MARKFOLD (R1), the text simplifier's rules on the forms, its rounds counted as the text counted them
 noterm | 2 | cut/noterm.go | 57 | - | done | - | B4 | "xterm" -> "xterm-256color"
 nomouse | 2 | cut/nomouse.go | 211 | - | done | - | B4 | 22 rows retargeted (a), 14 key rows, a body inlined
 whim2a | 2 | phase/002/a | 52 | - | done | - | B4 | no title
@@ -872,10 +872,10 @@ phase 50 | 50 | crefactor/xform/unions.go | 6+311 | - | b | RETYPE | B3d | degen
 51a | 51 | phase/051/a | 374 | - | b | INITROW RENAME TEXTQ | B3d | terminal names; before 51
 phase 51 | 51 | whim51a, whim51 | 389 | - | b | PARAM MOVE FOLDX RENAME | B3d | -T goes
 phase 52 | 52 | whim52 @state | 218 | 2918 | b | FRAG | B3d | the arena; header types (max_align_t)
-phase 53 | 53 | whim53 @state | 817 | 4723 | b | DRAFT (done, B3e) | B3e | swap-file residue; mostly deletions -- on the graph: its text acts on the C view, committed as FRAG
-phase 54 | 54 | whim54 @state | 589 | 15478 | b | DRAFT (done, B3e) | B3e | a block number becomes a reference; after 53 -- on the graph, as 53
-phase 55 | 55 | whim55 @state | 665 | 4418 | b | DRAFT (done, B3e) | B3e | de-page the leaf; after 54 -- on the graph, as 53
-phase 56 | 56 | whim56 @state | 791 | 4045 | b | DRAFT (done, B3e) | B3e | fold the node types; after 55 -- on the graph, as 53
+phase 53 | 53 | whim53 @state | 695 | - | done | - | B3e, R1 | swap-file residue; mostly deletions -- on the verbs (R1): PARAM, Cut/CutRun, a body built, the numbers and messages rewritten in place; partitions on FormLines
+phase 54 | 54 | whim54 @state | 628 | - | done | - | B3e, R1 | a block number becomes a reference; after 53 -- on the verbs (R1): the numbers RETYPEd and RENAMEd, ml_root InsertMember, mf_get by PARAM, the runs of forms deleted
+phase 55 | 55 | whim55 @state | 448 | - | done | - | B3e, R1 | de-page the leaf; after 54 -- on the verbs (R1): two FRAG units (the types and ml_alloc_line; the typedef), InsertMember, the regions built where they stood, PARAM
+phase 56 | 56 | whim56 @state | 574 | - | done | - | B3e, R1 | fold the node types; after 55 -- on the verbs (R1): one FRAG unit (the enumerator, ml_free_tree), InsertMember, RETYPE, RetargetAs, the constructors built, PARAM
 phase 57 | 57 | whim57 | 13 | - | b | RETYPE | B3f | p_emoji int
 phase 58 | 58 | whim58 | 13 | - | done | - | B1c | three (pos_T *)-1 tests fold; on the graph (B1c), a FoldNever by form
 phase 59 | 59 | whim59 | 23 | - | b | RETYPE RENAME | B3f | garray_T *
@@ -1047,7 +1047,7 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
   - **B3e** phases 53-56 (~2,900, ~29 KB of literal C), a strict chain: one
     agent, in order. Mostly FRAG of whole items and bodies; 53 is mostly
     deletions. **Done**, *B3e as built* below: DRAFT, the text acts
-    committed as FRAG.
+    committed as FRAG; rewritten on the verbs by R1 (*R1 as built*).
   - **B3f** phases 57-87 but 58/60/62/64/74/77/86a, and 93, 96-99 (~2,100 of
     programs, BoolRet's 1,020): FRAG, RETYPE, PARAM, MOVE, INITROW; 76/76a
     may wait for step 6 (a typed transform written in text); 96 after 95. **Done** but 76a/76, 87a/87, 102 and 103, *B3f as built* below.
@@ -2948,3 +2948,183 @@ as HEAD, the control seen by 76, the Go editor 80 as the C); `go test
 | 89 | 1 s + an import 1.5 s | 0.27 s | handed |
 
 In order the run is 150 s against step 6's 158 s (at a load of 3-5).
+## R1 as built (2026-10-04): phases 53-56 and utf8only on the verbs
+
+The five units that still ran as DRAFTs -- phases 53-56 (B3e) and phase 2's
+`utf8only` (B4) -- are written on the graph's own verbs, and DRAFT is
+deleted: `crefactor/graph`'s `draft.go`, `linediff.go` and `draft_test.go`,
+`crefactor/clisp`'s `printspans.go` and its span hook in `toc.go` (nothing
+else used them; `toc.go` is again what it was before B3e), and
+`internal/graphcheck`'s `TestB3eDrafts` (`TestGraphPhasesAsImported` holds
+the five as it holds every graph phase). The literal files went with
+them: 53's and 54's `editlit.go` (their acts are patterns and templates
+now), 55's and 56's (their new C is a few constants in `edit.go`), 56's
+`shapes.go`.
+
+**How each is written.** Every act finds its node by a C-lisp pattern in
+its function's scope, and is the smallest one that says the change:
+
+- **53**: the preamble is a run of ml_open()'s items, cut (`ReplaceRun`); the
+  block numbers are literals replaced in place and the messages uses
+  pointed at the other string (`RetargetAs`); `negative`, `newfile` and
+  mf_put()'s three arguments are PARAM (every call's argument with them,
+  the 11 `ml_append(..., FALSE)` and the 14 mf_put()s); mf_put()'s body is
+  BUILD (`Body`); the writes are `Cut`, `CutRun`, `DropOperand`,
+  `FoldNever`; the definitions, the prototype, the typedef and the member
+  deleted.
+- **54**: `pe_bnum` and `ip_bnum` are RETYPEd and RENAMEd (`pe_block`,
+  `ip_block`), as are ml_find_line()'s `bnum`, ml_append_int()'s two labels
+  and mf_get()'s `nr` (`hp`), so that every use keeps its node; `ml_root` is
+  `InsertMember`; mf_get() loses its page count by PARAM; E323's object is
+  renamed and its string replaced (RespellString left the declaration
+  untyped, which the re-check did not mend); the wrappers, the free list
+  and the hash are the runs of forms the text cut, deleted; the types and
+  members last.
+- **55**: the record's types, the static_assert and ml_alloc_line() are C
+  (FRAG, two units: a unit's fragments may not name one another's
+  declarations, and the typedef names the record -- MOVE refuses moving a
+  typedef above the struct it names, which C allows); `db_line` is
+  `InsertMember`; every region the text replaced is the statements it
+  held, cut, rewritten in place or BUILT where they stood, the ones the
+  text carried (`++dp->db_line_count`, the loop counters) moved, not
+  rebuilt; ml_new_data() loses its page count by PARAM.
+- **56**: `bh_id`, `pb_hdr` and `db_hdr` are `InsertMember`, `pb_pointer`
+  RETYPEd to `PB_COUNT_MAX`; `ml_mfp`'s uses are pointed at `ml_root`
+  (`RetargetAs`), each `(T *)(x->bh_data)` gives up its selection, each
+  `x->pb_id`/`x->db_id` is `hp->bh_id` built in place, each guarded mf_get()
+  is `hp = x;`; the constructors' bodies are built with the id constants
+  MOVED in from the bodies they replace (BUILD's holes) and lose `mfp` by
+  PARAM; the enumerator and ml_free_tree() are one FRAG unit, the three
+  static_asserts built (a static_assert is no form BUILD makes, its
+  condition is); the memfile layer is the run of forms the text cut.
+- **utf8only**: the flags' declarations and mb_init()'s assignments go,
+  every use becomes the constant (TRUE, or 0 for the two never set), and
+  each of the 231 functions holding one is folded by **MARKFOLD**, below.
+
+**The assertions and the reports are the text's.** A partition (every line
+saying a name in exactly one class of its regular expressions) is asked of
+`Editor.FormLines`: the lines of the top-level forms that say the name,
+found by edge -- its declarations (file scope, members, the locals and
+parameters of the functions it may be in) and the nodes referring to them --
+each with the function it is in as a text program reading heads at column
+0 saw it. A form prints in well under a millisecond. 56's partitions, over
+names as common as `mfp`, are asked of the C view of its input and output,
+as the text asked them. Every report line is the text's but one: the last
+line of 53-56 counts the C view's lines before the collection, not the
+text program's output, which kept blank lines from its literals --
+53 77,297 -> 77,292, 54 76,893 -> 76,880, 55 76,785 -> 76,780, 56 76,599
+-> 76,583. utf8only's report is the text's line for line, its round counts
+included (321 expression simplifications, 309 statement folds), because
+MARKFOLD works in the text's order. The state files are written as
+before, `edit.c` now the C view.
+
+**MARKFOLD** (`crefactor/graph/r1_markfold.go`, `Editor.FoldMarks`): a text
+simplifier's constant folding on the forms, generic -- the caller marks
+nodes as constants (true, false, a zero), says how a new one is made and
+which names a zero compares unequal to. It is written to give, form for
+form, what the text gave, and so keeps its limits with its rules:
+
+- **the groups are the text's**: a pair of parentheses, written
+  (`(paren ...)`) or implied (where C needs them and the forms carry the
+  grouping), a call's arguments, sizeof's operand, a control's condition,
+  a for's three clauses as one group. A constant's innermost group is
+  simplified through `||`, `&&`, `!`, `?:`, parentheses and a comparison of a
+  zero with a zero or a known nonzero name -- nothing else (`x == TRUE`
+  stays) -- an assignment at the group's top stopping it. A group of a
+  call, of a cast's operand, of `return` or `sizeof` keeps its parentheses
+  around a constant; any other collapses to it. The parentheses the text
+  kept around what it simplified are `(paren ...)` where C does not need
+  them, as an import of that text has them (`x || (s)`).
+- **an impure operand** before a deciding constant stays, the constant
+  after it, and what follows goes (`f() || TRUE`).
+- **a right side** is simplified only where a constant stood in no group,
+  and only where the text's statement bounds found the statement's own:
+  the text took a statement from the `;`, `{` or `}` before it at its
+  depth, so one after a braced statement began inside that one's last
+  block and one after a label at the label -- a `return` there was never
+  simplified, an assignment only where nothing in that text assigned
+  before it (`if (c) { q = 1; } r = TRUE && s;` stays).
+- **in the text's order**: each constant in turn, its group simplified,
+  and from the start at the first that changes; an if, an else-if arm or
+  a while on a constant folded (an if true its then block spliced
+  -- Unwrap, the declaring splice refused on a clash -- an arm true its
+  then block as the else, false its chain's rest, a while false gone), a
+  false one's last occurrence first. So the counts are the text's rounds.
+- what the text would have done to an expression whose text begins with
+  `!` but which is no `!` (it read `!a == b` as `!(a == b)`) is refused,
+  not guessed; none occurs.
+
+**Library** (crefactor/graph, new files, generic, with tests in
+`r1_test.go`): `r1_markfold.go` (MARKFOLD, and `HasStorage`, `DeclInit`);
+`r1_textq.go` (`FormLines`, `MemberDecls`, `LocalDecls`, `AndUses`,
+`ItemsC`); `r1_build.go`, three typing fixes each found by `SameGraph` on a
+unit and each a line's hook in the file it mends: BUILD types an operand of
+an array or function type DECAYED, a pointer type the graph lacks made
+(`build.go`; it typed `p->arr[0]`'s selection as the array, which the
+re-check, typing only what is untyped, left); RETYPE's re-derivation types
+a selection of a member retyped to an array decayed where it stands
+(`retype.go`); and a type form's array size may be an enumerator, read as
+its value (`typeedit.go`; `db_line[DB_LINE_MAX]`, `pb_pointer[PB_COUNT_MAX]`
+were refused). `TestGraphPhasesAsImported` passes on every phase with
+them.
+
+**The proof.** Before DRAFT was deleted, each unit's DRAFT ran on its
+snapshot's graph and its C view before the collection and its report were
+kept; each rewrite was held to them -- the C view byte for byte, the
+report line for line (but the counted line above) -- and then collected to
+qN.c byte for byte and to the import of its C view (`SameGraph`).
+Then, the DRAFT deleted: `rm -rf .cache/boundaries; make whim-build-check`
+in order: whim-vim.c byte for byte, 77,635 lines, 104 boundaries
+compiling, **142 s** wall (10 min 24 s user) at a load of 5-15 (Step6's
+run: 158 s). Again, in parallel: byte for byte, 36 s, 102 links begun on
+their graph snapshot, 0 imported. The control, a fault in each unit at
+once -- utf8only marking `enc_dbcs` true, 53's root block 2, 54's descent
+starting at nullptr, 55's empty line of length 2, 56's fanout one less --
+names exactly phases 2, 53, 54 (refused by its own `ml_root` partition),
+55 and 56: `5 of 103 phases do not reproduce their snapshot`.
+`TestGraphPhasesAsImported` on every phase (46 s), `whim-editor-check`,
+`whim-test` (80 as HEAD, the Go editor 80 as the C), `go test ./...` in
+both modules, gofmt, go vet and staticcheck on what changed: clean (but
+`b2c_test.go`'s two unused helpers, before this batch).
+
+**Measured** (`TestMeasureGraphPhases`, 3 runs, medians, main `2134168`
+and R1 one after the other at a load of 2-12; handed is how a run in
+order and the parallel check take them; ids superseded / given include
+the collection):
+
+| phase | main (DRAFT), handed / imported, wall ms | R1, handed / imported, wall ms | ids superseded / given, main -> R1 |
+| --- | ---: | ---: | --- |
+| 2 | 17,328 / 21,756 | 6,958 / 10,974 | 67,016 / 42,159 -> 25,987 / 1,130 |
+| 53 | 2,167 / 4,105 | 650 / 2,463 | 1,807 / 613 -> 1,215 / 20 |
+| 54 | 2,682 / 4,558 | 700 / 2,587 | 1,421 / 382 -> 1,158 / 115 |
+| 55 | 1,077 / 2,901 | 950 / 2,758 | 1,821 / 1,200 -> 1,001 / 379 |
+| 56 | 1,804 / 3,656 | 882 / 2,653 | 1,540 / 998 -> 778 / 233 |
+
+utf8only alone is 80 ms (10.2 s as a DRAFT); phase 2 is 7 s in order (17
+s). Of what 54's program supersedes (1,094 ids before the collection), 819
+are what it deletes -- the hash, the free list, the wrappers -- and 275
+what it rewrites; the DRAFT superseded 1,350 and gave 375. 53-56 are not
+yet the 0.2-0.4 s of a phase on the verbs: each prints the C view twice
+(the input's line count and the output's, the state file; ~60 ms each),
+55 makes two FRAG imports (0.2-0.3 s each) and 56 one, and the collection
+is 120-210 ms of each figure.
+
+### Refinements
+
+- **A text simplifier is portable to the forms, quirks and counts
+  included,** when its groups are made explicit: the implied parentheses
+  are groups as the written ones are, and an edit keeps the pairs the
+  text kept as `(paren ...)` exactly where C would not need them -- what an
+  import of the text does. The round counts follow from processing in the
+  text's order; the first port, innermost-first, gave 332 simplifications
+  and 306 folds for the same bytes.
+- **BUILD and RETYPE typed decaying operands undecayed** (B0, B2c); the
+  re-check, typing only what is untyped, did not mend them, and no unit
+  before built a subscript of an array member. Mended at the source
+  (`r1_build.go`).
+- **FRAG units cannot hold a fragment naming another's declaration**
+  (unchanged since B2a), and MOVE refuses what C allows (a typedef above
+  the struct it names): 55 pays a second unit for its typedef.
+- Left: the C view printed twice in 53-56 for the reports' line counts and
+  the `edit.c` state file nothing reads -- the one place these phases
+  still pay for text.

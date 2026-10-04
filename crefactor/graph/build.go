@@ -380,6 +380,9 @@ func (b *builder) expr(f *clisp.Node) *Node {
 			kids = append(kids, b.expr(k))
 		}
 		n = NewList(kids...)
+		if h != "addr" {
+			b.decayOperands(n) // r1_build.go
+		}
 		n.Type = exprType(b.e, n)
 	default:
 		return b.fail("BUILD does not make a (%s ...): a fragment of C is FRAG's (frag.go: C text)", h)

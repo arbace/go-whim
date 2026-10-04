@@ -288,7 +288,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (every phase, 0-103, and every part, since R3: `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
+phase converted to the graph (every phase, 0-103, and every part, written on the graph's verbs since R1 and R3: `doc/GRAPH-MIGRATION.md`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -334,8 +334,7 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    closures (every seed, phase 62's empties, notags'
                    conditions), and every phase on the graph from end to
                    end held to the import of its C view, ids aside
-                   (s6_test.go, step 6: SameGraph, every typed edge), and
-                   phases 53-56's drafts held to the import of their C view:
+                   (s6_test.go, step 6: SameGraph, every typed edge):
                    GRAPH_SNAPS), steps'
                    front.go (the front's cutters on the graph and FoldX),
                    build (whim's pipeline: the plan -- what each
@@ -363,8 +362,7 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    pattern.go: patterns as forms; scope.go: a resolver of
                    C's name spaces and scopes, untyped; Options.Origin tells a
                    caller the cc node each form came from; printnode.go an
-                   expression's or items' C alone; printspans.go where each
-                   form and item is printed). graph/: the
+                   expression's or items' C alone). graph/: the
                    program as one resolved, typed graph (doc/GRAPH.md):
                    import.go cc's parse and check into C-lisp's forms as
                    nodes with ids, refers edges (members by type) and typed
@@ -482,11 +480,20 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    never-NULL set to its fixed point, the tests after a
                    store folded), dropcalls.go (60: the calls of what
                    does nothing, DeadLocals);
-                   and B3e's draft.go (DRAFT: a phase's text acts on the
-                   C view, committed as FRAG of the smallest runs of whole
-                   items that hold them -- linediff.go the line diff --
-                   the uses of a struct, member, enumerator or tag written
-                   anew carried to the new declaration by name);
+                   and R1's (phases 53-56 and utf8only on the verbs,
+                   where B3e's DRAFT -- text acts on the C view committed
+                   as FRAG -- carried them; deleted): r1_markfold.go
+                   (MARKFOLD: a text simplifier's constant folding on the
+                   forms -- marked constants through `||`, `&&`, `!`,
+                   `?:`, parentheses and comparisons with zero, in the
+                   text's order and at its groups, its kept parentheses as
+                   `(paren ...)`, the statements on a constant folded),
+                   r1_textq.go (FormLines: the lines of the forms that say
+                   a name, found by edge, each with its function;
+                   MemberDecls, LocalDecls, AndUses, ItemsC) and
+                   r1_build.go (BUILD's operands and RETYPE's selections
+                   typed decayed, as cc's check types them; an array size
+                   an enumerator);
                    and B3f's protoparam.go (a prototype's parameter
                    names) and fragmore.go (FRAG verbs for an expression by
                    its C, a spot, nodes the caller found, a node wrapped
@@ -982,7 +989,7 @@ was the input boundary's digest and the implementation's together, so a moved
   77a and phase 86's own step -- and B4's, the front: phases 1-3 and
   their parts 2a and 3a-3f, every cutter a graph step and FoldX the closure, so
   that phase 1 imports q000 and phases 1-26 run with no import between them
-  (`utf8only` a DRAFT) -- and step 6's: phases 76 (with 76a), 87 (with
+  (`utf8only` on MARKFOLD since R1) -- and step 6's: phases 76 (with 76a), 87 (with
   87a), 94, 95 and 99-103, the typed transforms on typed edges, and part
   74a -- and R3's: phase 0 (the seed, the input imported, and parts 0a-0c
   as graph steps) and phase 88 (the include rule), so that every phase is

@@ -32,4 +32,4 @@ rather than settings, so it records nothing new. The evidence that this phase
 did something is the score, not the delta — which is the honest way round, and
 better than inventing a delta to point at.
 
-**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): the front's cutters (D6-D8, with parts 2a and phase 18's program) run on `crefactor/graph`, handed phase 1's graph, the closure after them FoldX, the query asked of the C view; byte for byte (`whim-build-check`). 17 s in order (23 s on text), 14 of them `utf8only`'s, a DRAFT.
+**On the graph** (B4, `doc/GRAPH-MIGRATION.md`): the front's cutters (D6-D8, with parts 2a and phase 18's program) run on `crefactor/graph`, handed phase 1's graph, the closure after them FoldX, the query asked of the C view; byte for byte (`whim-build-check`). 7 s in order (23 s on text; 17 s while `utf8only` was a DRAFT, 14 of them its): `utf8only` is MARKFOLD since R1, 80 ms.

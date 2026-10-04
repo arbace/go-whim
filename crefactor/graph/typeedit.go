@@ -220,6 +220,10 @@ func (tx *typeTx) formType1(t *Node) *Node {
 			return tx.array("", elem)
 		case len(t.Kids) == 3 && !t.Kids[1].list && isDecimalInt(t.Kids[1].Atom):
 			return tx.array(t.Kids[1].Atom, elem)
+		case len(t.Kids) == 3:
+			if sz := tx.enumSize(t.Kids[1]); sz != "" { // r1_build.go
+				return tx.array(sz, elem)
+			}
 		}
 		return nil
 	case "fn":

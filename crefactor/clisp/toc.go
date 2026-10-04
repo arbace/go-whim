@@ -42,7 +42,6 @@ type printer struct {
 	b      strings.Builder
 	indent int
 	err    error
-	span   func(n *Node, start, end int) // PrintSpans: where each top-level form and item is printed
 }
 
 func (p *printer) fail(n *Node, format string, a ...any) {
@@ -133,9 +132,6 @@ func join(parts ...string) string {
 // ---- top level and block items
 
 func (p *printer) top(f *Node) {
-	if p.span != nil {
-		defer p.spanned(f, p.b.Len())
-	}
 	switch f.Head() {
 	case "include":
 		p.w("#include " + p.unquote(p.arg(f, 0)) + "\n")
@@ -159,9 +155,6 @@ var declHeads = map[string]bool{
 }
 
 func (p *printer) item(f *Node) {
-	if p.span != nil {
-		defer p.spanned(f, p.b.Len())
-	}
 	if !f.list {
 		p.line(p.expr(f, lvComma) + ";")
 		return

@@ -8,5 +8,4 @@ import "regexp"
 var (
 	dlTextRe   = regexp.MustCompile(`\.dl_text\s*=[^=]`)
 	interiorRe = regexp.MustCompile(`\(char_u? \*\)dp[a-z_]* *\+`)
-	mlFlagsRe  = regexp.MustCompile(`ml_flags \|=`)
 )

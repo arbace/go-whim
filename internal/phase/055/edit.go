@@ -128,6 +128,16 @@ package p055
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, *R1 as built*): the leaf's new
+// types and ml_alloc_line() are C spliced in ONE synthesized import (FRAG),
+// the record array a member inserted, and every region the text replaced
+// is the statements it held, cut, rewritten in place or built where they
+// stood -- the ones the text carried kept with their nodes -- with
+// ml_new_data() losing its page count by PARAM, at every call.  The
+// partitions are the text's, on the lines of the forms that say the names
+// (graph.FormLines) and, for what the output must not say, on its C view.
+
 import (
 	"fmt"
 	"io"
@@ -139,27 +149,9 @@ import (
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
-	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
 func init() { phase.RegisterGraph("whim55", Edit) }
-
-// Edit is the phase on the graph (doc/GRAPH-MIGRATION.md, *B3e as built*):
-// its acts are the text acts below, made on the graph's C view (a
-// graph.Draft) as the text program made them on the file, and committed to
-// the graph as FRAG of the smallest runs of whole items that hold them.
-func Edit(e *graph.Editor, w io.Writer, args []string) error {
-	d, err := e.Draft()
-	if err != nil {
-		return err
-	}
-	out, err := w55Acts([]byte(d.Text()), w, args)
-	if err != nil {
-		return err
-	}
-	_, err = d.Commit(string(out))
-	return err
-}
 
 const w55DbLineMax = 64
 
@@ -178,21 +170,45 @@ var w55Gone = []string{"db_free", "db_txt_start", "db_txt_end", "db_index", "ML_
 var w55Homes = []string{"<file scope>", "ml_open", "ml_get_buf", "ml_append_int", "ml_delete_int",
 	"ml_setmarked", "ml_firstmarked", "ml_clearmarked", "ml_flush_line", "ml_new_data"}
 
-// w55Acts de-pages the leaf: a data block stops being an index of byte offsets
+// w55Types are the leaf's new types and the function that allocates a
+// line, C spliced where the text wrote them.
+const (
+	w55Line = `enum { DB_LINE_MAX = 64 };
+
+struct data_line
+{
+    char_u      *dl_text;
+    colnr_T     dl_len;
+    char        dl_marked;
+};
+`
+	w55Assert = `static_assert(sizeof(DATA_BL) <= MEMFILE_PAGE_SIZE, "a leaf is one memfile page");`
+	w55Alloc  = `    static char_u *
+ml_alloc_line(char_u *line, colnr_T len)
+{
+    char_u      *text;
+
+    text = alloc((usize)len);
+    if (text != nullptr)
+    {
+         musl_memmove((char *)(text), (char *)(line), (usize)(len)) ;
+    }
+
+    return text;
+}
+`
+)
+
+// Edit de-pages the leaf: a data block stops being an index of byte offsets
 // over a text arena and becomes `DATA_LN db_line[DB_LINE_MAX]`, so a line's text
 // is its own allocation valid for the lifetime of the process.
-func w55Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
-	p := edit.Ph{Tag: "leaf", W: w}
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	if len(args) != 1 {
-		return nil, p.Die("usage: edit whim55 <file> <state-dir>")
+		return fmt.Errorf("  leaf         usage: edit whim55 <file> <state-dir>")
 	}
 	state := args[0]
-	lines := strings.Split(string(text), "\n")
-	nIn := len(lines)
-	t0 := string(text)
-
-	// die here prints on stdout and exits 1, which is the heredoc's own `die`:
-	// this phase writes its refusals into the report and not onto stderr.
+	// die here prints on stdout, which is the heredoc's own `die`: this
+	// phase writes its refusals into the report and not onto stderr.
 	die := func(format string, a ...interface{}) error {
 		fmt.Fprintf(w, "  leaf         %s\n", fmt.Sprintf(format, a...))
 		return fmt.Errorf("")
@@ -200,149 +216,75 @@ func w55Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	say := func(format string, a ...interface{}) {
 		fmt.Fprintf(w, "  leaf         %s\n", fmt.Sprintf(format, a...))
 	}
-	mentions := func(s, name string) int { return edit.MentionCount([]byte(s), name) }
-
-	// --- finding things ------------------------------------------------------
-	fn := func(name string) (int, int, error) {
-		var hits []int
-		for i, l := range lines {
-			if strings.HasPrefix(l, name+"(") {
-				hits = append(hits, i)
+	v := graph.NewVerbs("leaf", e, io.Discard)
+	failed := func() error {
+		if v.Err != nil {
+			return die("%s", strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(v.Err.Error()), "leaf")))
+		}
+		return nil
+	}
+	decls := func(name string) []*graph.Node {
+		var ds []*graph.Node
+		for _, d := range append(e.Decls(name), e.MemberDecls(name)...) {
+			if e.Live(d) {
+				ds = append(ds, d)
 			}
 		}
-		if len(hits) != 1 {
-			return 0, 0, die("%s is not a definition head exactly once (%d), so this edit cannot "+
-				"find the function it is about", name, len(hits))
+		return ds
+	}
+	// build makes the C-lisp items src where at stands, in fn.
+	build := func(at *graph.Node, src string) []*graph.Node {
+		if v.Err != nil {
+			return nil
 		}
-		head := hits[0] - 1
-		if !strings.HasPrefix(strings.TrimLeft(lines[head], " \t"), "static") {
-			return 0, 0, die("%s has no `static` line above its name", name)
+		ns, err := e.Build(at, src, nil)
+		if err != nil {
+			v.Die("%v", err)
 		}
-		i := hits[0]
-		for lines[i] != "{" {
-			i++
+		return ns
+	}
+	// region replaces the items from first through last of their list by
+	// the items with.
+	region := func(first, last *graph.Node, with []*graph.Node, what string) {
+		if v.Err != nil {
+			return
 		}
-		depth := 0
-		for {
-			depth += strings.Count(lines[i], "{") - strings.Count(lines[i], "}")
-			if depth == 0 {
-				return head, i, nil
-			}
-			i++
+		if first == nil || last == nil {
+			v.Die("%s is not the region this edit replaces", what)
+			return
+		}
+		var err error
+		if first == last {
+			err = e.Replace(first, with...)
+		} else {
+			err = e.ReplaceRun(first, last, with...)
+		}
+		if err != nil {
+			v.Die("%s -- %v", what, err)
 		}
 	}
-	one := func(lo, hi int, pat string) (int, error) {
-		re := regexp.MustCompile(pat)
-		var hits []int
-		for i := lo; i <= hi; i++ {
-			if re.MatchString(lines[i]) {
-				hits = append(hits, i)
-			}
-		}
-		if len(hits) != 1 {
-			return 0, die("%s matches %d lines where this edit needs exactly one",
-				vimtext.PyReprMultiline(pat), len(hits))
-		}
-		return hits[0], nil
+	one := func(fn, pat, what string) *graph.Node {
+		var n *graph.Node
+		v.InFunction(fn, func(v *graph.Verbs) { n = v.One(pat, what) })
+		return n
 	}
-	firstMatch := func(lo, hi int, pat string) (int, error) {
-		re := regexp.MustCompile(pat)
-		for i := lo; i <= hi; i++ {
-			if re.MatchString(lines[i]) {
-				return i, nil
-			}
-		}
-		return 0, die("%s matches nothing where this edit needs it", vimtext.PyReprMultiline(pat))
-	}
-	// stmtEnd: last index of the statement starting at a, following any `else`
-	// chain.
-	stmtEnd := func(a int) int {
-		i := a
-		for {
-			depth, seen, j := 0, false, i
-			for {
-				depth += strings.Count(lines[j], "{") - strings.Count(lines[j], "}")
-				seen = seen || strings.Contains(lines[j], "{")
-				if (seen && depth == 0) || (!seen && strings.HasSuffix(strings.TrimRight(lines[j], " \t"), ";")) {
-					break
-				}
-				j++
-			}
-			k := j + 1
-			for k < len(lines) && strings.TrimSpace(lines[k]) == "" {
-				k++
-			}
-			if k < len(lines) && strings.HasPrefix(strings.TrimSpace(lines[k]), "else") {
-				i = k
-				continue
-			}
-			return j
-		}
-	}
-	enclosing := func(i int) string {
-		for j := i; j >= 0; j-- {
-			if lines[j] == "}" {
-				return "<file scope>"
-			}
-			m := vimtext.FnHeadRe.FindStringSubmatch(lines[j])
-			if m != nil && j > 0 && strings.HasPrefix(strings.TrimLeft(lines[j-1], " \t"), "static") {
-				return m[1]
-			}
-		}
-		return "<file scope>"
-	}
-	// carry: the `ml_flags |=` statements inside [lo,hi], as they stand (the
-	// canonical print indents them).  They are CARRIED and not written:
-	// ML_LOCKED_DIRTY and ML_LOCKED_POS are phase 53's to remove, and an edit
-	// that spelled them would break on it.
-	carry := func(lo, hi int) []string {
-		var Out []string
-		for i := lo; i <= hi; i++ {
-			if mlFlagsRe.MatchString(lines[i]) {
-				Out = append(Out, lines[i])
-			}
-		}
-		return Out
-	}
-	// lastArg: line i's call to callee loses its last argument, or gets `new` in
-	// its place.  The argument is found by PLACE and never by its text, because
-	// what it says is other phases' to change and what it IS is this
-	// phase's.
-	lastArg := func(i int, callee, new string) (string, error) {
-		m := regexp.MustCompile(regexp.QuoteMeta(callee) + `\(`).FindStringIndex(lines[i])
-		if m == nil {
-			return "", die("line %d does not call %s", i+1, callee)
-		}
-		depth, j := 1, m[1]
-		var commas []int
-		for {
-			c := lines[i][j]
-			if c == '(' {
-				depth++
-			} else if c == ')' {
-				depth--
-				if depth == 0 {
-					break
-				}
-			} else if c == ',' && depth == 1 {
-				commas = append(commas, j)
-			}
-			j++
-		}
-		if len(commas) == 0 {
-			return "", die("%s is called with one argument, so there is no last one to name", callee)
-		}
-		last := commas[len(commas)-1]
-		was := lines[i][last+1 : j]
-		add := ""
-		if new != "" {
-			add = ", " + new
-		}
-		lines[i] = lines[i][:last] + add + lines[i][j:]
-		return was, nil
-	}
+	items := func(b *graph.Node) []*graph.Node { return b.Args() }
 
 	// --- the partition, before anything is changed ---------------------------
+	var ns []*graph.Node
+	for _, name := range w55Gone {
+		ns = append(ns, e.AndUses(decls(name)...)...)
+	}
+	ls, err := e.FormLines(ns...)
+	if err != nil {
+		return die("%v", err)
+	}
+	var tb strings.Builder
+	for _, l := range ls {
+		tb.WriteString(l.Text)
+		tb.WriteByte('\n')
+	}
+	forms := tb.String()
 	before := map[string]int{}
 	var strays []string
 	for _, name := range append(append([]string{}, w55Gone...), w55Bit) {
@@ -351,355 +293,308 @@ func w55Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 			pat = regexp.QuoteMeta(name)
 		}
 		re := regexp.MustCompile(pat)
-		var hits []int
-		for i, l := range lines {
-			if re.MatchString(l) {
-				hits = append(hits, i)
+		hits := 0
+		for _, l := range ls {
+			if re.MatchString(l.Text) {
+				hits++
+				who := l.Func
+				if who == "" {
+					who = "<file scope>"
+				}
+				if !edit.Contains(w55Homes, who) {
+					strays = append(strays, fmt.Sprintf("%s in %s", name, who))
+				}
 			}
 		}
-		if len(hits) == 0 {
-			return nil, die("%s is not in the input at all, so this phase has already run or the "+
+		if hits == 0 {
+			return die("%s is not in the input at all, so this phase has already run or the "+
 				"leaf is not the one it was written against", name)
 		}
 		if name == w55Bit {
-			before[name] = strings.Count(t0, w55Bit)
+			before[name] = strings.Count(forms, w55Bit)
 		} else {
-			before[name] = mentions(t0, name)
-		}
-		for _, i := range hits {
-			if !edit.Contains(w55Homes, enclosing(i)) {
-				strays = append(strays, fmt.Sprintf("%s in %s (line %d)", name, enclosing(i), i+1))
-			}
+			before[name] = edit.MentionCount([]byte(forms), name)
 		}
 	}
 	if len(strays) > 0 {
-		return nil, die("a name this phase removes is mentioned where it has no rule: %s",
+		return die("a name this phase removes is mentioned where it has no rule: %s",
 			strings.Join(edit.First(strays, 5), "; "))
 	}
 	sum := 0
 	for _, n := range w55Gone {
 		sum += before[n]
 	}
+	t0, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	nIn := strings.Count(string(t0), "\n") + 1
 	say("the input mentions %s -- %d times between them, the top bit %d more -- and every "+
 		"mention is in the struct, the enumerator or one of the eight memline functions "+
 		"this edit rewrites", strings.Join(w55Gone, ", "), sum, before[w55Bit])
 
 	// --- 1. the typedef, the record and the block ----------------------------
-	i := vimtext.LineIndex(lines, "typedef struct data_block DATA_BL;")
-	lines = append(lines[:i+1], append(append([]string{}, w55b0...), lines[i+1:]...)...)
-
-	a := vimtext.LineIndex(lines, "struct data_block")
-	b := a
-	for lines[b] != "};" {
-		b++
-	}
-	var members []string
-	for _, l := range lines[a+2 : b] {
-		if strings.TrimSpace(l) != "" {
-			members = append(members, strings.TrimSpace(l))
+	var dataBL, dataBlock, openDefn *graph.Node
+	for _, f := range e.Graph().Forms {
+		switch {
+		case f.Is("typedef") && graph.DeclName(f) == "DATA_BL":
+			dataBL = f
+		case f.Is("struct") && graph.Tag(f) == "data_block":
+			dataBlock = f
 		}
 	}
-	if len(members) != 6 || members[len(members)-1] != "unsigned db_index[1];" {
-		return nil, die("struct data_block is not the header-index-arena block this phase replaces: %s",
+	openDefn = e.Defn("ml_open")
+	if dataBL == nil || dataBlock == nil || openDefn == nil {
+		return die("struct data_block, its typedef or ml_open() is not in the file")
+	}
+	var members []string
+	for _, m := range graph.Members(dataBlock) {
+		members = append(members, m.Head())
+	}
+	if len(members) != 6 || members[5] != "db_index" {
+		return die("struct data_block is not the header-index-arena block this phase replaces: %s",
 			strings.Join(members, " "))
 	}
-	lines = vimtext.SpliceLines(lines, a, b+1, w55b1)
-
-	// --- 2. one line's text is its own allocation ----------------------------
-	lo, _, err := fn("ml_open")
-	if err != nil {
-		return nil, err
+	if _, err := e.SpliceC(
+		graph.Frag{At: e.SpotBefore(dataBlock), Src: w55Line},
+		graph.Frag{At: e.SpotAfter(dataBlock), Src: w55Assert},
+		graph.Frag{At: e.SpotBefore(openDefn), Src: w55Alloc}); err != nil {
+		return die("the record and one line's allocation -- %v", err)
 	}
-	lines = vimtext.SpliceLines(lines, lo, lo, w55b2)
+	// the typedef names the record, so it is spliced once the record is in:
+	// a unit's fragments name no other fragment's declarations
+	if _, err := e.SpliceC(graph.Frag{At: e.SpotAfter(dataBL), Src: "typedef struct data_line        DATA_LN;"}); err != nil {
+		return die("the record's typedef -- %v", err)
+	}
+	var lineCount *graph.Node
+	for _, m := range graph.Members(dataBlock) {
+		if m.Head() == "db_line_count" {
+			lineCount = m
+		}
+	}
+	if _, err := e.InsertMember(lineCount, true, "(db_line (array DB_LINE_MAX DATA_LN))"); err != nil {
+		return die("the block's records -- %v", err)
+	}
+
+	// --- 2. one line's text is its own allocation: ml_open's empty line ------
+	if at := one("ml_open", "(= (-> dp db_line_count) 1)", "ml_open's one empty line"); at != nil {
+		first := one("ml_open", "(= (index (-> dp db_index) 0) (pre-- (-> dp db_txt_start)))", "ml_open's one empty line")
+		last := one("ml_open", "(= (deref (+ (cast (ptr char_u) dp) (-> dp db_txt_start))) NUL)", "ml_open's one empty line")
+		with := build(first, `(= (. (index (-> dp db_line) 0) dl_text) (call ml_alloc_line (cast (ptr char_u) "") 1))
+			(if (== (. (index (-> dp db_line) 0) dl_text) nullptr) (block (goto error)))
+			(= (. (index (-> dp db_line) 0) dl_len) 1)`)
+		region(first, last, append(with, at), "ml_open's one empty line")
+	}
 
 	// --- 3. ml_new_data has no page count ------------------------------------
-	i, err = one(0, len(lines)-1, `^static bhdr_T \*ml_new_data\(memfile_T \*`)
-	if err != nil {
-		return nil, err
+	nd := e.Defn("ml_new_data")
+	if nd == nil || e.ParamIndex("ml_new_data", "page_count") != 1 {
+		return die("ml_new_data's last parameter is not the page count")
 	}
-	was, err := lastArg(i, "ml_new_data", "")
-	if err != nil {
-		return nil, err
+	if c := one("ml_new_data", "(call mf_new mfp page_count)", "ml_new_data hands its page count to mf_new"); c != nil {
+		if err := e.Replace(c.Kids[3], graph.Literal(1)); err != nil {
+			return die("%v", err)
+		}
 	}
-	if strings.TrimSpace(was) != "int" {
-		return nil, die("ml_new_data's prototype does not end in a plain `int` parameter: %s", was)
+	v.InFunction("ml_new_data", func(v *graph.Verbs) {
+		v.CutRun("ml_new_data's arena", "(= (-> dp db_txt_start) _)", "(= (-> dp db_free) _)")
+	})
+	if err := failed(); err != nil {
+		return err
 	}
-	lo, hi, err := fn("ml_new_data")
-	if err != nil {
-		return nil, err
-	}
-	if was, err = lastArg(lo+1, "ml_new_data", ""); err != nil {
-		return nil, err
-	}
-	if !strings.Contains(was, "page_count") {
-		return nil, die("ml_new_data's last parameter is not the page count: %s", was)
-	}
-	k, err := one(lo, hi, `mf_new\(`)
-	if err != nil {
-		return nil, err
-	}
-	if was, err = lastArg(k, "mf_new", "1"); err != nil {
-		return nil, err
-	}
-	if !strings.Contains(was, "page_count") {
-		return nil, die("ml_new_data does not hand its page count to mf_new: %s", was)
-	}
-	a, err = one(lo, hi, `^    dp->db_txt_start = dp->db_txt_end = `)
-	if err != nil {
-		return nil, err
-	}
-	b, err = one(lo, hi, `^    dp->db_free = `)
-	if err != nil {
-		return nil, err
-	}
-	if b != a+1 {
-		return nil, die("ml_new_data does not set the arena on two consecutive lines")
-	}
-	lines = vimtext.SpliceLines(lines, a, b+1, nil)
-
-	// --- 4. ml_open's one empty line -----------------------------------------
-	if lo, hi, err = fn("ml_open"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^    dp->db_index\[0\] = --dp->db_txt_start;$`); err != nil {
-		return nil, err
-	}
-	if b, err = one(lo, hi, `^    \*\(\(char_u \*\)dp \+ dp->db_txt_start\) = NUL;$`); err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, a, b+1, w55b3)
-	if lo, hi, err = fn("ml_open"); err != nil {
-		return nil, err
-	}
-	if k, err = one(lo, hi, `ml_new_data\(`); err != nil {
-		return nil, err
-	}
-	if _, err = lastArg(k, "ml_new_data", ""); err != nil {
-		return nil, err
+	if _, err := e.DropParam("ml_new_data", "page_count", graph.ParamOptions{}); err != nil {
+		return die("ml_new_data has no page count -- %v", err)
 	}
 
 	// --- 5. ml_get_buf reads a record ----------------------------------------
-	if lo, hi, err = fn("ml_get_buf"); err != nil {
-		return nil, err
+	v.InFunction("ml_get_buf", func(v *graph.Verbs) {
+		v.CutRun("ml_get_buf reads a record", "(= start _)", "(if (== idx 0) _ _)")
+	})
+
+	for _, r := range [][2]string{
+		{"(= (. (-> buf b_ml) ml_line_ptr) (+ (cast (ptr char_u) dp) start))", "(. (index (-> dp db_line) idx) dl_text)"},
+		{"(= (. (-> buf b_ml) ml_line_len) (- end start))", "(. (index (-> dp db_line) idx) dl_len)"},
+	} {
+		if at := one("ml_get_buf", r[0], "ml_get_buf reads a record"); at != nil {
+			region(at.Kids[2], at.Kids[2], build(at.Kids[2], r[1]), "ml_get_buf reads a record")
+		}
 	}
-	if a, err = one(lo, hi, `^        idx = lnum - buf->b_ml\.ml_locked_low;$`); err != nil {
-		return nil, err
-	}
-	if b, err = one(lo, hi, `^        buf->b_ml\.ml_line_len = end - start;$`); err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, a, b+1, w55b4)
 
 	// --- 6. ml_append_int ----------------------------------------------------
-	if lo, hi, err = fn("ml_append_int"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^    int line_count;$`); err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, a+1, a+1, w55b5)
-
-	if lo, hi, err = fn("ml_append_int"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^    space_needed = len \+ `); err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, a, a+1, w55b6)
-
-	if lo, hi, err = fn("ml_append_int"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `db_free < space_needed && db_idx == line_count - 1`); err != nil {
-		return nil, err
-	}
-	lines[a] = w55s0
-
-	if lo, hi, err = fn("ml_append_int"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^    if \(\(long\)dp->db_free >= space_needed\)$`); err != nil {
-		return nil, err
-	}
-	if k, err = firstMatch(a, hi, `if \(flags & ML_APPEND_MARK\)`); err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, a, stmtEnd(k)+1, w55b7)
-
-	if lo, hi, err = fn("ml_append_int"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^            lines_moved = line_count - db_idx - 1;$`); err != nil {
-		return nil, err
-	}
-	if b, err = one(lo, hi, `offsetof\(DATA_BL, db_index\)`); err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, a, b+1, w55b8)
-
-	if lo, hi, err = fn("ml_append_int"); err != nil {
-		return nil, err
-	}
-	if k, err = one(lo, hi, `ml_new_data\(`); err != nil {
-		return nil, err
-	}
-	if _, err = lastArg(k, "ml_new_data", ""); err != nil {
-		return nil, err
-	}
-
-	if lo, hi, err = fn("ml_append_int"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^        if \(!in_left\)$`); err != nil {
-		return nil, err
-	}
-	b = stmtEnd(a)
-	for _, headPat := range []string{`^        if \(lines_moved\)$`, `^        if \(in_left\)$`} {
-		k := b + 1
-		for strings.TrimSpace(lines[k]) == "" {
-			k++
+	if at := one("ml_append_int", "(def line_count int)", "ml_append_int's text"); at != nil {
+		if err := e.InsertAfter(at, build(at, "(def text (ptr char_u))")...); err != nil {
+			v.Die("%v", err)
 		}
-		if !regexp.MustCompile(headPat).MatchString(lines[k]) {
-			return nil, die("the split arm is not the three statements this edit replaces, at %s", lines[k])
-		}
-		b = stmtEnd(k)
 	}
-	lines = vimtext.SpliceLines(lines, a, b+1, w55b9)
+	if at := one("ml_append_int", "(= space_needed (+ len (paren (sizeof-type unsigned))))", "ml_append_int's text"); at != nil {
+		region(at, at, build(at, "(= text (call ml_alloc_line line len)) (if (== text nullptr) (block (goto theend)))"),
+			"ml_append_int's text")
+	}
+	v.InFunction("ml_append_int", func(v *graph.Verbs) {
+		v.Rewrite("(< (cast long (-> dp db_free)) space_needed)", "(>= (-> dp db_line_count) DB_LINE_MAX)", 1,
+			"the next block's room")
+	})
+	if big := one("ml_append_int", "(if (>= (cast long (-> dp db_free)) space_needed) _ _)", "the room in the block"); big != nil {
+		in := items(big.Kids[2])
+		pre := one("ml_append_int", "(pre++ (paren (-> dp db_line_count)))", "the room in the block")
+		with := build(in[0], `(if (> line_count (+ db_idx 1))
+				(block (call musl_memmove
+					(cast (ptr char) (paren (addr (index (-> dp db_line) (+ db_idx 2)))))
+					(cast (ptr char) (paren (addr (index (-> dp db_line) (+ db_idx 1)))))
+					(* (cast usize (- line_count db_idx 1)) (sizeof-type DATA_LN)))))
+			(= (. (index (-> dp db_line) (+ db_idx 1)) dl_text) text)
+			(= (. (index (-> dp db_line) (+ db_idx 1)) dl_len) len)
+			(= (. (index (-> dp db_line) (+ db_idx 1)) dl_marked) FALSE)`)
+		region(in[0], in[len(in)-1], append(with, pre), "the room in the block")
+		if v.Err == nil {
+			cond := build(big.Kids[1], "(< (-> dp db_line_count) DB_LINE_MAX)")
+			if v.Err == nil {
+				if err := e.Replace(big.Kids[1], cond...); err != nil {
+					v.Die("%v", err)
+				}
+			}
+		}
+	}
+	if at := one("ml_append_int", "(if (== lines_moved 0) _ _)", "the split arm"); at != nil {
+		region(at, at, build(at, "(= in_left (paren (!= lines_moved 0)))"), "the split arm")
+	}
+	v.InFunction("ml_append_int", func(v *graph.Verbs) {
+		v.Cut("(= page_count (/ _ page_size))", 1, "the split arm")
+	})
+	stores := func(d, i string) string {
+		return fmt.Sprintf("(= (. (index (-> %[1]s db_line) %[2]s) dl_text) text) (= (. (index (-> %[1]s db_line) %[2]s) dl_len) len)"+
+			" (= (. (index (-> %[1]s db_line) %[2]s) dl_marked) FALSE)", d, i)
+	}
+	if s := one("ml_append_int", "(if (! in_left) _)", "the split arm"); s != nil {
+		in := items(s.Kids[2])
+		region(in[0], in[len(in)-2], build(in[0], stores("dp_right", "0")), "the split arm")
+	}
+	if s := one("ml_append_int", "(if lines_moved _)", "the split arm"); s != nil {
+		in := items(s.Kids[2])
+		region(in[0], in[len(in)-3], build(in[0], `(call musl_memmove
+			(cast (ptr char) (paren (addr (index (-> dp_right db_line) line_count_right))))
+			(cast (ptr char) (paren (addr (index (-> dp db_line) (+ db_idx 1)))))
+			(* (cast usize (paren lines_moved)) (sizeof-type DATA_LN)))`), "the split arm")
+	}
+	if s := one("ml_append_int", "(if in_left _)", "the split arm"); s != nil {
+		in := items(s.Kids[2])
+		region(in[0], in[len(in)-2], build(in[0], stores("dp_left", "line_count_left")), "the split arm")
+	}
 
 	// --- 7. ml_delete_int ----------------------------------------------------
-	if lo, hi, err = fn("ml_delete_int"); err != nil {
-		return nil, err
+	v.InFunction("ml_delete_int", func(v *graph.Verbs) {
+		v.CutRun("the line_size computation", "(= line_start _)", "(if (== idx 0) _ _)")
+	})
+	if at := one("ml_delete_int", "(= text_start (-> dp db_txt_start))", "ml_delete_int's records"); at != nil {
+		blk := e.Parent(at)
+		in := items(blk)
+		region(in[0], in[len(in)-2], build(in[0], `(if (< idx (- count 1))
+			(block (call musl_memmove
+				(cast (ptr char) (paren (addr (index (-> dp db_line) idx))))
+				(cast (ptr char) (paren (addr (index (-> dp db_line) (+ idx 1)))))
+				(* (cast usize (- count idx 1)) (sizeof-type DATA_LN)))))`), "ml_delete_int's records")
 	}
-	if a, err = one(lo, hi, `^    line_start = `); err != nil {
-		return nil, err
-	}
-	b = stmtEnd(a + 1)
-	if !strings.Contains(strings.Join(lines[a:b+1], "\n"), "db_index[idx - 1]") {
-		return nil, die("the line_size computation is not the two-armed one this edit removes")
-	}
-	lines = vimtext.SpliceLines(lines, a, b+1, nil)
-
-	if lo, hi, err = fn("ml_delete_int"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^        text_start = dp->db_txt_start;$`); err != nil {
-		return nil, err
-	}
-	if b, err = one(lo, hi, `^        --\(dp->db_line_count\);$`); err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, a, b+1, w55b10)
 
 	// --- 8. the mark is a field ----------------------------------------------
-	if lo, hi, err = fn("ml_setmarked"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^    dp->db_index\[lnum - curbuf->b_ml\.ml_locked_low\] \|= `); err != nil {
-		return nil, err
-	}
-	lines[a] = w55s1
-	for _, name := range []string{"ml_firstmarked", "ml_clearmarked"} {
-		if lo, hi, err = fn(name); err != nil {
-			return nil, err
-		}
-		if a, err = one(lo, hi, `^            if \(\(dp->db_index\[i\]\) & `); err != nil {
-			return nil, err
-		}
-		if b, err = one(lo, hi, `^                \(dp->db_index\[i\]\) &= `); err != nil {
-			return nil, err
-		}
-		lines = vimtext.SpliceLines(lines, a, b+1, w55b11)
+	v.InFunction("ml_setmarked", func(v *graph.Verbs) {
+		v.Rewrite("(|= (index (-> dp db_index) ?i) _)", "(= (. (index (-> dp db_line) ?i) dl_marked) TRUE)", 1, "the mark is a field")
+	})
+	for _, fn := range []string{"ml_firstmarked", "ml_clearmarked"} {
+		v.InFunction(fn, func(v *graph.Verbs) {
+			v.Rewrite("(& (paren (index (-> dp db_index) i)) _)", "(. (index (-> dp db_line) i) dl_marked)", 1, "the mark is a field")
+			v.Rewrite("(&= (paren (index (-> dp db_index) i)) _)", "(= (. (index (-> dp db_line) i) dl_marked) FALSE)", 1, "the mark is a field")
+		})
 	}
 
 	// --- 9. ml_flush_line stores the pointer ---------------------------------
-	if lo, hi, err = fn("ml_flush_line"); err != nil {
-		return nil, err
+	if first := one("ml_flush_line", "(= start _)", "ml_flush_line stores the pointer"); first != nil {
+		last := one("ml_flush_line", "(if (>= (cast int (-> dp db_free)) extra) _ _)", "ml_flush_line stores the pointer")
+		region(first, last, build(first, "(= (. (index (-> dp db_line) idx) dl_text) new_line)"+
+			" (= (. (index (-> dp db_line) idx) dl_len) (. (-> buf b_ml) ml_line_len))"), "ml_flush_line stores the pointer")
 	}
-	if a, err = one(lo, hi, `^            idx = lnum - buf->b_ml\.ml_locked_low;$`); err != nil {
-		return nil, err
+	// THE FREE AND NOTHING ELSE.  The line under it is `entered = FALSE;` --
+	// the re-entrancy guard's only clear, which stays.
+	v.InFunction("ml_flush_line", func(v *graph.Verbs) {
+		v.Cut("(call vim_free new_line)", 1, "the free of the line flushed")
+	})
+	if err := failed(); err != nil {
+		return err
 	}
-	if k, err = firstMatch(a, hi, `^            if \(\(int\)dp->db_free >= extra\)$`); err != nil {
-		return nil, err
+
+	// the members nothing names now
+	for _, m := range []string{"db_free", "db_txt_start", "db_txt_end", "db_index"} {
+		ms := e.MemberDecls(m)
+		if len(ms) != 1 {
+			return die("%s is declared %d times", m, len(ms))
+		}
+		if err := e.Delete(ms[0]); err != nil {
+			return die("struct data_block -- %v", err)
+		}
 	}
-	b = stmtEnd(k)
-	repl := append(append([]string{}, w55b12...), carry(a, b)...)
-	lines = vimtext.SpliceLines(lines, a, b+1, repl)
-	if lo, hi, err = fn("ml_flush_line"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^        vim_free\(new_line\);$`); err != nil {
-		return nil, err
-	}
-	// THE FREE AND NOTHING ELSE.  The residue wrote a blank line under it and
-	// this took the pair; the canonical text writes none, and the line under it
-	// is `entered = FALSE;` -- the re-entrancy guard's only clear.  Taking that
-	// would leave ml_flush_line returning early for the rest of the process,
-	// which compiles, sweeps and records the same corpus.
-	if strings.TrimSpace(lines[a+1]) == "" {
-		return nil, die("a blank line under vim_free(new_line) -- this edit takes the free alone")
-	}
-	lines = vimtext.SpliceLines(lines, a, a+1, nil)
 
 	// --- 10. ML_APPEND_MARK has no caller left -------------------------------
 	// Its enumerator is left for the sweep, which takes one nothing names.
-	markRe := regexp.MustCompile(`\bML_APPEND_MARK\b`)
-	var left []int
-	for i, l := range lines {
-		if markRe.MatchString(l) {
-			left = append(left, i)
+	for _, d := range e.Decls("ML_APPEND_MARK") {
+		if k := len(e.Uses(d)); k != 0 {
+			return die("ML_APPEND_MARK is still mentioned %d times and not only by its own "+
+				"enumerator, so the flag has a caller this edit did not see", k+1)
 		}
 	}
-	if len(left) != 1 || !strings.HasPrefix(lines[left[0]], "enum { ML_APPEND_MARK") {
-		return nil, die("ML_APPEND_MARK is still mentioned %d times and not only by its own "+
-			"enumerator, so the flag has a caller this edit did not see", len(left))
-	}
-
-	// --- 11. the locals the rewrite stopped using ----------------------------
-	// Each is left a declaration nothing else in its function names, which the
-	// sweep takes.
 
 	// --- the partition again, on the output ----------------------------------
-	t := strings.Join(lines, "\n")
+	out, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	t := string(out)
 	for _, name := range w55Gone {
 		want := 0
 		if name == "ML_APPEND_MARK" {
 			want = 1 // its enumerator, the sweep's
 		}
-		if k := mentions(t, name); k != want {
-			return nil, die("%s survives the edit with %d mentions", name, k)
+		if k := edit.MentionCount(out, name); k != want {
+			return die("%s survives the edit with %d mentions", name, k)
 		}
 	}
 	if k := strings.Count(t, w55Bit); k != 0 {
-		return nil, die("the stolen top bit survives the edit %d times", k)
+		return die("the stolen top bit survives the edit %d times", k)
 	}
 	if interiorRe.MatchString(strings.ReplaceAll(t, "(char *)dp", "(char_u *)dp")) {
-		return nil, die("an interior pointer into a data block survives the edit")
+		return die("an interior pointer into a data block survives the edit")
 	}
 	if strings.Contains(t, "offsetof(DATA_BL") {
-		return nil, die("a data block is still being measured with offsetof")
+		return die("a data block is still being measured with offsetof")
 	}
 	if strings.Count(t, "offsetof(PTR_BL") != 1 {
-		return nil, die("ml_new_ptr's offsetof is not where it was: a POINTER block is still a " +
+		return die("ml_new_ptr's offsetof is not where it was: a POINTER block is still a " +
 			"page and is not this phase's")
 	}
 	for _, name := range []string{"dl_text", "dl_len", "dl_marked", "DB_LINE_MAX", "ml_alloc_line"} {
-		if mentions(t, name) == 0 {
-			return nil, die("%s is not in the output, so the replacement did not land", name)
+		if edit.MentionCount(out, name) == 0 {
+			return die("%s is not in the output, so the replacement did not land", name)
 		}
 	}
 
 	// The lifetime rule, as a partition over every assignment to a record's text.
+	dl, err := e.FormLines(e.AndUses(e.MemberDecls("dl_text")...)...)
+	if err != nil {
+		return die("%v", err)
+	}
 	got := map[string]int{}
 	total := 0
-	for i, l := range lines {
-		if dlTextRe.MatchString(l) {
-			got[enclosing(i)]++
+	for _, l := range dl {
+		if dlTextRe.MatchString(l.Text) {
+			who := l.Func
+			if who == "" {
+				who = "<file scope>"
+			}
+			got[who]++
 			total++
 		}
 	}
 	want := map[string]int{"ml_open": 1, "ml_append_int": 3, "ml_flush_line": 1}
 	if !w55SameCount(got, want) {
-		return nil, die("a record's text is assigned in %s, and the lifetime rule this phase pins "+
+		return die("a record's text is assigned in %s, and the lifetime rule this phase pins "+
 			"says it is assigned in exactly %s", w55PyDict(got), w55PyDict(want))
 	}
 	var wk []string
@@ -720,14 +615,14 @@ func w55Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		fmt.Fprintf(&gone, "%s\t%d\n", n, before[n])
 	}
 	if err := os.WriteFile(state+"/gone", []byte(gone.String()), 0o644); err != nil {
-		return nil, die("%v", err)
+		return die("%v", err)
 	}
 	if err := os.WriteFile(state+"/dbmax", []byte(fmt.Sprintf("%d\n", w55DbLineMax)), 0o644); err != nil {
-		return nil, die("%v", err)
+		return die("%v", err)
 	}
 	say("%d -> %d lines: the leaf is an array of %d records and a line's text is its own "+
-		"allocation", nIn, len(lines), w55DbLineMax)
-	return []byte(t), nil
+		"allocation", nIn, strings.Count(t, "\n")+1, w55DbLineMax)
+	return nil
 }
 
 func w55SameCount(a, b map[string]int) bool {

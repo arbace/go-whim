@@ -335,7 +335,7 @@ func (tx *typeTx) rederiveCount(n *Node) int {
 		if !isExprForm(q) {
 			return k
 		}
-		t := tx.derive(q)
+		t := tx.decayAt(q, tx.derive(q)) // r1_build.go
 		if t != nil && t == q.Type {
 			e.typed(q)
 			return k

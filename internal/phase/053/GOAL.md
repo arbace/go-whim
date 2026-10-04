@@ -141,4 +141,4 @@ refuses at the block numbers; and the edit run on its own output refuses at
 
 ## On the graph
 
-It runs on the graph (`doc/GRAPH-MIGRATION.md`, *B3e as built*): its acts and assertions are the text program's, made on the graph's C view through a `graph.Draft`, and committed as FRAG of the smallest runs of whole items that hold them, the uses of what those runs declared carried to the new declarations; `whim-build-check` holds q053 to the bytes the text version made, which history keeps (`16717ab` and before).
+It runs on the graph, on its verbs (`doc/GRAPH-MIGRATION.md`, *R1 as built*): the preamble a run of ml_open()'s items cut, the numbers and messages rewritten in place, `negative`, `newfile` and mf_put()'s three arguments dropped by PARAM at every call, mf_put()'s body built, the dead definitions, prototype, typedef and member deleted; its partitions and report are the text program's, asked of the lines of the forms that say each name or of the C view, but the last line's line count, which is the C view's; `whim-build-check` holds q053 to the bytes the text version made, which history keeps (`16717ab` and before; B3e's DRAFT carried it until `2134168`).

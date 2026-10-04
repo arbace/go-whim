@@ -106,6 +106,18 @@ package p056
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
+//
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, *R1 as built*): the node's tag and
+// the two headers are members inserted, the fanout a member retyped, and
+// the memfile layer the run of forms the text cut; `ml_mfp`'s uses are
+// pointed at `ml_root`, each `(T *)(x->bh_data)` gives up its selection,
+// each `x->pb_id` and `x->db_id` is `hp->bh_id` built in its place, the
+// constructors' bodies are built with the id constants moved in from the
+// bodies they replace, and both lose `mfp` by PARAM, at every call.  The
+// enumerator and ml_free_tree() are C spliced in one synthesized import
+// (FRAG).  The partitions are the text's, on the C view of the input and
+// of the output.
+
 import (
 	"fmt"
 	"io"
@@ -122,23 +134,6 @@ import (
 )
 
 func init() { phase.RegisterGraph("whim56", Edit) }
-
-// Edit is the phase on the graph (doc/GRAPH-MIGRATION.md, *B3e as built*):
-// its acts are the text acts below, made on the graph's C view (a
-// graph.Draft) as the text program made them on the file, and committed to
-// the graph as FRAG of the smallest runs of whole items that hold them.
-func Edit(e *graph.Editor, w io.Writer, args []string) error {
-	d, err := e.Draft()
-	if err != nil {
-		return err
-	}
-	out, err := w56Acts([]byte(d.Text()), w, args)
-	if err != nil {
-		return err
-	}
-	_, err = d.Commit(string(out))
-	return err
-}
 
 // w56Fanout is the fanout, and it is a LITERAL rather than a computation: the
 // corpus's root-split coverage is measured against the number the input gives,
@@ -174,27 +169,56 @@ var w56Homes = []string{"<file scope>",
 
 var (
 	w56PageSize = regexp.MustCompile(`enum \{ MEMFILE_PAGE_SIZE = (\d+) \};`)
-	w56MfGet    = regexp.MustCompile(`^(\s*)if \(\(hp = mf_get\(mfp, ([a-z>_.\[\]-]+)\)\) == nullptr\)$`)
-	w56BhData   = regexp.MustCompile(`\(([A-Za-z_][A-Za-z0-9_]*) \*\)\(([A-Za-z_][A-Za-z0-9_]*)->bh_data\)`)
-	w56Ids      = regexp.MustCompile(`\b(pb_id|db_id)\b`)
-	w56IdRef    = regexp.MustCompile(`\b[A-Za-z_][A-Za-z0-9_]*->(?:pb_id|db_id)\b`)
-	w56MlMfp    = regexp.MustCompile(`\bml_mfp\b`)
 	w56BlankRun = regexp.MustCompile(`\n\n\n`)
 )
 
-// w56Acts folds the node types: `bhdr_T` becomes `struct block_hdr { short_u
+const (
+	w56FreeTree = `    static void
+ml_free_tree(bhdr_T *hp)
+{
+    PTR_BL      *pp;
+    int         i;
+
+    if (hp == nullptr)
+    {
+        return;
+    }
+    if (hp->bh_id == %s)
+    {
+        pp = (PTR_BL *)(hp);
+        for (i = 0; i < (int)pp->pb_count; ++i)
+        {
+            ml_free_tree(pp->pb_pointer[i].pe_block);
+        }
+    }
+    vim_free(hp);
+}
+`
+)
+
+// w56Enclosing is the function the line i of ls is in, as the text read it:
+// the head above it, `static` on the line over that, before a `}` at column 0.
+func w56Enclosing(ls []string, i int) string {
+	for j := i; j >= 0; j-- {
+		if ls[j] == "}" {
+			return "<file scope>"
+		}
+		m := vimtext.FnHeadRe.FindStringSubmatch(ls[j])
+		if m != nil && j > 0 && strings.HasPrefix(strings.TrimLeft(ls[j-1], " \t"), "static") {
+			return m[1]
+		}
+	}
+	return "<file scope>"
+}
+
+// Edit folds the node types: `bhdr_T` becomes `struct block_hdr { short_u
 // bh_id; }`, `memfile_T` goes entirely, and a node is ONE allocation at its own
 // size.
-func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
-	p := edit.Ph{Tag: "node", W: w}
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	if len(args) != 1 {
-		return nil, p.Die("usage: edit whim56 <file> <state-dir>")
+		return fmt.Errorf("  node         usage: edit whim56 <file> <state-dir>")
 	}
 	state := args[0]
-	t0 := string(text)
-	lines := strings.Split(t0, "\n")
-	nIn := len(lines)
-
 	die := func(format string, a ...interface{}) error {
 		fmt.Fprintf(w, "  node         %s\n", fmt.Sprintf(format, a...))
 		return fmt.Errorf("")
@@ -202,162 +226,91 @@ func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	say := func(format string, a ...interface{}) {
 		fmt.Fprintf(w, "  node         %s\n", fmt.Sprintf(format, a...))
 	}
-	mentions := func(s, name string) int {
-		return edit.WordCount(s, name)
+	v := graph.NewVerbs("node", e, io.Discard)
+	failed := func() error {
+		if v.Err != nil {
+			return die("%s", strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(v.Err.Error()), "node")))
+		}
+		return nil
 	}
-
-	// --- finding things ------------------------------------------------------
-	fn := func(name string) (int, int, error) {
-		var hits []int
-		for i, l := range lines {
-			if strings.HasPrefix(l, name+"(") {
-				hits = append(hits, i)
-			}
-		}
-		if len(hits) != 1 {
-			return 0, 0, die("%s is not a definition head exactly once (%d), so this edit cannot find "+
-				"the function it is about", name, len(hits))
-		}
-		head := hits[0] - 1
-		if !strings.HasPrefix(strings.TrimLeft(lines[head], " \t"), "static") {
-			return 0, 0, die("%s has no `static` line above its name", name)
-		}
-		i := hits[0]
-		for lines[i] != "{" {
-			i++
-		}
-		depth := 0
-		for {
-			depth += strings.Count(lines[i], "{") - strings.Count(lines[i], "}")
-			if depth == 0 {
-				return head, i, nil
-			}
-			i++
-		}
+	one := func(fn, pat, what string) *graph.Node {
+		var n *graph.Node
+		v.InFunction(fn, func(v *graph.Verbs) { n = v.One(pat, what) })
+		return n
 	}
-	one := func(lo, hi int, pat string) (int, error) {
-		re := regexp.MustCompile(pat)
-		var hits []int
-		for i := lo; i <= hi; i++ {
-			if re.MatchString(lines[i]) {
-				hits = append(hits, i)
-			}
+	build := func(at *graph.Node, src string, holes graph.Bindings) []*graph.Node {
+		if v.Err != nil {
+			return nil
 		}
-		if len(hits) != 1 {
-			return 0, die("%s matches %d lines where this edit needs exactly one",
-				vimtext.PyReprMultiline(pat), len(hits))
-		}
-		return hits[0], nil
-	}
-	allOf := func(lo, hi int, pat string) []int {
-		re := regexp.MustCompile(pat)
-		var Out []int
-		for i := lo; i <= hi; i++ {
-			if re.MatchString(lines[i]) {
-				Out = append(Out, i)
-			}
-		}
-		return Out
-	}
-	stmtEnd := func(a int) int {
-		i := a
-		for {
-			depth, seen, j := 0, false, i
-			for {
-				depth += strings.Count(lines[j], "{") - strings.Count(lines[j], "}")
-				seen = seen || strings.Contains(lines[j], "{")
-				if (seen && depth == 0) || (!seen && strings.HasSuffix(strings.TrimRight(lines[j], " \t"), ";")) {
-					break
-				}
-				j++
-			}
-			k := j + 1
-			for k < len(lines) && strings.TrimSpace(lines[k]) == "" {
-				k++
-			}
-			if k < len(lines) && strings.HasPrefix(strings.TrimSpace(lines[k]), "else") {
-				i = k
-				continue
-			}
-			return j
-		}
-	}
-	enclosingIn := func(ls []string, i int) string {
-		for j := i; j >= 0; j-- {
-			if ls[j] == "}" {
-				return "<file scope>"
-			}
-			m := vimtext.FnHeadRe.FindStringSubmatch(ls[j])
-			if m != nil && j > 0 && strings.HasPrefix(strings.TrimLeft(ls[j-1], " \t"), "static") {
-				return m[1]
-			}
-		}
-		return "<file scope>"
-	}
-	enclosing := func(i int) string { return enclosingIn(lines, i) }
-	defn := func(headPat string) (int, int, error) {
-		a, err := one(0, len(lines)-1, headPat)
+		ns, err := e.Build(at, src, holes)
 		if err != nil {
-			return 0, 0, err
+			v.Die("%v", err)
 		}
-		i := a
-		for lines[i] != "{" {
-			i++
+		return ns
+	}
+	replace := func(old *graph.Node, with []*graph.Node, what string) {
+		if v.Err != nil || old == nil {
+			return
 		}
-		depth := 0
-		for {
-			depth += strings.Count(lines[i], "{") - strings.Count(lines[i], "}")
-			if depth == 0 {
-				return a - 1, i, nil
-			}
-			i++
+		if err := e.Replace(old, with...); err != nil {
+			v.Die("%s -- %v", what, err)
 		}
 	}
-	structOf := func(name string) (int, int, []string) {
-		a := vimtext.LineIndex(lines, "struct "+name)
-		b := a
-		for lines[b] != "};" {
-			b++
+	member := func(name string) *graph.Node {
+		ms := e.MemberDecls(name)
+		if len(ms) != 1 {
+			v.Die("the member %s is declared %d times", name, len(ms))
+			return nil
 		}
-		var members []string
-		for _, l := range lines[a+2 : b] {
-			if strings.TrimSpace(l) != "" {
-				members = append(members, strings.TrimSpace(l))
+		return ms[0]
+	}
+	structOf := func(tag string) *graph.Node {
+		for _, f := range e.Graph().Forms {
+			if f.Is("struct") && graph.Tag(f) == tag {
+				return f
 			}
 		}
-		return a, b, members
+		return nil
 	}
-	// cut deletes [a,b].  The blank lines around it are the canonical print's.
-	cut := func(a, b int) {
-		lines = vimtext.SpliceLines(lines, a, b+1, nil)
+	members := func(s *graph.Node) []string {
+		var out []string
+		for _, m := range graph.Members(s) {
+			out = append(out, m.Head())
+		}
+		return out
 	}
 
 	// --- the partition, before anything is changed ---------------------------
+	t0b, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	t0 := string(t0b)
+	lines := strings.Split(t0, "\n")
+	nIn := len(lines)
 	before := map[string]int{}
 	var strays []string
 	for _, name := range append(append([]string{}, w56Gone...), w56ForSweep...) {
 		re := regexp.MustCompile(`\b` + name + `\b`)
-		var hits []int
+		hits := 0
 		for i, l := range lines {
 			if strings.Contains(l, name) && re.MatchString(l) {
-				hits = append(hits, i)
+				hits++
+				if f := w56Enclosing(lines, i); !edit.Contains(w56Homes, f) {
+					strays = append(strays, fmt.Sprintf("%s in %s (line %d)", name, f, i+1))
+				}
 			}
 		}
-		if len(hits) == 0 {
-			return nil, die("%s is not in the input at all, so this phase has already run or the "+
+		if hits == 0 {
+			return die("%s is not in the input at all, so this phase has already run or the "+
 				"memfile is not the one it was written against", name)
 		}
 		// The COUNT is mentions and the classification is lines: mf_rem_used has
 		// two mentions on one line, and the check re-reads the count the same way.
-		before[name] = mentions(t0, name)
-		for _, i := range hits {
-			if !edit.Contains(w56Homes, enclosing(i)) {
-				strays = append(strays, fmt.Sprintf("%s in %s (line %d)", name, enclosing(i), i+1))
-			}
-		}
+		before[name] = edit.WordCount(t0, name)
 	}
 	if len(strays) > 0 {
-		return nil, die("a name this phase removes is mentioned where it has no rule: %s",
+		return die("a name this phase removes is mentioned where it has no rule: %s",
 			strings.Join(edit.First(strays, 5), "; "))
 	}
 	sum := 0
@@ -372,21 +325,15 @@ func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// The fanout, read off the INPUT rather than written here.
 	pm := w56PageSize.FindStringSubmatch(t0)
 	if pm == nil {
-		return nil, die("the input has no MEMFILE_PAGE_SIZE enumerator")
+		return die("the input has no MEMFILE_PAGE_SIZE enumerator")
 	}
 	page, _ := strconv.Atoi(pm[1])
-	_, _, pbm := structOf("pointer_block")
-	var tails []string
-	for _, m := range pbm {
-		f := strings.Fields(m)
-		tails = append(tails, f[len(f)-1])
-	}
-	if strings.Join(tails, " ") != "pb_id; pb_count; pb_count_max; pb_pointer[1];" {
-		return nil, die("struct pointer_block is not the page of entries this phase counts: %s",
-			strings.Join(pbm, " "))
+	pbS := structOf("pointer_block")
+	if pbS == nil || strings.Join(members(pbS), " ") != "pb_id pb_count pb_count_max pb_pointer" {
+		return die("struct pointer_block is not the page of entries this phase counts")
 	}
 	if (page-8)/16 != w56Fanout {
-		return nil, die("the input computes a fanout of %d and this phase fixes it at %d; the corpus's "+
+		return die("the input computes a fanout of %d and this phase fixes it at %d; the corpus's "+
 			"root-split coverage is measured against the first number", (page-8)/16, w56Fanout)
 	}
 	say("the input's fanout is (%d - 8) / 16 = %d, and that is the number this phase "+
@@ -394,385 +341,298 @@ func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"case builds more data blocks than this", page, w56Fanout)
 
 	// --- 1. struct block_hdr becomes the node's tag, and nothing else --------
-	a, b, members := structOf("block_hdr")
-	if strings.Join(members, " ") != "bhdr_T *bh_next; bhdr_T *bh_prev; "+
-		"char_u *bh_data; char bh_flags;" {
-		return nil, die("struct block_hdr is not the four-member page header this phase folds: %s",
-			strings.Join(members, " "))
+	bh := structOf("block_hdr")
+	if bh == nil || strings.Join(members(bh), " ") != "bh_next bh_prev bh_data bh_flags" {
+		return die("struct block_hdr is not the four-member page header this phase folds")
 	}
-	lines = vimtext.SpliceLines(lines, a, b+1, w56b0)
+	if _, err := e.InsertMember(member("bh_flags"), true, "(bh_id short_u)"); err != nil {
+		return die("the node's tag -- %v", err)
+	}
+	ms := structOf("memfile")
+	if ms == nil || strings.Join(members(ms), " ") != "mf_used_first mf_page_size" {
+		return die("struct memfile is not the two-member one this phase folds away")
+	}
 
-	// --- 2. struct memfile has nothing left to hold --------------------------
-	a, b, members = structOf("memfile")
-	if strings.Join(members, " ") != "bhdr_T *mf_used_first; unsigned mf_page_size;" {
-		return nil, die("struct memfile is not the two-member one this phase folds away: %s",
-			strings.Join(members, " "))
+	// --- 5. a branch is a counted array of entries; the leaf's tag a header --
+	db := structOf("data_block")
+	if db == nil || strings.Join(members(db), " ") != "db_id db_line_count db_line" {
+		return die("struct data_block is not the leaf phase 55 left")
 	}
-	cut(a, b)
-	// Its typedef, `typedef struct memfile memfile_T;`, is left for the sweep:
-	// nothing names memfile_T once the fold is done.
-
-	// --- 3. memline_T loses its handle on one --------------------------------
-	i := vimtext.LineIndex(lines, "    memfile_T   *ml_mfp;")
-	if lines[i+1] != "    bhdr_T *ml_root;" {
-		return nil, die("ml_mfp is not the line above ml_root, so the memline is not the one this " +
-			"edit reads")
+	if _, err := e.InsertMember(member("pb_id"), false, "(pb_hdr bhdr_T)"); err != nil {
+		return die("the branch's header -- %v", err)
 	}
-	lines = vimtext.SpliceLines(lines, i, i+1, nil)
-
-	// --- 4. the memfile layer itself -----------------------------------------
-	i = vimtext.LineIndex(lines, fmt.Sprintf("enum { MEMFILE_PAGE_SIZE = %d };", page))
-	if lines[i+2] != "static void mf_ins_used(memfile_T *, bhdr_T *);" {
-		return nil, die("the memfile block does not start where this edit expects")
+	if _, err := e.InsertMember(member("db_id"), false, "(db_hdr bhdr_T)"); err != nil {
+		return die("the leaf's header -- %v", err)
 	}
-	// The run of prototypes has a blank line between each pair -- the canonical
-	// text writes one between two file-scope declarations -- so the walk steps
-	// over a blank as well as over a prototype, and stops on the first line that
-	// is neither.  That leaves the blank under the last prototype inside the
-	// cut, which is where it has to be: the enum above has one over it.
-	j := i + 2
-	for j < len(lines) && (lines[j] == "" ||
-		(strings.HasPrefix(lines[j], "static ") && strings.Contains(lines[j], "mf_"))) {
-		j++
+	// the id constants are CARRIED out of the definitions being replaced and
+	// never spelled
+	da := one("ml_new_data", "(= (-> dp db_id) ?v)", "the leaf's id")
+	pt := one("ml_new_ptr", "(= (-> pp pb_id) ?v)", "the branch's id")
+	if err := failed(); err != nil {
+		return err
 	}
-	cut(i, j-1)
-
-	for _, headPat := range []string{
-		`^mf_open\(void\)$`,
-		`^mf_close\(memfile_T \*mfp, int del_file\)$`,
-		`^mf_new\(memfile_T \*mfp, int page_count\)$`,
-		`^mf_get\(memfile_T \*mfp, bhdr_T \*hp\)$`,
-		`^mf_put\(bhdr_T \*hp\)$`,
-		`^mf_free\(memfile_T \*mfp, bhdr_T \*hp\)$`,
-		`^mf_ins_used\(memfile_T \*mfp, bhdr_T \*hp\)$`,
-		`^mf_rem_used\(memfile_T \*mfp, bhdr_T \*hp\)$`,
-		`^mf_alloc_bhdr\(memfile_T \*mfp, int page_count\)$`,
-		`^mf_free_bhdr\(bhdr_T \*hp\)$`,
-	} {
-		aa, bb, err := defn(headPat)
-		if err != nil {
-			return nil, err
+	daC, _ := graph.ItemsC([]*graph.Node{da.Kids[2]})
+	ptC, _ := graph.ItemsC([]*graph.Node{pt.Kids[2]})
+	daC, ptC = strings.TrimSuffix(strings.TrimSpace(daC), ";"), strings.TrimSuffix(strings.TrimSpace(ptC), ";")
+	if !strings.Contains(daC, "<< 8") || !strings.Contains(ptC, "<< 8") || daC == ptC {
+		return die("the two block ids are not the two distinct constants this edit carries: "+
+			"%s and %s", vimtext.PyReprMultiline(daC), vimtext.PyReprMultiline(ptC))
+	}
+	// the fanout's enumerator and ml_free_tree(), one synthesized import
+	alloc := e.Defn("ml_alloc_line")
+	if alloc == nil {
+		return die("ml_alloc_line is not defined")
+	}
+	if _, err := e.SpliceC(graph.Frag{At: e.SpotBefore(pbS), Src: "enum { PB_COUNT_MAX = 255 };"},
+		graph.Frag{At: e.SpotBefore(alloc), Src: fmt.Sprintf(w56FreeTree, ptC)}); err != nil {
+		return die("the fanout and ml_free_tree() -- %v", err)
+	}
+	if _, err := e.Retype(member("pb_pointer"), "(array PB_COUNT_MAX PTR_EN)"); err != nil {
+		return die("the branch's entries -- %v", err)
+	}
+	var oldAssert *graph.Node
+	for _, f := range e.Graph().Forms {
+		if f.Is("static_assert") {
+			if c, _ := graph.FormsC([]*graph.Node{f}); strings.HasPrefix(string(c), "static_assert(sizeof(DATA_BL) <= MEMFILE_PAGE_SIZE,") {
+				oldAssert = f
+			}
 		}
-		cut(aa, bb)
 	}
-
-	// --- 5. a branch is a counted array of entries and not a page ------------
-	a, b, _ = structOf("pointer_block")
-	lines = vimtext.SpliceLines(lines, a, b+1, w56b1)
-
-	a, _, members = structOf("data_block")
-	tails = nil
-	for _, m := range members {
-		f := strings.Fields(m)
-		tails = append(tails, f[len(f)-1])
+	if oldAssert == nil {
+		return die("the leaf's static_assert is not in the file")
 	}
-	if strings.Join(tails, " ") != "db_id; db_line_count; db_line[DB_LINE_MAX];" {
-		return nil, die("struct data_block is not the leaf phase 55 left: %s",
-			strings.Join(members, " "))
+	// a static_assert is no form BUILD makes; its condition is an expression
+	// it does, and the message a string
+	var asserts []*graph.Node
+	for _, sa := range [][2]string{
+		{"(== (sizeof-type PTR_EN) 16)", `"a pointer entry is one node reference and one line count"`},
+		{"(== PB_COUNT_MAX (/ (- " + strconv.Itoa(page) + " 8) (sizeof-type PTR_EN)))", `"the fanout the 4096-byte page gave, kept when the page went"`},
+		{"(== (sizeof-type DATA_BL) (+ 16 (* DB_LINE_MAX (sizeof-type DATA_LN))))", `"a leaf is its tag, its count and its records"`},
+	} {
+		if c := build(oldAssert, sa[0], nil); len(c) == 1 {
+			asserts = append(asserts, graph.NewList(graph.NewAtom("static_assert"), c[0], graph.NewAtom(sa[1])))
+		}
 	}
-	lines[a+2] = w56s0
-
-	i, err := one(0, len(lines)-1, `^static_assert\(sizeof\(DATA_BL\) <= MEMFILE_PAGE_SIZE,`)
-	if err != nil {
-		return nil, err
-	}
-	asserts := append([]string{}, w56b2...)
-	asserts[1] = fmt.Sprintf(asserts[1], page)
-	lines = vimtext.SpliceLines(lines, i, i+1, asserts)
+	replace(oldAssert, asserts, "the static_asserts")
 
 	// --- 6. the two constructors allocate a node at its own size -------------
-	// The id constants are CARRIED Out of the definitions being replaced and
-	// never spelled.
-	carriedID := func(headPat, field string) (string, error) {
-		lo, hi, err := defn(headPat)
-		if err != nil {
-			return "", err
+	ctor := func(fn, local, typ, hdr, keep string, id *graph.Node, extra []string) {
+		d := e.Defn(fn)
+		if d == nil || v.Err != nil {
+			v.Die("%s is not defined", fn)
+			return
 		}
-		k, err := one(lo, hi, `->`+field+` =`)
-		if err != nil {
-			return "", err
-		}
-		v := strings.SplitN(lines[k], "=", 2)[1]
-		return strings.TrimSpace(strings.TrimSuffix(strings.TrimRight(v, " \t"), ";")), nil
-	}
-	da, err := carriedID(`^ml_new_data\(memfile_T \*mfp\)$`, "db_id")
-	if err != nil {
-		return nil, err
-	}
-	pt, err := carriedID(`^ml_new_ptr\(memfile_T \*mfp\)$`, "pb_id")
-	if err != nil {
-		return nil, err
-	}
-	if !strings.Contains(da, "<< 8") || !strings.Contains(pt, "<< 8") || da == pt {
-		return nil, die("the two block ids are not the two distinct constants this edit carries: "+
-			"%s and %s", vimtext.PyReprMultiline(da), vimtext.PyReprMultiline(pt))
-	}
-	fill := func(rows []string) []string {
-		Out := make([]string, len(rows))
-		for i, r := range rows {
-			if strings.Contains(r, "%[1]s") || strings.Contains(r, "%[2]s") {
-				Out[i] = fmt.Sprintf(r, da, pt)
-			} else {
-				Out[i] = r
+		var dl, kp *graph.Node
+		v.InFunction(fn, func(v *graph.Verbs) {
+			dl = v.One("(def "+local+" (ptr "+typ+"))", fn+"()")
+			kp = v.One(keep, fn+"()")
+			for _, x := range extra {
+				v.Cut(x, 1, fn+"()")
 			}
+		})
+		if v.Err != nil {
+			return
 		}
-		return Out
+		at := build(kp, fmt.Sprintf("(= %[1]s (cast (ptr %[2]s) (call alloc_clear (sizeof-type %[2]s))))"+
+			" (if (== %[1]s nullptr) (block (return nullptr)))"+
+			" (= (. (-> %[1]s %[3]s) bh_id) ?v)", local, typ, hdr), graph.Bindings{"v": id.Kids[2]})
+		ret := build(kp, "(return (cast (ptr bhdr_T) "+local+"))", nil)
+		if v.Err != nil {
+			return
+		}
+		body := graph.Body(d)
+		with := append(append(append([]*graph.Node{dl}, at...), kp), ret...)
+		if err := e.ReplaceRun(body[0], body[len(body)-1], with...); err != nil {
+			v.Die("%s() -- %v", fn, err)
+		}
 	}
-
-	i = vimtext.LineIndex(lines, "static bhdr_T *ml_new_data(memfile_T *);")
-	lines[i] = w56s1
-	i = vimtext.LineIndex(lines, "static bhdr_T *ml_new_ptr(memfile_T *);")
-	lines[i] = w56s2
-
-	aa, bb, err := defn(`^ml_new_data\(memfile_T \*mfp\)$`)
-	if err != nil {
-		return nil, err
+	ctor("ml_new_data", "dp", "DATA_BL", "db_hdr", "(= (-> dp db_line_count) 0)", da, nil)
+	ctor("ml_new_ptr", "pp", "PTR_BL", "pb_hdr", "(= (-> pp pb_count) 0)", pt, []string{"(= (-> pp pb_count_max) _)"})
+	if err := failed(); err != nil {
+		return err
 	}
-	lines = vimtext.SpliceLines(lines, aa, bb+1, fill(w56b3))
-	if aa, bb, err = defn(`^ml_new_ptr\(memfile_T \*mfp\)$`); err != nil {
-		return nil, err
+	for _, fn := range []string{"ml_new_data", "ml_new_ptr"} {
+		if _, err := e.DropParam(fn, "mfp", graph.ParamOptions{}); err != nil {
+			return die("%s() -- %v", fn, err)
+		}
 	}
-	lines = vimtext.SpliceLines(lines, aa, bb+1, fill(w56b4))
-
-	// --- 7. a closed buffer gives its nodes back by walking the tree ---------
-	lo, _, err := fn("ml_alloc_line")
-	if err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, lo, lo, fill(w56b5))
 
 	// --- 8. ml_open opens nothing --------------------------------------------
-	lo, hi, err := fn("ml_open")
-	if err != nil {
-		return nil, err
+	v.InFunction("ml_open", func(v *graph.Verbs) {
+		v.CutRun("mf_open and its failure arm and the assignment to ml_mfp", "(= mfp (call mf_open))",
+			"(if (== mfp nullptr) (block (goto error)))", "(= (. (-> buf b_ml) ml_mfp) mfp)")
+	})
+	if first := one("ml_open", "(if (!= mfp nullptr) _)", "ml_open's error path"); first != nil {
+		last := one("ml_open", "(= (. (-> buf b_ml) ml_mfp) nullptr)", "ml_open's error path")
+		with := build(first, "(call ml_free_tree (. (-> buf b_ml) ml_root)) (= (. (-> buf b_ml) ml_root) nullptr)", nil)
+		if v.Err == nil {
+			if err := e.ReplaceRun(first, last, with...); err != nil {
+				v.Die("ml_open's error path -- %v", err)
+			}
+		}
 	}
-	if a, err = one(lo, hi, `^    mfp = mf_open\(\);$`); err != nil {
-		return nil, err
-	}
-	b = stmtEnd(a + 1)
-	c := b + 1
-	for strings.TrimSpace(lines[c]) == "" {
-		c++
-	}
-	if lines[c] != "    buf->b_ml.ml_mfp = mfp;" {
-		return nil, die("mf_open is not followed by its failure arm and the assignment to ml_mfp")
-	}
-	lines = vimtext.SpliceLines(lines, a, c+1, nil)
 
-	if lo, hi, err = fn("ml_open"); err != nil {
-		return nil, err
-	}
-	if i, err = one(lo, hi, `^    if \(\(hp = ml_new_ptr\(mfp\)\) == nullptr\)$`); err != nil {
-		return nil, err
-	}
-	lines[i] = w56s3
-	if i, err = one(lo, hi, `^    pp = \(PTR_BL \*\)\(hp->bh_data\);$`); err != nil {
-		return nil, err
-	}
-	lines[i] = w56s4
-	if i, err = one(lo, hi, `^    mf_put\(hp\);$`); err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, i, i+1, nil)
-
-	if lo, hi, err = fn("ml_open"); err != nil {
-		return nil, err
-	}
-	if i, err = one(lo, hi, `^    if \(\(hp = ml_new_data\(mfp\)\) == nullptr\)$`); err != nil {
-		return nil, err
-	}
-	lines[i] = w56s5
-	if i, err = one(lo, hi, `->pb_pointer\[0\]\.pe_block = hp;$`); err != nil {
-		return nil, err
-	}
-	lines[i] = strings.ReplaceAll(lines[i], "ml_root->bh_data", "ml_root")
-	if i, err = one(lo, hi, `^    dp = \(DATA_BL \*\)\(hp->bh_data\);$`); err != nil {
-		return nil, err
-	}
-	lines[i] = w56s6
-
-	if lo, hi, err = fn("ml_open"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^error:$`); err != nil {
-		return nil, err
-	}
-	if b, err = one(lo, hi, `^    buf->b_ml\.ml_mfp = nullptr;$`); err != nil {
-		return nil, err
-	}
-	lines = vimtext.SpliceLines(lines, a, b+1, w56b6)
+	v.InFunction("ml_open", func(v *graph.Verbs) {
+		v.Cut("(call mf_put hp)", 1, "ml_open's lock")
+	})
 
 	// --- 9. ml_close frees the tree it has ------------------------------------
-	if lo, hi, err = fn("ml_close"); err != nil {
-		return nil, err
+	if c := one("ml_close", "(call mf_close (. (-> buf b_ml) ml_mfp) del_file)", "ml_close frees the tree"); c != nil {
+		replace(c, build(c, "(call ml_free_tree (. (-> buf b_ml) ml_root))", nil), "ml_close frees the tree")
 	}
-	if i, err = one(lo, hi, `^    if \(buf->b_ml\.ml_mfp == nullptr\)$`); err != nil {
-		return nil, err
-	}
-	lines[i] = w56s7
-	if i, err = one(lo, hi, `^    mf_close\(buf->b_ml\.ml_mfp, del_file\);$`); err != nil {
-		return nil, err
-	}
-	lines[i] = w56s8
-	if i, err = one(lo, hi, `^    buf->b_ml\.ml_mfp = nullptr;$`); err != nil {
-		return nil, err
-	}
-	lines[i] = w56s9
 
 	// --- 10. the three functions that took a handle on the memfile -----------
-	if lo, hi, err = fn("ml_append_int"); err != nil {
-		return nil, err
-	}
-	if i, err = one(lo, hi, `^    mfp = buf->b_ml\.ml_mfp;$`); err != nil {
-		return nil, err
-	}
-	if !regexp.MustCompile(`^    page_size = mfp->mf_page_size;$`).MatchString(lines[i+1]) {
-		return nil, die("the page size is not read where this edit expects")
-	}
-	lines = vimtext.SpliceLines(lines, i, i+2, nil)
-
-	if lo, hi, err = fn("ml_delete_int"); err != nil {
-		return nil, err
-	}
-	if i, err = one(lo, hi, `^    mfp = buf->b_ml\.ml_mfp;$`); err != nil {
-		return nil, err
-	}
-	b = stmtEnd(i + 1)
-	if !strings.Contains(strings.Join(lines[i:b+1], "\n"), "return FAIL") {
-		return nil, die("the memfile null test in ml_delete_int is not the arm this edit rewrites")
-	}
-	lines = vimtext.SpliceLines(lines, i, b+1, w56b7)
-
-	if lo, hi, err = fn("ml_find_line"); err != nil {
-		return nil, err
-	}
-	if i, err = one(lo, hi, `^    mfp = buf->b_ml\.ml_mfp;$`); err != nil {
-		return nil, err
-	}
-	// The statement alone: the canonical text writes no blank line inside a
-	// function, so there is none under it to take.
-	lines = vimtext.SpliceLines(lines, i, i+1, nil)
-
-	// --- 11. everywhere else, ml_mfp was the question "is this buffer loaded"
-	for i, l := range lines {
-		if w56MlMfp.MatchString(l) {
-			lines[i] = w56MlMfp.ReplaceAllString(l, "ml_root")
-		}
-	}
-
-	// --- 12. a node is reached without its header ----------------------------
-	for i, l := range lines {
-		if strings.Contains(l, "->bh_data") {
-			lines[i] = w56BhData.ReplaceAllString(l, "($1 *)($2)")
-		}
-	}
-
-	// --- 13. one tag, in the node --------------------------------------------
-	for i, l := range lines {
-		if w56Ids.MatchString(l) {
-			lines[i] = w56IdRef.ReplaceAllString(l, "hp->bh_id")
-		}
-	}
-
-	// --- 14. nothing can evict a block, so nothing locks one -----------------
-	for _, name := range []string{"ml_append_int", "ml_delete_int", "ml_find_line", "ml_lineadd"} {
-		for {
-			lo, hi, err = fn(name)
-			if err != nil {
-				return nil, err
-			}
-			hits := allOf(lo, hi, `^\s*mf_put\([^)]*\);$`)
-			if len(hits) == 0 {
-				break
-			}
-			i = hits[0]
-			lines = vimtext.SpliceLines(lines, i, i+1, nil)
-		}
-	}
-
-	// --- 15. a block is its own pointer --------------------------------------
-	for {
-		var hits []int
-		mfGet := regexp.MustCompile(`\bmf_get\(`)
-		for i, l := range lines {
-			if mfGet.MatchString(l) {
-				hits = append(hits, i)
+	v.InFunction("ml_append_int", func(v *graph.Verbs) {
+		v.CutRun("the page size", "(= mfp (. (-> buf b_ml) ml_mfp))", "(= page_size (-> mfp mf_page_size))")
+	})
+	if a := one("ml_delete_int", "(= mfp (. (-> buf b_ml) ml_mfp))", "the memfile null test in ml_delete_int"); a != nil {
+		b := one("ml_delete_int", "(if (== mfp nullptr) (block (return FAIL)))", "the memfile null test in ml_delete_int")
+		with := build(a, "(if (== (. (-> buf b_ml) ml_root) nullptr) (block (return FAIL)))", nil)
+		if v.Err == nil {
+			if err := e.ReplaceRun(a, b, with...); err != nil {
+				v.Die("the memfile null test in ml_delete_int -- %v", err)
 			}
 		}
-		if len(hits) == 0 {
+	}
+	v.InFunction("ml_find_line", func(v *graph.Verbs) {
+		v.Cut("(= mfp (. (-> buf b_ml) ml_mfp))", 1, "ml_find_line's handle")
+	})
+	if err := failed(); err != nil {
+		return err
+	}
+
+	// --- 4. the memfile layer itself -----------------------------------------
+	var pageEnum, last *graph.Node
+	for _, f := range e.Graph().Forms {
+		if f.Is("enum") {
+			if c, _ := graph.FormsC([]*graph.Node{f}); string(c) == fmt.Sprintf("enum { MEMFILE_PAGE_SIZE = %d };\n", page) {
+				pageEnum = f
+			}
+		}
+	}
+	last = e.Defn("mf_free_bhdr")
+	if pageEnum == nil || last == nil {
+		return die("the memfile block does not start where this edit expects")
+	}
+	var run []*graph.Node
+	in := false
+	for _, f := range e.Graph().Forms {
+		if f == pageEnum {
+			in = true
+		}
+		if in {
+			run = append(run, f)
+		}
+		if f == last {
 			break
 		}
-		i = hits[0]
-		m := w56MfGet.FindStringSubmatch(lines[i])
-		if m == nil {
-			return nil, die("an mf_get is not the guarded assignment this edit rewrites: %s", lines[i])
+	}
+	// --- 11. everywhere else, ml_mfp was the question "is this buffer loaded"
+	root := member("ml_root")
+	mfpM := member("ml_mfp")
+	if err := failed(); err != nil {
+		return err
+	}
+	inRun := map[*graph.Node]bool{}
+	for _, f := range run {
+		graph.Walk(f, func(x *graph.Node) bool { inRun[x] = true; return true })
+	}
+	for _, u := range append([]*graph.Node(nil), e.Uses(mfpM)...) {
+		if inRun[u] || !e.Live(u) {
+			continue
 		}
-		lines = vimtext.SpliceLines(lines, i, stmtEnd(i)+1, []string{m[1] + "hp = " + m[2] + ";"})
+		if err := e.RetargetAs(u, 0, root); err != nil {
+			return die("ml_mfp -- %v", err)
+		}
+	}
+	// --- 12. a node is reached without its header ----------------------------
+	for _, u := range append([]*graph.Node(nil), e.Uses(member("bh_data"))...) {
+		if inRun[u] || !e.Live(u) {
+			continue
+		}
+		sel := e.Parent(u)
+		if !sel.Is("->") || len(sel.Kids) != 3 || !e.Parent(sel).Is("paren") || !e.Parent(e.Parent(sel)).Is("cast") {
+			return die("a use of bh_data is not the cast of a node this edit rewrites")
+		}
+		if err := e.Replace(sel, sel.Kids[1]); err != nil {
+			return die("bh_data -- %v", err)
+		}
+	}
+	// --- 13. one tag, in the node --------------------------------------------
+	for _, m := range []string{"pb_id", "db_id"} {
+		for _, u := range append([]*graph.Node(nil), e.Uses(member(m))...) {
+			if inRun[u] || !e.Live(u) {
+				continue
+			}
+			sel := e.Parent(u)
+			replace(sel, build(sel, "(-> hp bh_id)", nil), "one tag, in the node")
+		}
+	}
+	if err := failed(); err != nil {
+		return err
+	}
+	// --- 14. nothing can evict a block, so nothing locks one -----------------
+	for _, fn := range []string{"ml_append_int", "ml_delete_int", "ml_find_line", "ml_lineadd"} {
+		v.InFunction(fn, func(v *graph.Verbs) {
+			v.Cut("(call mf_put _)", v.Count("(call mf_put _)"), "nothing locks a block")
+		})
+	}
+	// --- 15. a block is its own pointer --------------------------------------
+	for _, c := range v.Find("(if (== (= hp (call mf_get mfp ?x)) nullptr) _)") {
+		x := c.Kids[1].Kids[1].Kids[2].Kids[3]
+		replace(c, build(c, "(= hp ?x)", graph.Bindings{"x": x}), "a block is its own pointer")
+	}
+	if err := failed(); err != nil {
+		return err
+	}
+	if k := v.Count("(call mf_get _*)"); k != 0 {
+		return die("an mf_get is not the guarded assignment this edit rewrites")
 	}
 
 	// --- 16. ml_append_int ----------------------------------------------------
-	if lo, hi, err = fn("ml_append_int"); err != nil {
-		return nil, err
-	}
-	if i, err = one(lo, hi, `^        if \(\(hp_new = ml_new_data\(mfp\)\) == nullptr\)$`); err != nil {
-		return nil, err
-	}
-	lines[i] = w56s10
-	if i, err = one(lo, hi, `if \(pp->pb_count < pp->pb_count_max\)$`); err != nil {
-		return nil, err
-	}
-	lines[i] = strings.ReplaceAll(lines[i], "pp->pb_count_max", "PB_COUNT_MAX")
-	if i, err = one(lo, hi, `^                hp_new = ml_new_ptr\(mfp\);$`); err != nil {
-		return nil, err
-	}
-	lines[i] = w56s11
+	v.InFunction("ml_append_int", func(v *graph.Verbs) {
+		v.Rewrite("(-> pp pb_count_max)", "PB_COUNT_MAX", 1, "the fanout")
+	})
 	// The root split copied the whole PAGE, which is how a node's contents moved
 	// while its header sat somewhere else.  The header is IN the node now.
-	if i, err = one(lo, hi, `^ *musl_memmove\(\(char \*\)\(pp_new\), \(char \*\)\(pp\), \(usize\)page_size\);$`); err != nil {
-		return nil, err
+	if c := one("ml_append_int", "(call musl_memmove (cast (ptr char) (paren pp_new)) (cast (ptr char) (paren pp)) (cast usize page_size))", "the root split"); c != nil {
+		replace(c, build(c, `(= (-> pp_new pb_count) (-> pp pb_count))
+			(call musl_memmove (cast (ptr char) (paren (addr (index (-> pp_new pb_pointer) 0))))
+				(cast (ptr char) (paren (addr (index (-> pp pb_pointer) 0))))
+				(* (cast usize (-> pp pb_count)) (sizeof-type PTR_EN)))`, nil), "the root split")
 	}
-	lines = vimtext.SpliceLines(lines, i, i+1, w56b8)
-
 	// --- 17. ml_delete_int releases a node by freeing it ---------------------
-	if lo, hi, err = fn("ml_delete_int"); err != nil {
-		return nil, err
-	}
-	freed := allOf(lo, hi, `\bmf_free\(mfp, hp\);$`)
-	if len(freed) != 2 {
-		return nil, die("ml_delete_int releases a block in %d places and this edit knows two", len(freed))
-	}
-	for _, i := range freed {
-		lines[i] = strings.ReplaceAll(lines[i], "mf_free(mfp, hp);", "vim_free(hp);")
+	v.InFunction("ml_delete_int", func(v *graph.Verbs) {
+		v.Rewrite("(call mf_free mfp hp)", "(call vim_free hp)", 2, "ml_delete_int releases a node")
+	})
+	// --- 18. ml_find_line reads the tag off the node -------------------------
+	v.InFunction("ml_find_line", func(v *graph.Verbs) {
+		v.Cut("(= dp (cast (ptr DATA_BL) (paren hp)))", 1, "the leaf test's cast")
+		v.RewriteAt("(= pp (cast (ptr PTR_BL) (paren ?d)))", "d", "hp", 1, "the branch's cast")
+		v.Cut("(label error_noblock)", 1, "error_noblock")
+	})
+	if err := failed(); err != nil {
+		return err
 	}
 
-	// --- 18. ml_find_line reads the tag off the node -------------------------
-	if lo, hi, err = fn("ml_find_line"); err != nil {
-		return nil, err
+	// the memfile layer, its struct, the memline's handle and the old members
+	for _, f := range run {
+		if err := e.Delete(f); err != nil {
+			return die("the memfile block -- %v", err)
+		}
 	}
-	if a, err = one(lo, hi, `^\s+dp = \(DATA_BL \*\)\(hp\);$`); err != nil {
-		return nil, err
+	if err := e.Delete(ms); err != nil {
+		return die("struct memfile -- %v", err)
 	}
-	if !regexp.MustCompile(`if \(hp->bh_id ==\s`).MatchString(lines[a+1]) {
-		return nil, die("the leaf test does not follow the cast it replaces: %s", lines[a+1])
+	for _, m := range []string{"ml_mfp", "bh_next", "bh_prev", "bh_data", "bh_flags", "pb_id", "pb_count_max", "db_id"} {
+		d := member(m)
+		if err := failed(); err != nil {
+			return err
+		}
+		if err := e.Delete(d); err != nil {
+			return die("the member %s -- %v", m, err)
+		}
 	}
-	lines = vimtext.SpliceLines(lines, a, a+1, nil)
-	if lo, hi, err = fn("ml_find_line"); err != nil {
-		return nil, err
-	}
-	if i, err = one(lo, hi, `^\s+pp = \(PTR_BL \*\)\(dp\);$`); err != nil {
-		return nil, err
-	}
-	lines[i] = strings.ReplaceAll(lines[i], "(dp)", "(hp)")
-	if lo, hi, err = fn("ml_find_line"); err != nil {
-		return nil, err
-	}
-	if a, err = one(lo, hi, `^error_block:$`); err != nil {
-		return nil, err
-	}
-	if lines[a+1] != "error_noblock:" {
-		return nil, die("error_block and error_noblock are not adjacent once the lock has gone")
-	}
-	lines = vimtext.SpliceLines(lines, a+1, a+2, nil)
 
 	// --- 19. the locals the fold stopped using -------------------------------
 	var dropped []string
@@ -780,55 +640,64 @@ func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"ml_setmarked", "ml_firstmarked", "ml_clearmarked", "ml_flush_line",
 		"ml_new_data", "ml_new_ptr", "ml_find_line", "ml_lineadd"} {
 		for {
-			lo, hi, err = fn(name)
+			fn := e.Defn(name)
+			if fn == nil {
+				return die("%s is not a definition head exactly once", name)
+			}
+			c, err := graph.FormsC([]*graph.Node{fn})
 			if err != nil {
-				return nil, err
+				return die("%v", err)
 			}
-			Body := strings.Join(lines[lo:hi+1], "\n")
-			found := false
-			for i := lo; i <= hi; i++ {
-				m := localDeclRe.FindStringSubmatch(lines[i])
-				if m == nil {
-					continue
-				}
-				if edit.Contains(notDeclWords, strings.Fields(lines[i])[0]) {
-					continue
-				}
-				if mentions(Body, m[1]) == 1 {
-					dropped = append(dropped, name+":"+m[1])
-					lines = vimtext.SpliceLines(lines, i, i+1, nil)
-					found = true
-					break
-				}
+			text := string(c)
+			if i := strings.Index(text, "\n"+name+"("); i >= 0 {
+				text = text[i+1:]
 			}
-			if !found {
+			var gone *graph.Node
+			var local string
+			graph.Walk(fn, func(x *graph.Node) bool {
+				if gone == nil && x.Is("def") {
+					if n := graph.DeclName(x); n != "" && edit.WordCount(text, n) == 1 {
+						gone, local = x, n
+					}
+				}
+				return gone == nil
+			})
+			if gone == nil {
 				break
 			}
+			if err := e.Delete(gone); err != nil {
+				return die("%s's %s -- %v", name, local, err)
+			}
+			dropped = append(dropped, name+":"+local)
 		}
 	}
 	say("%d locals the fold stopped using, found by counting their own name: %s",
 		len(dropped), strings.Join(dropped, " "))
 
 	// --- the partition again, on the output ----------------------------------
-	t := strings.Join(lines, "\n")
+	outb, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	t := string(outb)
 	for _, name := range w56Gone {
 		want := 0
 		if name == "memfile" || name == "memfile_T" {
 			want = 1 // the typedef, the sweep's
 		}
-		if k := mentions(t, name); k != want {
-			return nil, die("%s survives the edit with %d mentions", name, k)
+		if k := edit.WordCount(t, name); k != want {
+			return die("%s survives the edit with %d mentions", name, k)
 		}
 	}
 	for _, name := range w56ForSweep {
-		if k := mentions(t, name); k != 1 {
-			return nil, die("%s is left at %d mentions and the edit leaves exactly one -- its own "+
+		if k := edit.WordCount(t, name); k != 1 {
+			return die("%s is left at %d mentions and the edit leaves exactly one -- its own "+
 				"definition -- for the sweep to take", name, k)
 		}
 	}
 	for _, name := range []string{"PB_COUNT_MAX", "bh_id", "pb_hdr", "db_hdr", "ml_free_tree"} {
-		if mentions(t, name) == 0 {
-			return nil, die("%s is not in the output, so the replacement did not land", name)
+		if edit.WordCount(t, name) == 0 {
+			return die("%s is not in the output, so the replacement did not land", name)
 		}
 	}
 	// THE OPEN-BUFFER PREDICATE MOVED 1:1, stated as a partition over the
@@ -839,7 +708,7 @@ func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		seen := map[string]bool{}
 		for i, l := range ls {
 			if re.MatchString(l) {
-				seen[enclosingIn(ls, i)] = true
+				seen[w56Enclosing(ls, i)] = true
 			}
 		}
 		var Out []string
@@ -851,12 +720,12 @@ func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	was, now := askers(t0, "ml_mfp"), askers(t, "ml_root")
 	if len(askers(t0, "ml_root")) > 0 {
-		return nil, die("ml_root is already compared with nullptr in the input, so this edit cannot " +
+		return die("ml_root is already compared with nullptr in the input, so this edit cannot " +
 			"say that the open-buffer question moved onto it")
 	}
 	wantSet := map[string]bool{"ml_delete_int": true}
-	for _, v := range was {
-		wantSet[v] = true
+	for _, x := range was {
+		wantSet[x] = true
 	}
 	var want []string
 	for k := range wantSet {
@@ -864,7 +733,7 @@ func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	sort.Strings(want)
 	if strings.Join(want, "\x00") != strings.Join(now, "\x00") {
-		return nil, die("the \"is this buffer's memline open\" question is asked in %s and it was asked "+
+		return die("the \"is this buffer's memline open\" question is asked in %s and it was asked "+
 			"in %s; the only one this edit adds is ml_delete_int, which asked it through a "+
 			"local copy of the handle", vimtext.PyList(now), vimtext.PyList(was))
 	}
@@ -874,26 +743,24 @@ func w56Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		len(was))
 	// THE INPUT IS ASKED FIRST, and that is what `need 128 swept` is.
 	if w56BlankRun.MatchString(t0) {
-		return nil, die("the input already has a run of two blank lines, so this edit cannot say it " +
+		return die("the input already has a run of two blank lines, so this edit cannot say it " +
 			"left none: it needs swept text (internal/phase/STAGES.md, `need 128 swept`)")
 	}
-	// What the edit leaves between declarations is layout; the canonical print
-	// at the end of the phase collapses any run of blank lines it made.
 
-	var gone strings.Builder
+	var goneB strings.Builder
 	for _, n := range w56Gone {
-		fmt.Fprintf(&gone, "%s\t%d\n", n, before[n])
+		fmt.Fprintf(&goneB, "%s\t%d\n", n, before[n])
 	}
-	if err := os.WriteFile(state+"/gone", []byte(gone.String()), 0o644); err != nil {
-		return nil, die("%v", err)
+	if err := os.WriteFile(state+"/gone", []byte(goneB.String()), 0o644); err != nil {
+		return die("%v", err)
 	}
 	if err := os.WriteFile(state+"/forsweep", []byte(strings.Join(w56ForSweep, "\n")+"\n"), 0o644); err != nil {
-		return nil, die("%v", err)
+		return die("%v", err)
 	}
 	if err := os.WriteFile(state+"/fanout", []byte(fmt.Sprintf("%d\n", w56Fanout)), 0o644); err != nil {
-		return nil, die("%v", err)
+		return die("%v", err)
 	}
 	say("%d -> %d lines: a node is ONE allocation at its own size, `bhdr_T` is its tag and "+
-		"the first member of both kinds, and there is no memfile", nIn, len(lines))
-	return []byte(t), nil
+		"the first member of both kinds, and there is no memfile", nIn, len(strings.Split(t, "\n")))
+	return nil
 }

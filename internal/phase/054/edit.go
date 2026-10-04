@@ -80,6 +80,17 @@ package p054
 // tool raises rather than reporting nothing.  Nothing here touches the command table.
 //
 
+// ON THE GRAPH (doc/GRAPH-MIGRATION.md, *R1 as built*): the two block
+// numbers are RETYPED and RENAMED members (`pe_block`, `ip_block`), and so
+// are the locals that carried them and mf_get()'s parameter, so that every
+// use keeps its node; `ml_root` is a member inserted; the statements that
+// changed are rewritten in place or built where they stand; mf_get()
+// loses its page count by PARAM, at every call; the wrappers, the free
+// list and the hash go as the runs of forms the text cut; the types and
+// members last, once nothing names them.  Every partition is the text's,
+// on the lines of the forms that say the name (graph.FormLines); the
+// literals and the line counts are the C view's.
+
 import (
 	"fmt"
 	"io"
@@ -96,29 +107,7 @@ import (
 
 func init() { phase.RegisterGraph("whim54", Edit) }
 
-// Edit is the phase on the graph (doc/GRAPH-MIGRATION.md, *B3e as built*):
-// its acts are the text acts below, made on the graph's C view (a
-// graph.Draft) as the text program made them on the file, and committed to
-// the graph as FRAG of the smallest runs of whole items that hold them.
-func Edit(e *graph.Editor, w io.Writer, args []string) error {
-	d, err := e.Draft()
-	if err != nil {
-		return err
-	}
-	out, err := w54Acts([]byte(d.Text()), w, args)
-	if err != nil {
-		return err
-	}
-	_, err = d.Commit(string(out))
-	return err
-}
-
-var (
-	w54Lit     = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
-	w54Head    = regexp.MustCompile(`^([A-Za-z_]\w*)\s*\(`)
-	w54IncLine = regexp.MustCompile(`^ *# *include `)
-	w54DirLine = regexp.MustCompile(`^ *#`)
-)
+var w54Lit = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
 
 // w54Names are the names this edit partitions, plus the three it introduces.
 var w54Names = []string{"blocknr_T", "mf_hashitem_T", "mf_hashtab_T", "mhi_key", "mhi_next",
@@ -136,78 +125,66 @@ var (
 	w54Protos = []string{"mf_ins_hash", "mf_rem_hash", "mf_ins_free", "mf_rem_free"}
 )
 
-// w54Acts turns a block number into a reference: `pe_bnum` and `ip_bnum` become
+// w54Locals are the functions whose locals and parameters this phase's
+// names may be.
+var w54Locals = []string{"ml_find_line", "ml_append_int", "mf_get", "mf_new", "ml_open"}
+
+// Edit turns a block number into a reference: `pe_bnum` and `ip_bnum` become
 // `bhdr_T *`, `memline_T` gains `ml_root`, and the hash table that turned an
 // integer into a page goes with the free list and `mf_blocknr_max`.
-func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Edit(e *graph.Editor, w io.Writer, args []string) error {
 	p := edit.Ph{Tag: "refblocks", W: w}
 	if len(args) != 1 {
-		return nil, p.Die("usage: edit whim54 <file> <state-dir>")
+		return p.Die("usage: edit whim54 <file> <state-dir>")
 	}
 	state := args[0]
-	t := string(text)
-	nIn := strings.Count(t, "\n")
+	v := graph.NewVerbs("refblocks", e, io.Discard)
+	failed := func() error { return v.Err }
 
-	lines := func() []string { return strings.Split(t, "\n") }
-	mentions := func(s, name string) int {
-		return edit.WordPatternCount(s, name)
-	}
-	swap := func(old, new, what, why string) error {
-		c := edit.CountAnchor(t, old)
-		if c != 1 {
-			return p.Die("%s occurs %d times, expected %d -- %s", what, c, 1, why)
-		}
-		t = edit.ReplaceAnchor(t, old, new, -1)
-		return nil
-	}
-	// heads: every definition in this tree's ONE shape -- a name at column 0 with
-	// `(` after it and `{` at column 0 on the next line, closed by `}` at column 0.
-	type head struct {
-		a, b int
-		Name string
-	}
-	headsOf := func(src string) []head {
-		L := strings.Split(src, "\n")
-		var Out []head
-		for i, l := range L {
-			m := w54Head.FindStringSubmatch(l)
-			if m != nil && i+1 < len(L) && L[i+1] == "{" {
-				end := i + 1
-				for end < len(L) && L[end] != "}" {
-					end++
-				}
-				if end < len(L) {
-					Out = append(Out, head{i, end, m[1]})
-				}
+	decls := func(name string) []*graph.Node {
+		ds := append(e.Decls(name), e.MemberDecls(name)...)
+		for _, f := range w54Locals {
+			if fn := e.Defn(f); fn != nil {
+				ds = append(ds, e.LocalDecls(fn, name)...)
 			}
 		}
-		return Out
+		var out []*graph.Node
+		for _, d := range ds {
+			if e.Live(d) {
+				out = append(out, d)
+			}
+		}
+		return out
+	}
+	lines := func(name string) ([]graph.FormLine, error) {
+		return e.FormLines(e.AndUses(decls(name)...)...)
 	}
 	// owners: {function name: how many of its lines say `name`}.  THIS IS THE
 	// PHASE'S UNIT OF ASSERTION -- WHERE a name is said and not how often, because
 	// the phase before this one moves the counts.
-	owners := func(name string) map[string]int {
-		L := lines()
-		hs := headsOf(t)
-		who := func(i int) string {
-			for _, h := range hs {
-				if h.a <= i && i <= h.b {
-					return h.Name
-				}
-			}
-			return "<file scope>"
+	owners := func(name string) (map[string]int, error) {
+		ls, err := lines(name)
+		if err != nil {
+			return nil, err
 		}
 		re := regexp.MustCompile(`\b` + name + `\b`)
 		d := map[string]int{}
-		for i, l := range L {
-			if re.MatchString(l) {
-				d[who(i)]++
+		for _, l := range ls {
+			if re.MatchString(l.Text) {
+				who := l.Func
+				if who == "" {
+					who = "<file scope>"
+				}
+				d[who]++
 			}
 		}
-		return d
+		return d, nil
 	}
 	places := func(name string, expect []string, what string) error {
-		got := owners(name)
+		got, err := owners(name)
+		if err != nil {
+			return p.Die("%v", err)
+		}
 		var gk []string
 		for k := range got {
 			gk = append(gk, k)
@@ -227,23 +204,127 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 			name, len(got), strings.Join(parts, ", "))
 		return nil
 	}
-	cut := func(a, b, what string) (int, error) {
-		for _, s := range []struct{ v, side string }{{a, "start"}, {b, "end"}} {
-			if c := strings.Count(t, s.v); c != 1 {
-				return 0, p.Die("the %s of %s occurs %d times and a cut needs exactly one",
-					s.side, what, c)
+	mentions := func(name string) int {
+		ls, err := lines(name)
+		if err != nil {
+			return -1
+		}
+		var b strings.Builder
+		for _, l := range ls {
+			b.WriteString(l.Text)
+			b.WriteByte('\n')
+		}
+		return edit.WordPatternCount(b.String(), name)
+	}
+	// forms are the top-level forms from the one declaring from, up to and
+	// not including the one declaring to: a run the text cut, and its lines
+	// with the blank one after each.
+	forms := func(from, to *graph.Node) ([]*graph.Node, int, error) {
+		var run []*graph.Node
+		in := false
+		for _, f := range e.Graph().Forms {
+			if f == from {
+				in = true
+			}
+			if f == to {
+				break
+			}
+			if in {
+				run = append(run, f)
 			}
 		}
-		i, j := strings.Index(t, a), strings.Index(t, b)
-		if i >= j {
-			return 0, p.Die("%s: the start is not above the end", what)
+		if from == nil || to == nil || len(run) == 0 {
+			return nil, 0, fmt.Errorf("the run of forms is not in the file")
 		}
-		n := strings.Count(t[i:j], "\n")
-		t = t[:i] + t[j:]
-		return n, nil
+		c, err := graph.FormsC(run)
+		if err != nil {
+			return nil, 0, err
+		}
+		return run, strings.Count(string(c), "\n") + 1, nil
+	}
+	cutForms := func(run []*graph.Node, what string) error {
+		for _, f := range run {
+			if err := e.Delete(f); err != nil {
+				return p.Die("%s -- %v", what, err)
+			}
+		}
+		return nil
+	}
+	member := func(name string) *graph.Node {
+		ms := e.MemberDecls(name)
+		if len(ms) != 1 {
+			v.Die("the member %s is declared %d times", name, len(ms))
+			return nil
+		}
+		return ms[0]
+	}
+	local := func(fn, name string) *graph.Node {
+		ds := e.LocalDecls(e.Defn(fn), name)
+		if len(ds) != 1 {
+			v.Die("%s's %s is declared %d times", fn, name, len(ds))
+			return nil
+		}
+		return ds[0]
+	}
+	retype := func(d *graph.Node, typ, to, what string) {
+		if v.Err != nil || d == nil {
+			return
+		}
+		if _, err := e.Retype(d, typ); err != nil {
+			v.Die("%s -- %v", what, err)
+			return
+		}
+		if to != "" {
+			if _, err := e.Rename(d, to); err != nil {
+				v.Die("%s -- %v", what, err)
+			}
+		}
+	}
+	// build puts the C-lisp src in at's place, or after it.
+	build := func(fn, pat, src string, after bool, what string) {
+		v.InFunction(fn, func(v *graph.Verbs) {
+			at := v.One(pat, what)
+			if at == nil {
+				return
+			}
+			ns, err := e.Build(at, src, nil)
+			if err == nil {
+				if after {
+					err = e.InsertAfter(at, ns...)
+				} else {
+					err = e.Replace(at, ns...)
+				}
+			}
+			if err != nil {
+				v.Die("%s -- %v", what, err)
+			}
+		})
+	}
+	// right puts the C-lisp src in the place of the right side of the one
+	// assignment pat matches.
+	right := func(fn, pat, src, what string) {
+		v.InFunction(fn, func(v *graph.Verbs) {
+			at := v.One(pat, what)
+			if at == nil {
+				return
+			}
+			ns, err := e.Build(at.Kids[2], src, nil)
+			if err == nil {
+				err = e.Replace(at.Kids[2], ns...)
+			}
+			if err != nil {
+				v.Die("%s -- %v", what, err)
+			}
+		})
 	}
 
 	// ---- 0. the file this edit is handed --------------------------------------
+	t0, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	t := string(t0)
+	nIn := strings.Count(t, "\n")
 	literals := w54Lit.FindAllString(t, -1)
 	var inlit []string
 	for _, n := range w54Names {
@@ -256,31 +337,22 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	if len(inlit) > 0 {
-		return nil, p.Die("%s appear inside a string literal, so a line-oriented partition would read "+
+		return p.Die("%s appear inside a string literal, so a line-oriented partition would read "+
 			"data as code", strings.Join(inlit, ", "))
 	}
 	for _, n := range []string{"ml_root", "pe_block", "ip_block"} {
-		if k := mentions(t, n); k != 0 {
-			return nil, p.Die("`%s` is already said %d times, and this phase is what introduces it", n, k)
+		if k := edit.WordPatternCount(t, n); k != 0 {
+			return p.Die("`%s` is already said %d times, and this phase is what introduces it", n, k)
 		}
 	}
 	p.Sayf("%d string and character literals, and not one of them holds any of the %d names "+
 		"this edit partitions or the 3 it introduces", len(literals), len(w54Names)-3)
 
-	var incs, directives []int
-	for i, l := range lines() {
-		if w54IncLine.MatchString(l) {
-			incs = append(incs, i)
-		}
-		if w54DirLine.MatchString(l) {
-			directives = append(directives, i)
-		}
+	incs := e.Includes()
+	if len(incs) == 0 {
+		return p.Die("the input has no preprocessor directive, and this phase adds none and removes none")
 	}
-	if len(incs) != len(directives) || len(incs) == 0 {
-		return nil, p.Die("the input has %d preprocessor directives and %d of them are `#include`, and "+
-			"this phase adds none and removes none", len(directives), len(incs))
-	}
-	boundary := incs[0]
+	boundary := strings.Count(t[:strings.Index(t, "\n#include ")+1], "\n")
 	p.Sayf("the input is %d lines with %d `#include`s and no other directive, the first at "+
 		"line %d -- the line between the core and the host", nIn, len(incs), boundary+1)
 
@@ -311,69 +383,62 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"it is the tail of the used list"},
 	} {
 		if err := places(pl.Name, pl.expect, pl.What); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	L := lines()
+	ls, err := lines("pe_page_count")
+	if err != nil {
+		return p.Die("%v", err)
+	}
 	peRe := regexp.MustCompile(`\bpe_page_count\b`)
 	peWr := regexp.MustCompile(`\bpe_page_count\s*=`)
-	var peReads []int
-	for i, l := range L {
-		if peRe.MatchString(l) && !peWr.MatchString(l) && !strings.Contains(l, "int pe_page_count;") {
-			peReads = append(peReads, i)
+	var peReads []string
+	for _, l := range ls {
+		if peRe.MatchString(l.Text) && !peWr.MatchString(l.Text) && !strings.Contains(l.Text, "int pe_page_count;") {
+			peReads = append(peReads, l.Text)
 		}
 	}
-	if len(peReads) != 1 || !strings.Contains(L[peReads[0]], "page_count =") {
-		return nil, p.Die("`pe_page_count` has %d readers and this phase rests on its having one, the "+
+	if len(peReads) != 1 || !strings.Contains(peReads[0], "page_count =") {
+		return p.Die("`pe_page_count` has %d readers and this phase rests on its having one, the "+
 			"argument mf_get() is about to lose", len(peReads))
 	}
 	p.Sayf("`pe_page_count` is read ONCE in the whole file -- %s -- and that read is the third "+
-		"argument of mf_get(); every other mention of it is a write", strings.TrimSpace(L[peReads[0]]))
+		"argument of mf_get(); every other mention of it is a write", strings.TrimSpace(peReads[0]))
 
+	if ls, err = lines("mf_used_last"); err != nil {
+		return p.Die("%v", err)
+	}
 	ulRe := regexp.MustCompile(`\bmf_used_last\b`)
 	ulWr := regexp.MustCompile(`\bmf_used_last\s*=`)
-	var lastw, lastr []int
-	for i, l := range L {
-		if ulRe.MatchString(l) {
-			lastw = append(lastw, i)
-			if !ulWr.MatchString(l) && !strings.Contains(l, "bhdr_T *mf_used_last;") {
-				lastr = append(lastr, i)
+	var lastw int
+	var lastr []string
+	for _, l := range ls {
+		if ulRe.MatchString(l.Text) {
+			lastw++
+			if !ulWr.MatchString(l.Text) && !strings.Contains(l.Text, "bhdr_T *mf_used_last;") {
+				lastr = append(lastr, strings.TrimSpace(l.Text))
 			}
 		}
 	}
 	if len(lastr) > 0 {
-		var shown []string
-		for _, i := range lastr {
-			shown = append(shown, strings.TrimSpace(L[i]))
-		}
-		return nil, p.Die("`mf_used_last` is read at %s, and this phase removes it as a write-only field",
-			strings.Join(shown, ", "))
+		return p.Die("`mf_used_last` is read at %s, and this phase removes it as a write-only field",
+			strings.Join(lastr, ", "))
 	}
 	p.Sayf("`mf_used_last` IS WRITE-ONLY: %d mentions, its declaration and %d writes and not "+
 		"one read -- phase 53 took ml_setflags(), which was the last thing that walked the "+
 		"used list backwards.  No warning gcc emits covers a struct member in either "+
-		"direction, so it goes in this edit with its writes", len(lastw), len(lastw)-1)
+		"direction, so it goes in this edit with its writes", lastw, lastw-1)
 
 	callIn := func(name string) []string {
-		hs := headsOf(t)
-		who := func(i int) string {
-			for _, h := range hs {
-				if h.a <= i && i <= h.b {
-					return h.Name
-				}
-			}
-			return "<file scope>"
-		}
+		ls, _ := lines(name)
 		re := regexp.MustCompile(`\b` + name + `\s*\(`)
 		seen := map[string]bool{}
-		for i, l := range lines() {
-			if re.MatchString(l) {
-				seen[who(i)] = true
+		for _, l := range ls {
+			if re.MatchString(l.Text) && l.Func != "" && l.Func != name {
+				seen[l.Func] = true
 			}
 		}
-		delete(seen, "<file scope>")
-		delete(seen, name)
 		var Out []string
 		for k := range seen {
 			Out = append(Out, k)
@@ -383,7 +448,7 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	insIn, remIn := callIn("mf_ins_hash"), callIn("mf_rem_hash")
 	if strings.Join(insIn, ",") != "mf_get,mf_new" || strings.Join(remIn, ",") != "mf_free,mf_get" {
-		return nil, p.Die("the hash is inserted into from %s and removed from from %s, and this phase "+
+		return p.Die("the hash is inserted into from %s and removed from from %s, and this phase "+
 			"rests on mf_new() and mf_get() being the only insertions and mf_free() and "+
 			"mf_get() the only removals", vimtext.PyList(insIn), vimtext.PyList(remIn))
 	}
@@ -393,17 +458,19 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"would have returned is the same answer",
 		strings.Join(insIn, " and "), strings.Join(remIn, " and "))
 
-	// ---- 2. the types ---------------------------------------------------------
-	for _, s := range []struct{ Old, New, What, why string }{
-		{w126s0Old, w126s0New, w126s0What, w126s0Why},
-		{w126s1Old, w126s1New, w126s1What, w126s1Why},
-		{w126s2Old, w126s2New, w126s2What, w126s2Why},
-		{w126s3Old, w126s3New, w126s3What, w126s3Why},
-		{w126s4Old, w126s4New, w126s4What, w126s4Why},
-	} {
-		if err := swap(s.Old, s.New, s.What, s.why); err != nil {
-			return nil, err
-		}
+	// what the text's summary lines count, before the acts change it
+	leftStores := v.Count("(= (. (index (-> _ pb_pointer) _) pe_bnum) bnum_left)")
+	rightStores := v.Count("(= (. (index (-> _ pb_pointer) _) pe_bnum) bnum_right)")
+	fetches := v.Count("(call mf_get mfp (-> ip ip_bnum) 1)")
+
+	// ---- 2. the types: the two numbers are blocks, the memline names its root
+	retype(member("pe_bnum"), "(ptr bhdr_T)", "pe_block", "the pointer entry")
+	retype(member("ip_bnum"), "(ptr bhdr_T)", "ip_block", "the stack entry's block")
+	if failed() != nil {
+		return failed()
+	}
+	if _, err := e.InsertMember(member("ml_mfp"), true, "(ml_root (ptr bhdr_T))"); err != nil {
+		return p.Die("the memline -- %v", err)
 	}
 
 	// ---- 3. the memfile -------------------------------------------------------
@@ -419,99 +486,211 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if edit.ContainsStr(w54Protos, name) {
 			continue
 		}
-		re := regexp.MustCompile(`(?m)^static [\w *]*` + name + `\([^\n]*\);\n`)
-		m := re.FindStringIndex(t)
-		if m == nil {
-			return nil, p.Die("`%s` has no forward declaration in the one shape this tree writes them", name)
+		var proto *graph.Node
+		for _, d := range e.FileDecls(name) {
+			if d.Is("def") {
+				proto = d
+			}
 		}
-		t = t[:m[0]] + t[m[1]:]
+		if proto == nil {
+			return p.Die("`%s` has no forward declaration in the one shape this tree writes them", name)
+		}
+		if err := e.Delete(proto); err != nil {
+			return p.Die("`%s`'s forward declaration -- %v", name, err)
+		}
 		cutProtos = append(cutProtos, name)
 	}
 	p.Sayf("%d forward declarations go: %s", len(cutProtos), strings.Join(cutProtos, ", "))
 
-	for _, s := range []struct{ Old, New, What, why string }{
-		{w126s5Old, w126s5New, w126s5What, w126s5Why},
-		{w126s6Old, w126s6New, w126s6What, w126s6Why},
-		{w126s7Old, w126s7New, w126s7What, w126s7Why},
-		{w126s8Old, w126s8New, w126s8What, w126s8Why},
-		{w126s9Old, w126s9New, w126s9What, w126s9Why},
-	} {
-		if err := swap(s.Old, s.New, s.What, s.why); err != nil {
-			return nil, err
-		}
+	v.InFunction("mf_open", func(v *graph.Verbs) {
+		v.Cut("(= (-> mfp mf_free_first) nullptr)", 1, "mf_open()'s body")
+		v.Cut("(= (-> mfp mf_used_last) nullptr)", 1, "mf_open()'s body")
+		v.Cut("(call mf_hash_init (addr (-> mfp mf_hash)))", 1, "mf_open()'s body")
+		v.Cut("(= (-> mfp mf_blocknr_max) 0)", 1, "mf_open()'s body")
+	})
+	v.InFunction("mf_close", func(v *graph.Verbs) {
+		v.Cut("(while (!= (-> mfp mf_free_first) nullptr) _)", 1, "mf_close()'s tail")
+		v.Cut("(call mf_hash_free (addr (-> mfp mf_hash)))", 1, "mf_close()'s tail")
+	})
+	v.InFunction("mf_new", func(v *graph.Verbs) {
+		v.Cut("(def freep (ptr bhdr_T))", 1, "mf_new()")
+		v.Cut("(def p (ptr char_u))", 1, "mf_new()")
+		v.Cut("(= hp nullptr)", 1, "mf_new()")
+		v.Cut("(= freep (-> mfp mf_free_first))", 1, "mf_new()")
+		v.Rewrite("(if (&& (!= freep nullptr) (>= (-> freep bh_page_count) page_count)) _ _)",
+			"(if (== (= hp (call mf_alloc_bhdr mfp page_count)) nullptr) (block (return nullptr)))", 1, "mf_new()")
+		v.Cut("(= (-> hp bh_page_count) page_count)", 1, "mf_new()")
+		v.Cut("(call mf_ins_hash mfp hp)", 1, "mf_new()")
+	})
+	if failed() != nil {
+		return failed()
 	}
-	n, err := cut(w126c10A, w126c10B, w126c10What)
+	// mf_get(mfp, nr, page_count) is mf_get(mfp, hp): its parameter the block
+	nr := local("mf_get", "nr")
+	retype(nr, "(ptr bhdr_T)", "", "mf_get()")
+	v.Body("mf_get", "(if (== nr nullptr) (block (return nullptr))) (call mf_rem_used mfp nr)"+
+		" (|= (-> nr bh_flags) BH_LOCKED) (call mf_ins_used mfp nr) (return nr)", "mf_get()")
+	if failed() != nil {
+		return failed()
+	}
+	if _, err := e.Rename(nr, "hp"); err != nil {
+		return p.Die("mf_get() -- %v", err)
+	}
+	if _, err := e.DropParam("mf_get", "page_count", graph.ParamOptions{}); err != nil {
+		return p.Die("mf_get() -- %v", err)
+	}
+	v.InFunction("mf_free", func(v *graph.Verbs) {
+		v.Cut("(call vim_free (-> hp bh_data))", 1, "mf_free()")
+		v.Cut("(call mf_rem_hash mfp hp)", 1, "mf_free()")
+		v.Rewrite("(call mf_ins_free mfp hp)", "(call mf_free_bhdr hp)", 1, "mf_free()")
+	})
+	if failed() != nil {
+		return failed()
+	}
+	run, n, err := forms(e.Defn("mf_ins_hash"), e.Defn("mf_ins_used"))
 	if err != nil {
-		return nil, err
+		return p.Die("the three hash wrappers -- %v", err)
+	}
+	if err := cutForms(run, "the three hash wrappers"); err != nil {
+		return err
 	}
 	p.Sayf("the three one-line wrappers go, %d lines: %s", n, strings.Join(w54HashWrap, ", "))
 
-	for _, s := range []struct{ Old, New, What, why string }{
-		{w126s11Old, w126s11New, w126s11What, w126s11Why},
-		{w126s12Old, w126s12New, w126s12What, w126s12Why},
-		{w126s13Old, w126s13New, w126s13What, w126s13Why},
-	} {
-		if err := swap(s.Old, s.New, s.What, s.why); err != nil {
-			return nil, err
+	v.InFunction("mf_ins_used", func(v *graph.Verbs) {
+		v.Rewrite("(if (== (-> hp bh_next) nullptr) (block (= (-> mfp mf_used_last) hp)) ?b)",
+			"(if (!= (-> hp bh_next) nullptr) ?b)", 1, "mf_ins_used()'s tail")
+	})
+	v.InFunction("mf_rem_used", func(v *graph.Verbs) {
+		v.Rewrite("(if (== (-> hp bh_next) nullptr) (block (= (-> mfp mf_used_last) (-> hp bh_prev))) ?b)",
+			"(if (!= (-> hp bh_next) nullptr) ?b)", 1, "mf_rem_used()'s head")
+	})
+	v.InFunction("mf_alloc_bhdr", func(v *graph.Verbs) {
+		v.Cut("(= (-> hp bh_page_count) page_count)", 1, "mf_alloc_bhdr()'s page count")
+	})
+	if failed() != nil {
+		return failed()
+	}
+	var ptrBL *graph.Node
+	for _, d := range e.Decls("PTR_BL") {
+		if d.Is("typedef") {
+			ptrBL = d
 		}
 	}
-	n, err = cut(w126c14A, w126c14B, w126c14What)
-	if err != nil {
-		return nil, err
+	if run, n, err = forms(e.Defn("mf_ins_free"), ptrBL); err != nil {
+		return p.Die("the free list and the whole hash implementation -- %v", err)
+	}
+	if err := cutForms(run, "the free list and the whole hash implementation"); err != nil {
+		return err
 	}
 	p.Sayf("the free list and the hash implementation go, %d lines: %s, the two MHT_ "+
 		"enumerators and %s", n, strings.Join(w54FreeList, ", "), strings.Join(w54HashImpl, ", "))
 
 	// ---- 4. the memline -------------------------------------------------------
-	for _, s := range []struct{ Old, New, What, why string }{
-		{w126s15Old, w126s15New, w126s15What, w126s15Why},
-		{w126s16Old, w126s16New, w126s16What, w126s16Why},
-		{w126s17Old, w126s17New, w126s17What, w126s17Why},
-		{w126s19Old, w126s19New, w126s19What, w126s19Why},
-		{w126s20Old, w126s20New, w126s20What, w126s20Why},
-		{w126s21Old, w126s21New, w126s21What, w126s21Why},
-		{w126s22Old, w126s22New, w126s22What, w126s22Why},
-		{w126s23Old, w126s23New, w126s23What, w126s23Why},
-		{w126s24Old, w126s24New, w126s24What, w126s24Why},
-		{w126s25Old, w126s25New, w126s25What, w126s25Why},
-		{w126s27Old, w126s27New, w126s27What, w126s27Why},
-		{w126s28Old, w126s28New, w126s28What, w126s28Why},
-		{w126s29Old, w126s29New, w126s29What, w126s29Why},
-		{w126s30Old, w126s30New, w126s30What, w126s30Why},
-		{w126s31Old, w126s31New, w126s31What, w126s31Why},
-	} {
-		if err := swap(s.Old, s.New, s.What, s.why); err != nil {
-			return nil, err
-		}
+	v.InFunction("ml_open", func(v *graph.Verbs) {
+		v.Rewrite("(if (!= (. (-> hp bh_hashitem) mhi_key) 0) _)", "(= (. (-> buf b_ml) ml_root) hp)", 1, "ml_open()'s two blocks")
+		v.Cut("(= (. (index (-> pp pb_pointer) 0) pe_block) 1)", 1, "ml_open()'s two blocks")
+		v.Cut("(= (. (index (-> pp pb_pointer) 0) pe_page_count) 1)", 1, "ml_open()'s two blocks")
+		v.Rewrite("(if (!= (. (-> hp bh_hashitem) mhi_key) 1) _)",
+			"(= (. (index (-> (cast (ptr PTR_BL) (paren (-> (. (-> buf b_ml) ml_root) bh_data))) pb_pointer) 0) pe_block) hp)", 1,
+			"ml_open()'s two blocks")
+	})
+	build("ml_open", "(= (. (-> buf b_ml) ml_stack_size) 0)", "(= (. (-> buf b_ml) ml_root) nullptr)", true, "ml_open()'s preamble")
+	retype(local("ml_find_line", "bnum"), "(ptr bhdr_T)", "bp", "ml_find_line()'s cursor")
+	right("ml_find_line", "(= bp 0)", "(. (-> buf b_ml) ml_root)", "where a descent starts")
+	v.InFunction("ml_find_line", func(v *graph.Verbs) {
+		v.Cut("(= page_count 1)", 1, "where a descent starts")
+		v.Cut("(= page_count (. (index (-> pp pb_pointer) idx) pe_page_count))", 1, "the step down")
+		v.Cut("(call vim_snprintf (cast (ptr char) IObuff) (call emsg_iobuff_room) e_line_count_wrong_in_block_nr bp)", 1, "E323")
+		v.Rewrite("(call iemsg (call iobuff_or e_line_count_wrong_in_block_nr))", "(call iemsg e_line_count_wrong_in_block_nr)", 1, "E323")
+	})
+	if failed() != nil {
+		return failed()
+	}
+	e323 := e.FileDecls("e_line_count_wrong_in_block_nr")
+	if len(e323) != 1 {
+		return p.Die("E323's text -- declared %d times", len(e323))
+	}
+	if err := e.Replace(graph.DeclInit(e323[0]), graph.NewAtom(`"E323: Line count wrong in block"`)); err != nil {
+		return p.Die("E323's text -- %v", err)
+	}
+	if _, err := e.Rename(e323[0], "e_line_count_wrong_in_block"); err != nil {
+		return p.Die("E323's text -- %v", err)
+	}
+	retype(local("ml_append_int", "bnum_left"), "(ptr bhdr_T)", "bp_left", "ml_append_int()'s two labels")
+	retype(local("ml_append_int", "bnum_right"), "(ptr bhdr_T)", "bp_right", "ml_append_int()'s two labels")
+	right("ml_append_int", "(= bp_left (. (-> hp_left bh_hashitem) mhi_key))", "hp_left", "what a data-block split labels its halves with")
+	right("ml_append_int", "(= bp_right (. (-> hp_right bh_hashitem) mhi_key))", "hp_right", "what a data-block split labels its halves with")
+	right("ml_append_int", "(= (. (index (-> pp pb_pointer) 0) pe_block) (. (-> hp_new bh_hashitem) mhi_key))", "hp_new", "the root split")
+	right("ml_append_int", "(= bp_left (. (-> hp bh_hashitem) mhi_key))", "hp", "what a pointer-block split labels its halves with")
+	right("ml_append_int", "(= bp_right (. (-> hp_new bh_hashitem) mhi_key))", "hp_new", "what a pointer-block split labels its halves with")
+	v.InFunction("ml_append_int", func(v *graph.Verbs) {
+		v.Cut("(= page_count_left (-> hp_left bh_page_count))", 1, "what a data-block split labels its halves with")
+		v.Cut("(= page_count_right (-> hp_right bh_page_count))", 1, "what a data-block split labels its halves with")
+		v.Rewrite("(!= (. (-> hp bh_hashitem) mhi_key) 0)", "(!= hp (. (-> buf b_ml) ml_root))", 1, "the root test")
+		v.Cut("(= (. (index (-> pp pb_pointer) 0) pe_page_count) 1)", 1, "the root split")
+		v.Cut("(= page_count_left 1)", 1, "what a pointer-block split labels its halves with")
+		v.Cut("(= page_count_right 1)", 1, "what a pointer-block split labels its halves with")
+	})
+	if failed() != nil {
+		return failed()
 	}
 
 	// The seven remaining stores, as a partition over the two labels: every store
-	// of a pointer entry's block is one of these two, and a leftover refuses.
-	for _, e := range []struct{ Old, New, side string }{
-		{"pe_bnum = bnum_left;", "pe_block = bp_left;", "left"},
-		{"pe_bnum = bnum_right;", "pe_block = bp_right;", "right"},
+	// of a pointer entry's block is one of these two (renamed with the labels).
+	for _, s := range []struct {
+		n    int
+		side string
+	}{{leftStores, "left"}, {rightStores, "right"}} {
+		if s.n < 1 {
+			return p.Die("no store of the %s label is left, and a split has two sides", s.side)
+		}
+		p.Sayf("%d stores of the %s label", s.n, s.side)
+	}
+	for _, pc := range []string{
+		"(= (. (index (-> pp pb_pointer) pb_idx) pe_page_count) page_count_left)",
+		"(= (. (index (-> pp pb_pointer) (+ pb_idx 1)) pe_page_count) page_count_right)",
+		"(= (. (index (-> pp_new pb_pointer) 0) pe_page_count) page_count_right)",
 	} {
-		c := strings.Count(t, e.Old)
-		if c < 1 {
-			return nil, p.Die("no store of the %s label is left, and a split has two sides", e.side)
+		k := v.Count(pc)
+		if k < 1 {
+			return p.Die("a page-count store this phase accounts for is not there: %s", pc)
 		}
-		t = strings.ReplaceAll(t, e.Old, e.New)
-		p.Sayf("%d stores of the %s label", c, e.side)
+		v.Cut(pc, k, "a page-count store")
 	}
-	for _, old := range []string{w54pc1, w54pc2, w54pc3} {
-		if edit.CountAnchor(t, old) < 1 {
-			return nil, p.Die("a page-count store this phase accounts for is not there: %s",
-				vimtext.PyReprMultiline(old))
+	if fetches < 1 {
+		return p.Die("no stack-walk fetch is left, and the three loops that climb the tree all make one")
+	}
+	p.Sayf("%d stack-walk fetches become mf_get(mfp, ip->ip_block)", fetches)
+
+	// the members and types nothing names now
+	for _, m := range []string{"bh_hashitem", "bh_page_count", "mf_free_first", "mf_used_last", "mf_hash",
+		"mf_blocknr_max", "pe_page_count"} {
+		d := member(m)
+		if failed() != nil {
+			return failed()
 		}
-		t = regexp.MustCompile(`\n *`+regexp.QuoteMeta(strings.TrimRight(old, "\n"))).
-			ReplaceAllString(t, "")
+		if err := e.Delete(d); err != nil {
+			return p.Die("the block header and the hash types -- %v", err)
+		}
 	}
-	c := strings.Count(t, "mf_get(mfp, ip->ip_bnum, 1)")
-	if c < 1 {
-		return nil, p.Die("no stack-walk fetch is left, and the three loops that climb the tree all make one")
+	for _, f := range []string{"mf_hashtab_T", "MHT_INIT_SIZE", "mf_hashitem_T", "blocknr_T"} {
+		for _, d := range e.Decls(f) {
+			if q := e.Parent(d); q != nil && q.Is("enum") {
+				d = e.TopForm(d)
+			}
+			if err := e.Delete(d); err != nil {
+				return p.Die("the block header and the hash types -- %v", err)
+			}
+		}
 	}
-	t = strings.ReplaceAll(t, "mf_get(mfp, ip->ip_bnum, 1)", "mf_get(mfp, ip->ip_block)")
-	p.Sayf("%d stack-walk fetches become mf_get(mfp, ip->ip_block)", c)
+	for _, f := range e.Graph().Forms {
+		if f.Is("struct") && graph.Tag(f) == "mf_hashitem_S" {
+			if err := e.Delete(f); err != nil {
+				return p.Die("the block header and the hash types -- %v", err)
+			}
+			break
+		}
+	}
 
 	// ---- 5. what is left, as a partition --------------------------------------
 	gone := append([]string{"blocknr_T", "mf_hashitem_T", "mf_hashtab_T", "mhi_key", "mhi_next", "mhi_prev",
@@ -525,8 +704,8 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 	once := append([]string{"page_count_left", "page_count_right"}, w54Protos...)
 	var left []string
 	for _, n := range once {
-		if k := mentions(t, n); k != 1 {
-			return nil, p.Die("`%s` has %d mentions, and this edit leaves it one, its declaration, "+
+		if k := mentions(n); k != 1 {
+			return p.Die("`%s` has %d mentions, and this edit leaves it one, its declaration, "+
 				"for the sweep", n, k)
 		}
 	}
@@ -534,20 +713,12 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if edit.ContainsStr(w54Protos, n) {
 			continue
 		}
-		if k := mentions(t, n); k > 0 {
+		if k := mentions(n); k > 0 {
 			left = append(left, fmt.Sprintf("%s %d", n, k))
 		}
 	}
 	if len(left) > 0 {
-		lead := "names this phase removes are"
-		if len(left) == 1 {
-			lead = "a name this phase removes is"
-		}
-		return nil, p.Die("%s still said: %s.  If they are `blocknr_T`, `mf_hashitem_T` and "+
-			"`mf_hashtab_T` at one mention each, the input is UNSWEPT: phase 53 leaves "+
-			"`mf_hash_free_all` standing for tools/sweep.sh and its forward declaration "+
-			"names all three (`need 126 swept` in internal/phase/STAGES.md)",
-			lead, strings.Join(left, ", "))
+		return p.Die("names this phase removes are still said: %s", strings.Join(left, ", "))
 	}
 	p.Sayf("%d names are gone from the whole file: the two hash types and blocknr_T, their "+
 		"nine fields and three enumerators, the four block-number fields, the two page "+
@@ -567,14 +738,14 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"ml_lineadd"}, "exactly where ip_bnum was"},
 	} {
 		if err := places(pl.Name, pl.expect, pl.What); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	standing := []string{"e_didnt_get_block_nr_zero", "e_didnt_get_block_nr_one"}
 	for _, name := range standing {
-		if k := mentions(t, name); k != 1 {
-			return nil, p.Die("`%s` has %d mentions and this edit leaves it at one, its own definition, "+
+		if k := mentions(name); k != 1 {
+			return p.Die("`%s` has %d mentions and this edit leaves it at one, its own definition, "+
 				"which is what the sweep takes", name, k)
 		}
 	}
@@ -583,35 +754,34 @@ func w54Acts(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"this phase that a tool can see", len(standing), strings.Join(standing, ", "))
 
 	// ---- 6. the shape of what is written Out ----------------------------------
-	var incs2, dirs2 []int
-	for i, l := range lines() {
-		if w54IncLine.MatchString(l) {
-			incs2 = append(incs2, i)
-		}
-		if w54DirLine.MatchString(l) {
-			dirs2 = append(dirs2, i)
-		}
+	incs2 := e.Includes()
+	at := map[*graph.Node]int{}
+	for i, f := range e.Graph().Forms {
+		at[f] = i
 	}
-	if len(incs2) != len(incs) || len(dirs2) != len(incs2) {
-		return nil, p.Die("the output has %d directives and %d of them are `#include`, against %d and %d",
-			len(dirs2), len(incs2), len(directives), len(incs))
+	if len(incs2) != len(incs) {
+		return p.Die("the output has %d `#include`s, against %d", len(incs2), len(incs))
 	}
 	for i := range incs2 {
-		if incs2[i] != incs2[0]+i {
-			return nil, p.Die("the eleven `#include`s are not contiguous any more")
+		if at[incs2[i]] != at[incs2[0]]+i {
+			return p.Die("the eleven `#include`s are not contiguous any more")
 		}
 	}
-	nOut := strings.Count(t, "\n")
+	out, err := e.Graph().C()
+	if err != nil {
+		return err
+	}
+	nOut := strings.Count(string(out), "\n")
 	p.Sayf("%d -> %d lines before the sweep, %d fewer, the %d `#include`s untouched and still "+
 		"contiguous", nIn, nOut, nIn-nOut, len(incs2))
 
 	// The edit leaves its own output beside the input, so the check can say what
 	// the EDIT removed and what the SWEEP removed separately.
-	if err := os.WriteFile(state+"/edit.c", []byte(t), 0o644); err != nil {
-		return nil, p.Die("%v", err)
+	if err := os.WriteFile(state+"/edit.c", out, 0o644); err != nil {
+		return p.Die("%v", err)
 	}
 	if err := os.WriteFile(state+"/boundary-in", []byte(fmt.Sprintf("%d\n", boundary+1)), 0o644); err != nil {
-		return nil, p.Die("%v", err)
+		return p.Die("%v", err)
 	}
-	return []byte(t), nil
+	return nil
 }
