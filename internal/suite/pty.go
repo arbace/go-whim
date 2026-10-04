@@ -89,6 +89,14 @@ func runPty(bin string, args []string, keys []byte, spec ptySpec, limit time.Dur
 	cmd.Env = env
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = slave, slave, slave
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true, Setctty: true}
+	// Past the limit, close the master as well as killing the editor: a
+	// session leader that exits with output still queued on its terminal
+	// waits for the master to read it, and one nothing reads would never
+	// finish exiting.
+	cmd.Cancel = func() error {
+		m.Close()
+		return cmd.Process.Kill()
+	}
 	if err := cmd.Start(); err != nil {
 		return nil, -1, err
 	}

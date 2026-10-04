@@ -12,12 +12,22 @@ const tcgets, tcsets = syscall.TIOCGETA, syscall.TIOCSETA
 
 // openPty is a pseudo-terminal: its master, and its slave by name --
 // posix_openpt, grantpt, unlockpt and ptsname as macOS's libc does them, by
-// the master's ioctls.  NOT RUN here: built for darwin as a compile check.
+// the master's ioctls.
+//
+// THE MASTER IS A BLOCKING DESCRIPTOR.  os.OpenFile makes a file
+// non-blocking and hands it to the runtime's poller, kqueue on macOS, which
+// does not poll a tty: run on the Mac, the read of the master ended at once,
+// nothing read the editor's output again, the editor stalled writing it
+// before its last keys, and when the limit killed it the exit waited for
+// that output to drain, for ever (ps: ?Es).  A descriptor opened by
+// syscall.Open is blocking, and os.NewFile leaves a blocking one out of the
+// poller: each read is a plain read(2) on a thread of its own.
 func openPty() (*os.File, string, error) {
-	m, err := os.OpenFile("/dev/ptmx", os.O_RDWR|syscall.O_NOCTTY, 0)
+	fd, err := syscall.Open("/dev/ptmx", syscall.O_RDWR|syscall.O_NOCTTY|syscall.O_CLOEXEC, 0)
 	if err != nil {
 		return nil, "", err
 	}
+	m := os.NewFile(uintptr(fd), "/dev/ptmx")
 	if err := ioctl(m, syscall.TIOCPTYGRANT, nil); err != nil {
 		m.Close()
 		return nil, "", err
