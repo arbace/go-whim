@@ -252,6 +252,33 @@ is computation with a few writes: it should run at the C binary's speed.
    under the stress test, the I/O-port and `HVC` alternatives measured
    against the doorbell.
 
+## Decided (2026-10-04)
+
+The Mac is the eventual port, not a near goal; the priority is that the KVM
+implementation follows Hypervisor.framework's concepts so closely that the
+port is almost trivial. Asahi Linux is out for now: this host runs Alpine
+Edge, the Mac runs macOS. Milestones 1-3 and 5 go ahead; 4 waits.
+
+- **The VMM is Go over a package `hv` whose API mirrors Apple's arm64 C API
+  one to one**: `VMCreate`, `VMMap(mem, ipa, size, flags)`, `VCPUCreate`
+  (returning the vCPU and its exit record), `VCPURun`, `GetReg`/`SetReg`,
+  `GetSysReg`/`SetSysReg`, Apple's register and system-register names, and
+  an exit struct shaped like `hv_vcpu_exit_t` (a reason, an exception
+  syndrome, a virtual and a physical address). The Linux backend is KVM by
+  raw `ioctl`, no cgo; the macOS backend, later, is a thin cgo file per
+  function. The hypercall handler is `editor/host.go`'s `Host`
+  (`editor/term`).
+- **amd64 sits behind the same `hv` shape** with x86 register names (`RIP`,
+  `RSP`, `CR0`/`CR3`/`CR4`, `EFER`, segments): one exit loop for both ISAs,
+  only register setup per ISA. Apple's own x86 API is not the model.
+- **A hypercall is the MMIO doorbell** on all three targets. The KVM backend
+  reports a doorbell store as HVF does -- an exception exit carrying a
+  data-abort syndrome and the faulting physical address -- so the loop
+  decodes HVF's form everywhere.
+- **arm64 is tested in an Alpine Edge aarch64 VM** under
+  `qemu-system-aarch64 -machine virt,virtualization=on -cpu max`: real
+  KVM/arm64 inside an emulated EL2, the real VMM and guest unchanged.
+
 ## Open questions
 
 - Is one 4 GiB lazily committed slot enough, or should the allocator ask the
