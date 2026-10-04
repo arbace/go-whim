@@ -5,9 +5,10 @@ the Go (`editor/`), the Java (`braaam/`), the Clojure (`vijure/`), the
 Haskell (`caprice/`), the Rust (`whimsy/`) and the Scheme (`whimsical/`),
 and held to the same test: `whim test --ocaml` and `--wide --ocaml` answer
 all 80 and all 240 cases as the C does, with a control of its own, and the
-heavy case runs at 0.6-0.7 times the C. It was built in two milestones, as
+heavy case runs at 0.5-0.6 times the C. It was built in two milestones, as
 whimsical was: faithful (§1-§9), then much more idiomatic
-(`doc/OCAML-IDIOMS.md`, §10).
+(`doc/OCAML-IDIOMS.md`, §10). The design below is as it stands, the
+milestones' measurements as they were taken.
 
 ```
 go tool whim whiml           # bin/whiml, built in lib/whiml
@@ -89,13 +90,18 @@ frame and the arena are zeroed as they are handed out, as in whimsical.
 
 The loads and stores are the compiler's own primitives
 (`%caml_bytes_get32u` and kin: native-endian, unchecked, inlined), each
-taking the editor: `ld_s32 ed p`, `st_u8 ed p v`. The editor is a record,
-`{mem; mutable sp; limit; glue; shared}`, so `ed` reaches the memory and
-no function binds it. The C's names read the memory where they are used:
+taking the editor: `ld_s32 ed p`, `st_u8 ed p v`, `ld_char ed p` a byte
+as a char. The editor is a record, `{mem; mutable sp; limit; glue; st;
+shared}`, so `ed` reaches the memory and the state and no function binds
+them. The C's names read the memory where they are used:
 
-- a file-scope scalar `x` is a function of the editor that reads it, `x
-  ed`, `set_x ed v` writes it, `x_addr` is its address; an array or a
-  struct is its address, `iobuff`;
+- a file-scope scalar whose address nothing takes is a field of the
+  editor's state, a record the module declares: `ed.st.got_int`,
+  `ed.st.dollar_vcol <- -1` (376 of them, `doc/OCAML-IDIOMS.md` item 3);
+  one whose address is taken -- the options the option table points at
+  -- is a function of the editor that reads its bytes, `p_sm ed`,
+  `set_x ed v` writes it, `x_addr` is its address; an array or a struct
+  is its address, `iobuff`;
 - a member is a module per struct: `Win_T.w_cursor_lnum ed wp` reads,
   `Win_T.set_w_topline ed wp v` writes, `Win_T.w_cursor_addr wp` is the
   address;
@@ -192,7 +198,9 @@ when it or what it depends on moved, then the stubs, then the link:
 `bin/whiml`, 8.0 MB, dynamically linked against musl. The suite builds
 its two (the candidate and the control) in `.cache/whiml-suite/`.
 `ocamlopt`'s defaults: `-inline 200` was measured -- the core's compile
-22 s and 1.2 GB against 9.7 s and 0.54 GB, the heavy case unmoved.
+22 s and 1.2 GB against 9.7 s and 0.54 GB, the heavy case unmoved. The
+generated module and its interface (`editor.mli`, written beside it) are
+compiled with every warning on, `-w +a`, and a warning fails the build.
 
 ## 8. Milestone 1: faithful (2026-10-04)
 
@@ -244,3 +252,27 @@ table) and the editors that start slower do not: whiml starts in under 5
 ms, before one write of the keys has always landed -- 39 of the quick
 suite's 40 on `par_branch`, the rest one each on `par_undo`,
 `showmode_ins`, `term_report`, `cmd_write` and `cmd_read`.
+
+The same on `bin/whiml` after milestone 2 (§10), under 48 busy loops
+again (the load average 57 at the end): from a file 0 of 3,120 quick and
+0 of 3,360 wide runs differ; through a pipe 2 and 36 (`par_grange`,
+`ex_range`; 14 each on `startup` and `bomb_gone`, the rest one each): as
+before, the pipe's landing raced by an editor that starts in 5 ms.
+
+## 10. Milestone 2: much more idiomatic (2026-10-04)
+
+`doc/OCAML-IDIOMS.md` surveyed `editor.ml` as milestone 1 left it and
+did six items, each held to the foreign C tests, both suites, the heavy
+case and `whim-editor-check`: every warning under `-w +a` (1,759 in the
+first printing) gone and an interface written, the build refusing a
+warning; comparisons turned round (`not (` 3,027 -> 369); the file-scope
+scalars whose address nothing takes the editor's mutable fields (376,
+7,702 uses: `ed.st.curwin`); `if` ladders on one value as `match` (105),
+on chars where the value is a byte (30); the parentheses OCaml does not
+need (`(let` 2,612 -> 1,108); a byte compared with a character as a char
+(697). The module went from 59,496 lines to 57,584; `ocamlopt` on it
+9.6-10.2 s and 0.54-0.56 GB -> 9.4-9.6 s and 0.53 GB; the heavy case
+0.6-0.7 -> 0.5-0.6 times the C (242-259 ms against 434-503). Records for
+the structs, options for the pointers, variants for the enums,
+exceptions for the error returns and the rest are declined there, with
+why.

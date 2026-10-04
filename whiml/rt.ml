@@ -34,14 +34,16 @@ type shared = {
 }
 
 (* An editor: its memory, the stack its domain's frames are on, the host's
-   functions (the record the core's glue type says), and what its domains
-   share.  fork makes the record a domain of the parallel :%s runs with: the
-   same memory, a stack of its own. *)
-type 'g ed = {
+   functions (the record the core's glue type says), the C's file-scope
+   objects that are the editor's fields (its state type says them), and
+   what its domains share.  fork makes the record a domain of the parallel
+   :%s runs with: the same memory and state, a stack of its own. *)
+type ('g, 's) ed = {
   mem : Bytes.t;
   mutable sp : int;
   limit : int;
   glue : 'g;
+  st : 's;
   shared : shared;
 }
 
@@ -56,10 +58,10 @@ let zero_range mem p q = if q > p then Bytes.fill mem p (q - p) '\000'
 
 (* An editor whose memory holds data_end bytes of the core's (the null page,
    the segment and the literals, which the core then fills in), on the
-   host's functions glue.  The Bytes is made unfilled: its pages are the
+   host's functions glue, its fields st.  The Bytes is made unfilled: its pages are the
    kernel's zeros until touched, and what the editor is handed -- the data,
    a frame, the arena as it grows -- is zeroed first. *)
-let make_editor glue data_end =
+let make_editor glue st data_end =
   let stack = align16 data_end in
   let arena = stack + stack_bytes in
   let stacks = arena + arena_bytes in
@@ -71,6 +73,7 @@ let make_editor glue data_end =
     sp = stack;
     limit = stack + stack_bytes;
     glue;
+    st;
     shared =
       {
         arena_base = arena;
@@ -128,6 +131,9 @@ let ld_s64 ed p = Int64.to_int (get64u ed.mem p)
 let ld_u64 = ld_s64
 let ld_ptr = ld_s64
 let ld_bool ed p = Bytes.unsafe_get ed.mem p <> '\000'
+
+(* a byte as a char: what a match on characters reads *)
+let ld_char ed p = Bytes.unsafe_get ed.mem p
 let st_u8 ed p v = Bytes.unsafe_set ed.mem p (Char.unsafe_chr (v land 0xff))
 let st_s8 = st_u8
 let st_u16 ed p v = set16u ed.mem p (v land 0xffff)

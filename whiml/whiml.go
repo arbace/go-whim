@@ -57,8 +57,13 @@ func (s Stats) String() string {
 // Flags are ocamlopt's on every module: its defaults (-inline 200 doubled
 // the core's compile, 22 s and 1.2 GB, and moved the heavy case by
 // nothing measurable; the runtime's memory accesses are unchecked by
-// their own primitives).
+// their own primitives).  The generated module and its interface are
+// compiled with every warning on, CoreWarnings, and a warning is a failed
+// build (doc/OCAML-IDIOMS.md, item 1).
 var Flags = []string{"-I", "+unix"}
+
+// CoreWarnings are the generated module's: all of them.
+var CoreWarnings = []string{"-w", "+a"}
 
 // command is exec.Command whose process dies with ours.
 func command(name string, args ...string) *exec.Cmd {
@@ -79,8 +84,9 @@ func Build(gen Gen, src, dir, out string) (string, Stats, error) {
 }
 
 // Generate cuts the core from src into dir/editor.c and writes its module
-// at dir/src/editor.ml (only when it differs), whose path it returns.  A
-// core the backend refused any part of is refused.
+// at dir/src/editor.ml and its interface at dir/src/editor.mli (each only
+// when it differs), and returns the module's path.  A core the backend
+// refused any part of is refused.
 func Generate(gen Gen, src, dir string) (string, error) {
 	c, err := os.ReadFile(src)
 	if err != nil {
@@ -114,6 +120,13 @@ func Generate(gen Gen, src, dir string) (string, error) {
 	}
 	if r, err := os.ReadFile(made + ".refused"); err == nil && len(bytes.TrimSpace(r)) > 0 {
 		return "", fmt.Errorf("whiml: the OCaml backend refused part of the core:\n%s", r)
+	}
+	mli, err := os.ReadFile(filepath.Join(scratch, "editor.mli"))
+	if err != nil {
+		return "", err
+	}
+	if err := writeIfDiffers(filepath.Join(dir, "src", "editor.mli"), mli); err != nil {
+		return "", err
 	}
 	mlOut := filepath.Join(dir, "src", "editor.ml")
 	if err := writeIfDiffers(mlOut, b); err != nil {
@@ -160,11 +173,18 @@ func Compile(dir, out string) (string, Stats, error) {
 		if m != "rt" && m != "editor" {
 			ins = append(ins, filepath.Join(dir, "editor.cmx"))
 		}
+		args := append([]string{}, Flags...)
+		var files []string
+		if m == "editor" {
+			args = append(args, CoreWarnings...)
+			ins = append(ins, filepath.Join(dir, "editor.mli"))
+			files = append(files, "editor.mli")
+		}
 		if !stale(cmx, ins...) {
 			continue
 		}
 		start := time.Now()
-		cmd := command("ocamlopt", append(append([]string{}, Flags...), "-c", m+".ml")...)
+		cmd := command("ocamlopt", append(append(args, "-c"), append(files, m+".ml")...)...)
 		cmd.Dir = dir
 		o, err := cmd.CombinedOutput()
 		if m == "editor" {

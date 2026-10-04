@@ -202,7 +202,7 @@ bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one l
 # whim-editor-check run on whim-vim.c as it stands: through whim-vim.c's own rule
 # they would start a build.
 .PHONY: editor/editor.go
-editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml
+editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss, editor.ml(i)
 	@go tool whim gen
 
 .PHONY: whim-editor
@@ -210,7 +210,7 @@ whim-editor:
 	@go tool whim gen
 
 .PHONY: whim-editor-check
-whim-editor-check:  ## refuse if a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss or editor.ml is not what the generator writes
+whim-editor-check:  ## refuse if a tracked editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss or editor.ml(i) is not what the generator writes
 	@go tool whim gen --check
 
 # ==== the editor in Go

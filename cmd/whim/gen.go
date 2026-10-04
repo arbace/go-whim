@@ -179,6 +179,7 @@ func runGen(args []string) int {
 		{rsOut, "whimsy/src/editor.rs"},
 		{scmOut, "whimsical/whimsical/editor.ss"},
 		{mlOut, "whiml/editor.ml"},
+		{strings.TrimSuffix(mlOut, ".ml") + ".mli", "whiml/editor.mli"},
 	}
 	// the Haskell: the module, its hs-boot, and its parts
 	hsFiles, err := caprice.Generated(out)

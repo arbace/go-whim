@@ -43,13 +43,14 @@ type mlx struct {
 	d    *mdoc
 	prec int
 	tail string
+	neg  *mlx // a test's negation, as OCaml spells it: a <> b for a = b
 }
 
 func mlAtom(s string) mlx { return mlx{d: mtext(s), prec: precAtom} }
 
 // mlParen is x where an expression of precedence at least p is wanted.
 func mlParen(x mlx, p int) mlx {
-	if x.prec >= p && (x.tail == "" || p <= precOpen) {
+	if x.prec >= p && (x.tail != "let" && x.tail != "match" || p <= precOpen) {
 		return x
 	}
 	return mlx{d: mcat(mtext("("), mnest(1, x.d), mtext(")")), prec: precAtom}
@@ -66,7 +67,7 @@ func mlLetTail(x mlx) string {
 
 // mlClosed is x where something follows it: parenthesized when it would
 // take what follows -- a let a ; after it, a match a | or a ; (an if
-// with no else takes an else, which mlArm sees to).
+// with no else takes an else, which mlCase sees to).
 func mlClosed(x mlx, p int) mlx {
 	if x.tail == "let" || x.tail == "match" {
 		return mlx{d: mcat(mtext("("), mnest(1, x.d), mtext(")")), prec: precAtom}
@@ -348,7 +349,7 @@ func (f *mlfn) seq(forms []*sform, sc *mlScope, want int) mlx {
 			continue
 		}
 		e := f.expr(x, sc, want)
-		ds = append(ds, mlParen(e, precSeq).d)
+		ds = append(ds, e.d) // the last: what follows the sequence follows it
 		if len(ds) == 1 {
 			return e
 		}
@@ -388,6 +389,21 @@ func (f *mlfn) expr(x *sform, sc *mlScope, want int) mlx {
 	case "let-values", "let*-values":
 		return f.letValues(args[0], args[1:], sc, want)
 	case "if":
+		if len(args) == 3 && !args[1].isList() && !args[2].isList() && want == wantValue {
+			// (if c #t #f) is c, and (if c #f #t) its negation
+			switch args[1].atom + args[2].atom {
+			case "#t#f":
+				return f.cond(args[0], sc)
+			case "#f#t":
+				return mlNot(f.cond(args[0], sc))
+			}
+		}
+		if len(args) == 3 {
+			// an if whose else is an if testing the same value: a ladder
+			if x, ok := f.ladder(mlIfClauses(x), sc, want); ok {
+				return x
+			}
+		}
 		c := f.cond(args[0], sc)
 		a := f.expr(args[1], sc, want)
 		if len(args) == 2 {
@@ -505,15 +521,22 @@ func (f *mlfn) atom(a string, sc *mlScope) mlx {
 	}
 	name := strings.TrimPrefix(a, "&")
 	if ob := f.m.objOf[name]; ob != nil {
+		if ob.field {
+			return mlAtom(f.ed(sc) + ".st." + ob.read)
+		}
 		if ob.agg {
+			f.m.use(ob.read)
 			return mlAtom(ob.read)
 		}
 		if strings.HasPrefix(a, "&") {
+			f.m.use(ob.addr)
 			return mlAtom(ob.addr)
 		}
+		f.m.use(ob.read)
 		return mlx{d: mtext(ob.read + " " + f.ed(sc)), prec: precApp}
 	}
 	if g, ok := f.m.glob[a]; ok {
+		f.m.use(g)
 		if _, isFn := f.m.fns[a]; isFn {
 			f.refs[a] = true
 		}
@@ -532,7 +555,12 @@ func (f *mlfn) set(n string, v mlx, sc *mlScope) mlx {
 		f.named(b)
 		return mlx{d: mgroup(mtext("st_"+b.memKind+" "+f.ed(sc)+" "+b.name), mnest(2, mline, val)), prec: precApp}
 	}
+	if ob := f.m.objOf[n]; ob != nil && ob.field {
+		ob.written = true
+		return mlx{d: mgroup(mtext(f.ed(sc)+".st."+ob.read+" <-"), mnest(2, mline, mlParen(v, precAssign+1).d)), prec: precAssign}
+	}
 	if ob := f.m.objOf[n]; ob != nil && !ob.agg {
+		f.m.use(ob.set)
 		return mlx{d: mgroup(mtext(ob.set+" "+f.ed(sc)), mnest(2, mline, val)), prec: precApp}
 	}
 	panic(unsupported{"a set! of what is not an object: " + n})
@@ -543,7 +571,25 @@ func (f *mlfn) cond(x *sform, sc *mlScope) mlx { return f.expr(x, sc, wantValue)
 
 // mlNot is not x, its comparisons turned round.
 func mlNot(x mlx) mlx {
-	return mlx{d: mcat(mtext("not "), mlParen(x, precAtom).d), prec: precApp}
+	if x.neg != nil {
+		return *x.neg
+	}
+	r := mlx{d: mcat(mtext("not "), mlParen(x, precAtom).d), prec: precApp}
+	r.neg = &x
+	return r
+}
+
+// mlNegCmp are the comparisons' negations.
+var mlNegCmp = map[string]string{"=": "<>", "<>": "=", "<": ">=", ">=": "<", ">": "<=", "<=": ">"}
+
+// mlCmp is a op b, a comparison, and its negation.
+func mlCmp(op string, a, b mlx) mlx {
+	one := func(op string) mlx {
+		return mlx{d: mgroup(mlClosed(a, precCmp+1).d, mtext(" "+op), mline, mlClosed(b, precCmp+1).d), prec: precCmp}
+	}
+	x, n := one(op), one(mlNegCmp[op])
+	x.neg, n.neg = &n, &x
+	return x
 }
 
 // mlIf is if c then a else b, b nil for no else.
@@ -558,7 +604,11 @@ func mlIf(c, a mlx, b *mlx) mlx {
 	if mlIsIf(*b) {
 		els = mcat(mline, mtext("else "), b.d)
 	} else {
-		els = mcat(mline, mtext("else"), mnest(2, mline, mlParen(*b, precIf).d))
+		e := *b
+		if e.prec == precSeq {
+			e = mlParen(e, precIf) // a sequence would end the if at its first ;
+		}
+		els = mcat(mline, mtext("else"), mnest(2, mline, e.d))
 	}
 	return mlx{d: mgroup(head, mnest(2, mline, ad), els), prec: precIf, tail: b.tail}
 }
@@ -578,10 +628,14 @@ func mlIsIf(x mlx) bool {
 		x.d.kids[0].kind == mdCat && len(x.d.kids[0].kids) > 0 && x.d.kids[0].kids[0].kind == mdText && x.d.kids[0].kids[0].s == "if "
 }
 
-// condForm is a cond: an if for each clause.
+// condForm is a cond: a match where its clauses test one value against
+// constants (ladder), else an if for each clause.
 func (f *mlfn) condForm(clauses []*sform, sc *mlScope, want int) mlx {
 	if len(clauses) == 0 {
 		return mlAtom("()")
+	}
+	if x, ok := f.ladder(clauses, sc, want); ok {
+		return x
 	}
 	c := clauses[0]
 	if c.kids[0].atom == "else" {
@@ -605,34 +659,240 @@ func (f *mlfn) condForm(clauses []*sform, sc *mlScope, want int) mlx {
 
 // caseForm is a case or a c-case: a match on the integer's values.
 func (f *mlfn) caseForm(args []*sform, sc *mlScope, want int) mlx {
-	e := f.expr(args[0], sc, wantValue)
-	var arms []*mdoc
-	hasElse := false
-	for k, c := range args[1:] {
-		var pat string
+	var arms []mlCase
+	for _, c := range args[1:] {
 		if !c.kids[0].isList() && c.kids[0].atom == "else" {
+			arms = append(arms, mlCase{other: true, body: c.kids[1:]})
+			continue
+		}
+		var ls []string
+		for _, l := range c.kids[0].kids {
+			ls = append(ls, l.atom)
+		}
+		arms = append(arms, mlCase{labels: ls, body: c.kids[1:]})
+	}
+	return f.match(args[0], arms, sc, want)
+}
+
+// mlCase is an arm of a match: its labels as the Scheme spells them -- a
+// number, a constant's name, a character -- or the rest (other), and its
+// forms.
+type mlCase struct {
+	labels []string
+	other  bool
+	body   []*sform
+}
+
+// match is a match of the integer scr: an arm for each label, the first
+// arm a label is in taking it, and an arm for the rest.  A byte read whose
+// labels are all characters is matched as a char: 'a', not 97.
+func (f *mlfn) match(scr *sform, arms []mlCase, sc *mlScope, want int) mlx {
+	chars := scr.head() == "ld-u8" && len(scr.kids) == 2
+	for _, a := range arms {
+		for _, l := range a.labels {
+			if !strings.HasPrefix(l, `#\`) || len(l) < 3 {
+				chars = false
+			} else if v, ok := scmCharValue(l); !ok || mlCharLit(v) == "" {
+				chars = false
+			}
+		}
+	}
+	var e mlx
+	if chars {
+		e = f.apply("ld_char "+f.ed(sc), []mlx{f.expr(scr.kids[1], sc, wantValue)})
+		f.m.st.charMatches++
+	} else {
+		e = f.expr(scr, sc, wantValue)
+	}
+	seen := map[string]bool{}
+	var docs []*mdoc
+	hasElse := false
+	for k, a := range arms {
+		var pat string
+		if a.other {
 			pat = "_"
 			hasElse = true
 		} else {
 			var ps []string
-			for _, l := range c.kids[0].kids {
-				ps = append(ps, f.label(l.atom))
+			for _, l := range a.labels {
+				p := f.label(l)
+				if chars {
+					v, _ := scmCharValue(l)
+					p = mlCharLit(v)
+				}
+				key := strings.SplitN(p, " ", 2)[0]
+				if seen[key] {
+					continue // a label an arm before takes
+				}
+				seen[key] = true
+				ps = append(ps, p)
+			}
+			if len(ps) == 0 {
+				continue
 			}
 			pat = strings.Join(ps, " | ")
 		}
-		b := f.seq(c.kids[1:], newMlScope(sc), want)
-		last := k == len(args)-2
+		b := f.seq(a.body, newMlScope(sc), want)
+		last := k == len(arms)-1
 		bd := b.d
 		if !last && b.tail == "match" {
 			bd = mlParen(mlx{d: b.d, prec: precAtom - 1, tail: b.tail}, precAtom).d
 		}
-		arms = append(arms, mgroup(mtext("| "+pat+" ->"), mnest(4, mline, bd)))
+		docs = append(docs, mgroup(mtext("| "+pat+" ->"), mnest(4, mline, bd)))
+		if a.other {
+			break
+		}
 	}
 	if !hasElse {
-		arms = append(arms, mtext("| _ -> ()"))
+		docs = append(docs, mtext("| _ -> ()"))
 	}
 	head := mgroup(mtext("match "), mnest(6, mlClosed(e, precIf+1).d), mtext(" with"))
-	return mlx{d: mcat(head, mhard, mjoin(mhard, arms)), prec: precOpen, tail: "match"}
+	return mlx{d: mcat(head, mhard, mjoin(mhard, docs)), prec: precOpen, tail: "match"}
+}
+
+// mlCharLit is the code v as an OCaml character literal, "" for one that
+// is none (past a byte).
+func mlCharLit(v int64) string {
+	switch {
+	case v == '\\' || v == '\'':
+		return `'\` + string(rune(v)) + `'`
+	case v == '\n':
+		return `'\n'`
+	case v == '\t':
+		return `'\t'`
+	case v == '\r':
+		return `'\r'`
+	case v >= 0x20 && v < 0x7f:
+		return "'" + string(rune(v)) + "'"
+	case v >= 0 && v < 256:
+		return fmt.Sprintf(`'\x%02x'`, v)
+	}
+	return ""
+}
+
+// ladder is a cond whose first clauses test one value for equality with
+// constants -- (fx=? x K), or an or of them -- as a match on the value,
+// the clauses after them its last arm; ok false for a cond that is not
+// one.  The value is evaluated once, where the cond evaluated it in every
+// test: so it must be one that reads, and calls nothing.
+func (f *mlfn) ladder(clauses []*sform, sc *mlScope, want int) (mlx, bool) {
+	var scr *sform
+	var arms []mlCase
+	i := 0
+	for ; i < len(clauses); i++ {
+		c := clauses[i]
+		if len(c.kids) < 2 || !c.kids[0].isList() {
+			break
+		}
+		x, ls, ok := mlEqTest(c.kids[0])
+		if !ok || scr != nil && x.flat() != scr.flat() {
+			break
+		}
+		scr = x
+		arms = append(arms, mlCase{labels: ls, body: c.kids[1:]})
+	}
+	if len(arms) < 2 || !mlPure(scr) {
+		return mlx{}, false
+	}
+	rest := clauses[i:]
+	switch {
+	case len(rest) == 0:
+		if want == wantValue {
+			panic(unsupported{"a cond with no else whose value is wanted"})
+		}
+	case len(rest) == 1 && !rest[0].kids[0].isList() && rest[0].kids[0].atom == "else":
+		arms = append(arms, mlCase{other: true, body: rest[0].kids[1:]})
+	default:
+		arms = append(arms, mlCase{other: true, body: []*sform{slist(append([]*sform{satom("cond")}, rest...)...)}})
+	}
+	f.m.st.ladders++
+	return f.match(scr, arms, sc, want), true
+}
+
+// mlIfClauses are the if x and the ifs in its elses as a cond's clauses.
+func mlIfClauses(x *sform) []*sform {
+	var out []*sform
+	for x.head() == "if" && len(x.kids) == 4 {
+		out = append(out, slist(x.kids[1], x.kids[2]))
+		x = x.kids[3]
+	}
+	return append(out, slist(satom("else"), x))
+}
+
+// mlEqTest is the value t tests for equality with constants and the
+// constants as labels -- (fx=? x K), (or (fx=? x K1) (fx=? x K2)) -- or
+// ok false.
+func mlEqTest(t *sform) (*sform, []string, bool) {
+	switch t.head() {
+	case "fx=?", "=", "eqv?":
+		if len(t.kids) != 3 {
+			return nil, nil, false
+		}
+		if l, ok := mlConstLabel(t.kids[2]); ok {
+			if _, k := mlConstLabel(t.kids[1]); !k {
+				return t.kids[1], []string{l}, true
+			}
+		}
+		if l, ok := mlConstLabel(t.kids[1]); ok {
+			if _, k := mlConstLabel(t.kids[2]); !k {
+				return t.kids[2], []string{l}, true
+			}
+		}
+	case "or":
+		var x *sform
+		var ls []string
+		for _, u := range t.kids[1:] {
+			y, l, ok := mlEqTest(u)
+			if !ok || x != nil && y.flat() != x.flat() {
+				return nil, nil, false
+			}
+			x = y
+			ls = append(ls, l...)
+		}
+		return x, ls, x != nil
+	}
+	return nil, nil, false
+}
+
+// mlConstLabel is a constant as a label: a number, a C constant's name (a
+// name in capitals), a character.
+func mlConstLabel(x *sform) (string, bool) {
+	if !x.isList() {
+		a := x.atom
+		if a != "" && (a[0] >= '0' && a[0] <= '9' || a[0] == '-' && len(a) > 1) {
+			return a, true
+		}
+		if a != "" && a[0] >= 'A' && a[0] <= 'Z' && strings.ToUpper(a) == a {
+			return a, true
+		}
+		return "", false
+	}
+	if x.head() == "ch" && len(x.kids) == 2 {
+		return x.kids[1].atom, true
+	}
+	return "", false
+}
+
+// mlPure says evaluating x reads at most: no call, no store.
+func mlPure(x *sform) bool {
+	if !x.isList() {
+		return true
+	}
+	switch h := x.head(); {
+	case h == "ld-u8" || h == "ld-s8" || h == "ld-u16" || h == "ld-s16" || h == "ld-s32" || h == "ld-u32" ||
+		h == "ld-s64" || h == "ld-u64" || h == "ld-ptr" || h == "fx+" || h == "fx-" || h == "fx*" || h == "+" || h == "-" ||
+		h == "->u8" || h == "->i8" || h == "->i32" || h == "->u32" || h == "fxand" || h == "b->i":
+	case strings.Contains(h, ".") && !strings.HasSuffix(h, "!") && !strings.HasSuffix(h, "&"):
+		// a member's read
+	default:
+		return false
+	}
+	for _, k := range x.kids[1:] {
+		if !mlPure(k) {
+			return false
+		}
+	}
+	return true
 }
 
 // label is a case label as a pattern: a number, a constant's value, a
@@ -835,6 +1095,7 @@ func (f *mlfn) call(h string, args []*sform, sc *mlScope, want int) mlx {
 		return x
 	}
 	g, ok := f.m.glob[h]
+	f.m.use(g)
 	if !ok {
 		panic(unsupported{"a call of what the printer does not know: " + h})
 	}
@@ -869,11 +1130,34 @@ func (f *mlfn) memberOp(h string, args []*sform, sc *mlScope, want int) (mlx, bo
 	}
 	switch op {
 	case "addr":
+		f.m.use(mm.module + "." + mm.addr)
 		return f.unit(f.apply(mm.module+"."+mm.addr, xs), want), true
 	case "set":
+		f.m.use(mm.module + "." + mm.set)
 		return f.apply(mm.module+"."+mm.set+" "+f.ed(sc), xs), true
 	}
+	f.m.use(mm.module + "." + mm.read)
 	return f.unit(f.apply(mm.module+"."+mm.read+" "+f.ed(sc), xs), want), true
+}
+
+// mlIsZero says x is the literal 0.
+func mlIsZero(x mlx) bool { return x.d.kind == mdText && x.d.s == "0" }
+
+// mlNegLit is k when x is the literal -k.
+func mlNegLit(x mlx) (string, bool) {
+	if x.d.kind == mdText && len(x.d.s) > 1 && x.d.s[0] == '-' && x.d.s[1] >= '0' && x.d.s[1] <= '9' && !strings.ContainsAny(x.d.s, " (") {
+		return x.d.s[1:], true
+	}
+	return "", false
+}
+
+// mlNeg is -x.
+func mlNeg(x mlx) mlx {
+	a := mlClosed(x, precNeg+1)
+	if a.d.kind == mdText && !strings.HasPrefix(a.d.s, "-") {
+		return mlx{d: mtext("-" + a.d.s), prec: precNeg}
+	}
+	return mlx{d: mcat(mtext("- "), a.d), prec: precNeg}
 }
 
 // mlInfixL is xs joined by the left-associative operator op of
@@ -951,6 +1235,39 @@ var mlRtFns = map[string]struct {
 	"chunks": {"chunks", false},
 }
 
+// charCmp is a byte read compared with a character, (fx=? (ld-u8 p)
+// (ch #\a)), as chars: ld_char ed p = 'a'; ok false for another
+// comparison.
+func (f *mlfn) charCmp(op string, args []*sform, sc *mlScope) (mlx, bool) {
+	if len(args) != 2 {
+		return mlx{}, false
+	}
+	char := func(x *sform) string {
+		if x.head() == "ch" && len(x.kids) == 2 {
+			if v, ok := scmCharValue(x.kids[1].atom); ok {
+				return mlCharLit(v)
+			}
+		}
+		return ""
+	}
+	byteRead := func(x *sform) bool { return x.head() == "ld-u8" && len(x.kids) == 2 }
+	a, b := args[0], args[1]
+	switch {
+	case byteRead(a) && char(b) != "":
+	case byteRead(b) && char(a) != "":
+		a, b = b, a
+		op = map[string]string{"=": "=", "<": ">", ">": "<", "<=": ">=", ">=": "<="}[op]
+	default:
+		return mlx{}, false
+	}
+	f.m.st.charCmps++
+	read := f.apply("ld_char "+f.ed(sc), []mlx{f.expr(a.kids[1], sc, wantValue)})
+	return mlCmp(op, read, mlAtom(char(b))), true
+}
+
+// mlU64Neg are the unsigned longs' comparisons' negations.
+var mlU64Neg = map[string]string{"u64<?": "u64>=?", "u64>=?": "u64<?", "u64>?": "u64<=?", "u64<=?": "u64>?"}
+
 // mlUnitOps are the runtime's operations whose value is ().
 var mlUnitOps = map[string]bool{"mem-copy!": true, "mem-zero!": true, "mem-fill!": true, "frame-pop!": true}
 
@@ -965,8 +1282,18 @@ func (f *mlfn) runtime(h string, args []*sform, sc *mlScope, want int) (mlx, boo
 	}
 	if op, ok := mlBinOps[h]; ok {
 		xs := vals()
-		if len(xs) == 1 && op.op == "-" {
-			return f.unit(mlx{d: mcat(mtext("- "), mlClosed(xs[0], precNeg+1).d), prec: precNeg}, want), true
+		if len(xs) == 1 && op.op == "-" || len(xs) == 2 && op.op == "-" && mlIsZero(xs[0]) {
+			return f.unit(mlNeg(xs[len(xs)-1]), want), true
+		}
+		if len(xs) == 2 && (op.op == "+" || op.op == "-") {
+			// a + -k is a - k, and a - -k a + k
+			if k, ok := mlNegLit(xs[1]); ok {
+				o := "-"
+				if op.op == "-" {
+					o = "+"
+				}
+				return f.unit(mlInfixL(o, op.prec, []mlx{xs[0], mlAtom(k)}), want), true
+			}
 		}
 		if len(xs) < 2 {
 			panic(unsupported{"an operation of one operand: " + h})
@@ -978,16 +1305,19 @@ func (f *mlfn) runtime(h string, args []*sform, sc *mlScope, want int) (mlx, boo
 		return f.unit(mlInfixL(op.op, op.prec, xs), want), true
 	}
 	if op, ok := mlCmpOps[h]; ok {
+		if x, ok := f.charCmp(op, args, sc); ok {
+			return f.unit(x, want), true
+		}
 		xs := vals()
 		if len(xs) != 2 {
 			panic(unsupported{"a comparison of other than two: " + h})
 		}
-		return f.unit(mlx{d: mgroup(mlClosed(xs[0], precCmp+1).d, mtext(" "+op), mline, mlClosed(xs[1], precCmp+1).d), prec: precCmp}, want), true
+		return f.unit(mlCmp(op, xs[0], xs[1]), want), true
 	}
 	switch h {
 	case "fxzero?", "zero?":
 		xs := vals()
-		return f.unit(mlx{d: mcat(mlClosed(xs[0], precCmp+1).d, mtext(" = 0")), prec: precCmp}, want), true
+		return f.unit(mlCmp("=", xs[0], mlAtom("0")), want), true
 	case "->i64", "->u64":
 		return f.expr(args[0], sc, want), true
 	case "c-str":
@@ -998,8 +1328,8 @@ func (f *mlfn) runtime(h string, args []*sform, sc *mlScope, want int) (mlx, boo
 		if !ok {
 			panic(unsupported{"a character " + args[0].atom})
 		}
-		if v >= 0x20 && v < 0x7f && v != '\'' && v != '\\' {
-			return mlx{d: mtext("Char.code '" + string(rune(v)) + "'"), prec: precApp}, true
+		if lit := mlCharLit(v); lit != "" {
+			return mlx{d: mtext("Char.code " + lit), prec: precApp}, true
 		}
 		return mlAtom(strconv.FormatInt(v, 10)), true
 	case "fn-index":
@@ -1021,6 +1351,12 @@ func (f *mlfn) runtime(h string, args []*sform, sc *mlScope, want int) (mlx, boo
 	}
 	if strings.HasPrefix(h, "st-") && strings.HasSuffix(h, "!") {
 		return f.apply("st_"+strings.TrimSuffix(strings.TrimPrefix(h, "st-"), "!")+" "+f.ed(sc), vals()), true
+	}
+	if neg, ok := mlU64Neg[h]; ok {
+		xs := vals()
+		x, n := f.apply(mlRtFns[h].name, xs), f.apply(mlRtFns[neg].name, xs)
+		x.neg, n.neg = &n, &x
+		return f.unit(x, want), true
 	}
 	if fn, ok := mlRtFns[h]; ok {
 		name := fn.name

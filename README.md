@@ -48,7 +48,7 @@ own snapshot, side by side, and every boundary compiled, in about 35 seconds.
 **The translations** are written by `crefactor/togo` from the core's C, not
 from each other. `editor/editor.go`, `braaam/editor/`,
 `vijure/src/whim/editor.clj`, `caprice/Caprice/Editor.hs` and
-`whimsy/src/editor.rs`, `whimsical/whimsical/editor.ss` and `whiml/editor.ml` are generated, tracked, and refused by
+`whimsy/src/editor.rs`, `whimsical/whimsical/editor.ss` and `whiml/editor.ml` (with its `.mli`) are generated, tracked, and refused by
 `make whim-editor-check` when stale.
 
 **The tests.**
@@ -71,7 +71,7 @@ make                   # fetch the input if it moved, then every editor: bin/whi
                        # bin/whimsical, bin/whiml
 make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the translations
 make whim-build-check  # the same, required to give the committed bytes back
-make whim-editor-check # refuse a stale editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss or editor.ml
+make whim-editor-check # refuse a stale editor.go, braaam/editor/, editor.clj, Editor.hs, editor.rs, editor.ss or editor.ml(i)
 make whim-test         # the quick suite; whim-test-wide for the wide one
 make go-test           # the Go packages' tests
 make bin/whim-vim      # the C editor's binary

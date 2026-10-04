@@ -53,7 +53,7 @@ let host_alloc ed n =
       let len = String.length m in
       let fr = Rt.frame_push ed (Rt.align16 len) in
       Rt.mem_image ed fr m;
-      Editor.host_message ed fr len 1;
+      ed.Rt.glue.Editor.host_message ed fr len 1;
       raise (Rt.Exit 1)
 
 (* The C host's 17 functions, as the core calls them: each a function of the

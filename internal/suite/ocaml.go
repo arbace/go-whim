@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/arbace/go-whim/whiml"
@@ -49,6 +50,15 @@ func buildOCaml(gen whiml.Gen, candSrc string) (*jvmEditor, error) {
 	ctl := filepath.Join(ctlDir, "src", "editor.ml")
 	if err := os.MkdirAll(filepath.Dir(ctl), 0o755); err != nil {
 		return nil, err
+	}
+	mli, err := os.ReadFile(strings.TrimSuffix(mlOut, ".ml") + ".mli")
+	if err != nil {
+		return nil, err
+	}
+	if have, err := os.ReadFile(ctl + "i"); err != nil || string(have) != string(mli) {
+		if err := os.WriteFile(ctl+"i", mli, 0o644); err != nil {
+			return nil, err
+		}
 	}
 	b := mlControl.ReplaceAll(src, []byte("${1} INSERX${3}"))
 	if have, err := os.ReadFile(ctl); err != nil || string(have) != string(b) {

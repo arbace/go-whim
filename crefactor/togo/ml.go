@@ -12,10 +12,12 @@ package togo
 // is OCaml's is the printing and the types:
 //
 //   - every C object of an editor lives in one Bytes, a pointer an int
-//     offset into it (whiml/rt.ml); the file-scope objects at constant
-//     addresses, read by their names (got_int ed) and written by set_
-//     (set_got_int ed v), their addresses _addr; a struct's members, a
-//     module per struct (Win_T.w_cursor_lnum ed wp);
+//     offset into it (whiml/rt.ml), but the file-scope scalars whose
+//     address nothing takes: those are the fields of a record the editor
+//     carries (ed.st.got_int <- 0); the others at constant addresses, read
+//     by their names (p_sm ed) and written by set_, their addresses
+//     _addr; a struct's members, a module per struct
+//     (Win_T.w_cursor_lnum ed wp);
 //   - C's integers are OCaml's int, 63 bits: the 8-, 16- and 32-bit types
 //     wrapped where C wraps them; long and unsigned long the int itself,
 //     an unsigned long its bits as a signed long, ordered and divided by
@@ -29,7 +31,11 @@ package togo
 //   - a function pointer is an index into a table, one table for each
 //     arity and result -- so every call through one is typed;
 //   - the host's functions are a record of functions the editor carries,
-//     its type the module's (glue), which the host fills in.
+//     its type the module's (glue), which the host fills in;
+//   - what an OCaml programmer would write differently is written so where
+//     it says the same (doc/OCAML-IDIOMS.md): no warning under -w +a, an
+//     interface, comparisons turned round, ladders as matches, bytes
+//     compared and matched as chars.
 
 import (
 	"fmt"
@@ -59,15 +65,43 @@ type mlgen struct {
 	enumVal map[string]string // a Scheme enumerator -> its value, as OCaml writes it
 	unitFn  map[string]bool   // a Scheme function name -> its value is ()
 	tables  map[string]bool   // the call-ptr tables used
+	used    map[string]bool   // the names at file scope the functions use
 	st      mlStats
 }
 
+// use marks the name at file scope n used: the header defines only what is
+// (an unused value is a warning).
+func (m *mlgen) use(n string) { m.used[n] = true }
+
 // mlObj is a file-scope object's names: its reader (or, an array or a
-// struct, its address), its writer, its address.
+// struct, its address), its writer, its address -- or, a field of the
+// editor's state, the field's.
 type mlObj struct {
 	read, set, addr string
-	agg             bool
+	agg, field      bool
 	kind            string
+	addrAt          int
+	written         bool
+}
+
+// mlAddressed adds to taken the names x takes the address of, &name: of an
+// object, or of a local of the same name, which keeps the object in
+// memory too; and to read the names it reads, but as set!'s target.
+func mlAddressed(x *sform, taken, read map[string]bool) {
+	if !x.isList() {
+		if strings.HasPrefix(x.atom, "&") {
+			taken[x.atom[1:]] = true
+		} else {
+			read[x.atom] = true
+		}
+		return
+	}
+	for i, k := range x.kids {
+		if i == 1 && x.head() == "set!" {
+			continue
+		}
+		mlAddressed(k, taken, read)
+	}
 }
 
 // mlMember is a member's accessors, in its struct's module.
@@ -79,7 +113,7 @@ type mlMember struct {
 
 // mlStats counts what the printer wrote.
 type mlStats struct {
-	functions, recGroups, biggestRec, ignores, clamped int
+	functions, recGroups, biggestRec, ignores, clamped, ladders, charMatches, charCmps int
 }
 
 // mlKeywords are OCaml's reserved words, and the names the generated code
@@ -93,7 +127,7 @@ lor lsl lsr lxor match method mod module mutable new nonrec object of open or pr
 then to true try type val virtual when while with effect parser
 ed fr sret mem not ignore failwith raise fst snd min max compare ref succ pred abs
 glue new_editor data_end host_names chunks fn_ptr fn_index frame_push frame_pop
-ld_s8 ld_u8 ld_s16 ld_u16 ld_s32 ld_u32 ld_s64 ld_u64 ld_ptr ld_bool
+ld_s8 ld_u8 ld_char ld_s16 ld_u16 ld_s32 ld_u32 ld_s64 ld_u64 ld_ptr ld_bool
 st_s8 st_u8 st_s16 st_u16 st_s32 st_u32 st_s64 st_u64 st_ptr st_bool
 mem_copy mem_zero mem_fill mem_image to_i8 to_u8 to_i16 to_u16 to_i32 to_u32
 i32_shl u32_add u32_sub u32_mul u32_shl u32_not u64_div u64_rem u64_shr u64_lt u64_le u64_gt u64_ge`) {
@@ -158,7 +192,7 @@ func (g *gen) writeMl(path string) error {
 	m := &mlgen{s: s, glob: map[string]string{}, taken: map[string]bool{}, renamed: map[string]bool{},
 		objs: map[string]*sobj{}, objOf: map[string]*mlObj{}, fns: map[string]string{}, members: map[string]*mlMember{},
 		modules: map[string]string{}, modTake: map[string]bool{}, enumVal: map[string]string{}, unitFn: map[string]bool{},
-		tables: map[string]bool{}}
+		tables: map[string]bool{}, used: map[string]bool{}}
 	var report strings.Builder
 	for _, f := range failed {
 		fmt.Fprintf(&report, "initial value of %s\n", f)
@@ -167,7 +201,7 @@ func (g *gen) writeMl(path string) error {
 	// and constants they use
 	type fnText struct {
 		name string
-		src  string
+		form *sform
 	}
 	var texts []fnText
 	for _, fd := range fds {
@@ -176,9 +210,19 @@ func (g *gen) writeMl(path string) error {
 			fmt.Fprintf(&report, "%s: %s\n", fd.Declarator.Name(), why)
 			continue
 		}
-		texts = append(texts, fnText{fd.Declarator.Name(), src})
+		forms, err := scmRead(src)
+		if err != nil || len(forms) != 1 {
+			fmt.Fprintf(&report, "%s: the Scheme does not read back: %v\n", fd.Declarator.Name(), err)
+			continue
+		}
+		texts = append(texts, fnText{fd.Declarator.Name(), forms[0]})
 	}
-	m.nameAll()
+	// the objects whose address the functions take
+	taken, read := map[string]bool{}, map[string]bool{}
+	for _, t := range texts {
+		mlAddressed(t.form, taken, read)
+	}
+	m.nameAll(taken, read)
 	for c, u := range s.unitFns {
 		m.unitFn[s.names[c]] = u
 	}
@@ -195,12 +239,7 @@ func (g *gen) writeMl(path string) error {
 	var outs []*fnOut
 	byName := map[string]*fnOut{}
 	for _, t := range texts {
-		forms, err := scmRead(t.src)
-		if err != nil || len(forms) != 1 {
-			fmt.Fprintf(&report, "%s: the Scheme does not read back: %v\n", t.name, err)
-			continue
-		}
-		d, refs, why := m.function(forms[0])
+		d, refs, why := m.function(t.form)
 		if why != "" {
 			fmt.Fprintf(&report, "%s: %s\n", t.name, why)
 			continue
@@ -234,8 +273,9 @@ func (g *gen) writeMl(path string) error {
 
 	var b strings.Builder
 	fmt.Fprintf(&b, "(* Code generated by `go tool whim skel -ml` from a C translation unit; DO NOT EDIT. *)\n(* %d of %d functions written. *)\n\n", len(outs), len(fds))
-	b.WriteString("[@@@warning \"-a\"]\n\nopen Rt\n\n")
+	b.WriteString("open Rt\n\n")
 	m.fixups()
+	mli := m.mli() // before the header: it uses what it exports
 	b.WriteString(m.header())
 	for _, comp := range sccs {
 		self := false
@@ -266,8 +306,8 @@ func (g *gen) writeMl(path string) error {
 	b.WriteString(entries)
 	b.WriteString(m.image())
 	text := b.String()
-	fmt.Fprintf(logw, "ml: %d of %d functions written, %d refused, %d lines; %d cycles of calls as let rec (the largest %d functions), %d values ignored, %d constants past 63 bits saturated; %d function-pointer tables\n",
-		len(outs), len(fds), len(fds)-len(outs), strings.Count(text, "\n"), m.st.recGroups, m.st.biggestRec, m.st.ignores, m.st.clamped, len(m.tables))
+	fmt.Fprintf(logw, "ml: %d of %d functions written, %d refused, %d lines; %d cycles of calls as let rec (the largest %d functions), %d values ignored, %d constants past 63 bits saturated; %d function-pointer tables; %d ladders of tests a match, %d matches and %d comparisons on a char\n",
+		len(outs), len(fds), len(fds)-len(outs), strings.Count(text, "\n"), m.st.recGroups, m.st.biggestRec, m.st.ignores, m.st.clamped, len(m.tables), m.st.ladders, m.st.charMatches, m.st.charCmps)
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		return err
 	}
@@ -279,6 +319,9 @@ func (g *gen) writeMl(path string) error {
 		host = append(host, m.glob[s.names[n]])
 	}
 	if err := os.WriteFile(path+".host", []byte(strings.Join(host, "\n")+"\n"), 0o644); err != nil {
+		return err
+	}
+	if err := os.WriteFile(strings.TrimSuffix(path, ".ml")+".mli", []byte(mli), 0o644); err != nil {
 		return err
 	}
 	if err := os.WriteFile(path+".refused", []byte(report.String()), 0o644); err != nil {
@@ -307,8 +350,12 @@ func (m *mlgen) take(name, c string) string {
 }
 
 // nameAll names everything at file scope: the functions, the host's, the
-// objects, the constants, the members' modules.
-func (m *mlgen) nameAll() {
+// objects, the constants, the members' modules.  A scalar object whose
+// address nothing takes -- no function, no initial value -- and that the
+// host does not read is a field of the editor's state, not memory
+// (doc/OCAML-IDIOMS.md, item 3) -- one the functions read: a field only
+// written is a warning, and stays in memory.
+func (m *mlgen) nameAll(taken, read map[string]bool) {
 	s := m.s
 	for _, w := range []string{"glue", "new_editor", "data_end"} {
 		m.taken[w] = true
@@ -335,7 +382,16 @@ func (m *mlgen) nameAll() {
 		o := s.objects[k]
 		m.objs[o.name] = o
 		base := mlMangle(o.name)
-		ob := &mlObj{agg: o.kind == "agg", kind: o.kind}
+		ob := &mlObj{agg: o.kind == "agg", kind: o.kind, addrAt: o.addr}
+		if !ob.agg && !taken[o.name] && read[o.name] && !m.imageTakes(o) && !m.exported(o.name) {
+			ob.field = true
+			ob.read = base
+			for mlRtFields[ob.read] || m.hostField(ob.read) {
+				ob.read += "'"
+			}
+			m.objOf[o.name] = ob
+			continue
+		}
 		if ob.agg {
 			ob.read = m.take(base, o.name)
 			ob.addr = ob.read
@@ -393,6 +449,106 @@ func (m *mlgen) nameAll() {
 	}
 }
 
+// mlRtFields are the fields of the runtime's records, which a field of the
+// state may not take: OCaml finds a field by its name.
+var mlRtFields = map[string]bool{"mem": true, "sp": true, "limit": true, "glue": true, "st": true, "shared": true,
+	"arena_base": true, "next": true, "arena_end": true, "zeroed": true, "lock": true, "stacks": true,
+	"stack_next": true, "stack_end": true}
+
+// hostField says n is a field of the host's record.
+func (m *mlgen) hostField(n string) bool {
+	for _, h := range m.s.hostList {
+		if mlMangle(m.s.names[h]) == n {
+			return true
+		}
+	}
+	return false
+}
+
+// fields are the objects that are the state's fields, in address order.
+func (m *mlgen) fields() []*mlObj {
+	var out []*mlObj
+	for _, ob := range m.objOf {
+		if ob.field {
+			out = append(out, ob)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].addrAt < out[j].addrAt })
+	return out
+}
+
+// initial is the field ob's initial value, read from the image.
+func (m *mlgen) initial(ob *mlObj) string {
+	at := ob.addrAt - scmBase
+	b := func(i int) uint64 {
+		if at+i < len(m.s.image) {
+			return uint64(m.s.image[at+i])
+		}
+		return 0
+	}
+	if ob.kind == "bool" {
+		if b(0) != 0 {
+			return "true"
+		}
+		return "false"
+	}
+	bits, signed := mlAccessBits(ob.kind)
+	var v uint64
+	for i := 0; i < bits/8; i++ {
+		v |= b(i) << (8 * i)
+	}
+	if signed || bits == 64 {
+		sh := 64 - bits
+		return mlIntText(int64(v<<sh) >> sh)
+	}
+	return strconv.FormatUint(v, 10)
+}
+
+// mlAccessBits is an accessor kind's width and signedness: s32, u8, ptr...
+// (bool a byte).
+func mlAccessBits(k string) (int, bool) {
+	switch k {
+	case "ptr":
+		return 64, true
+	case "bool":
+		return 8, false
+	}
+	if len(k) < 2 {
+		return 0, false
+	}
+	n, err := strconv.Atoi(k[1:])
+	if err != nil {
+		return 0, false
+	}
+	return n, k[0] == 's'
+}
+
+// imageTakes says an initial value holds the address of the object o, or
+// of a byte of it.
+func (m *mlgen) imageTakes(o *sobj) bool {
+	size := 1
+	if b, _ := mlAccessBits(o.kind); b > 0 {
+		size = b / 8
+	}
+	for _, p := range m.s.imagePtrs {
+		if int(p) >= o.addr && int(p) < o.addr+size {
+			return true
+		}
+	}
+	return false
+}
+
+// exported says the host reads the object of Scheme name n: it stays in
+// memory, where its exported reader reads it.
+func (m *mlgen) exported(n string) bool {
+	for _, e := range m.s.g.p.ScmExports {
+		if scmName(e) == n {
+			return true
+		}
+	}
+	return false
+}
+
 // mlModule is a struct's name as a module's: its first letter a capital.
 func mlModule(st string) string {
 	n := mlMangle(st)
@@ -413,32 +569,118 @@ func mlKindType(st string) string {
 	return "int"
 }
 
-// header is what the functions are written against: the host's record
-// and the editor's type, the memory's end, the objects, the constants,
-// the members, the host's functions, the tables of function pointers.
-func (m *mlgen) header() string {
+// glueType is the host's record and the editor's type.
+func (m *mlgen) glueType(mli bool) string {
 	s := m.s
 	var b strings.Builder
 	b.WriteString("(* The host's functions, as the core calls them: the editor carries them. *)\n")
 	b.WriteString("type glue = {\n")
 	for _, n := range s.hostList {
-		ft := m.hostType(n)
-		ts := []string{"ed"}
-		if ft != nil {
+		fmt.Fprintf(&b, "  %s : %s;\n", m.glob[s.names[n]], strings.Join(m.hostSig(n), " -> "))
+	}
+	b.WriteString("}\n\n")
+	if mli {
+		b.WriteString("(* The C's file-scope objects the editor keeps as its fields. *)\nand state\n\n")
+	} else if len(m.fields()) == 0 {
+		b.WriteString("(* The C's file-scope objects whose address nothing takes: none. *)\nand state = unit\n\n")
+	} else {
+		b.WriteString("(* The C's file-scope objects whose address nothing takes: the editor's\n   fields, ed.st.name. *)\nand state = {\n")
+		for _, ob := range m.fields() {
+			mut := ""
+			if ob.written {
+				mut = "mutable "
+			}
+			fmt.Fprintf(&b, "  %s%s : %s;\n", mut, ob.read, mlKindType(scmKindOf(ob.kind)))
+		}
+		b.WriteString("}\n\n")
+	}
+	b.WriteString("and ed = (glue, state) Rt.ed\n\n")
+	return b.String()
+}
+
+// hostSig is the OCaml types of the host's function n: the editor, its
+// parameters, its result.
+func (m *mlgen) hostSig(n string) []string {
+	ft := m.hostType(n)
+	ts := []string{"ed"}
+	if ft == nil {
+		return append(ts, "unit")
+	}
+	for _, p := range ft.Parameters() {
+		if p.Type() == nil || p.Type().Kind() == cc.Void {
+			continue
+		}
+		ts = append(ts, mlKindType(scmTypeOf(p.Type())))
+	}
+	if ft.IsVariadic() {
+		ts = append(ts, "int list")
+	}
+	return append(ts, mlKindType(scmTypeOf(ft.Result())))
+}
+
+// mli is the module's interface: the host's record and the editor's type,
+// new_editor, and what the profile exports -- the functions and objects
+// the host calls back.
+func (m *mlgen) mli() string {
+	s := m.s
+	var b strings.Builder
+	b.WriteString("(* Code generated by `go tool whim skel -ml` from a C translation unit; DO NOT EDIT. *)\n\n")
+	b.WriteString("(* The core's interface: what a host makes an editor with, and what it\n   calls back. *)\n\n")
+	b.WriteString(m.glueType(true))
+	b.WriteString("(* A new editor on the host's functions. *)\nval new_editor : glue -> ed\n")
+	for _, n := range s.g.p.ScmExports {
+		if d := s.defined[n]; d != nil {
+			ft, _ := d.Declarator.Type().(*cc.FunctionType)
+			if ft == nil || len(s.facts.outs[n]) > 0 || s.facts.tupleRet(n) || isAggr(ft.Result()) || ft.IsVariadic() {
+				panic(unsupported{"an export of a type the interface does not write: " + n})
+			}
+			var ts []string
+			if s.takesEd(n) {
+				ts = append(ts, "ed")
+			}
 			for _, p := range ft.Parameters() {
 				if p.Type() == nil || p.Type().Kind() == cc.Void {
 					continue
 				}
 				ts = append(ts, mlKindType(scmTypeOf(p.Type())))
 			}
-			if ft.IsVariadic() {
-				ts = append(ts, "int list")
+			if len(ts) == 0 {
+				ts = append(ts, "unit")
 			}
-			ts = append(ts, mlKindType(scmTypeOf(ft.Result())))
+			r := mlKindType(scmTypeOf(ft.Result()))
+			if m.unitFn[s.names[n]] {
+				r = "unit"
+			}
+			fmt.Fprintf(&b, "val %s : %s\n", m.glob[s.names[n]], strings.Join(append(ts, r), " -> "))
+			continue
 		}
-		fmt.Fprintf(&b, "  %s : %s;\n", m.glob[s.names[n]], strings.Join(ts, " -> "))
+		if ob := m.objOf[scmName(n)]; ob != nil {
+			if ob.agg {
+				fmt.Fprintf(&b, "val %s : int\n", ob.read)
+			} else {
+				fmt.Fprintf(&b, "val %s : ed -> %s\n", ob.read, mlKindType(scmKindOf(ob.kind)))
+			}
+			m.use(ob.read)
+		}
 	}
-	b.WriteString("}\n\nand ed = glue Rt.ed\n\n")
+	return b.String()
+}
+
+// scmKindOf is the Scheme kind of an accessor's kind: ptr an address.
+func scmKindOf(k string) string {
+	if k == "ptr" {
+		return "u64"
+	}
+	return k
+}
+
+// header is what the functions are written against: the host's record
+// and the editor's type, the memory's end, the objects, the constants,
+// the members, the host's functions, the tables of function pointers.
+func (m *mlgen) header() string {
+	s := m.s
+	var b strings.Builder
+	b.WriteString(m.glueType(false))
 	end := s.litBase + len(s.pool)
 	fmt.Fprintf(&b, "(* The memory: the null page and the function pointers below %d, the\n   file-scope objects from there, the string literals from %d to %d. *)\nlet data_end = %d\n\n", scmBase, s.litBase, end, scmAlign(end, 16))
 
@@ -461,6 +703,9 @@ func (m *mlgen) header() string {
 			}
 		}
 		on := m.glob[s.names[n]]
+		if !m.used[on] {
+			continue
+		}
 		fmt.Fprintf(&b, "let %s %s = ed.glue.%s %s\n", on, strings.Join(as, " "), on, strings.Join(as, " "))
 	}
 
@@ -472,7 +717,9 @@ func (m *mlgen) header() string {
 	sort.Strings(es)
 	b.WriteString("\n(* The C's named constants the functions use. *)\n")
 	for _, n := range es {
-		fmt.Fprintf(&b, "let %s = %s\n", m.glob[n], m.intLit(m.enumVal[n]))
+		if m.used[m.glob[n]] {
+			fmt.Fprintf(&b, "let %s = %s\n", m.glob[n], m.intLit(m.enumVal[n]))
+		}
 	}
 
 	// the objects
@@ -484,11 +731,24 @@ func (m *mlgen) header() string {
 	b.WriteString("\n(* The file-scope objects the functions name: a scalar read by its name and\n   written by set_, its address _addr; an array or a struct its address. *)\n")
 	for _, o := range objs {
 		ob := m.objOf[o.name]
-		if ob.agg {
-			fmt.Fprintf(&b, "let %s = %d\n", ob.read, o.addr)
+		if ob.field {
 			continue
 		}
-		fmt.Fprintf(&b, "let %s = %d\nlet %s ed = ld_%s ed %d\nlet %s ed v = st_%s ed %d v\n", ob.addr, o.addr, ob.read, o.kind, o.addr, ob.set, o.kind, o.addr)
+		if ob.agg {
+			if m.used[ob.read] {
+				fmt.Fprintf(&b, "let %s = %d\n", ob.read, o.addr)
+			}
+			continue
+		}
+		if m.used[ob.addr] {
+			fmt.Fprintf(&b, "let %s = %d\n", ob.addr, o.addr)
+		}
+		if m.used[ob.read] {
+			fmt.Fprintf(&b, "let %s ed = ld_%s ed %d\n", ob.read, o.kind, o.addr)
+		}
+		if m.used[ob.set] {
+			fmt.Fprintf(&b, "let %s ed v = st_%s ed %d v\n", ob.set, o.kind, o.addr)
+		}
 	}
 
 	// the members, a module for each struct
@@ -511,15 +771,22 @@ func (m *mlgen) header() string {
 			}
 			return ns[i] < ns[j]
 		})
-		fmt.Fprintf(&b, "module %s = struct\n", mod)
+		var defs []string
 		for _, n := range ns {
 			mm := m.members[n]
-			fmt.Fprintf(&b, "  let %s p = p + %d\n", mm.addr, mm.off)
-			if mm.kind != "agg" {
-				fmt.Fprintf(&b, "  let %s ed p = ld_%s ed (p + %d)\n  let %s ed p v = st_%s ed (p + %d) v\n", mm.read, mm.kind, mm.off, mm.set, mm.kind, mm.off)
+			if m.used[mod+"."+mm.addr] {
+				defs = append(defs, fmt.Sprintf("  let %s p = p + %d\n", mm.addr, mm.off))
+			}
+			if mm.kind != "agg" && m.used[mod+"."+mm.read] {
+				defs = append(defs, fmt.Sprintf("  let %s ed p = ld_%s ed (p + %d)\n", mm.read, mm.kind, mm.off))
+			}
+			if mm.kind != "agg" && m.used[mod+"."+mm.set] {
+				defs = append(defs, fmt.Sprintf("  let %s ed p v = st_%s ed (p + %d) v\n", mm.set, mm.kind, mm.off))
 			}
 		}
-		b.WriteString("end\n\n")
+		if len(defs) > 0 {
+			fmt.Fprintf(&b, "module %s = struct\n%send\n\n", mod, strings.Join(defs, ""))
+		}
 	}
 
 	// the tables
@@ -656,7 +923,16 @@ func (m *mlgen) fixups() {
 func (m *mlgen) image() string {
 	s := m.s
 	var b strings.Builder
-	b.WriteString("(* A new editor on the host's functions: its memory, with the objects'\n   initial values and the literals. *)\nlet new_editor glue =\n  let ed = Rt.make_editor glue data_end in\n")
+	b.WriteString("(* A new editor on the host's functions: its memory, with the objects'\n   initial values and the literals. *)\nlet new_editor glue =\n")
+	var fs []string
+	for _, ob := range m.fields() {
+		fs = append(fs, fmt.Sprintf("%s = %s", ob.read, m.initial(ob)))
+	}
+	if len(fs) == 0 {
+		b.WriteString("  let ed = Rt.make_editor glue () data_end in\n")
+	} else {
+		fmt.Fprintf(&b, "  let st = {\n    %s;\n  } in\n  let ed = Rt.make_editor glue st data_end in\n", strings.Join(fs, ";\n    "))
+	}
 	for _, l := range mlImage(s.image, scmBase) {
 		b.WriteString("  " + l + ";\n")
 	}

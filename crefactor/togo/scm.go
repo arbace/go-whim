@@ -72,8 +72,9 @@ type sgen struct {
 
 	// ml: the forms are for the OCaml backend (newSgen); unitFns, the
 	// functions written whose value is nothing (no result, no values)
-	ml      bool
-	unitFns map[string]bool
+	ml        bool
+	unitFns   map[string]bool
+	imagePtrs []int64 // the pointers the initial values hold, for the OCaml
 }
 
 // sobj is a file-scope object by name: at addr, of the kind its accessors
@@ -701,6 +702,9 @@ func (s *sgen) initInto(off int, t cc.Type, in *cc.Initializer) {
 		v = ml63(v)
 	}
 	if st == "ptr" {
+		if s.ml {
+			s.imagePtrs = append(s.imagePtrs, v)
+		}
 		s.poke(at, 8, uint64(v))
 		return
 	}

@@ -88,6 +88,7 @@ func mlProgram(t *testing.T, dir, src string, prof Profile) (string, []string, s
 		t.Fatal(err)
 	}
 	out := filepath.Join(dir, "editor.ml")
+	prof.ScmExports = append(append([]string{}, prof.ScmExports...), "run")
 	if rc := Run([]string{c, dir, "-ml", out}, io.Discard, prof); rc != 0 {
 		t.Fatalf("the generator refused: %d", rc)
 	}
@@ -124,7 +125,9 @@ func mlRun(t *testing.T, dir, prog string, host []string) ([]byte, error) {
 		}
 	}
 	exe := filepath.Join(dir, "ml")
-	cmd := exec.Command("ocamlopt", "-I", "+unix", "rt.ml", "editor.ml", "main.ml", "-o", exe)
+	// the module with every warning on, and a warning a failure, as whiml's
+	// build has it
+	cmd := exec.Command("ocamlopt", "-I", "+unix", "rt.ml", "-w", "+a", "-warn-error", "+a", "editor.mli", "editor.ml", "-w", "-a", "main.ml", "-o", exe)
 	cmd.Dir = dir
 	if o, err := cmd.CombinedOutput(); err != nil {
 		return o, fmt.Errorf("ocamlopt: %v", err)
