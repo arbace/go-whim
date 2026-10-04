@@ -218,6 +218,34 @@ The same under milestone 2's printing (a load of 60-70, other work
 sharing the machine): from a file 0 of 3,120 quick and 0 of 3,120 wide;
 through a pipe 15 and 198.
 
+**What the pipe's differences are.** Every run counted, on whim++ and on
+the C alike, differs in one place: where `t_RK` (`\033[?4m`, the
+modifyOtherKeys query) is written, or whether it is written at all.
+`may_send_t_RK()` sends it once, at the first redraw that finds
+`is_safe_now()` -- the typeahead empty -- so an editor that reaches its
+first wait before the keys land writes it there, and one that finds every
+key waiting writes it never (`:q!` sets `exiting` first). That is the
+race the pipe is the control for, the C's and whim++'s the same race;
+their hosts' `wait_for_input` and `read_input` are the C's call for call,
+and milestone 2 did not touch them (`git diff 7ee7b76 863778b --
+wpp/src/term.cpp wpp/src/host.cpp` is empty). Measured on 2026-10-04,
+REPS=13, the 230 wide cases through a pipe, every output kept and
+compared with the case's commonest: at 48 busy loops (a load of 48) the C
+13 and whim++ 4 of 2,990 outputs held `t_RK`; at 80 (a load of 58-81) the
+C 31-115, whim++ (milestone 2) 25-36 and milestone 1's 27-66, each
+differing from its commonest by `t_RK` alone but for the C's
+`ctrl_c_clean` (three runs) and whim++'s `ctrl_c_changed` (one), where a
+Ctrl-C's arrival before or after the keys around it is the same race. The
+quick suite at 80: the C 52 of 1,040 outputs, whim++ 24.
+
+The count the stress test reports is the runs unlike the case's *first*,
+so one first run on the rarer side counts every other run of the case:
+12 at REPS=13. At 80 busy loops its wide count was 26, 153 and 29 for the
+C and 103, 72 and 38 for whim++ in three runs back to back -- which of
+the two is ahead flips from run to run. The 198 above is that count at a
+heavier load than milestone 1's 4 was taken at, not a change in whim++:
+nothing in the C++ moves input timing, and nothing was changed for it.
+
 ## 9. Milestone 2: much more idiomatic
 
 `doc/CPP-IDIOMS.md` surveys the C++ as milestone 1 left it, counted and
