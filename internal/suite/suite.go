@@ -405,8 +405,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return nil
 		},
 	}
-	var java, clj, hs, rs, scm, ml, cpp *jvmEditor
-	var java, clj, hs, rs, scm, ml, gst *jvmEditor
+	var java, clj, hs, rs, scm, ml, cpp, gst *jvmEditor
 	if jvm.HaskellBin != "" {
 		jobs = append(jobs, func() (err error) { hs, err = prebuiltHaskell(jvm.HaskellBin, dir); return })
 	} else if jvm.Haskell != nil {
@@ -427,6 +426,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 	}
 	if jvm.Cpp != nil {
 		jobs = append(jobs, func() (err error) { cpp, err = buildCpp(jvm.Cpp, candSrc); return })
+	}
 	if jvm.Guest {
 		jobs = append(jobs, func() (err error) { gst, err = buildGuest(candSrc, dir); return })
 	}
@@ -451,8 +451,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return fail(err)
 		}
 	}
-	for _, e := range []*jvmEditor{java, clj, hs, rs, scm, ml, cpp} {
-	for _, e := range []*jvmEditor{java, clj, hs, rs, scm, ml, gst} {
+	for _, e := range []*jvmEditor{java, clj, hs, rs, scm, ml, cpp, gst} {
 		if e != nil {
 			e.limit = jvm.limit()
 			b.jvm = append(b.jvm, e)
