@@ -147,3 +147,76 @@ func TestWatchdog(t *testing.T) {
 		t.Fatalf("the watchdog took %s", d)
 	}
 }
+
+func needTamaGo(t *testing.T) string {
+	t.Helper()
+	gocmd, err := TamaGo("")
+	if err != nil {
+		t.Skip(err)
+	}
+	if _, err := os.Stat("/dev/kvm"); err != nil {
+		t.Skip("no /dev/kvm")
+	}
+	return gocmd
+}
+
+// TestGoGuest: the Go guest -- the Go editor built with TamaGo -- on a
+// recording host answers exactly as the Go editor does natively on the same
+// host: the same bytes and the same exit code, every call a hypercall.
+func TestGoGuest(t *testing.T) {
+	gocmd := needTamaGo(t)
+	img, err := GoImage(gocmd, Native(), t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	args := []string{"whim"}
+	native := &recorder{}
+	want := editor.Main(native, args)
+	h := &recorder{}
+	var stats bytes.Buffer
+	code, err := vmm.Run(vmm.Config{Image: img, Host: h, Args: args, Stats: &stats})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code != want || h.out.String() != native.out.String() {
+		t.Fatalf("exit %d, %d bytes; the Go editor: exit %d, %d bytes", code, h.out.Len(), want, native.out.Len())
+	}
+	if !strings.Contains(stats.String(), "call random 1\n") {
+		t.Fatalf("no random bytes asked for:\n%s", stats.String())
+	}
+	t.Logf("exit %d, %d bytes; %s", code, h.out.Len(), strings.SplitN(stats.String(), "\n", 2)[0])
+}
+
+// TestGoGuestFault: the board's own paths -- a null pointer written ends
+// the run as a Fault through its vectors, as the C guest's; a panic is the
+// runtime's report on the console and exit 2; a spin is ended by the
+// watchdog; and a line printed, then exit 7.
+func TestGoGuestFault(t *testing.T) {
+	gocmd := needTamaGo(t)
+	img, err := GoProgram(gocmd, "./faulty", Native(), t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct {
+		arg, fault, out string
+		code            int
+	}{
+		{"null", "exception 14 (code 0x2)", "", 0},
+		{"panic", "", "panic: faulty: panic", 2},
+		{"spin", "watchdog", "", 0},
+		{"", "", "faulty: hello\n", 7},
+	} {
+		h := &recorder{}
+		code, err := vmm.Run(vmm.Config{Image: img, Host: h, Args: []string{"faulty", c.arg}, Watchdog: 500 * time.Millisecond})
+		var f *vmm.Fault
+		switch {
+		case c.fault != "":
+			if !errors.As(err, &f) || !strings.Contains(f.Msg, c.fault) {
+				t.Fatalf("%s: %v, not a fault with %q", c.arg, err, c.fault)
+			}
+			t.Logf("%s: %s", c.arg, f.Msg)
+		case err != nil || code != c.code || !strings.Contains(h.out.String(), c.out):
+			t.Fatalf("%s: exit %d, %v, output %q", c.arg, code, err, h.out.String())
+		}
+	}
+}

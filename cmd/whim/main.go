@@ -114,7 +114,7 @@ var tools = map[string]tool{
 	"whimsical":   {runWhimsical, "whimsical [--debug] [--out DIR] [FILE]"},
 	"whiml":       {runWhiml, "whiml [--out DIR] [FILE]"},
 	"wpp":         {runWpp, "wpp [--out DIR] [FILE]"},
-	"guest":       {runGuest, "guest [--arch amd64|arm64] [--hello|--bench] [--alt] [--image] [-o OUT] [FILE]"},
+	"guest":       {runGuest, "guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
 	"gocat":       {runGocat, "gocat <dir>"},
 	"hscat":       {runHscat, "hscat [--ghc GHC] [--hsl FILE] [--out DIR] [--no-test] [SRC]"},

@@ -255,6 +255,12 @@ slim-vim.c  --whim-->  whim-vim.c
   changed; it answers all 80 and all 240 as the C does, and reports the
   exits a key costs (61 over the quick suite, 6.7 without its `par_*`
   cases), its image kept in `.cache/guest-suite/`.
+  **`--guest-go`** adds the GO GUEST (`guest/tamago/`, `doc/GUEST.md`, *The
+  second guest*): the Go editor, `editor/` as it stands, built with TamaGo
+  (`GOOS=tamago`, the distribution `TAMAGO_ROOT` or `--tamago DIR`, here
+  `/root/tamago-go`) on a board of ours and run by the same monitor, its
+  control the launcher with its image's one `" INSERT"` changed; it answers
+  all 80 and all 240 as the C does (61.11 exits a key, 6.71 without `par_*`).
   Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
@@ -277,7 +283,7 @@ slim-vim.c  --whim-->  whim-vim.c
   already, `--haskell-bin`'s, is timed but not held to it: the `-O0`
   ghc-lisp caprice 81-84) -- measured,
   C++ 0.2-0.3, Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
-  Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, the guest 1.1-1.6 (its 20,786 exits, every one a hypercall), Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
+  Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, the guest 1.1-1.6 (its 20,786 exits, every one a hypercall), the Go guest 1.6-1.8, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
   its big functions were compiled sooner, `doc/CLOJURE-PROFILE.md`) since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
   huge-method limit left on, which is what it refuses.
@@ -724,16 +730,25 @@ vmm/               the monitor: the guest's ELF in one slot, identity-mapped
                    alignment held by layout_test.go; cmd/whim-guest the
                    launcher, the image appended to it or beside it
                    (WHIM_GUEST_IMAGE, PROGRAM.elf: the Mac's way), run on
-                   editor/term (WHIM_GUEST_STATS, _WATCHDOG, _SECCOMP)
+                   editor/term (WHIM_GUEST_STATS, _WATCHDOG, _SECCOMP);
+                   tamago*.go a Go guest's slot and registers (an image
+                   TamaGo built, told by its runtime's symbol)
 guest/             the guest image's builder (`go tool whim guest`): the core
                    cut, the C host's vim_snprintf and rt/ -- rt.c the
                    runtime (15 hypercalls, the C host's arena, the fault
                    report), entry_<isa>.S the entry and the vectors,
                    link_<isa>.ld, hello.c and bench.c stand-ins -- compiled
                    freestanding by clang into one ELF (--image: the ELF
-                   alone); mac/ the Mac's side (doc/GUEST.md, *Running on
-                   the Mac*): mac.sh, the entitlements, and shim.h, which
-                   lets Apple's clang build whim-vim.c
+                   alone); gotamago.go the Go guest's (`--go`: TamaGo at
+                   TAMAGO_ROOT); abi/ the hypercall ABI as Go constants;
+                   tamago/ the Go guest, A GO MODULE OF ITS OWN built only
+                   by TamaGo: board/ the board for the monitor (its runtime
+                   hooks: a call for console, random bytes and exit, the
+                   TSC for the clock), main.go the Go editor on a Host of
+                   hypercalls, faulty/ a stand-in; mac/ the Mac's side
+                   (doc/GUEST.md, *Running on the Mac*): mac.sh, the
+                   entitlements, and shim.h, which lets Apple's clang build
+                   whim-vim.c
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),
@@ -785,7 +800,8 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    a bare-metal guest on KVM, amd64 and arm64, and on
                    Hypervisor.framework, its host functions as hypercalls
                    to a small VMM: the design, its decisions and its
-                   milestones as built)
+                   milestones as built; and the second guest, the Go
+                   editor on TamaGo))
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -838,6 +854,8 @@ make whim-test-cpp    # the quick suite with the C++ editor too (whim test --cpp
 make bin/whim-guest   # the editor as a virtual machine on KVM: the core a freestanding guest image appended to the monitor (20 s)
 make bin/whim-guest-arm64  # the same for arm64, built here, run on an arm64 Linux with KVM (doc/GUEST.md, milestone 3: the quick suite in an emulated Alpine aarch64 VM)
 make whim-test-guest  # the quick suite with the guest editor too (whim test --guest; --wide --guest)
+make bin/whim-guest-go TAMAGO_ROOT=/root/tamago-go  # the Go editor as a virtual machine: built with TamaGo, appended to the same monitor (8 s)
+make whim-test-guest-go TAMAGO_ROOT=/root/tamago-go  # the quick suite with the Go guest too (whim test --guest-go; --wide --guest-go)
 go tool whim guest --hello  # milestone 1's guest: "hello", exit 3, one exit a call
 go tool whim guest --bench [--alt]  # a stand-in making argv[1] hypercalls, to time one (--alt: a port on amd64, an HVC on arm64)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)

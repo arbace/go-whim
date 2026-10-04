@@ -9,7 +9,7 @@ import (
 )
 
 // testUsage is runTest's usage line.
-const testUsage = "usage: whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--guest] [--limit DURATION] [--ref REV] [FILE]"
+const testUsage = "usage: whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--guest] [--guest-go] [--tamago DIR] [--limit DURATION] [--ref REV] [FILE]"
 
 // runTest is the minimal behaviour check (internal/suite): every session in
 // internal/suite/cases.md on the editor built from src/whim-vim.c at REV
@@ -28,12 +28,14 @@ const testUsage = "usage: whim test [--wide] [--java] [--clojure] [--clojure-edi
 // information kept).  --ocaml adds the OCaml editor (whiml/,
 // doc/OCAML.md), --cpp the C++ editor (wpp/, doc/CPP.md), --guest the
 // editor as a virtual machine: the core compiled freestanding into a guest
-// image, run by the monitor on KVM (guest/, vmm/, doc/GUEST.md).  --limit D
+// image, run by the monitor on KVM (guest/, vmm/, doc/GUEST.md).  --guest-go
+// the Go editor as one: editor/ built with TamaGo (guest/tamago/), whose
+// distribution is $TAMAGO_ROOT or --tamago DIR.  --limit D
 // is how long one run of a case may take on the editors these add and their
 // controls (default 10s; the C and the Go editor keep 10s), for a build slow
 // on purpose.
 //
-//	whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--guest] [--limit DURATION] [--ref REV] [FILE]
+//	whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--guest] [--guest-go] [--tamago DIR] [--limit DURATION] [--ref REV] [FILE]
 func runTest(args []string) int {
 	o, err := parseTest(args)
 	if err != nil {
@@ -94,6 +96,11 @@ func parseTest(args []string) (testOpts, error) {
 			o.jvm.Cpp = cppGen
 		case args[i] == "--guest":
 			o.jvm.Guest = true
+		case args[i] == "--guest-go":
+			o.jvm.GuestGo = true
+		case args[i] == "--tamago" && i+1 < len(args):
+			i++
+			o.jvm.TamaGoRoot = args[i]
 		case args[i] == "--clojure-editor" && i+1 < len(args):
 			i++
 			o.jvm.Clojure = copyGen(args[i])

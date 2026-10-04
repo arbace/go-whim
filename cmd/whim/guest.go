@@ -19,13 +19,16 @@ import (
 // port on amd64, an HVC on arm64) in place of the doorbell.  --image writes
 // the image alone (default bin/whim-guest[-STANDIN][-alt][-ARCH].elf), for a
 // monitor built elsewhere: the Mac's, which loads it from beside itself
-// (doc/GUEST.md, *Running on the Mac*).
+// (doc/GUEST.md, *Running on the Mac*).  --go builds the second guest
+// instead: the Go editor, editor/ as it stands, built with TamaGo
+// (guest/tamago/; the distribution $TAMAGO_ROOT or --tamago DIR) and
+// appended to the same monitor, at bin/whim-guest-go.
 //
-//	whim guest [--arch amd64|arm64] [--hello|--bench] [--alt] [--image] [-o OUT] [FILE]
+//	whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]
 func runGuest(args []string) int {
 	a := guest.Native()
 	src, out, standIn := "src/whim-vim.c", "", ""
-	alt, imageOnly := false, false
+	alt, imageOnly, goGuest, tamago := false, false, false, ""
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--arch" && i+1 < len(args):
@@ -41,13 +44,18 @@ func runGuest(args []string) int {
 			alt = true
 		case args[i] == "--image":
 			imageOnly = true
+		case args[i] == "--go":
+			goGuest = true
+		case args[i] == "--tamago" && i+1 < len(args):
+			i++
+			tamago = args[i]
 		case args[i] == "-o" && i+1 < len(args):
 			i++
 			out = args[i]
 		case len(args[i]) > 0 && args[i][0] != '-':
 			src = args[i]
 		default:
-			fmt.Fprintln(os.Stderr, "usage: whim guest [--arch amd64|arm64] [--hello|--bench] [--alt] [--image] [-o OUT] [FILE]")
+			fmt.Fprintln(os.Stderr, "usage: whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]")
 			return 2
 		}
 	}
@@ -56,6 +64,9 @@ func runGuest(args []string) int {
 	}
 	if out == "" {
 		out = filepath.Join("bin", "whim-guest")
+		if goGuest {
+			out += "-go"
+		}
 		if standIn != "" {
 			out += "-" + standIn
 		}
@@ -75,11 +86,14 @@ func runGuest(args []string) int {
 		return 1
 	}
 	defer os.RemoveAll(dir)
-	if imageOnly {
+	switch {
+	case goGuest:
+		err = guest.BuildGo(tamago, a, dir, out)
+	case imageOnly:
 		err = guest.BuildImage(src, standIn, a, dir, out)
-	} else if standIn != "" {
+	case standIn != "":
 		err = guest.BuildStandIn(standIn, a, dir, out)
-	} else {
+	default:
 		err = guest.Build(src, a, dir, out)
 	}
 	if err != nil {
@@ -89,6 +103,9 @@ func runGuest(args []string) int {
 	what := src + "'s core"
 	if standIn != "" {
 		what = "rt/" + standIn + ".c"
+	}
+	if goGuest {
+		what = "the Go editor (editor/), with TamaGo,"
 	}
 	fmt.Printf("  guest        %s: %s on %s\n", out, what, a.Name)
 	return 0

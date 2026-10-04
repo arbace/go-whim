@@ -65,6 +65,9 @@ type layout struct {
 	size             uint64 // the slot's
 	argc, argv       uint64
 	tablesUsed, root uint64
+	// a Go guest's (vmm/tamago.go): its RAM starts at its image
+	goGuest  bool
+	ramStart uint64
 }
 
 func roundUp(v, a uint64) uint64 { return (v + a - 1) &^ (a - 1) }

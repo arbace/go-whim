@@ -66,6 +66,8 @@ from each other. `editor/editor.go`, `braaam/editor/`,
   Java, Clojure, Haskell, Rust, Scheme and OCaml editors to them too.
 - `make whim-test-guest` holds the C core run as a virtual machine on KVM
   (`guest/`, `vmm/`, `hv/`, `doc/GUEST.md`) to them as well.
+- `make whim-test-guest-go TAMAGO_ROOT=...` holds the Go editor run as one,
+  built with TamaGo (`guest/tamago/`), to them too.
 - `make go-test` runs the Go packages' tests.
 
 ## Use
@@ -91,6 +93,7 @@ make bin/whimsical     # the Scheme editor (doc/SCHEME.md), compiled by Chez Sch
 make bin/whiml         # the OCaml editor (doc/OCAML.md), compiled by ocamlopt
 make bin/whim++        # the C++ editor (doc/CPP.md), compiled by g++ -std=c++23
 make bin/whim-guest    # the C core as a virtual machine on KVM (doc/GUEST.md): bin/whim-guest [args]
+make bin/whim-guest-go TAMAGO_ROOT=/path/to/tamago-go  # the Go editor as one, built with TamaGo
 make whim-test-java    # the quick suite with the Java editor too
 make whim-test-clj     # ... with the Clojure editor
 make whim-test-hs      # ... with the Haskell editor
@@ -99,6 +102,7 @@ make whim-test-scm     # ... with the Scheme editor
 make whim-test-ml      # ... with the OCaml editor
 make whim-test-cpp     # ... with the C++ editor
 make whim-test-guest   # ... with the core as a virtual machine
+make whim-test-guest-go TAMAGO_ROOT=/path/to/tamago-go  # ... with the Go editor as one
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make caprice.hsl       # the Haskell core as one ghc-lisp module (doc/GHC-LISP.md)
 make whim-vim.lc       # the C product as s-expressions, back byte for byte (doc/C-LISP.md)
@@ -176,7 +180,10 @@ so it also needs:
 
 The core as a virtual machine (`make bin/whim-guest`) needs **clang** (for
 x86-64 and AArch64), GNU **ld** (and `aarch64-none-elf-ld` for arm64), and
-`/dev/kvm` to run.
+`/dev/kvm` to run. The Go editor as one (`make bin/whim-guest-go`) needs
+**TamaGo** (github.com/usbarmory/tamago-go, the release matching `go.mod`'s
+Go), named by `TAMAGO_ROOT`; it fetches the module
+`github.com/usbarmory/tamago` once.
 
 The C front end is a fork of `modernc.org/cc/v4` carried as source, so after
 fetching the input nothing needs the network. The fork parses C23, which
@@ -206,6 +213,7 @@ whiml/           the editor in OCaml       wpp/      the editor in C++ (whim++)
 whiml/           the editor in OCaml
 hv/              a virtual machine as Hypervisor.framework shapes one, on KVM
 vmm/ guest/      the monitor that runs the core as a guest, and the guest's builder
+                 (guest/tamago/: the Go editor as a guest, a module built by TamaGo)
 src/             the input (fetched) and the product (tracked)
 doc/             GOALS.md (what holds for every phase, and the blocks),
                  AGENDA.md (what is not done), PIPELINE-REFORM.md (the
@@ -218,7 +226,8 @@ doc/             GOALS.md (what holds for every phase, and the blocks),
                  design, built), GRAPH-MIGRATION.md (every phase moved onto
                  it, and how to write one there), GUEST.md (the core as a
                  bare-metal guest: on KVM amd64 and arm64, built; on
-                 Hypervisor.framework, designed),
+                 Hypervisor.framework, designed; and the Go editor as one,
+                 on TamaGo),
                  PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
                  IR.md and IR-SCHEMA.md (an intermediate representation)
 CLAUDE.md        the working guide: the build, the pipeline, what to know

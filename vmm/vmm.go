@@ -44,12 +44,13 @@ const (
 	callTime
 	callRaise
 	callFault
+	callRandom // a Go guest's (vmm/tamago.go)
 	nCalls
 )
 
 var callNames = [nCalls]string{"", "host_init", "get_winsize", "term_start", "term_stop", "tty_keys",
 	"now_ms", "delay", "wait_for_input", "read_input", "suspend", "exit", "message", "alloc", "free",
-	"write", "time", "raise", "fault"}
+	"write", "time", "raise", "fault", "random"}
 
 // The call block, as guest/rt.c lays it out: nr, a[5], ret, event.
 const (
@@ -141,7 +142,7 @@ func newMachine(cfg Config) (*machine, error) {
 	if err != nil {
 		return nil, err
 	}
-	m := &machine{cfg: cfg, l: plan(im), stop: make(chan struct{})}
+	m := &machine{cfg: cfg, l: layoutFor(f, im), stop: make(chan struct{})}
 	m.mem, err = syscall.Mmap(-1, 0, int(m.l.size), syscall.PROT_READ|syscall.PROT_WRITE,
 		syscall.MAP_PRIVATE|syscall.MAP_ANON|syscall.MAP_NORESERVE)
 	if err != nil {
@@ -172,7 +173,7 @@ func newMachine(cfg Config) (*machine, error) {
 		m.close()
 		return nil, err
 	}
-	if err := setup(m.v, m.mem, m.l); err != nil {
+	if err := boot(m.v, m.mem, m.l); err != nil {
 		m.destroy()
 		return nil, err
 	}
@@ -359,6 +360,12 @@ func (m *machine) call(cb []byte) (code int, done bool, err error) {
 		h.Raise(int32(a[0]))
 	case callFault:
 		return 1, false, m.fault(describeFault(a))
+	case callRandom:
+		buf, ok := m.guest(a[0], a[1])
+		if !ok {
+			return 1, false, m.fault(fmt.Sprintf("random into %#x+%d, outside the guest's memory", a[0], a[1]))
+		}
+		ret = random(buf)
 	}
 	le.PutUint64(cb[cbRet:], uint64(ret))
 	for i := range a {

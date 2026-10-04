@@ -136,3 +136,37 @@ func parseStats(b []byte) map[string]uint64 {
 	}
 	return m
 }
+
+// THE GO GUEST (doc/GUEST.md, *A second guest*), on demand: `whim test
+// --guest-go`.  The Go editor, editor/ as it stands, built with TamaGo for
+// the monitor and appended to it -- held to the same: every case answered
+// as the C candidate answers it, and a control of its own, the launcher
+// with the one " INSERT" in its image changed.  TamaGo is $TAMAGO_ROOT's,
+// or root when given (--tamago).
+func buildGuestGo(root, dir string) (*jvmEditor, error) {
+	a := guest.Native()
+	e := &jvmEditor{name: "Go guest", where: "guest/tamago/, vmm/", file: "the image", launcher: "whim-guest-go",
+		frame: regexp.MustCompile(`$^`),
+		note:  "its control is the launcher with the image's one \" INSERT\" changed in its bytes"}
+	gocmd, err := guest.TamaGo(root)
+	if err != nil {
+		return nil, err
+	}
+	img, err := guest.GoImage(gocmd, a, filepath.Join(dir, "guest-go-image"))
+	if err != nil {
+		return nil, err
+	}
+	mon, err := guest.Monitor(a, filepath.Join(dir, "guest-go"))
+	if err != nil {
+		return nil, err
+	}
+	e.bin = filepath.Join(dir, "whim-guest-go")
+	if err := guest.Launcher(mon, img, e.bin); err != nil {
+		return nil, err
+	}
+	if e.ctl, err = patchControl(e.bin, dir, "whim-guest-go-control", []byte(" INSERT"), []byte(" INSERX")); err != nil {
+		return nil, err
+	}
+	e.report = guestExits
+	return e, nil
+}

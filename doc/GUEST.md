@@ -290,7 +290,7 @@ Edge, the Mac runs macOS. Milestones 1-3 and 5 go ahead; 4 waits.
   `qemu-system-aarch64 -machine virt,virtualization=on -cpu max`: real
   KVM/arm64 inside an emulated EL2, the real VMM and guest unchanged.
 
-## A second guest: the Go editor on TamaGo (an option, not scheduled)
+## A second guest: the Go editor on TamaGo (built: *As built*)
 
 Standard Go cannot build a guest: every `GOOS` assumes an operating system
 (threads, `mmap`, timers, signals), and bare-metal support is only proposed
@@ -322,7 +322,9 @@ guest is possible beside the C core:
   guest than the C core.
 
 Recommended order: the C core first (milestones 1-5), then this as a later
-milestone once the hypercall surface is proven on it.
+milestone once the hypercall surface is proven on it -- which is how it
+went: *As built*, *The second guest*.
+
 ## As built
 
 ### Milestone 1: a guest that writes and exits
@@ -486,6 +488,124 @@ lines 30; the pseudo-terminal 10, seen by 6 -- and the heavy case answers
 as the C does: C 5 s, the guest 11-12 s under emulation, its 20,786 exits
 9.3 s inside `KVM_RUN` and 2.0 s in the monitor.
 
+### The second guest: the Go editor on TamaGo
+
+*Built on amd64, the gate met.* TamaGo is installed at `/root/tamago-go`
+(tamago-go1.27.1, the system Go's release; `go tool dist list` has
+`tamago/amd64` and `tamago/arm64`), its module
+`github.com/usbarmory/tamago` v1.27.1 the runtime's `goos` overlay
+(`GOOSPKG`). It is not this repository's: the builder finds it by
+`TAMAGO_ROOT` (or `--tamago DIR`, `make ... TAMAGO_ROOT=...`), and without
+it fails saying so; a directory without `src/runtime/os_tamago.go` or
+`bin/go` is refused by name.
+
+*The pieces.* `guest/abi` is the ABI as Go constants -- the doorbell, the
+call numbers, the block -- importing nothing, so a `GOOS=tamago` build can
+use it; `vmm`'s `TestABI` holds the monitor's numbers to it. `guest/tamago/`
+is a module of its own (its `go.mod` replaces this one and `crefactor/` by
+path), so the main module's `go build ./...` never sees it and only
+TamaGo's toolchain builds it: `board/` the board, `main.go` the guest --
+`editor.Main` on a `Host` whose 15 methods are calls through the doorbell
+and whose `Exit` is the board's -- and `faulty/` a stand-in for the board's
+own paths. `go tool whim guest --go` (`make bin/whim-guest-go`) builds the
+image (`-ldflags "-T 0x201000 -R 0x1000"`: the first segment at the
+monitor's 2 MiB base; 6.2 MB, about 8 s) and appends it to the same
+monitor, `bin/whim-guest-go` (9.8 MB).
+
+*The boot path.* TamaGo's own amd64 `cpuinit` (`amd64/init.s`) expects to
+be entered in 32-bit protected mode (PVH, as QEMU's microvm board is) or in
+a long mode whose tables are its own: it points CR3 at 0x9000 and clears
+0x9000-0xd000 *before* it checks the mode, then rebuilds an identity map of
+1 GiB pages there -- which works under Firecracker only because
+Firecracker's 64-bit boot puts its tables at those same addresses. The
+monitor enters long mode with tables of its own (at 0x10000; text
+executable and read-only, data no-execute, page 0 and the doorbell
+unmapped), so the board brings its own `cpuinit`, the route TamaGo leaves
+open (`linkcpuinit`), and imports nothing of `tamago/amd64`: the monitor
+boots a Go image exactly as the C one -- the ELF's segments loaded, 64-bit
+ring 0, the GDT, TSS and IDT, the entry at the ELF's (`_rt0_amd64_tamago`)
+-- and tells it apart by the symbol `runtime/goos.RamStart`. What differs
+is the slot (`vmm/tamago.go`): one span read-write from the image's end to
+`GoRAMBytes` (3 GiB) above its base, the runtime's heap growing up from its
+`bss` (sbrk) and its first stack under the top, the vectors' stack (IST1)
+above that; no guard page, since Go's stacks check themselves. And four
+registers more at the entry (`guest/abi`): RDX `RamStart`, RCX `RamSize`,
+R8 `RamStackOffset`, R9 the TSC's rate in kHz (`KVM_GET_TSC_KHZ`,
+`hv.TSCFrequency`: amd64 has no register that says it).
+
+*The board's hooks* (`board/board.go`, `boot_amd64.s`):
+
+| hook | answered by |
+|---|---|
+| `CPUInit` | `cpuinit`: the entry's registers kept, SSE on (CR0.EM off, MP on, CR4.OSFXSR and OSXMMEXCPT -- not OSXSAVE, so the runtime finds no AVX and no extended state needs saving), the stack at `RamStart+RamSize-RamStackOffset`, `_rt0_tamago_start` |
+| `RamStart`, `RamSize`, `RamStackOffset` | the monitor's, in registers |
+| `Hwinit0` | nothing: the monitor set the machine up |
+| `Hwinit1` | `goos.Exit` and `goos.Idle` set |
+| `Nanotime` | the TSC, scaled by the rate the monitor said (32.32 fixed point) -- **in the guest**: the scheduler asks it often, and a call costs 16 µs here |
+| `Printk` | a line buffered, then `Message` to stderr -- **a call** |
+| `GetRandomData` | `Random`, a new call (19): the host's `crypto/rand` into guest memory -- **a call**, once a run |
+| `InitRNG` | nothing |
+| `Exit` | `Exit` -- **a call**, never resumed |
+| `Idle` | a spin to the scheduler's next timer: there are no interrupts, and the vCPU is stopped while a call is answered, so only a timer can make a goroutine runnable; with none it returns, and a deadlocked guest spins until the watchdog ends it |
+| exceptions | the monitor's IDT into `whim_vectors`, 32 stubs 16 bytes apart in the board's assembly, reporting by `Fault` as the C guest's vectors do |
+
+So the runtime needed nothing of the monitor but the one call `Random`
+and the TSC's rate: **one vCPU, no interrupts, no timer**. With TamaGo's
+single CPU (`GOMAXPROCS` 1, no `sysmon` on tamago), goroutines -- the
+collector's workers, the parallel `:%s`'s chunks (`editor.Chunks`) -- are
+scheduled cooperatively and the vCPU stops only in a call. Signals are the
+C guest's: the call's `event`, the editor's `deathtrap` run in the guest's
+`Host` and a wait or read made again (`whim_hcall`, in Go).
+
+*Gate met:* `go tool whim test --guest-go` (`make whim-test-guest-go`): 80
+of 80 answer exactly as the C does, its control (the launcher with the
+image's one `" INSERT"` changed in its bytes) seen by 76; `--wide
+--guest-go`: 240 of 240 (keys 102, ex 98, argv 30, pty 10), the control
+seen by 94, 0, 0 and 6 -- as the C guest's and the Go editor's. Exits:
+317,273 over the quick suite's 5,192 bytes of keys, 61.11 a key, 6.71 in
+the cases not `par_*` (the C guest's 317,193 and 6.68, and one `Random` a
+run); the wide suite 29,639, 5.75 a key. The heavy case: C 434-498 ms, the
+Go guest 744-780 ms (1.6-1.8x; the C guest 1.1-1.6x), every one of its 20,787
+exits a call; run by hand, 0.66-0.68 s inside `KVM_RUN` and 47-48 ms in
+the monitor -- the exits about 0.33 s of it, as the C guest's -- against
+the native Go editor's 0.21-0.25 s on all 64 cores and 0.24-0.26 s at
+`GOMAXPROCS=1`; 55 MB resident against the C's 29 and the native Go's
+44-52. A start and `:q!` is 40 ms and 35 MB. `guest`'s `TestGoGuest` (the
+guest on a recording host writes exactly the bytes and exit code the native
+Go editor does on it) and `TestGoGuestFault` (a null store a Fault through
+the board's vectors, vector 14 at address 0; a panic the runtime's report
+on the console and exit 2; a spin ended by the watchdog) run when
+`TAMAGO_ROOT` is set and skip otherwise. `go vet` and staticcheck, run with
+TamaGo's toolchain (`GOROOT=/root/tamago-go`, `GOOS=tamago`), are clean on
+the module for amd64 and arm64.
+
+*arm64: built, not booted.* `board/boot_arm64.s` is the same board for
+arm64 -- `cpuinit` keeping X0-X4 (argc, argv, `RamStart`, `RamSize`,
+`RamStackOffset`), FP and SIMD on (`CPACR_EL1.FPEN`), the counter's rate
+from `CNTFRQ_EL0` and its value from `CNTVCT_EL0`, the doorbell one `STR`
+from X0 (checked in the image: `str x0, [x1]`), `whim_vectors` 16 entries
+of 128 bytes at a 2 KiB boundary -- and `vmm/tamago_arm64.go` sets the
+three registers past the C guest's. `go tool whim guest --go --arch arm64`
+builds it (its segments at 2 MiB, as amd64's). It was not run: by reading,
+it fits the arm64 backend's setup -- EL1t on `SP_EL0` with D, A, I and F
+masked, the MMU on over a 32-bit space (3 GiB above 2 MiB fits under the
+doorbell), `VBAR_EL1` at `whim_vectors`, the store's PC handling the C
+guest's -- and TamaGo's arm64 rt0 needs nothing more (`g` in R28, no TLS
+register, no EL change: its own `cpuinit` drops from EL3 or EL2, and turns
+the MMU *off*, which ours does not). The gate for it is the C guest's
+milestone 3, in the aarch64 VM.
+
+*What remains.* The parallel `:%s` on several vCPUs (the stretch, not
+done): TamaGo's SMP is `goos.Task` (start an M on another CPU),
+`goos.ProcID` and `goos.Wake`; here that is the monitor creating N vCPUs,
+each on a locked thread with an exit loop of its own and `Host` calls
+serialized, a call block per CPU (found by `ProcID`), `Task` a call that
+hands an idle vCPU the M's stack and entry, and `Idle`/`Wake` a park and a
+kick (a call that blocks in the monitor until another vCPU's wake) since
+there are no IPIs. Worth measuring against the heavy case's matching, which
+is a small part of its 0.75 s here: the exits are 0.33 s of it, and the
+merged wait-and-read (below) would halve those first.
+
 ## Running on the Mac
 
 Milestone 4's groundwork is done here, so that on the M2 Max only building,
@@ -642,7 +762,9 @@ the signature and its entitlement -- and so milestone 4's gate: the suite,
   editor's host shares, for the guest's sake alone.
 - The parallel `:%s` of the translated editors on several vCPUs: a fork/join
   in shared memory with a halt-and-kick protocol, with no new hypercall --
-  worth it only once a single vCPU is measured.
+  worth it only once a single vCPU is measured. *Measured* on the Go guest
+  (*The second guest*): one vCPU, 1.6-1.8x the C in the heavy case, 0.33 s of
+  it exits; its SMP design is there, as the next step.
 - Where does the guest's C reference come from on the Mac for the suite:
   `whim-vim.c` built there (its host region is POSIX), or outputs recorded
   here? *The aarch64 VM answered it one way:* the C built where the guest

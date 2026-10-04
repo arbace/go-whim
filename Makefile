@@ -443,6 +443,19 @@ bin/whim-guest-arm64: src/whim-vim.c force  ## the same for arm64, built here, r
 whim-test-guest:  ## the quick suite with the guest editor too, on KVM, required to answer as the C does
 	@go tool whim test --guest
 
+# The second guest (doc/GUEST.md, *A second guest*): the Go editor, editor/
+# as it stands, built with TamaGo (GOOS=tamago, guest/tamago/, a module of
+# its own) and appended to the same monitor.  TamaGo is not this
+# repository's: TAMAGO_ROOT names its distribution (here /root/tamago-go),
+# and the build fails saying so when it is not set.
+TAMAGO_ROOT ?=
+.PHONY: bin/whim-guest-go whim-test-guest-go
+bin/whim-guest-go: force  ## the Go editor as a virtual machine on KVM, built with TamaGo (TAMAGO_ROOT=.../tamago-go)
+	@go tool whim guest --go $(if $(TAMAGO_ROOT),--tamago $(TAMAGO_ROOT))
+
+whim-test-guest-go:  ## the quick suite with the Go guest too (TAMAGO_ROOT=.../tamago-go), required to answer as the C does
+	@go tool whim test --guest-go $(if $(TAMAGO_ROOT),--tamago $(TAMAGO_ROOT))
+
 # ==== the tests
 .PHONY: whim-test
 whim-test:  ## the quick suite: 80 key sessions, required to behave as HEAD's whim-vim.c does
