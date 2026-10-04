@@ -240,3 +240,15 @@ func BuildHello(a Arch, dir, out string) error {
 	}
 	return Launcher(mon, img, out)
 }
+
+// Runtime is the runtime's sources, concatenated: part of what an image is
+// built from, for a cache's key.
+func Runtime() []byte {
+	var b bytes.Buffer
+	for _, n := range []string{"rt.c", "hello.c", "entry_amd64.S", "entry_arm64.S", "link_amd64.ld", "link_arm64.ld"} {
+		s, _ := sources.ReadFile("rt/" + n)
+		b.Write(s)
+	}
+	b.WriteString(strings.Join(cflags, " "))
+	return b.Bytes()
+}

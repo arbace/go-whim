@@ -333,6 +333,49 @@ exits for its 2 calls, and `hv`'s tests run a real-mode guest of 11 bytes:
 a store where no memory is, reported as a 4-byte data abort from RAX with
 RIP past it, a halt, and a spin ended by `VCPUsExit`.
 
+### Milestone 2: the core on KVM amd64
+
+`guest.Source` is the guest's one translation unit: the core as `whim.Cut`
+cuts it, the C host's `vim_snprintf` and its helpers (the host from its
+`#include`s to its first object of the system's, which call nothing but the
+core; its `static_assert`s on the system's headers left out), and
+`guest/rt/rt.c`, which defines the core's 17 host functions: 15 as calls
+through the doorbell, `host_alloc` and `host_free` as the C host's own bump
+arena of 1 GiB over the heap the monitor hands the entry (zero, committed on
+first touch, exhausted in the C's words). One unit because the core
+declares its host functions `static`. It is compiled by clang 23 at `-O2`,
+`-ffreestanding -fno-builtin -nostdlib -mgeneral-regs-only -mno-red-zone
+-fno-pic`, no stack protector and no unwind tables; `-mcmodel=small`, not
+`kernel`, since the image is linked low, at 2 MiB (`rt/link_amd64.ld`, one
+segment each for text, read-only data and data). 11 s of clang, 20 s with
+the monitor. The image is 0.9 MB; the launcher, `bin/whim-guest`, is the
+monitor with it appended (4.2 MB). The C's `-O0` is the reference; the
+guest is held to behaviour, not to its code.
+
+Signals: the monitor's host is `editor/term`, as `bin/whim`'s; its
+`deathtrap` callback panics with the signal, which the call's dispatch
+recovers into the call block's `event`, and the runtime calls the core's
+`deathtrap` on the way back -- where the C handler would have run; a wait or
+read is made again when it returns (the signal blocked). SIGTERM at the
+start screen: the guest prints the C's bytes, "Vim: Caught deadly signal
+TERM", and exits 1 as the C does. An exception the guest takes goes through
+its IDT (every gate on IST1, so a stack overflow is reported too) to
+`whim_fault`, which makes a call of its own; the monitor prints it and the
+process dies of SIGSEGV, as the C would (`guest`'s `TestFault`: a null
+store, and a recursion through the guard page under the 64 MiB stack).
+
+*Gate met:* `go tool whim test --guest`: 80 of 80 cases answer exactly as
+the C does, its control (the launcher with its one `" INSERT"` changed in
+its bytes) seen by 76; `--wide --guest`: 240 of 240 (keys 102, ex 98, argv
+30, pty 10), its control seen by 94, 0, 0 and 6 -- as the Go editor's.
+The heavy case: C 430-584 ms, the guest 529-672 ms (1.1-1.6x); of the
+guest's 0.64 s, 0.56 s is inside `KVM_RUN` and 47 ms in the monitor, for
+20,786 exits -- every one a call, 10,370 of them `wait_for_input` and as
+many `read_input`, the C's own `select` and `read` calls. Exits a key: 61
+over the quick suite's 5,192 bytes of keys (317,193 exits, 112,331 reads),
+whose `par_*` cases print 3,000 lines after each command; 6.7 in the
+others: a key costs a wait and a read, and the screen's update one write.
+
 ## Open questions
 
 - Is one 4 GiB lazily committed slot enough, or should the allocator ask the

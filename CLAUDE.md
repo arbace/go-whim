@@ -248,6 +248,13 @@ slim-vim.c  --whim-->  whim-vim.c
   way, its control `" INSERT"` changed in the generated `editor.cpp`; it
   answers all 80 and all 240 as the C does, its two builds kept in
   `.cache/wpp-suite/`.
+  **`--guest`** adds the editor as a VIRTUAL MACHINE (`guest/`, `vmm/`,
+  `hv/`, `doc/GUEST.md`): the core compiled freestanding into a guest image
+  that the monitor runs on KVM, its host calls hypercalls answered by
+  `editor/term`, its control the launcher with its image's one `" INSERT"`
+  changed; it answers all 80 and all 240 as the C does, and reports the
+  exits a key costs (61 over the quick suite, 6.7 without its `par_*`
+  cases), its image kept in `.cache/guest-suite/`.
   Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
@@ -270,6 +277,7 @@ slim-vim.c  --whim-->  whim-vim.c
   already, `--haskell-bin`'s, is timed but not held to it: the `-O0`
   ghc-lisp caprice 81-84) -- measured,
   C++ 0.2-0.3, Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
+  Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, the guest 1.1-1.6 (its 20,786 exits, every one a hypercall), Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
   its big functions were compiled sooner, `doc/CLOJURE-PROFILE.md`) since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
   huge-method limit left on, which is what it refuses.
@@ -695,6 +703,27 @@ wpp/               whim++, the editor in C++ (doc/CPP.md), g++ 15 -std=c++23;
                    into lib/wpp and the program bin/whim++); wpp_test.go
                    the layout test and testdata/instances/main.cpp, four
                    editors at once on threads, compiled against lib/wpp
+hv/                a virtual machine as Apple's Hypervisor.framework shapes one
+                   (doc/GUEST.md, *Decided*): its arm64 C API one Go function
+                   for one C function (VMCreate, VMMap, VCPUCreate and its
+                   exit record, VCPURun, VCPUsExit, Get/SetReg, Get/SetSysReg),
+                   Apple's register names and values (regs_arm64.go; amd64's
+                   x86 names behind the same shape, regs_amd64.go); the KVM
+                   backend by raw ioctl, no cgo (kvm_linux*.go), which reports
+                   an MMIO store as the framework's data abort; hvf_darwin.go
+                   the framework's cgo written out, built by nothing (tag hvf)
+vmm/               the monitor: the guest's ELF in one slot, identity-mapped
+                   with each segment's permissions (layout.go), the vCPU set
+                   in the mode the core runs in (setup_<isa>.go), the exit
+                   loop answering each doorbell store by a call of
+                   editor.Host (vmm.go); cmd/whim-guest the launcher, the
+                   image appended to it, run on editor/term
+guest/             the guest image's builder (`go tool whim guest`): the core
+                   cut, the C host's vim_snprintf and rt/ -- rt.c the
+                   runtime (15 hypercalls, the C host's arena, the fault
+                   report), entry_<isa>.S the entry and the vectors,
+                   link_<isa>.ld, hello.c milestone 1's stand-in -- compiled
+                   freestanding by clang into one ELF
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),
@@ -742,10 +771,11 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    read-only), GRAPH-MIGRATION.md (every phase classified
                    for the move to the graph, the recipe for converting --
                    or writing -- a phase on it, and each batch as built, to
-                   the last: every phase on the graph), GUEST.md (a design,
-                   nothing built: the core as a bare-metal guest on KVM,
-                   amd64 and arm64, and on Hypervisor.framework, its host
-                   functions as hypercalls to a small VMM)
+                   the last: every phase on the graph), GUEST.md (the core as
+                   a bare-metal guest on KVM, amd64 and arm64, and on
+                   Hypervisor.framework, its host functions as hypercalls
+                   to a small VMM: the design, its decisions and its
+                   milestones as built)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -795,6 +825,9 @@ make bin/whiml        # the editor in OCaml: the module Editor generated, compil
 make whim-test-ml     # the quick suite with the OCaml editor too (whim test --ocaml; --wide --ocaml)
 make bin/whim++       # the editor in C++: editor.hpp and editor.cpp generated, compiled by g++ -O2 (35-40 s and 0.34 GB when the core moved; its time and peak printed)
 make whim-test-cpp    # the quick suite with the C++ editor too (whim test --cpp; --wide --cpp)
+make bin/whim-guest   # the editor as a virtual machine on KVM: the core a freestanding guest image appended to the monitor (20 s)
+make whim-test-guest  # the quick suite with the guest editor too (whim test --guest; --wide --guest)
+go tool whim guest --hello  # milestone 1's guest: "hello", exit 3, one exit a call
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make caprice.hsl      # the Haskell core as one ghc-lisp module, checked, compiled, and the program run on the quick suite (GHCLISP_ROOT=.../ghc-lisp; doc/GHC-LISP.md)
 make whim-vim.lc      # the C product as s-expressions (C-lisp): back byte for byte, compiled to bin/whim-vim's bytes (7 s; doc/C-LISP.md)
@@ -984,6 +1017,7 @@ was the input boundary's digest and the implementation's together, so a moved
 between the editor core and its host**, marked by nothing else. `internal/whim`'s
 `Cut` cuts there -- every translation cuts the core for itself (`whim gen`,
 `whim java`, `whim clj`, `whim caprice`, `whim whimsy`, `whim whimsical`, `whim whiml`, `whim wpp`), and `go tool whim cut` prints it: a complete translation unit with 0 preprocessor lines, 0 errors under
+`whim java`, `whim clj`, `whim caprice`, `whim whimsy`, `whim whimsical`, `whim whiml`, `whim guest`), and `go tool whim cut` prints it: a complete translation unit with 0 preprocessor lines, 0 errors under
 `-fsyntax-only`, and an interface of exactly the names the host defines --
 computed, never listed. The core names no libc function at all, holds no file
 descriptor of its own, and uses no floating point. `GOALS.md` §II.4 is the

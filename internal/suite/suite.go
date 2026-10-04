@@ -145,6 +145,11 @@ const pinnedTime = "WHIM_TIME=1790000000"
 
 // runLimit is RunArgs with the time after which the editor is killed.
 func runLimit(bin string, args []string, keys []byte, limit time.Duration) ([]byte, int, error) {
+	return runEnv(bin, args, keys, limit, nil)
+}
+
+// runEnv is runLimit with more of the environment.
+func runEnv(bin string, args []string, keys []byte, limit time.Duration, env []string) ([]byte, int, error) {
 	// THE KEYS ARE A FILE, NOT A PIPE.  The editor asks whether more typed input
 	// is waiting when it decides whether to redraw, and through a pipe the answer
 	// is how much the feeding goroutine has written by then: under load the
@@ -163,7 +168,7 @@ func runLimit(bin string, args []string, keys []byte, limit time.Duration) ([]by
 		return nil, -1, err
 	}
 	cmd := exec.Command(bin, args...)
-	cmd.Env = append(os.Environ(), pinnedTime)
+	cmd.Env = append(append(os.Environ(), pinnedTime), env...)
 	cmd.Stdin = in
 	// ITS OWN PROCESS GROUP.  `:suspend` and `:stop` signal the editor's whole group,
 	// and in ours that stops the test and the shell that ran it.  And it dies
@@ -326,6 +331,8 @@ type JVM struct {
 	OCaml whiml.Gen
 	// Cpp, when set, writes the C++ of a core: --cpp
 	Cpp wpp.Gen
+	// Guest runs the core as a virtual machine on KVM (guest/, vmm/): --guest
+	Guest bool
 	// HaskellBin, a caprice program built already, is run as the Haskell
 	// editor instead of one built from the candidate: --haskell-bin PATH.
 	// Its control is the same program with the one copy of the control's
@@ -399,6 +406,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 		},
 	}
 	var java, clj, hs, rs, scm, ml, cpp *jvmEditor
+	var java, clj, hs, rs, scm, ml, gst *jvmEditor
 	if jvm.HaskellBin != "" {
 		jobs = append(jobs, func() (err error) { hs, err = prebuiltHaskell(jvm.HaskellBin, dir); return })
 	} else if jvm.Haskell != nil {
@@ -419,6 +427,8 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 	}
 	if jvm.Cpp != nil {
 		jobs = append(jobs, func() (err error) { cpp, err = buildCpp(jvm.Cpp, candSrc); return })
+	if jvm.Guest {
+		jobs = append(jobs, func() (err error) { gst, err = buildGuest(candSrc, dir); return })
 	}
 	if jvm.Java != nil {
 		jobs = append(jobs, func() (err error) { java, err = buildJava(jvm.Java, candSrc, dir); return })
@@ -442,6 +452,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 		}
 	}
 	for _, e := range []*jvmEditor{java, clj, hs, rs, scm, ml, cpp} {
+	for _, e := range []*jvmEditor{java, clj, hs, rs, scm, ml, gst} {
 		if e != nil {
 			e.limit = jvm.limit()
 			b.jvm = append(b.jvm, e)

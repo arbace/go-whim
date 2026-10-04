@@ -62,6 +62,10 @@ from each other. `editor/editor.go`, `braaam/editor/`,
   `make whim-test-rs`, `make whim-test-scm`, `make whim-test-ml` and `make
   whim-test-cpp` hold the Java, Clojure, Haskell, Rust, Scheme, OCaml and C++
   editors to them too.
+  `make whim-test-rs`, `make whim-test-scm` and `make whim-test-ml` hold the
+  Java, Clojure, Haskell, Rust, Scheme and OCaml editors to them too.
+- `make whim-test-guest` holds the C core run as a virtual machine on KVM
+  (`guest/`, `vmm/`, `hv/`, `doc/GUEST.md`) to them as well.
 - `make go-test` runs the Go packages' tests.
 
 ## Use
@@ -86,6 +90,7 @@ make bin/whimsy        # the Rust editor (doc/RUST.md), compiled by cargo, offli
 make bin/whimsical     # the Scheme editor (doc/SCHEME.md), compiled by Chez Scheme
 make bin/whiml         # the OCaml editor (doc/OCAML.md), compiled by ocamlopt
 make bin/whim++        # the C++ editor (doc/CPP.md), compiled by g++ -std=c++23
+make bin/whim-guest    # the C core as a virtual machine on KVM (doc/GUEST.md): bin/whim-guest [args]
 make whim-test-java    # the quick suite with the Java editor too
 make whim-test-clj     # ... with the Clojure editor
 make whim-test-hs      # ... with the Haskell editor
@@ -93,6 +98,7 @@ make whim-test-rs      # ... with the Rust editor
 make whim-test-scm     # ... with the Scheme editor
 make whim-test-ml      # ... with the OCaml editor
 make whim-test-cpp     # ... with the C++ editor
+make whim-test-guest   # ... with the core as a virtual machine
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make caprice.hsl       # the Haskell core as one ghc-lisp module (doc/GHC-LISP.md)
 make whim-vim.lc       # the C product as s-expressions, back byte for byte (doc/C-LISP.md)
@@ -168,6 +174,10 @@ so it also needs:
   ocamlfind or opam;
 - **g++ 15** (`-std=c++23`) and its libstdc++.
 
+The core as a virtual machine (`make bin/whim-guest`) needs **clang** (for
+x86-64 and AArch64), GNU **ld** (and `aarch64-none-elf-ld` for arm64), and
+`/dev/kvm` to run.
+
 The C front end is a fork of `modernc.org/cc/v4` carried as source, so after
 fetching the input nothing needs the network. The fork parses C23, which
 upstream's parser does not wholly: `crefactor/c23conf` holds it, the
@@ -193,6 +203,9 @@ editor/          the editor in Go          braaam/   the editor in Java
 vijure/          the editor in Clojure     caprice/  the editor in Haskell
 whimsy/          the editor in Rust        whimsical/ the editor in Scheme
 whiml/           the editor in OCaml       wpp/      the editor in C++ (whim++)
+whiml/           the editor in OCaml
+hv/              a virtual machine as Hypervisor.framework shapes one, on KVM
+vmm/ guest/      the monitor that runs the core as a guest, and the guest's builder
 src/             the input (fetched) and the product (tracked)
 doc/             GOALS.md (what holds for every phase, and the blocks),
                  AGENDA.md (what is not done), PIPELINE-REFORM.md (the
@@ -204,7 +217,8 @@ doc/             GOALS.md (what holds for every phase, and the blocks),
                  GRAPH.md (the program as a graph, its views as Lisp: the
                  design, built), GRAPH-MIGRATION.md (every phase moved onto
                  it, and how to write one there), GUEST.md (the core as a
-                 bare-metal guest on KVM and Hypervisor.framework: a design),
+                 bare-metal guest: on KVM amd64, built; on
+                 Hypervisor.framework, designed),
                  PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
                  IR.md and IR-SCHEMA.md (an intermediate representation)
 CLAUDE.md        the working guide: the build, the pipeline, what to know

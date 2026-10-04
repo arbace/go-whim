@@ -427,6 +427,17 @@ bin/whim++: src/whim-vim.c force  ## the editor in C++: editor.hpp and editor.cp
 .PHONY: whim-test-cpp
 whim-test-cpp:  ## the quick suite with the C++ editor too, required to answer as the C does
 	@go tool whim test --cpp
+# The editor as a virtual machine (guest/, vmm/, doc/GUEST.md): the core cut
+# from src/whim-vim.c, compiled freestanding by clang with the guest runtime
+# into an image, appended to the monitor, which runs it on KVM.  Twenty
+# seconds.
+.PHONY: bin/whim-guest
+bin/whim-guest: src/whim-vim.c force  ## the editor as a virtual machine on KVM: the core a guest image, the monitor its host
+	@go tool whim guest
+
+.PHONY: whim-test-guest
+whim-test-guest:  ## the quick suite with the guest editor too, on KVM, required to answer as the C does
+	@go tool whim test --guest
 
 # ==== the tests
 .PHONY: whim-test

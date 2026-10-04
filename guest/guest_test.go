@@ -2,6 +2,7 @@ package guest
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"os/exec"
 	"strings"
@@ -68,5 +69,52 @@ func TestHello(t *testing.T) {
 	}
 	if !strings.HasPrefix(stats.String(), "exits 2 ") || !strings.Contains(stats.String(), "calls 2\n") {
 		t.Fatalf("not one exit per call:\n%s", stats.String())
+	}
+}
+
+// faulty stands in for the core with the two faults the C editor would die
+// of a SIGSEGV for: a null pointer written, and a stack run through its
+// guard page.
+const faulty = `
+static int vim_main(int argc, char **argv);
+static void deathtrap(int sigarg) { (void)sigarg; }
+static int deep(volatile char *p) { volatile char b[4096]; b[0] = *p; return deep(b) + b[1]; }
+static int
+vim_main(int argc, char **argv)
+{
+    if (argc > 1 && argv[1][0] == 'd')
+        return deep("x");
+    *(volatile int *)0 = 1;
+    return 0;
+}
+`
+
+// TestFault: an exception the guest takes is reported by the runtime's own
+// call and ends the run as a Fault: a page fault, vector 14, at the address
+// it touched; and the stack's overflow too, on the vectors' stack.
+func TestFault(t *testing.T) {
+	a := Native()
+	needTools(t, a)
+	rt, err := sources.ReadFile("rt/rt.c")
+	if err != nil {
+		t.Fatal(err)
+	}
+	img, err := Image(append([]byte(faulty), rt...), a, t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct{ arg, want string }{
+		{"null", "exception 14 (code 0x2)"},
+		{"deep", "exception 14 (code 0x2)"},
+	} {
+		_, err := vmm.Run(vmm.Config{Image: img, Host: &recorder{}, Args: []string{"faulty", c.arg}})
+		var f *vmm.Fault
+		if !errors.As(err, &f) || !strings.Contains(f.Msg, c.want) {
+			t.Fatalf("%s: %v, not a fault with %q", c.arg, err, c.want)
+		}
+		if c.arg == "null" && !strings.Contains(f.Msg, "address 0x0") {
+			t.Fatalf("%s: %s", c.arg, f.Msg)
+		}
+		t.Logf("%s: %s", c.arg, f.Msg)
 	}
 }

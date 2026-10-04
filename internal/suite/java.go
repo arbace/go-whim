@@ -35,14 +35,15 @@ const javaControlOld, javaControlNew = `" INSERT"`, `" INSERX"`
 // A jvmEditor is an editor on the JVM the suite built from the candidate,
 // and its control: the Java's or the Clojure's.
 type jvmEditor struct {
-	name, where string         // "Java", "braaam/"
-	file        string         // the generated file its control changes
-	launcher    string         // the name its launcher reports a failure under
-	frame       *regexp.Regexp // a frame of the core; its function the first group
-	bin, ctl    string         // the two launchers
-	limit       time.Duration  // how long one run may take (JVM.Limit)
-	note        string         // what its control is, when not the generated file changed
-	prebuilt    bool           // a program built already (--haskell-bin), not by the suite
+	name, where string                                                                // "Java", "braaam/"
+	file        string                                                                // the generated file its control changes
+	launcher    string                                                                // the name its launcher reports a failure under
+	frame       *regexp.Regexp                                                        // a frame of the core; its function the first group
+	bin, ctl    string                                                                // the two launchers
+	limit       time.Duration                                                         // how long one run may take (JVM.Limit)
+	note        string                                                                // what its control is, when not the generated file changed
+	prebuilt    bool                                                                  // a program built already (--haskell-bin), not by the suite
+	report      func(w io.Writer, label string, e *jvmEditor, cases []WideCase) error // more to say after the cases
 }
 
 // buildJava builds the Java editor from candSrc, and its control, under dir.
@@ -258,6 +259,9 @@ func checkJVM(w io.Writer, label string, groups []string, cases []WideCase, b *b
 	if nSeen == 0 {
 		return fmt.Errorf("suite: THE %s CONTROL WENT UNSEEN -- %s changed to %s in %s and no case of the %s editor noticed",
 			strings.ToUpper(e.name), javaControlOld, javaControlNew, e.file, e.name)
+	}
+	if e.report != nil {
+		return e.report(w, label, e, cases)
 	}
 	return nil
 }
