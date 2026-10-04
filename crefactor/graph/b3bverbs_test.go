@@ -94,8 +94,8 @@ func TestB3bCuts(t *testing.T) {
 	sameAsText(t, b3bSample, func(s []byte) ([]byte, error) {
 		return []byte(strings.Replace(string(s), "    a = 6;\n    {\n        a = 5;\n    }\n", "", 1)), nil
 	}, func(v *Verbs) { v.CutRun("two", "(= a 6)", "(block (= a 5))") })
-	refuses(t, b3bSample, func(v *Verbs) { v.CutRun("not a run", "(= a 6)", "(= a 5)") }, "the run's item 2 is not (= a 5)")
-	refuses(t, b3bSample, func(v *Verbs) { v.CutRun("twice", "(= a 5)") }, "the run's first item matches 2 items")
+	refuses(t, b3bSample, func(v *Verbs) { v.CutRun("not a run", "(= a 6)", "(= a 5)") }, "the run of 2 items occurs 0 times")
+	refuses(t, b3bSample, func(v *Verbs) { v.CutRun("twice", "(= a 5)") }, "the run of 1 items occurs 2 times")
 }
 
 // Muted: the acts made, nothing reported, a refusal carried.
