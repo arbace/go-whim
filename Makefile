@@ -430,10 +430,14 @@ whim-test-cpp:  ## the quick suite with the C++ editor too, required to answer a
 # The editor as a virtual machine (guest/, vmm/, doc/GUEST.md): the core cut
 # from src/whim-vim.c, compiled freestanding by clang with the guest runtime
 # into an image, appended to the monitor, which runs it on KVM.  Twenty
-# seconds.
-.PHONY: bin/whim-guest
+# seconds; bin/whim-guest-arm64 is the same for arm64, built here and run
+# on an arm64 Linux with KVM.
+.PHONY: bin/whim-guest bin/whim-guest-arm64
 bin/whim-guest: src/whim-vim.c force  ## the editor as a virtual machine on KVM: the core a guest image, the monitor its host
 	@go tool whim guest
+
+bin/whim-guest-arm64: src/whim-vim.c force  ## the same for arm64, built here, run on an arm64 Linux with KVM (doc/GUEST.md, milestone 3)
+	@go tool whim guest --arch arm64
 
 .PHONY: whim-test-guest
 whim-test-guest:  ## the quick suite with the guest editor too, on KVM, required to answer as the C does

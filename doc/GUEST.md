@@ -381,6 +381,54 @@ over the quick suite's 5,192 bytes of keys (317,193 exits, 112,331 reads),
 whose `par_*` cases print 3,000 lines after each command; 6.7 in the
 others: a key costs a wait and a read, and the screen's update one write.
 
+
+### Milestone 3: the arm64 image, on KVM/arm64
+
+`hv/kvm_linux_arm64.go` is the arm64 backend: every register through
+`KVM_GET/SET_ONE_REG`, an `HV_SYS_REG_*` value ORed into KVM's sysreg id
+(the two pack op0, op1, CRn, CRm and op2 alike), and the four KVM keeps
+among its core registers (`SP_EL0`, `SP_EL1`, `ELR_EL1`, `SPSR_EL1`)
+mapped there. The framework leaves PC on a store that exits and the monitor
+moves it; KVM moves it itself when the vCPU next runs. So while an MMIO
+exit is pending, PC reads as the store's address, a PC set is written 4
+short of where it is to land (nothing is written when it is the store's
+next instruction), and a PC left alone is put back on the store, which is
+made again -- the framework's behaviour (`TestStoreAgainARM64`). KVM does
+not say which register a store read; the ABI stores from X0, which is read
+and checked against the value KVM reports. A call costs three ioctls:
+`KVM_RUN`, X0 read, PC read. `vmm/setup_arm64.go` boots the image at EL1t
+with the MMU on: 3-level tables for a 32-bit space (4 KiB granule, 2 MiB
+blocks; the doorbell's page Device-nGnRE), `MAIR_EL1` 0x04ff, `TCR_EL1`
+T0SZ 32 with TTBR1 walks off, `SCTLR_EL1` M, C and I, the stack on
+`SP_EL0` and the vectors (`VBAR_EL1`, `rt/entry_arm64.S`) on `SP_EL1`, so a
+fault in the stack's guard page is reported. The image is built here by
+clang `--target=aarch64-none-elf -mgeneral-regs-only` and
+`aarch64-none-elf-ld` (`go tool whim guest --arch arm64`, `make
+bin/whim-guest-arm64`), and the monitor by `GOARCH=arm64 CGO_ENABLED=0`.
+
+How it was run: Alpine Edge's aarch64 netboot files (`vmlinuz-virt`,
+`initramfs-virt`, `modloop-virt`, Linux 6.18.42) from dl-cdn.alpinelinux.org,
+booted by `qemu-system-aarch64 -machine virt,virtualization=on,gic-version=3
+-cpu max -accel tcg,thread=multi -smp 8 -m 6144` with an apkovl whose local
+service fetches shell jobs over HTTP from the host and posts their output
+back. Its kernel starts at EL2 and runs KVM in VHE mode ("VHE mode
+initialized successfully"); `/dev/kvm` is there. gcc and musl-dev were
+installed in it (`apk add`) to build the C reference with the one compile
+line (70 s under emulation). `hv`'s arm64 tests and `internal/suite`'s
+`TestGuestPrebuilt` -- the quick suite's cases on a C editor and a guest
+launcher built already, the control the launcher with its image's
+`" INSERT"` changed -- are cross-compiled here (`GOARCH=arm64 go test -c`)
+and run there.
+
+*Gate met:* inside that VM the quick suite's 80 cases answer exactly as the
+C built there does, the control seen by 76 (the guest's runs 266 s of the
+test's 449 s); the exits are the amd64 guest's to the count: 317,193, 61.09
+a key, 6.68 without the `par_*` cases. `hv`'s three arm64 tests pass: two
+doorbell stores decoded as 8-byte data aborts from X0 with PC on each and
+moved by the monitor, a spin ended by `VCPUsExit`, a store made again when
+PC is left alone, and Apple's encodings reaching KVM's registers.
+`bin/whim-guest-hello` for arm64 prints "hello" and exits 3.
+
 ## Open questions
 
 - Is one 4 GiB lazily committed slot enough, or should the allocator ask the

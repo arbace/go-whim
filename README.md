@@ -217,7 +217,7 @@ doc/             GOALS.md (what holds for every phase, and the blocks),
                  GRAPH.md (the program as a graph, its views as Lisp: the
                  design, built), GRAPH-MIGRATION.md (every phase moved onto
                  it, and how to write one there), GUEST.md (the core as a
-                 bare-metal guest: on KVM amd64, built; on
+                 bare-metal guest: on KVM amd64 and arm64, built; on
                  Hypervisor.framework, designed),
                  PARALLEL-SUBSTITUTE.md (how much of a :%s is matching),
                  IR.md and IR-SCHEMA.md (an intermediate representation)

@@ -827,6 +827,7 @@ make whim-test-ml     # the quick suite with the OCaml editor too (whim test --o
 make bin/whim++       # the editor in C++: editor.hpp and editor.cpp generated, compiled by g++ -O2 (35-40 s and 0.34 GB when the core moved; its time and peak printed)
 make whim-test-cpp    # the quick suite with the C++ editor too (whim test --cpp; --wide --cpp)
 make bin/whim-guest   # the editor as a virtual machine on KVM: the core a freestanding guest image appended to the monitor (20 s)
+make bin/whim-guest-arm64  # the same for arm64, built here, run on an arm64 Linux with KVM (doc/GUEST.md, milestone 3: the quick suite in an emulated Alpine aarch64 VM)
 make whim-test-guest  # the quick suite with the guest editor too (whim test --guest; --wide --guest)
 go tool whim guest --hello  # milestone 1's guest: "hello", exit 3, one exit a call
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
