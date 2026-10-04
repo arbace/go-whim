@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/arbace/go-whim/crefactor/cemit"
+	"github.com/arbace/go-whim/crefactor/graph"
 )
 
 // Canonical is the canonical print as a step: the text in the one C23
@@ -49,4 +51,28 @@ func Seed(src []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("cemit: %w", err)
 	}
 	return out, nil
+}
+
+// SeedGraph is the seed of a plan whose phase 0 begins on the graph: the
+// input IMPORTED, not printed and imported again -- the importer's C view
+// is cemit's canonical print, byte for byte (measured on slim-vim.c), so
+// the text it returns is Seed's and the graph is the import of it.  path
+// is the name the input is parsed under.
+func SeedGraph(src []byte, path string, w io.Writer) (*graph.Graph, []byte, time.Duration, error) {
+	if w == nil {
+		w = io.Discard
+	}
+	start := time.Now()
+	g, _, err := graph.Import(path, src)
+	if err != nil {
+		return nil, nil, 0, fmt.Errorf("import: %w", err)
+	}
+	d := time.Since(start)
+	out, err := g.C()
+	if err != nil {
+		return nil, nil, 0, fmt.Errorf("the C view: %w", err)
+	}
+	fmt.Fprintf(w, "  canonical    %d lines from %d, one form per construct: the import's C view; %dms\n",
+		bytes.Count(out, []byte("\n")), bytes.Count(src, []byte("\n")), time.Since(start).Milliseconds())
+	return g, out, d, nil
 }

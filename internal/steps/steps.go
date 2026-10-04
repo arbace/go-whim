@@ -23,7 +23,6 @@ import (
 	"github.com/arbace/go-whim/crefactor/dead"
 	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/pipeline"
-	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/cut"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
@@ -40,7 +39,6 @@ var ops = map[string]Step{
 	"query":     runQuery,
 
 	"cemit":       Step(pipeline.Canonical),
-	"includes":    Step(xform.Includes(whim.Includes)),
 	"query-empty": queryEmpty,
 }
 
@@ -120,6 +118,8 @@ var graphOps = map[string]GraphStep{
 	"front3":      frontGraph(3),
 	"noruntime":   plainGraph(cut.NoRuntime),
 	"query-empty": queryEmptyGraph,
+	// R3: phase 88
+	"includes": includesGraph,
 }
 
 // LookupGraph returns the graph step of that name, and whether there is one.

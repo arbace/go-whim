@@ -251,3 +251,7 @@ cannot see.
 The transformation now lives in `crefactor/xform` (`Attrs`).
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 105-107 -- 105 and 107 since 106 moved to the seed (2026-10-02) -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).
+
+**It runs on the graph** (2026-10-04, R3, `doc/GRAPH-MIGRATION.md`): `crefactor/graph`'s `Verbs.Attrs` (`r3_seed.go`): the attribute forms found by place (a parameter or member named `attr` is none), each `unused` deleted from its declaration (`DeleteAttr`), each fallthrough statement's respelled `[[fallthrough]]` (`RespellAttr`); its literal and line counts asked of the C view; its report the text's but the line count, the C view's. Its
+output is the text program's printed canonically, byte for byte, on the
+seed; 0.9 s on the graph. The text program is deleted.

@@ -34,7 +34,7 @@ func TestGraphPhasesAsImported(t *testing.T) {
 	sem := make(chan struct{}, max(jobs, 1))
 	t.Run("phases", func(t *testing.T) {
 		for _, p := range build.Plan {
-			if !slices.Contains(only, p.N) || !s6AllGraph(p) {
+			if !slices.Contains(only, p.N) || !s6AllGraph(p) || p.Seed { // the seed: TestSeedOnGraph
 				continue
 			}
 			t.Run(fmt.Sprint(p.N), func(t *testing.T) {

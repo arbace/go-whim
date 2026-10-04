@@ -705,10 +705,10 @@ N`) has its hardest class and says what is already on the graph.
 
 ```
 unit | phase | where | LOC | lit | class | needs | batch | what
-phase 0 | 0 | build/plan.go s00-seed | 343 | 2591 | d | - | - | the seed: canonical print of the input, then 0a-0c; stays text
-0a | 0 | phase/000/a + crefactor/xform/nullptr.go | 7+229 | - | d | (RENAME FRAG INCLUDE) | - | NULL->nullptr, size_t->usize, (void *) casts dropped; not typed
-0b | 0 | phase/000/b | 330 | 2591 | d | (FRAG CLONE) | - | 7 printf-style wrappers expanded at 297 calls
-0c | 0 | phase/000/c + crefactor/xform/attrs.go | 6+309 | - | d | (RETYPE RENAME) | - | 113 unused attributes go, 20 fallthrough respelled; not typed
+phase 0 | 0 | build/plan.go s00-seed + pipeline/seed.go SeedGraph | 343 | 2591 | done | - | R3 | the seed: the input imported (its C view the canonical print), then 0a-0c as graph steps; collected, hands phase 1 the graph
+0a | 0 | phase/000/a + crefactor/graph/r3_seed.go | 22+190 | - | done | - | R3 | NULL->nullptr (RespellTokens, types kept), size_t->usize (FRAG typedef, RetargetUses), (void *) casts dropped
+0b | 0 | phase/000/b/graph.go | 280 | 1500 | done | - | R3 | 7 printf-style wrappers expanded at 297 calls: one FRAG unit, the arguments holes, the format copied
+0c | 0 | phase/000/c + crefactor/graph/r3_seed.go | 14+170 | - | done | - | R3 | 306 unused attributes go (DeleteAttr), 37 fallthrough respelled [[fallthrough]] (RespellAttr)
 phase 1 | 1 | front + noruntime | - | - | done | - | B4 | the front's D1-D5 on the graph, FoldX their closure; imports q000 (phase 0 ends on text)
 FallOutOf | 1-3 | crefactor/xform/fallout.go; steps.go frontHold | 1686 | - | done | - | B4 | replaced by FoldX (B2d) on the graph; FallOutOf deleted, FallOut kept as FoldX's tests' oracle
 argvfront | 1 | cut/argvfront.go | 99 | - | done | - | B4 | command_line_scan's new body, main_errors rows
@@ -921,8 +921,8 @@ phase 84 | 84 | whim84 | 37 | - | b | FRAG MOVE | B3f | ml_get_invalid outlined
 phase 85 | 85 | whim85 | 19 | - | b | FRAG | B3f | a flag for a pointer comparison
 86a | 86 | phase/086/a + graph/deadstmt.go | 21+104 | - | done | - | B1c | statements after a jump; on the graph (B1c): Editor.DeadStmt, StmtTerminates on nodes; xform.Terminates stays for fallout.go (the gotos are on the graph since B3g)
 phase 86 | 86 | whim86a, whim86 | 35 | - | b | PARAM FRAG | B3f | six dead stores; one parameter becomes a local
-phase 88 | 88 | crefactor/xform/includes.go | 159 | - | d | - | - | each #include tried under gcc
-phase 89 | 89 | graph/gototail.go, gotoflow.go | 297+256 | - | done | - | B3g | goto tails: Editor.GotoTail, the copies Clone's; begins on text (88), imports
+phase 88 | 88 | steps/r3includes.go + crefactor/graph/r3_spare.go | 60+70 | - | done | - | R3 | the include rule (Spares) where gcc was asked: 29 spare, DeleteIncludes; gcc a cross-check in TestIncludesPhase88
+phase 89 | 89 | graph/gototail.go, gotoflow.go | 297+256 | - | done | - | B3g | goto tails: Editor.GotoTail, the copies Clone's; handed the graph by 88 (R3)
 phase 90 | 90 | graph/gotobreak.go, gotoflow.go | 90+256 | - | done | - | B3g | goto -> break: Editor.GotoBreak; handed the graph
 phase 91 | 91 | graph/gotoloop.go, gotoflow.go | 211+256 | - | done | - | B3g | goto back -> loop: Editor.GotoLoop, the region moved; handed the graph
 phase 92 | 92 | graph/gotoblock.go | 314 | - | done | - | B3g | goto out -> do-while(0) break: Editor.GotoBlock, the region moved; handed the graph
@@ -945,7 +945,7 @@ phase 85 | 85 | whim85 | 19 | - | done | - | B3f | a flag for a pointer comparis
 phase 86 | 86 | whim86a, whim86 | 35 | - | done | - | B3f | six dead stores; one parameter becomes a local; on the graph (B3f): 86a (B1c) and whim86 (B3f): Cuts by form and context, Rewrite, ParamToLocal
 87a | 87 | phase/087/a + crefactor/graph/s6br_boolret.go, s6br_types.go | 6+1085+263 | - | done | - | Step6 | bool for 278 functions; on the graph (Step6): BoolRet's fixed point on the edges, one batched RETYPE, the comparisons rewritten in the text's four rounds
 phase 87 | 87 | whim87a, whim87 + crefactor/graph/s6br_names.go | 196+17 | - | done | - | Step6 | 153 key codes named; on the graph (Step6): each code a use of its enumerator (ReplaceByUse), the enumerators one FRAG unit; handed the graph by 86
-phase 88 | 88 | crefactor/xform/includes.go | 159 | - | d | - | - | each #include tried under gcc
+phase 88 | 88 | steps/r3includes.go + crefactor/graph/r3_spare.go | 60+70 | - | done | - | R3 | the include rule (Spares) where gcc was asked: 29 spare, DeleteIncludes; gcc a cross-check in TestIncludesPhase88
 phase 89 | 89 | crefactor/xform/gototail.go | 366 | - | b | CLONE FOLDX(label) | B3g | goto tails; cc.Parse only
 phase 90 | 90 | crefactor/xform/gotobreak.go, gotoflow.go | 84+186 | - | a | BUILD FOLDX(label) | B3g | goto -> break
 phase 91 | 91 | crefactor/xform/gotoloop.go, gotoflow.go | 232+186 | - | b | MOVE | B3g | goto back -> loop
@@ -1065,7 +1065,7 @@ step 6: 94, 95, 100, 101 (and FallOutOf; 76/76a better there)
   transforms on typed edges; the graph's `Untyped` lists are where its
   checker starts. **Done** (FallOutOf by B4; the rest, with 76, 87, 99, 102
   and 103 and the re-check, *Step6 as built* below).
-- **Stays text**: phase 0 (the seed and 0a-0c) and phase 88 (gcc).
+- **Stays text**: nothing, since R3 (phase 0, the seed and 0a-0c, and phase 88, the include rule for gcc).
 
 **What the pipeline would gain, measured on what stage A moved.** A phase
 handed the graph costs 0.21-0.37 s (index, cut, closure, collection, C
@@ -2837,3 +2837,114 @@ too small to time apart):
 35.3 s on text against 9.8 s handed for the nine. 100 costs most: LocalOut's
 155 retypes and its three FRAG rounds. The re-check adds nothing
 measurable to a collection (phase 2's 376 ms to 398, the rest 105-250 ms).
+
+## R3 as built (2026-10-04): the seed and phase 88
+
+The last two text phases run on the graph, byte for byte, their text
+programs replaced (history keeps them, `2134168` and before): **a run in
+order imports once, the input, and is handed the graph to the end.**
+
+**Phase 0, the seed.** The importer's C view is cemit's canonical print,
+so the seed IS the import: measured on slim-vim.c, `graph.Import`'s C view
+and `pipeline.Seed`'s print are the same 4,785,038 bytes (`TestSeedOnGraph`
+asserts it). `crefactor/pipeline`'s `SeedGraph` imports the input and
+prints the line count the seed printed; `Run` hands the graph to a phase 0
+that begins on the graph, and the parallel `Check` seeds phase 0 the same
+way before its links. Parts 0a-0c are graph steps (`edit whim0a/b/c`,
+`Graph: true`), and phase 0 is collected, not swept. Each part was held,
+before its text program went, to that program's output printed
+canonically on the seed, and its report line for line:
+
+- **0a** (`Verbs.NullptrUsize`, `crefactor/graph/r3_seed.go`; the knobs
+  `graph.NullptrKnobs`, `whim.Nullptr`): the 7,584 `NULL` tokens and 32
+  `(void *)NULL` respelled `nullptr` (with the one macro text, the
+  report's 7,617 sites) -- `RespellTokens`, which keeps the
+  typed edges above each (cc types both `void *`; `Replace` of an untyped
+  atom cleared 7,683 of them, and the re-check then lost the host's
+  expressions over a header's macro, `ICRNL | ...`) -- the one `MIN(...,
+  NULL)` invocation's text said anew (`RespellText`), the typedef spliced
+  below the includes by FRAG and every use of the header's `size_t`
+  pointed at it (`RetargetUses`: 346 casts and 432 declarations, by edge).
+  Its literal, mention and line counts are asked of the C view (TEXTQ).
+  The report is the text's line for line.
+- **0b** (`EditGraph`, `internal/phase/000/b/graph.go`): the 297 sites are
+  the calls of the seven wrappers' declarations outside their definitions,
+  by edge; the six declarations and five helpers two FRAG units, the sites
+  a third (the arguments holes, the format a copy the second time). The
+  text told a statement from a value by the `;` after the call's `)`; on
+  the graph, a call that ENDS its expression statement -- the item itself,
+  or its last operand through casts and operators: five `(void)semsg(...)`
+  -- is split as the text split it, the call in place and the tail a
+  statement after the item; `vim_snprintf_add` as an item keeps its `;`.
+  The definitions and prototypes are deleted, and vim_snprintf's second
+  prototype's 75 uses pointed where an import of the result puts them (the
+  first prototype above the definition, the definition below). Report: the
+  text's, but the line count is the C view's (173,597 -> 173,772) where the
+  text counted its own unprinted lines (-> 173,529).
+- **0c** (`Verbs.Attrs`, `r3_seed.go`): the attribute forms found by place
+  -- a parameter or a member named `attr` (`(attr int)`) is none -- every
+  `unused` deleted from its parameter or local (`DeleteAttr`), each
+  fallthrough statement's respelled `[[fallthrough]]` (`RespellAttr`).
+  Report: the text's, its line count the C view's.
+
+**Phase 88.** The `includes` graph step (`internal/steps/r3includes.go`)
+asks the include rule in the text step's order (`Editor.Spares`,
+`r3_spare.go`: each include alone, then those together, else a fold from
+the bottom): on q087 33 can go alone, not together, and the fold keeps 29
+-- exactly what gcc's question with `Same` removed since 4f96189 -- deleted
+at once (`DeleteIncludes`, the headers' state computed once). Its refusals
+are the text's: a directive other than an include, none at all, and an
+input the rule does not accept as it stands (a name unprovided, a
+collision), the text's "does not compile silently". **gcc stays as a test,
+not a step**: `TestIncludesPhase88` requires q088.c to compile silently
+under the sweep's warnings and every header it still includes, taken out,
+to make gcc print something or change the file's own preprocessed lines --
+gcc's whole question, asked of every header left. `xform.Includes`,
+`xform.Silent` and `whim.Includes` are deleted. `TestIncludesPhase99` (stale
+since 4f96189: 99 no longer adds `<stdlib.h>`) is now the two rebinds round
+trip on q098, refused under the rule and made, q098.c byte for byte and
+the import's graph.
+
+**Library** (crefactor/graph, new files, generic, with tests in
+`r3_seed_test.go` -- the deleted text tests' samples, held to the import of
+the text after by `SameGraph`): `r3_seed.go` (`NullptrUsize`, `Attrs`,
+`RespellTokens`, `RespellText`, `DeleteAttr`, `RespellAttr`, `AttrKind`),
+`r3_spare.go` (`Spares`, `IncludeSpares`, `DeleteIncludes`;
+`SpareIncludes` now returns `Spares().Spare`). `crefactor/pipeline`'s
+`SeedGraph`.
+
+**What `crefactor/xform` keeps**: `fallout.go` with `kept.go`,
+`rewrite.go` and `terminates.go` (the text's fall-out closure, the oracle
+`foldx_test.go` and graphcheck's `TestFoldXEverySeed` hold FoldX to, and its
+tests), and `Flags`, the steps' argument parser (`--at-least N`), with
+`Step`. Deleted: `nullptr.go`, `attrs.go`, `includes.go`, their tests, the
+test helpers they alone used, `Step.Edit` and `Core` (and `whim.Core`),
+which had no user left. xform is not empty because FoldX's proof still
+runs against the text closure; when that oracle is retired, xform goes.
+
+**The proof.** `rm -rf .cache/boundaries; make whim-build-check` in order:
+whim-vim.c byte for byte, 77,635 lines, every boundary compiling, **150 s**
+(597 s user) at a load of 3-10 (R1 working beside it), one import (phase
+0's), 103 graph snapshots (q000-q102). Again, in parallel: byte for byte,
+47 s, **103 of 103 links begun on their graph snapshot**. The controls:
+phase 88 deleting one header fewer -- `1 of 103 phases do not reproduce
+their snapshot`, phase 88; phase 0b giving smsg's sites the emsg room --
+`phase 0: the seed of src/slim-vim.c is not q000.c` (the check holds phase
+0 before its links, so a seed fault is named there and alone).
+`TestSeedOnGraph` (q000 byte for byte, the graph handed on the import of
+q000.c, `SameGraph`), `TestPhasesOnGraph` and `TestGraphPhasesAsImported`
+on 1 and 87-89 (the seed skipped there: no boundary before it),
+`TestGraphSnapshots`, `TestTheLine`; `whim-editor-check`; `whim-test` (80
+as HEAD, the control seen by 76, the Go editor 80 as the C); `go test
+./...` in both modules; gofmt, go vet and staticcheck on what changed.
+
+**Measured** (one run each, main `2134168` beside it):
+
+| phase | main (text), wall | R3, wall | how |
+| --- | ---: | ---: | --- |
+| 0 | 8 s (canonical print 2.7 s, the parts, the sweep 1.7 s) | 9 s | the import 4.2 s, 0a 1.1 s, 0b 2.8 s (three FRAG units), 0c 0.9 s, the collection 0.3 s |
+| 1 | 13 s (an import 3.9 s) | 9 s | handed |
+| 88 | 5 s (gcc) | 0.27 s handed (2.1 s imported) | the rule, the C view, the collection |
+| 89 | 1 s + an import 1.5 s | 0.27 s | handed |
+
+In order the run is 150 s against step 6's 158 s (at a load of 3-5).

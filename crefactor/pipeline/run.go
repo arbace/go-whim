@@ -98,8 +98,18 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 		if pr != nil {
 			before = bytes.Count(pr.text, []byte("\n"))
 		}
+		// The seed: a phase 0 that begins on the graph imports the input
+		// itself, and is handed that graph; otherwise the canonical print.
+		var seedG *graph.Graph
+		var seedImport time.Duration
 		if p.Seed {
-			out, err := Seed(src, rep)
+			var out []byte
+			var err error
+			if BeginsOnGraph(p) && !p.NoSource {
+				seedG, out, seedImport, err = SeedGraph(src, filepath.Join(os.TempDir(), c.WorkName), rep)
+			} else {
+				out, err = Seed(src, rep)
+			}
 			if err != nil {
 				refused()
 				return nil, fmt.Errorf("phase %d: %w", p.N, err)
@@ -134,7 +144,12 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 		// it, with an editor of its own, imported here if the phase before
 		// ended on text; and a whole run keeps it beside the boundary.
 		if BeginsOnGraph(p) {
-			if pr.ed != nil {
+			if seedG != nil {
+				pr.ed = graph.NewEditor(seedG)
+				pr.conv.Graph = true
+				pr.conv.Imports++
+				pr.conv.Import += seedImport
+			} else if pr.ed != nil {
 				pr.ed = graph.NewEditor(pr.ed.Graph())
 				pr.conv.Graph = true
 			} else if _, err := c.editor(pr, scratch); err != nil {

@@ -173,9 +173,14 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 	start := time.Now()
 	// Phase 0 as Run does it: the seed, and then -- unless the phase is only
 	// the seed (NoSource) -- its steps, the sweep and the canonical print.
-	seed, err := Seed(src, io.Discard)
-	if err == nil {
-		seed, err = c.Advance(c.Plan[0], seed, io.Discard)
+	var seed []byte
+	if p0 := c.Plan[0]; p0.Seed && BeginsOnGraph(p0) && !p0.NoSource {
+		var g *graph.Graph
+		if g, seed, _, err = SeedGraph(src, filepath.Join(os.TempDir(), c.WorkName), io.Discard); err == nil {
+			seed, _, err = c.AdvanceFrom(p0, seed, g, io.Discard)
+		}
+	} else if seed, err = Seed(src, io.Discard); err == nil {
+		seed, err = c.Advance(p0, seed, io.Discard)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("phase 0: %w", err)

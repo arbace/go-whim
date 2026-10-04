@@ -1,22 +1,13 @@
 package whim
 
 import (
-	"bytes"
-
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/graph"
-	"github.com/arbace/go-whim/crefactor/xform"
 )
 
-// The knobs crefactor/xform's transformations are built with, for
+// The knobs crefactor/graph's transformations are built with, for
 // vim: what those phases hard-coded before they became library code.  A
 // count a phase refuses under is not here; it is an argument in the plan.
-
-// Core is where whim-vim.c's core ends: the line break before the first
-// `#include`, which is the line between the editor core and its host
-// (phases 43 on).  Phases 60, 62, 74 and 87a hard-coded it; on the graph it
-// is the first include form (GraphCore).
-var Core xform.Core = func(text []byte) int { return bytes.Index(text, []byte("\n#include ")) }
 
 // DropCalls is phase 60's (crefactor/graph's Editor.DropCalls, its In the
 // core, GraphCore): since phase 52 host_free() has an empty body, so
@@ -41,21 +32,12 @@ var NeverNull = graph.NeverNullOptions{
 // stay as they are -- a message, the printf layer's stand-in for a null %s,
 // and what an empty growarray prints.  A fourth would be a message the phase
 // has never seen, and refuses.
-var Nullptr = xform.NullptrKnobs{
+var Nullptr = graph.NullptrKnobs{
 	NullLiterals: []string{
 		`"E1507: Internal error: ap_types or ap_types[idx] is NULL: %d: %s"`,
 		`"[NULL]"`,
 		`"NULL"`,
 	},
-}
-
-// Includes is phase 88's compiler question, record 82's before it: a header
-// is unnecessary when the file still compiles with NOTHING printed, under the
-// sweep's warnings.
-var Includes = xform.Silent{
-	Cmd:   "gcc",
-	Flags: []string{"-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter"},
-	Same:  true, // phase 43's static_asserts compare the core's limits with the headers'
 }
 
 // GotoTail is phase 89's bound (crefactor/graph's Editor.GotoTail): a

@@ -93,9 +93,22 @@ package p000c
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
 import (
-	"github.com/arbace/go-whim/crefactor/xform"
+	"io"
+
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 )
 
-// The rule is general, and it is crefactor/xform's Attrs: it takes no knobs.
-func init() { phase.RegisterArgs("whim0c", xform.Attrs().Edit()) }
+// The rule is general, and it is crefactor/graph's Attrs (R3: on the graph,
+// where it was crefactor/xform's on the text): it takes no knobs.
+func init() {
+	phase.RegisterGraph("whim0c", func(e *graph.Editor, w io.Writer, args []string) error {
+		v := graph.NewVerbs("attrs", e, w)
+		if len(args) > 0 {
+			v.Die("takes no argument: %v", args)
+			return v.Done()
+		}
+		v.Attrs()
+		return v.Done()
+	})
+}

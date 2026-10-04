@@ -33,3 +33,12 @@ it cannot print rather than dropping it, so a construct it does not understand
 stops the pipeline instead of quietly leaving the file.
 
 Measured: 180,870 lines in, 174,048 out.
+
+**It runs on the graph** (2026-10-04, R3, `doc/GRAPH-MIGRATION.md`): the seed is
+the input IMPORTED (`crefactor/pipeline`'s `SeedGraph`), whose C view is
+cemit's canonical print byte for byte (measured on slim-vim.c), and parts
+0a-0c are graph steps on it; the phase is collected, not swept, and hands
+phase 1 its graph, so a run imports once. q000 byte for byte, and the graph
+it hands on is the import of q000.c (`internal/graphcheck`'s
+`TestSeedOnGraph`). Measured: phase 0 9 s (the import 4.2 s, the parts 5 s)
+against 8 s on text, and phase 1 9 s handed against 13 s importing.

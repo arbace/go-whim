@@ -245,3 +245,7 @@ phase was made the smallest of the four rather than the first convenient one.
 The transformation now lives in `crefactor/xform` (`NullptrUsize`).
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps ran in phase 107, in the group 105-107, whose phases share one purpose; since 2026-10-02 they run in phase 0 (the note at the top). There is no boundary q106 of its own any more; everything above still says what the steps do and why.
+
+**It runs on the graph** (2026-10-04, R3, `doc/GRAPH-MIGRATION.md`): `crefactor/graph`'s `Verbs.NullptrUsize` (`r3_seed.go`): `NULL`'s tokens and `(void *)NULL` respelled `nullptr` with the types above them kept (`RespellTokens`), the one macro text holding `NULL` said anew (`RespellText`), the typedef spliced by FRAG below the includes and every use of the header's `size_t` pointed at it (`RetargetUses`); its literal and mention counts asked of the C view; its report the text's line for line. Its
+output is the text program's printed canonically, byte for byte, on the
+seed; 1.1 s on the graph. The text program is deleted.

@@ -27,6 +27,9 @@ func TestB3fDiff(t *testing.T) {
 	}
 	for _, n := range only {
 		p := build.Plan[n]
+		if p.Seed {
+			continue // no boundary before it: TestSeedOnGraph
+		}
 		t.Run(fmt.Sprint(n), func(t *testing.T) {
 			in, want := snapOf(t, dir, n-1), snapOf(t, dir, n)
 			var log bytes.Buffer

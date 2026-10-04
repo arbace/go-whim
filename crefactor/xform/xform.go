@@ -1,6 +1,10 @@
 // Package xform is the generic C transformations the pipeline's phases were
 // written as: each one a Step built from its knobs by a constructor, on the
-// canonical text of one translation unit.
+// canonical text of one translation unit.  Every phase runs on the graph
+// now (doc/GRAPH-MIGRATION.md; R3 moved the last two, the seed's spelling
+// and phase 88's headers), and what is left here is FallOut, the text's
+// fall-out closure, which crefactor/graph's FoldX tests hold FoldX to, and
+// Flags, the steps' argument parser.
 //
 // A transformation knows C and nothing of the code base it is run on: what a
 // code base calls its truth constants, its no-op functions, its allocators or
@@ -23,17 +27,6 @@ import (
 // A Step is one transformation: the tree in, the tree out, its report on w.
 // It is internal/steps' Step, and the shape internal/build runs.
 type Step func(text []byte, args []string, w io.Writer) ([]byte, error)
-
-// Edit is the step in the argument order a phase registry takes
-// (whim's internal/phase.ArgFunc), so that a phase is one line:
-// phase.RegisterArgs(name, s.Edit()).
-func (s Step) Edit() func([]byte, io.Writer, []string) ([]byte, error) {
-	return func(t []byte, w io.Writer, args []string) ([]byte, error) { return s(t, args, w) }
-}
-
-// Core says where a translation unit's core ends: the offset of the line
-// break before the first line that is not the core's, or -1 when all of it is.
-type Core func(text []byte) int
 
 // file is the name the text is parsed under; a node is the text's when its
 // position names it.

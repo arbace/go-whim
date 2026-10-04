@@ -63,14 +63,16 @@ type (
 // nohome, nogetenv, nochdir and oneoptset, and the programs of parts 4b-4f
 // and 5a-5d and phases 21, 22 and 26 -- and B4's: the front, phases 1-3,
 // every cutter and part a graph step (steps' front.go), FoldX the closure,
-// and noruntime and query-empty.  Phases 1-26 begin on the graph --
-// the first step, sweeps aside, is a graph step -- so the run hands them
-// the graph the phase before left when it ended on one, and the check reads
-// it from qNNN.g; the rest import the text where their graph steps begin.
-// Phases 1-26 end on the graph: collected, not swept; phase 1 imports phase
-// 0's text and phases 2-26 run with no import between them.
+// and noruntime and query-empty -- and R3's: phase 0, the seed (the input
+// imported, its C view the canonical print, and parts 0a-0c on it), and
+// phase 88's `includes` (the graph's include rule where gcc was asked).
+// Every phase begins on the graph -- the first step, sweeps aside, is a
+// graph step -- so a run imports once, the input, and hands each phase the
+// graph the one before left; the check reads it from qNNN.g.  Every phase
+// ends on the graph: collected, not swept.
 var Plan = []Phase{
-	// Phase 0 seeds the input canonically and spells it in C23 there:
+	// Phase 0 seeds the input canonically -- on the graph, the import of the
+	// input, whose C view is cemit's canonical print -- and spells it in C23 there:
 	// whim0a's `nullptr` and `usize` (internal/phase/000/a), whim0b's
 	// variadic collapse (internal/phase/000/b: one function walks a va_list)
 	// and whim0c's attributes (internal/phase/000/c: `unused` gone,
@@ -78,9 +80,9 @@ var Plan = []Phase{
 	// after it is written in the spelling the product has.
 	{N: 0, Block: "s00-seed", Name: "seed, in the one spelling every later phase reads", Seed: true,
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim0a", "--casts", "1"}},
-			{Op: "edit", Args: []string{"whim0b"}},
-			{Op: "edit", Args: []string{"whim0c"}},
+			{Op: "edit", Graph: true, Args: []string{"whim0a", "--casts", "1"}},
+			{Op: "edit", Graph: true, Args: []string{"whim0b"}},
+			{Op: "edit", Graph: true, Args: []string{"whim0c"}},
 		}},
 	{N: 1, Block: "d01-front", Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
@@ -515,7 +517,7 @@ var Plan = []Phase{
 		}},
 	{N: 88, Block: "g07-includes", Name: "the system headers nothing needs",
 		Steps: []Step{
-			{Op: "includes"},
+			{Op: "includes", Graph: true},
 		}},
 	{N: 89, Block: "g08-gotos", Name: "a goto whose label marks a short tail is that tail",
 		Steps: []Step{

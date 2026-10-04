@@ -52,7 +52,10 @@ slim-vim.c  --whim-->  whim-vim.c
     `K_IGNORE`) the preprocessor's removal left as arithmetic; the binary is
     byte-identical.
   - **phase 88** drops every system header nothing needs, in one step:
-    each `#include` is tried and kept out while the file compiles silently.
+    each `#include` the graph's include rule finds spare goes -- every name
+    the file takes from the headers still provided above its first use, no
+    token of the file meaning something else (`crefactor/graph`'s `Spares`;
+    gcc was asked until R3, and is a cross-check in a test now).
     Records 82 and 99 and phase 40 once did it piecemeal, and the phases
     between them asserted the counts it left; now they assert only that every
     directive is a contiguous `#include` and that they add and remove none.
@@ -285,7 +288,7 @@ lettered in the order the phase runs them; there are 33. The other phases are
 plan steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
 (`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
 itself with `internal/phase` (`phase.Register`) in an `init()` -- or, for a
-phase converted to the graph (phases 1-3, 15, 19-87 and 89-103 and parts 2a, 3a-3f, 4a-4f, 5a-5d, 15a, 38a, 38b, 49a, 49b, 51a, 71a, 71b, 74a, 76a, 77a, 86a and 87a; every phase but 0 and 88, `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
+phase converted to the graph (every phase, 0-103, and every part, since R3: `doc/GRAPH-MIGRATION.md`; 53-56 as text acts on the C view committed as FRAG, a `graph.Draft`),
 is written on `crefactor/graph`'s editor and verbs and registers with
 `phase.RegisterGraph`, its text program replaced -- and
 `cmd/whim/phases.go` is what links them in: it imports every phase blank.
@@ -316,6 +319,8 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
                    outside the plan), graphcheck (crefactor/graph's sweep
                    held to the pipeline's on every phase, and the phases
                    with a graph step held to their snapshots, timed, the
+                   seed on the graph from the input (r3_test.go,
+                   GRAPH_INPUT), the
                    graph snapshots read back, and the graph's verbs on the
                    snapshots -- an initialiser element replaced, phase 15
                    written on them, the include edits of phases 43, 73, 88
@@ -502,7 +507,12 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    and s6br_names.go (87a, 87, 102, 103: BoolRet's fixed
                    point on the edges, the key codes by ReplaceByUse) and
                    s6ov_elements.go (76: a member and initialiser elements
-                   inserted);
+                   inserted); and R3's r3_seed.go (phase 0's parts 0a and
+                   0c: NullptrUsize, Attrs, RespellTokens and RespellText --
+                   a token or a macro's text respelled, the types above it
+                   kept -- DeleteAttr, RespellAttr) and r3_spare.go (88:
+                   Spares, the rule's account in gcc's order, and
+                   DeleteIncludes);
                    its corpus tests run on GRAPH_CORPUS. graph/view/: its
                    views, read-only (`go tool whim view`): index.go the
                    edges the other way round and the roots by name, view.go
@@ -515,15 +525,17 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    nothing. ccx/: a core's pointer casts and evaluation order,
                    partitioned. dead/: funcreach and gcc's unused warnings.
                    pipeline/: the driver -- Phase, Step, Plan, Run, Advance,
-                   Check, the snapshots, Seed -- told everything through a
+                   Check, the snapshots, Seed and SeedGraph (the input
+                   imported, its C view the canonical print) -- told everything through a
                    Config; hybrid.go its text and graph steps, the
                    conversions between them, the re-check before every
-                   collection, and the graph snapshots. xform/: the text transforms left (fallout.go: the
+                   collection, and the graph snapshots. xform/: what is left of the text transforms (fallout.go: the
                    text's fall-out closure, what a drop's cut leaves unwritten
                    folded, and what that makes constant -- FoldX's tests'
-                   oracle since B4 put the front on the graph; attrs.go,
-                   nullptr.go the seed's; includes.go phase 88's; the typed
-                   transforms went to crefactor/graph in step 6). edit/: the C-text
+                   oracle since B4 put the front on the graph; Flags, the
+                   steps' argument parser; the typed transforms went to
+                   crefactor/graph in step 6, the seed's attrs.go and
+                   nullptr.go and phase 88's includes.go in R3). edit/: the C-text
                    substrate that was cutil, and the one verb set -- E, every act
                    counted (driver.go, blocks.go); Ph, the driver of the phases
                    whose cut is a computation; the counted acts both and
@@ -820,12 +832,12 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 104 phases, **158 s** with every boundary compiled after (598 s of user CPU, gcc's included), 77,635 lines, at a load of 3-5 after step 6, two imports in the run (phases 1 and 89) and phases 0 and 88 alone on text; 182 s and 624 s at a load of 12-34 after B4 (phases 1-3 13, 17 and 8 s, 30, 23 and 28 s on text); 382 s and 976 s at a load of 20-35 after B1a, the two run side by side (main before it: 408 s and 982 s; at a load of 3-13, stage A's 348 s and 936 s, and main before step 5 352 s and 958 s
+  before the reason. Measured: 104 phases, **150 s** with every boundary compiled after (597 s of user CPU, gcc's included), 77,635 lines, at a load of 3-10 after R3, one import in the run (the input, phase 0's seed) and every phase on the graph; 158 s and 598 s at a load of 3-5 after step 6, two imports (phases 1 and 89) and phases 0 and 88 on text; 182 s and 624 s at a load of 12-34 after B4 (phases 1-3 13, 17 and 8 s, 30, 23 and 28 s on text); 382 s and 976 s at a load of 20-35 after B1a, the two run side by side (main before it: 408 s and 982 s; at a load of 3-13, stage A's 348 s and 936 s, and main before step 5 352 s and 958 s
   the same hour; 451 s and 563 s of CPU under a load of 54-62; 815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
   the boundary before each phase that begins on the graph the graph it
-  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: 102 now), and seals the
+  handed that phase, as Lisp (qNNN.g, headed by qNNN.c's digest: 103 now, one before every phase but the seed), and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
@@ -859,7 +871,9 @@ make help            # every target, with a line each
   compiles, 16 links begun on their graph snapshot) at a load of 20-35,
   main's 113 s beside it; after step 6, 43 s (33 s the links, 9 s the
   compiles, 102 links begun on their graph snapshot, 0 imported) at a load
-  of 5-8. **Either way it then
+  of 5-8; after R3, 47 s (35 s the links, 11 s the compiles, all 103 begun
+  on their graph snapshot) at a load of 5-10, phase 0 checked first as
+  before: the input imported, its parts, the collection. **Either way it then
   compiles and links every boundary**, q000-q103, with the one compile line
   (`internal/build`'s `compileBoundary`, the driver's `Config.Compile`), 64 at
   a time, an error failing the check and naming the boundary -- warnings
@@ -970,8 +984,9 @@ was the input boundary's digest and the implementation's together, so a moved
   that phase 1 imports q000 and phases 1-26 run with no import between them
   (`utf8only` a DRAFT) -- and step 6's: phases 76 (with 76a), 87 (with
   87a), 94, 95 and 99-103, the typed transforms on typed edges, and part
-  74a, so that only phases 0 and 88 are text, the run imports twice
-  (phases 1 and 89), and 89-103 run with no import after 89. Every
+  74a -- and R3's: phase 0 (the seed, the input imported, and parts 0a-0c
+  as graph steps) and phase 88 (the include rule), so that every phase is
+  on the graph and a run imports once, the input. Every
   phase that ends on the graph is RE-CHECKED before its collection
   (`Editor.Recheck`, step 6): what its edits left untyped typed again by
   C's rules, the typed edges and uses of a definition it replaced

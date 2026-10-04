@@ -291,37 +291,11 @@ func (e *Editor) Collisions() ([]Collision, error) {
 // order of crefactor/xform's Includes, which asks the compiler instead.
 // The forms are not deleted.
 func (e *Editor) SpareIncludes() ([]*Node, error) {
-	s, err := e.headerState()
+	r, err := e.Spares()
 	if err != nil {
 		return nil, err
 	}
-	var alone []*Node
-	for _, inc := range s.incs {
-		if len(s.missing(map[*Node]bool{inc: true})) == 0 {
-			alone = append(alone, inc)
-		}
-	}
-	all := map[*Node]bool{}
-	for _, inc := range alone {
-		all[inc] = true
-	}
-	if len(s.missing(all)) == 0 {
-		return alone, nil
-	}
-	keep := map[*Node]bool{}
-	for i := len(alone) - 1; i >= 0; i-- {
-		keep[alone[i]] = true
-		if len(s.missing(keep)) > 0 {
-			delete(keep, alone[i])
-		}
-	}
-	var out []*Node
-	for _, inc := range alone {
-		if keep[inc] {
-			out = append(out, inc)
-		}
-	}
-	return out, nil
+	return r.Spare, nil
 }
 
 // InsertIncludeBefore puts a new include of spec before the top-level form

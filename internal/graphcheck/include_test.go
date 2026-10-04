@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"testing"
 
@@ -58,15 +61,21 @@ func includeNamed(t *testing.T, e *graph.Editor, spec string) *graph.Node {
 	return nil
 }
 
-// Phase 88 asks gcc which headers can go; the graph asks the headers. On
-// q087 the rule finds every header gcc removed spare but two: <stdlib.h>
-// and <stdint.h>, which provide EXIT_FAILURE and SIZE_MAX to two of phase
-// 43's static_asserts in the host -- assertions of the core's own
-// enumerators against the headers. With them gone the asserts compile
-// silently and compare each enumerator with itself, which gcc's silence
-// accepts and the rule refuses. DeleteIncludeRebind makes the deletion as
-// gcc's silence does, the two tokens made uses of the core's enumerators;
-// then the graph's C view is q088.c byte for byte.
+// Phase 88 runs on the graph (R3): the headers the include rule finds
+// spare are deleted, where the text step asked gcc. On q087 the rule names
+// exactly the 29 headers q088.c no longer has -- 33 alone, which together
+// leave names unprovided, and the fold from the bottom 29 -- and keeps <stdlib.h> and <stdint.h>, which provide
+// EXIT_FAILURE and SIZE_MAX to phase 43's static_asserts in the host (the
+// finding of B2e that made gcc's question ask the preprocessor too,
+// 4f96189); deleting them gives q088.c byte for byte. The control:
+// <termios.h> is not spare on q088.
+//
+// The gcc cross-check stays as this test, not as a step: q088.c compiles
+// with nothing printed under the sweep's warnings, and each header it still
+// includes, taken out, either makes gcc print something or changes what
+// the file's own lines preprocess to -- gcc's question (xform.Includes
+// with Silent's Same, deleted with phase 88's text step) answers as the
+// rule does on every header left.
 func TestIncludesPhase88(t *testing.T) {
 	dir, _, _, _ := setup(t)
 	in, want := snapOf(t, dir, 87), snapOf(t, dir, 88)
@@ -77,67 +86,28 @@ func TestIncludesPhase88(t *testing.T) {
 			gone = append(gone, graph.IncludeSpec(inc))
 		}
 	}
-	spare, err := e.SpareIncludes()
+	r, err := e.Spares()
 	if err != nil {
 		t.Fatal(err)
 	}
 	var rule []string
-	for _, inc := range spare {
+	for _, inc := range r.Spare {
 		rule = append(rule, graph.IncludeSpec(inc))
 	}
-	var differ []string
-	for _, s := range gone {
-		if !slices.Contains(rule, s) {
-			differ = append(differ, s)
+	if len(gone) != 29 || !slices.Equal(rule, gone) || r.Together || len(r.Alone) != 33 {
+		t.Fatalf("q088.c went without %d, the rule %d (alone %d, together %v): %v against %v", len(gone), len(rule), len(r.Alone), r.Together, rule, gone)
+	}
+	if len(r.Unprovided) > 0 || len(r.Collisions) > 0 {
+		t.Fatalf("q087 under the rule: %v %v", r.Unprovided, r.Collisions)
+	}
+	for s, name := range map[string]string{"<stdlib.h>": "EXIT_FAILURE", "<stdint.h>": "SIZE_MAX"} {
+		miss, err := e.Missing(append(slices.Clone(r.Spare), includeNamed(t, e, s))...)
+		if err != nil || len(miss) != 1 || miss[0].Name != name || !miss[0].First.Is("static_assert") {
+			t.Errorf("%s with the spare ones provides %v (%v)", s, miss, err)
 		}
 	}
-	if len(gone) != 31 || len(rule) != 29 || !slices.Equal(differ, []string{"<stdlib.h>", "<stdint.h>"}) {
-		t.Fatalf("gcc removed %d, the rule %d; gcc's not the rule's: %v", len(gone), len(rule), differ)
-	}
-	var all []*graph.Node
-	for _, s := range gone {
-		all = append(all, includeNamed(t, e, s))
-	}
-	miss, err := e.Missing(all...)
-	if err != nil {
+	if err := e.DeleteIncludes(r.Spare...); err != nil {
 		t.Fatal(err)
-	}
-	var lost []string
-	for _, u := range miss {
-		if !u.Macro || !u.First.Is("static_assert") {
-			t.Errorf("without gcc's 31: %v", u)
-		}
-		lost = append(lost, u.Name)
-	}
-	sort.Strings(lost)
-	if !slices.Equal(lost, []string{"EXIT_FAILURE", "SIZE_MAX"}) {
-		t.Errorf("without gcc's 31, unprovided: %v", miss)
-	}
-	// each deletion where the rule allows it, and the rebinding where not
-	var rebound []string
-	for _, s := range gone {
-		inc := includeNamed(t, e, s)
-		if slices.Contains(rule, s) {
-			if err := e.DeleteInclude(inc); err == nil {
-				continue
-			} else if _, ok := err.(*graph.CollisionError); ok {
-				t.Fatal(err)
-			}
-		}
-		rb, err := e.DeleteIncludeRebind(inc)
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, n := range rb {
-			if r := n.Ref(); r == nil || !e.InCore(r) {
-				t.Errorf("%s: %s rebound to %v, not the core's", s, n.Atom, r)
-			}
-			rebound = append(rebound, n.Atom)
-		}
-	}
-	sort.Strings(rebound)
-	if !slices.Equal(rebound, []string{"EXIT_FAILURE", "SIZE_MAX"}) {
-		t.Errorf("rebound %v", rebound)
 	}
 	if err := e.Check(); err != nil {
 		t.Fatal(err)
@@ -148,6 +118,71 @@ func TestIncludesPhase88(t *testing.T) {
 	if miss, err := e.Missing(includeNamed(t, e, "<termios.h>")); err != nil || len(miss) == 0 {
 		t.Errorf("the control: <termios.h> spare on q088 (%v)", err)
 	}
+	// gcc, asked of every header left
+	d := t.TempDir()
+	if ok, why := r3SilentSame(t, d, "q088.c", want, nil); !ok {
+		t.Fatalf("q088.c under gcc: %s", why)
+	}
+	lines := bytes.Split(want, []byte("\n"))
+	var wg sync.WaitGroup
+	for i, l := range lines {
+		if !bytes.HasPrefix(l, []byte("#include ")) {
+			continue
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			without := bytes.Join(append(append([][]byte{}, lines[:i]...), lines[i+1:]...), []byte("\n"))
+			if ok, _ := r3SilentSame(t, d, fmt.Sprintf("w%d.c", i), without, want); ok {
+				t.Errorf("gcc: q088.c without %s compiles silently to the same tokens -- the rule kept it", l)
+			}
+		}()
+	}
+	wg.Wait()
+}
+
+// r3SilentSame is phase 88's old compiler question: text compiles with
+// nothing printed under the sweep's warnings, and -- ref given -- its own
+// lines preprocess to ref's.
+func r3SilentSame(t *testing.T, dir, name string, text, ref []byte) (bool, string) {
+	t.Helper()
+	p := filepath.Join(dir, name)
+	if err := os.WriteFile(p, text, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	out, err := exec.Command("gcc", "-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter", p).CombinedOutput()
+	if err != nil || len(out) > 0 {
+		return false, fmt.Sprintf("%v %s", err, edit.CoreHead(string(out), 200))
+	}
+	if ref == nil {
+		return true, ""
+	}
+	own := func(p string, b []byte) string {
+		if err := os.WriteFile(p, b, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		out, err := exec.Command("gcc", "-E", p).Output()
+		if err != nil {
+			t.Fatal(err)
+		}
+		var o strings.Builder
+		in := false
+		for _, ln := range strings.Split(string(out), "\n") {
+			if strings.HasPrefix(ln, "# ") {
+				f := strings.Fields(ln)
+				in = len(f) > 2 && f[2] == strconv.Quote(p)
+				continue
+			}
+			if in && strings.TrimSpace(ln) != "" {
+				o.WriteString(ln + "\n")
+			}
+		}
+		return o.String()
+	}
+	if own(p+".e.c", text) != own(p+".r.c", ref) {
+		return false, "its own lines preprocess otherwise"
+	}
+	return true, ""
 }
 
 // Phase 73 moves <fcntl.h> to beside <termios.h> by two literals on the
@@ -180,29 +215,35 @@ func TestIncludesPhase73(t *testing.T) {
 	}
 }
 
-// Phase 99 adds <stdlib.h> after <stddef.h> by a literal on the text; on
-// the graph it is an inserted include form with a fresh id. Phase 88 had
-// made the host's EXIT_FAILURE assert a use of the core's enumerator
-// (TestIncludesPhase88); <stdlib.h> makes it the header's macro again, which
-// the rule refuses as a collision and InsertIncludeRebind makes: the use
-// becomes the macro's token, as an import of q099.c has it.
+// The rebinds, both ways, on a snapshot: since 4f96189 phase 88 keeps
+// <stdlib.h>, so on q098 deleting it is refused (the host's EXIT_FAILURE
+// assert would be left unprovided) and DeleteIncludeRebind makes it, the
+// token made a use of the core's enumerator; inserting it again where it
+// was is refused as a collision of use and InsertIncludeRebind makes it,
+// the use the macro's token again: the C view is q098.c byte for byte, and
+// the graph, read back, the import's.
 func TestIncludesPhase99(t *testing.T) {
 	dir, _, _, _ := setup(t)
 	in := snapOf(t, dir, 98)
-	te := edit.New("pinnedtime", in, io.Discard)
-	te.Literal("#include <stddef.h>\n", "#include <stddef.h>\n#include <stdlib.h>\n", 1, "<stdlib.h>")
-	want, err := te.Done()
+	g, e := readBack(t, in)
+	stdlib := includeNamed(t, e, "<stdlib.h>")
+	at := e.Graph().Forms[slices.Index(e.Graph().Forms, stdlib)-1]
+	if err := e.DeleteInclude(stdlib); err == nil {
+		t.Fatal("<stdlib.h> deleted under the rule")
+	}
+	rb, err := e.DeleteIncludeRebind(stdlib)
 	if err != nil {
 		t.Fatal(err)
 	}
-	g, e := readBack(t, in)
-	stddef := includeNamed(t, e, "<stddef.h>")
-	_, err = e.InsertIncludeAfter(stddef, "<stdlib.h>")
+	if len(rb) != 1 || rb[0].Atom != "EXIT_FAILURE" || rb[0].Ref() == nil || !e.InCore(rb[0].Ref()) {
+		t.Fatalf("rebound %v", rb)
+	}
+	_, err = e.InsertIncludeAfter(at, "<stdlib.h>")
 	var ce *graph.CollisionError
 	if !errors.As(err, &ce) || !slices.Equal(ce.Names(), []string{"EXIT_FAILURE"}) || !ce.Collisions[0].Use {
 		t.Fatalf("<stdlib.h> under the rule: %v", err)
 	}
-	inc, toks, err := e.InsertIncludeRebind(stddef, "<stdlib.h>", true)
+	inc, toks, err := e.InsertIncludeRebind(at, "<stdlib.h>", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -215,30 +256,19 @@ func TestIncludesPhase99(t *testing.T) {
 	if err := e.Check(); err != nil {
 		t.Fatal(err)
 	}
-	if got := cView(t, g); !bytes.Equal(got, want) {
-		t.Fatalf("the graph's C view is not the text's: %d bytes against %d", len(got), len(want))
+	if got := cView(t, g); !bytes.Equal(got, in) {
+		t.Fatalf("the graph's C view is not q098.c: %d bytes against %d", len(got), len(in))
 	}
-	// as an import of the text after has it: the assert's EXIT_FAILURE the macro
-	w, _, err := graph.Import(filepath.Join(t.TempDir(), "whim-vim.c"), want)
+	e.Recheck()
+	w, _, err := graph.Import(filepath.Join(t.TempDir(), "whim-vim.c"), in)
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, f := range w.Forms {
-		if f.Is("static_assert") {
-			graph.Walk(f, func(n *graph.Node) bool {
-				if !n.IsList() && n.Atom == "EXIT_FAILURE" && n.Ref() != nil {
-					t.Errorf("q099.c imported: the assert's EXIT_FAILURE refers to %v", n.Ref())
-				}
-				return true
-			})
-		}
-	}
-	// read back, the same graph
 	h, err := graph.Read(g.Lisp())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := graph.Equal(g, h); err != nil {
+	if err := graph.SameGraph(h, w); err != nil {
 		t.Fatal(err)
 	}
 }

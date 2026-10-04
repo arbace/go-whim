@@ -25,7 +25,8 @@ import (
 func graphPhases() []build.Phase {
 	var out []build.Phase
 	for _, p := range build.Plan {
-		if slices.ContainsFunc(p.Steps, func(s build.Step) bool { return s.Graph }) {
+		// the seed has no boundary before it: TestSeedOnGraph holds it
+		if !p.Seed && slices.ContainsFunc(p.Steps, func(s build.Step) bool { return s.Graph }) {
 			out = append(out, p)
 		}
 	}

@@ -119,11 +119,34 @@ package p000a
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
 import (
-	"github.com/arbace/go-whim/crefactor/xform"
+	"fmt"
+	"io"
+	"strconv"
+
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
-// The rule is general, and it is crefactor/xform's NullptrUsize, built with vim's
-// knobs (internal/whim/xform.go); its count is an argument in the plan.
-func init() { phase.RegisterArgs("whim0a", xform.NullptrUsize(whim.Nullptr).Edit()) }
+// The rule is general, and it is crefactor/graph's NullptrUsize (R3: on the
+// graph, where it was crefactor/xform's on the text), built with vim's knobs
+// (internal/whim/xform.go); its count is an argument in the plan,
+// `--casts N`, a floor.
+func init() {
+	phase.RegisterGraph("whim0a", func(e *graph.Editor, w io.Writer, args []string) error {
+		casts := 0
+		for i := 0; i < len(args); i++ {
+			if args[i] != "--casts" || i+1 == len(args) {
+				return fmt.Errorf("language: unknown argument %q", args[i])
+			}
+			n, err := strconv.Atoi(args[i+1])
+			if err != nil {
+				return fmt.Errorf("language: --casts %q: %v", args[i+1], err)
+			}
+			casts, i = n, i+1
+		}
+		v := graph.NewVerbs("language", e, w)
+		v.NullptrUsize(whim.Nullptr, casts)
+		return v.Done()
+	})
+}

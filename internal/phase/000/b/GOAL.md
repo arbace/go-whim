@@ -256,3 +256,7 @@ omission. What it produced is not a symbol, a line count or a row but a *shape*:
 have asserted.
 
 **Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 107, in the group 105-107, whose phases share one purpose. There is no boundary q105 of its own any more; everything above still says what the steps do and why.
+
+**It runs on the graph** (2026-10-04, R3, `doc/GRAPH-MIGRATION.md`): `EditGraph` (`graph.go`): the sites found by edge, the helpers, declarations and 297 sites spliced by FRAG (the arguments moved in as holes, the format copied for the tail), a call that ends its expression statement split as the text split it at `);`, the definitions and prototypes deleted and vim_snprintf's second prototype's uses pointed where the import puts them; its report the text's but the line count, the C view's (173,772) where the text counted its own unprinted lines (173,529). Its
+output is the text program's printed canonically, byte for byte, on the
+seed; 2.8 s on the graph. The text program is deleted.

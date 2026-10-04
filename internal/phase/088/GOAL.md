@@ -51,7 +51,7 @@ counts that had counted a kept header's line on purpose drop by one: 103's
 they were handed. Phase 147 moves `<fcntl.h>` beside `<termios.h>` instead of
 adding it.
 
-The transformation now lives in `crefactor/xform` (`Includes`), with its compiler question in `internal/whim/xform.go`.
+The transformation lived in `crefactor/xform` (`Includes`), with its compiler question in `internal/whim/xform.go`, until R3 (below).
 
 **A header is spare only if nothing means otherwise without it** (2026-10-03).
 A file that compiles silently without a header can still lose it wrongly:
@@ -64,3 +64,16 @@ the file's own lines preprocess to the same tokens without the header
 where 31 went, and the product's `SIZE_MAX` assertion again expands to the
 header's `0xffffffffffffffffu`. Found by the graph's include rule
 (`doc/GRAPH-MIGRATION.md`, *B2e as built*), which tells the same two.
+
+**It runs on the graph** (2026-10-04, R3, `doc/GRAPH-MIGRATION.md`): the
+`includes` graph step (`internal/steps/r3includes.go`) asks `crefactor/graph`'s
+include rule (`Editor.Spares`, B2e's extern rule: every name the file takes
+from the headers provided by an include above its first use, no header's
+macro over the file's own names) in the text step's order -- 33 alone, not
+together, the fold from the bottom 29 -- and deletes those (`DeleteIncludes`):
+q088 byte for byte, with no compiler run. gcc stays as a cross-check in a
+test, not a step: `internal/graphcheck`'s `TestIncludesPhase88` requires q088.c
+to compile silently and every header it still includes, taken out, to make
+gcc print something or change what the file's own lines preprocess to.
+`xform.Includes` and `xform.Silent` are deleted. Measured: 0.27 s
+handed the graph, against 5 s on text, and phase 89 no longer imports.
