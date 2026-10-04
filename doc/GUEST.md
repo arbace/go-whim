@@ -621,7 +621,15 @@ nested KVM here); **317,193 exits, 317,193 of them calls (112,331 reads),
 61.09 a key, 6.68 without the `par_*` cases -- the same counts as on KVM
 amd64**: the guest asks its host the same things, call for call, under
 either hypervisor. The heavy case on the Mac is not yet measured
-(`TestGuestPrebuilt` runs the suite's cases, not the heavy one).
+(`TestGuestPrebuilt` runs the suite's cases, not the heavy one). The wide suite on the Mac first hung in its pseudo-terminal cases: Go's
+poller (kqueue) does not poll a tty on macOS, so the suite stopped reading
+the master, the editor stalled, and once killed could not finish exiting
+with its output undrained (fixed in `internal/suite/pty_darwin.go`: the
+master a blocking descriptor; and `pty.go` closes it at the limit). Then
+`mac.sh suite --wide`: 80 quick and 102 keys, 98 Ex, 30 argv and 10 pty
+cases, all answering as the C does, the controls seen by 76 and
+94/0/0/6; 2,555 ms of guest runs; 346,602 exits, all calls (124,854 reads),
+5.92 a key outside the `par_*` cases.
 
 Milestone 4's groundwork is done here, so that on the M2 Max only building,
 signing and running remain. Everything below was built for `darwin/arm64`
