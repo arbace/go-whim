@@ -3264,3 +3264,21 @@ index after the pattern bound it, which needs no shape. 73 (named in *B3f as bui
 `TopAfterC`, `LiteralC` and `BeforeC` by pattern. B4's note names no act,
 and the front's cutters hold none of this shape (the candidates in
 `internal/cut` are the noconv and noswap acts above).
+
+### The proof
+
+`rm -rf .cache/boundaries; make whim-build-check` in order: whim-vim.c byte
+for byte, 77,635 lines, 104 boundaries compiling, **128 s** wall (524 s
+user) at a load of 8-9 (R1 and R3's run: 132 s). Again, in parallel: byte
+for byte, 34 s, 103 of 103 links begun on their graph snapshot. The
+control, a fault in each unit at once -- FormsWith finding no identifier
+(the questions of 53-56), 20's rewrite writing `!?k`, 26's arm not
+found, 75's and 82's and 96's C one token off -- names exactly phases 20,
+26, 55 (`ML_APPEND_MARK survives the edit with 0 mentions`), 56 (`bh_next
+is not in the input at all`), 75, 82 and 96: `7 of 103 phases do not
+reproduce their snapshot` (54's questions are absences, which a blind
+FormsWith cannot fail; 53 asks none). `whim-editor-check`; `whim-test`
+(80 as HEAD, the control seen by 76, the Go editor 80 as the C); `go test
+./...` in both modules (graphcheck on GRAPH_SNAPS); gofmt, go vet and
+staticcheck on what changed (but `b2c_test.go`'s two unused helpers,
+before this batch).

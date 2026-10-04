@@ -841,7 +841,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time, under a heading for each block (`block  d02-outside`); `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 104 phases, **132 s** with every boundary compiled after (534 s of user CPU, gcc's included), 77,635 lines, at a load of 7-9 after R1 and R3 (every phase on the verbs); 150 s and 597 s at a load of 3-10 after R3 alone, one import in the run (the input, phase 0's seed) and every phase on the graph; 158 s and 598 s at a load of 3-5 after step 6, two imports (phases 1 and 89) and phases 0 and 88 on text; 182 s and 624 s at a load of 12-34 after B4 (phases 1-3 13, 17 and 8 s, 30, 23 and 28 s on text); 382 s and 976 s at a load of 20-35 after B1a, the two run side by side (main before it: 408 s and 982 s; at a load of 3-13, stage A's 348 s and 936 s, and main before step 5 352 s and 958 s
+  before the reason. Measured: 104 phases, **128 s** with every boundary compiled after (524 s of user CPU, gcc's included), 77,635 lines, at a load of 8-9 after Fin (no phase printing the whole C view for itself); 132 s and 534 s at a load of 7-9 after R1 and R3 (every phase on the verbs); 150 s and 597 s at a load of 3-10 after R3 alone, one import in the run (the input, phase 0's seed) and every phase on the graph; 158 s and 598 s at a load of 3-5 after step 6, two imports (phases 1 and 89) and phases 0 and 88 on text; 182 s and 624 s at a load of 12-34 after B4 (phases 1-3 13, 17 and 8 s, 30, 23 and 28 s on text); 382 s and 976 s at a load of 20-35 after B1a, the two run side by side (main before it: 408 s and 982 s; at a load of 3-13, stage A's 348 s and 936 s, and main before step 5 352 s and 958 s
   the same hour; 451 s and 563 s of CPU under a load of 54-62; 815 s and 1,335 s before the profile of `doc/PIPELINE-REFORM.md` §7, step
   9, and the regexps and phase 43 made cheaper in step 11, and phase 43 guarded and the cutters made cheaper in step 12; `--cpuprofile F` writes one). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside
@@ -882,7 +882,8 @@ make help            # every target, with a line each
   compiles, 102 links begun on their graph snapshot, 0 imported) at a load
   of 5-8; after R3, 47 s (35 s the links, 11 s the compiles, all 103 begun
   on their graph snapshot) at a load of 5-10, phase 0 checked first as
-  before: the input imported, its parts, the collection. **Either way it then
+  before: the input imported, its parts, the collection; after Fin, 34 s
+  (25 s the links, 9 s the compiles) at a load of 8-14. **Either way it then
   compiles and links every boundary**, q000-q103, with the one compile line
   (`internal/build`'s `compileBoundary`, the driver's `Config.Compile`), 64 at
   a time, an error failing the check and naming the boundary -- warnings
