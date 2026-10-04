@@ -126,7 +126,11 @@ func ednCheck(path string) bool {
 		fmt.Fprintf(os.Stderr, "  graph        %v\n", err)
 		return false
 	}
-	g, _, err := graph.Import(path, src)
+	g, err := graphOf(path, src)
+	want := src // a C file's C view is the file; a snapshot's, its graph's
+	if err == nil && bytes.HasPrefix(src, []byte(";;")) {
+		want, err = g.C()
+	}
 	var e []byte
 	if err == nil {
 		e, err = g.EDN()
@@ -142,8 +146,8 @@ func ednCheck(path string) bool {
 		}
 		if err == nil {
 			var c []byte
-			if c, err = h.C(); err == nil && !bytes.Equal(c, src) {
-				err = fmt.Errorf("the C view of the EDN read back is not the file: %s", firstDiff(src, c))
+			if c, err = h.C(); err == nil && !bytes.Equal(c, want) {
+				err = fmt.Errorf("the C view of the EDN read back is not the file's: %s", firstDiff(want, c))
 			}
 		}
 	}
@@ -151,7 +155,7 @@ func ednCheck(path string) bool {
 		fmt.Fprintf(os.Stderr, "  graph        %s: %v\n", path, err)
 		return false
 	}
-	fmt.Printf("OK %s: %d bytes of EDN read back in %dms, the same graph, its C view the file\n", path, len(e), read.Milliseconds())
+	fmt.Printf("OK %s: %d bytes of EDN read back in %dms, the same graph, its C view the file's\n", path, len(e), read.Milliseconds())
 	return true
 }
 
