@@ -14,6 +14,8 @@
 // guest N vCPUs (doc/GUEST.md, *SMP*; at most vmm.MaxCPUs, "host" the
 // host's CPUs so capped; by default defaultCPUs), WHIM_GUEST_PARK=DURATION
 // the longest a parked one waits while another runs (vmm.DefaultPark).
+// WHIM_GUEST_STORE=DIR is the store (vmm.DirStore: the guest's blobs and
+// refs, doc/LISP-SANDBOX.md); without it the store's calls answer -1.
 package main
 
 import (
@@ -47,6 +49,14 @@ func main() {
 			os.Exit(1)
 		}
 		cfg.Stats = f
+	}
+	if dir := os.Getenv("WHIM_GUEST_STORE"); dir != "" {
+		st, err := vmm.OpenDirStore(dir)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "whim-guest:", err)
+			os.Exit(1)
+		}
+		cfg.Store = st
 	}
 	if os.Getenv("WHIM_GUEST_SECCOMP") != "0" {
 		cfg.Seccomp = vmm.Seccomp

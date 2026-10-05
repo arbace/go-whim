@@ -52,12 +52,18 @@ const (
 	callCPUPark
 	callCPUWake
 	callCPUSelf
+	callBlobPut // the store's (vmm/store.go)
+	callBlobSize
+	callBlobGet
+	callRefGet
+	callRefSet
 	nCalls
 )
 
 var callNames = [nCalls]string{"", "host_init", "get_winsize", "term_start", "term_stop", "tty_keys",
 	"now_ms", "delay", "wait_for_input", "read_input", "suspend", "exit", "message", "alloc", "free",
-	"write", "time", "raise", "fault", "random", "wait_read", "cpu_start", "cpu_park", "cpu_wake", "cpu_self"}
+	"write", "time", "raise", "fault", "random", "wait_read", "cpu_start", "cpu_park", "cpu_wake", "cpu_self",
+	"blob_put", "blob_size", "blob_get", "ref_get", "ref_set"}
 
 // The call block, as guest/rt.c lays it out: nr, a[5], ret, event.
 const (
@@ -74,6 +80,9 @@ type Config struct {
 	Image []byte
 	Host  editor.Host
 	Args  []string
+	// Store, when not nil, answers the store's calls (guest/abi's BlobPut
+	// and the rest; vmm/store.go): the box's data, on the host.
+	Store Store
 	// Watchdog, when not zero, ends a guest that runs that long without a
 	// hypercall.
 	Watchdog time.Duration
@@ -503,6 +512,13 @@ func (c *vcpu) call(cb []byte) (code int, done bool, err error) {
 		return 0, false, nil
 	case callFault:
 		return 1, false, m.fault(describeFault(a))
+	case callBlobPut, callBlobSize, callBlobGet, callRefGet, callRefSet:
+		ret, err = m.storeCall(nr, a)
+		if err != nil {
+			return 1, false, err
+		}
+		le.PutUint64(cb[cbRet:], uint64(ret))
+		return 0, false, nil
 	}
 	if !c.lockHost() {
 		return 1, false, errStopped

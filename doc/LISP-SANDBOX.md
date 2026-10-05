@@ -238,15 +238,14 @@ fork's `*data-readers*`. They run in two places:
   guest's standard namespaces built by the ordinary `go` (no TamaGo, no
   board; `guest.JokerHost` builds it after `go generate`). `jokerhost view
   ARGS FILE.edn` is `view-clj`: a view, `--batch CASES OUTDIR FILE.edn`,
-  `--serve FILE.edn`; `jokerhost [--gview] [--store F.edn] [-e EXPR |
-  FILE]...` evaluates, or is a REPL on stdin.
-- **In the box**, `go tool whim guest --joker [FILE]`: the namespaces
-  loaded at start, and FILE's graph (default `src/whim-vim.c`) written as
-  EDN to `guest/joker/store/graph.edn` (not tracked) and embedded, the var
-  `store/graph`:
+  `--serve FILE.edn`; `jokerhost [--gview] [--store DIR] [-e EXPR |
+  FILE]...` evaluates, or is a REPL on stdin, `box` the store in DIR.
+- **In the box**, `go tool whim guest --joker`: the namespaces loaded at
+  start, and a graph's EDN read from the store (*The store*, below; it was
+  embedded in the image until the store was built):
 
 ```
-user=> (def st (gview.main/open-string store/graph))
+user=> (def st (gview.main/open-string (box/load "graph")))
 user=> (select-keys st [:read-ms :index-ms :nodes])
 {:read-ms 2517, :index-ms 1715, :nodes 239125}
 user=> (gview.main/show st "callers ml_find_line")
@@ -292,8 +291,8 @@ flag and error, and for every name `uses`, `def` and `callers`, `type`):
 
 The box's peak is the launcher's resident set (the guest's memory it
 touched); the guest's wall time includes starting it and loading the
-namespaces. The image is 33.9 MB, 23 MB before: the views' sources and
-the 9.66 MB of EDN.
+namespaces. The image was 33.9 MB with the EDN embedded; with the
+store it is 24.3 MB -- Joker, the standard namespaces and the views.
 
 The index is 1.36 s where the measurement above (persistent maps) took
 3.71: vectors by id filled as transients (2.1 s with `doseq` walks), sized
@@ -316,13 +315,55 @@ transducers (`(set (map f xs))` for `(into #{} (map f) xs)`), no
 `volatile!` (an atom), and a string's `count` is its characters, so the
 printer's widths -- the Go's bytes -- are counted from the code points.
 
+## The store (2026-10-05)
+
+The box's data is no longer in its image: **the monitor keeps a store**,
+blobs and refs, and the guest reaches it by five hypercalls of the
+monitor's own (`guest/abi`: `BlobPut`, `BlobSize`, `BlobGet`, `RefGet`,
+`RefSet`). A blob is immutable, named by its SHA-256; a ref is a name
+pointing at a blob, the only thing that changes, by compare-and-set when
+the guest asks (an old hash of all zeros: the ref must not exist). What
+the guest names is a hash or a ref's name, `[A-Za-z0-9._-]{1,64}` -- never
+a path of the host's.
+
+On the host the store is a directory (`vmm.DirStore`, `vmm/store.go`):
+`blobs/HASH` and `refs/NAME`, the hash in hex. **It runs inside the
+monitor's system-call filter as it stands**: a blob is created
+exclusively under its own name in one write, a ref rewritten in one write
+of 65 bytes, so it needs `openat`, `read`, `write`, `fstat` and `close` and
+nothing the filter did not allow already -- no rename, no unlink, no
+`pread`. A blob a write left short is refused when first read, held to its
+hash; a blob read is kept, verified, while the monitor runs. Without a
+store every call answers -1.
+
+- `WHIM_GUEST_STORE=DIR` gives the launcher a store;
+- `go tool whim store DIR put FILE | get HASH | ref NAME [HASH] | graph
+  NAME FILE` is it on the host -- `graph` writes FILE's graph as EDN (a C
+  file imported, or a graph's Lisp read) and points NAME at it;
+- in Joker, the namespace `box` (`guest/joker/box`, one package for the
+  guest's hypercalls and jokerhost's `--store DIR`):
+
+```
+user=> (def h (box/put "from the box"))
+user=> [(box/ref! "note" h nil) (box/ref! "note" h nil) (box/get (box/ref "note"))]
+[true false "from the box"]
+user=> (time (count (box/load "graph")))
+"Elapsed time: 40.68358 msecs"
+9663341
+```
+
+`(box/load NAME)` is `(some-> (box/ref NAME) box/get)`: whim-vim.c's
+9.66 MB of EDN in 41 ms, read in 1 MiB `BlobGet`s and hashed once.
+`TestJokerViewsGuest` builds one image and runs both its graphs from a
+store of its own, 48 of 48 and 24 of 24 as before; `vmm`'s `TestDirStore`
+holds the store's refusals and its compare-and-set.
+
 ## What could be done next
 
 1. ~~The Joker guest~~ and 2. ~~tagged literals~~: built, above, and
    the views ported to Joker over the graph's EDN, in the box (*The views
-   in Joker, in the box*). The graph is embedded at build time; reading
-   another, or the store of graphs, needs a way in (a file or block
-   hypercall).
+   in Joker, in the box*), the graph read from the monitor's store (*The
+   store*).
 3. A datagram hypercall, and a design note for the network: netstack and
    TLS in the guest, the host a packet forwarder under a policy.
 4. Measure the collector inside the box (pauses, heap) on the views' index

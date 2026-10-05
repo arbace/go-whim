@@ -64,6 +64,32 @@ const (
 	CPUWake
 	// CPUSelf is the calling vCPU's number, in ret: 0 the boot vCPU.
 	CPUSelf
+	// The store (doc/LISP-SANDBOX.md, *The store*): the box's data, kept by
+	// the monitor in a directory of the host's it is given
+	// (WHIM_GUEST_STORE), so that no data need be built into an image.
+	// Blobs are immutable and named by their SHA-256; refs are names a
+	// guest gives a blob, the store's only mutable state.  Not host
+	// functions: answered by the monitor, not serialised with the others.
+	// Without a store every call answers -1.
+	//
+	// BlobPut stores a[1] bytes at a[0] and writes their SHA-256 to the 32
+	// bytes at a[2]: ret 0, or -1.
+	BlobPut
+	// BlobSize is the size of the blob whose hash is the 32 bytes at a[0],
+	// in ret, or -1 when the store has none.
+	BlobSize
+	// BlobGet reads the blob whose hash is at a[0] from offset a[3] into
+	// a[2] bytes at a[1]: ret the count (0 past its end), or -1.
+	BlobGet
+	// RefGet writes the hash ref a[0]'s a[1] bytes name to the 32 bytes at
+	// a[2]: ret 0, or -1 when there is no such ref.
+	RefGet
+	// RefSet points ref a[0] (a[1] bytes) at the hash at a[2] -- a blob the
+	// store has -- when a[3] is 0, or when the ref's hash is the 32 bytes
+	// at a[3] (compare and set; all zero: the ref must not exist): ret 0,
+	// -1 for a name or hash it refuses, -2 when the comparison failed.  A
+	// name is 1 to 64 of [A-Za-z0-9._-], not beginning with a dot.
+	RefSet
 	NCalls
 )
 

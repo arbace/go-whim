@@ -27,8 +27,9 @@ import (
 // std, linked with the C guest's runtime, at bin/whim-guest-rs.  --joker
 // builds Joker, a Clojure dialect, as a REPL on the console with TamaGo
 // (guest/joker; doc/LISP-SANDBOX.md), at bin/whim-guest-joker: the graph
-// views in Joker loaded (guest/joker/gview) and FILE's graph as EDN
-// embedded, store/graph (a C file imported, or a graph's Lisp read).
+// views in Joker loaded (guest/joker/gview) and the monitor's store the
+// namespace box: the data the image no longer holds, in a store `whim
+// store` writes (WHIM_GUEST_STORE=DIR).
 //
 //	whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--rust|--joker [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]
 func runGuest(args []string) int {
@@ -106,18 +107,11 @@ func runGuest(args []string) int {
 		return 1
 	}
 	defer os.RemoveAll(dir)
-	var edn []byte
-	if jokerGuest {
-		if edn, err = jokerGraph(src); err != nil {
-			fmt.Fprintln(os.Stderr, "whim guest:", err)
-			return 1
-		}
-	}
 	switch {
 	case jokerGuest && imageOnly:
-		err = guest.BuildJokerImage(tamago, a, dir, out, edn)
+		err = guest.BuildJokerImage(tamago, a, dir, out)
 	case jokerGuest:
-		err = guest.BuildJoker(tamago, a, dir, out, edn)
+		err = guest.BuildJoker(tamago, a, dir, out)
 	case rustGuest && imageOnly:
 		err = guest.BuildRustImage(a, dir, out)
 	case rustGuest:
@@ -148,22 +142,8 @@ func runGuest(args []string) int {
 		what = "the Rust editor's core (whimsy/), without std,"
 	}
 	if jokerGuest {
-		what = "Joker's REPL (guest/joker), with TamaGo, the views and " + src + "'s graph,"
+		what = "Joker's REPL (guest/joker), with TamaGo, the views and the store,"
 	}
 	fmt.Printf("  guest        %s: %s on %s\n", out, what, a.Name)
 	return 0
-}
-
-// jokerGraph is the EDN the Joker guest embeds as store/graph: path's
-// graph, as `whim graph --edn` writes it.
-func jokerGraph(path string) ([]byte, error) {
-	src, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	g, err := graphOf(path, src)
-	if err != nil {
-		return nil, err
-	}
-	return g.EDN()
 }

@@ -11,8 +11,8 @@
 ;; same arguments on the graph the EDN was written from; --batch writes line
 ;; N's output to OUTDIR/N.out and its error to OUTDIR/N.err (OUTDIR must
 ;; exist: Joker's fork has no joker.os to make it).  In the guest there is
-;; no file: (open-string store/graph) is a state on the EDN the image
-;; embeds, and (show st "callers ml_find_line") prints a view.
+;; no file: (open-string (box/load "graph")) is a state on the EDN the
+;; store's ref graph names, and (show st "callers ml_find_line") prints a view.
 (ns gview.main
   (:require [joker.string :as str]
             [joker.time :as time]
@@ -135,8 +135,8 @@
   (let [[ix loaded indexed] (load-index file)] (state ix file loaded indexed)))
 
 (defn open-string
-  "A server's state over an EDN text: the guest's store/graph, which no
-  file holds."
+  "A server's state over an EDN text: in the guest, (box/load \"graph\"),
+  which no file holds."
   [edn]
   (let [[ix loaded indexed] (index-of-graph #(g/read-edn-string edn))] (state ix "<string>" loaded indexed)))
 

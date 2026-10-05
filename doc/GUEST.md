@@ -811,7 +811,10 @@ M's `g0`, the function -- the runtime's `mstart` -- and the top of the
 stack TamaGo allocated for the M, whose pages the monitor gives back),
 `CPUPark` (stop until a wake, a[0] ns, or the monitor's limit),
 `CPUWake` (end vCPU a[0]'s park, or its next: a token, so that a wake
-before the park is not lost) and `CPUSelf` (which vCPU this is). There are
+before the park is not lost) and `CPUSelf` (which vCPU this is). Five
+more follow them, the monitor's and not the Host's: the store (`BlobPut`,
+`BlobSize`, `BlobGet`, `RefGet`, `RefSet`; doc/LISP-SANDBOX.md, *The
+store*). There are
 no IPIs: TamaGo's own amd64 boards start an AP by INIT and SIPI and wake
 one by an NMI or an interrupt; here the monitor does both.
 

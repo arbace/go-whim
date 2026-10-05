@@ -9,15 +9,11 @@ import (
 // guest/joker/joker, a fork carrying its core and the standard namespaces
 // that need no system -- built with TamaGo on the Go guest's board and run
 // by the same monitor: a REPL on the console, the language in the box, with
-// the graph views in Joker (guest/joker/gview) loaded and a graph's EDN
-// embedded as store/graph.
+// the graph views in Joker (guest/joker/gview) loaded and the monitor's
+// store as the namespace box (guest/joker/box): the image holds no data.
 
 // JokerModule is the Joker guest's module, from the repository's root.
 var JokerModule = filepath.Join("guest", "joker")
-
-// JokerStore is where the image's graph is written, in the module: the EDN
-// the guest embeds (//go:embed), not tracked.
-var JokerStore = filepath.Join("store", "graph.edn")
 
 // JokerGenerate generates the fork's core (go generate, by this machine's
 // go: Joker compiles its core library into Go data) and returns the
@@ -51,31 +47,23 @@ func JokerHost(out string) error {
 
 // JokerImage builds the Joker guest's image for a with TamaGo's go command
 // gocmd, into dir, and returns the ELF: the fork's core generated first,
-// edn written where the guest embeds it as store/graph, then the guest
-// built.
-func JokerImage(gocmd string, a Arch, dir string, edn []byte) ([]byte, error) {
+// then the guest built.
+func JokerImage(gocmd string, a Arch, dir string) ([]byte, error) {
 	mod, err := JokerGenerate()
 	if err != nil {
-		return nil, err
-	}
-	store := filepath.Join(mod, JokerStore)
-	if err := os.MkdirAll(filepath.Dir(store), 0o755); err != nil {
-		return nil, err
-	}
-	if err := os.WriteFile(store, edn, 0o644); err != nil {
 		return nil, err
 	}
 	return tamagoBuild(gocmd, mod, ".", a, dir, "guest-joker.elf")
 }
 
 // BuildJoker is the whole Joker guest: the image, the monitor, and the
-// launcher at out, with the TamaGo distribution at root and edn its graph.
-func BuildJoker(root string, a Arch, dir, out string, edn []byte) error {
+// launcher at out, with the TamaGo distribution at root.
+func BuildJoker(root string, a Arch, dir, out string) error {
 	gocmd, err := TamaGo(root)
 	if err != nil {
 		return err
 	}
-	img, err := JokerImage(gocmd, a, filepath.Join(dir, "image"), edn)
+	img, err := JokerImage(gocmd, a, filepath.Join(dir, "image"))
 	if err != nil {
 		return err
 	}
@@ -87,12 +75,12 @@ func BuildJoker(root string, a Arch, dir, out string, edn []byte) error {
 }
 
 // BuildJokerImage is the Joker guest's image alone, at out.
-func BuildJokerImage(root string, a Arch, dir, out string, edn []byte) error {
+func BuildJokerImage(root string, a Arch, dir, out string) error {
 	gocmd, err := TamaGo(root)
 	if err != nil {
 		return err
 	}
-	img, err := JokerImage(gocmd, a, dir, edn)
+	img, err := JokerImage(gocmd, a, dir)
 	if err != nil {
 		return err
 	}

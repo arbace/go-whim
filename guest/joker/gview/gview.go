@@ -43,7 +43,7 @@ func Load() error {
 func Source(name string) ([]byte, error) { return src.ReadFile(name) }
 
 // SetVar interns ns/name, the namespace created when it is missing, and
-// gives it a string: how a host hands Joker a graph's EDN (store/graph).
+// gives it a string.
 func SetVar(ns, name, value string) {
 	n := GLOBAL_ENV.EnsureSymbolIsNamespace(MakeSymbol(ns))
 	n.Intern(MakeSymbol(name)).Value = MakeString(value)

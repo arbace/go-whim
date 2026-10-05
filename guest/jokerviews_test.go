@@ -57,52 +57,62 @@ func TestJokerViews(t *testing.T) {
 }
 
 // TestJokerViewsGuest: the same views in the box -- the Joker guest built
-// with TamaGo, a graph embedded as store/graph, its REPL told to read and
-// index it and to answer cases as the server does (gview.main/serve-lines)
+// with TamaGo, once, a graph's EDN put in a store of the test's as the ref
+// graph, its REPL told to read it (box/load) and index it and to answer cases as the server does (gview.main/serve-lines)
 // -- each answer the Go's: every sample case on the sample's graph, and
 // clj_serve_test.go's fixed cases on whim-vim.c's.  It needs TamaGo and
-// /dev/kvm, and skips without them; it leaves the last graph it embedded
-// in guest/joker/store/, which `whim guest --joker` writes again.
+// /dev/kvm, and skips without them.
 func TestJokerViewsGuest(t *testing.T) {
 	if testing.Short() {
 		t.Skip("short")
 	}
 	gocmd := needTamaGo(t)
+	img, err := JokerImage(gocmd, Native(), t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
 	t.Run("sample", func(t *testing.T) {
 		ix := viewIndex(t, "../crefactor/graph/view/testdata/sample.c")
-		guestViews(t, gocmd, ix, append(sampleCases(), generatedCases(ix, 1)...))
+		guestViews(t, img, ix, append(sampleCases(), generatedCases(ix, 1)...))
 	})
 	t.Run("product", func(t *testing.T) {
 		ix := viewIndex(t, "../src/whim-vim.c")
-		guestViews(t, gocmd, ix, productCases())
+		guestViews(t, img, ix, productCases())
 	})
 }
 
-// guestViews builds the Joker guest with ix's graph embedded and holds
-// its answers to cases to the Go's.
-func guestViews(t *testing.T, gocmd string, ix *view.Index, cases [][]string) {
+// guestViews runs the Joker guest img on a store holding ix's graph and
+// holds its answers to cases to the Go's.
+func guestViews(t *testing.T, img []byte, ix *view.Index, cases [][]string) {
 	t.Helper()
 	edn, err := ix.G.EDN()
 	if err != nil {
 		t.Fatal(err)
 	}
-	img, err := JokerImage(gocmd, Native(), t.TempDir(), edn)
+	st, err := vmm.OpenDirStore(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
+	h, err := st.Put(edn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := st.SetRef("graph", h, nil); err != nil {
+		t.Fatal(err)
+	}
 	var keys strings.Builder
-	keys.WriteString("(def st (gview.main/open-string store/graph))\n(select-keys st [:read-ms :index-ms :nodes])\n(do (println \"<<frames>>\") (gview.main/serve-lines st [")
+	keys.WriteString("(def st (gview.main/open-string (box/load \"graph\")))\n(select-keys st [:read-ms :index-ms :nodes])\n(do (println \"<<frames>>\") (gview.main/serve-lines st [")
 	for _, c := range cases {
 		keys.WriteString(strconv.Quote(strings.Join(c, "\t")) + " ")
 	}
 	keys.WriteString("]) nil)\n")
-	h := &console{in: []byte(keys.String())}
+	con := &console{in: []byte(keys.String())}
 	start := time.Now()
-	code, err := vmm.Run(vmm.Config{Image: img, Host: h, Args: []string{"joker"}})
+	code, err := vmm.Run(vmm.Config{Image: img, Host: con, Store: st, Args: []string{"joker"}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	out := h.out.String()
+	out := con.out.String()
 	i := strings.Index(out, "<<frames>>\n")
 	if code != 0 || i < 0 {
 		t.Fatalf("exit %d:\n%s", code, out)

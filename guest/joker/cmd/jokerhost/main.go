@@ -4,14 +4,15 @@
 // the box can be run and tested beside it (doc/LISP-SANDBOX.md, *The views
 // in Joker, in the box*).
 //
-//	jokerhost [--gview] [--store FILE.edn] [-e EXPR | FILE.joke]...
+//	jokerhost [--gview] [--store DIR] [-e EXPR | FILE.joke]...
 //	jokerhost view [view-clj's arguments]
 //
 // The first evaluates each expression and file in order, printing the last
 // expression's value; with none, it is a REPL on stdin, as the guest's.
 // --gview loads the views' namespaces (../../gview: gview.graph,
-// gview.view, gview.main), and --store gives store/graph a file's text, as
-// the guest gives it the EDN it embeds.  The second is
+// gview.view, gview.main), and --store makes the namespace box (../../box)
+// the store in DIR, as vmm.DirStore keeps it for the guest's monitor
+// (WHIM_GUEST_STORE): box/load "graph" the EDN the guest reads.  The second is
 // crefactor/graph/view/clj/view-clj in Joker: the views loaded and
 // (gview.main/run ARGS) called, its value the exit status.
 package main
@@ -24,7 +25,9 @@ import (
 	"runtime/pprof"
 	"strings"
 
+	"github.com/arbace/go-whim/guest/joker/box"
 	"github.com/arbace/go-whim/guest/joker/gview"
+	"github.com/arbace/go-whim/vmm"
 	. "github.com/candid82/joker/core"
 
 	// the standard namespaces the guest links
@@ -44,7 +47,7 @@ import (
 	_ "github.com/candid82/joker/std/uuid"
 )
 
-const usage = "usage: jokerhost [--gview] [--store FILE.edn] [-e EXPR | FILE.joke]...\n       jokerhost view [view-clj's arguments]"
+const usage = "usage: jokerhost [--gview] [--store DIR] [-e EXPR | FILE.joke]...\n       jokerhost view [view-clj's arguments]"
 
 func main() {
 	if f := os.Getenv("JOKERHOST_CPUPROFILE"); f != "" {
@@ -83,12 +86,12 @@ func main() {
 			load()
 		case a == "--store" && i+1 < len(args):
 			i++
-			b, err := os.ReadFile(args[i])
+			s, err := vmm.OpenDirStore(args[i])
 			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				exit(1)
 			}
-			gview.SetVar("store", "graph", string(b))
+			box.Install(s)
 		case a == "-e" && i+1 < len(args):
 			i++
 			ran = true
