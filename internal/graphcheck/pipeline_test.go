@@ -320,5 +320,21 @@ func TestChangesPhase24(t *testing.T) {
 	if len(nominal.Changed)*10 > len(content.Changed) || !labels(content.Changed)["typedef buf_T"] {
 		t.Errorf("by content %d changed, by name %d: no cascade through the structs", len(content.Changed), len(nominal.Changed))
 	}
+	// the build log's count, from the units' hashes alone: phase 24's
+	// line says `forms: 24 removed, 72 changed`
+	ua, err := a.UnitHashes(graph.HashOptions{Nominal: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ub, err := b.UnitHashes(graph.HashOptions{Nominal: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	u := graph.CompareUnits(ua, ub)
+	if len(u.Added) != 0 || len(u.Removed) != 24 || len(u.Changed) != 72 ||
+		len(nominal.Removed) != 24 || len(nominal.Changed) != 72 || len(content.Changed) != 1149 {
+		t.Errorf("phase 24: by name %d added, %d removed, %d changed (Compare: %d, %d, %d), by content %d changed; want 0, 24, 72 and 1149",
+			len(u.Added), len(u.Removed), len(u.Changed), len(nominal.Added), len(nominal.Removed), len(nominal.Changed), len(content.Changed))
+	}
 	t.Logf("phase 24: %d removed; changed %d by content, %d by name", len(content.Removed), len(content.Changed), len(nominal.Changed))
 }

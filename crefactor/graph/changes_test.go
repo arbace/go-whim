@@ -48,6 +48,19 @@ func TestCompare(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			// the same, from the units' hashes alone
+			ua, err := a.UnitHashes(c.opt)
+			if err != nil {
+				t.Fatal(err)
+			}
+			ub, err := b.UnitHashes(c.opt)
+			if err != nil {
+				t.Fatal(err)
+			}
+			u := CompareUnits(ua, ub)
+			if len(u.Added) != len(x.Added) || len(u.Removed) != len(x.Removed) || len(u.Changed) != len(x.Changed) || u.Kept != x.Kept {
+				t.Errorf("CompareUnits %+v against Compare %+v", u, x)
+			}
 			for _, w := range []struct {
 				what      string
 				got, want []string

@@ -1429,6 +1429,76 @@ moves `win_T`, so `buf_T` and every form naming either (the cascade of
 oracle's cases on a sample. 0.4 s with both graphs from the store,
 against 3.7 s importing the two texts.
 
+### In the build log
+
+A run in order writes the same count in every phase's line, by the
+nominal hashes, after what the graph's editor logged:
+
+```
+  phase 23     no buffer-name argument matching: 2 acts, -300 edited and collected; 81897 lines; graph: ...; forms: 12 removed, 1 changed
+  phase 24     empty functions, write-only counters, and the window id: 24 acts, -151 edited and collected; 81746 lines; graph: ...; forms: 24 removed, 72 changed
+  phase 88     the system headers nothing needs: 3 acts, -29 edited and collected; 75405 lines; graph: ...; forms: 29 removed
+  phase 102    a file-scope flag is bool: 6 acts, 0 edited and collected; 77635 lines; graph: ...; forms: 449 changed
+  ...
+  forms        105 boundaries read back and hashed beside the run, 16431ms of CPU; the run waited 179ms for them
+```
+
+`-v`, or `whim build --changes`, lists the forms under the line (`added`,
+`removed`, `changed` and the label, as `--changes N` does); `--no-changes`
+hashes nothing. Phase 0's line compares the input's import with q000.
+The pipeline's `changes.go`; `graph.UnitHashes`, a graph's top-level
+forms and external nodes as id, label and hash, apart from the graph, and
+`graph.CompareUnits`, `Compare`'s pairing on those (`Compare` is the two
+now).
+
+**Where it is computed.** At a phase's end the graph is in hand, and every
+phase of the plan begins and ends on it (one import, the seed's), so each
+boundary is hashed once: the graph a phase hands on is the next one's
+before. The store is not read. But the graph a phase is handed is edited
+in place, so what it was must be taken before its first step, and the
+hashing, which the run waited for in a first version, was measured:
+
+| `rm -rf .cache/boundaries; whim build --check`, in order, compiles included | wall |
+| --- | ---: |
+| main `f026bf2` | 134 s |
+| hashed at each phase's end, the run waiting | 146 s: 105 boundaries, 13.2 s of hashing |
+| hashed beside the run (as built), A/B/A/B with main | main 131.8 and 133.4 s, this 131.9 and 131.2 s |
+
+(a load of 7-16 on 64 cores.)
+
+85-210 ms a boundary even after the hashing was made cheaper (below): 9%
+of the run, over "a few percent". So the run takes each boundary's Lisp
+instead -- the units a whole run makes anyway for its store, `PutUnits`
+taking them made, and 40 ms where there is no store (`--to N`) -- and a
+goroutine reads it back (`graph.Read`: the same graph, ids and all) and
+hashes it while the next phase runs. A phase's line waits in a queue for
+its comparison, and what the run writes after it waits behind it, so the
+log is in order; the run waits only at its end, 0.13-0.18 s, and is
+not measurably slower (the table). 16.4-16.6 s of CPU beside a run that
+uses one core of 64.
+
+**The hashing made cheaper**, exactly: `Hash` indexed every node in a map
+keyed by the node, half its time in the profile; it indexes by id now, a
+slice, falling back to the map for a node with no id, one whose id another
+node has, or ids too sparse (`nodeIndex`), and asks the nominal names and
+the external members' owners only of the nodes that can be them. 208-458
+ms a boundary became 85-210 (`TestHashStable` spoils the ids each way).
+Hashing only the top-level forms saves nothing: a form's hash is its
+nodes', and an edge into another form needs that node's. Incrementally
+from the editor's log was declined: an act's superseded and given ids do
+not say every node an edit changed in place (the re-check retypes, the
+collection pins a value), so it would not be exact.
+
+**Proof.** Every phase's count is `whim graph --changes N --nominal`'s
+(103 of 103 compared; phase 0 has no q(-1)); phase 24's is its `GOAL.md`'s
+(`TestChangesPhase24` holds `CompareUnits` to 0 added, 24 removed and 72
+changed, and `Compare` by content to 1,149); the store is main's byte for
+byte and every boundary too. **The parallel check prints no count**: it
+holds each link's text to qN byte for byte, and the count is a function of
+the two boundaries' graphs, which a run in order reports and `--changes N`
+reads from the store; printing it again would cost two hashes a link to
+say what is known.
+
 ## EDN (2026-10-04)
 
 The second preferred direction of *Decided for steps 1-3*: a serialisation

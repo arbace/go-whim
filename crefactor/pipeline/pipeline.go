@@ -146,6 +146,11 @@ type Options struct {
 	Keep    string
 	Refused []string
 
+	// What each phase changed in forms (changes.go) is counted in its
+	// line: Forms lists them under it too, as -v does; NoForms counts
+	// nothing, and hashes nothing.
+	Forms, NoForms bool
+
 	snap  bool               // a whole ordinary run from phase 0: write the snapshots
 	store *graph.StoreWriter // and the graphs, into SnapDir's store
 }

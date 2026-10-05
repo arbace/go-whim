@@ -23,6 +23,10 @@ import (
 //	whim build --src F --out F the input and the output
 //	whim build --keep D        every boundary as D/qNNN.c, for measuring
 //	whim build --cpuprofile F  a CPU profile of the run, for go tool pprof
+//	whim build --changes       under each phase's line, the forms it added,
+//	                           removed and changed (-v lists them too); the
+//	                           counts are in the line either way
+//	whim build --no-changes    no counts: the boundaries are not hashed
 //
 // --check is the gate on internal/build's plan, and the only one there is: the
 // plan was derived from the phase programs, so what holds it to them is that
@@ -44,6 +48,10 @@ func runBuild(args []string) int {
 			o.KeepGoing = true
 		case "-v", "--verbose":
 			o.Verbose = true
+		case "--changes":
+			o.Forms = true
+		case "--no-changes":
+			o.NoForms = true
 		case "--jobs":
 			i++
 			n, err := strconv.Atoi(args[min(i, len(args)-1)])

@@ -173,8 +173,13 @@ const graphSnapHead = ";; the graph of q%03d.c, sha256 %s\n"
 
 func graphSnapName(n int) string { return fmt.Sprintf("q%03d", n) }
 
-func (o *Options) writeGraphSnap(n int, text []byte, g *graph.Graph) error {
-	return o.store.Put(graphSnapName(n), fmt.Appendf(nil, graphSnapHead, n, digestOf(text)), g)
+func (o *Options) writeGraphSnap(n int, text []byte, g *graph.Graph, units [][]byte) error {
+	head := fmt.Appendf(nil, graphSnapHead, n, digestOf(text))
+	if units != nil {
+		// g's, made at the end of the phase that handed it on
+		return o.store.PutUnits(graphSnapName(n), head, units)
+	}
+	return o.store.Put(graphSnapName(n), head, g)
 }
 
 // readGraphSnap is boundary n's graph, when the store holds it and it is

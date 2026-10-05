@@ -104,6 +104,12 @@ func TestHybridRun(t *testing.T) {
 		"phase 2      cube(2) is 8, on the graph: 1 act, -6 edited and collected; 15 lines; graph: 1 import",
 		"phase 3      from the graph to text: 1 act, 0 edited, 0 swept; 15 lines; graph: 1 C view",
 		"phase 4      a sweep on the graph: 1 act, 0 edited and collected; 15 lines; graph: 1 import",
+		// what each phase changed in forms, from the graphs' hashes: phase
+		// 1 began on text, so it is not compared
+		"graph: 1 import", "; forms: 1 removed, 1 changed\n",
+		"from the graph to text: 1 act, 0 edited, 0 swept; 15 lines; graph: 1 C view", "; forms: 2 changed\n",
+		"; forms: none changed\n",
+		"forms        4 boundaries read back and hashed beside the run",
 	} {
 		if !strings.Contains(log.String(), want) {
 			t.Errorf("no %q in the log:\n%s", want, log.String())
@@ -111,6 +117,30 @@ func TestHybridRun(t *testing.T) {
 	}
 	if !strings.Contains(log.String(), "graphs       3 kept in the store") {
 		t.Errorf("no account of the store in the log:\n%s", log.String())
+	}
+	if strings.Count(log.String(), "forms:") != 3 {
+		t.Errorf("not 3 phases compared:\n%s", log.String())
+	}
+	// --changes lists the forms; --no-changes hashes nothing
+	for _, x := range []struct {
+		forms, none bool
+		want, not   string
+	}{
+		{forms: true, want: "; forms: 1 removed, 1 changed\n      removed  defn cube\n      changed  defn main\n"},
+		{none: true, not: "forms"},
+	} {
+		o := options(dir)
+		var log bytes.Buffer
+		o.W, o.Forms, o.NoForms = &log, x.forms, x.none
+		if _, err := c.Run(o); err != nil {
+			t.Fatal(err)
+		}
+		if x.want != "" && !strings.Contains(log.String(), x.want) {
+			t.Errorf("no %q in the log:\n%s", x.want, log.String())
+		}
+		if x.not != "" && strings.Contains(log.String(), x.not) {
+			t.Errorf("%q in the log:\n%s", x.not, log.String())
+		}
 	}
 	// a second run takes away the graph snapshots no phase reads any more
 	c.Plan[2].Steps[0].Graph, c.Plan[2].Steps[0].Op = false, "replace"

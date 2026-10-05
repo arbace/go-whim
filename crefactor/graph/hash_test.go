@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 )
@@ -72,6 +73,26 @@ func TestHashStable(t *testing.T) {
 			sameHashes(t, "read back", g, hg, h, hashOf(t, h, HashOptions{}))
 			renumber(h)
 			sameHashes(t, "renumbered", g, hg, h, hashOf(t, h, HashOptions{}))
+			// the index the hashing keeps, by id where it can: lists with
+			// no id and an id two nodes share (found by the node), and ids
+			// too sparse for a slice
+			for _, sparse := range []bool{false, true} {
+				h, _ := Read(g.Lisp())
+				i := 0
+				h.Walk(func(n *Node) bool {
+					i++
+					switch {
+					case sparse && n.ID != 0:
+						n.ID = ID(1<<30 + i)
+					case !sparse && n.list && i%3 == 0:
+						n.ID = 0
+					case !sparse && n.list && i%3 == 1:
+						n.ID = 7
+					}
+					return true
+				})
+				sameHashes(t, fmt.Sprintf("ids spoilt, sparse %v", sparse), g, hg, h, hashOf(t, h, HashOptions{}))
+			}
 			if len(hg.Nodes) != g.Count().Nodes {
 				t.Errorf("%d nodes hashed of %d", len(hg.Nodes), g.Count().Nodes)
 			}

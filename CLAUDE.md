@@ -407,7 +407,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    the ids (a cycle a component hashed as one, its order a
                    colour refinement; doc/GRAPH.md, *Content hashes,
                    measured*) and changes.go what they say moved between
-                   two graphs (`whim graph --changes`); headers.go what one header provides, parsed by
+                   two graphs (`whim graph --changes`, and the build log's
+                   count a phase: UnitHashes, CompareUnits); headers.go what one header provides, parsed by
                    cc alone. The collection: collect.go, keys.go and cut.go
                    the sweep's rules on the nodes, as garbage collection;
                    editcollect.go through the editor, its index kept. The
@@ -935,11 +936,17 @@ make help            # every target, with a line each
   every later phase is written for them, 0c's 37 `[[fallthrough]];` among them
   (20 reach the product, `doc/C23.md`). **Its log is a line a phase** -- the
   name, the acts its steps reported, the lines its edits and the collection
-  took, the lines left, the time, and what the graph's editor logged, under a
-  heading for each block (`block  d02-outside`); `-v` writes every act, and a
+  took, the lines left, the time, what the graph's editor logged, and what the
+  phase changed in forms -- the top-level forms it added, removed and changed
+  by their nominal hashes (`forms: 24 removed, 72 changed`, what `whim graph
+  --changes N --nominal` says), each boundary read back from its Lisp and
+  hashed beside the run, 16.5 s of CPU and no wall time measurable
+  (`doc/GRAPH.md`, *In the build log*) -- under a heading for each block
+  (`block  d02-outside`); `-v` writes every act and lists the forms
+  (`--changes` lists them alone, `--no-changes` hashes nothing), and a
   phase that refuses writes its whole report before the reason. Measured: 104
-  phases, **128 s** with every boundary compiled after (524 s of user CPU,
-  gcc's included), 77,635 lines, at a load of 8-9 -- against 451 s (563 s of
+  phases, **131-132 s** with every boundary compiled after (546 s of user CPU,
+  gcc's included), 77,635 lines, at a load of 7-16 -- against 451 s (563 s of
   CPU, a load of 54-62) when every phase edited text, and 815 s before
   `doc/PIPELINE-REFORM.md` §7's profile (`doc/GRAPH-MIGRATION.md`, *Fin as
   built*, has the steps between; `--cpuprofile F` writes a profile). A whole

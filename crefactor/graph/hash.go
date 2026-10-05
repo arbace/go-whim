@@ -79,12 +79,48 @@ type Hashes struct {
 	// hashed as a cycle (more than one node, or a node naming itself),
 	// InCycles their nodes, Largest the largest.
 	Components, Cyclic, InCycles, Largest int
-	index                                 map[*Node]int32
+	index                                 nodeIndex
+}
+
+// nodeIndex is each node's position in Hashes.Nodes: by its id where the
+// ids are dense and the id is the node's alone -- a slice, where a map
+// keyed by the node was half the hashing's time -- and by the node
+// otherwise.  A node found by its id is the node asked about, or it is
+// looked up by the node.
+type nodeIndex struct {
+	byID  []int32 // an id's node's position, +1; 0 for none
+	other map[*Node]int32
+	nodes []*Node
+}
+
+func (x *nodeIndex) get(n *Node) (int32, bool) {
+	if n.ID != 0 && int(n.ID) < len(x.byID) {
+		if j := x.byID[n.ID]; j > 0 && x.nodes[j-1] == n {
+			return j - 1, true
+		}
+	}
+	i, ok := x.other[n]
+	return i, ok
+}
+
+// build indexes nodes, ids up to maxID among them.
+func (x *nodeIndex) build(nodes []*Node, maxID ID) {
+	x.nodes, x.other = nodes, map[*Node]int32{}
+	if int(maxID) <= 4*len(nodes)+1024 {
+		x.byID = make([]int32, int(maxID)+1)
+	}
+	for i, n := range nodes {
+		if n.ID != 0 && int(n.ID) < len(x.byID) && x.byID[n.ID] == 0 {
+			x.byID[n.ID] = int32(i) + 1
+		} else {
+			x.other[n] = int32(i)
+		}
+	}
 }
 
 // Hash is n's hash, false if n is not a node of the graph hashed.
 func (h *Hashes) Hash(n *Node) (Hash, bool) {
-	i, ok := h.index[n]
+	i, ok := h.index.get(n)
 	if !ok {
 		return Hash{}, false
 	}
@@ -94,7 +130,7 @@ func (h *Hashes) Hash(n *Node) (Hash, bool) {
 // Hash computes every node's content hash.  It refuses a graph with an
 // edge to a node it does not hold.
 func (g *Graph) Hash(opt HashOptions) (*Hashes, error) {
-	hs := &Hashes{index: map[*Node]int32{}}
+	hs := &Hashes{}
 	owner := map[*Node]string{} // an external aggregate's members: its name
 	for _, x := range g.Externs {
 		if externAggregate(x) {
@@ -105,13 +141,15 @@ func (g *Graph) Hash(opt HashOptions) (*Hashes, error) {
 			}
 		}
 	}
+	var maxID ID
 	g.Walk(func(n *Node) bool {
 		if hashed(n) {
-			hs.index[n] = int32(len(hs.Nodes))
 			hs.Nodes = append(hs.Nodes, n)
+			maxID = max(maxID, n.ID)
 		}
 		return true
 	})
+	hs.index.build(hs.Nodes, maxID)
 	nn := len(hs.Nodes)
 	hs.Of = make([]Hash, nn)
 	hs.Size = make([]int32, nn)
@@ -125,10 +163,10 @@ func (g *Graph) Hash(opt HashOptions) (*Hashes, error) {
 		names = nominals(g)
 	}
 	target := func(t *Node) {
-		if names[t] != "" {
+		if names != nil && nominalHead(t) && names[t] != "" {
 			return // not a dependency: written by its name
 		}
-		i, ok := hs.index[t]
+		i, ok := hs.index.get(t)
 		if !ok {
 			if bad == nil {
 				bad = fmt.Errorf("graph: an edge to a node the graph does not hold (id %d)", t.ID)
@@ -159,11 +197,12 @@ func (g *Graph) Hash(opt HashOptions) (*Hashes, error) {
 	for i, n := range hs.Nodes {
 		off[i] = int32(len(deps))
 		for _, k := range n.Kids {
-			if owner[k] != "" {
+			if len(owner) > 0 && k.Is("member") && owner[k] != "" {
 				continue
 			}
 			if hashed(k) {
-				deps = append(deps, hs.index[k])
+				i, _ := hs.index.get(k)
+				deps = append(deps, i)
 			} else {
 				token(k)
 			}
@@ -391,7 +430,7 @@ func (s *hasher) node(b []byte, n *Node, mode int) []byte {
 	} else {
 		b = append(b, '-')
 	}
-	if o := s.owner[n]; o != "" {
+	if o := s.ownerOf(n); o != "" {
 		b = append(b, 'P')
 		b = varint.AppendUvarint(b, uint64(len(o)))
 		b = append(b, o...)
@@ -428,6 +467,25 @@ func nominals(g *Graph) map[*Node]string {
 	return names
 }
 
+// nominalHead says t may be one of nominals' definitions: the map is
+// asked only of those.
+func nominalHead(t *Node) bool {
+	switch t.Head() {
+	case "typedef", "def", "struct", "union", "enum":
+		return true
+	}
+	return false
+}
+
+// ownerOf is the external aggregate a member it lists is of, "" for any
+// other node: the map is asked only of members.
+func (s *hasher) ownerOf(n *Node) string {
+	if len(s.owner) == 0 || !n.Is("member") {
+		return ""
+	}
+	return s.owner[n]
+}
+
 // aggregateDef says t is a struct's, union's or enum's definition.
 func aggregateDef(t *Node) bool {
 	switch t.Head() {
@@ -447,8 +505,8 @@ func externAggregate(n *Node) bool {
 }
 
 func (s *hasher) ref(b []byte, t *Node, mode int) []byte {
-	i := s.hs.index[t]
-	if s.opt.Nominal {
+	i, _ := s.hs.index.get(t)
+	if s.opt.Nominal && nominalHead(t) {
 		if name := s.names[t]; name != "" {
 			b = append(b, 'N')
 			b = varint.AppendUvarint(b, uint64(len(name)))

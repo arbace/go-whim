@@ -79,7 +79,21 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 		pr = &prog{text: src}
 	}
 	last := -1 // the boundary before the phase about to run
-	for _, p := range c.Plan {
+	// the forms each phase changed (changes.go), and an import made at a
+	// phase's end for the phase after it
+	var forms *formTracker
+	if !o.NoForms {
+		forms = &formTracker{opt: graph.HashOptions{Nominal: true}}
+		w := o.W
+		o.W = &formsWriter{w: w, f: forms}
+		defer func() {
+			forms.drain(w, true)
+			o.W = w
+		}()
+	}
+	var ahead Conv
+	var units [][]byte // the Lisp of the graph handed on, made at the phase's end
+	for pi, p := range c.Plan {
 		if o.To >= 0 && p.N > o.To {
 			break
 		}
@@ -164,19 +178,28 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 			} else if pr.ed != nil {
 				pr.ed = graph.NewEditor(pr.ed.Graph())
 				pr.conv.Graph = true
+				pr.conv.Imports += ahead.Imports
+				pr.conv.Import += ahead.Import
 			} else if _, err := c.editor(pr, scratch); err != nil {
 				os.RemoveAll(scratch)
 				refused()
 				return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 			}
 			if o.snap && last >= 0 {
-				if err := o.writeGraphSnap(last, in, pr.ed.Graph()); err != nil {
+				if err := o.writeGraphSnap(last, in, pr.ed.Graph(), units); err != nil {
 					return nil, err
 				}
 			}
+			if forms != nil {
+				forms.begin(pr.ed.Graph())
+			}
 		} else {
 			pr.ed = nil
+			if forms != nil {
+				forms.before = nil
+			}
 		}
+		ahead, units = Conv{}, nil
 		err = c.steps(p, pr, scratch, rep)
 		acts := 0
 		if held != nil {
@@ -198,6 +221,9 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 			fmt.Fprintf(o.W, "  REFUSED %-4d %s\n", p.N, why)
 			o.Refused = append(o.Refused, fmt.Sprintf("%d: %s", p.N, why))
 			pr = &prog{text: in}
+			if forms != nil {
+				forms.before = nil
+			}
 		default:
 			os.RemoveAll(scratch)
 			refused()
@@ -221,6 +247,9 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 			fmt.Fprintf(o.W, "  REFUSED %-4d %v\n", p.N, err)
 			o.Refused = append(o.Refused, fmt.Sprintf("%d: %v", p.N, err))
 			pr = &prog{text: in}
+			if forms != nil {
+				forms.before = nil
+			}
 		default:
 			refused()
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
@@ -231,10 +260,41 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 		last = p.N
 		d := time.Since(start)
 		after := bytes.Count(pr.text, []byte("\n"))
+		// What it changed in forms: the graph it hands on, imported here
+		// when it ended on text and the phase after begins on the graph,
+		// or it is the last.
+		waits := false
+		if forms != nil && forms.before != nil {
+			final := pi == len(c.Plan)-1 || o.To >= 0 && p.N >= o.To
+			if pr.ed == nil && (final || BeginsOnGraph(c.Plan[pi+1])) {
+				t0 := time.Now()
+				if ahead, err = c.importAhead(pr); err != nil {
+					return nil, fmt.Errorf("phase %d (%s): the graph it hands on: %w", p.N, p.Name, err)
+				}
+				if final {
+					forms.extra += time.Since(t0)
+				}
+			}
+			if pr.ed != nil {
+				units = pr.ed.Graph().LispUnits()
+				waits = true
+			} else {
+				forms.before = nil
+			}
+		}
+		head := ""
 		if held != nil {
-			fmt.Fprintf(o.W, "  phase %-6d %s: %s\n", p.N, p.Name, summary(acts, before, edited, after, d, pr.conv))
+			head = fmt.Sprintf("  phase %-6d %s: %s", p.N, p.Name, summary(acts, before, edited, after, d, pr.conv))
 		} else if d > time.Second {
 			fmt.Fprintf(o.W, "  phase %-6d %ds, %d lines\n", p.N, int(d.Seconds()), after)
+		}
+		switch {
+		case waits && held != nil:
+			forms.end(p.N, units, head+"; ", o.Forms)
+		case waits:
+			forms.end(p.N, units, fmt.Sprintf("  phase %-6d ", p.N), true)
+		case held != nil:
+			fmt.Fprintln(o.W, head)
 		}
 	}
 	if pr == nil {
@@ -243,6 +303,10 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 	// The work tree is left holding the source the pipeline leaves.
 	if err := os.WriteFile(path, pr.text, 0o644); err != nil {
 		return nil, err
+	}
+	if forms != nil {
+		forms.drain(o.W.(*formsWriter).w, true)
+		forms.report(o.W)
 	}
 	if o.snap {
 		st := o.store

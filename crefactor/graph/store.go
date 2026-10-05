@@ -101,8 +101,12 @@ func RemoveStore(dir string) error {
 // Put stores g's Lisp, headed by head (a comment line, or nothing), as the
 // graph NAME.
 func (w *StoreWriter) Put(name string, head []byte, g *Graph) error {
+	return w.PutUnits(name, head, g.LispUnits())
+}
+
+// PutUnits is Put of a graph's LispUnits, made already.
+func (w *StoreWriter) PutUnits(name string, head []byte, units [][]byte) error {
 	w.Graphs++
-	units := g.LispUnits()
 	if len(head) > 0 {
 		units = append([][]byte{head}, units...)
 	}
