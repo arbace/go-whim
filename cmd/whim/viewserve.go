@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -23,14 +24,20 @@ import (
 //	ok N [WORDS]        N the body's bytes; then the body, and ;;end
 //	error N             the message as the body
 //
-// One buffer is open at a time: a view's text being typed into
-// (crefactor/graph/view's Buffer), its edits made in place in one session
-// and undone in order.  Words are blank-separated; '...' quotes a word as
-// it is, "..." as a Go string (\n, \", \\), for a change's text.
+// Buffers are views' texts being typed into (crefactor/graph/view's
+// Buffer), any number open on one session, their edits made in place in it
+// and undone in order: `open` gives each a number, B, and a request
+// begins with `@B` for buffer B, or is for the last one named.  An edit
+// through one prints the others again: `touched B...` in its header names
+// those whose text moved.  Words are blank-separated; '...' quotes a word
+// as it is, "..." as a Go string (\n, \", \\), for a change's text.
 //
-//	open [--ids] [--fallout] [--depth N] [--show S] [--stop H] VIEW ARG   the buffer on a view;
-//	                        body: its text; --fallout closes over the uses a deletion leaves
-//	                        (they are refused without it)
+//	open [--ids] [--fallout] [--depth N] [--show S] [--stop H] VIEW ARG   a buffer on a view;
+//	                        body: its text; header: ok N buf B; --fallout closes over the
+//	                        uses a deletion leaves (they are refused without it); `@B open`
+//	                        puts buffer B on the view
+//	buffers                 the buffers open: a line each, B and its view
+//	close                   the buffer closed
 //	text                    the buffer's text; header: ok N STATUS [REASON]
 //	change FROM TO TEXT [CURSOR]  bytes FROM to TO of the buffer (or LINE:COL)
 //	                        replaced by TEXT; header: ok N STATUS CURSOR [REASON] --
@@ -74,23 +81,34 @@ func runViewServe(args []string) int {
 	return 0
 }
 
-// a server is one session and its buffer.
+// a server is one session and its buffers; the request's buffer is the
+// one embedded, so that its fields are the server's.
 type viewServer struct {
-	g     *graph.Graph
-	file  string
-	s     *view.Session
+	g    *graph.Graph
+	file string
+	s    *view.Session
+	fo   *graph.FallOutOptions
+	*sbuf
+	bufs map[int]*sbuf
+	last int // the buffer the last request named
+	next int // the next buffer's number
+}
+
+// an sbuf is a buffer and the view it is on.
+type sbuf struct {
+	id    int
 	b     *view.Buffer
 	name  string   // the buffer's view
-	vargs []string // its arguments, the root last
+	vargs []string // its arguments, the root last (pinned: #ID)
+	asked string   // the view as asked for, or as `at` reached it: for `buffers`
 	opt   view.Options
 	p     view.Printer
-	fo    *graph.FallOutOptions
 }
 
 // serveViews answers requests from in on out until quit or the input's
 // end.
 func serveViews(g *graph.Graph, file string, in io.Reader, out io.Writer) {
-	sv := &viewServer{g: g, file: file, s: view.NewSession(g)}
+	sv := &viewServer{g: g, file: file, s: view.NewSession(g), bufs: map[int]*sbuf{}, next: 1}
 	r := bufio.NewReader(in)
 	w := bufio.NewWriter(out)
 	defer w.Flush()
@@ -136,8 +154,41 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 	if err != nil {
 		return "", "", err
 	}
+	named := 0 // @B: the buffer the request is for
+	if len(ws) > 0 && strings.HasPrefix(ws[0], "@") {
+		if named, err = strconv.Atoi(ws[0][1:]); err != nil || sv.bufs[named] == nil {
+			return "", "", fmt.Errorf("no buffer %s", ws[0])
+		}
+		ws = ws[1:]
+		sv.last = named
+	}
 	if len(ws) == 0 {
 		return "", "", fmt.Errorf("an empty request")
+	}
+	sv.sbuf = sv.bufs[sv.last]
+	// the other buffers' texts before, for the ones an edit moves
+	before := map[int]string{}
+	for id, x := range sv.bufs {
+		if x != sv.sbuf {
+			before[id] = x.b.Text
+		}
+	}
+	touched := func(head string) string {
+		var ids []int
+		for id, was := range before {
+			if x := sv.bufs[id]; x != nil && x.b.Text != was {
+				ids = append(ids, id)
+			}
+		}
+		if len(ids) == 0 {
+			return head
+		}
+		sort.Ints(ids)
+		head += " touched"
+		for _, id := range ids {
+			head += " " + strconv.Itoa(id)
+		}
+		return strings.TrimSpace(head)
 	}
 	need := func(n int) error {
 		if len(ws)-1 < n {
@@ -149,7 +200,7 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 		return nil
 	}
 	buf := func() error {
-		if sv.b == nil {
+		if sv.sbuf == nil || sv.b == nil {
 			return fmt.Errorf("no buffer: open a view first")
 		}
 		return nil
@@ -160,10 +211,39 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 	case "ping":
 		return "", "pong\n", nil
 	case "open":
-		if err := sv.open(ws[1:]); err != nil {
+		into := sv.sbuf
+		if named == 0 {
+			into = &sbuf{id: sv.next}
+		}
+		if err := sv.open(into, ws[1:]); err != nil {
 			return "", "", err
 		}
-		return "", sv.b.Text, nil
+		if named == 0 {
+			sv.bufs[into.id] = into
+			sv.next++
+		}
+		sv.last, sv.sbuf = into.id, into
+		return fmt.Sprintf("buf %d", into.id), sv.b.Text, nil
+	case "buffers":
+		ids := make([]int, 0, len(sv.bufs))
+		for id := range sv.bufs {
+			ids = append(ids, id)
+		}
+		sort.Ints(ids)
+		var out strings.Builder
+		for _, id := range ids {
+			x := sv.bufs[id]
+			fmt.Fprintf(&out, "%d %s\n", id, x.asked)
+		}
+		return "", out.String(), nil
+	case "close":
+		if err := buf(); err != nil {
+			return "", "", err
+		}
+		sv.b.Close()
+		delete(sv.bufs, sv.id)
+		sv.sbuf = nil
+		return "", "", nil
 	case "text":
 		if err := buf(); err != nil {
 			return "", "", err
@@ -203,14 +283,15 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 			cursor = view.MapPos(typed, sv.b.Text, c)
 		}
 		head = fmt.Sprintf("%s %d", r.Status, cursor)
-		if r.Reason != "" {
-			head += " " + r.Reason
-		}
 		if r.Result != nil && len(r.Result.Added) > 0 {
 			head += " added"
 			for _, f := range r.Result.Added {
 				head += " " + graph.DeclName(f)
 			}
+		}
+		head = touched(head)
+		if r.Reason != "" {
+			head += " " + r.Reason // last: it has blanks
 		}
 		return head, sv.b.Text, nil
 	case "rename":
@@ -228,7 +309,7 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 		if err != nil {
 			return "", "", err
 		}
-		return fmt.Sprintf("#%d %d declarations %d uses", d.ID, len(rn.Decls), len(rn.Uses)), sv.b.Text, nil
+		return touched(fmt.Sprintf("#%d %d declarations %d uses", d.ID, len(rn.Decls), len(rn.Uses))), sv.b.Text, nil
 	case "at":
 		if len(ws) < 2 || len(ws) > 3 {
 			return "", "", fmt.Errorf("at takes POS [VIEW]")
@@ -257,6 +338,7 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 			sv.name, sv.vargs = old[0], strings.Split(old[1], "\x00")
 			return "", "", err
 		}
+		sv.asked = name + " " + sv.b.Ix.Name(e)
 		return fmt.Sprintf("#%d %s", e.ID, sv.b.Ix.Name(e)), sv.b.Text, nil
 	case "undo":
 		if err := buf(); err != nil {
@@ -269,7 +351,7 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 		if !ok {
 			return "", "", fmt.Errorf("nothing to undo")
 		}
-		return "", sv.b.Text, nil
+		return touched(""), sv.b.Text, nil
 	case "revert":
 		if err := buf(); err != nil {
 			return "", "", err
@@ -305,12 +387,12 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 		sv.g.Walk(func(*graph.Node) bool { n++; return true })
 		return "", fmt.Sprintf("file %s\nnodes %d\nedits %d\n", sv.file, n, sv.s.Edits()), nil
 	}
-	return "", "", fmt.Errorf("no request %s (open, text, change, rename, at, undo, revert, c, write, edits, stats, ping, quit)", ws[0])
+	return "", "", fmt.Errorf("no request %s (open, buffers, close, text, change, rename, at, undo, revert, c, write, edits, stats, ping, quit)", ws[0])
 }
 
-// open is the buffer on a view: its flags as whim view's, then its name
-// and argument.
-func (sv *viewServer) open(ws []string) error {
+// open puts buffer into on a view: its flags as whim view's, then its name
+// and argument; the buffer it was on is closed.
+func (sv *viewServer) open(into *sbuf, ws []string) error {
 	var opt view.Options
 	var p view.Printer
 	var rest []string
@@ -364,7 +446,10 @@ func (sv *viewServer) open(ws []string) error {
 	if len(rest) != need {
 		return fmt.Errorf("open [FLAGS] VIEW ARG (follow STEPS ROOT)")
 	}
+	old := into.b
+	sv.sbuf = into
 	sv.name, sv.vargs, sv.opt, sv.p = rest[0], rest[1:], opt, p
+	sv.asked = strings.Join(rest, " ")
 	eo := view.EditOptions{IDs: p.IDs}
 	if fallout {
 		// a deletion's dangling uses closed over, wherever they are: asked
@@ -375,6 +460,9 @@ func (sv *viewServer) open(ws []string) error {
 	b, err := sv.s.Open(sv.render(), eo)
 	if err != nil {
 		return err
+	}
+	if old != nil {
+		old.Close()
 	}
 	sv.b = b
 	// the root pinned by its id, so that an edit renaming it leaves the
@@ -398,7 +486,7 @@ func (sv *viewServer) open(ws []string) error {
 // (open) whose node an edit replaced -- a function's parameters changed
 // make it another definition -- is found again by the name it had when the
 // view was last printed.
-func (sv *viewServer) render() view.Render {
+func (sv *sbuf) render() view.Render {
 	name, args, opt, p := sv.name, sv.vargs, sv.opt, sv.p
 	pinned := len(args) > 0 && strings.HasPrefix(args[len(args)-1], "#")
 	last := ""

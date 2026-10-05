@@ -324,3 +324,45 @@ func TestBufferNote(t *testing.T) {
 		t.Fatalf("a change in the note: %s %s", r.Status, r.Reason)
 	}
 }
+
+// TestBufferMany: two buffers on one session -- an edit through one is in
+// the other, printed again; a buffer with text pending when the graph
+// changed under it is stale, its next change refused until reverted; an
+// undo through one prints every buffer again.
+func TestBufferMany(t *testing.T) {
+	s := NewSession(sample(t).G)
+	a, err := s.Open(defView("get", false), EditOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := s.Open(usesView("opt", false), EditOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	at := strings.Index(a.Text, "(= opt 0)") + len("(= opt ")
+	r, _ := a.Change(at, at+1, "2")
+	if r.Status != "applied" || len(r.Touched) != 1 || r.Touched[0] != b || !strings.Contains(b.Text, "(= opt 2)") {
+		t.Fatalf("an edit through one buffer: %s %s, the other:\n%s", r.Status, r.Reason, b.Text)
+	}
+	// b pending, then a's edit under it
+	pb := strings.Index(b.Text, "(= opt 1)") + len("(= opt ")
+	if r, _ := b.Change(pb, pb+1, ""); r.Status != "pending" {
+		t.Fatalf("b's operand erased: %s", r.Status)
+	}
+	at = strings.Index(a.Text, "(= opt 2)") + len("(= opt ")
+	if r, _ := a.Change(at, at+1, "3"); r.Status != "applied" || !b.Stale {
+		t.Fatalf("a's edit under b's pending text: %s %s, b stale %v", r.Status, r.Reason, b.Stale)
+	}
+	if r, _ := b.Change(pb, pb, "1"); r.Status != "pending" || !strings.Contains(r.Reason, "changed under this text") {
+		t.Fatalf("b's change while stale: %s %s", r.Status, r.Reason)
+	}
+	b.Revert()
+	if b.Stale || !strings.Contains(b.Text, "(= opt 3)") || !strings.Contains(b.Text, "(= opt 1)") {
+		t.Fatalf("b reverted:\n%s", b.Text)
+	}
+	// an undo through b prints a again
+	if ok, err := b.Undo(); !ok || err != nil || !strings.Contains(a.Text, "(= opt 2)") {
+		t.Fatalf("an undo through b: %v %v, a:\n%s", ok, err, a.Text)
+	}
+	imported(t, s.G)
+}

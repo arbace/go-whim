@@ -102,6 +102,16 @@ type Session struct {
 	done   []*graph.Journal
 	ed     *graph.Editor  // kept from one edit to the next, nil when stale
 	undone *graph.Journal // the last edit undone
+	ix     *Index         // the graph's, every buffer's, kept by each edit
+	bufs   []*Buffer      // the buffers open on it
+}
+
+// index is the session's index of its graph, made when there is none.
+func (s *Session) index() *Index {
+	if s.ix == nil {
+		s.ix = NewIndex(s.G)
+	}
+	return s.ix
 }
 
 // editor is the session's editor of its graph, made when there is none.
@@ -120,6 +130,9 @@ func NewSession(g *graph.Graph) *Session { return &Session{G: g} }
 func (s *Session) Edit(render Render, edited string, opt EditOptions) (*Result, error) {
 	opt.InPlace = true
 	opt.Editor = s.editor()
+	if opt.Index == nil {
+		opt.Index = s.index()
+	}
 	stale := false
 	opt.stale = &stale
 	r, err := Edit(s.G, render, edited, opt)
@@ -166,6 +179,10 @@ func (s *Session) Do(f func(e *graph.Editor) error) (*graph.Journal, error) {
 	}
 	e.Settle()
 	s.done = append(s.done, j)
+	if s.ix != nil {
+		s.ix.Update(j.Saved())
+		s.ix.verify("an edit of the editor's verbs")
+	}
 	return j, nil
 }
 
@@ -178,6 +195,10 @@ func (s *Session) Undo() bool {
 	s.done = s.done[:len(s.done)-1]
 	j.Undo()
 	s.ed, s.undone = nil, j
+	if s.ix != nil {
+		s.ix.Update(j.Saved())
+		s.ix.verify("an undo")
+	}
 	return true
 }
 

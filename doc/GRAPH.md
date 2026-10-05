@@ -2371,6 +2371,32 @@ view's (renamed with `:WhimRename`, refused when typed over); and a form's
 closing parentheses sit at its last line, so `dd` there takes those of the
 forms around it (pending: not yet forms) -- `d%` deletes the form.
 
+## Several views on one session (2026-10-05)
+
+A session holds any number of buffers (`Session.Open`), each a view of
+its graph, and one index of it, every buffer's, kept by each edit. An
+edit, an undo or a rename through one buffer prints every other again
+(`Session.refresh`) -- those whose text moved are the change's `Touched` --
+but a buffer whose text is pending: that is kept, marked `Stale`, since it
+was typed against a print the graph no longer makes, and its next change
+is refused ("the view changed under this text") until it is reverted, which
+prints it afresh (`TestBufferMany`: an edit through `def get` in the
+`uses opt` buffer; a pending text there made stale, refused, reverted; an
+undo through it printing the first again).
+
+`whim view-serve` numbers its buffers: `open` answers `buf B`, `@B` before a
+request names buffer B (without it, the last named), `@B open ...` puts B on
+another view, `buffers` lists them, `close` closes one, and an applied
+change, an undo or a rename adds `touched B...` to its header for the
+others whose text moved (`TestViewServeBuffers`). The vim client keeps a
+vim buffer for each (`b:whim_id`, its text and newline held per buffer):
+`:WhimView` puts the current whimview buffer on a view (or makes one),
+`:WhimSplit` opens another in a new window, and every answer's `touched`
+buffers are fetched again and shown; wiping a vim buffer closes its server
+buffer (`TestVimClientSplit`: an edit in one window seen in the other, an
+undo through the other seen in the first; and typed live through a
+terminal, `s7<Esc>` in `def get` shown in `uses opt`).
+
 ## The derived layer, kept under edits (2026-10-05)
 
 *Is the derived layer cached by the graph's digest, or kept incrementally

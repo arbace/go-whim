@@ -107,3 +107,67 @@ qa!
 	}
 	t.Logf("\n%s", g)
 }
+
+// TestVimClientSplit: two views of one session in two windows -- an edit
+// in one is in the other, refreshed (the server's `touched`); an undo
+// through the second refreshes the first.
+func TestVimClientSplit(t *testing.T) {
+	vim, err := exec.LookPath("vim")
+	if err != nil {
+		t.Skip("no vim")
+	}
+	if out, _ := exec.Command(vim, "--version").Output(); !strings.Contains(string(out), "+job") {
+		t.Skip("vim without +job")
+	}
+	dir := t.TempDir()
+	bin := filepath.Join(dir, "whim")
+	if out, err := exec.Command("go", "build", "-o", bin, ".").CombinedOutput(); err != nil {
+		t.Fatalf("go build: %v\n%s", err, out)
+	}
+	sample, _ := filepath.Abs(viewSample)
+	rtp, _ := filepath.Abs("../../vim")
+	outFile := filepath.Join(dir, "out")
+	script := `set nocompatible
+let &rtp = '` + rtp + `,' .. &rtp
+runtime plugin/whimview.vim
+let g:whimview_cmd = ['` + bin + `', 'view-serve', '--no-cache', '` + sample + `']
+let g:whimview_live = 0
+let out = []
+try
+  WhimView def get
+  let get = bufnr()
+  WhimSplit uses opt
+  let uses = bufnr()
+  call add(out, 'two ' .. (get != uses) .. ' ' .. (whimview#State(get).id != whimview#State(uses).id))
+  execute bufwinnr(get) .. 'wincmd w'
+  call search('(= opt \zs0)')
+  normal! r2
+  WhimSync
+  call add(out, 'edit ' .. whimview#State(get).status .. ' ' .. (whimview#State(uses).text =~ '(= opt 2)'))
+  execute bufwinnr(uses) .. 'wincmd w'
+  WhimUndo
+  call add(out, 'undo ' .. (whimview#State(get).text =~ '(= opt 0)') .. ' ' .. (whimview#State(uses).text =~ '(= opt 0)'))
+  WhimStop
+catch
+  call add(out, 'error ' .. v:exception .. ' ' .. v:throwpoint)
+endtry
+call writefile(out, '` + outFile + `')
+qa!
+`
+	sf := filepath.Join(dir, "test.vim")
+	if err := os.WriteFile(sf, []byte(script), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command(vim, "-Nu", "NONE", "-i", "NONE", "-es", "-S", sf)
+	cmd.Env = append(os.Environ(), "TMPDIR="+dir)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Logf("vim: %v\n%s", err, out)
+	}
+	got, err := os.ReadFile(outFile)
+	if err != nil {
+		t.Fatalf("vim wrote nothing: %v", err)
+	}
+	if want := "two 1 1\nedit applied 1\nundo 1 1\n"; string(got) != want {
+		t.Fatalf("the client's session:\n%s\nwant:\n%s", got, want)
+	}
+}

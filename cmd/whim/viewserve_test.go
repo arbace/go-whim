@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/arbace/go-whim/crefactor/graph/view"
 	"io"
 	"strconv"
 	"strings"
@@ -118,4 +119,46 @@ func TestViewServe(t *testing.T) {
 	}
 	inW.Close()
 	io.Copy(io.Discard, outR)
+}
+
+// TestViewServeBuffers: two buffers on one session -- numbered by open,
+// named by @B; an edit through one prints the other again, `touched`; the
+// buffers listed; one closed, the other still answering.
+func TestViewServeBuffers(t *testing.T) {
+	g, _, err := loadGraph(viewSample, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sv := &viewServer{g: g, file: viewSample, s: view.NewSession(g), bufs: map[int]*sbuf{}, next: 1}
+	ask := func(req string) (string, string) {
+		t.Helper()
+		head, body, err := sv.answer(req)
+		if err != nil {
+			t.Fatalf("%s: %v", req, err)
+		}
+		return head, body
+	}
+	h1, get := ask("open def get")
+	h2, _ := ask("open uses opt")
+	if h1 != "buf 1" || h2 != "buf 2" {
+		t.Fatalf("open's headers: %q %q", h1, h2)
+	}
+	at := strings.Index(get, "(= opt 0)") + len("(= opt ")
+	head, _ := ask(fmt.Sprintf(`@1 change %d %d "2"`, at, at+1))
+	if !strings.HasPrefix(head, "applied ") || !strings.HasSuffix(head, "touched 2") {
+		t.Fatalf("an edit through buffer 1: %q", head)
+	}
+	if _, uses := ask("@2 text"); !strings.Contains(uses, "(= opt 2)") {
+		t.Fatalf("buffer 2 not printed again:\n%s", uses)
+	}
+	if _, list := ask("buffers"); list != "1 def get\n2 uses opt\n" {
+		t.Fatalf("buffers: %q", list)
+	}
+	ask("@1 close")
+	if _, _, err := sv.answer("@1 text"); err == nil {
+		t.Fatal("a closed buffer answered")
+	}
+	if head, _ := ask("@2 undo"); head != "" {
+		t.Fatalf("an undo with no other buffer: %q", head)
+	}
 }

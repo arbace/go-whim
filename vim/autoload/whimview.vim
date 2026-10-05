@@ -2,17 +2,22 @@ vim9script
 # whimview: a view of the program's graph edited in a vim buffer, through
 # `go tool whim view-serve` (doc/GRAPH.md, *The vim client*).
 #
-# The server holds the graph, a session and one buffer of a view's text;
-# this plugin keeps a vim buffer beside it.  Every change made in the vim
-# buffer is sent as one `change` -- the bytes where it differs from the
+# The server holds the graph, a session and its buffers of views' texts;
+# this plugin keeps a vim buffer beside each (b:whim_id its number), any
+# number of them open at once.  Every change made in a vim buffer is sent
+# as one `change` -- the bytes where it differs from the
 # text the server holds -- and the answer says what it made: APPLIED (an
 # edit of the graph, the view printed again: the buffer takes the print,
 # the cursor where the change ended), PENDING (half-typed, the reason
 # shown, the graph untouched), LAYOUT or SAME.  Typed changes are sent as
 # they are made (TextChanged, TextChangedI) unless g:whimview_live is 0.
+# An edit through one view changes the graph under the others: those the
+# server printed again (`touched`) are refreshed.
 #
-#   :WhimView[!] [--ids] VIEW ARG  open a view (def NAME, callers F, uses NAME, ...);
-#                                refused while text is pending, unless !
+#   :WhimView[!] [--ids] VIEW ARG  a view in this window (def NAME, callers F, uses NAME,
+#                                ...): in this whimview buffer, or a new one; refused while
+#                                text is pending, unless !
+#   :WhimSplit [--ids] VIEW ARG  a view in a new window, beside the others
 #   :WhimSync                    send what changed (the autocommands do it)
 #   :WhimAt [VIEW]               the view at the cursor: VIEW of what is under it
 #   :WhimRename NAME             the entity at the cursor renamed, every use
@@ -30,9 +35,7 @@ vim9script
 
 var job: job = null_job
 var chan: channel = null_channel
-var held = ''      # what the server's buffer says
-var nl = true      # whether held ends with a newline
-var bufnr = -1
+var bufs: dict<dict<any>> = {} # a vim buffer's: its server buffer id, the text held, its last newline
 var syncing = false
 
 def Start()
@@ -96,38 +99,74 @@ def Must(req: string): list<string>
   return r
 enddef
 
-# Text is the vim buffer's text, as the server's text is written.
-def Text(): string
-  var t = join(getbufline(bufnr, 1, '$'), "\n")
-  return nl ? t .. "\n" : t
+# B is the state of vim buffer nr, a whimview buffer.
+def B(nr: number): dict<any>
+  if !has_key(bufs, string(nr))
+    throw 'whimview: not a whimview buffer: :WhimView VIEW ARG'
+  endif
+  return bufs[string(nr)]
 enddef
 
-# Show puts text in the buffer and the cursor at byte off of it.
-def Show(text: string, off: number)
-  held = text
-  nl = text =~ "\n$"
+# On is request req for vim buffer nr's server buffer.
+def On(nr: number, req: string): list<string>
+  return Must('@' .. B(nr).id .. ' ' .. req)
+enddef
+
+# Text is vim buffer nr's text, as the server's text is written.
+def Text(nr: number): string
+  var t = join(getbufline(nr, 1, '$'), "\n")
+  return B(nr).nl ? t .. "\n" : t
+enddef
+
+# Show puts text in vim buffer nr, and, when it is the current one, the
+# cursor at byte off of it.
+def Show(nr: number, text: string, off: number)
+  var st = B(nr)
+  st.held = text
+  st.nl = text =~ "\n$"
   var lines = split(text, "\n", 1)
-  if nl
+  if st.nl
     remove(lines, -1)
   endif
   syncing = true
-  if getbufline(bufnr, 1, '$') != lines
-    setbufline(bufnr, 1, lines)
-    deletebufline(bufnr, len(lines) + 1, '$')
+  if getbufline(nr, 1, '$') != lines
+    setbufline(nr, 1, lines)
+    deletebufline(nr, len(lines) + 1, '$')
   endif
   syncing = false
-  if off >= 0 && bufnr() == bufnr
+  if off >= 0 && bufnr() == nr
     var lnum = max([1, byte2line(min([off, len(text) - 1]) + 1)])
     cursor(lnum, off + 1 - line2byte(lnum) + 1)
   endif
+enddef
+
+# Refresh is the vim buffers whose server buffers an answer says were
+# printed again (`touched B...` among its header's words).
+def Refresh(words: list<string>)
+  var at = index(words, 'touched')
+  if at < 0
+    return
+  endif
+  var ids: list<number> = []
+  for w in words[at + 1 :]
+    if w !~ '^\d\+$'
+      break
+    endif
+    add(ids, str2nr(w))
+  endfor
+  for [k, st] in items(bufs)
+    if index(ids, st.id) >= 0 && bufexists(str2nr(k))
+      Show(str2nr(k), Must('@' .. st.id .. ' text')[2], -1)
+    endif
+  endfor
 enddef
 
 # Status keeps what the last answer said in b:whim_status (for a
 # statusline) and echoes a pending reason, on one line cut to the screen's
 # width: a message of two lines would stop vim at its hit-enter prompt,
 # which takes the keys typed after it.  :WhimStatus shows it whole.
-def Status(s: string)
-  setbufvar(bufnr, 'whim_status', s)
+def Status(nr: number, s: string)
+  setbufvar(nr, 'whim_status', s)
   if s =~ '^pending'
     echohl WarningMsg | echo strcharpart('whimview: ' .. s, 0, &columns - 12) | echohl None
   elseif s =~ '^\(renamed\|undone\|#\)'
@@ -138,41 +177,68 @@ def Status(s: string)
 enddef
 
 export def ShowStatus()
-  echo 'whimview: ' .. getbufvar(bufnr, 'whim_status', '')
+  echo 'whimview: ' .. getbufvar(bufnr(), 'whim_status', '')
+enddef
+
+# New makes the current window's buffer a new whimview buffer.
+def New(): number
+  enew
+  setlocal buftype=nofile bufhidden=hide noswapfile filetype=lisp
+  var nr = bufnr()
+  augroup whimview
+    autocmd! * <buffer>
+    autocmd TextChanged,TextChangedI <buffer> if get(g:, 'whimview_live', 1) | call whimview#Sync() | endif
+    autocmd BufWipeout <buffer> call whimview#Closed(str2nr(expand('<abuf>')))
+  augroup END
+  return nr
 enddef
 
 export def View(args: string, force: bool = false)
-  if !force && bufnr >= 0 && getbufvar(bufnr, 'whim_status', '') =~ '^pending'
-    throw 'whimview: the buffer has text pending (:WhimStatus); :WhimView! drops it, :WhimRevert first keeps the view'
-  endif
-  var r = Must('open ' .. args)
-  if bufnr < 0 || !bufexists(bufnr)
-    enew
-    setlocal buftype=nofile bufhidden=hide noswapfile filetype=lisp
-    bufnr = bufnr()
-    augroup whimview
-      autocmd!
-      autocmd TextChanged,TextChangedI <buffer> if get(g:, 'whimview_live', 1) | call whimview#Sync() | endif
-    augroup END
+  var nr = bufnr()
+  var r: list<string>
+  if has_key(bufs, string(nr))
+    if !force && getbufvar(nr, 'whim_status', '') =~ '^pending'
+      throw 'whimview: the buffer has text pending (:WhimStatus); :WhimView! drops it, :WhimRevert first keeps the view'
+    endif
+    r = On(nr, 'open ' .. args)
   else
-    execute 'buffer' bufnr
+    r = Must('open ' .. args)
+    nr = New()
+    bufs[string(nr)] = {id: str2nr(split(r[1], ' ')[1]), held: '', nl: true}
   endif
-  silent! execute 'file' fnameescape('whimview://' .. args)
-  Show(r[2], 0)
-  Status('')
+  silent! execute 'file' fnameescape('whimview://' .. B(nr).id .. '/' .. args)
+  Show(nr, r[2], 0)
+  Status(nr, '')
 enddef
 
-# Sync sends what changed: the lines from the first that differs from the
-# text the server holds to the last, whole -- the server finds the bytes
-# within them -- found by comparing lines, which vim does natively (a
-# string's index in vim9script counts characters from its start, and a
-# loop over a view of thousands of lines by them is seconds a key).
+# Split is a view in a new window: a buffer of its own on the session.
+export def Split(args: string)
+  new
+  View(args)
+enddef
+
+# Closed is a whimview buffer wiped: its server buffer closed.
+export def Closed(nr: number)
+  if has_key(bufs, string(nr))
+    Ask('@' .. bufs[string(nr)].id .. ' close')
+    remove(bufs, string(nr))
+  endif
+enddef
+
+# Sync sends what changed in the current buffer: the lines from the first
+# that differs from the text the server holds to the last, whole -- the
+# server finds the bytes within them -- found by comparing lines, which vim
+# does natively (a string's index in vim9script counts characters from its
+# start, and a loop over a view of thousands of lines by them is seconds a
+# key).
 export def Sync()
-  if syncing || bufnr < 0
+  var nr = bufnr()
+  if syncing || !has_key(bufs, string(nr))
     return
   endif
-  var cur = getbufline(bufnr, 1, '$')
-  var old = Lines(held)
+  var st = B(nr)
+  var cur = getbufline(nr, 1, '$')
+  var old = Lines(st.held)
   if cur == old
     return
   endif
@@ -185,19 +251,29 @@ export def Sync()
     q += 1
   endwhile
   var from = a > 0 ? len(join(old[: a - 1], "\n")) + 1 : 0
-  var was = Part(old, a, len(old) - q)
-  var now = Part(cur, a, len(cur) - q)
-  var here = bufnr() == bufnr ? line2byte(line('.')) + col('.') - 2 : from
-  var r = Must(printf('change %d %d %s %d', from, from + len(was), Quote(now), max([0, here])))
+  var was = Part(old, a, len(old) - q, st.nl)
+  var now = Part(cur, a, len(cur) - q, st.nl)
+  var here = line2byte(line('.')) + col('.') - 2
+  var r = On(nr, printf('change %d %d %s %d', from, from + len(was), Quote(now), max([0, here])))
   var w = split(r[1], ' ')
   var status = w[0]
   if status == 'applied'
-    Show(r[2], str2nr(w[1]))
+    Show(nr, r[2], str2nr(w[1]))
     var added = index(w, 'added')
-    Status(added < 0 ? 'applied' : 'applied; added ' .. join(w[added + 1 :], ', ') .. ' (:WhimView def NAME)')
+    var names: list<string> = []
+    if added >= 0
+      for x in w[added + 1 :]
+        if x == 'touched'
+          break
+        endif
+        add(names, x)
+      endfor
+    endif
+    Status(nr, added < 0 ? 'applied' : 'applied; added ' .. join(names, ', ') .. ' (:WhimView def NAME)')
+    Refresh(w)
   else
-    held = r[2]
-    Status(status == 'pending' ? 'pending: ' .. join(w[2 :], ' ') : '')
+    st.held = r[2]
+    Status(nr, status == 'pending' ? 'pending: ' .. join(w[2 :], ' ') : '')
   endif
 enddef
 
@@ -212,7 +288,7 @@ enddef
 
 # Part is lines lo to hi of ls as they are in the text: each with the
 # newline after it, but the text's last when the text ends without one.
-def Part(ls: list<string>, lo: number, hi: number): string
+def Part(ls: list<string>, lo: number, hi: number, nl: bool): string
   if hi <= lo
     return ''
   endif
@@ -222,31 +298,38 @@ enddef
 
 export def At(view: string)
   Sync()
+  var nr = bufnr()
   var off = line2byte(line('.')) + col('.') - 2
-  var r = Must('at ' .. off .. (view == '' ? '' : ' ' .. view))
-  silent! execute 'file' fnameescape('whimview://at ' .. r[1])
-  Show(r[2], 0)
-  Status(r[1])
+  var r = On(nr, 'at ' .. off .. (view == '' ? '' : ' ' .. view))
+  silent! execute 'file' fnameescape('whimview://' .. B(nr).id .. '/at ' .. r[1])
+  Show(nr, r[2], 0)
+  Status(nr, r[1])
 enddef
 
 export def Rename(to: string)
   Sync()
+  var nr = bufnr()
   var off = line2byte(line('.')) + col('.') - 2
-  var r = Must('rename ' .. off .. ' ' .. to)
+  var r = On(nr, 'rename ' .. off .. ' ' .. to)
   var keep = getpos('.')
-  Show(r[2], -1)
+  Show(nr, r[2], -1)
   setpos('.', keep)
-  Status('renamed: ' .. r[1])
+  Status(nr, 'renamed: ' .. r[1])
+  Refresh(split(r[1], ' '))
 enddef
 
 export def Undo()
-  Show(Must('undo')[2], -1)
-  Status('undone')
+  var nr = bufnr()
+  var r = On(nr, 'undo')
+  Show(nr, r[2], -1)
+  Status(nr, 'undone')
+  Refresh(split(r[1], ' '))
 enddef
 
 export def Revert()
-  Show(Must('revert')[2], -1)
-  Status('')
+  var nr = bufnr()
+  Show(nr, On(nr, 'revert')[2], -1)
+  Status(nr, '')
 enddef
 
 export def C(name: string)
@@ -269,7 +352,9 @@ export def Stop()
   endif
 enddef
 
-# Status for a test: the vim buffer's text and what the server says.
-export def State(): dict<any>
-  return {text: Text(), held: held, status: getbufvar(bufnr, 'whim_status', '')}
+# State, for a test: the current buffer's text, what the server holds, and
+# what it said; State(nr) another buffer's.
+export def State(nr: number = 0): dict<any>
+  var b = nr == 0 ? bufnr() : nr
+  return {text: Text(b), held: B(b).held, status: getbufvar(b, 'whim_status', ''), id: B(b).id}
 enddef

@@ -32,17 +32,60 @@ type Buffer struct {
 	Text    string // what the buffer says
 	Printed string // the view as the graph prints it
 	Spans   []Span // Printed's span table
-	Ix      *Index // the graph's, current
+	Ix      *Index // the graph's, current: the session's, every buffer's
 	Reason  string // why Text is pending, "" when it is Printed
+	// Stale: Text was pending when another buffer's edit changed the
+	// graph, so it was typed against a print the graph no longer makes.
+	Stale bool
 }
 
 // Open is a buffer on render's view of the session's graph.
 func (s *Session) Open(render Render, opt EditOptions) (*Buffer, error) {
-	b := &Buffer{S: s, Render: render, Opt: opt, Ix: NewIndex(s.G)}
+	b := &Buffer{S: s, Render: render, Opt: opt, Ix: s.index()}
 	if err := b.reprint(); err != nil {
 		return nil, err
 	}
+	s.bufs = append(s.bufs, b)
 	return b, nil
+}
+
+// Close takes the buffer off its session: it is not reprinted any more.
+func (b *Buffer) Close() {
+	s := b.S
+	for i, x := range s.bufs {
+		if x == b {
+			s.bufs = append(s.bufs[:i:i], s.bufs[i+1:]...)
+			return
+		}
+	}
+}
+
+// refresh is the session's other buffers after the graph changed: each
+// with nothing pending printed again (those whose print moved returned),
+// each with text pending marked Stale -- its text is kept, and refused
+// until reverted.  A buffer whose view's root is gone says so, and stays
+// as it was printed.
+func (s *Session) refresh(except *Buffer) []*Buffer {
+	var moved []*Buffer
+	for _, x := range s.bufs {
+		if x == except {
+			continue
+		}
+		x.Ix = s.index()
+		if x.Text != x.Printed {
+			x.Stale = true
+			continue
+		}
+		was := x.Printed
+		if err := x.reprint(); err != nil {
+			x.Reason = fmt.Sprintf("the view is not there any more: %v", err)
+			continue
+		}
+		if x.Printed != was {
+			moved = append(moved, x)
+		}
+	}
+	return moved
 }
 
 // reprint prints the view again from the buffer's index; what was typed
@@ -68,6 +111,9 @@ type Typed struct {
 	Reason string
 	Result *Result
 	Cursor int
+	// Touched are the session's other buffers an applied change printed
+	// again: their texts moved.
+	Touched []*Buffer
 }
 
 // Change replaces bytes start to end of the buffer's text by text, and
@@ -79,6 +125,16 @@ func (b *Buffer) Change(start, end int, text string) (*Typed, error) {
 	}
 	b.Text = b.Text[:start] + text + b.Text[end:]
 	cur := start + len(text)
+	if b.Stale {
+		// typed against a print another buffer's edit has replaced: the
+		// alignment would read the difference as this text's
+		if fresh, _, err := b.Render(b.S.index()); err == nil && fresh == b.Text {
+			b.Stale = false
+			b.reprint()
+			return &Typed{Status: "same", Cursor: cur}, nil
+		}
+		return b.pending(cur, "the view changed under this text (an edit made in another view): revert it"), nil
+	}
 	if b.Text == b.Printed {
 		b.Reason = ""
 		return &Typed{Status: "same", Cursor: cur}, nil
@@ -119,7 +175,7 @@ func (b *Buffer) Change(start, end int, text string) (*Typed, error) {
 	b.Ix = r.Index
 	cur = MapPos(t, r.Text, cur)
 	b.Text, b.Printed, b.Spans, b.Reason = r.Text, r.Text, r.Spans, ""
-	return &Typed{Status: "applied", Result: r, Cursor: cur}, nil
+	return &Typed{Status: "applied", Result: r, Cursor: cur, Touched: b.S.refresh(b)}, nil
 }
 
 func (b *Buffer) pending(cur int, format string, a ...any) *Typed {
@@ -191,9 +247,13 @@ func (b *Buffer) Undo() (bool, error) {
 	if !b.S.Undo() {
 		return false, nil
 	}
-	b.Ix.Update(b.S.undone.Saved())
-	b.Ix.verify("an undo")
-	return true, b.reprint()
+	b.Ix = b.S.index()
+	b.Stale = false
+	if err := b.reprint(); err != nil {
+		return true, err
+	}
+	b.S.refresh(b)
+	return true, nil
 }
 
 // Rename renames the entity at byte pos of the buffer -- its every
@@ -219,9 +279,12 @@ func (b *Buffer) Rename(pos int, to string) (*graph.Renamed, *graph.Node, error)
 	}); err != nil {
 		return nil, d, err
 	}
-	b.Ix.Update(b.S.done[len(b.S.done)-1].Saved())
-	b.Ix.verify("a rename")
-	return rn, d, b.reprint()
+	b.Ix = b.S.index()
+	if err := b.reprint(); err != nil {
+		return rn, d, err
+	}
+	b.S.refresh(b)
+	return rn, d, nil
 }
 
 // At is the entity at byte pos of the buffer's text: when text is pending,
@@ -235,7 +298,15 @@ func (b *Buffer) At(pos int) (entity, on *graph.Node) {
 }
 
 // Revert drops what is pending: the text is the view as printed.
-func (b *Buffer) Revert() { b.Text, b.Reason = b.Printed, "" }
+func (b *Buffer) Revert() {
+	if b.Stale {
+		b.Stale = false
+		if b.reprint() == nil {
+			return
+		}
+	}
+	b.Text, b.Reason = b.Printed, ""
+}
 
 // Reopen is the buffer on another view of the same graph: render's.
 func (b *Buffer) Reopen(render Render) error {

@@ -11,8 +11,10 @@
 " shown, the graph untouched), LAYOUT or SAME.  Typed changes are sent as
 " they are made (TextChanged, TextChangedI) unless g:whimview_live is 0.
 "
-"   :WhimView[!] [--ids] VIEW ARG  open a view (def NAME, callers F, uses NAME, ...);
-"                                refused while text is pending, unless !
+"   :WhimView[!] [--ids] VIEW ARG  a view in this window (def NAME, callers F, uses NAME,
+"                                ...): in this whimview buffer, or a new one; refused while
+"                                text is pending, unless !
+"   :WhimSplit [--ids] VIEW ARG  a view in a new window, beside the others
 "   :WhimSync                    send what changed (the autocommands do it)
 "   :WhimAt [VIEW]               the view at the cursor: VIEW of what is under it
 "   :WhimRename NAME             the entity at the cursor renamed, every use
@@ -29,6 +31,7 @@
 "   g:whimview_live  1: send changes as they are typed (the default)
 
 command! -nargs=+ -bang WhimView call whimview#View(<q-args>, <bang>0)
+command! -nargs=+ WhimSplit call whimview#Split(<q-args>)
 command! WhimSync call whimview#Sync()
 command! -nargs=? WhimAt call whimview#At(<q-args>)
 command! -nargs=1 WhimRename call whimview#Rename(<q-args>)
