@@ -243,3 +243,20 @@ func TestBufferRename(t *testing.T) {
 		t.Fatal("the rename undone is not the graph before it")
 	}
 }
+
+func TestPlain(t *testing.T) {
+	for _, c := range [][2]string{
+		{"frag: cc's check: frag 1 line 1:16: type struct block_hdr {bh_id short_u; bh_ptr pointer to struct pointer_block; bh_data pointer to struct data_block} has no member named no_such_member (check.go:4930:check:)",
+			"struct block_hdr has no member named no_such_member"},
+		{"frag: cc's check: frag 1 line 1:15: undefined: nope (check.go:5174:check:); frag 1 line 1:20: invalid operands: int and <invalid type> (check.go:4414:check:)",
+			"undefined: nope"},
+		{"not yet forms: refused: the edited text, line 32: unexpected )", "not yet forms: the edited text, line 32: unexpected )"},
+		{"frag: unexpected ';', expected '(' the context, line 1061:21: unexpected ';', expected ')' the context, line 1062:5: unexpected 'long', expected statement",
+			"unexpected ';', expected '('"},
+		{"a call that does not agree: `fact()` passes 0 arguments where the prototype takes 1", "a call that does not agree: `fact()` passes 0 arguments where the prototype takes 1"},
+	} {
+		if got := Plain(c[0]); got != c[1] {
+			t.Errorf("Plain(%q)\n = %q\nwant %q", c[0], got, c[1])
+		}
+	}
+}

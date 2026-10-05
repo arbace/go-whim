@@ -11,7 +11,8 @@
 " shown, the graph untouched), LAYOUT or SAME.  Typed changes are sent as
 " they are made (TextChanged, TextChangedI) unless g:whimview_live is 0.
 "
-"   :WhimView [--ids] VIEW ARG   open a view (def NAME, callers F, uses NAME, ...)
+"   :WhimView[!] [--ids] VIEW ARG  open a view (def NAME, callers F, uses NAME, ...);
+"                                refused while text is pending, unless !
 "   :WhimSync                    send what changed (the autocommands do it)
 "   :WhimAt [VIEW]               the view at the cursor: VIEW of what is under it
 "   :WhimRename NAME             the entity at the cursor renamed, every use
@@ -19,6 +20,7 @@
 "   :WhimRevert                  what is pending dropped
 "   :WhimC NAME                  NAME's definition as C, in a split
 "   :WhimWrite FILE              the program's C written to FILE
+"   :WhimStatus                  the last answer whole: a pending reason, cut when echoed
 "   :WhimStop                    the server stopped
 "
 "   g:whimview_cmd   the server's command (['go', 'tool', 'whim', 'view-serve'])
@@ -26,7 +28,7 @@
 "   g:whimview_file  the C file or graph it serves (its default, src/whim-vim.c)
 "   g:whimview_live  1: send changes as they are typed (the default)
 
-command! -nargs=+ WhimView call whimview#View(<q-args>)
+command! -nargs=+ -bang WhimView call whimview#View(<q-args>, <bang>0)
 command! WhimSync call whimview#Sync()
 command! -nargs=? WhimAt call whimview#At(<q-args>)
 command! -nargs=1 WhimRename call whimview#Rename(<q-args>)
@@ -34,5 +36,6 @@ command! WhimUndo call whimview#Undo()
 command! WhimRevert call whimview#Revert()
 command! -nargs=1 WhimC call whimview#C(<q-args>)
 command! -nargs=1 -complete=file WhimWrite call whimview#Write(<q-args>)
+command! WhimStatus call whimview#ShowStatus()
 command! WhimStop call whimview#Stop()
 autocmd VimLeavePre * call whimview#Stop()

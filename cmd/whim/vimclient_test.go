@@ -57,7 +57,16 @@ try
   call search('(= \zsopt 0)')
   WhimAt uses
   call add(out, 'at ' .. (whimview#State().text =~ '(uses opt'))
-  WhimView def main
+  call search('(= \zsopt')
+  normal! x
+  WhimSync
+  try
+    WhimView def main
+    call add(out, 'switched with text pending')
+  catch /pending/
+    call add(out, 'pending kept')
+  endtry
+  WhimView! def main
   call search('(call \zsfact 3)')
   WhimRename factorial
   call add(out, 'rename ' .. (whimview#State().text =~ '(call factorial 3)'))
@@ -84,7 +93,7 @@ qa!
 	if err != nil {
 		t.Fatalf("vim wrote nothing: %v", err)
 	}
-	want := "open 1\nerase pending: \nretype applied 1\nline applied 1\nundone 1\nat 1\nrename 1\nc 1\n"
+	want := "open 1\nerase pending: \nretype applied 1\nline applied 1\nundone 1\nat 1\npending kept\nrename 1\nc 1\n"
 	g := string(got)
 	// the pending reason is the server's: compare up to it
 	lines := strings.Split(g, "\n")

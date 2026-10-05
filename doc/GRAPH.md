@@ -2182,6 +2182,47 @@ reported (`applied ... added NAME`; the client says `:WhimView def NAME`).
 undone; renamed to `odd`, which the file declares, refused and the graph
 untouched.
 
+## The vim client used (2026-10-05)
+
+A session in vim through a terminal on whim-vim.c's graph, driven by keys:
+`def ml_clearmarked` opened, `:WhimAt` on a callee into `ml_find_line`, a
+local and its use typed on lines of their own (`o`), both deleted with
+`dd`, a local renamed (`:WhimRename`), a constant replaced with `r`, vim's
+`u`, `:WhimUndo`, a uses view, a mistake typed and reverted, `def
+ex_substitute` (687 lines) opened and typed into, the program written
+(`:WhimWrite`) and compiled with the compile line: the local typed is in
+the C, and gcc builds it with no error. What it found, and what was done:
+
+- **vim's hit-enter prompt took the keys after it.** vim's `u` prints a
+  line of its own, and the client's `applied` beside it made two; a pending
+  reason longer than the screen made one by itself. The client now echoes a
+  pending reason alone, on one line cut to the screen's width, and nothing
+  for an applied change (`b:whim_status` keeps it; `:WhimStatus` shows it
+  whole).
+- **A pending reason was cc's own words** -- `frag: cc's check: frag 1 line
+  1:16: type struct block_hdr {bh_id short_u; bh_ptr ...} has no member
+  named no_such_member (check.go:4930:check:)`. `view.Plain` says it as
+  `struct block_hdr has no member named no_such_member`: no place in the
+  fragment (it is the form being typed) or in cc's source, a struct by its
+  tag, the first of several errors.
+- **A key in a big view took 400 ms.** The client found where the buffer
+  differs by indexing its text, which vim9script counts in characters from
+  the start: quadratic in the view. It compares lines now, as vim does
+  natively, and sends the lines that differ whole (the server finds the
+  bytes): in `def ex_substitute` a key 2.2 ms, a pending change through the
+  server 0.5-1.3 ms of it.
+- **Text pending was dropped when another view was opened.** `:WhimView`
+  refuses while text is pending; `:WhimView!` drops it.
+
+Measured in `ex_substitute` (687 lines, a headless vim): opened 183 ms with
+the server's start, 55 ms again; a key 2.2 ms; the change that applied
+188 ms -- the function is in the pared unit whole, and the view is printed
+twice. What it showed and is left as it is: `:WhimUndo` undoes the
+session's last edit, whichever view made it; and vim's own `u` puts the
+text back as it was typed, which the server makes a new edit (the graph's
+history grows, it does not go back) -- an editor that wants the two the
+same maps `u` to `:WhimUndo` in the buffer.
+
 ## The derived layer, kept under edits (2026-10-05)
 
 *Is the derived layer cached by the graph's digest, or kept incrementally

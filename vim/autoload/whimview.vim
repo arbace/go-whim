@@ -11,7 +11,8 @@ vim9script
 # shown, the graph untouched), LAYOUT or SAME.  Typed changes are sent as
 # they are made (TextChanged, TextChangedI) unless g:whimview_live is 0.
 #
-#   :WhimView [--ids] VIEW ARG   open a view (def NAME, callers F, uses NAME, ...)
+#   :WhimView[!] [--ids] VIEW ARG  open a view (def NAME, callers F, uses NAME, ...);
+#                                refused while text is pending, unless !
 #   :WhimSync                    send what changed (the autocommands do it)
 #   :WhimAt [VIEW]               the view at the cursor: VIEW of what is under it
 #   :WhimRename NAME             the entity at the cursor renamed, every use
@@ -19,6 +20,7 @@ vim9script
 #   :WhimRevert                  what is pending dropped
 #   :WhimC NAME                  NAME's definition as C, in a split
 #   :WhimWrite FILE              the program's C written to FILE
+#   :WhimStatus                  the last answer whole: a pending reason, cut when echoed
 #   :WhimStop                    the server stopped
 #
 #   g:whimview_cmd   the server's command (['go', 'tool', 'whim', 'view-serve'])
@@ -120,16 +122,29 @@ def Show(text: string, off: number)
   endif
 enddef
 
+# Status keeps what the last answer said in b:whim_status (for a
+# statusline) and echoes a pending reason, on one line cut to the screen's
+# width: a message of two lines would stop vim at its hit-enter prompt,
+# which takes the keys typed after it.  :WhimStatus shows it whole.
 def Status(s: string)
   setbufvar(bufnr, 'whim_status', s)
   if s =~ '^pending'
-    echohl WarningMsg | echo 'whimview: ' .. s | echohl None
-  elseif s != ''
-    echo 'whimview: ' .. s
+    echohl WarningMsg | echo strcharpart('whimview: ' .. s, 0, &columns - 12) | echohl None
+  elseif s =~ '^\(renamed\|undone\|#\)'
+    echo strcharpart('whimview: ' .. s, 0, &columns - 12)
+  else
+    echo ''
   endif
 enddef
 
-export def View(args: string)
+export def ShowStatus()
+  echo 'whimview: ' .. getbufvar(bufnr, 'whim_status', '')
+enddef
+
+export def View(args: string, force: bool = false)
+  if !force && bufnr >= 0 && getbufvar(bufnr, 'whim_status', '') =~ '^pending'
+    throw 'whimview: the buffer has text pending (:WhimStatus); :WhimView! drops it, :WhimRevert first keeps the view'
+  endif
   var r = Must('open ' .. args)
   if bufnr < 0 || !bufexists(bufnr)
     enew
@@ -147,24 +162,33 @@ export def View(args: string)
   Status('')
 enddef
 
+# Sync sends what changed: the lines from the first that differs from the
+# text the server holds to the last, whole -- the server finds the bytes
+# within them -- found by comparing lines, which vim does natively (a
+# string's index in vim9script counts characters from its start, and a
+# loop over a view of thousands of lines by them is seconds a key).
 export def Sync()
   if syncing || bufnr < 0
     return
   endif
-  var cur = Text()
-  if cur == held
+  var cur = getbufline(bufnr, 1, '$')
+  var old = Lines(held)
+  if cur == old
     return
   endif
-  var lo = 0
-  while lo < len(cur) && lo < len(held) && cur[lo] == held[lo]
-    lo += 1
+  var a = 0
+  while a < len(cur) && a < len(old) && cur[a] == old[a]
+    a += 1
   endwhile
   var q = 0
-  while q < len(cur) - lo && q < len(held) - lo && cur[len(cur) - 1 - q] == held[len(held) - 1 - q]
+  while q < len(cur) - a && q < len(old) - a && cur[len(cur) - 1 - q] == old[len(old) - 1 - q]
     q += 1
   endwhile
-  var here = bufnr() == bufnr ? line2byte(line('.')) + col('.') - 2 : lo
-  var r = Must(printf('change %d %d %s %d', lo, len(held) - q, Quote(strpart(cur, lo, len(cur) - lo - q)), max([0, min([here, len(cur)])])))
+  var from = a > 0 ? len(join(old[: a - 1], "\n")) + 1 : 0
+  var was = Part(old, a, len(old) - q)
+  var now = Part(cur, a, len(cur) - q)
+  var here = bufnr() == bufnr ? line2byte(line('.')) + col('.') - 2 : from
+  var r = Must(printf('change %d %d %s %d', from, from + len(was), Quote(now), max([0, here])))
   var w = split(r[1], ' ')
   var status = w[0]
   if status == 'applied'
@@ -175,6 +199,25 @@ export def Sync()
     held = r[2]
     Status(status == 'pending' ? 'pending: ' .. join(w[2 :], ' ') : '')
   endif
+enddef
+
+# Lines is a text as the buffer's lines.
+def Lines(text: string): list<string>
+  var ls = split(text, "\n", 1)
+  if text =~ "\n$"
+    remove(ls, -1)
+  endif
+  return ls
+enddef
+
+# Part is lines lo to hi of ls as they are in the text: each with the
+# newline after it, but the text's last when the text ends without one.
+def Part(ls: list<string>, lo: number, hi: number): string
+  if hi <= lo
+    return ''
+  endif
+  var t = join(ls[lo : hi - 1], "\n")
+  return hi < len(ls) || nl ? t .. "\n" : t
 enddef
 
 export def At(view: string)

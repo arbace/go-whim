@@ -3,6 +3,8 @@ package view
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/arbace/go-whim/crefactor/graph"
 )
@@ -118,8 +120,29 @@ func (b *Buffer) Change(start, end int, text string) (*Typed, error) {
 }
 
 func (b *Buffer) pending(cur int, format string, a ...any) *Typed {
-	b.Reason = fmt.Sprintf(format, a...)
+	b.Reason = Plain(fmt.Sprintf(format, a...))
 	return &Typed{Status: "pending", Reason: b.Reason, Cursor: cur}
+}
+
+var (
+	plainWhere  = regexp.MustCompile(`(frag: )?cc's check: |frag \d+ line \d+:\d+: | \(\w+\.go:\d+:\w+:\)|refused: `)
+	plainStruct = regexp.MustCompile(`type ((struct|union) \w+) \{[^}]*\}`)
+	plainRepeat = regexp.MustCompile(`; (.*)$`)
+	plainParse  = regexp.MustCompile(`^frag: (.*?) the context, line .*$`)
+)
+
+// Plain is a reason an editor shows while its text is typed: what cc's
+// check said without where in the fragment it said it (the fragment is the
+// form being typed) or where in cc's source, a struct by its tag and not
+// its members, and the first of several.
+func Plain(reason string) string {
+	r := plainParse.ReplaceAllString(reason, "$1") // a parse's first error
+	r = plainWhere.ReplaceAllString(r, "")
+	r = plainStruct.ReplaceAllString(r, "$1")
+	if strings.HasPrefix(reason, "frag") || strings.Contains(reason, "cc's check") {
+		r = plainRepeat.ReplaceAllString(r, "")
+	}
+	return strings.TrimSpace(r)
 }
 
 // MapPos is where byte pos of old is in new, the same text printed again:
