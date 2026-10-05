@@ -1,0 +1,218 @@
+;   Copyright (c) Rich Hickey. All rights reserved.
+;   The use and distribution terms for this software are covered by the
+;   Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php)
+;   which can be found in the file epl-v10.html at the root of this distribution.
+;   By using this software in any fashion, you are agreeing to be bound by
+;   the terms of this license.
+;   You must not remove this notice, or any other, from this software.
+
+(ns ^{:doc "Set operations such as union/intersection."
+       :author "Rich Hickey"
+       :added "1.0"}
+       joker.set)
+
+(defn- bubble-max-key
+  "Move a maximal element of coll according to fn k (which returns a
+  number) to the front of coll."
+  [k coll]
+  (let [max (apply max-key k coll)]
+    (cons max (remove #(identical? max %) coll))))
+
+(defn- conjoin-items
+  [s items]
+  (if-let [items (seq items)]
+    (if (set? s)
+      ;; Persistent set conj drops metadata; retain that existing behavior.
+      (into (conj s (first items)) (next items))
+      (reduce conj s items))
+    s))
+
+;; The items to remove are read from the persistent input, never the editable
+;; accumulator. Native operations also work during Clojure/CLJS macro linting.
+(defn- disjoin-items
+  [s items]
+  (if-let [items (seq items)]
+    (if (set? s)
+      ;; Even removing an absent item drops persistent set metadata.
+      (joker.core/persistent!__
+        (reduce joker.core/disj!__
+                (joker.core/transient__ (disj s (first items)))
+                (next items)))
+      (reduce disj s items))
+    s))
+
+(defn union
+  "Return a set that is the union of the input sets"
+  {:added "1.0"}
+  ([] #{})
+  ([s1] s1)
+  ([s1 s2]
+     (if (< (count s1) (count s2))
+       (conjoin-items s2 s1)
+       (conjoin-items s1 s2)))
+  ([s1 s2 & sets]
+     (let [bubbled-sets (bubble-max-key count (conj sets s2 s1))]
+       (reduce into (first bubbled-sets) (rest bubbled-sets)))))
+
+(defn intersection
+  "Return a set that is the intersection of the input sets"
+  {:added "1.0"}
+  ([s1] s1)
+  ([s1 s2]
+     (if (< (count s2) (count s1))
+       (recur s2 s1)
+       (disjoin-items s1 (remove #(contains? s2 %) s1))))
+  ([s1 s2 & sets]
+     (let [bubbled-sets (bubble-max-key #(- (count %)) (conj sets s2 s1))]
+       (reduce intersection (first bubbled-sets) (rest bubbled-sets)))))
+
+(defn difference
+  "Return a set that is the first set without elements of the remaining sets"
+  {:added "1.0"}
+  ([s1] s1)
+  ([s1 s2]
+     (if (< (count s1) (count s2))
+       (disjoin-items s1 (filter #(contains? s2 %) s1))
+       (disjoin-items s1 s2)))
+  ([s1 s2 & sets]
+     (reduce difference s1 (conj sets s2))))
+
+
+(defn select
+  "Returns a set of the elements for which pred is true"
+  {:added "1.0"}
+  [pred xset]
+  (disjoin-items xset (remove pred xset)))
+
+(defn project
+  "Returns a rel of the elements of xrel with only the keys in ks"
+  {:added "1.0"}
+  [xrel ks]
+  (with-meta (set (map #(select-keys % ks) xrel)) (meta xrel)))
+
+(defn rename-keys
+  "Returns the map with the keys in kmap renamed to the vals in kmap"
+  {:added "1.0"}
+  [map kmap]
+  ;; Keep persistent removals: ArrayMap and HashMap differ in how they retain
+  ;; metadata here. The subsequent private accumulator can safely be editable.
+  (let [seed (apply dissoc map (keys kmap))]
+    (if (instance? Editable seed)
+      (with-meta
+        (joker.core/persistent!__
+          (reduce
+            (fn [m [old new]]
+              ;; Read the original map, including overlapping renames.
+              (if (contains? map old)
+                (joker.core/assoc!__ m new (get map old))
+                m))
+            (joker.core/transient__ seed) kmap))
+        (meta seed))
+      (reduce
+        (fn [m [old new]]
+          (if (contains? map old) (assoc m new (get map old)) m))
+        seed kmap))))
+
+(defn rename
+  "Returns a rel of the maps in xrel with the keys in kmap renamed to the vals in kmap"
+  {:added "1.0"}
+  [xrel kmap]
+  (with-meta (set (map #(rename-keys % kmap) xrel)) (meta xrel)))
+
+(defn index
+  "Returns a map of the distinct values of ks in the xrel mapped to a
+  set of the maps in xrel with the corresponding values of ks."
+  {:added "1.0"}
+  [xrel ks]
+  (let [groups
+        (joker.core/persistent!__
+          (reduce
+            (fn [m x]
+              (let [ik (select-keys x ks)
+                    group (or (get m ik) (joker.core/transient__ #{}))]
+                (joker.core/assoc!__ m ik (joker.core/conj!__ group x))))
+            (joker.core/transient__ {}) xrel))]
+    ;; No transient group is exposed in the returned index.
+    (joker.core/persistent!__
+      (reduce-kv
+        (fn [m k group] (joker.core/assoc!__ m k (joker.core/persistent!__ group)))
+        (joker.core/transient__ {}) groups))))
+
+(defn map-invert
+  "Returns the map with the vals mapped to the keys."
+  {:added "1.0"}
+  [m]
+  (joker.core/persistent!__
+    (reduce (fn [m [k v]] (joker.core/assoc!__ m v k))
+            (joker.core/transient__ {}) m)))
+
+(defn join
+  "When passed 2 rels, returns the rel corresponding to the natural
+  join. When passed an additional keymap, joins on the corresponding
+  keys."
+  {:added "1.0"}
+  ([xrel yrel] ;natural join
+   (if (and (seq xrel) (seq yrel))
+     (let [ks (intersection (set (keys (first xrel))) (set (keys (first yrel))))
+           [r s] (if (<= (count xrel) (count yrel))
+                   [xrel yrel]
+                   [yrel xrel])
+           idx (index r ks)]
+       (joker.core/persistent!__
+         (reduce (fn [ret x]
+                   (let [found (idx (select-keys x ks))]
+                     (if found
+                       (reduce #(joker.core/conj!__ %1 (merge %2 x)) ret found)
+                       ret)))
+                 (joker.core/transient__ #{}) s)))
+     #{}))
+  ([xrel yrel km] ;arbitrary key mapping
+   (let [[r s k] (if (<= (count xrel) (count yrel))
+                   [xrel yrel (map-invert km)]
+                   [yrel xrel km])
+         idx (index r (vals k))]
+     (joker.core/persistent!__
+       (reduce (fn [ret x]
+                 (let [found (idx (rename-keys (select-keys x (keys k)) k))]
+                   (if found
+                     (reduce #(joker.core/conj!__ %1 (merge %2 x)) ret found)
+                     ret)))
+               (joker.core/transient__ #{}) s)))))
+
+(defn subset?
+  "Is set1 a subset of set2?"
+  {:added "1.0",
+   :tag Boolean}
+  [set1 set2]
+  (and (<= (count set1) (count set2))
+       (every? #(contains? set2 %) set1)))
+
+(defn superset?
+  "Is set1 a superset of set2?"
+  {:added "1.0",
+   :tag Boolean}
+  [set1 set2]
+  (and (>= (count set1) (count set2))
+       (every? #(contains? set1 %) set2)))
+
+(comment
+  (def xs #{{:a 11 :b 1 :c 1 :d 4}
+            {:a 2 :b 12 :c 2 :d 6}
+            {:a 3 :b 3 :c 3 :d 8 :f 42}})
+
+  (def ys #{{:a 11 :b 11 :c 11 :e 5}
+            {:a 12 :b 11 :c 12 :e 3}
+            {:a 3 :b 3 :c 3 :e 7 }})
+
+  (println (join xs ys))
+  (newline)
+  (println (join xs (rename ys {:b :yb :c :yc}) {:a :a}))
+  (newline)
+  (println (union #{:a :b :c} #{:c :d :e }))
+  (newline)
+  (println (difference #{:a :b :c} #{:c :d :e}))
+  (newline)
+  (println (intersection #{:a :b :c} #{:c :d :e}))
+  (newline)
+  (println (index ys [:b]))
+  (newline))

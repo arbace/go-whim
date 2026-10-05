@@ -192,13 +192,43 @@ Scheme, OCaml and C++ from one form. What the box adds is that it becomes
 the program's only form -- immutable, with views as the way in for a
 person and for an agent alike.
 
+## The Joker guest, built (2026-10-05)
+
+`go tool whim guest --joker` builds `bin/whim-guest-joker`: Joker as a
+REPL on the console, with TamaGo, on the same monitor (`guest/joker`, a
+module of its own as `guest/tamago` is; 23 MB with the standard namespaces
+that need no system). Joker is a fork in `guest/joker/joker`
+(`joker/README.md`): upstream's core and those namespaces, 1.2 MB of
+source, nothing outside Go's standard library; its core library compiled
+to Go data by `go generate` at each build (3 s), not tracked. The REPL
+keeps `*1`, `*2`, `*3` and `*e`, as Joker's own does.
+
+The fork's changes, each marked `go-whim`:
+
+- **The vector fault fixed.** `popTail` stored the nil slice of a child it
+  emptied in an `interface{}` slot, which is then not nil: `Pop` kept a
+  level it should have dropped, and the next `conj` read an empty node.
+  It stores a real nil now; `(conj (pop (vec (range 1057))) :x)` is a
+  vector of 1,057 in the box.
+- **Tagged literals.** The reader consults `*data-readers*` (bound with
+  `binding`, as Clojure's), then `default-data-readers`, then
+  `*default-data-reader-fn*` with the tag and the form; a reader is a
+  function or a var. So the graph's EDN reads as it is:
+
+```
+user=> (binding [*data-readers* {'g/n (fn [[id form & edges]] {:id id :form form :edges (vec edges)})
+                                'g/r (fn [id] [:r id]) 'g/t (fn [id] [:t id])}]
+         (read-string "#g/n [6 (struct buf) #g/r 2 #g/t 9]"))
+{:id 6, :form (struct buf), :edges [[:r 2] [:t 9]]}
+user=> (binding [*default-data-reader-fn* (fn [tag v] [tag v])] (read-string "#c/num \"0x10\""))
+[c/num "0x10"]
+```
+
 ## What could be done next
 
-1. Make the Joker guest a guest of the repo (`go tool whim guest --joker`,
-   a REPL on the console), Joker vendored as a fork, as `crefactor/cc` is,
-   with the vector fault fixed (and offered upstream).
-2. Teach that fork tagged literals (the graph's six), so the views read the
-   store's EDN as they are, in the box.
+1. ~~The Joker guest~~ and 2. ~~tagged literals~~: built, above. The
+   views ported to Joker over the graph's EDN in the box is the step that
+   uses them.
 3. A datagram hypercall, and a design note for the network: netstack and
    TLS in the guest, the host a packet forwarder under a policy.
 4. Measure the collector inside the box (pauses, heap) on the views' index

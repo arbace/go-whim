@@ -58,3 +58,6 @@
 /whimsical/whimsical/*.so
 /whimsical/*.so
 *.test
+
+# guest/joker/joker's generated core (go generate, by go tool whim guest --joker)
+guest/joker/joker/core/a_*.go

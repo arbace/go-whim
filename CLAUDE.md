@@ -811,7 +811,12 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    TSC or the generic timer for the clock, and on several
                    vCPUs goos.Task, Wake and Idle as calls, smp.go; amd64
                    and arm64), main.go the Go editor on a Host of hypercalls,
-                   faulty/ a stand-in; whimsy/ the Rust guest's crate (lib.rs:
+                   faulty/ a stand-in; joker/ the Joker guest (a module of its
+                   own: main.go a REPL on the console; joker/ Joker forked,
+                   its core and the namespaces that need no system, the
+                   vector fault fixed, tagged literals read by
+                   *data-readers*; joker.go builds it, `--joker`;
+                   doc/LISP-SANDBOX.md); whimsy/ the Rust guest's crate (lib.rs:
                    whimsy's core, runtime and printf by path, without std, its
                    allocator and panic; host.rs the 17 host functions as rt.c's,
                    and the arena; smp.rs the chunks on every vCPU;
@@ -943,6 +948,7 @@ go tool whim guest --go --arch arm64  # the same for arm64, run in the aarch64 V
 make whim-test-guest-go TAMAGO_ROOT=/root/tamago-go  # the quick suite with the Go guest too (whim test --guest-go; --wide --guest-go)
 make bin/whim-guest-rs # the Rust editor's core as a virtual machine: whimsy without std, linked with the C guest's runtime (amd64)
 make whim-test-guest-rs  # the quick suite with the Rust guest too (whim test --guest-rs; --wide --guest-rs)
+go tool whim guest --joker --tamago /root/tamago-go  # Joker, a Clojure dialect, as a VM: a REPL on the console (bin/whim-guest-joker, 23 MB)
 go tool whim guest --hello  # milestone 1's guest: "hello", exit 3, one exit a call
 go tool whim guest --bench [--alt]  # a stand-in making argv[1] hypercalls, to time one (--alt: a port on amd64, an HVC on arm64)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)

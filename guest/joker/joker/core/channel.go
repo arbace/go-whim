@@ -1,0 +1,135 @@
+package core
+
+import (
+	"unsafe"
+)
+
+type (
+	ChannelReceiveStatus int
+
+	FutureResult struct {
+		value Object
+		err   Error
+	}
+	Channel struct {
+		ch       chan FutureResult
+		isClosed bool
+		hash     uint32
+	}
+)
+
+const (
+	ChannelReceiveValue ChannelReceiveStatus = iota
+	ChannelReceiveClosed
+	ChannelReceiveDone
+)
+
+func MakeFutureResult(value Object, err Error) FutureResult {
+	return FutureResult{value: value, err: err}
+}
+
+func (ch *Channel) ToString(escape bool) string {
+	return "#object[Channel]"
+}
+
+func (ch *Channel) Equals(other interface{}) bool {
+	return ch == other
+}
+
+func (ch *Channel) GetInfo() *ObjectInfo {
+	return nil
+}
+
+func (ch *Channel) GetType() *Type {
+	return TYPE.Channel
+}
+
+func (ch *Channel) Hash() uint32 {
+	return ch.hash
+}
+
+func (ch *Channel) WithInfo(info *ObjectInfo) Object {
+	return ch
+}
+
+func MakeChannel(ch chan FutureResult) *Channel {
+	res := &Channel{ch: ch, hash: 0}
+	res.hash = HashPtr(uintptr(unsafe.Pointer(res)))
+	return res
+}
+
+func ExtractChannel(args []Object, index int) *Channel {
+	return EnsureArgIsChannel(args, index)
+}
+
+func (ch *Channel) Close() {
+	if !ch.isClosed {
+		close(ch.ch)
+		ch.isClosed = true
+	}
+}
+
+func (ch *Channel) Send(value Object) (ok bool) {
+	if ch.isClosed {
+		return false
+	}
+	ok = true
+	defer func() {
+		if r := recover(); r != nil {
+			ok = false
+		}
+	}()
+	ch.ch <- MakeFutureResult(value, nil)
+	return
+}
+
+// Offer attempts a send without waiting for buffer space or a receiver.
+// Like Send, it returns false if the channel has been closed.
+func (ch *Channel) Offer(value Object) (ok bool) {
+	if ch.isClosed {
+		return false
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			ok = false
+		}
+	}()
+	select {
+	case ch.ch <- MakeFutureResult(value, nil):
+		return true
+	default:
+		return false
+	}
+}
+
+// Poll takes an immediately available result, or returns NIL if none is ready.
+func (ch *Channel) Poll() (Object, Error) {
+	select {
+	case res, ok := <-ch.ch:
+		if !ok {
+			return NIL, nil
+		}
+		return res.value, res.err
+	default:
+		return NIL, nil
+	}
+}
+
+func (ch *Channel) Receive(done <-chan struct{}) (Object, ChannelReceiveStatus, Error) {
+	if done == nil {
+		res, ok := <-ch.ch
+		if !ok {
+			return NIL, ChannelReceiveClosed, nil
+		}
+		return res.value, ChannelReceiveValue, res.err
+	}
+	select {
+	case res, ok := <-ch.ch:
+		if !ok {
+			return NIL, ChannelReceiveClosed, nil
+		}
+		return res.value, ChannelReceiveValue, res.err
+	case <-done:
+		return NIL, ChannelReceiveDone, nil
+	}
+}

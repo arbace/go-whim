@@ -1,0 +1,392 @@
+;; This vars are declared for the linter mode to work properly
+
+(def defproject)
+
+(doseq
+  [sym
+   '[AbstractMethodError AbstractStringBuilder Appendable
+     ApplicationShutdownHooks ArithmeticException ArrayIndexOutOfBoundsException
+     ArrayStoreException AssertionError AssertionStatusDirectives
+     AutoCloseable Boolean BootstrapMethodError
+     BigDecimal BigInteger
+     Byte CharSequence Character
+     CharacterData CharacterData00 CharacterData01
+     CharacterData02 CharacterData0E CharacterDataLatin1
+     CharacterDataPrivateUse CharacterDataUndefined CharacterName
+     Class ClassCastException ClassCircularityError
+     ClassFormatError ClassLoader ClassLoaderHelper
+     ClassNotFoundException ClassValue CloneNotSupportedException
+     Cloneable Comparable Compiler
+     ConditionalSpecialCasing Deprecated Double
+     Enum EnumConstantNotPresentException Error
+     Exception ExceptionInInitializerError Float
+     FunctionalInterface IllegalAccessError IllegalAccessException
+     IllegalArgumentException IllegalMonitorStateException IllegalStateException
+     IllegalThreadStateException IncompatibleClassChangeError IndexOutOfBoundsException
+     InheritableThreadLocal InstantiationError InstantiationException
+     Integer InternalError InterruptedException
+     Iterable LinkageError Long
+     Math NegativeArraySizeException NoClassDefFoundError
+     NoSuchFieldError NoSuchFieldException NoSuchMethodError
+     NoSuchMethodException NullPointerException Number
+     NumberFormatException Object OutOfMemoryError
+     Override Package Process
+     ProcessBuilder ProcessEnvironment ProcessImpl
+     Readable ReflectiveOperationException Runnable
+     Runtime RuntimeException RuntimePermission
+     SafeVarargs SecurityException SecurityManager
+     Short Shutdown StackOverflowError
+     StackTraceElement StrictMath String
+     StringBuffer StringBuilder StringCoding
+     StringIndexOutOfBoundsException SuppressWarnings System
+     SystemClassLoaderAction Terminator Thread
+     Thread$State Thread$UncaughtExceptionHandler
+     ThreadDeath ThreadGroup ThreadLocal
+     Throwable TypeNotPresentException UNIXProcess
+     UnknownError UnsatisfiedLinkError UnsupportedClassVersionError
+     UnsupportedOperationException VerifyError VirtualMachineError
+     Void]]
+  (inject-ns__ sym)
+  (inject-linter-type__ sym)
+  (when-not (resolve sym)
+    (intern__ *ns* sym)))
+
+(doseq [sym '(clojure.edn clojure.core clojure.uuid clojure.core.server clojure.java.io clojure.main clojure.core.protocols clojure.instant clojure.string clojure.datafy clojure.math)]
+  (inject-ns__ sym))
+
+;; Unsupported arities
+
+(def __deref__ deref)
+(defn deref
+  ([^Deref ref]
+   (__deref__ ref))
+  ([^Deref ref ^Number timeout-ms timeout-val]))
+
+(def __re-find__ re-find)
+(defn ^"String|Vec|Nil" re-find
+  ([m])
+  ([^Regex re ^String s] (__re-find__ re s)))
+
+(defn ^String slurp [f & options])
+(defn read
+  ([])
+  ([stream])
+  ([stream eof-error? eof-value])
+  ([stream eof-error? eof-value recursive?])
+  ([opts stream]))
+
+;; Clojure core functions not supported by Joker
+
+(defn ensure [ref])
+(defn ^Int unchecked-remainder-int [^Number x ^Number y])
+(defn eduction [& xforms])
+(defn aset ([array ^Number idx val]) ([array ^Number idx ^Number idx2 & idxv]))
+(defn aset-float ([array ^Number idx ^Number val]) ([array ^Number idx ^Number idx2 & idxv]))
+(defn ->VecNode [edit arr])
+(defn ^Boolean reduced? [x])
+(defn chunk-first [s])
+(defn ^Map sorted-map [& keyvals])
+(defn ^Comparator comparator [^Callable pred])
+(defn ^Seq chunk-cons [chunk rest])
+(defn ^Number unchecked-float [^Number x])
+(defn proxy-call-with-super [call this meth])
+(defn ^Deref deliver [^Deref promise val])
+(defn ^Number unchecked-subtract [^Number x ^Number y])
+(defn ^Seq file-seq [^File dir])
+(defn char-array ([size-or-seq]) ([size init-val-or-seq]))
+(defn conj! ([]) ([coll]) ([coll x]))
+(defn ^Number biginteger [x])
+(defn alter [^Deref ref ^Callable fun & args])
+(defn ^Number unchecked-add [^Number x ^Number y])
+(defn ^Nil compile [^Symbol lib])
+(defn ^Seq pcalls [& ^Callable fns])
+(defn ^Map struct-map [s & inits])
+(defn aset-double ([array ^Number idx ^Number val]) ([array ^Number idx ^Number idx2 & idxv]))
+(defn ^Seq rsubseq ([^Seqable sc test key]) ([^Seqable sc start-test start-key end-test end-key]))
+(defn ^Boolean sorted? [coll])
+(defn tagged-literal [^Symbol tag form])
+(defn byte-array ([size-or-seq]) ([size init-val-or-seq]))
+(defn ^Number unchecked-dec [^Number x])
+(defn ^Set sorted-set [& keys])
+(def extend extend__)
+(defn ^Nil await [& agents])
+(defn ^Seq replicate [^Number n x])
+(defn ^Fn bound-fn* [^Callable f])
+(defn ^Int hash-combine [^Int x ^Int y])
+(defn ^Int unchecked-inc-int [^Number x])
+(defn ref-max-history (^Int [^Deref ref]) (^Deref [^Deref ref ^Number n]))
+(defn ^Vec vector-of ([t]) ([t & elements]))
+(defn ^Map Throwable->map [o])
+(defn ^Nil set-error-handler! [^Deref a ^"Callable|Nil" handler-fn])
+(defn underive (^Nil [^"Named|Type" tag ^Named parent]) (^Map [^Map h ^"Named|Type" tag ^Named parent]))
+(defn ^Deref add-watch [^Deref reference key ^Callable fn])
+(defn aset-short ([array ^Number idx ^Number val]) ([array ^Number idx ^Number idx2 & idxv]))
+(defn ^Number float [^Number x])
+(defn construct-proxy [^Type c & ctor-args])
+(defn agent-error [a])
+(defn ^Seq agent-errors [a])
+(defn ^Boolean ifn? [x])
+(defn ^Nil print-simple [o w])
+(defn ^Seq bases [^Type c])
+(defn aset-byte ([array idx val]) ([array idx idx2 & idxv]))
+(defn ^Map struct [s & vals])
+(defn chunk-buffer [capacity])
+(defn ^Seq chunk-next [^Seqable s])
+(defn init-proxy [proxy mappings])
+(defn longs [xs])
+(defn ^Number unchecked-double [^Number x])
+(defn ^Boolean await-for [^Number timeout-ms & agents])
+(defn into-array ([aseq]) ([type aseq]))
+(defn ^Deref send-off [^Deref a ^Callable f & args])
+(defn ^Map ns-imports [^"Symbol|Namespace" ns])
+(defn ^Seq seque ([s]) ([n-or-q s]))
+(defn vreset! [^Deref vol newval])
+(defn set! [var-symbol expr])
+(defn ^Boolean thread-bound? [& vars])
+(defn chunk [b])
+(defn ^Deref send-via [executor ^Deref a ^Callable f & args])
+(defn ^Int hash-ordered-coll [^Seqable coll])
+(defn ^Number unchecked-byte [^Number x])
+(defn ^Seq subseq ([^Seqable sc test key]) ([^Seqable sc start-test start-key end-test end-key]))
+(defn bytes [xs])
+(defn ^Number unchecked-long [^Number x])
+(defn to-array-2d [coll])
+(defn ^Nil set-error-mode! [a mode-keyword])
+(defn ^Boolean map-entry? [x])
+(defn ^Set ancestors ([^"Named|Type" tag]) ([^Map h ^"Named|Type" tag]))
+(defn ^Nil set-agent-send-executor! [executor])
+(defn ^"Callable|Nil" error-handler [a])
+(defn update-proxy [proxy mappings])
+(defn ^Int hash-unordered-coll [^Seqable coll])
+(defn ^Map get-thread-bindings [])
+(defn shorts [xs])
+(defn ref-min-history (^Int [^Deref ref]) (^Deref [^Deref ref ^Number n]))
+(defn create-struct [& keys])
+(defn ^Fn completing ([^Callable f]) ([^Callable f ^Callable cf]))
+(defn int-array ([size-or-seq]) ([size init-val-or-seq]))
+(defn ref-set [^Deref ref val])
+(defn ^Map sorted-map-by [comparator & keyvals])
+(defn await1 [a])
+(defn ^Boolean future-cancel [^Deref f])
+(defn object-array [size-or-seq])
+(defn ^Fn accessor [s key])
+(defn ^Nil shutdown-agents [])
+(defn ^Nil print-ctor [o print-args w])
+(defn find-protocol-impl [protocol x])
+(defn ^Boolean volatile? [x])
+(defn ^Nil release-pending-sends [])
+(defn re-matcher [re s])
+(defn ^Boolean extends? [protocol ^"Type|Nil" atype])
+(defn ^Set supers [^Type class])
+(defn ^Number byte [^"Number|Char" x])
+(defn unreduced [x])
+(defn floats [xs])
+(defn disj! ([set]) ([set key]) ([set key & ks]))
+(defn load-reader [rdr])
+(defn ^Map bean [x])
+(defn booleans [xs])
+(defn ^Keyword error-mode [a])
+(defn ^Boolean decimal? [n])
+(defn ^Nil set-validator! [^Deref iref ^"Callable|Nil" validator-fn])
+(defn ^Int alength [array])
+(defn restart-agent [a new-state & options])
+(defn ^Deref agent [state & options])
+(defn ^Deref send [^Deref a ^Callable f & args])
+(defn alter-var-root [^Deref v ^Callable f & args])
+(defn ints [xs])
+(defn ->Eduction [xform coll])
+(defn ^Int mix-collection-hash [^Int hash-basis ^Number count])
+(defn ^Boolean satisfies? [protocol x])
+(defn reader-conditional [form splicing?])
+(defn ^Number bigdec [x])
+(defn to-array [coll])
+(defn ^Int unchecked-subtract-int [^Number x ^Number y])
+(defn ^String munge [s])
+(defn ^Int unchecked-multiply-int [^Number x ^Number y])
+(defn aset-boolean ([array idx val]) ([array idx idx2 & idxv]))
+(defn ^Seq chunk-rest [^Seqable s])
+(defn ^Boolean isa? ([child parent]) ([^Map h child parent]))
+(defn float-array ([size-or-seq]) ([size init-val-or-seq]))
+(defn ^Boolean future-cancelled? [f])
+(defn ^Number unchecked-multiply [^Number x ^Number y])
+(defn ^String namespace-munge [ns])
+(defn ^Boolean future-done? [f])
+(defn ^"Keyword|Nil" find-keyword ([^String name]) ([^"String|Nil" ns ^String name]))
+(defn ->VecSeq [am vec anode i offset])
+(defn find-protocol-method [protocol ^Keyword methodk x])
+(defn aset-int ([array idx val]) ([array idx idx2 & idxv]))
+(defn ^Seq pmap ([^Callable f ^Seqable coll]) ([^Callable f ^Seqable coll & colls]))
+(defn -cache-protocol-fn [pf x c interf])
+(defn ^Deref ensure-reduced [x])
+(defn ^Int unchecked-int [^"Number|Char" x])
+(defn ^Number unchecked-negate [^Number x])
+(defn chars [xs])
+(defn ^Number unchecked-short [^Number x])
+(defn ^Boolean class? [x])
+(defn boolean-array ([size-or-seq]) ([size init-val-or-seq]))
+(defn ->ArrayChunk [am arr off end])
+(defn persistent! [coll])
+(defn ^Int unchecked-dec-int [^Number x])
+(defn ^Seq extenders [protocol])
+(defn aset-char ([array idx val]) ([array idx idx2 & idxv]))
+(defn ^Boolean future? [x])
+(defn ^Number rationalize [num])
+(defn ^Deref remove-watch [^Deref reference key])
+(defn pop-thread-bindings [])
+(defn ^String proxy-name [^Type super ^Seqable interfaces])
+(defn ^Deref ref ([x]) ([x & options]))
+(defn push-thread-bindings [bindings])
+(defn aget ([array ^Number idx]) ([array ^Number idx & idxs]))
+(defn ^Int ref-history-count [ref])
+(defn doubles [xs])
+(defn assoc! ([coll key val]) ([coll key val & kvs]))
+(defn ^"Callable|Nil" get-validator [^Deref iref])
+(defn ^Deref future-call [^Callable f])
+(defn long-array ([size-or-seq]) ([size init-val-or-seq]))
+(defn ^Set descendants ([^"Named|Type" tag]) ([^Map h ^"Named|Type" tag]))
+(defn ^Seq resultset-seq [rs])
+(defn ^Nil add-classpath [url])
+(defn ^Number short [^"Number|Char" x])
+(defn ^Int unchecked-add-int [^Number x ^Number y])
+(defn aclone [array])
+(defn ^Deref reduced [x])
+(defn aset-long ([array idx val]) ([array idx idx2 & idxv]))
+(defn ^Map make-hierarchy [])
+(defn dissoc! ([map key]) ([map key & ks]))
+(defn ^Nil set-agent-send-off-executor! [executor])
+(defn ^Number unchecked-inc [^Number x])
+(defn clear-agent-errors [a])
+(defn ^Boolean reader-conditional? [value])
+(defn ^Int unchecked-negate-int [^Number x])
+(defn ^Deref volatile! [val])
+(defn ^Map proxy-mappings [proxy])
+(defn ^Seq enumeration-seq [e])
+(defn short-array ([size-or-seq]) ([size init-val-or-seq]))
+(defn transient [coll])
+(defn ^Boolean compare-and-set! [^Deref atom oldval newval])
+(defn transduce ([^Callable xform ^Callable f coll]) ([^Callable xform ^Callable f init coll]))
+(defn ^Int unchecked-divide-int [^Number x ^Number y])
+(defn ^String clojure-version [])
+(defn ^Seq iterator-seq [iter])
+(defn ^Char unchecked-char [^"Number|Char" x])
+(defn derive (^Nil [^"Named|Type" tag ^Named parent]) (^Map [^Map h ^"Named|Type" tag ^Named parent]))
+(defn chunk-append [b x])
+(defn ^"String|Vec|Nil" re-groups [m])
+(defn pop! [coll])
+(defn commute [^Deref ref ^Callable fun & args])
+(defn ^Type get-proxy-class [& ^Type bases])
+(defn method-sig [meth])
+(defn ^Set sorted-set-by [comparator & keys])
+(defn ^Number long [^"Number|Char" x])
+(defn make-array ([type len]) ([type dim & more-dims]))
+(defn ->Vec [am cnt shift root tail _meta])
+(defn ^Boolean tagged-literal? [value])
+(defn ^Deref promise [])
+(defn double-array ([size-or-seq]) ([size init-val-or-seq]))
+(defn ^Set parents ([^"Named|Type" tag]) ([^Map h ^"Named|Type" tag]))
+(defn ^Boolean record? [x])
+(defn -reset-methods [protocol])
+(defn ^Boolean bigdec? [x])
+(defn ^Boolean bytes? [x])
+(defn ^Boolean uri? [x])
+(defn ^Nil print-method [x writer])
+(defn ^Nil print-dup [x writer])
+(defn read+string
+  ([])
+  ([stream])
+  ([stream eof-error? eof-value])
+  ([stream eof-error? eof-value recursive?])
+  ([opts stream]))
+(defn PrintWriter-on [flush-fn close-fn])
+
+(defn iteration ^Seqable [^Callable step & opts])
+
+(defn stream-into!
+  ([to stream])
+  ([to xform stream]))
+(defn stream-reduce!
+  ([f s])
+  ([f init s]))
+(defn stream-seq! ^Seq [stream])
+(defn stream-transduce!
+  ([xform f stream])
+  ([xform f init stream]))
+
+;; Clojure core macros not supported by Joker
+
+(defn gen-class [& options])
+(defn with-loading-context [& body])
+(defn ^Deref future [& body])
+(defn ^Seq pvalues [& exprs])
+(defn with-precision [precision & exprs])
+(defn dosync [& exprs])
+(defn sync [flags-ignored-for-now & body])
+(defn io! [& body])
+(defn defstruct [name & keys])
+(defn with-local-vars [name-vals-vec & body])
+(defn definline [name & decl])
+(defn gen-interface [& options])
+(defn definterface [name & sigs])
+(defn proxy-super [meth & args])
+(defn with-open [bindings & body])
+
+(defmacro bound-fn
+  [& fntail]
+  `(fn ~@fntail))
+
+(defmacro proxy
+  [class-and-interfaces args & fs]
+  (when-not (vector? class-and-interfaces)
+    (throw (ex-info "Expected a vector of class and intefaces." {:form class-and-interfaces})))
+  (let [impls (fn [fs] (for [f fs]
+                         (derive-info__ (cons 'fn f) f)))]
+    `(fn [this]
+       ~class-and-interfaces
+       ~args
+       ~@(impls fs))))
+
+(def *known-macros*
+  (merge
+   *known-macros*
+   {'definline nil
+    'definterface nil
+    'defstruct nil
+    'gen-interface nil
+    'proxy-super nil
+    'with-local-vars nil
+    'with-open nil
+    'defproject nil
+    'clojure.core.async/go-loop nil
+    'clojure.core.async/alt! nil
+    'clojure.core.async/alt!! nil
+    'clojure.core.async/alts! nil
+    'clojure.core.async/alts!! nil}
+   (:known-macros joker.core/*linter-config*)))
+
+;; Clojure core vars not supported by Joker
+
+(def *warn-on-reflection*)
+(def *clojure-version*)
+(def *compile-files*)
+(def *unchecked-math*)
+(def *default-data-reader-fn*)
+(def *compile-path*)
+(def *compiler-options*)
+(def *agent*)
+(def *read-eval*)
+(def *print-namespace-maps*)
+(def *data-readers*)
+(def *verbose-defrecords*)
+(def *math-context*)
+(def EMPTY-NODE)
+(def char-escape-string)
+(def *suppress-read*)
+(def *fn-loader*)
+(def *use-context-classloader*)
+(def primitives-classnames)
+(def *allow-unresolved-vars*)
+(def *source-path*)
+(def char-name-string)
+
+(in-ns 'user)
+(joker.core/refer 'joker.core)

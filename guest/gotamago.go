@@ -21,18 +21,22 @@ var GoModule = filepath.Join("guest", "tamago")
 
 // goModuleDir is GoModule from the working directory or the nearest one
 // above it that has it (a test runs in its package's directory).
-func goModuleDir() (string, error) {
+func goModuleDir() (string, error) { return moduleDir(GoModule) }
+
+// moduleDir is the module rel (a path from the repository's root) from the
+// working directory or the nearest one above it that has it.
+func moduleDir(rel string) (string, error) {
 	d, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
 	for {
-		if _, err := os.Stat(filepath.Join(d, GoModule, "go.mod")); err == nil {
-			return filepath.Join(d, GoModule), nil
+		if _, err := os.Stat(filepath.Join(d, rel, "go.mod")); err == nil {
+			return filepath.Join(d, rel), nil
 		}
 		up := filepath.Dir(d)
 		if up == d {
-			return "", fmt.Errorf("no %s here or above: run from the repository", GoModule)
+			return "", fmt.Errorf("no %s here or above: run from the repository", rel)
 		}
 		d = up
 	}
@@ -75,10 +79,16 @@ func GoProgram(gocmd, pkg string, a Arch, dir string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	return tamagoBuild(gocmd, mod, pkg, a, dir, "guest-go.elf")
+}
+
+// tamagoBuild builds package pkg of the module in mod with TamaGo's go
+// command gocmd as an image for a, into dir/name, and returns it.
+func tamagoBuild(gocmd, mod, pkg string, a Arch, dir, name string) ([]byte, error) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return nil, err
 	}
-	out, err := filepath.Abs(filepath.Join(dir, "guest-go.elf"))
+	out, err := filepath.Abs(filepath.Join(dir, name))
 	if err != nil {
 		return nil, err
 	}

@@ -24,13 +24,15 @@ import (
 // (guest/tamago/; the distribution $TAMAGO_ROOT or --tamago DIR) and
 // appended to the same monitor, at bin/whim-guest-go (with --image, the
 // image alone).  --rust builds the third: whimsy's core (whimsy/src), without
-// std, linked with the C guest's runtime, at bin/whim-guest-rs (amd64).
+// std, linked with the C guest's runtime, at bin/whim-guest-rs.  --joker
+// builds Joker, a Clojure dialect, as a REPL on the console with TamaGo
+// (guest/joker; doc/LISP-SANDBOX.md), at bin/whim-guest-joker.
 //
-//	whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--rust] [--alt] [--image] [-o OUT] [FILE]
+//	whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--rust|--joker [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]
 func runGuest(args []string) int {
 	a := guest.Native()
 	src, out, standIn := "src/whim-vim.c", "", ""
-	alt, imageOnly, goGuest, rustGuest, tamago := false, false, false, false, ""
+	alt, imageOnly, goGuest, rustGuest, jokerGuest, tamago := false, false, false, false, false, ""
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--arch" && i+1 < len(args):
@@ -50,6 +52,8 @@ func runGuest(args []string) int {
 			goGuest = true
 		case args[i] == "--rust":
 			rustGuest = true
+		case args[i] == "--joker":
+			jokerGuest = true
 		case args[i] == "--tamago" && i+1 < len(args):
 			i++
 			tamago = args[i]
@@ -59,7 +63,7 @@ func runGuest(args []string) int {
 		case len(args[i]) > 0 && args[i][0] != '-':
 			src = args[i]
 		default:
-			fmt.Fprintln(os.Stderr, "usage: whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--rust] [--alt] [--image] [-o OUT] [FILE]")
+			fmt.Fprintln(os.Stderr, "usage: whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--rust|--joker [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]")
 			return 2
 		}
 	}
@@ -73,6 +77,9 @@ func runGuest(args []string) int {
 		}
 		if rustGuest {
 			out += "-rs"
+		}
+		if jokerGuest {
+			out += "-joker"
 		}
 		if standIn != "" {
 			out += "-" + standIn
@@ -98,6 +105,10 @@ func runGuest(args []string) int {
 	}
 	defer os.RemoveAll(dir)
 	switch {
+	case jokerGuest && imageOnly:
+		err = guest.BuildJokerImage(tamago, a, dir, out)
+	case jokerGuest:
+		err = guest.BuildJoker(tamago, a, dir, out)
 	case rustGuest && imageOnly:
 		err = guest.BuildRustImage(a, dir, out)
 	case rustGuest:
@@ -126,6 +137,9 @@ func runGuest(args []string) int {
 	}
 	if rustGuest {
 		what = "the Rust editor's core (whimsy/), without std,"
+	}
+	if jokerGuest {
+		what = "Joker's REPL (guest/joker), with TamaGo,"
 	}
 	fmt.Printf("  guest        %s: %s on %s\n", out, what, a.Name)
 	return 0
