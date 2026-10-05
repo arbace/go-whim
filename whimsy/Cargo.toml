@@ -15,6 +15,11 @@ path = "src/main.rs"
 
 [dependencies]
 
+[features]
+# the core alone, without std: the guest's build (guest/whimsy), which
+# passes it to rustc itself; cargo never sets it
+guest = []
+
 [profile.release]
 opt-level = 2
 debug = false

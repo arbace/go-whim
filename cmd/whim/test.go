@@ -9,7 +9,7 @@ import (
 )
 
 // testUsage is runTest's usage line.
-const testUsage = "usage: whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--guest] [--guest-go] [--tamago DIR] [--limit DURATION] [--ref REV] [FILE]"
+const testUsage = "usage: whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--guest] [--guest-go] [--tamago DIR] [--guest-rs] [--limit DURATION] [--ref REV] [FILE]"
 
 // runTest is the minimal behaviour check (internal/suite): every session in
 // internal/suite/cases.md on the editor built from src/whim-vim.c at REV
@@ -35,7 +35,7 @@ const testUsage = "usage: whim test [--wide] [--java] [--clojure] [--clojure-edi
 // controls (default 10s; the C and the Go editor keep 10s), for a build slow
 // on purpose.
 //
-//	whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--guest] [--guest-go] [--tamago DIR] [--limit DURATION] [--ref REV] [FILE]
+//	whim test [--wide] [--java] [--clojure] [--clojure-editor editor.clj] [--haskell] [--haskell-bin PROGRAM] [--rust] [--scheme] [--scheme-debug] [--ocaml] [--cpp] [--guest] [--guest-go] [--tamago DIR] [--guest-rs] [--limit DURATION] [--ref REV] [FILE]
 func runTest(args []string) int {
 	o, err := parseTest(args)
 	if err != nil {
@@ -98,6 +98,8 @@ func parseTest(args []string) (testOpts, error) {
 			o.jvm.Guest = true
 		case args[i] == "--guest-go":
 			o.jvm.GuestGo = true
+		case args[i] == "--guest-rs":
+			o.jvm.GuestRs = true
 		case args[i] == "--tamago" && i+1 < len(args):
 			i++
 			o.jvm.TamaGoRoot = args[i]

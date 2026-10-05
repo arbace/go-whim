@@ -337,7 +337,10 @@ type JVM struct {
 	// GuestGo runs the Go editor as a virtual machine, built with TamaGo
 	// (guest/tamago/): --guest-go; TamaGo is TamaGoRoot, or $TAMAGO_ROOT
 	// (--tamago DIR)
-	GuestGo    bool
+	GuestGo bool
+	// GuestRs runs whimsy's core as a virtual machine, without std, on
+	// the C guest's runtime (guest/whimsy/): --guest-rs.
+	GuestRs    bool
 	TamaGoRoot string
 	// HaskellBin, a caprice program built already, is run as the Haskell
 	// editor instead of one built from the candidate: --haskell-bin PATH.
@@ -411,7 +414,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return nil
 		},
 	}
-	var java, clj, hs, rs, scm, ml, cpp, gst, gstGo *jvmEditor
+	var java, clj, hs, rs, scm, ml, cpp, gst, gstGo, gstRs *jvmEditor
 	if jvm.HaskellBin != "" {
 		jobs = append(jobs, func() (err error) { hs, err = prebuiltHaskell(jvm.HaskellBin, dir); return })
 	} else if jvm.Haskell != nil {
@@ -439,6 +442,9 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 	if jvm.GuestGo {
 		jobs = append(jobs, func() (err error) { gstGo, err = buildGuestGo(jvm.TamaGoRoot, dir); return })
 	}
+	if jvm.GuestRs {
+		jobs = append(jobs, func() (err error) { gstRs, err = buildGuestRs(dir); return })
+	}
 	if jvm.Java != nil {
 		jobs = append(jobs, func() (err error) { java, err = buildJava(jvm.Java, candSrc, dir); return })
 	}
@@ -460,7 +466,7 @@ func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 			return fail(err)
 		}
 	}
-	for _, e := range []*jvmEditor{java, clj, hs, rs, scm, ml, cpp, gst, gstGo} {
+	for _, e := range []*jvmEditor{java, clj, hs, rs, scm, ml, cpp, gst, gstGo, gstRs} {
 		if e != nil {
 			e.limit = jvm.limit()
 			b.jvm = append(b.jvm, e)

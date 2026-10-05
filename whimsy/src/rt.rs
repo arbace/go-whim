@@ -6,7 +6,7 @@
 //! imports it whole (`use crate::rt::*`).
 
 use core::ffi::c_void;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 /// An argument of a C variadic call, as C passes it once promoted: a signed
 /// integer sign-extended, an unsigned one zero-extended, a pointer.
@@ -112,6 +112,7 @@ const CHUNK_LEAST: usize = 64;
 /// that one slow chunk does not hold the rest, and none smaller than
 /// CHUNK_LEAST; a range of one chunk runs on the caller's thread, and a
 /// chunk that did not stops the chunks not yet started.
+#[cfg(not(feature = "guest"))]
 pub fn chunks<F>(n: i64, work: F) -> bool
 where
     F: Fn(i64, i64) -> bool + Sync,
@@ -138,4 +139,14 @@ where
         }
     });
     !failed.load(Ordering::Relaxed)
+}
+
+/// The guest's chunks (guest/whimsy): the range on the one vCPU, as the C
+/// guest's loop runs it -- a bare machine has no threads to give it.
+#[cfg(feature = "guest")]
+pub fn chunks<F>(n: i64, work: F) -> bool
+where
+    F: Fn(i64, i64) -> bool + Sync,
+{
+    work(0, n.max(0))
 }

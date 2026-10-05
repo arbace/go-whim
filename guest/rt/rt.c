@@ -22,8 +22,18 @@ typedef typeof(sizeof(0)) whim_usize;
 
 void *memcpy(void *dst, const void *src, whim_usize n);
 
-static int vim_main(int argc, char **argv);
-static void deathtrap(int sigarg);
+/* The core's linkage, and its host functions': static in the one
+ * translation unit the C core is compiled in; external when the core is
+ * compiled apart (a Rust core: guest/whimsy, built -DWHIM_CORE_APART), which
+ * defines vim_main and deathtrap and calls the host functions by name. */
+#ifdef WHIM_CORE_APART
+#define WHIM_CORE
+#else
+#define WHIM_CORE static
+#endif
+
+WHIM_CORE int vim_main(int argc, char **argv);
+WHIM_CORE void deathtrap(int sigarg);
 
 enum
 {
@@ -120,13 +130,13 @@ whim_hcall(enum whim_nr nr, long a0, long a1, long a2, long a3, long a4)
     }
 }
 
-static void
+WHIM_CORE void
 musl_host_init(void)
 {
     whim_hcall(WHIM_HOST_INIT, 0, 0, 0, 0, 0);
 }
 
-static int
+WHIM_CORE int
 musl_get_winsize(int *rows, int *cols)
 {
     int ok = (int)whim_hcall(WHIM_GET_WINSIZE, 0, 0, 0, 0, 0);
@@ -138,19 +148,19 @@ musl_get_winsize(int *rows, int *cols)
     return ok;
 }
 
-static void
+WHIM_CORE void
 musl_term_start(void)
 {
     whim_hcall(WHIM_TERM_START, 0, 0, 0, 0, 0);
 }
 
-static void
+WHIM_CORE void
 musl_term_stop(void)
 {
     whim_hcall(WHIM_TERM_STOP, 0, 0, 0, 0, 0);
 }
 
-static int
+WHIM_CORE int
 musl_tty_keys(int fd, int *bs, int *intr, int *cr, int *nlcr)
 {
     int ok = (int)whim_hcall(WHIM_TTY_KEYS, fd, 0, 0, 0, 0);
@@ -164,13 +174,13 @@ musl_tty_keys(int fd, int *bs, int *intr, int *cr, int *nlcr)
     return ok;
 }
 
-static long
+WHIM_CORE long
 musl_now_ms(void)
 {
     return whim_hcall(WHIM_NOW_MS, 0, 0, 0, 0, 0);
 }
 
-static void
+WHIM_CORE void
 musl_delay(long ms, int interruptible)
 {
     whim_hcall(WHIM_DELAY, ms, interruptible, 0, 0, 0);
@@ -200,7 +210,7 @@ static int whim_input_kept;  /* a read's answer is kept: the core's next read is
 static long whim_input_ret;  /* what is left of it: the count not yet the core's, or 0 or -1 */
 static int whim_input_at;    /* where in whim_input that count starts */
 
-static int
+WHIM_CORE int
 musl_wait_for_input(long ms)
 {
     if (whim_input_kept)
@@ -217,7 +227,7 @@ musl_wait_for_input(long ms)
     return 1;
 }
 
-static int
+WHIM_CORE int
 musl_read_input(char *buf, int len)
 {
     long n;
@@ -238,13 +248,13 @@ musl_read_input(char *buf, int len)
     return (int)n;
 }
 
-static void
+WHIM_CORE void
 musl_suspend(void)
 {
     whim_hcall(WHIM_SUSPEND, 0, 0, 0, 0, 0);
 }
 
-static void
+WHIM_CORE void
 host_exit(int r)
 {
     whim_hcall(WHIM_EXIT, r, 0, 0, 0, 0);
@@ -254,7 +264,7 @@ host_exit(int r)
     }
 }
 
-static void
+WHIM_CORE void
 host_message(const char *msg, int len, int err)
 {
     if (len < 0)
@@ -268,7 +278,7 @@ host_message(const char *msg, int len, int err)
     whim_hcall(WHIM_MESSAGE, (long)msg, len, err, 0, 0);
 }
 
-static int
+WHIM_CORE int
 host_write(const char *s, int len)
 {
     if (len < 0)
@@ -282,13 +292,13 @@ host_write(const char *s, int len)
     return (int)whim_hcall(WHIM_WRITE, (long)s, len, 0, 0, 0);
 }
 
-static long
+WHIM_CORE long
 host_time(void)
 {
     return whim_hcall(WHIM_TIME, 0, 0, 0, 0, 0);
 }
 
-static void
+WHIM_CORE void
 host_raise(int sig)
 {
     whim_hcall(WHIM_RAISE, sig, 0, 0, 0, 0);
@@ -331,7 +341,7 @@ whim_num(char *b, int at, unsigned long v, int base)
     return at;
 }
 
-static void *
+WHIM_CORE void *
 host_alloc(whim_usize n)
 {
     whim_usize want = (n + 15) & ~(whim_usize)15;
@@ -355,7 +365,7 @@ host_alloc(whim_usize n)
     return p;
 }
 
-static void
+WHIM_CORE void
 host_free(void *p)
 {
     (void)p;
@@ -383,6 +393,37 @@ memset(void *dst, int c, whim_usize n)
         *d++ = (char)c;
     }
     return dst;
+}
+
+int
+memcmp(const void *a, const void *b, whim_usize n)
+{
+    const unsigned char *p = a, *q = b;
+    for (whim_usize i = 0; i < n; i++)
+    {
+        if (p[i] != q[i])
+        {
+            return p[i] < q[i] ? -1 : 1;
+        }
+    }
+    return 0;
+}
+
+int
+bcmp(const void *a, const void *b, whim_usize n)
+{
+    return memcmp(a, b, n);
+}
+
+whim_usize
+strlen(const char *s)
+{
+    whim_usize n = 0;
+    while (s[n] != 0)
+    {
+        n++;
+    }
+    return n;
 }
 
 void *
@@ -425,6 +466,17 @@ __attribute__((used, noreturn)) void
 whim_main(long argc, char **argv, char *heap)
 {
     whim_heap = heap;
+#if defined(WHIM_CORE_APART) && defined(__x86_64__)
+    /* a core compiled apart may use SSE (Rust's core is built for x86-64's
+     * baseline, SSE2): CR4's OSFXSR and OSXMMEXCPT, as a Go guest's board
+     * sets them; CR0's MP is the monitor's, and EM is clear */
+    {
+        unsigned long cr4;
+        __asm__ volatile("mov %%cr4, %0" : "=r"(cr4));
+        cr4 |= (1ul << 9) | (1ul << 10);
+        __asm__ volatile("mov %0, %%cr4" : : "r"(cr4));
+    }
+#endif
     host_exit(vim_main((int)argc, argv));
     for (;;)
     {

@@ -29,6 +29,7 @@
 //! its arena with `alloc_clear`/`host_alloc`; so the C's out-of-memory return
 //! from `adjust_types` cannot happen.
 
+use alloc::vec::Vec;
 use crate::editor::{self, Editor};
 use crate::rt::VArg;
 use core::ffi::c_void;

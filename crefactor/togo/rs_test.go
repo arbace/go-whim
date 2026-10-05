@@ -118,7 +118,7 @@ pub unsafe fn outf(_ed: *mut Editor, fmt: *mut i8, args: &[VArg]) {
 }
 `
 
-const rsLib = "pub mod rt;\npub mod host;\npub mod editor;\n"
+const rsLib = "extern crate alloc;\npub mod rt;\npub mod host;\npub mod editor;\n"
 
 const rsMain = "fn main() {\n    let ed = prog::editor::new_editor();\n    unsafe { prog::editor::run(ed) }\n}\n"
 

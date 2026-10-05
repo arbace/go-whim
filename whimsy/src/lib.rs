@@ -6,6 +6,10 @@
 
 #![deny(warnings)]
 
+// the generated core names alloc's Box, and so builds where std is not (the
+// guest's, guest/whimsy)
+extern crate alloc;
+
 pub mod editor;
 pub mod host;
 pub mod printf;

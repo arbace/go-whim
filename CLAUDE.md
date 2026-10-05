@@ -266,6 +266,12 @@ slim-vim.c  --whim-->  whim-vim.c
   (`WHIM_GUEST_CPUS`; *SMP* there: 43.0 exits a key, 4.1 without `par_*`;
   on one 39.47 and 3.78, as before there were more), and its arm64 build all 80 as the C does inside the aarch64 VM: at one vCPU before the merged call, and with it
   at two and four (`doc/GUEST.md`, *SMP*, *arm64*).
+  **`--guest-rs`** adds the RUST GUEST (`guest/whimsy/`, `doc/GUEST.md`,
+  *The third guest*): whimsy's core, the generated `editor.rs`, built
+  without std as a static library and linked with the C guest's runtime,
+  run by the same monitor (amd64), its control the launcher with its
+  image's one `" INSERT"` changed; it answers all 80 and all 240 as the C
+  does, in the C guest's exits to the call.
   Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
@@ -287,7 +293,7 @@ slim-vim.c  --whim-->  whim-vim.c
   C's, and an editor over 25 times the C's time failing the run (one built
   already, `--haskell-bin`'s, is timed but not held to it: the `-O0`
   ghc-lisp caprice 81-84) -- measured,
-  C++ 0.2-0.3, Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, the guest 0.8-0.9 (its 10,416 exits, every one a hypercall; 1.1-1.6 and 20,786 before the merged wait and read), the Go guest 1.3-1.4 (1.6-1.8 before), Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
+  C++ 0.2-0.3, Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, the guest 0.8-0.9 (its 10,416 exits, every one a hypercall; 1.1-1.6 and 20,786 before the merged wait and read), the Rust guest 0.8-0.9, the Go guest 1.3-1.4 (1.6-1.8 before), Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
   its big functions were compiled sooner, `doc/CLOJURE-PROFILE.md`) since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
   huge-method limit left on, which is what it refuses.
@@ -801,7 +807,10 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    TSC or the generic timer for the clock, and on several
                    vCPUs goos.Task, Wake and Idle as calls, smp.go; amd64
                    and arm64), main.go the Go editor on a Host of hypercalls,
-                   faulty/ a stand-in; vm/aarch64.sh the arm64 gate.s VM
+                   faulty/ a stand-in; whimsy/ the Rust guest's crate (lib.rs:
+                   whimsy's core, runtime and printf by path, without std, its
+                   allocator and panic; host.rs the 17 host functions as rt.c's;
+                   rust.go builds it, `--rust`); vm/aarch64.sh the arm64 gate.s VM
                    (Alpine Edge aarch64 netbooted by qemu with an emulated
                    EL2, KVM inside, a job agent served by QEMU itself:
                    doc/GUEST.md, *The aarch64 VM*); mac/ the Mac's side
@@ -924,6 +933,8 @@ make whim-test-guest  # the quick suite with the guest editor too (whim test --g
 make bin/whim-guest-go TAMAGO_ROOT=/root/tamago-go  # the Go editor as a virtual machine: built with TamaGo, appended to the same monitor (8 s)
 go tool whim guest --go --arch arm64  # the same for arm64, run in the aarch64 VM (guest/vm/aarch64.sh: fetch, start, put, run, stop; doc/GUEST.md, *The aarch64 VM*)
 make whim-test-guest-go TAMAGO_ROOT=/root/tamago-go  # the quick suite with the Go guest too (whim test --guest-go; --wide --guest-go)
+make bin/whim-guest-rs # the Rust editor's core as a virtual machine: whimsy without std, linked with the C guest's runtime (amd64)
+make whim-test-guest-rs  # the quick suite with the Rust guest too (whim test --guest-rs; --wide --guest-rs)
 go tool whim guest --hello  # milestone 1's guest: "hello", exit 3, one exit a call
 go tool whim guest --bench [--alt]  # a stand-in making argv[1] hypercalls, to time one (--alt: a port on amd64, an HVC on arm64)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)

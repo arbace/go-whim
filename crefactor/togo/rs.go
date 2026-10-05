@@ -402,7 +402,7 @@ func (r *rgen) editorStruct() string {
 	}
 	b.WriteString("    /// the host the editor runs on: the hand-written glue's, not the C's\n    pub host: *mut c_void,\n}\n\n")
 	b.WriteString("/// A new editor, zeroed and boxed, never to move: its initial values written.\npub fn new_editor() -> *mut Editor {\n" +
-		"    unsafe {\n        let ed: *mut Editor = Box::into_raw(Box::<Editor>::new_zeroed().assume_init());\n" +
+		"    unsafe {\n        let ed: *mut Editor = alloc::boxed::Box::into_raw(alloc::boxed::Box::<Editor>::new_zeroed().assume_init());\n" +
 		"        init_globals(ed);\n        ed\n    }\n}\n\n")
 	return b.String()
 }

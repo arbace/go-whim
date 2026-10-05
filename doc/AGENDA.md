@@ -6,9 +6,10 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Queued, measured, not started
 
-- **The guests, further** (doc/GUEST.md): a translated editor other than
-  Go's (whimsy, whim++) as a guest; the Go guest's default on a native
-  arm64 Linux, measured only under emulation so far (one vCPU).
+- **The guests, further** (doc/GUEST.md): the Rust guest on arm64, which
+  needs core and alloc for aarch64 (not in this rustc), and on several
+  vCPUs; whim++ as a guest; the Go guest's default on a native arm64
+  Linux, measured only under emulation so far (one vCPU).
 
 ## Known stale, not yet scoped
 

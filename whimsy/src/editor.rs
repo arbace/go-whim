@@ -3895,7 +3895,7 @@ pub struct Editor {
 /// A new editor, zeroed and boxed, never to move: its initial values written.
 pub fn new_editor() -> *mut Editor {
     unsafe {
-        let ed: *mut Editor = Box::into_raw(Box::<Editor>::new_zeroed().assume_init());
+        let ed: *mut Editor = alloc::boxed::Box::into_raw(alloc::boxed::Box::<Editor>::new_zeroed().assume_init());
         init_globals(ed);
         ed
     }
