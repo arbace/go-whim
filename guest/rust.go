@@ -3,6 +3,7 @@ package guest
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -11,9 +12,11 @@ import (
 // built without std as a static library by rustc (guest/whimsy/lib.rs, the
 // "guest" feature), and linked with the C guest's runtime (rt/rt.c compiled
 // apart, -DWHIM_CORE_APART: its entry, vectors, hypercalls and arena), so
-// that the same monitor runs it as it runs the C guest.  amd64 alone: the
-// rustc here has core and alloc for its own target only, whose code is
-// x86-64's baseline -- SSE, which rt.c turns on for a core compiled apart.
+// that the same monitor runs it as it runs the C guest.  A rustc has core
+// and alloc for its own target only, so the image for an ISA is built on a
+// machine of it: amd64's here, arm64's in an arm64 Linux (doc/GUEST.md, *The
+// Rust guest on arm64*).  Rust's core uses the FP and SIMD registers --
+// SSE2, NEON -- which rt.c turns on for a core compiled apart.
 
 // RustCrate is the guest crate's root, from the repository's.
 var RustCrate = filepath.Join("guest", "whimsy", "lib.rs")
@@ -47,8 +50,8 @@ func rustCrateFile() (string, error) {
 // ELF: the crate by rustc, rt.c apart and the entry by clang, linked by the
 // C guest's script.
 func RustImage(a Arch, dir string) ([]byte, error) {
-	if a.Name != "amd64" {
-		return nil, fmt.Errorf("the Rust guest is amd64's alone: rustc here has core and alloc for its own target only")
+	if a.Name != Native().Name {
+		return nil, fmt.Errorf("the Rust guest for %s is built on %s: a rustc has core and alloc for its own target only (doc/GUEST.md, *The Rust guest on arm64*)", a.Name, a.Name)
 	}
 	crate, err := rustCrateFile()
 	if err != nil {
@@ -76,7 +79,11 @@ func RustImage(a Arch, dir string) ([]byte, error) {
 	if err := run(command(dir, "clang", append(cc, "-c", "entry_"+a.Name+".S", "-o", "entry.o")...)); err != nil {
 		return nil, err
 	}
-	if err := run(command(dir, a.LD, "-m", a.LDEmu, "-static", "-nostdlib", "--no-dynamic-linker", "-T", "link_"+a.Name+".ld",
+	ld := a.LD
+	if _, err := exec.LookPath(ld); err != nil {
+		ld = "ld" // built natively: the machine's own linker, for its own ISA
+	}
+	if err := run(command(dir, ld, "-m", a.LDEmu, "-static", "-nostdlib", "--no-dynamic-linker", "-T", "link_"+a.Name+".ld",
 		"-o", "guest.elf", "entry.o", "rt.o", "libwhimsy_guest.a")); err != nil {
 		return nil, err
 	}

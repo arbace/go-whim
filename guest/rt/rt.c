@@ -476,6 +476,15 @@ whim_main(long argc, char **argv, char *heap)
         cr4 |= (1ul << 9) | (1ul << 10);
         __asm__ volatile("mov %0, %%cr4" : : "r"(cr4));
     }
+#elif defined(WHIM_CORE_APART) && defined(__aarch64__)
+    /* and on arm64 FP and SIMD (Rust's core for aarch64 uses them): CPACR_EL1's
+     * FPEN, as a Go guest's board sets it */
+    {
+        unsigned long cpacr;
+        __asm__ volatile("mrs %0, cpacr_el1" : "=r"(cpacr));
+        cpacr |= 3ul << 20;
+        __asm__ volatile("msr cpacr_el1, %0\n\tisb" : : "r"(cpacr));
+    }
 #endif
     host_exit(vim_main((int)argc, argv));
     for (;;)

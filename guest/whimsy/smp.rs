@@ -31,20 +31,32 @@ const EMPTY: Block = Block { nr: 0, a: [0; 5], ret: 0, event: 0 };
 static mut BLOCKS: [Block; MAX_CPUS] = [EMPTY; MAX_CPUS];
 
 /// call makes call nr from vCPU cpu, on its own block: its address stored
-/// to the doorbell from RAX, as rt.c's.
+/// to the doorbell from the register the monitor reads it from -- RAX on
+/// amd64, X0 on arm64 -- as rt.c's.
 unsafe fn call(cpu: usize, nr: u64, a: [i64; 5]) -> i64 {
     let b = &raw mut BLOCKS[cpu];
     (*b).nr = nr;
     (*b).a = a;
     (*b).ret = 0;
     (*b).event = 0;
-    asm!("mov qword ptr [{door}], rax", door = in(reg) DOORBELL, in("rax") b as usize, options(nostack));
+    doorbell(b as usize);
     core::ptr::read_volatile(&raw const (*b).ret)
+}
+
+#[cfg(target_arch = "x86_64")]
+unsafe fn doorbell(block: usize) {
+    asm!("mov qword ptr [{door}], rax", door = in(reg) DOORBELL, in("rax") block, options(nostack));
+}
+
+#[cfg(target_arch = "aarch64")]
+unsafe fn doorbell(block: usize) {
+    asm!("str x0, [{door}]", door = in(reg) DOORBELL, in("x0") block, options(nostack));
 }
 
 // An AP's first instruction (abi.CPUStart): the boot vCPU's mode, RDI the
 // argument, RSI the function, RDX its number, RSP its stack.  SSE on, as
 // rt.c turns it on for the boot vCPU; the function does not return.
+#[cfg(target_arch = "x86_64")]
 global_asm!(
     ".globl whim_apentry",
     "whim_apentry:",
@@ -56,6 +68,23 @@ global_asm!(
     "call rsi",
     "2: hlt",
     "jmp 2b",
+);
+
+// arm64's: EL1t, X0 the argument, X1 the function, X2 its number, SP_EL0
+// its stack.  FP and SIMD on (CPACR_EL1.FPEN), as rt.c turns them on for
+// the boot vCPU and a Go guest's board for its APs.
+#[cfg(target_arch = "aarch64")]
+global_asm!(
+    ".globl whim_apentry",
+    "whim_apentry:",
+    "mrs x5, cpacr_el1",
+    "orr x5, x5, #(3 << 20)",
+    "msr cpacr_el1, x5",
+    "isb",
+    "mov x0, x2",
+    "blr x1",
+    "2: wfi",
+    "b 2b",
 );
 
 /// The job the vCPUs share: the work, the range and its chunks, the next

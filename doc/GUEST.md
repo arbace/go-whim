@@ -983,6 +983,44 @@ one; and the `:%s/\v(a|b)+c/X/g` over 200,000 lines (the C's -O0 build
 | 8 | 213 | 5.65x | 0.02x |
 | 16 | 161 | 7.44x | 0.02x |
 
+### The Rust guest on arm64 (prepared 2026-10-05; to be built in an arm64 Linux)
+
+A rustc has core and alloc for its own target only, so the arm64 image is
+built on an arm64 machine: an Alpine aarch64 VM on the Mac (Hypervisor.
+framework, under UTM or the like) does, its rustc Alpine's aarch64 one. What
+is arm64's in the guest is written and waits for that build:
+
+- `guest/whimsy/smp.rs`: the doorbell's store from X0 (`str x0, [door]`),
+  and `whim_apentry` for arm64 -- EL1t, X0 the argument, X1 the function,
+  X2 its number, SP_EL0 its stack, as `vmm/setup_arm64.go`'s startAP sets
+  them: CPACR_EL1's FPEN on, then `blr x1` with the number in X0.
+- `guest/rt/rt.c`: for a core compiled apart on arm64, CPACR_EL1's FPEN set
+  in `whim_main` before the core, as SSE is on amd64 (Rust's core for
+  aarch64 uses NEON and FP).
+- `guest.RustImage` builds an ISA's image on a machine of it (a rustc's own
+  target), refusing a cross build with the reason, and takes the machine's
+  own `ld` where the cross linker is not there.
+- `guest/mac/mac.sh` takes `--rs` for the Rust image,
+  `lib/whim-guest/whim-guest-rs-arm64.elf`: `hello`, `run`, `suite`,
+  `heavy`, and `scale --rs` (the table naming the Rust guest).
+
+Checked here: the amd64 guest as before (the suite, four vCPUs); rt.c
+compiles for arm64 with `-DWHIM_CORE_APART`. Not checked: the Rust side for
+aarch64, which this rustc cannot compile -- the VM's build is its first.
+
+**The steps.** In the Alpine aarch64 VM:
+
+```
+apk add go clang rust binutils git
+git clone https://github.com/arbace/go-whim && cd go-whim
+go tool whim guest --rust --image -o lib/whim-guest/whim-guest-rs-arm64.elf
+```
+
+then the image to the Mac (`scp` to `go-whim/lib/whim-guest/`), and there:
+`guest/mac/mac.sh build` (the monitor, which now lays out several vCPUs for
+any image with `whim_apentry`), `mac.sh hello --rs`, `mac.sh suite --rs`,
+`mac.sh suite --rs --wide`, `mac.sh heavy --rs`, `mac.sh scale --rs`.
+
 ## Running on the Mac
 
 **The Mac session of 2026-10-05** (the user's run on the M2 Max, every step
