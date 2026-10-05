@@ -440,8 +440,7 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    (FormsWith, FormsWhere, Quoted); unwrap.go, names.go;
                    frag.go FRAG (C text made nodes in context: a pared unit
                    cc parses, checks and imports, holes `$x`; fragpare.go
-                   pares it to what the fragments can name; ccconfig.go
-                   cc's configuration made once a process) with
+                   pares it to what the fragments can name) with
                    fragverbs.go and fragmore.go, clone.go (CLONE), macrox.go
                    (MACROX); renum.go, initrow.go and rename.go
                    (enumerators, a table's rows, spellings); param.go,
@@ -878,7 +877,8 @@ subcommand, `go tool whim <name>`, and the `Makefile` calls it the same way.
 the C23 its parser lacks added -- `[[...]]` attributes in every position,
 `constexpr`, `_BitInt`, `typeof_unqual`, `static_assert` without a message,
 digit separators, `u8'a'`, storage classes in a compound literal, a label at
-a block's end -- and three faults corrected, tracked as ordinary source
+a block's end -- three faults corrected, and the host compiler's answer to
+`NewConfig` asked once a process, tracked as ordinary source
 (`crefactor/cc/README.md`, which says how to diff it against upstream;
 `crefactor/c23conf` holds it, cemit and C-lisp to gcc 15, 49 of 49 C23
 features, 22 before: `doc/C23.md`). It was composed at build time under `.cache/gofork/`
@@ -935,7 +935,7 @@ go tool whim graph --changes N   # what phase N changed: the top-level forms who
 go tool whim graph --snapshot N  # boundary N's graph as Lisp, from the store of graphs in .cache/boundaries
 go tool whim view callers F      # a read-only view of whim-vim.c's graph as Lisp: callers, callees, uses, member S.M, type T, def; 0.07 s once .cache/graph holds it (doc/GRAPH.md)
 go tool whim view --at L:C def F # the view at a cursor: the same view (--as another) rooted at what the node at L:C of the printed one is about
-go tool whim view-serve [FILE]   # an editing session for an editor to drive: a request a line on stdin (open, change, rename, at, undo, c, write), answers framed as view-clj's; an applied change 48-58 ms on whim-vim.c, a pending one 0.3 ms
+go tool whim view-serve [FILE]   # an editing session for an editor to drive: a request a line on stdin (open, change, rename, at, undo, c, write), answers framed as view-clj's; an applied change 17-26 ms on whim-vim.c, a pending one 0.3 ms
 vim --cmd 'set rtp^=vim' -c 'WhimView def F'  # the vim client on view-serve (vim/: :WhimView, :WhimAt, :WhimRename, :WhimUndo, :WhimC; changes sent as typed)
 crefactor/graph/view/clj/view-clj --serve F.edn  # the views in Clojure, a long-lived process: the EDN read once (2 s), then a request a line on stdin, answered in 0.1 ms median (doc/GRAPH.md, *The server*)
 go tool whim view-edit def F < EDITED  # that view edited (ids shown or not) made an edit of the graph, checked where made; writes the C (--lisp, --view; --fallout); 0.25-0.7 s an edit

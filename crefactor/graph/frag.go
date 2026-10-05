@@ -406,7 +406,7 @@ func (s *synth) load() error {
 	if err != nil {
 		return s.where(err)
 	}
-	cfg, err := ccConfig()
+	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
 		return err
 	}

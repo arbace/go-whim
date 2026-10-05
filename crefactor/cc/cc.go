@@ -32,14 +32,17 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"modernc.org/opt"
 )
@@ -565,7 +568,39 @@ func stdcVersion(predefined string) int64 {
 	return 0
 }
 
+// newConfig is what the host's C compiler says (newConfigHost), asked once
+// a process for each set of options and handed out as copies: asking it is
+// a process of its own, 40-50 ms of every NewConfig, which whim's editing of
+// its program graph made at every edit (go-whim: README.md).
 func newConfig(opts []string) (cc, predefined string, includePaths, sysIncludePaths []string, keywords map[string]rune, err error) {
+	key := strings.Join(opts, "\x00")
+	hostConfigs.Lock()
+	h, ok := hostConfigs.m[key]
+	if !ok {
+		h = &hostConfig{}
+		h.cc, h.predefined, h.includePaths, h.sysIncludePaths, h.keywords, h.err = newConfigHost(opts)
+		if hostConfigs.m == nil {
+			hostConfigs.m = map[string]*hostConfig{}
+		}
+		hostConfigs.m[key] = h
+	}
+	hostConfigs.Unlock()
+	return h.cc, h.predefined, slices.Clone(h.includePaths), slices.Clone(h.sysIncludePaths), maps.Clone(h.keywords), h.err
+}
+
+type hostConfig struct {
+	cc, predefined                string
+	includePaths, sysIncludePaths []string
+	keywords                      map[string]rune
+	err                           error
+}
+
+var hostConfigs struct {
+	sync.Mutex
+	m map[string]*hostConfig
+}
+
+func newConfigHost(opts []string) (cc, predefined string, includePaths, sysIncludePaths []string, keywords map[string]rune, err error) {
 	if Dmesgs {
 		Dmesg("newConfig(%v)", opts)
 		defer func() {

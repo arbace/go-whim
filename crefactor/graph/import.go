@@ -93,7 +93,7 @@ func Import(path string, src []byte) (*Graph, *Report, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	cfg, err := ccConfig()
+	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
 		return nil, nil, err
 	}

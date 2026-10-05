@@ -2,8 +2,10 @@
 
 modernc.org/cc/v4 v4.29.7, the fifteen non-test files and `c23.go` of its
 own, with the C23 productions upstream's parser refuses added (`c23.go`, and
-hooks in upstream's files, each marked `go-whim`), one lookup and the type check of a parsed tree exported, and three faults
-corrected. Upstream's BSD licence is beside this file and the copyright stays
+hooks in upstream's files, each marked `go-whim`), one lookup and the type check of a parsed tree exported, three faults
+corrected, and what the host's C compiler says asked once a process
+(`newConfig` memoized by its options, each `NewConfig` given copies: the
+compiler's process was 40-50 ms of every edit whim's program graph made). Upstream's BSD licence is beside this file and the copyright stays
 with The CC Authors.
 
 **The delta is the source here, and nowhere else.** It was a patch under

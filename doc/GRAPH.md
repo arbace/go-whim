@@ -2115,22 +2115,29 @@ invariants (`Editor.Check`, a walk of every node). Both are cut now:
   (`checkWhole`).
 
 Then what every edit made afresh is kept (*The derived layer, kept under
-edits*, below): the session's editor, settled between edits; the view's
-index, updated from the journal; and cc's configuration, which asked the
-host's C compiler for its macros and paths -- a process of its own, 40-50
-ms of wall time a FRAG that no profile of the process's CPU showed.
+edits*, below): the session's editor, settled between edits, and the view's
+index, updated from the journal. And cc's configuration, which every
+`cc.NewConfig` asked of the host's C compiler -- a process of its own,
+40-50 ms of wall time each, two a FRAG (the graph's and `cemit.Parse`'s),
+which no profile of the process's CPU showed: a change's wall time was
+twice its CPU, with no collection and nothing blocked in Go. The forked
+front end now asks the compiler once a process for each set of options and
+hands each `NewConfig` copies (`crefactor/cc/README.md`); every tool and
+the pipeline gain it. Last, `formDeclares` reads only a definition's
+header for the names it declares at file scope: what a body declares is
+named only inside it, and a fragment there prints the function whole.
 Through the server, typed changes on `def ml_clearmarked`:
 
-| request | at first | the unit pared | all kept |
-| --- | ---: | ---: | ---: |
-| `change` (pending) | 21 ms | 21-27 ms | 0.3-0.4 ms |
-| `change` (applied) | 390 ms | 115-145 ms | 48-58 ms |
-| `undo` | 57 ms | 23-35 ms | 3-5 ms |
-| `rename` | | 42 ms | 31 ms |
+| request | at first | the unit pared | editor and index kept | cc asked once |
+| --- | ---: | ---: | ---: | ---: |
+| `change` (pending) | 21 ms | 21-27 ms | 0.3-0.4 ms | 0.3-0.4 ms |
+| `change` (applied) | 390 ms | 115-145 ms | 48-58 ms | 17-26 ms |
+| `undo` | 57 ms | 23-35 ms | 3-5 ms | 3-4 ms |
 
-What is left of an applied change, 30 ms of its CPU, is FRAG's pared unit
-(cc's parse, check and import of it, and `formDeclares` walking every form
-to name what each declares, 8 ms), the re-check and the views printed.
+What is left of an applied change is FRAG's pared unit (cc's parse, 6 ms,
+its check and import), the index's update (4.5 ms), the re-check and the
+views printed. `TestFragPared`: the pared splice 38-45 ms (the whole file's
+176-205).
 
 ## The vim client (2026-10-05)
 

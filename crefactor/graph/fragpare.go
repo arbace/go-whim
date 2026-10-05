@@ -141,25 +141,38 @@ func formDeclares(f *Node) []string {
 			out = append(out, n)
 		}
 	}
+	// a definition's body declares nothing at file scope: what a function
+	// defines in it is named only inside it, and a fragment there prints
+	// the function whole
+	parts := []*Node{f}
+	if f.Is("defn") {
+		parts = f.Kids[:defnItemsAt(f)]
+	}
+	for _, part := range parts {
+		formDeclaresIn(part, &out)
+	}
+	return out
+}
+
+func formDeclaresIn(f *Node, out *[]string) {
 	Walk(f, func(x *Node) bool {
 		if !x.IsList() {
 			return false
 		}
 		if isDefForm(x) {
 			if t := tagOf(x); t != "" {
-				out = append(out, t)
+				*out = append(*out, t)
 			}
 		}
 		if x.Is("enum") {
 			for _, k := range x.Args() {
 				if k.IsList() && len(k.Kids) > 0 && !k.Kids[0].IsList() {
-					out = append(out, k.Kids[0].Atom)
+					*out = append(*out, k.Kids[0].Atom)
 				}
 			}
 		}
 		return true
 	})
-	return out
 }
 
 // identifiers are the words of C text that could name something: its
