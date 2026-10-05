@@ -77,7 +77,8 @@ the Go and the JVM give:
 Joker reads faster than the JVM; its index is 17 times slower, every
 table a persistent map where the JVM fills arrays. A port of the views is
 feasible -- maps for the deftypes, tags read by a fork's data readers or
-written as plain data -- at that cost.
+written as plain data -- at that cost. Built since: *The views in Joker,
+in the box*, below, the index 1.36 s with vectors by id.
 
 **The editor in Clojure** (`vijure/`, the generated `editor.clj`). Not
 feasible on Joker: the generated core runs on C's memory as bytes, through
@@ -224,11 +225,104 @@ user=> (binding [*default-data-reader-fn* (fn [tag v] [tag v])] (read-string "#c
 [c/num "0x10"]
 ```
 
+## The views in Joker, in the box (2026-10-05)
+
+The views of `crefactor/graph/view/clj` -- `gview.graph`, `gview.view`,
+`gview.main` -- are ported to Joker in `guest/joker/gview/` (`graph.joke`,
+`view.joke`, `main.joke`, form for form beside the Clojure, embedded by
+the Go package there so that no file system is needed), and read the
+graph's EDN as it is, its six tags given reader functions through the
+fork's `*data-readers*`. They run in two places:
+
+- **On the host**, `guest/joker/cmd/jokerhost`: the fork's core and the
+  guest's standard namespaces built by the ordinary `go` (no TamaGo, no
+  board; `guest.JokerHost` builds it after `go generate`). `jokerhost view
+  ARGS FILE.edn` is `view-clj`: a view, `--batch CASES OUTDIR FILE.edn`,
+  `--serve FILE.edn`; `jokerhost [--gview] [--store F.edn] [-e EXPR |
+  FILE]...` evaluates, or is a REPL on stdin.
+- **In the box**, `go tool whim guest --joker [FILE]`: the namespaces
+  loaded at start, and FILE's graph (default `src/whim-vim.c`) written as
+  EDN to `guest/joker/store/graph.edn` (not tracked) and embedded, the var
+  `store/graph`:
+
+```
+user=> (def st (gview.main/open-string store/graph))
+user=> (select-keys st [:read-ms :index-ms :nodes])
+{:read-ms 2517, :index-ms 1715, :nodes 239125}
+user=> (gview.main/show st "callers ml_find_line")
+;; 9 calls of ml_find_line in 7 functions
+(callers ml_find_line
+  (in ml_get_buf
+...
+```
+
+**How the port differs.** A node is a vector `[id text kids refs type
+key]`; the index's object arrays are vectors by id, filled as transients;
+`ArrayList`, `HashSet` and `LinkedHashMap` are atoms, sets and an ordered
+grouping; the printer's `StringBuilder` a transient vector of strings.
+Where the Clojure holds nodes in a set or map by identity, Joker would
+compare vectors by value, so the port holds a node's KEY: its id, or a
+negative number of its own for a list with no id -- such a list can be a
+parent on a use's path and a context's form, and keyed by its id 0 every
+one would be the same. `identical?` is kept where the Clojure has it
+(Joker compares pointers). Two departures from the Clojure, for speed: the
+index is sized by the EDN's `:ids` where the Clojure walks the graph for
+the greatest id, and each walk is a `reduce`, the cheapest loop Joker has.
+
+**Held to the Go.** `guest/jokerviews_test.go`, as `clj_test.go` holds
+the Clojure: every case's text the same bytes as `whim view`, the same
+error where there is one. On the sample, 48 cases (the golden views, each
+flag and error, and for every name `uses`, `def` and `callers`, `type`):
+48 of 48 on the host and 48 of 48 in the box. On whim-vim.c's graph,
+`clj_serve_test.go`'s 24 fixed cases and every 25th generated one, 278 of
+278 on the host (25 s); with `JOKER_VIEWS_ALL=1` all 6,370 cases, 6,370 of
+6,370 (2 min 9 s); in the box, the 24 fixed cases, 24 of 24
+(`TestJokerViewsGuest`, which needs TamaGo and `/dev/kvm`).
+
+**Measured** on whim-vim.c's graph (9.66 MB of EDN, 239,125 nodes),
+`callers ml_find_line`, on an idle 64-core host:
+
+| | read | index | the view | wall | peak |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Clojure, JVM (`view-clj --time`) | 1.06-1.32 s | 0.17-0.30 s | 14 ms | 2.6-2.9 s | 645-775 MB |
+| Joker, host (`jokerhost view --time`) | 2.02-2.24 s | 1.36-1.42 s | 15 ms | 3.5-3.7 s | 367-382 MB |
+| Joker, in the box, 4 vCPUs | 2.52-2.56 s | 1.72-1.75 s | | 4.7 s | 478 MB |
+| Joker, in the box, 1 vCPU | 4.13-4.17 s | 2.99-3.10 s | | 7.6 s | 549 MB |
+| Go (`whim view`) | | | | 1.9 s, the import uncached | |
+
+The box's peak is the launcher's resident set (the guest's memory it
+touched); the guest's wall time includes starting it and loading the
+namespaces. The image is 33.9 MB, 23 MB before: the views' sources and
+the 9.66 MB of EDN.
+
+The index is 1.36 s where the measurement above (persistent maps) took
+3.71: vectors by id filled as transients (2.1 s with `doseq` walks), sized
+by `:ids` rather than a walk (0.6 s saved), walked by `reduce` (1.25-1.4
+s). Still five to eight times the JVM's 0.17-0.30 s: a function call is
+Joker's dearest instruction (a bare walk of the graph's nodes costs 0.25
+s), and the profile is the VM's dispatch and the allocator, no single hot
+spot. The read is twice the JVM's: Joker's reader alone, every tag given
+`identity`, takes 1.0 s; the reader functions the other 1.1 (1.7 before
+`read-node` walked its edges in a loop). The views themselves are ten
+times the JVM's when large: six heavy cases (`--depth 0 callers ml_get`,
+3.9 MB of text; `--depth 0 callees main`, 4.1 MB) 10.3 s against 1.05 s,
+an ordinary view 5-80 ms. In the box, on one vCPU, reading and
+indexing run at half the host's speed; on four, where the collector has
+the other vCPUs, at 80%.
+
+**What the fork lacked**, worked around in the port and noted in
+`guest/joker/joker/README.md` (gaps, not faults: nothing new to fix): no
+transducers (`(set (map f xs))` for `(into #{} (map f) xs)`), no
+`volatile!` (an atom), and a string's `count` is its characters, so the
+printer's widths -- the Go's bytes -- are counted from the code points.
+
 ## What could be done next
 
-1. ~~The Joker guest~~ and 2. ~~tagged literals~~: built, above. The
-   views ported to Joker over the graph's EDN in the box is the step that
-   uses them.
+1. ~~The Joker guest~~ and 2. ~~tagged literals~~: built, above, and
+   the views ported to Joker over the graph's EDN, in the box (*The views
+   in Joker, in the box*). The graph is embedded at build time; reading
+   another, or the store of graphs, needs a way in (a file or block
+   hypercall).
 3. A datagram hypercall, and a design note for the network: netstack and
    TLS in the guest, the host a packet forwarder under a policy.
 4. Measure the collector inside the box (pauses, heap) on the views' index

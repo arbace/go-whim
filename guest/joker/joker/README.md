@@ -21,3 +21,18 @@ markdown. So the module requires nothing outside Go's standard library.
   emptied. A nil slice stored in an `interface{}` is not nil, so `Pop` kept
   a level it should have dropped and the next `conj` read an empty node:
   `(conj (pop (vec (range 1057))) :x)` was a Go panic.
+- `core/read.go`, `core/data/core.joke`: tagged literals. The reader
+  consults `*data-readers*` (dynamic, bound with `binding` as Clojure's),
+  then `default-data-readers`, then `*default-data-reader-fn*` with the tag
+  and the form; a reader is a function or a var of one. Upstream names
+  `default-data-readers` and reads no tag with it. So the graph's EDN reads
+  as it is: `(binding [*data-readers* {'g/n f ...}] (read-string s))`, which
+  the views in Joker (`../gview`) do.
+
+**What it lacks that the views missed** (gaps, not faults; worked around
+in `../gview`, nothing changed here): no transducers -- `map` and
+`filter` have no one-argument arity, there is no `transduce` -- so
+`(into #{} (map f) xs)` is an arity error and `(set (map f xs))` is
+written; no `volatile!` -- an atom; and `count` of a string is its
+characters, so a byte length (the Go's widths) is counted from the code
+points.

@@ -3,15 +3,24 @@
 // keys -- each evaluated and its value printed, an error printed and the
 // REPL going on; the input's end ends the guest.  With an argument, the
 // guest evaluates it and exits instead.
+//
+// The graph views in Joker are loaded first (./gview: gview.graph,
+// gview.view, gview.main), and store/graph holds the EDN of the graph the
+// image embeds (store/graph.edn, written by `go tool whim guest --joker
+// [FILE]`): so (def st (gview.main/open-string store/graph)) reads and
+// indexes it in the box, and (gview.main/show st "callers ml_find_line")
+// prints what `go tool whim view callers ml_find_line` prints.
 package main
 
 import (
 	"bufio"
+	_ "embed"
 	"fmt"
 	"io"
 	"strings"
 
 	"github.com/arbace/go-whim/guest/abi"
+	"github.com/arbace/go-whim/guest/joker/gview"
 	"github.com/arbace/go-whim/guest/tamago/board"
 	. "github.com/candid82/joker/core"
 
@@ -32,6 +41,11 @@ import (
 	_ "github.com/candid82/joker/std/uuid"
 )
 
+// graphEDN is the graph the image embeds, store/graph.
+//
+//go:embed store/graph.edn
+var graphEDN string
+
 // console is the monitor's input: WaitRead, waiting for ever.
 type console struct{ buf [256]byte }
 
@@ -50,6 +64,10 @@ func main() {
 	RT.GIL.Lock()
 	ProcessCoreData()
 	GLOBAL_ENV.ReferCoreToUser()
+	if err := gview.Load(); err != nil {
+		fmt.Println("gview:", err)
+	}
+	gview.SetVar("store", "graph", graphEDN)
 	if len(args) > 1 {
 		code := int32(0)
 		if err := ProcessReader(NewReader(strings.NewReader(args[1]), "<expr>"), "", EVAL); err != nil {

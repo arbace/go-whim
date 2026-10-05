@@ -1,0 +1,3 @@
+# The graph the guest embeds (store/graph): written by `go tool whim guest
+# --joker` from a C file, 9.7 MB for whim-vim.c.
+/store/

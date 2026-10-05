@@ -1,0 +1,245 @@
+;; gview.main: `go tool whim view`'s command line over a graph's EDN --
+;; crefactor/graph/view/clj/src/gview/main.clj ported to Joker.
+;;
+;;   jokerhost view [--ids] [--depth N] [--show node|stmt|fn|none] [--stop HEADS] [--time]
+;;            callers F | callees F | uses NAME | member S.M | type T | def NAME
+;;            | follow 'STEPS' ROOT   FILE.edn
+;;   jokerhost view --batch CASES OUTDIR FILE.edn
+;;   jokerhost view --serve FILE.edn
+;;
+;; As view-clj's, the output is what `go tool whim view` prints for the
+;; same arguments on the graph the EDN was written from; --batch writes line
+;; N's output to OUTDIR/N.out and its error to OUTDIR/N.err (OUTDIR must
+;; exist: Joker's fork has no joker.os to make it).  In the guest there is
+;; no file: (open-string store/graph) is a state on the EDN the image
+;; embeds, and (show st "callers ml_find_line") prints a view.
+(ns gview.main
+  (:require [joker.string :as str]
+            [joker.time :as time]
+            [gview.graph :as g]
+            [gview.view :as v]))
+
+(def ^:private usage-text
+  "usage: view-clj [--ids] [--depth N] [--show node|stmt|fn|none] [--stop HEADS] [--time]\n                callers F | callees F | uses NAME | member S.M | type T | def NAME | follow 'STEPS' ROOT  FILE.edn\n       view-clj --batch CASES OUTDIR FILE.edn\n       view-clj --serve FILE.edn")
+
+(defn- fail [msg] (throw (ex-info msg {:view true})))
+
+(defn parse-args
+  "A view's arguments: {:o options :ids :time :pos [VIEW ARG ...]}, or nil."
+  [argv]
+  (loop [as (seq argv) o {} ids false timing false pos []]
+    (if-let [a (first as)]
+      (case a
+        "--ids" (recur (next as) o true timing pos)
+        "--time" (recur (next as) o ids true pos)
+        "--depth" (when-let [n (some-> (second as) parse-long)]
+                    (recur (nnext as) (assoc o :depth (if (zero? n) -1 n)) ids timing pos))
+        "--show" (when-let [s ({"node" :node "stmt" :stmt "fn" :fn "none" :none} (second as))]
+                   (recur (nnext as) (assoc o :show s) ids timing pos))
+        "--stop" (when (second as)
+                   (recur (nnext as) (assoc o :stop (str/split (second as) #",")) ids timing pos))
+        (recur (next as) o ids timing (conj pos a)))
+      (let [need (if (= (first pos) "follow") 3 2)]
+        (when (= (count pos) (inc need))
+          {:o o :ids ids :time timing :pos pos :need need})))))
+
+(defn- member-node? [ix n]
+  (let [p (g/parent ix n)]
+    (or (g/is? n "member") (and p (g/type-def? p) (or (g/is? p "struct") (g/is? p "union"))))))
+
+(defn view-text
+  "The text a view prints, on an index; throws ex-info {:view true} on an
+  error a user made."
+  [ix {:keys [o ids pos need]}]
+  (let [vname (first pos)
+        arg (pos (dec need))
+        roots (g/find-roots ix arg)]
+    (when (and (= vname "member") (not (member-node? ix (first roots))))
+      (fail (str arg " is not a member: member is S.M")))
+    (apply str
+           (for [root roots]
+             (case vname
+               "callers" (v/tree-text ids ix (v/callers ix root o))
+               "callees" (v/tree-text ids ix (v/callees ix root o))
+               "uses" (v/tree-text ids ix (v/uses ix root o))
+               "member" (v/tree-text ids ix (v/member ix root o))
+               "type" (v/tree-text ids ix (v/type-view ix (g/aggregate ix (pos 1)) o))
+               "def" (v/form-text ids (v/def-of ix root))
+               "follow" (v/tree-text ids ix (v/follow ix root (pos 1) o))
+               (throw (ex-info "usage" {:usage true})))))))
+
+(defn- now [] (time/now))
+(defn- ms [t0] (quot (time/since t0) 1000000))
+
+(defn- index-of-graph [read-graph]
+  (let [t0 (now)
+        graph (read-graph)
+        loaded (ms t0)
+        t1 (now)
+        ix (g/new-index graph)]
+    [ix loaded (ms t1)]))
+
+(defn- load-index [file] (index-of-graph #(g/read-edn file)))
+
+(defn- err [& xs] (binding [*out* *err*] (println (apply str xs))))
+
+(defn- view-error
+  "An exception's message as the batch and the server report it."
+  [x]
+  (if (:view (ex-data x)) (ex-message x) usage-text))
+
+(defn- batch [cases outdir file]
+  (let [[ix loaded indexed] (load-index file)
+        t0 (now)
+        lines (remove str/blank? (str/split-lines (slurp cases)))]
+    (doseq [[i line] (map-indexed vector lines)]
+      (let [a (parse-args (concat (str/split line (if (str/includes? line "\t") #"\t" #"\s+")) [file]))
+            [text e] (try (if a [(view-text ix a) nil] [nil usage-text])
+                          (catch ExInfo x [nil (view-error x)]))]
+        (spit (str outdir "/" (inc i) ".out") (or text ""))
+        (spit (str outdir "/" (inc i) ".err") (if e (str "  view-joker   " e "\n") ""))))
+    (err "  view-joker   read " loaded "ms, indexed " indexed "ms, " (count lines) " views built and printed " (ms t0) "ms")
+    0))
+
+;; THE SERVER, as view-clj's: a request a line, answered by "ok N" or
+;; "error N", N bytes of body (UTF-8), and ";;end".  A request is a view's
+;; arguments without the file, or stats, reload [FILE.edn], ping, quit.
+
+(defn split-request
+  "A request line's words: tab-separated when it holds a tab, else
+  blank-separated with '...' and \"...\" quoting."
+  [line]
+  (if (str/includes? line "\t")
+    (vec (remove str/blank? (str/split line #"\t")))
+    (loop [cs (seq line), cur nil, q nil, out []]
+      (if-let [c (first cs)]
+        (cond
+          q (if (= c q)
+              (recur (next cs) (or cur "") nil out)
+              (recur (next cs) (str cur c) q out))
+          (or (= c \') (= c \")) (recur (next cs) (or cur "") c out)
+          (str/blank? (str c)) (recur (next cs) nil nil (if cur (conj out cur) out))
+          :else (recur (next cs) (str cur c) nil out))
+        (if cur (conj out cur) out)))))
+
+(defn- node-count [ix] (count (filter some? (:by-id ix))))
+
+(defn- state [ix file loaded indexed]
+  {:file file :ix ix :read-ms loaded :index-ms indexed :nodes (node-count ix)
+   :cache (atom {}) :bytes 0 :hits 0 :misses 0 :requests 0
+   :started (now)})
+
+(defn open
+  "A server's state over FILE.edn: the graph read and indexed once."
+  [file]
+  (let [[ix loaded indexed] (load-index file)] (state ix file loaded indexed)))
+
+(defn open-string
+  "A server's state over an EDN text: the guest's store/graph, which no
+  file holds."
+  [edn]
+  (let [[ix loaded indexed] (index-of-graph #(g/read-edn-string edn))] (state ix "<string>" loaded indexed)))
+
+(def ^:private cache-limit
+  "The cache's characters before it is emptied: a view is rebuilt in ms."
+  (* 256 1024 1024))
+
+(defn- stats-text [st]
+  (str "file " (:file st) "\n"
+       "read " (:read-ms st) " ms, indexed " (:index-ms st) " ms\n"
+       "nodes " (:nodes st) "\n"
+       "requests " (:requests st) ", cache " (count @(:cache st)) " views, "
+       (:bytes st) " chars, " (:hits st) " hits, " (:misses st) " misses\n"
+       "loaded " (ms (:started st)) " ms ago\n"))
+
+(defn answer
+  "One request on a state: [state' kind text], kind :ok, :error or :quit."
+  [st line]
+  (let [words (split-request line)
+        st (update st :requests inc)]
+    (case (first words)
+      nil [st :error "empty request"]
+      "quit" [st :quit ""]
+      "ping" [st :ok ""]
+      "stats" [st :ok (stats-text st)]
+      "reload" (if (> (count words) 2)
+                 [st :error "usage: reload [FILE.edn]"]
+                 (let [file (or (second words) (:file st))
+                       st' (try (open file) (catch Error x x))]
+                   (if (map? st')
+                     (let [st' (assoc st' :requests (:requests st))]
+                       [st' :ok (stats-text st')])
+                     [st :error (str "reload " file ": " (ex-message st'))])))
+      (let [a (parse-args (conj words ""))]
+        (if-not a
+          [st :error usage-text]
+          (let [k (dissoc a :time)
+                cache (:cache st)]
+            (if-let [text (get @cache k)]
+              [(update st :hits inc) :ok text]
+              (try
+                (let [text (view-text (:ix st) a)
+                      st (if (> (+ (:bytes st) (count text)) cache-limit)
+                           (do (reset! cache {}) (assoc st :bytes 0))
+                           st)]
+                  (swap! cache assoc k text)
+                  [(-> st (update :misses inc) (update :bytes + (count text))) :ok text])
+                (catch ExInfo x [st :error (view-error x)])))))))))
+
+(defn show
+  "Prints the answer to a request line, at a REPL: (show st \"uses p_wiv --ids\")."
+  [st line]
+  (print (nth (answer st line) 2))
+  (flush))
+
+(defn- respond [kind text]
+  (let [body (if (and (= kind :error) (not (str/ends-with? text "\n"))) (str text "\n") text)
+        n (v/blen body)]
+    (print (str (name kind) " " n "\n" body (if (or (zero? n) (str/ends-with? body "\n")) ";;end\n" "\n;;end\n")))
+    (flush)))
+
+(defn serve-lines
+  "Answers each request of lines on a state, as the server answers its
+  stdin, until quit; the state after.  The guest's way to the server's
+  answers, its console being the REPL's: (serve-lines st [\"ping\" ...])."
+  [st lines]
+  (loop [st st ls (seq lines)]
+    (if-let [line (first ls)]
+      (let [[st kind text] (try (answer st line)
+                                (catch Error x [st :error (str "internal: " (ex-message x))]))]
+        (if (= kind :quit)
+          st
+          (do (respond kind text) (recur st (next ls)))))
+      st)))
+
+(defn serve
+  "Answers requests on stdin until quit or the input's end."
+  [file]
+  (if-let [st (try (open file)
+                   (catch Error x (err "  view-joker   " file ": " (ex-message x)) nil))]
+    (do
+      (err "  view-joker   serving " file ": read " (:read-ms st) "ms, indexed " (:index-ms st) "ms")
+      (serve-lines st (take-while some? (repeatedly read-line)))
+      0)
+    1))
+
+(defn run [argv]
+  (case (first argv)
+    "--batch" (if (= 4 (count argv)) (apply batch (rest argv)) (do (err usage-text) 2))
+    "--serve" (if (= 2 (count argv)) (serve (second argv)) (do (err usage-text) 2))
+    (let [a (parse-args argv)]
+      (if-not a
+        (do (err usage-text) 2)
+        (try
+          (let [[ix loaded indexed] (load-index (peek (:pos a)))
+                t0 (now)
+                text (view-text ix a)
+                built (ms t0)]
+            (print text)
+            (flush)
+            (when (:time a)
+              (err "  view-joker   read " loaded "ms, indexed " indexed "ms, the view built and printed " built "ms"))
+            0)
+          (catch ExInfo x
+            (cond (:view (ex-data x)) (do (err "  view-joker   " (ex-message x)) 1)
+                  :else (do (err usage-text) 2))))))))
