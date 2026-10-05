@@ -2223,6 +2223,57 @@ text back as it was typed, which the server makes a new edit (the graph's
 history grows, it does not go back) -- an editor that wants the two the
 same maps `u` to `:WhimUndo` in the buffer.
 
+## A big function's edit (2026-10-05)
+
+An applied change in `ex_substitute` (687 lines) was 188 ms, in
+`ml_clearmarked` 17-26: a function holding a fragment was printed into
+FRAG's unit whole, with everything it refers to. Now its statements no
+fragment can see are left out (`synth.pareBodies`, `graph/fragpare.go`).
+In each block on the way to a fragment -- a block, or a function's own
+items, not a statement expression, whose last item is its value -- an
+item is printed when it is on the way, is a declaration (`isDeclItem`:
+what a fragment can name), holds a label, a case or a default, is the
+statement a label labels, or follows the fragment in its own block and
+spells a name the fragment spells (where what the fragment declares can
+be named, and a use is resolved again); a switch's block is printed
+whole. The walk beside the graph steps past what was left out, and the
+closure of what the unit needs follows only what is printed -- plus, as
+the fragments' text, the names an atom no edge resolves spells, and the
+words of a macro's text (`va_arg(*ap, uvarnumber_T)` names a typedef no
+edge reaches).
+
+**Found by the gates on the way.** `IsStatement` is true of a
+declaration (both are a block's items) and false of an expression
+statement, the reverse of what the rule needs (`TestFragPared`'s
+`ex_substitute` case: `which_pat` undefined). Phase 0's `va_arg` macros
+named a typedef only a statement now left out had reached. A label's
+statement left out made the label another construct in the import. And
+phase 40 (`whim-build-check`: 15 lines short) rewrites `report_term_error`
+whole by a text substitution beside a splice in `set_termname`, its
+caller: the collision rule -- every form using a name a top-level
+fragment declares printed whole -- passed over `set_termname`, already in
+the unit for its own splice, and its call, left out, kept its edge to the
+definition removed. The rule now takes a form pared as one not printed
+whole, prints it whole and unpared (`synth.whole`), and loads the unit
+again. `TestFragPared` has nine cases now -- a local shadowing one used
+after it, a goto to a label of the function, a statement in a switch's
+case, an expression in `ex_substitute`, a function rewritten beside a
+splice in its caller -- each made with the pared unit and the whole one,
+the graphs `Equal`; whole 145-184 ms, pared 12-35.
+
+Through the server:
+
+| applied change | before | now |
+| --- | ---: | ---: |
+| an expression in `ex_substitute` | 73-90 ms | 26-37 ms |
+| `ex_substitute`'s `i` redeclared (its uses spelled all through it) | 73-90 ms | 39-52 ms |
+| a constant in `ml_clearmarked` | 17-26 ms | 16-19 ms |
+
+The graph package's tests, which splice through FRAG throughout, take
+20 s (53 before). What is left in a big function is the index walking the
+function again whole (`Index.Update` is by top-level node) and the view
+printed twice.
+
 ## The derived layer, kept under edits (2026-10-05)
 
 *Is the derived layer cached by the graph's digest, or kept incrementally

@@ -1,6 +1,9 @@
 package graph
 
-import "unicode"
+import (
+	"strconv"
+	"unicode"
+)
 
 // THE PARED UNIT.  FRAG's unit was every top-level form of the file, each
 // definition but those printed whole cut to its header: the whole file's
@@ -73,6 +76,33 @@ func (s *synth) needed() map[*Node]bool {
 		f := work[len(work)-1]
 		work = work[:len(work)-1]
 		visit := func(x *Node) bool {
+			if s.omit[x] {
+				return false // a statement left out of a function printed whole
+			}
+			if !x.IsList() && len(x.Refs) == 0 {
+				// an atom no edge resolves names by its spelling, as the
+				// fragments' text does
+				for _, g := range byName[x.Atom] {
+					add(g)
+				}
+			}
+			if x.Is("macro") {
+				// a macro's invocation is its text, which no edge resolves:
+				// va_arg(*ap, uvarnumber_T) names a typedef
+				for _, k := range x.Args() {
+					if !k.IsList() {
+						txt := k.Atom
+						if u, err := strconv.Unquote(txt); err == nil {
+							txt = u
+						}
+						for _, w := range identifiers(txt) {
+							for _, g := range byName[w] {
+								add(g)
+							}
+						}
+					}
+				}
+			}
 			for _, r := range x.Refs {
 				add(e.topForm(r))
 			}
@@ -219,4 +249,128 @@ func identifiers(src string) []string {
 		}
 	}
 	return out
+}
+
+// pareBodies leaves out of each function printed whole for a fragment in it
+// the statements no fragment can see.  In each block on the way from the
+// function's body to a fragment's place, an item is printed when it is on
+// that way, is a declaration (what a fragment can name; isDeclItem),
+// holds a label, a case or a default (what a fragment's goto, or a
+// switch's check, can reach), or follows the place in the fragment's own
+// block and spells a name the fragment spells (the scope of what the
+// fragment declares, where a use printed whole is resolved again:
+// retarget -- an item spelling none of its names cannot name what it
+// declares); the other statements are left out
+// (s.omit), and the walk beside the graph steps past them.  A function
+// printed whole for another reason -- one using a name a top-level
+// fragment declares -- is printed whole.
+func (s *synth) pareBodies() {
+	if fragWhole {
+		return
+	}
+	type place struct {
+		block *Node
+		at    int      // the item on the way, or the fragment's first
+		hi    int      // the fragment's end, in its own block; -1 on the way
+		words []string // the fragment's identifiers, in its own block
+	}
+	var places []place
+	for _, j := range s.jobs {
+		if j.f.At.p == s.e.top[0] {
+			continue
+		}
+		// the fragment's own list, when it is a block of items
+		if j.kind == kindItems && pareable(j.f.At.p) {
+			places = append(places, place{j.f.At.p, j.f.At.lo, j.f.At.hi, identifiers(j.f.Src)})
+		}
+		for x := j.f.At.p; x.up != nil && x.up != s.e.top[0]; x = x.up {
+			if p := x.up; pareable(p) {
+				places = append(places, place{p, indexIn(p.Kids, x), -1, nil})
+			}
+		}
+	}
+	keep := map[*Node]map[int]bool{}
+	after := map[*Node]int{}               // a fragment's own block: from here on, what it may resolve again
+	spelled := map[*Node]map[string]bool{} // the names the fragments in it spell
+	for _, pl := range places {
+		if keep[pl.block] == nil {
+			keep[pl.block] = map[int]bool{}
+		}
+		keep[pl.block][pl.at] = true
+		if pl.hi >= 0 {
+			if a, ok := after[pl.block]; !ok || pl.at < a {
+				after[pl.block] = pl.at
+			}
+			if spelled[pl.block] == nil {
+				spelled[pl.block] = map[string]bool{}
+			}
+			for _, w := range pl.words {
+				spelled[pl.block][w] = true
+			}
+		}
+	}
+	for b, on := range keep {
+		if s.e.Parent(b) != nil && s.e.Parent(b).Is("switch") {
+			continue // its cases are its check's
+		}
+		if s.whole[s.e.topOf(b)] {
+			continue // a use in it is resolved again (colliding)
+		}
+		from, own := after[b]
+		first := itemsFrom(b)
+		for i, k := range b.Kids {
+			// the item after a label is the statement it labels
+			afterLabel := i > first && b.Kids[i-1].Is("label")
+			// after a fragment in its block, what may resolve again: an
+			// item that spells a name the fragment spells (no other can
+			// name what the fragment declares)
+			inScope := own && i >= from && mentions(k, spelled[b])
+			if i < first || on[i] || inScope || isDeclItem(k) || k.Is("verbatim") || holdsLabel(k) || afterLabel {
+				continue
+			}
+			s.omit[k] = true
+		}
+	}
+}
+
+// holdsLabel says x is or holds a label, a case or a default.
+func holdsLabel(x *Node) bool {
+	found := false
+	Walk(x, func(n *Node) bool {
+		if n.Is("label") || n.Is("case") || n.Is("default") {
+			found = true
+		}
+		return !found
+	})
+	return found
+}
+
+// pareable is a list whose statements may be left out: a block or a
+// function's body, not a statement expression, whose last item is its value.
+func pareable(l *Node) bool { return (l.Is("block") || l.Is("defn")) && itemsFrom(l) > 0 }
+
+// mentions says x spells one of names: an atom, or a word of a macro's text.
+func mentions(x *Node, names map[string]bool) bool {
+	found := false
+	Walk(x, func(n *Node) bool {
+		switch {
+		case found:
+		case !n.IsList():
+			found = names[n.Atom]
+		case n.Is("macro"):
+			for _, k := range n.Args() {
+				if !k.IsList() {
+					txt := k.Atom
+					if u, err := strconv.Unquote(txt); err == nil {
+						txt = u
+					}
+					for _, w := range identifiers(txt) {
+						found = found || names[w]
+					}
+				}
+			}
+		}
+		return !found
+	})
+	return found
 }

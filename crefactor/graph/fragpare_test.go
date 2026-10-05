@@ -53,6 +53,81 @@ func TestFragPared(t *testing.T) {
 		{"a body", func(e *Editor) []Frag {
 			return []Frag{{At: e.SpotBody(e.Defn("ml_clearmarked")), Src: "if (curbuf == nullptr)\n{\n    return;\n}\nlowest_marked = 0;\n"}}
 		}},
+		{"a local shadowing one used after it", func(e *Editor) []Frag {
+			// in ml_clearmarked's inner loop, before the statement using
+			// lnum: a new lnum, which every later use in the block is then
+			var at *Node
+			Walk(e.Defn("ml_clearmarked"), func(x *Node) bool {
+				if at == nil && x.Is("block") && len(x.Kids) > 2 {
+					for _, k := range x.Kids[1:] {
+						if k.Is("=") && len(k.Kids) == 3 && k.Kids[1].Atom == "dp" {
+							at = k
+						}
+					}
+				}
+				return at == nil
+			})
+			return []Frag{{At: e.SpotBefore(at), Src: "linenr_T lnum = 0;\n"}}
+		}},
+		{"a goto to a label of the function", func(e *Editor) []Frag {
+			// a goto before the label, in its block: the statements
+			// between them left out, the label's item printed
+			var lbl *Node
+			for _, f := range e.g.Forms {
+				if f.Is("defn") && lbl == nil {
+					Walk(f, func(x *Node) bool {
+						if lbl == nil && x.Is("label") && e.Parent(x) != nil && itemsFrom(e.Parent(x)) > 0 {
+							lbl = x
+						}
+						return lbl == nil
+					})
+				}
+			}
+			b := e.Parent(lbl)
+			first := b.Kids[itemsFrom(b)]
+			return []Frag{{At: e.SpotBefore(first), Src: "if (0)\n{\n    goto " + lbl.Kids[1].Atom + ";\n}\n"}}
+		}},
+		{"a statement in a switch's case", func(e *Editor) []Frag {
+			var at *Node
+			for _, f := range e.g.Forms {
+				if !f.Is("defn") || at != nil {
+					continue
+				}
+				Walk(f, func(x *Node) bool {
+					if at == nil && x.Is("case") && e.Parent(x) != nil && itemsFrom(e.Parent(x)) > 0 {
+						at = x
+					}
+					return at == nil
+				})
+			}
+			return []Frag{{At: e.SpotAfter(at), Src: "got_int = got_int;\n"}}
+		}},
+		{"an expression in ex_substitute", func(e *Editor) []Frag {
+			var at *Node
+			Walk(e.Defn("ex_substitute"), func(x *Node) bool {
+				if at == nil && x.Is("=") && len(x.Kids) == 3 && x.Kids[1].Atom == "which_pat" {
+					at = x.Kids[2]
+				}
+				return at == nil
+			})
+			return []Frag{{At: e.SpotOf(at), Src: "RE_LAST + 0"}}
+		}},
+		{"a function rewritten beside a splice in its caller", func(e *Editor) []Frag {
+			// a function rewritten by a top-level fragment beside a splice
+			// in its caller, after the call.  The case the colliding rule's
+			// paring guard was written for is phase 40's (a text
+			// substitution of report_term_error, header and body, beside a
+			// splice in set_termname), held by whim-build-check: here the
+			// editor's replacement retargets the call by itself, and the
+			// case passes with the guard or without it
+			// after the call: before ex_global's last item
+			g := e.Defn("ex_global")
+			last := g.Kids[len(g.Kids)-1]
+			return []Frag{
+				{At: e.SpotOf(e.Defn("ml_clearmarked")), Src: "static void\nml_clearmarked(void)\n{\n    lowest_marked = 0;\n}\n"},
+				{At: e.SpotBefore(last), Src: "got_int = got_int;\n"},
+			}
+		}},
 		{"a top-level form", func(e *Editor) []Frag {
 			return []Frag{{At: e.SpotAfter(e.Defn("ml_clearmarked")), Src: "static bhdr_T *whim_first_block(buf_T *buf)\n{\n    struct block_hdr *hp = buf->b_ml.ml_locked;\n    if (hp == nullptr || ml_find_line(buf, 1, ML_FIND) == nullptr)\n    {\n        return nullptr;\n    }\n    return hp;\n}\n"}}
 		}},

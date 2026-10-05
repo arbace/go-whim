@@ -3,6 +3,7 @@ package graph
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -299,12 +300,15 @@ type fragHole struct {
 
 // synth is one synthesized translation unit and what it maps.
 type synth struct {
-	e     *Editor
-	jobs  []*fragJob
-	spots map[*Node][]*fragJob  // a container -> the jobs in it, by lo
-	keep  map[*Node]bool        // the top-level forms printed whole
-	omit  map[*Node]bool        // the top-level forms left out
-	trim  map[*Node]*clisp.Node // the tables printed without their rows
+	e        *Editor
+	jobs     []*fragJob
+	spots    map[*Node][]*fragJob  // a container -> the jobs in it, by lo
+	keep     map[*Node]bool        // the top-level forms printed whole
+	omit     map[*Node]bool        // the top-level forms left out, and the statements (fragpare.go)
+	pared    map[*Node]bool        // the blocks some of whose statements are left out
+	paredTop map[*Node]bool        // the top-level forms holding them
+	whole    map[*Node]bool        // forms printed whole and never pared: they hold a use a top-level fragment may resolve again
+	trim     map[*Node]*clisp.Node // the tables printed without their rows
 
 	im     *importer
 	orig   map[*Node]*Node // a synthesized node -> the graph's node it prints
@@ -324,7 +328,7 @@ type synth struct {
 // frag makes the fragments' nodes: the synthesized unit, its import, the
 // two walked side by side, the fragments' edges carried over.
 func (e *Editor) frag(fs []Frag) (*synth, error) {
-	s := &synth{e: e, spots: map[*Node][]*fragJob{}, keep: map[*Node]bool{}}
+	s := &synth{e: e, spots: map[*Node][]*fragJob{}, keep: map[*Node]bool{}, whole: map[*Node]bool{}}
 	for i, f := range fs {
 		if f.At.err != nil {
 			return nil, fmt.Errorf("frag %d: %w", i+1, f.At.err)
@@ -377,16 +381,26 @@ func (e *Editor) frag(fs []Frag) (*synth, error) {
 	// a top-level fragment that declares a name the file declares: every
 	// form holding a use of it printed whole, so that the import says what
 	// each use resolves to now
-	if extra := s.colliding(); len(extra) > 0 {
-		for _, f := range extra {
+	if hold := s.colliding(); len(hold) > 0 {
+		// every form holding a use of a name a top-level fragment declares
+		// printed whole, and unpared (fragpare.go): each of its uses is
+		// resolved again by the import
+		again := false
+		for _, f := range hold {
+			if !s.keep[f] || s.paredTop[f] {
+				again = true
+			}
 			s.keep[f] = true
+			s.whole[f] = true
 		}
-		for _, j := range s.jobs {
-			j.nodes = nil
-		}
-		s.orig, s.pairs, s.mis, s.err = nil, nil, nil, nil
-		if err := s.load(); err != nil {
-			return nil, err
+		if again {
+			for _, j := range s.jobs {
+				j.nodes = nil
+			}
+			s.orig, s.pairs, s.mis, s.err = nil, nil, nil, nil
+			if err := s.load(); err != nil {
+				return nil, err
+			}
 		}
 	}
 	if err := s.carry(); err != nil {
@@ -404,6 +418,9 @@ func (s *synth) load() error {
 	}
 	ast, bsrc, err := cemit.Parse(fragPath, text)
 	if err != nil {
+		if d := os.Getenv("WHIM_FRAG_DUMP"); d != "" {
+			os.WriteFile(d, text, 0o644) // a debugging aid: the unit that did not parse
+		}
 		return s.where(err)
 	}
 	cfg, err := cc.NewConfig("linux", "amd64")
@@ -421,8 +438,9 @@ func (s *synth) load() error {
 	return s.walk()
 }
 
-// colliding are the top-level forms not printed whole that hold a use of a
-// file-scope declaration whose name a top-level fragment declares.
+// colliding are the top-level forms not printed whole -- left out, or
+// pared -- that hold a use of a file-scope declaration whose name a
+// top-level fragment declares.
 func (s *synth) colliding() []*Node {
 	names := map[string]bool{}
 	for _, j := range s.jobs {
@@ -445,7 +463,7 @@ func (s *synth) colliding() []*Node {
 			continue
 		}
 		for _, u := range s.e.Uses(f) {
-			if t := s.e.topOf(u); !s.keep[t] && !seen[t] && s.e.Live(t) {
+			if t := s.e.topOf(u); !seen[t] && s.e.Live(t) && (!s.keep[t] || s.paredTop[t]) {
 				seen[t] = true
 				out = append(out, t)
 			}
@@ -557,7 +575,15 @@ func (s *synth) synthesize() ([]byte, error) {
 		last = max(last, j.f.At.hi)
 	}
 	var need map[*Node]bool
+	s.pared, s.paredTop = map[*Node]bool{}, map[*Node]bool{}
 	if !fragWhole {
+		s.pareBodies()
+		for k := range s.omit {
+			if p := s.e.Parent(k); p != nil {
+				s.pared[p] = true
+				s.paredTop[s.e.topOf(p)] = true
+			}
+		}
 		need = s.needed()
 	}
 	emit := func(k int, f *Node) {
@@ -735,7 +761,9 @@ func (s *synth) lisp(n *Node) *clisp.Node {
 	i := 0
 	for _, j := range js {
 		for ; i < j.f.At.lo; i++ {
-			kids = append(kids, s.lisp(n.Kids[i]))
+			if !s.omit[n.Kids[i]] {
+				kids = append(kids, s.lisp(n.Kids[i]))
+			}
 		}
 		ph := clisp.A(placeholder(j.k))
 		if j.kind == kindItems {
@@ -746,7 +774,9 @@ func (s *synth) lisp(n *Node) *clisp.Node {
 		i = j.f.At.hi
 	}
 	for ; i < len(n.Kids); i++ {
-		kids = append(kids, s.lisp(n.Kids[i]))
+		if !s.omit[n.Kids[i]] {
+			kids = append(kids, s.lisp(n.Kids[i]))
+		}
 	}
 	return clisp.L(kids...)
 }
@@ -914,12 +944,21 @@ func (s *synth) pair(o, r *Node, keep bool) {
 	if o.Is("defn") && !keep && o.up == s.e.top[0] {
 		n = defnItemsAt(o) // its body was left out
 	}
-	if len(r.Kids) != n {
+	ok := o.Kids[:n]
+	if s.pared[o] {
+		ok = nil // the statements no fragment sees left out (pareBodies)
+		for _, k := range o.Kids[:n] {
+			if !s.omit[k] {
+				ok = append(ok, k)
+			}
+		}
+	}
+	if len(r.Kids) != len(ok) {
 		s.differ(o, "the import of its C view has another number of elements")
 		return
 	}
-	for i := 0; i < n; i++ {
-		s.pair(o.Kids[i], r.Kids[i], keep)
+	for i, k := range ok {
+		s.pair(k, r.Kids[i], keep)
 	}
 }
 

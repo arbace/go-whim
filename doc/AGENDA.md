@@ -6,12 +6,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Queued, measured, not started
 
-- **An applied change in a big function** (doc/GRAPH.md, *The vim client
-  used*): 188 ms in `ex_substitute` (687 lines), where it is 17-26 ms in
-  `ml_clearmarked`: the function is printed whole into FRAG's unit and the
-  view printed twice. A unit that prints the function's other statements
-  as declarations only, and a view printed again only where it changed,
-  are the two halves.
 - **The guests, further** (doc/GUEST.md): a translated editor other than
   Go's (whimsy, whim++) as a guest; the Go guest's default on a native
   arm64 Linux, measured only under emulation so far (one vCPU).
