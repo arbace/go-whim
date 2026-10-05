@@ -169,6 +169,31 @@ func (b *Buffer) Undo() (bool, error) {
 	return true, b.reprint()
 }
 
+// Rename renames the entity at byte pos of the buffer -- its every
+// declaration and use, wherever they are (Editor.Rename) -- as one edit of
+// the session, and prints the view again; what was pending is dropped.
+// Typing a name anew renames nothing: a buffer sees one form change at a
+// time, and a renaming changes every use at once.
+func (b *Buffer) Rename(pos int, to string) (*graph.Renamed, *graph.Node, error) {
+	if b.Reason != "" {
+		b.Revert()
+	}
+	d, _ := EntityAt(b.Ix, b.Spans, pos)
+	if d == nil {
+		return nil, nil, fmt.Errorf("rename: no entity at byte %d", pos)
+	}
+	var rn *graph.Renamed
+	if _, err := b.S.Do(func(e *graph.Editor) error {
+		var err error
+		rn, err = e.Rename(d, to)
+		return err
+	}); err != nil {
+		return nil, d, err
+	}
+	b.Ix = NewIndex(b.S.G)
+	return rn, d, b.reprint()
+}
+
 // Revert drops what is pending: the text is the view as printed.
 func (b *Buffer) Revert() { b.Text, b.Reason = b.Printed, "" }
 

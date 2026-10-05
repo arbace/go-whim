@@ -92,6 +92,21 @@ func TestViewServe(t *testing.T) {
 	if k, _, _ := ask("undo"); k != "error" {
 		t.Fatal("an undo past the first edit")
 	}
+	// a function typed beside a def view's, reported; the viewed function
+	// renamed at its name, its view still open (its root pinned by id)
+	_, _, text = ask("open def fact")
+	end := len(strings.TrimRight(text, "\n"))
+	_, head, _ = ask(fmt.Sprintf(`change %d %d "\n(defn static twice (fn ((n int)) int) (return (* 2 (call fact n))))"`, end, end))
+	if !strings.HasPrefix(head, "applied ") || !strings.HasSuffix(head, " added twice") {
+		t.Fatalf("a function added beside: %s", head)
+	}
+	_, head, body = ask(fmt.Sprintf("rename %d factorial", strings.Index(text, "fact ")))
+	if !strings.Contains(head, "declarations") || !strings.HasPrefix(body, "(defn static factorial") {
+		t.Fatalf("renamed: %s\n%s", head, body)
+	}
+	if _, _, c := ask("c twice"); !strings.Contains(c, "factorial(n)") {
+		t.Fatalf("twice after the rename:\n%s", c)
+	}
 	if k, _, _ := ask("no-such-request"); k != "error" {
 		t.Fatal("a bad request")
 	}

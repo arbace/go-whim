@@ -439,7 +439,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    text's questions asked of the forms that can answer them
                    (FormsWith, FormsWhere, Quoted); unwrap.go, names.go;
                    frag.go FRAG (C text made nodes in context: a pared unit
-                   cc parses, checks and imports, holes `$x`) with
+                   cc parses, checks and imports, holes `$x`; fragpare.go
+                   pares it to what the fragments can name) with
                    fragverbs.go and fragmore.go, clone.go (CLONE), macrox.go
                    (MACROX); renum.go, initrow.go and rename.go
                    (enumerators, a table's rows, spellings); param.go,
@@ -807,6 +808,11 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    vCPUs against the C, internal/suite's TestGuestScale), the
                    entitlements, and shim.h, which lets Apple's clang build
                    whim-vim.c
+vim/               the vim client of `whim view-serve` (vim 9, vim9script):
+                   plugin/whimview.vim the commands, autoload/whimview.vim
+                   the client -- a view in a buffer, its changes sent as
+                   they are typed, the answers shown (doc/GRAPH.md, *The vim
+                   client*); cmd/whim's TestVimClient drives it headless
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),
@@ -926,7 +932,8 @@ go tool whim graph --changes N   # what phase N changed: the top-level forms who
 go tool whim graph --snapshot N  # boundary N's graph as Lisp, from the store of graphs in .cache/boundaries
 go tool whim view callers F      # a read-only view of whim-vim.c's graph as Lisp: callers, callees, uses, member S.M, type T, def; 0.07 s once .cache/graph holds it (doc/GRAPH.md)
 go tool whim view --at L:C def F # the view at a cursor: the same view (--as another) rooted at what the node at L:C of the printed one is about
-go tool whim view-serve [FILE]   # an editing session for an editor to drive: a request a line on stdin (open, change, at, undo, c, write), answers framed as view-clj's
+go tool whim view-serve [FILE]   # an editing session for an editor to drive: a request a line on stdin (open, change, rename, at, undo, c, write), answers framed as view-clj's; an applied change 115-145 ms on whim-vim.c
+vim --cmd 'set rtp^=vim' -c 'WhimView def F'  # the vim client on view-serve (vim/: :WhimView, :WhimAt, :WhimRename, :WhimUndo, :WhimC; changes sent as typed)
 crefactor/graph/view/clj/view-clj --serve F.edn  # the views in Clojure, a long-lived process: the EDN read once (2 s), then a request a line on stdin, answered in 0.1 ms median (doc/GRAPH.md, *The server*)
 go tool whim view-edit def F < EDITED  # that view edited (ids shown or not) made an edit of the graph, checked where made; writes the C (--lisp, --view; --fallout); 0.25-0.7 s an edit
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)

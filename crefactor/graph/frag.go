@@ -556,7 +556,15 @@ func (s *synth) synthesize() ([]byte, error) {
 	for _, j := range s.spots[top] {
 		last = max(last, j.f.At.hi)
 	}
+	var need map[*Node]bool
+	if !fragWhole {
+		need = s.needed()
+	}
 	emit := func(k int, f *Node) {
+		if need != nil && !need[f] {
+			s.omit[f] = true // nothing the fragments can name (fragpare.go)
+			return
+		}
 		name := topName(f)
 		first := name == "" || !declared[name]
 		declared[name] = true

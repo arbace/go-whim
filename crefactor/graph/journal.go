@@ -94,3 +94,16 @@ func (j *Journal) Undo() {
 		g.ids = j.ids
 	}
 }
+
+// Recording is the journal g keeps now, or nil.
+func (g *Graph) Recording() *Journal { return g.journal }
+
+// Saved is every node the journal saved: every node the edits since Begin
+// changed that was there before them.
+func (j *Journal) Saved() []*Node {
+	out := make([]*Node, len(j.nodes))
+	for i, s := range j.nodes {
+		out[i] = s.n
+	}
+	return out
+}

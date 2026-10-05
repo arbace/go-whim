@@ -117,6 +117,37 @@ func (s *Session) Edit(render Render, edited string, opt EditOptions) (*Result, 
 	return r, nil
 }
 
+// Do makes one edit of the session by the editor's own verbs: f on an
+// editor of the graph, under a journal, then the re-check and the
+// invariants of the forms it changed; refused, nothing is left of it.
+func (s *Session) Do(f func(e *graph.Editor) error) (*graph.Journal, error) {
+	j := s.G.Begin()
+	e := graph.NewEditor(s.G)
+	err := f(e)
+	if err == nil {
+		if d := e.Dangling(); len(d) > 0 {
+			err = refuse("#%d (%s) refers to #%d, which the edit deleted", d[0].Use.ID, label(d[0].Use), d[0].Target.ID)
+		}
+	}
+	if err == nil {
+		if rc := e.Recheck(); rc.Left > 0 {
+			err = refuse("%d expressions the edit wrote have no type the re-check derives", rc.Left)
+		}
+	}
+	if err == nil {
+		if cerr := e.CheckForms(e.TopForms(j.Saved())); cerr != nil {
+			err = refuse("the graph's invariants: %v", cerr)
+		}
+	}
+	j.End()
+	if err != nil {
+		j.Undo()
+		return nil, err
+	}
+	s.done = append(s.done, j)
+	return j, nil
+}
+
 // Undo undoes the last edit not yet undone; false when there is none.
 func (s *Session) Undo() bool {
 	if len(s.done) == 0 {

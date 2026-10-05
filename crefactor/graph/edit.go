@@ -777,6 +777,69 @@ func (e *Editor) live(d Dangling) bool {
 // Check is the whole graph held to the invariants, for a test: every node
 // contained once and indexed where it is, every edge to a node the graph
 // holds or a dangling record, every typed edge to a held node or recorded.
+// CheckForms is Check on the top-level forms given alone: where they are,
+// what they contain, and their edges.  Under a journal, the forms holding
+// what an edit saved and made are all an edit can have broken -- a
+// container it changed was saved first -- and the uses of what it removed
+// are the editor's dangling records (Dangling), which hold whatever form
+// they are in.
+func (e *Editor) CheckForms(forms []*Node) error {
+	dangling := map[[2]*Node]bool{}
+	for _, d := range e.Dangling() {
+		dangling[[2]*Node{d.Use, d.Target}] = true
+	}
+	seen := map[*Node]*Node{}
+	var err error
+	for _, top := range forms {
+		if !e.isTop(top.up) {
+			return fmt.Errorf("#%d (%s): a top-level node the index does not place there", top.ID, label(top))
+		}
+		Walk(top, func(x *Node) bool {
+			for _, k := range x.Kids {
+				if q, ok := seen[k]; ok && err == nil {
+					err = fmt.Errorf("#%d (%s) is contained twice, in #%d and #%d", k.ID, label(k), q.ID, x.ID)
+				}
+				seen[k] = x
+				if k.up != x && err == nil {
+					err = fmt.Errorf("#%d (%s): the index does not place it in #%d", k.ID, label(k), x.ID)
+				}
+			}
+			for _, r := range x.Refs {
+				if !e.Live(r) && !dangling[[2]*Node{x, r}] && err == nil {
+					err = fmt.Errorf("%s refers to #%d, which the graph does not hold, and no record says so", label(x), r.ID)
+				}
+			}
+			if t := x.Type; t != nil && !e.Live(t) && !dangling[[2]*Node{x, t}] && err == nil {
+				err = fmt.Errorf("%s has a typed edge to #%d, which the graph does not hold", label(x), t.ID)
+			}
+			return err == nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// TopForms is the live top-level forms holding ns, each once.
+func (e *Editor) TopForms(ns []*Node) []*Node {
+	var out []*Node
+	held := map[*Node]bool{}
+	for _, n := range ns {
+		if n == nil || !e.Live(n) {
+			continue
+		}
+		for n.up != nil && !e.isTop(n.up) {
+			n = n.up
+		}
+		if n.up != nil && !held[n] {
+			held[n] = true
+			out = append(out, n)
+		}
+	}
+	return out
+}
+
 func (e *Editor) Check() error {
 	seen := map[*Node]*Node{}
 	var err error

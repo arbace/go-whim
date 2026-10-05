@@ -2080,18 +2080,94 @@ round trip:
 | --- | ---: |
 | `open def ml_clearmarked` | 42 |
 | `change` (pending) | 21 |
-| `change` (applied) | 390 |
+| `change` (applied) | 390 (115-145 with the pared unit, below) |
 | `at` (callers of `ml_find_line`) | 0.5 |
 | `undo` | 57 |
 
 ### An applied change's cost
 
-Profiled on whim-vim.c's graph: 60% of an applied change is FRAG's pared
-unit -- the fragment's C with the declarations it needs, parsed and
-checked by cc -- and 20% the graph's invariants (`Editor.Check`, a walk of
-every node), the rest the index after and the editor before. Typing at the
-speed of keys wants FRAG's unit cached by what it declares, and the
-invariants checked where the edit wrote; neither is done.
+Profiled on whim-vim.c's graph, 60% of an applied change was FRAG's unit --
+every top-level form of the file, definitions cut to their headers, parsed,
+checked and imported by cc for each fragment -- and 20% the graph's
+invariants (`Editor.Check`, a walk of every node). Both are cut now:
+
+- **The pared unit** (`graph/fragpare.go`). The unit prints what the
+  fragments can name and nothing else: the forms printed whole, every
+  top-level form declaring a name the fragments' text spells (an object, a
+  function, a typedef, a tag, an enumerator) or a hole's node refers to,
+  closed over what the printed part of each refers to, every declaration of
+  an entity one of them declares, and every form declaring a tag one of them
+  spells (an edge to a definition an earlier splice of the same phase
+  replaced is not retargeted until its re-check: phase 72's
+  `struct block_hdr` found it); and the include lines only before the last
+  of these, since a form names only what precedes it -- in whim-vim.c an
+  edit in the core parses no header. `TestFragPared` holds it to the whole
+  unit on four kinds of splice (graphs `Equal`; 215-222 ms whole, 72-81 ms
+  pared), and the pipeline, which splices through FRAG in most of its
+  phases, to the committed bytes: `make whim-build-check` byte for byte, its
+  103 phases in 19 s where they took 25.
+- **The invariants where the edit wrote** (`Editor.CheckForms`). Under a
+  journal, an edit can only have broken the top-level forms holding a node
+  it saved or made -- a container it changed was saved first -- and the
+  uses of what it removed are the editor's dangling records; an edit in
+  place checks those forms (`TopForms`) and no other. The view package's
+  tests hold every in-place edit's local check to the whole graph's
+  (`checkWhole`).
+
+Through the server, typed changes on `def ml_clearmarked`:
+
+| request | before | now |
+| --- | ---: | ---: |
+| `change` (pending) | 21 ms | 21-27 ms |
+| `change` (applied) | 390 ms | 115-145 ms |
+| `undo` | 57 ms | 23-35 ms |
+
+What is left of an applied change is a fresh editor (18 ms) and the index
+after the edit (33 ms), FRAG's pared unit 20-40 ms, the rest the views
+printed: `doc/AGENDA.md` has the next step.
+
+## The vim client (2026-10-05)
+
+`vim/` is a vim plugin (vim 9, vim9script; `vim/plugin/whimview.vim` the
+commands, `vim/autoload/whimview.vim` the client) on `whim view-serve`,
+started as a job and spoken to synchronously in raw mode (the header's
+count, the body's bytes, `;;end`). A vim buffer is kept beside the
+server's: every change made in it is sent as one `change` -- the bytes
+where it differs from the text the server holds, and vim's cursor -- as it
+is typed (`TextChanged`, `TextChangedI`; `g:whimview_live` 0 leaves it to
+`:WhimSync`), and the answer is shown: applied, the buffer takes the print
+and the cursor its place in it (the server maps the cursor it was sent,
+`change ... CURSOR`); pending, the reason echoed and kept in
+`b:whim_status`, the text as typed.
+
+```
+:WhimView [--ids] VIEW ARG   a view in a buffer
+:WhimAt [VIEW]               the view at the cursor
+:WhimRename NAME             the entity at the cursor renamed, every use
+:WhimUndo | :WhimRevert      the graph's last edit undone | what is pending dropped
+:WhimC NAME | :WhimWrite F   a definition's C in a split | the program's C written
+```
+
+`TestVimClient` (cmd/whim) drives it in a headless vim against the
+server on the views' sample: an operand erased (pending) and retyped
+(applied), a statement typed on a line of its own (applied, laid out by
+the print, the cursor on it), both undone to the text opened, the view at
+a cursor, a rename, a definition's C. And typed into live through a
+pseudo-terminal: `x` on the operand in normal mode pending, `i3<Esc>`
+applied from insert mode, a line opened and typed applied.
+
+**Renaming** is a request of its own (`rename POS NAME`, `:WhimRename`,
+`Buffer.Rename`): the entity at the cursor and its every declaration and use
+respelled by `Editor.Rename` as one edit of the session (`Session.Do`: an
+editor's verbs under a journal, the re-check and the forms' invariants),
+undone as the others. Typing a new name where one use stands changes that
+one use, which names nothing yet: pending. The server pins a view's root to
+its id when it opens it, so that renaming the function a def view shows
+leaves the view open. A function typed beside the one a def view shows is
+reported (`applied ... added NAME`; the client says `:WhimView def NAME`).
+`TestBufferRename`: `fact` renamed from its call in `main` everywhere,
+undone; renamed to `odd`, which the file declares, refused and the graph
+untouched.
 
 ## Open questions
 

@@ -121,6 +121,9 @@ type Result struct {
 	Journal *graph.Journal
 	// Index is the graph's after the edit.
 	Index *Index
+	// Added are the top-level forms the edit put beside the view's own,
+	// which it does not show.
+	Added []*graph.Node
 }
 
 // tamper, when a test sets it, changes the alignment's ops before they are
@@ -183,6 +186,19 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 	if err := agrees(e, made); err != nil {
 		return nil, err
 	}
+	if len(a.beside) > 0 {
+		top := map[*graph.Node]bool{}
+		for _, f := range w.Forms {
+			top[f] = true
+		}
+		for _, m := range made {
+			for _, n := range m {
+				if top[n] {
+					r.Added = append(r.Added, n)
+				}
+			}
+		}
+	}
 	// the alignment's check: the view printed again says what was written
 	r.Index = NewIndex(w)
 	again, againSpans, rerr := render(r.Index)
@@ -220,7 +236,7 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 	if r.Recheck.Left > 0 {
 		return nil, refuse("%d expressions the edit wrote have no type the re-check derives", r.Recheck.Left)
 	}
-	if err := e.Check(); err != nil {
+	if err := check(e, w, made); err != nil {
 		return nil, refuse("the graph's invariants: %v", err)
 	}
 	return r, nil
@@ -1098,4 +1114,29 @@ func without(text string, cut [][2]int) string {
 	}
 	b.WriteString(text[at:])
 	return b.String()
+}
+
+// checkWhole, which the package's tests set, holds the local check of an
+// edit made in place to the whole graph's: both or neither refuse.
+var checkWhole bool
+
+// check is the graph's invariants after an edit: in place, on the forms
+// holding what the journal saved and the edit made (Editor.CheckForms, a
+// few forms where Check walks every node); on a copy, the whole graph.
+func check(e *graph.Editor, w *graph.Graph, made [][]*graph.Node) error {
+	j := w.Recording()
+	if j == nil {
+		return e.Check()
+	}
+	ns := j.Saved()
+	for _, m := range made {
+		ns = append(ns, m...)
+	}
+	err := e.CheckForms(e.TopForms(ns))
+	if checkWhole {
+		if whole := e.Check(); (whole == nil) != (err == nil) {
+			return fmt.Errorf("the local check (%v) and the whole graph's (%v) disagree", err, whole)
+		}
+	}
+	return err
 }

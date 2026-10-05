@@ -30,11 +30,17 @@ import (
 //
 //	open [--ids] [--depth N] [--show S] [--stop H] VIEW ARG   the buffer on a view; body: its text
 //	text                    the buffer's text; header: ok N STATUS [REASON]
-//	change FROM TO TEXT     bytes FROM to TO of the buffer (or LINE:COL) replaced by TEXT;
-//	                        header: ok N STATUS CURSOR [REASON] -- applied, pending,
-//	                        layout or same, CURSOR the change's end in the body
+//	change FROM TO TEXT [CURSOR]  bytes FROM to TO of the buffer (or LINE:COL)
+//	                        replaced by TEXT; header: ok N STATUS CURSOR [REASON] --
+//	                        applied, pending, layout or same, CURSOR the change's end
+//	                        in the body, or the CURSOR given (a byte of the text after
+//	                        the change: the editor's) where it is in the body; an
+//	                        applied change that put top-level forms beside the
+//	                        view's adds `added NAME...`
 //	at POS [VIEW]           the buffer reopened at the cursor: VIEW (the buffer's, by
 //	                        default) of what the node at POS is about; header: ok N #ID NAME
+//	rename POS NAME         the entity at POS renamed, its every declaration and use, as
+//	                        one edit; header: ok N #ID D declarations U uses
 //	undo                    the last edit undone; body: the buffer printed again
 //	revert                  what is pending dropped; body: the buffer
 //	c NAME                  NAME's definition as C, from the graph as it is
@@ -165,8 +171,8 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 		}
 		return "same", sv.b.Text, nil
 	case "change":
-		if err := need(3); err != nil {
-			return "", "", err
+		if len(ws) != 4 && len(ws) != 5 {
+			return "", "", fmt.Errorf("change takes FROM TO TEXT [CURSOR]")
 		}
 		if err := buf(); err != nil {
 			return "", "", err
@@ -179,15 +185,48 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 		if err != nil {
 			return "", "", err
 		}
+		typed := sv.b.Text[:min(from, len(sv.b.Text))] + ws[3] + sv.b.Text[min(max(to, from), len(sv.b.Text)):]
 		r, err := sv.b.Change(from, to, ws[3])
 		if err != nil {
 			return "", "", err
 		}
-		head = fmt.Sprintf("%s %d", r.Status, r.Cursor)
+		cursor := r.Cursor
+		if len(ws) == 5 {
+			// the editor's cursor, in the text after the change: where it
+			// is in the text the buffer is now
+			c, err := strconv.Atoi(ws[4])
+			if err != nil || c < 0 || c > len(typed) {
+				return "", "", fmt.Errorf("change: a cursor %s not in the text of %d bytes", ws[4], len(typed))
+			}
+			cursor = view.MapPos(typed, sv.b.Text, c)
+		}
+		head = fmt.Sprintf("%s %d", r.Status, cursor)
 		if r.Reason != "" {
 			head += " " + r.Reason
 		}
+		if r.Result != nil && len(r.Result.Added) > 0 {
+			head += " added"
+			for _, f := range r.Result.Added {
+				head += " " + graph.DeclName(f)
+			}
+		}
 		return head, sv.b.Text, nil
+	case "rename":
+		if err := need(2); err != nil {
+			return "", "", err
+		}
+		if err := buf(); err != nil {
+			return "", "", err
+		}
+		off, err := textOffset(sv.b.Text, ws[1])
+		if err != nil {
+			return "", "", err
+		}
+		rn, d, err := sv.b.Rename(off, ws[2])
+		if err != nil {
+			return "", "", err
+		}
+		return fmt.Sprintf("#%d %d declarations %d uses", d.ID, len(rn.Decls), len(rn.Uses)), sv.b.Text, nil
 	case "at":
 		if len(ws) < 2 || len(ws) > 3 {
 			return "", "", fmt.Errorf("at takes POS [VIEW]")
@@ -264,7 +303,7 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 		sv.g.Walk(func(*graph.Node) bool { n++; return true })
 		return "", fmt.Sprintf("file %s\nnodes %d\nedits %d\n", sv.file, n, sv.s.Edits()), nil
 	}
-	return "", "", fmt.Errorf("no request %s (open, text, change, at, undo, revert, c, write, edits, stats, ping, quit)", ws[0])
+	return "", "", fmt.Errorf("no request %s (open, text, change, rename, at, undo, revert, c, write, edits, stats, ping, quit)", ws[0])
 }
 
 // open is the buffer on a view: its flags as whim view's, then its name
@@ -329,6 +368,20 @@ func (sv *viewServer) open(ws []string) error {
 		return err
 	}
 	sv.b = b
+	// the root pinned by its id, so that an edit renaming it leaves the
+	// view (the view by id prints as by name, held below)
+	switch sv.name {
+	case "def", "callers", "callees", "uses", "member":
+		if rs, err := b.Ix.Find(sv.vargs[len(sv.vargs)-1]); err == nil && len(rs) == 1 && rs[0].ID != 0 {
+			byName := append([]string(nil), sv.vargs...)
+			sv.vargs[len(sv.vargs)-1] = fmt.Sprintf("#%d", rs[0].ID)
+			text := b.Text
+			if err := b.Reopen(sv.render()); err != nil || b.Text != text {
+				sv.vargs = byName
+				return b.Reopen(sv.render())
+			}
+		}
+	}
 	return nil
 }
 

@@ -200,3 +200,38 @@ func TestBufferProduct(t *testing.T) {
 		t.Fatal("undone, the graph is not what it was")
 	}
 }
+
+// TestBufferRename: a renaming at a cursor -- fact, from its call in main
+// -- every declaration and use respelled in one edit, undone; a name that
+// is taken refused, the graph untouched.
+func TestBufferRename(t *testing.T) {
+	g := sample(t).G
+	s := NewSession(g)
+	b, err := s.Open(defView("main", false), EditOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	before, opened := g.Lisp(), b.Text
+	at := strings.Index(b.Text, "(call fact 3)") + len("(call ")
+	if _, _, err := b.Rename(at, "odd"); err == nil {
+		t.Fatal("a rename to a name the file declares was not refused")
+	}
+	if !bytes.Equal(before, g.Lisp()) || s.Edits() != 0 {
+		t.Fatal("a refused rename changed the graph")
+	}
+	rn, d, err := b.Rename(at, "factorial")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, _ := g.C()
+	if strings.Contains(string(c), "fact(") || strings.Count(string(c), "factorial") < 4 || d.Head() != "defn" {
+		t.Fatalf("renamed %d declarations, %d uses:\n%s", len(rn.Decls), len(rn.Uses), c)
+	}
+	if !strings.Contains(b.Text, "(call factorial 3)") {
+		t.Fatalf("the buffer:\n%s", b.Text)
+	}
+	imported(t, g)
+	if ok, err := b.Undo(); !ok || err != nil || b.Text != opened || !bytes.Equal(before, g.Lisp()) {
+		t.Fatal("the rename undone is not the graph before it")
+	}
+}

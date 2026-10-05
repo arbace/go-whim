@@ -18,6 +18,7 @@ func TestMain(m *testing.M) {
 	if os.Getenv("TMPDIR") == "" {
 		os.Setenv("TMPDIR", os.TempDir())
 	}
+	checkWhole = true // every edit's local check held to the whole graph's
 	os.Exit(m.Run())
 }
 
