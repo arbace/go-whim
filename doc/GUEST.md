@@ -772,15 +772,15 @@ and the Go guest by TamaGo), not run in the aarch64 VM since.
 ### SMP: the Go guest on several vCPUs
 
 *Built on amd64, its gate met; on arm64 the quick suite met at 2 and 4
-vCPUs in the aarch64 VM (below, *arm64*); on the Mac built, its review and
-steps ready (*The Go guest on several vCPUs on the Mac*), not yet run.* The Go editor's parallel `:%s` (`editor.Chunks`:
+vCPUs in the aarch64 VM (below, *arm64*); on the Mac met at 4 and 8, the
+wide suite at 4 (*Running on the Mac*, *The Mac session of 2026-10-05*).* The Go editor's parallel `:%s` (`editor.Chunks`:
 `match_lines` in chunks, on goroutines) now runs on several vCPUs, as the
 design in *The second guest* had it, with one change (the call block).
 
 *The monitor* (`vmm/smp.go`, `vmm.go`). `Config.CPUs` vCPUs (the launcher's
 `WHIM_GUEST_CPUS`, 1 to 32 or `host`; by default four, or the host's CPUs
-when fewer, on Linux amd64 -- below -- and one elsewhere, where several are
-built and not yet run); a C guest always has one. All are created before
+when fewer, on Linux amd64 -- below -- and on macOS on Apple silicon, where
+they were measured, and one on Linux arm64, run only under emulation); a C guest always has one. All are created before
 the guest runs, each by `hv.VCPUCreate` on a locked thread of its own --
 `hv_vcpu_create`'s rule, which is how the framework does SMP; on KVM a
 `KVM_CREATE_VCPU` each -- so that the seccomp filter, which goes on every
@@ -894,7 +894,7 @@ for the vCPUs to look again). So the default is four. A start and `:q!`:
 
 *arm64* (`boot_arm64.s`, `vmm/setup_arm64.go`): the same, the count in X5,
 an AP's number in X2, `SP_EL0` its stack and its own `SP_EL1`; the
-launcher's default there is one vCPU. *Run in the aarch64 VM* (2026-10-05,
+launcher's default on Linux arm64 is one vCPU, on the Mac four. *Run in the aarch64 VM* (2026-10-05,
 KVM/arm64 under QEMU's emulated EL2, `-smp 8`): the first run at four vCPUs
 stopped on an AP's first call, every time -- the KVM backend's stale stack
 address, fixed (*The Go guest on several vCPUs on the Mac*, *Found on the
@@ -910,6 +910,31 @@ of tests of 1,392 s and 1,121 s. `hv`'s `TestCounterVCPUsARM64` passes
 there.
 
 ## Running on the Mac
+
+**The Mac session of 2026-10-05** (the user's run on the M2 Max, every step
+of the checklist, all passing): `mac.sh hv` 4 of 4, `TestCounterVCPUsARM64`
+among them. The C guest: 80 of 80 and the wide 240; 204,862 exits on the
+quick suite (the count on KVM amd64) and 222,043 on the wide; the heavy case C 246 ms, the guest 293 ms (1.2x; the C
+built there by clang at -O0). The Go guest: `hello --go` exit 0; 80 and 240,
+204,942 exits on the quick suite (the KVM count), 222,353 on the wide; heavy
+325 ms (1.3x). SMP: the quick suite at 4 and 8 vCPUs (214,046 and 216,799
+exits) and the wide at 4 (232,451), all as the C does; heavy 342 ms at 4 and 8
+(1.4x). The big `:%s` (`mac.sh scale`, 200,000 lines, the median of 5):
+
+| | :%s (ms) | vs 1 vCPU | vs the C |
+|---|---:|---:|---:|
+| C | 4,249 | | |
+| Go guest, 1 vCPU | 2,162 | 1.00x | 0.51x |
+| 2 vCPUs | 1,120 | 1.93x | 0.26x |
+| 4 vCPUs | 602 | 3.59x | 0.14x |
+| 8 vCPUs | 322 | 6.71x | 0.08x |
+| 12 vCPUs | 280 | 7.71x | 0.07x |
+
+(The first `scale` run: 1.99x, 3.62x, 6.77x at 2, 4, 8.) 12 vCPUs are the
+M2 Max's 8 performance and 4 efficiency cores, which is why the step from 8
+to 12 gains less. **So the Mac's default is now four vCPUs, as on Linux
+amd64** (`vmm/cmd/whim-guest`'s `defaultCPUs`): the same trade -- a big `:%s`
+3.6 times as fast, the heavy case 5% slower.
 
 **Milestone 4's gate is met** (2026-10-04, reported by the user from the
 M2 Max: macOS with Homebrew clang 23.1.1, arm64-apple-darwin23.6.0):
@@ -1091,8 +1116,8 @@ Mac-only follow-up, not tried.
      whole.
 
 **The Go guest on several vCPUs on the Mac** (*SMP*, above). The Mac's
-default is one vCPU (`defaultCPUs`: four on Linux amd64 alone, where it was
-measured) until the Mac's own run says otherwise; `--cpus N` after a step's
+default was one vCPU until its own run said otherwise; it is four now
+(`defaultCPUs`, *The Mac session of 2026-10-05*). `--cpus N` after a step's
 name passes `WHIM_GUEST_CPUS=N` to the monitor, for `run`, `hello`, `suite`
 and `heavy` (the C guest always has one). `mac.sh scale [LIST]` is
 `internal/suite`'s `TestGuestScale` on the Mac's programs: the

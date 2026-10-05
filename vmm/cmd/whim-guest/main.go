@@ -92,13 +92,14 @@ func main() {
 }
 
 // defaultCPUs is a Go guest's vCPUs when WHIM_GUEST_CPUS does not say:
-// four, or the host's CPUs when fewer, on Linux amd64, where they were
-// measured (doc/GUEST.md, *SMP*: a :%s over 200,000 lines 3.7 times as
-// fast as on one, the heavy case no slower, more costing the heavy case
-// more than its matching gains); one elsewhere, where several are built
-// and not yet run.
+// four, or the host's CPUs when fewer, where they were measured -- Linux
+// amd64 (doc/GUEST.md, *SMP*: a :%s over 200,000 lines 3.7 times as fast
+// as on one, the heavy case no slower, more costing the heavy case more than
+// its matching gains) and macOS on Apple silicon (the M2 Max, 2026-10-05:
+// 3.6 times as fast, the heavy case 1.3x the C on one and 1.4x on four);
+// one elsewhere (Linux arm64: run only under emulation).
 func defaultCPUs() int {
-	if runtime.GOOS == "linux" && runtime.GOARCH == "amd64" {
+	if (runtime.GOOS == "linux" && runtime.GOARCH == "amd64") || (runtime.GOOS == "darwin" && runtime.GOARCH == "arm64") {
 		return min(runtime.NumCPU(), 4)
 	}
 	return 1

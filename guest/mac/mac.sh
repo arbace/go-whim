@@ -8,8 +8,8 @@
 # copied to lib/whim-guest/ under the same names; the monitor is told which
 # by WHIM_GUEST_IMAGE.  --go takes the Go guest's image,
 # lib/whim-guest/whim-guest-go-arm64.elf, for the C guest's; --cpus N gives
-# the Go guest N vCPUs (WHIM_GUEST_CPUS: 1 to 32, or host; on the Mac 1 by
-# default until measured -- doc/GUEST.md, *SMP*), the C guest always one.
+# the Go guest N vCPUs (WHIM_GUEST_CPUS: 1 to 32, or host; 4 by default,
+# as measured -- doc/GUEST.md, *Running on the Mac*), the C guest always one.
 # The options come after the step's name, in any order.
 #
 #   guest/mac/mac.sh check                 what the Mac is: macOS, the chip, kern.hv_support, the tools
