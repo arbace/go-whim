@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -46,34 +45,7 @@ func TestClojureViews(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cases := [][]string{
-		{"uses", "p_wiv"}, {"--ids", "uses", "p_wiv"}, {"callers", "ml_get"}, {"--depth", "0", "callers", "ml_get"},
-		{"--ids", "callers", "ml_get_buf"}, {"callees", "main"}, {"--depth", "0", "callees", "main"},
-		{"member", "buf_T.b_ml"}, {"member", "pos_T.lnum"}, {"--ids", "member", "memline_T.ml_line_count"},
-		{"type", "pos_T"}, {"type", "struct vimoption"}, {"--ids", "def", "ex_substitute"}, {"def", "options"},
-		{"uses", "NUL"}, {"--show", "fn", "uses", "ml_get"}, {"--show", "node", "uses", "p_wiv"},
-		{"--show", "none", "callers", "ml_get"}, {"uses", "ex_substitute/lnum"}, {"--stop", "defn", "callers", "ml_get"},
-		{"follow", "refers< call ^fn", "ml_get"}, {"--depth", "3", "follow", "typed<", "pos_T"},
-		{"uses", "no_such_name"}, {"member", "ml_get"},
-	}
-	var names []string
-	for name := range ix.top {
-		names = append(names, name)
-	}
-	sort.Strings(names)
-	for _, name := range names {
-		cases = append(cases, []string{"uses", name})
-		for _, d := range ix.top[name] {
-			switch {
-			case d.Is("defn"):
-				cases = append(cases, []string{"def", name}, []string{"--depth", "1", "callers", name})
-			case d.Is("typedef"):
-				if s, err := ix.Aggregate(name); err == nil && (s.Is("struct") || s.Is("union")) {
-					cases = append(cases, []string{"type", name})
-				}
-			}
-		}
-	}
+	cases := clojureCases(ix)
 	var lines []string
 	for _, c := range cases {
 		lines = append(lines, strings.Join(c, "\t"))
