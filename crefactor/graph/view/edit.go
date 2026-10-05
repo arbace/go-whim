@@ -81,14 +81,17 @@ type Op struct {
 	Where string      // insert: before, after (Node), or end (of Node)
 	To    string      // rename: the new name
 	From  string      // rename: the old
-	Src   string      // replace, insert: the C
+	Src   string      // replace, insert: the C; member: the member's C-lisp, (NAME TYPE)
 	As    string      // replace, insert: what the C is: items, top, expr, body
+	Made  []*graph.Node // what the op made, once applied
 }
 
 func (o Op) String() string {
 	switch o.Kind {
 	case "rename":
 		return fmt.Sprintf("rename #%d %s to %s", o.Node.ID, o.From, o.To)
+	case "member":
+		return fmt.Sprintf("member %s #%d: %s", o.Where, o.Node.ID, oneLine(o.Src))
 	case "delete":
 		return fmt.Sprintf("delete #%d (%s)", o.Node.ID, o.Node.Head())
 	case "insert":
@@ -317,8 +320,19 @@ func applyMade(e *graph.Editor, ix *Index, ops []Op) ([][]*graph.Node, error) {
 			}
 		}
 	}
+	for i, o := range ops {
+		if o.Kind != "member" {
+			continue
+		}
+		m, err := e.InsertMember(o.Node, o.Where == "after", o.Src)
+		if err != nil {
+			return nil, refuse("%v", err)
+		}
+		ops[i].Made = []*graph.Node{m}
+	}
 	var fs []graph.Frag
-	for _, o := range ops {
+	var spliced []int // the ops the frags are, in order
+	for i, o := range ops {
 		var at graph.Spot
 		switch o.Kind {
 		case "replace":
@@ -343,13 +357,24 @@ func applyMade(e *graph.Editor, ix *Index, ops []Op) ([][]*graph.Node, error) {
 			return nil, refuse("%v", err)
 		}
 		fs = append(fs, graph.Frag{At: at, Src: o.Src})
+		spliced = append(spliced, i)
 	}
-	if len(fs) == 0 {
-		return nil, nil
+	var made [][]*graph.Node
+	if len(fs) > 0 {
+		var err error
+		if made, err = e.SpliceC(fs...); err != nil {
+			return nil, refuse("%v", err)
+		}
+		for k, i := range spliced {
+			if k < len(made) {
+				ops[i].Made = made[k]
+			}
+		}
 	}
-	made, err := e.SpliceC(fs...)
-	if err != nil {
-		return nil, refuse("%v", err)
+	for _, o := range ops {
+		if o.Kind == "member" {
+			made = append(made, o.Made)
+		}
 	}
 	return made, nil
 }
@@ -935,6 +960,9 @@ func (a *aligner) run(o, n *sx, g gap) ([]Op, bool, error) {
 		return ops, false, nil
 	}
 	p := in.form
+	if (p.Is("struct") || p.Is("union")) && graph.IsTypeDef(p) {
+		return a.members(o, p, olds, news, g)
+	}
 	var nodes []*graph.Node
 	for _, x := range olds {
 		f := a.info[x].form
@@ -1218,7 +1246,6 @@ func inPlace(text string, spans []Span, ops []Op, made [][]*graph.Node, p Printe
 		with   string
 	}
 	var cuts []cut
-	k := 0
 	for _, o := range ops {
 		switch o.Kind {
 		case "delete":
@@ -1226,18 +1253,15 @@ func inPlace(text string, spans []Span, ops []Op, made [][]*graph.Node, p Printe
 				cuts = append(cuts, cut{sp.Start, sp.End, ""})
 			}
 			continue
-		case "replace", "insert":
+		case "replace", "insert", "member":
 		default:
 			continue
 		}
 		var printed []string
-		if k < len(made) {
-			for _, n := range made[k] {
-				t, _ := p.RenderForm(n)
-				printed = append(printed, t)
-			}
+		for _, n := range o.Made {
+			t, _ := p.RenderForm(n)
+			printed = append(printed, t)
 		}
-		k++
 		with := " " + strings.Join(printed, " ") + " "
 		sp, ok := spanOf(o.Node)
 		if !ok {
@@ -1269,3 +1293,50 @@ func inPlace(text string, spans []Span, ops []Op, made [][]*graph.Node, p Printe
 	}
 	return text
 }
+
+// members is a run of a struct's (or union's) definition changed: members
+// inserted beside one it has (InsertMember: the struct stays the node its
+// uses name, where a replacement of the definition left them dangling), or
+// deleted; a member replaced climbs, as the definition's own change.
+func (a *aligner) members(o *sx, p *graph.Node, olds, news []*sx, g gap) ([]Op, bool, error) {
+	switch {
+	case len(olds) > 0 && len(news) == 0:
+		var ops []Op
+		for _, x := range olds {
+			f := a.info[x].form
+			if f == nil {
+				return nil, true, nil
+			}
+			ops = append(ops, Op{Kind: "delete", Node: f})
+		}
+		return ops, false, nil
+	case len(olds) == 0 && len(news) > 0:
+		var at *graph.Node
+		where := "after"
+		if g.o0 > 0 {
+			at = a.info[o.kids[g.o0-1]].form
+		}
+		if (at == nil || !a.isMember(p, at)) && g.o1 < len(o.kids) {
+			at, where = a.info[o.kids[g.o1]].form, "before"
+		}
+		if at == nil || !a.isMember(p, at) {
+			return nil, true, nil
+		}
+		var ops []Op
+		for i := range news {
+			x := news[i]
+			if where == "after" {
+				x = news[len(news)-1-i] // each after the same member: the last first
+			}
+			if !x.list {
+				return nil, true, nil
+			}
+			ops = append(ops, Op{Kind: "member", Node: at, Where: where, Src: x.String()})
+		}
+		return ops, false, nil
+	}
+	return nil, true, nil
+}
+
+// isMember says m is one of struct p's members.
+func (a *aligner) isMember(p, m *graph.Node) bool { return m != nil && a.ix.Parent(m) == p && m.IsList() }

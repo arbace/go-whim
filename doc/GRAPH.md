@@ -2346,6 +2346,31 @@ Deleting one line of a form that spans several leaves it unbalanced, which
 is pending ("not yet forms"), as it should be: `d%` on its parenthesis
 deletes the form.
 
+## The vim client used, a fourth time: ids, types and follow (2026-10-05)
+
+In vim through a terminal on whim-vim.c's graph: in `--ids def
+ml_clearmarked` a constant changed amid the marks and a statement typed
+without them; in `type pos_T` its member `lnum` renamed to `line_nr` from
+the view's own member line -- 1,248 uses, 312 ms through the server, undone
+in 344; a member added to `pos_T` in its typedef's def view; in `follow
+'refers< call ^fn' ml_clearmarked` the call deleted; the program written
+and compiled -- the member in it, the call gone. One fault:
+
+- **A member typed into a struct replaced the definition**, whose 3,885
+  uses -- edges to the struct node -- then dangled: a struct's member list
+  is not a place for items, so the change climbed to the typedef. Members
+  inserted into a struct's or union's definition are now `member` ops,
+  `Editor.InsertMember` beside a member it has (the struct the node its uses
+  name), and members deleted from it are deletions, refused while a member
+  has uses (`TestEditMembers`). A member's type changed still climbs to the
+  definition, and is refused as before. Each op carries what it made
+  (`Op.Made`), which the in-place check reads.
+
+What it showed and is left as it is: a name in the type view is the
+view's (renamed with `:WhimRename`, refused when typed over); and a form's
+closing parentheses sit at its last line, so `dd` there takes those of the
+forms around it (pending: not yet forms) -- `d%` deletes the form.
+
 ## The derived layer, kept under edits (2026-10-05)
 
 *Is the derived layer cached by the graph's digest, or kept incrementally

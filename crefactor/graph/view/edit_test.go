@@ -612,3 +612,33 @@ func TestEditLeavesView(t *testing.T) {
 		t.Fatalf("a misplaced node was not caught: %v", err)
 	}
 }
+
+// TestEditMembers: a member typed into a struct's definition is a member
+// inserted (InsertMember), the struct the same node its uses name; deleted
+// again, a member; a member with uses deleted is refused.
+func TestEditMembers(t *testing.T) {
+	g := sample(t).G
+	s := NewSession(g)
+	b, err := s.Open(defView("buf_T", false), EditOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	at := strings.Index(b.Text, "(b_ml int)") + len("(b_ml int)")
+	r, _ := b.Change(at, at, " (b_extra int)")
+	if r.Status != "applied" || r.Result.Ops[0].Kind != "member" {
+		t.Fatalf("a member typed: %s %s %v", r.Status, r.Reason, r.Result)
+	}
+	c, _ := g.C()
+	if !strings.Contains(string(c), "int b_extra;") {
+		t.Fatalf("the C:\n%s", c)
+	}
+	imported(t, g)
+	at = strings.Index(b.Text, " (b_extra int)")
+	if r, _ := b.Change(at, at+len(" (b_extra int)"), ""); r.Status != "applied" {
+		t.Fatalf("the member deleted: %s %s", r.Status, r.Reason)
+	}
+	at = strings.Index(b.Text, " (b_ml int)")
+	if r, _ := b.Change(at, at+len(" (b_ml int)"), ""); r.Status != "pending" || !strings.Contains(r.Reason, "which the edit deleted") {
+		t.Fatalf("a member with uses deleted: %s %s", r.Status, r.Reason)
+	}
+}

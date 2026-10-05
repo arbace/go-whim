@@ -18,6 +18,17 @@ Nothing known.
 
 ## Declined, with the reason recorded
 
+- **The C guest on several vCPUs** (2026-10-05). The C core runs
+  `match_lines` line after line by design; the parallel `:%s` is each
+  translated editor's runtime (`internal/whim/gen.go`), and the Rust
+  guest's (`guest/whimsy/smp.rs`). The C's would need a pipeline phase
+  handing the loop to an eighteenth host function, which every editor's
+  host glue would then have to answer -- the core/host line, computed and
+  exactly the host's names, moved for one guest's sake -- and the C guest
+  is the guests' baseline, its exits and latency what the others are held
+  beside. Declined: the Rust guest is the guests' SMP on the shared runtime
+  and monitor.
+
 - **A Neovim client** (2026-10-05) beside `vim/`'s: the user's call -- the
   vim client is the one used; view-serve's requests are what another
   client would speak.
