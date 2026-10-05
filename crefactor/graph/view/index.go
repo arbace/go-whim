@@ -40,7 +40,7 @@ type Index struct {
 	dirties []graph.ID       // the ids dirty marks
 	gen     []uint32         // by id: the Update that last walked it
 	update  uint32           // the Update running
-	secs    [3][]*graph.Node // the sections as last indexed
+	secs    [3][]*graph.Node // the sections as last indexed, copied: a deletion may shift the graph's in place
 	top     map[string][]*graph.Node
 	topSet  map[*graph.Node]bool
 	place   map[*graph.Node][2]int // a top-level node's section and place in it
@@ -65,7 +65,7 @@ func NewIndex(g *graph.Graph) *Index {
 	ix := &Index{G: g, topSet: map[*graph.Node]bool{}, place: map[*graph.Node][2]int{}, held: map[*graph.Node]*held{}}
 	ix.grow(maxID)
 	for si, sec := range g.Sections() {
-		ix.secs[si] = sec
+		ix.secs[si] = slices.Clone(sec) // its own: an edit may shift the graph's in place
 		for k, f := range sec {
 			ix.topSet[f] = true
 			ix.place[f] = [2]int{si, k}
@@ -262,7 +262,7 @@ func (ix *Index) Update(changed []*graph.Node) int {
 		for f := range now {
 			ix.topSet[f] = true
 		}
-		ix.secs[si] = sec
+		ix.secs[si] = slices.Clone(sec)
 	}
 	for f := range again {
 		ix.drop(f)

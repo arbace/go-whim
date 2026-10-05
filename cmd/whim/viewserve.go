@@ -28,7 +28,9 @@ import (
 // and undone in order.  Words are blank-separated; '...' quotes a word as
 // it is, "..." as a Go string (\n, \", \\), for a change's text.
 //
-//	open [--ids] [--depth N] [--show S] [--stop H] VIEW ARG   the buffer on a view; body: its text
+//	open [--ids] [--fallout] [--depth N] [--show S] [--stop H] VIEW ARG   the buffer on a view;
+//	                        body: its text; --fallout closes over the uses a deletion leaves
+//	                        (they are refused without it)
 //	text                    the buffer's text; header: ok N STATUS [REASON]
 //	change FROM TO TEXT [CURSOR]  bytes FROM to TO of the buffer (or LINE:COL)
 //	                        replaced by TEXT; header: ok N STATUS CURSOR [REASON] --
@@ -238,7 +240,7 @@ func (sv *viewServer) answer(line string) (head, body string, err error) {
 		if err != nil {
 			return "", "", err
 		}
-		e, _ := view.EntityAt(sv.b.Ix, sv.b.Spans, off)
+		e, _ := sv.b.At(off)
 		if e == nil {
 			return "", "", fmt.Errorf("at %s: no node there", ws[1])
 		}
@@ -312,6 +314,7 @@ func (sv *viewServer) open(ws []string) error {
 	var opt view.Options
 	var p view.Printer
 	var rest []string
+	fallout := false
 	for i := 0; i < len(ws); i++ {
 		a := ws[i]
 		arg := func() (string, error) {
@@ -324,6 +327,8 @@ func (sv *viewServer) open(ws []string) error {
 		switch a {
 		case "--ids":
 			p.IDs = true
+		case "--fallout":
+			fallout = true
 		case "--depth", "--show", "--stop":
 			v, err := arg()
 			if err != nil {
@@ -361,8 +366,12 @@ func (sv *viewServer) open(ws []string) error {
 	}
 	sv.name, sv.vargs, sv.opt, sv.p = rest[0], rest[1:], opt, p
 	eo := view.EditOptions{IDs: p.IDs}
-	fo := whim.GraphFallOut
-	eo.FallOut = &fo
+	if fallout {
+		// a deletion's dangling uses closed over, wherever they are: asked
+		// for, since a function deleted takes its calls in other functions
+		fo := whim.GraphFallOut
+		eo.FallOut = &fo
+	}
 	b, err := sv.s.Open(sv.render(), eo)
 	if err != nil {
 		return err
@@ -385,11 +394,26 @@ func (sv *viewServer) open(ws []string) error {
 	return nil
 }
 
-// render is the buffer's view as a Render.
+// render is the buffer's view as a Render.  A root pinned by its id
+// (open) whose node an edit replaced -- a function's parameters changed
+// make it another definition -- is found again by the name it had when the
+// view was last printed.
 func (sv *viewServer) render() view.Render {
 	name, args, opt, p := sv.name, sv.vargs, sv.opt, sv.p
+	pinned := len(args) > 0 && strings.HasPrefix(args[len(args)-1], "#")
+	last := ""
 	return func(ix *view.Index) (string, []view.Span, error) {
-		return viewText(ix, name, args, opt, p, false)
+		text, spans, err := viewText(ix, name, args, opt, p, false)
+		if err != nil && pinned && last != "" {
+			byName := append(append([]string(nil), args[:len(args)-1]...), last)
+			text, spans, err = viewText(ix, name, byName, opt, p, false)
+		}
+		if err == nil && pinned {
+			if rs, ferr := ix.Find(args[len(args)-1]); ferr == nil && len(rs) == 1 {
+				last = ix.Name(rs[0])
+			}
+		}
+		return text, spans, err
 	}
 }
 

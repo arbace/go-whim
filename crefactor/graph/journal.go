@@ -61,8 +61,19 @@ func (j *Journal) End() {
 	}
 }
 
-// Changed is how many nodes the journal saved.
-func (j *Journal) Changed() int { return len(j.nodes) }
+// Changed is how many nodes the journal saved, and the sections that are
+// not as they were at Begin: an edit that only deletes a top-level form
+// changes a section and no node, and an editor that made it is not the
+// graph's after it is undone.  Asked before Undo.
+func (j *Journal) Changed() int {
+	n := len(j.nodes)
+	for i, s := range j.g.Sections() {
+		if !slices.Equal(s, j.sections[i]) {
+			n++
+		}
+	}
+	return n
+}
 
 // save keeps n's fields, the first time an edit changes them.
 func (g *Graph) save(n *Node) {

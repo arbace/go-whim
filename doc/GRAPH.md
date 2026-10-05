@@ -2274,6 +2274,51 @@ The graph package's tests, which splice through FRAG throughout, take
 function again whole (`Index.Update` is by top-level node) and the view
 printed twice.
 
+## The vim client used, a second time (2026-10-05)
+
+A refactoring across functions, through vim in a terminal on whim-vim.c's
+graph: a helper typed as a new function beside `ml_clearmarked`, an
+expression of `ml_clearmarked` made a call of it with vim's `:%s`, the
+helper's callers view, the helper renamed, its parameters changed, it
+deleted with `ggdG`, and again with the fall-out closure asked for; the
+program written and compiled. Six faults, each now held by a test:
+
+- **A call of a `(void)` function was refused** as passing 0 arguments
+  where 1 was taken: `(void)` is a parameter list of one void. It is none
+  now (`TestAgreeCallsReturns`: `mk()` agrees).
+- **A rename with text pending renamed another entity.** The cursor's place
+  in the pending text was taken as a place in the view as printed, whose
+  span table names the entities: `:WhimRename` renamed `ml_clearmarked`
+  itself. A rename is refused while text is pending; `at` takes the place
+  to the print first (`Buffer.At`, MapPos) (`TestBufferRename`).
+- **Deleting a function took its calls elsewhere unasked.** The server
+  opened every buffer with the fall-out closure: `ggdG` in a def view
+  removed the call in another function. It is asked for now (`open
+  --fallout`, `:WhimView --fallout`); without it the deletion is refused
+  and says so.
+- **A function's parameters changed under its callers were applied,** and
+  the C written did not compile: agreement held the calls the edit wrote,
+  not those of a function whose type it changed. After the re-check, every
+  call of a function the edit declared is held to its prototype
+  (`callersAgree`). A parameter added inside the list climbs to the
+  definition now, where it said the list did not print as C (an
+  insertion's place is found before its C is printed).
+- **A delete made again after one refused deleted nothing.** Deleting a
+  top-level form changes a section and no node, so the journal said
+  nothing changed, the refusal kept the session's editor, and that editor,
+  believing the form deleted, skipped it. `Journal.Changed` counts a
+  section (`TestBufferRefusedThenAgain`, which fails without it). A pinned
+  root an edit replaced (a function's parameters changed) is found again by
+  its name.
+- **A function defined after its caller was accepted,** and gcc refused
+  the program: cc's check resolves the call to the later definition, and
+  C23 has no implicit declaration. Such a call is refused now, saying to
+  define the function above (typed above the view's, `ggO`, it is) or
+  declare it first.
+
+Then the same session, the helper typed above: every step as it should
+be, and the program written compiles.
+
 ## The derived layer, kept under edits (2026-10-05)
 
 *Is the derived layer cached by the graph's digest, or kept incrementally

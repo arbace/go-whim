@@ -30,11 +30,46 @@ func TestAgreeCallsReturns(t *testing.T) {
 			}
 		})
 	}
+	// a function's parameters changed, its callers -- which the edit did
+	// not write -- held to them
+	{
+		// mk(void) given a parameter its body does not use: main's mk()
+		v := defView("mk", false)
+		_, err := Edit(g, v, edited(t, v, g, "(fn (void) (ptr buf_T))", "(fn ((x int)) (ptr buf_T))"), EditOptions{})
+		if err == nil || !strings.Contains(err.Error(), "does not agree with mk as edited") {
+			t.Fatalf("mk's parameters changed under its callers: %v", err)
+		}
+		// a parameter added in the list: the change climbs to the
+		// definition, which its own recursive call refuses
+		v = defView("fact", false)
+		_, err = Edit(g, v, edited(t, v, g, "(fn ((n int)) int)", "(fn ((n int) (m int)) int)"), EditOptions{})
+		if err == nil || !strings.Contains(err.Error(), "passes 1 argument where the prototype takes 2") {
+			t.Fatalf("fact given a parameter under its callers: %v", err)
+		}
+	}
+	// a function defined after the one calling it: refused, as gcc does
+	{
+		s := NewSession(sample(t).G)
+		b, err := s.Open(defView("main", false), EditOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		end := len(strings.TrimRight(b.Text, "\n"))
+		if r, _ := b.Change(end, end, "\n(defn static later (fn (void) int) (return 2))"); r.Status != "applied" {
+			t.Fatalf("later typed beside main: %s %s", r.Status, r.Reason)
+		}
+		at := strings.Index(b.Text, "(call odd (deref p))")
+		r, _ := b.Change(at, at+len("(call odd (deref p))"), "(call later)")
+		if r.Status != "pending" || !strings.Contains(r.Reason, "later is declared only after main") {
+			t.Fatalf("main calling later: %s %s", r.Status, r.Reason)
+		}
+	}
 	// what agrees still stands
 	for _, c := range []struct{ view, old, new string }{
 		{"main", "(call fact 3)", "(call fact (call odd 3))"},
 		{"main", "(call get (addr b) (call fact 3))", "(call get nullptr (call fact 3))"},
 		{"get", "(return 0)", "(return (-> b b_ml))"},
+		{"main", "(call odd (deref p))", "(call odd (-> (call mk) b_ml))"}, // mk(void): no arguments
 	} {
 		v := defView(c.view, false)
 		if _, err := Edit(g, v, edited(t, v, g, c.old, c.new), EditOptions{}); err != nil {

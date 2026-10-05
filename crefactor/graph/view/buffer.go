@@ -199,8 +199,10 @@ func (b *Buffer) Undo() (bool, error) {
 // Typing a name anew renames nothing: a buffer sees one form change at a
 // time, and a renaming changes every use at once.
 func (b *Buffer) Rename(pos int, to string) (*graph.Renamed, *graph.Node, error) {
-	if b.Reason != "" {
-		b.Revert()
+	if b.Text != b.Printed {
+		// a position in what is pending is not one in the view printed,
+		// which names the entities: renaming by it renamed another
+		return nil, nil, fmt.Errorf("rename: the buffer has text pending (%s): finish it or revert it first", b.Reason)
 	}
 	d, _ := EntityAt(b.Ix, b.Spans, pos)
 	if d == nil {
@@ -217,6 +219,16 @@ func (b *Buffer) Rename(pos int, to string) (*graph.Renamed, *graph.Node, error)
 	b.Ix.Update(b.S.done[len(b.S.done)-1].Saved())
 	b.Ix.verify("a rename")
 	return rn, d, b.reprint()
+}
+
+// At is the entity at byte pos of the buffer's text: when text is pending,
+// pos is taken to the same place in the view as printed first (MapPos),
+// whose span table names the entities.
+func (b *Buffer) At(pos int) (entity, on *graph.Node) {
+	if b.Text != b.Printed {
+		pos = MapPos(b.Text, b.Printed, pos)
+	}
+	return EntityAt(b.Ix, b.Spans, pos)
 }
 
 // Revert drops what is pending: the text is the view as printed.

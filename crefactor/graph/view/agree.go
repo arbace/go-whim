@@ -89,6 +89,7 @@ func (c tclass) String() string {
 // stored by what holds it.
 func agrees(e *graph.Editor, made [][]*graph.Node) error {
 	var err error
+	var order map[*graph.Node]int // the file's forms by place, made when a call asks
 	seen := map[*graph.Node]bool{}
 	for _, ns := range made {
 		for _, n := range ns {
@@ -112,6 +113,8 @@ func agrees(e *graph.Editor, made [][]*graph.Node) error {
 					if why := callAgrees(x); why != "" {
 						c, _ := clisp.PrintExpr(graph.Lisp(x))
 						err = refuse("a call that does not agree: `%s` %s", strings.TrimSpace(c), why)
+					} else if why := declaredBefore(e, x, &order); why != "" {
+						err = refuse("%s", why)
 					}
 					continue
 				case x.Is("return"):
@@ -211,6 +214,9 @@ func callAgrees(c *graph.Node) string {
 		}
 		params = append(params, p)
 	}
+	if len(params) == 1 && classOf(params[0].Type).kind == "void" {
+		params = nil // (void): no parameters
+	}
 	args := c.Kids[2:]
 	switch {
 	case len(args) < len(params):
@@ -252,4 +258,69 @@ func returnAgrees(e *graph.Editor, r *graph.Node) string {
 		}
 	}
 	return ""
+}
+
+// callersAgree is the first call refused among the calls of the functions
+// an edit declared or defined: a function's parameters changed leaves its
+// callers', which the edit did not write, to agree with them.
+func callersAgree(e *graph.Editor, made [][]*graph.Node) error {
+	for _, ns := range made {
+		for _, n := range ns {
+			if !(n.Is("defn") || n.Is("def")) || n.Type == nil || !n.Type.Is("function") || !e.Live(n) {
+				continue
+			}
+			for _, u := range e.Uses(n) {
+				c := e.Parent(u)
+				if c == nil || !c.Is("call") || len(c.Kids) < 2 || c.Kids[1] != u {
+					continue
+				}
+				if why := callAgrees(c); why != "" {
+					txt, _ := clisp.PrintExpr(graph.Lisp(c))
+					in := ""
+					if f := e.Function(c); f != nil {
+						in = " in " + graph.DeclName(f)
+					}
+					return refuse("a call that does not agree with %s as edited: `%s`%s %s", graph.DeclName(n), strings.TrimSpace(txt), in, why)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// declaredBefore is why a call names a function the file declares only
+// after the top-level form the call is in, or "": cc's check resolves the
+// call to the later declaration, and C23, which has no implicit
+// declarations, refuses it (gcc: implicit declaration, then conflicting
+// types) -- a function typed beside a view's and called from it.
+func declaredBefore(e *graph.Editor, call *graph.Node, order *map[*graph.Node]int) string {
+	callee := call.Kids[1]
+	if callee.IsList() {
+		return ""
+	}
+	d := callee.Ref()
+	if d == nil || !(d.Is("defn") || d.Is("def")) {
+		return ""
+	}
+	name := graph.DeclName(d)
+	in := e.Function(call)
+	if name == "" || in == nil {
+		return ""
+	}
+	if *order == nil {
+		*order = map[*graph.Node]int{}
+		for i, f := range e.Graph().Forms {
+			(*order)[f] = i
+		}
+	}
+	at, ok := (*order)[in]
+	if !ok {
+		return ""
+	}
+	for _, f := range e.FileDecls(name) {
+		if k, ok := (*order)[f]; ok && k <= at {
+			return "" // declared before, or the calling function itself
+		}
+	}
+	return fmt.Sprintf("%s is declared only after %s, which calls it: C needs a declaration first -- define it above, or declare it there", name, graph.DeclName(in))
 }

@@ -254,6 +254,9 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 		r.FallOut, r.Closure = st, append([]graph.Act(nil), e.Log[k:]...)
 	}
 	r.Recheck = e.Recheck()
+	if err := callersAgree(e, made); err != nil {
+		return nil, err
+	}
 	if len(r.Closure) > 0 || r.Recheck != (graph.RecheckStats{}) {
 		r.Index = reindex() // the closure's and the re-check's changes indexed too
 		if t, sp, err := render(r.Index); err == nil {
@@ -965,23 +968,30 @@ func (a *aligner) run(o, n *sx, g gap) ([]Op, bool, error) {
 		return []Op{op}, false, nil
 	}
 	// an insertion: before the next form, after the one before, or at the
-	// end of the form
-	src, err := a.cText(as, news)
-	if err != nil {
-		return nil, false, err
-	}
+	// end of the form -- found before the C is printed, so that a list
+	// holding no items (a function's parameters) climbs to the form around
+	// it, which takes the change as a replacement
+	var op *Op
 	if g.o1 < len(o.kids) {
 		if next := a.info[o.kids[g.o1]].form; next != nil && a.e.SpotBefore(next).Err() == nil {
-			return []Op{{Kind: "insert", Node: next, Where: "before", Src: src, As: as}}, false, nil
+			op = &Op{Kind: "insert", Node: next, Where: "before", As: as}
 		}
 	}
-	if g.o0 > 0 {
+	if op == nil && g.o0 > 0 {
 		if prev := a.info[o.kids[g.o0-1]].form; prev != nil && a.e.SpotAfter(prev).Err() == nil {
-			return []Op{{Kind: "insert", Node: prev, Where: "after", Src: src, As: as}}, false, nil
+			op = &Op{Kind: "insert", Node: prev, Where: "after", As: as}
 		}
 	}
-	if g.o1 == len(o.kids) && a.e.SpotEnd(p).Err() == nil && in.whole {
-		return []Op{{Kind: "insert", Node: p, Where: "end", Src: src, As: as}}, false, nil
+	if op == nil && g.o1 == len(o.kids) && a.e.SpotEnd(p).Err() == nil && in.whole {
+		op = &Op{Kind: "insert", Node: p, Where: "end", As: as}
+	}
+	if op != nil {
+		src, err := a.cText(as, news)
+		if err != nil {
+			return nil, false, err
+		}
+		op.Src = src
+		return []Op{*op}, false, nil
 	}
 	if !in.whole {
 		return nil, false, refuse("the insertion in #%d (%s) is beside what the view elides (`%s`)", p.ID, label(p), Elided)

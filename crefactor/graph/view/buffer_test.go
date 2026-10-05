@@ -227,6 +227,19 @@ func TestBufferRename(t *testing.T) {
 	if !bytes.Equal(before, g.Lisp()) || s.Edits() != 0 {
 		t.Fatal("a refused rename changed the graph")
 	}
+	// text pending: a position in it is not one in the view printed, and
+	// renaming by it renamed another entity -- refused; At maps it
+	pend := strings.Index(b.Text, "(= opt 1)") + len("(= opt ")
+	if r, _ := b.Change(pend, pend+1, ""); r.Status != "pending" {
+		t.Fatalf("an operand erased: %s", r.Status)
+	}
+	if _, _, err := b.Rename(at, "factorial"); err == nil || !strings.Contains(err.Error(), "pending") {
+		t.Fatalf("a rename with text pending: %v", err)
+	}
+	if e, _ := b.At(strings.Index(b.Text, "(call fact 3)") + len("(call ")); e == nil || e.Head() != "defn" || graph.DeclName(e) != "fact" {
+		t.Fatalf("At with text pending: %v", e)
+	}
+	b.Revert()
 	rn, d, err := b.Rename(at, "factorial")
 	if err != nil {
 		t.Fatal(err)
@@ -258,5 +271,40 @@ func TestPlain(t *testing.T) {
 		if got := Plain(c[0]); got != c[1] {
 			t.Errorf("Plain(%q)\n = %q\nwant %q", c[0], got, c[1])
 		}
+	}
+}
+
+// TestBufferRefusedThenAgain: a deletion refused after it was made (its
+// use left dangling), then made again with the fall-out closure.  The
+// refused one changed a section and no node; the journal's Changed now
+// counts a section, so the session's editor is made again rather than kept
+// believing the form deleted -- which made the second deletion delete
+// nothing.
+func TestBufferRefusedThenAgain(t *testing.T) {
+	if testing.Short() {
+		t.Skip("short")
+	}
+	ix, _ := product(t)
+	g := ix.G
+	s := NewSession(g)
+	b, err := s.Open(defView("ml_clearmarked", false), EditOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r, _ := b.Change(0, len(b.Text), ""); r.Status != "pending" || !strings.Contains(r.Reason, "--fallout") {
+		t.Fatalf("ml_clearmarked deleted under its call: %s %s", r.Status, r.Reason)
+	}
+	fo := graph.FallOutOptions{KeepEmpty: true}
+	b, err = s.Open(defView("ml_clearmarked", false), EditOptions{FallOut: &fo})
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, _ := b.Change(0, len(b.Text), "")
+	if r.Status != "applied" || len(r.Result.FallOut.Removed) == 0 {
+		t.Fatalf("ml_clearmarked deleted with the fall-out closure: %s %s", r.Status, r.Reason)
+	}
+	c, _ := g.C()
+	if strings.Contains(string(c), "ml_clearmarked") {
+		t.Fatal("ml_clearmarked or its call left")
 	}
 }
