@@ -200,8 +200,8 @@ func newMachine(cfg Config) (*machine, error) {
 		return nil, err
 	}
 	n := min(max(cfg.CPUs, 1), maxCPUs)
-	if !isTamaGo(f) {
-		n = 1
+	if !isTamaGo(f) && im.apEntry == 0 {
+		n = 1 // the C guest: one vCPU, the core's loop on it
 	}
 	if n > 1 && im.apEntry == 0 {
 		return nil, fmt.Errorf("the guest image has no whim_apentry: it runs on one vCPU, not %d", n)

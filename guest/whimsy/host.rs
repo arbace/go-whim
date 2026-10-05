@@ -7,6 +7,7 @@
 use crate::editor::{self, Editor};
 use crate::rt::VArg;
 use core::ffi::{c_char, c_int, c_long, c_void};
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 /// What an editor's `host` field points at: nothing, here.
 pub struct Glue;
@@ -94,7 +95,33 @@ pub unsafe fn host_write(_ed: *mut Editor, s: *mut i8, len: i32) -> i32 {
 }
 
 pub unsafe fn host_alloc(_ed: *mut Editor, n: u64) -> *mut c_void {
-    c::host_alloc(n as usize)
+    arena(n as usize, 16) as *mut c_void
+}
+
+/// The core's memory and Rust's heap, one region of rt.c's arena taken
+/// once, its bytes handed out by an atomic count: the chunks of a parallel
+/// match_lines allocate on several vCPUs at once, which rt.c's host_alloc,
+/// written for one, does not allow.  Zeroed, as rt.c's is; never freed.
+static ARENA: AtomicUsize = AtomicUsize::new(0);
+static USED: AtomicUsize = AtomicUsize::new(0);
+const ARENA_BYTES: usize = 1000 << 20;
+
+/// arena is n bytes aligned to align (a power of two, at most 4096).
+pub unsafe fn arena(n: usize, align: usize) -> *mut u8 {
+    let mut base = ARENA.load(Ordering::Acquire);
+    if base == 0 {
+        // the boot vCPU's first allocation, before any other vCPU runs
+        base = c::host_alloc(ARENA_BYTES) as usize;
+        ARENA.store(base, Ordering::Release);
+    }
+    let want = n.wrapping_add(align - 1) & !(align - 1);
+    let at = USED.fetch_add(want + align, Ordering::AcqRel);
+    if want < n || at + want + align > ARENA_BYTES {
+        let msg = b"whim-vim: host arena exhausted\n";
+        c::host_message(msg.as_ptr() as *const c_char, msg.len() as c_int, 1);
+        c::host_exit(1);
+    }
+    ((base + at + align - 1) & !(align - 1)) as *mut u8
 }
 
 pub unsafe fn vim_snprintf(ed: *mut Editor, str: *mut i8, str_m: u64, fmt: *mut i8, args: &[VArg]) -> i32 {

@@ -271,7 +271,9 @@ slim-vim.c  --whim-->  whim-vim.c
   without std as a static library and linked with the C guest's runtime,
   run by the same monitor (amd64), its control the launcher with its
   image's one `" INSERT"` changed; it answers all 80 and all 240 as the C
-  does, in the C guest's exits to the call.
+  does, on four vCPUs by default (its chunks on every vCPU, by the Go
+  guest's calls: `guest/whimsy/smp.rs`) and on one, in the C guest's exits
+  to the call on one.
   Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
@@ -809,7 +811,8 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    and arm64), main.go the Go editor on a Host of hypercalls,
                    faulty/ a stand-in; whimsy/ the Rust guest's crate (lib.rs:
                    whimsy's core, runtime and printf by path, without std, its
-                   allocator and panic; host.rs the 17 host functions as rt.c's;
+                   allocator and panic; host.rs the 17 host functions as rt.c's,
+                   and the arena; smp.rs the chunks on every vCPU;
                    rust.go builds it, `--rust`); vm/aarch64.sh the arm64 gate.s VM
                    (Alpine Edge aarch64 netbooted by qemu with an emulated
                    EL2, KVM inside, a job agent served by QEMU itself:

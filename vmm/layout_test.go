@@ -25,7 +25,7 @@ func TestLayoutHVFAlignment(t *testing.T) {
 		im := &image{entry: imageBase, vectors: imageBase, end: end, loads: []*elf.Prog{
 			{ProgHeader: elf.ProgHeader{Type: elf.PT_LOAD, Flags: elf.PF_R | elf.PF_X, Vaddr: imageBase, Paddr: imageBase, Memsz: end - imageBase}},
 		}}
-		l := plan(im)
+		l := plan(im, 1)
 		const ipa = 0 // newMachine's one hv_vm_map
 		if ipa%hvfPage != 0 || l.size%hvfPage != 0 {
 			t.Errorf("image to %#x: the slot [%#x, %#x) is not 16 KiB-aligned", end, ipa, l.size)

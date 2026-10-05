@@ -141,12 +141,13 @@ where
     !failed.load(Ordering::Relaxed)
 }
 
-/// The guest's chunks (guest/whimsy): the range on the one vCPU, as the C
-/// guest's loop runs it -- a bare machine has no threads to give it.
+/// The guest's chunks (guest/whimsy): on the machine's vCPUs, by the
+/// guest's own fork and join (guest/whimsy/smp.rs) -- a bare machine has no
+/// threads to give them.
 #[cfg(feature = "guest")]
 pub fn chunks<F>(n: i64, work: F) -> bool
 where
     F: Fn(i64, i64) -> bool + Sync,
 {
-    work(0, n.max(0))
+    crate::smp::chunks(n, &work)
 }

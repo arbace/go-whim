@@ -47,7 +47,7 @@ func layoutFor(f *elf.File, im *image, cpus int) *layout {
 	if isTamaGo(f) {
 		return planGo(im, cpus)
 	}
-	return plan(im)
+	return plan(im, cpus)
 }
 
 // planGo lays a Go guest's slot out: the image, then one span read-write

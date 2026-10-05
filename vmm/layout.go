@@ -126,9 +126,11 @@ func loadImage(f *elf.File, machine elf.Machine) (*image, error) {
 	return im, nil
 }
 
-// plan lays the slot out around the image.
-func plan(im *image) *layout {
-	l := &layout{entry: im.entry, vectors: im.vectors, cpus: 1}
+// plan lays the slot out around the image, for cpus vCPUs: the stack, and
+// above it a fault stack for each vCPU (IST1) -- a guest on several has
+// whim_apentry, where CPUStart starts the others (the Rust guest: guest/whimsy).
+func plan(im *image, cpus int) *layout {
+	l := &layout{entry: im.entry, vectors: im.vectors, cpus: cpus, apEntry: im.apEntry}
 	l.spans = append(l.spans, span{sysBase, argsEnd, pRead | pWrite})
 	for _, p := range im.loads {
 		var pm perm
@@ -146,7 +148,7 @@ func plan(im *image) *layout {
 	guard := roundUp(im.end, block)
 	stackLo := guard + page
 	l.stackTop = stackLo + StackBytes
-	l.faultTop = l.stackTop + FaultStackBytes
+	l.faultTop = l.stackTop + uint64(cpus)*FaultStackBytes
 	l.spans = append(l.spans, span{stackLo, l.faultTop, pRead | pWrite})
 	l.heap = roundUp(l.faultTop, block)
 	l.size = l.heap + HeapBytes

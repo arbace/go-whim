@@ -15,6 +15,7 @@ extern crate alloc;
 #[path = "../../whimsy/src/editor.rs"]
 pub mod editor;
 pub mod host;
+pub mod smp;
 #[path = "../../whimsy/src/printf.rs"]
 pub mod printf;
 #[path = "../../whimsy/src/rt.rs"]
@@ -23,16 +24,14 @@ pub mod rt;
 use core::alloc::{GlobalAlloc, Layout};
 use core::ffi::{c_char, c_int};
 
-/// The heap is rt.c's arena: host_alloc's bytes, zeroed and 16-aligned,
-/// never freed -- what the C core allocates from, and the Rust core's
-/// Box and Vec with it.
+/// The heap is the guest's arena (host::arena): one region of rt.c's,
+/// zeroed, never freed -- what the core allocates from, and the Rust
+/// core's Box and Vec with it.
 struct Arena;
 
 unsafe impl GlobalAlloc for Arena {
     unsafe fn alloc(&self, l: Layout) -> *mut u8 {
-        let align = l.align().max(16);
-        let p = host::c::host_alloc(l.size() + align - 16) as usize;
-        ((p + align - 1) & !(align - 1)) as *mut u8
+        host::arena(l.size(), l.align().max(16))
     }
     unsafe fn dealloc(&self, _p: *mut u8, _l: Layout) {}
 }

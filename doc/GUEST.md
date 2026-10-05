@@ -948,8 +948,40 @@ guest's count to the call, the runtime and its calls being the same; the
 wide suite all 240, the controls seen by 94, 0, 0 and 6; the heavy case
 365-381 ms, 0.8-0.9 times the C's -O0 build (the C guest 0.8, the Go guest
 1.3-1.4, whimsy on Linux 0.3). The image is 1.3 MB; the launcher 5.0 MB.
-Not built: arm64 (no core and alloc for aarch64 here), and several vCPUs
-(the chunks run on one).
+Not built: arm64 (no core and alloc for aarch64 here).
+
+**On several vCPUs** (`guest/whimsy/smp.rs`). `match_lines`' chunks run as
+whimsy's on Linux runs them on threads -- about four a vCPU, none under 64
+lines -- on the machine's other vCPUs, by the calls a Go guest's runtime
+makes (CPUStart, CPUPark, CPUWake). The first job starts every vCPU the
+machine has (CPUStart answers -1 past the last), each at `whim_apentry`
+(the crate's assembly: SSE on, the function called with its number) on a
+4 MiB stack from the arena, and parks it; a job is published (the work, the
+range, its chunk size), its number raised, and every vCPU woken; each takes
+chunks by an atomic count until none is left or one failed, and the last
+done wakes the boot vCPU, which has taken chunks meanwhile and parks until
+then. Every vCPU makes its calls on a block of its own (rt.c's one block
+is the Host's, which the boot vCPU alone calls); and the heap is one
+region of rt.c's arena handed out by an atomic count, since the chunks
+allocate at once. The monitor gives several vCPUs to any image with
+`whim_apentry` -- the C guest has none and keeps one -- and lays a non-Go
+image out for them (`plan`: a fault stack each, the entry recorded); a
+first try started the other vCPUs at address 0, a triple fault, until it
+did.
+
+Measured (KVM, amd64; `TestGuestScale` with `WHIM_SUITE_GUEST_IMAGE` the
+Rust guest's image): the quick suite all 80 and the wide all 240 as the C
+does on four vCPUs, the default; the heavy case 0.8-0.9 times the C as on
+one; and the `:%s/\v(a|b)+c/X/g` over 200,000 lines (the C's -O0 build
+8,853 ms on this run):
+
+| vCPUs | :%s (ms) | vs 1 vCPU | vs the C |
+| ---: | ---: | ---: | ---: |
+| 1 | 1,204 | 1.00x | 0.14x |
+| 2 | 639 | 1.88x | 0.07x |
+| 4 | 377 | 3.19x | 0.04x |
+| 8 | 213 | 5.65x | 0.02x |
+| 16 | 161 | 7.44x | 0.02x |
 
 ## Running on the Mac
 
