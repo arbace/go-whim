@@ -75,14 +75,14 @@ type EditOptions struct {
 
 // An Op is one edit an aligned text makes.
 type Op struct {
-	Kind  string      // rename, delete, replace, insert
-	Node  *graph.Node // rename: a declaration; delete, replace: the node, a run's first
-	Last  *graph.Node // replace: a run's last item, or nil
-	Where string      // insert: before, after (Node), or end (of Node)
-	To    string      // rename: the new name
-	From  string      // rename: the old
-	Src   string      // replace, insert: the C; member: the member's C-lisp, (NAME TYPE)
-	As    string      // replace, insert: what the C is: items, top, expr, body
+	Kind  string        // rename, delete, replace, insert
+	Node  *graph.Node   // rename: a declaration; delete, replace: the node, a run's first
+	Last  *graph.Node   // replace: a run's last item, or nil
+	Where string        // insert: before, after (Node), or end (of Node)
+	To    string        // rename: the new name
+	From  string        // rename: the old
+	Src   string        // replace, insert: the C; member: the member's C-lisp, (NAME TYPE)
+	As    string        // replace, insert: what the C is: items, top, expr, body
 	Made  []*graph.Node // what the op made, once applied
 }
 
@@ -1339,4 +1339,6 @@ func (a *aligner) members(o *sx, p *graph.Node, olds, news []*sx, g gap) ([]Op, 
 }
 
 // isMember says m is one of struct p's members.
-func (a *aligner) isMember(p, m *graph.Node) bool { return m != nil && a.ix.Parent(m) == p && m.IsList() }
+func (a *aligner) isMember(p, m *graph.Node) bool {
+	return m != nil && a.ix.Parent(m) == p && m.IsList()
+}
