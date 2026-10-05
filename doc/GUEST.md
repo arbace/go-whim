@@ -934,7 +934,10 @@ exits) and the wide at 4 (232,451), all as the C does; heavy 342 ms at 4 and 8
 M2 Max's 8 performance and 4 efficiency cores, which is why the step from 8
 to 12 gains less. **So the Mac's default is now four vCPUs, as on Linux
 amd64** (`vmm/cmd/whim-guest`'s `defaultCPUs`): the same trade -- a big `:%s`
-3.6 times as fast, the heavy case 5% slower.
+3.6 times as fast, the heavy case 5% slower. Rebuilt with it, `mac.sh suite
+--go` with no `--cpus` answers all 80 as the C does, the control seen by 76:
+214,260 exits, 41.27 a key and 3.94 outside `par_*` (one vCPU's 204,942 and
+`--cpus 4`'s 214,046 before), so four vCPUs ran.
 
 **Milestone 4's gate is met** (2026-10-04, reported by the user from the
 M2 Max: macOS with Homebrew clang 23.1.1, arm64-apple-darwin23.6.0):

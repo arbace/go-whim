@@ -1107,8 +1107,7 @@ was the input boundary's digest and the implementation's together, so a moved
 `whim-vim.c`'s ten `#include`s are not at the top: **the first one is the line
 between the editor core and its host**, marked by nothing else. `internal/whim`'s
 `Cut` cuts there -- every translation cuts the core for itself (`whim gen`,
-`whim java`, `whim clj`, `whim caprice`, `whim whimsy`, `whim whimsical`, `whim whiml`, `whim wpp`), and `go tool whim cut` prints it: a complete translation unit with 0 preprocessor lines, 0 errors under
-`whim java`, `whim clj`, `whim caprice`, `whim whimsy`, `whim whimsical`, `whim whiml`, `whim guest`), and `go tool whim cut` prints it: a complete translation unit with 0 preprocessor lines, 0 errors under
+`whim java`, `whim clj`, `whim caprice`, `whim whimsy`, `whim whimsical`, `whim whiml`, `whim wpp`, `whim guest`), and `go tool whim cut` prints it: a complete translation unit with 0 preprocessor lines, 0 errors under
 `-fsyntax-only`, and an interface of exactly the names the host defines --
 computed, never listed. The core names no libc function at all, holds no file
 descriptor of its own, and uses no floating point. `GOALS.md` §II.4 is the
