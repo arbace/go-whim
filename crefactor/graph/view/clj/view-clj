@@ -3,6 +3,7 @@
 # EDN (doc/GRAPH.md, *Views in Clojure, over the EDN*):
 #
 #   view-clj [--ids] [--depth N] [--show S] [--stop HEADS] [--time] VIEW ARG FILE.edn
+#   view-clj --batch CASES OUTDIR FILE.edn | --serve FILE.edn | --repl [FILE.edn]
 #
 # Clojure 1.12.5 and the two spec jars it needs, from ~/.m2 (or
 # GRAPH_CLOJURE_CP), and this directory's src/; nothing is installed or
@@ -12,6 +13,13 @@ here=$(cd "$(dirname "$0")" && pwd)
 m2=${M2:-$HOME/.m2/repository}/org/clojure
 cp=${GRAPH_CLOJURE_CP:-$m2/clojure/1.12.5/clojure-1.12.5.jar:$m2/spec.alpha/0.5.238/spec.alpha-0.5.238.jar:$m2/core.specs.alpha/0.4.74/core.specs.alpha-0.4.74.jar}
 tmp=${TMPDIR:-$here/.tmp}
+if [ "$1" = --repl ]; then
+	# a REPL with the namespaces loaded (g, v, m) and, given FILE.edn, st:
+	# its state, the graph read and indexed; (m/show st "uses p_wiv")
+	init="(require '[gview.graph :as g] '[gview.view :as v] '[gview.main :as m])"
+	[ -n "$2" ] && init="$init (def st (m/open \"$2\")) (def ix (:ix st))"
+	exec java -Djava.io.tmpdir="$tmp" -Xss256m -cp "$here/src:$cp" clojure.main -e "$init" -r
+fi
 if [ -n "$GVIEW_CLASSES" ]; then
 	if [ ! -f "$GVIEW_CLASSES/gview/main.class" ] || [ -n "$(find "$here/src" -newer "$GVIEW_CLASSES/gview/main.class" -name '*.clj')" ]; then
 		mkdir -p "$GVIEW_CLASSES"

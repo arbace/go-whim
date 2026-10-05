@@ -1596,6 +1596,82 @@ once. **Not done**: a faster reader of our own (the point was that the
 standard one suffices), `--c`, and a launcher under `go tool whim` (a
 script is enough for a check of the format).
 
+### The server, and a REPL (2026-10-05)
+
+The step toward an editor in Clojure: the graph read once, its views
+answered for as long as the process lives. `view-clj --serve FILE.edn`
+reads and indexes the EDN, then answers **a request a line on stdin, on
+stdout**:
+
+```
+uses p_wiv --ids                       a view: its arguments, the file left out
+follow 'refers< call ^fn' ml_get       blank-separated, '...' or "..." quoting
+type<TAB>struct vimoption              or tab-separated, as --batch's lines
+stats                                  the file, read and index times, nodes, the cache
+reload [FILE.edn]                      the EDN read again (or another), the cache emptied
+ping | quit                            the input's end quits too
+```
+
+Every answer is a header, a body and an end line:
+
+```
+ok 1068                                or `error N`: the message and a newline
+;; 7 uses of p_wiv in 4 top-level forms: 4 read, 2 write, 1 addr
+(uses p_wiv
+  ...)
+;;end
+```
+
+N counts the body's bytes, exact, for a client that reads bytes; `;;end`, on
+a line of its own (a newline put before it when the body lacks a last one),
+for a client that reads lines. **Stdin and stdout, not a socket**, because
+that is what an editor drives with nothing more: vim's `job_start()` with a
+channel in `nl` mode, Neovim's `jobstart()`, Emacs's `make-process` --
+no port to choose or secure, one client, and the server's life the
+editor's; a socket can be put in front of the same `answer` function when
+two clients need one graph. Views are cached by their parsed arguments
+(flags in any order are one entry; errors are not cached), emptied at 256 M
+characters and on `reload`. Every failure, a stack overflow included, is an
+`error` answer and the server goes on. The server is `gview.main`'s `open`,
+`answer` and `serve`, 120 lines.
+
+**The gate** (`TestClojureServer`, beside `TestClojureViews`, the same
+skip): one server on whim-vim.c's EDN is sent TestClojureViews' 6,370 cases
+as tab-separated requests, twice, the second time from its cache, and must
+answer every one with the Go's bytes or its error: **12,740 of 12,740**.
+Then `reload`, after which the cache holds nothing and a view is the same,
+and a bad request is an `error`.
+
+**Measured** (the gate's run, at a load of 2-3; each request a round trip
+through the pipes, the next sent when the last is read):
+
+| a request | median | p99 | max |
+| --- | ---: | ---: | ---: |
+| the Go views in process (`goView`) | 12-19 µs | 2.0-3.8 ms | 61-120 ms |
+| the server, the view built | 120-142 µs | 11-16 ms | 457-580 ms (`callees main`) |
+| the server, from its cache | 22-26 µs | 57-70 µs | 135-144 ms (38,189 lines through the pipe) |
+| `view-clj` one-shot, a JVM each | 2.58-2.68 s | | |
+
+The server is up in 4.3 s (the JVM, the namespaces compiled from source,
+the read 1.7 s and the index 0.27 s under the test's load), `reload` 0.79 s
+in the warm JVM; 471 MB of heap in use with the 6,366 views cached. A view
+the server builds is about 8 times the Go's in process and 20,000 times
+quicker than a run of the CLI; from the cache, the Go's own time.
+
+**A REPL** is `view-clj --repl [FILE.edn]`: `clojure.main` with
+`gview.graph`, `gview.view` and `gview.main` loaded as `g`, `v` and `m`
+and, given the file, `st` (the server's state) and `ix` (the index):
+
+```clojure
+user=> (m/show st "uses p_wiv")                               ; a view by its request
+user=> (count (g/uses ix (first (g/find-roots ix "p_wiv"))))  ; the index itself
+7
+user=> (print (v/tree-text false ix (v/callers ix (first (g/find-roots ix "ml_get")) {:depth 1})))
+```
+
+No nREPL: that wants a jar from outside, and `clojure.main`'s REPL is enough
+to explore.
+
 ## Open questions
 
 - Is the derived layer cached by the graph's digest, or kept incrementally

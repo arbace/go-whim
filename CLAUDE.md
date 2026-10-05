@@ -463,9 +463,11 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    the tree as C-lisp, ids on demand; clj/ the same views
                    in Clojure over the graph's EDN, clojure.edn its only
                    reader (gview.graph, gview.view, gview.main; the script
-                   view-clj), held byte for byte to the Go's by
-                   clj_test.go (doc/GRAPH.md, *Views in Clojure, over the
-                   EDN*).
+                   view-clj; --serve a long-lived process answering a
+                   view a line on stdin, --repl a REPL on the graph),
+                   held byte for byte to the Go's by clj_test.go and
+                   clj_serve_test.go (doc/GRAPH.md, *Views in Clojure,
+                   over the EDN*, *The server*).
                    sweep/: the text's closure (Prune), which whim's plan no
                    longer runs -- the collection is its rules on the nodes,
                    held to it by internal/graphcheck -- kept for `whim
@@ -901,6 +903,7 @@ go tool whim graph --edn FILE    # the graph as EDN, for Clojure's reader (--edn
 go tool whim graph --changes N   # what phase N changed: the top-level forms whose content hash moved, added/removed/changed (--nominal: a type by its name; 0.4 s)
 go tool whim graph --snapshot N  # boundary N's graph as Lisp, from the store of graphs in .cache/boundaries
 go tool whim view callers F      # a read-only view of whim-vim.c's graph as Lisp: callers, callees, uses, member S.M, type T, def; 0.07 s once .cache/graph holds it (doc/GRAPH.md)
+crefactor/graph/view/clj/view-clj --serve F.edn  # the views in Clojure, a long-lived process: the EDN read once (2 s), then a request a line on stdin, answered in 0.1 ms median (doc/GRAPH.md, *The server*)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary
 make bin/slim-vim    # the input's binary, with the same one line
