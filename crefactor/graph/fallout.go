@@ -193,7 +193,11 @@ func (e *Editor) FallOut(opt FallOutOptions) (FallOutStats, error) {
 		}
 	}
 	if left := e.Dangling(); len(left) > 0 {
-		return st, &Unhandled{D: left[0], Fn: declName(e.Function(left[0].Use)), Left: len(left)}
+		fn := ""
+		if f := e.Function(left[0].Use); f != nil { // nil: a use in an object's initialiser
+			fn = declName(f)
+		}
+		return st, &Unhandled{D: left[0], Fn: fn, Left: len(left)}
 	}
 	if opt.X != nil {
 		xs, err := e.FoldX(*opt.X)

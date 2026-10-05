@@ -7,7 +7,9 @@ on the graph, the typed transforms on typed edges, one import a run --
 in `doc/GRAPH-MIGRATION.md`'s batches, whose last, *Fin as built*, has the
 build that results (128 s in order, against 451 s on text). A first,
 read-only taste of its views is built too (`crefactor/graph/view`, `whim
-view`: *Views, read-only*); the editor at the end is not. It asks
+view`: *Views, read-only*), and the first gate toward the editor at the
+end, views edited from the command line (`whim view-edit`: *Editable
+views, the first gate*); the editor itself is not. It asks
 what representation the pipeline, and later an editor, would hold a C program
 in, if the C text were no longer the thing edited. It rests on two measured
 pieces: C-lisp (`doc/C-LISP.md`: C23 as s-expressions, byte for byte against
@@ -1672,6 +1674,181 @@ user=> (print (v/tree-text false ix (v/callers ix (first (g/find-roots ix "ml_ge
 No nREPL: that wants a jar from outside, and `clojure.main`'s REPL is enough
 to explore.
 
+## Editable views, the first gate (2026-10-05)
+
+The editor at the end is a vim whose buffer is a Lisp view of the graph.
+Its first gate is the view edited from the command line: printed, changed
+as text, and the change made on the graph as graph edits, checked where
+they are made. Built in `crefactor/graph/view` (`spans.go`, `edit.go`,
+`agree.go`: about 1,040 lines of Go, comments and blank lines aside, naming
+nothing in any one program), the tool `go tool whim view-edit`; of
+`crefactor/graph` it needed three exported additions (`Spot.Err`,
+`Spot.Items`, `DeclAtom`) and one fix (the closure's refusal of a use in an
+object's initialiser, which named its function through a nil one).
+
+```sh
+go tool whim view def ml_clearmarked > f.lisp     # edit f.lisp, ids or none
+go tool whim view-edit -i f.lisp -o new.c def ml_clearmarked
+  edit         rename #95603 i to k
+  edit         replace #95665 with lnum += 1
+  re-check     0 stale edges retargeted, 0 parentheses taken out, 0 typed again, 0 left untyped
+```
+
+### The span table
+
+The printer records, as it writes, where each thing it prints is: a
+`Span` is a node and the bytes of the text that are its form -- `#ID` and
+`@ID` marks included when the ids are shown -- with the span it is in, and
+whether anything below it was elided (`...`). Besides the forms (`SpanForm`:
+every list and atom, tokens included, ids or none) a view's own structure
+has spans: an entry `(in F ...)` (`SpanEntry`), its name (`SpanName`), and a
+context around uses (`SpanContext`: the label's list `(:read FORM)`, or the
+form alone). `Printer.Render` and `RenderForm` give the text and the table;
+`Tree` and `Form` print the same bytes without it (the goldens and the
+Clojure gate's 6,370 views are unchanged). `whim view --spans F` writes the
+table. So a position names a node with the ids out of sight, and the ids
+shown or not, the same nodes are at the same places of the table
+(`TestSpansSample`, `TestSpansProduct`: for `def F` of all 1,755 functions
+of whim-vim.c, every span inside its parent, every form's span read back is
+its node's Lisp, every id'd form's span begins with its `#ID`, and the
+tables with the ids and without are the same nodes, kinds and nesting).
+
+### The alignment
+
+`view.Edit(g, render, edited, opt)` edits a COPY of g (its Lisp written and
+read back: the same ids), so that a refusal leaves g as it was, and returns
+it when the edit stands:
+
+- **Both texts are read as forms with their places** -- the printed one,
+  which the span table maps form by form to nodes, entries and contexts,
+  and the edited one -- the marks read past when the ids are shown
+  (`#ID(`, `#ID:atom@ID`, an entry's `#ID NAME`), so a form may be written
+  with its marks, without them, or new.
+- **Lists are aligned element by element** by the longest common
+  subsequence of equal forms; between two matched elements a run of the
+  same length on both sides is paired and aligned in turn. An unchanged
+  form is matched, so its node and its id stay.
+- **A renaming first.** Atoms changed one for one from a name to one other
+  name, which are exactly a declaration's name (`DeclAtom`) and every use
+  the graph holds of its entity, are the editor's `Rename` -- the ids kept,
+  the respelling the editor's, refused as `Rename` refuses (a clash, a
+  capture). A renaming the view does not show whole is not one: the
+  changed forms go to FRAG, which then refuses what is left dangling.
+- **The rest at the least node that can take it.** A changed form is
+  replaced where its place takes a fragment -- an item (statements, a
+  top-level form), a body, an expression (a typed list) -- by its C, printed
+  from the edited Lisp (`clisp.PrintItems`, `PrintExpr`, `Print`) and made
+  nodes in context by FRAG, every name resolved and typed as the file
+  resolves it; a changed token, a type form or a declarator climbs to the
+  form holding it that is such a place. A run of items of other lengths is
+  replaced (`SpotRun`), inserted (before the next matched item, after the
+  one before, or at the form's end) or deleted (`Delete`); a top-level form
+  deleted takes every declaration of its entity with it (a function's
+  prototypes, so that its calls dangle and are seen). In a view's own
+  structure only deletions are made: a context deleted deletes its form,
+  an entry its contexts' forms.
+- **Applied in one order**: the renamings, the deletions, then every
+  fragment in one FRAG unit (`SpliceC`), the spots taken on the graph as
+  the deletions left it.
+
+### The checks, and what is refused
+
+Each refusal is a `*view.Refusal` naming its reason; nothing is written.
+
+| refused | where | as |
+| --- | --- | --- |
+| a form that does not read | the reader | *the edited text, line 10: unclosed list* |
+| a change to a label, an entry, an entry's name | the alignment | *a context's label (`(:write (= opt 0))`) is the view's, not the graph's* |
+| a form added in the view's structure | the alignment | *`(= opt 3)` added in the view's own structure (an entry, a label)* |
+| a change into what the view elides | the alignment | *`...` stands for what the view elides: it is not edited*; *the change to #N reaches into what the view elides* |
+| a name the context does not declare, a member the type has not, C cc's check refuses | FRAG | *undefined: no_such_name*; *type struct block_hdr {...} has no member named bh_datum* |
+| a type that does not agree | `agree.go`, on the nodes made and the forms above them to their statement | *`lowest_marked = curbuf` stores a value of pointer in arith* |
+| a deletion that leaves a use dangling | the editor's dangling records | *#45584 (ml_clearmarked) in ex_global refers to #5555 (ml_clearmarked), which the edit deleted (1 use so): --fallout closes over them* |
+| what the closure cannot take, with `--fallout` | `FallOut` | *fall-out: #... refers to ..., and no rule takes it* |
+| an alignment that put the change elsewhere | the view printed again from the edited graph, read as forms, must be the edited text (layout, comments and marks aside, an entry left empty absent) | *the view printed again does not say what was written (...): the alignment is wrong* |
+| an expression left untyped, a broken invariant | `Recheck`, `Check` | -- |
+
+cc's check resolves and types but does not refuse what C's constraints on
+simple assignment refuse (`opt = b->next` passed it): `agree.go` holds every
+`=` and initialised declaration the edit made or holds to C's classes --
+arithmetic, `bool`, pointer (decayed arrays and functions), a struct or
+union by its definition -- a pointer from a null pointer constant allowed,
+pointers not told apart by what they point at, and a header's type not
+judged. Calls' arguments and returns are not held yet.
+
+The views' children and contexts were ordered by id, which is the source's
+order on a graph imported or read but not after an edit gives new nodes
+fresh ids: a replaced statement moved to its entry's end and the check
+above failed. They are ordered now by the containment's order, a rank the
+index records in its walk -- the same order on every graph not edited, so
+no view printed before changed.
+
+### The gate
+
+`crefactor/graph/view`'s `edit_test.go` and `cmd/whim`'s `viewedit_test.go`:
+
+- **(a) An edit through a view is the editor's.** On the sample, eleven
+  edits -- a constant, a parameter renamed, a statement deleted, items
+  inserted, an else added, an expression, a use's statement and a whole
+  entry deleted in `uses opt`, a context's form replaced, and the ids shown
+  (the form written with its marks, and without) -- each gives the ops
+  stated and a graph `Equal` (ids included) to the same change made on a
+  copy with `SpliceC`, `Rename` or `Delete` and `Recheck`, and
+  `SameGraph` to the import of its C view (`TestEditSample`). On
+  whim-vim.c (`TestEditProduct`): a constant in `def ml_clearmarked`, its
+  local `i` renamed `k` (one `rename`), its `++lnum` written `lnum += 1`
+  with the ids shown, found by its span, and a statement deleted in `uses
+  p_wiv` (ttest's, found by its context's span): each `Equal` to the
+  editor's, `SameGraph` to the import of its C view, and the C through
+  `gcc -O0 -fno-stack-protector -fsyntax-only`; and the whole definition
+  deleted with the closure (`--fallout`): its prototype goes with it, the
+  call in `ex_global` goes by the call rule, and the C compiles.
+- **(b) A broken edit is refused, named, and the graph unchanged** (its
+  Lisp byte for byte): on the sample twelve refusals (`TestEditRefusals`,
+  the table above), on whim-vim.c an undeclared name, a type that does not
+  agree, a member the type has not, and a function still called.
+- **(c) Behaviour.** `TestViewEditSuite` (`WHIM_VIEW_EDIT_SUITE=1`, 27 s):
+  `ml_clearmarked`'s local renamed and its `++lnum` written `lnum += 1`
+  through `whim view-edit`, the C canonical (it imports and prints back the
+  same), compiled and linked with the one compile line, and `whim test`'s
+  quick suite on it: 80 cases as HEAD's, the control seen by 76, the Go
+  editor all 80, the heavy case as HEAD's.
+- **The control** (`TestEditControl`, and on whim-vim.c): the alignment
+  made wrong on purpose -- the replacement put on the statement after (on
+  the sample) or before (on whim-vim.c) the one changed -- applies, and is
+  caught by the view printed again: *the alignment is wrong*.
+- `TestViewEditCLI`: the tool on the sample, an edit written as C, a
+  refusal writing nothing, `--spans`' table.
+
+### Measured
+
+On whim-vim.c (2,078,690 bytes of `def` text over 1,755 functions), at a
+load of 6-11:
+
+| | |
+| --- | ---: |
+| every `def F` printed, no table | 56-62 ms |
+| the same with the span table | 75-79 ms; with the ids 120-126 ms |
+| the graph copied (its Lisp written and read) | 109-137 ms |
+| an edit, the copy to the re-check and invariants: a renaming | 0.22-0.30 s |
+| a deletion (a statement, a function and its prototype) | 0.22-0.28 s |
+| a replacement (a FRAG unit parsed, checked and imported) | 0.44-0.72 s |
+| `whim view-edit`, the cache read, the edit, the C written | 0.34 s (a renaming) |
+
+The copy is the price of "a refusal leaves the graph untouched"; an editor
+holding the graph would rather undo through the editor's `Log`, and pay
+the FRAG unit alone.
+
+### What the editor at the end needs next
+
+- **The view rooted at the cursor**: the span table gives the node under a
+  position; re-rooting is a rebuild of the tree, milliseconds.
+- **Edits as they are typed**: the alignment is of whole texts; a buffer
+  knows which span changed, which is the alignment for nothing.
+- **Undo** without the copy: the `Log`'s acts reversed.
+- **Calls and returns** under `agree.go`'s rules, and the insertion of
+  top-level forms beside the view's (refused now).
+
 ## Open questions
 
 - Is the derived layer cached by the graph's digest, or kept incrementally
@@ -1680,5 +1857,6 @@ to explore.
   start, or join it once steps 1-3 stand?
 - What is the smallest editor that proves the view idea? The read-only
   browser is built (*Views, read-only*), its views in milliseconds once the
-  graph is read; what it lacks for a buffer -- a span table from the
-  printed text to the ids, the edits of step 4 -- is listed there.
+  graph is read, and its views edited as text from the command line, with
+  the span table and step 4's edits (*Editable views, the first gate*);
+  what a buffer needs beyond them is listed there.

@@ -456,11 +456,19 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    s6br_*.go (BoolRet: 87a, 87, 102, 103) and
                    s6ov_elements.go (76). Its corpus tests run on
                    GRAPH_CORPUS. graph/view/: its views, read-only (`go
-                   tool whim view`): index.go the edges the other way round
+                   tool whim view`), and editable (`go tool whim
+                   view-edit`): index.go the edges the other way round
                    and the roots by name, view.go the steps, the specs and
                    the tree built with links for revisits, named.go
                    callers, callees, uses, member, type and def, print.go
-                   the tree as C-lisp, ids on demand; clj/ the same views
+                   the tree as C-lisp, ids on demand, and spans.go its span
+                   table (each node, entry and context printed: its bytes in
+                   the text); edit.go Edit, an edited view aligned with the
+                   printed one form by form and made graph edits (Rename,
+                   FRAG's replacements and insertions, deletions), checked
+                   where made, agree.go the assignments' types, and refused
+                   unless the view printed again says what was written
+                   (doc/GRAPH.md, *Editable views, the first gate*); clj/ the same views
                    in Clojure over the graph's EDN, clojure.edn its only
                    reader (gview.graph, gview.view, gview.main; the script
                    view-clj; --serve a long-lived process answering a
@@ -904,6 +912,7 @@ go tool whim graph --changes N   # what phase N changed: the top-level forms who
 go tool whim graph --snapshot N  # boundary N's graph as Lisp, from the store of graphs in .cache/boundaries
 go tool whim view callers F      # a read-only view of whim-vim.c's graph as Lisp: callers, callees, uses, member S.M, type T, def; 0.07 s once .cache/graph holds it (doc/GRAPH.md)
 crefactor/graph/view/clj/view-clj --serve F.edn  # the views in Clojure, a long-lived process: the EDN read once (2 s), then a request a line on stdin, answered in 0.1 ms median (doc/GRAPH.md, *The server*)
+go tool whim view-edit def F < EDITED  # that view edited (ids shown or not) made an edit of the graph, checked where made; writes the C (--lisp, --view; --fallout); 0.25-0.7 s an edit
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary
 make bin/slim-vim    # the input's binary, with the same one line

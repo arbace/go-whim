@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -41,6 +42,8 @@ const graphHeader = ";; a C translation unit as a graph"
 //	--show S      around each use: node, stmt (the default), fn, none
 //	--stop HEADS  nodes of these heads, comma-separated, not expanded
 //	--c           def: the C view of the definition, not its Lisp
+//	--spans F     the span table written to F: a line for each node, entry
+//	              and context printed, its bytes in the text
 //	--no-cache    import, and neither read nor write the cache
 //	--time        the load, the view and the print timed, on stderr
 func runView(args []string) int {
@@ -48,6 +51,7 @@ func runView(args []string) int {
 		ids, cOut, noCache, timing bool
 		opt                        view.Options
 		rest                       []string
+		spanFile                   string
 	)
 	for i := 0; i < len(args); i++ {
 		a := args[i]
@@ -67,6 +71,12 @@ func runView(args []string) int {
 			noCache = true
 		case "--time":
 			timing = true
+		case "--spans":
+			f, ok := next()
+			if !ok {
+				return viewUsage()
+			}
+			spanFile = f
 		case "--depth":
 			s, ok := next()
 			n, err := strconv.Atoi(s)
@@ -120,16 +130,56 @@ func runView(args []string) int {
 	ix := view.NewIndex(g)
 	indexed := time.Since(start)
 	start = time.Now()
-	roots, err := ix.Find(rest[need-1])
-	if err == nil && name == "member" && !isMemberNode(ix, roots[0]) {
-		err = fmt.Errorf("%s is not a member: member is S.M", rest[need-1])
-	}
+	text, spans, err := viewText(ix, name, rest[1:need], opt, view.Printer{IDs: ids}, cOut)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "  view         %v\n", err)
+		if errors.Is(err, errViewUsage) {
+			return viewUsage()
+		}
 		return 1
 	}
-	var out bytes.Buffer
-	p := view.Printer{IDs: ids}
+	built := time.Since(start)
+	os.Stdout.WriteString(text)
+	if spanFile != "" {
+		if err := os.WriteFile(spanFile, []byte(spanTable(spans)), 0o644); err != nil {
+			fmt.Fprintf(os.Stderr, "  view         %v\n", err)
+			return 1
+		}
+	}
+	if timing {
+		fmt.Fprintf(os.Stderr, "  view         %s %dms, indexed %dms, the view built and printed %dms\n",
+			how, loaded.Milliseconds(), indexed.Milliseconds(), built.Milliseconds())
+	}
+	return 0
+}
+
+// errViewUsage is a view named that is not one.
+var errViewUsage = errors.New("no such view")
+
+// viewText is the view name of args ([ARG] or [STEPS ROOT]) on ix, printed
+// by p, with its span table: one text for each root the argument names.
+func viewText(ix *view.Index, name string, args []string, opt view.Options, p view.Printer, cOut bool) (string, []view.Span, error) {
+	roots, err := ix.Find(args[len(args)-1])
+	if err == nil && name == "member" && !isMemberNode(ix, roots[0]) {
+		err = fmt.Errorf("%s is not a member: member is S.M", args[len(args)-1])
+	}
+	if err != nil {
+		return "", nil, err
+	}
+	var out strings.Builder
+	var spans []view.Span
+	add := func(s string, sp []view.Span) {
+		base, first := out.Len(), len(spans)
+		for _, x := range sp {
+			x.Start += base
+			x.End += base
+			if x.Parent >= 0 {
+				x.Parent += first
+			}
+			spans = append(spans, x)
+		}
+		out.WriteString(s)
+	}
 	for _, root := range roots {
 		var t *view.Tree
 		switch name {
@@ -142,10 +192,9 @@ func runView(args []string) int {
 		case "member":
 			t = view.Member(ix, root, opt)
 		case "type":
-			s, err := ix.Aggregate(rest[1])
+			s, err := ix.Aggregate(args[0])
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "  view         %v\n", err)
-				return 1
+				return "", nil, err
 			}
 			t = view.Type(ix, s, opt)
 		case "def":
@@ -153,35 +202,43 @@ func runView(args []string) int {
 			if cOut {
 				c, err := clisp.Print([]*clisp.Node{graph.Lisp(d)})
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "  view         %v\n", err)
-					return 1
+					return "", nil, err
 				}
 				out.Write(c)
 			} else {
-				out.WriteString(p.Form(d))
+				add(p.RenderForm(d))
 			}
 			continue
 		case "follow":
-			steps, err := view.ParseSteps(rest[1])
+			steps, err := view.ParseSteps(args[0])
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "  view         %v\n", err)
-				return 1
+				return "", nil, err
 			}
 			t = view.Build(ix, root, view.Spec{Name: "follow", Child: "to", Rel: view.Steps(steps),
 				Depth: followDepth(opt.Depth), Stop: opt.Stop, Show: opt.Show})
-			t.Notes = append(t.Notes, "steps: "+rest[1])
+			t.Notes = append(t.Notes, "steps: "+args[0])
 		default:
-			return viewUsage()
+			return "", nil, errViewUsage
 		}
-		out.WriteString(p.Tree(ix, t))
+		add(p.Render(ix, t))
 	}
-	built := time.Since(start)
-	os.Stdout.Write(out.Bytes())
-	if timing {
-		fmt.Fprintf(os.Stderr, "  view         %s %dms, indexed %dms, the view built and printed %dms\n",
-			how, loaded.Milliseconds(), indexed.Milliseconds(), built.Milliseconds())
+	return out.String(), spans, nil
+}
+
+// spanTable is a span table as text: a line a span, its bytes, its kind,
+// its node's id (0 for a token), the span it is in, and whether it is
+// whole.
+func spanTable(spans []view.Span) string {
+	var b strings.Builder
+	b.WriteString(";; start end kind id parent whole\n")
+	for _, s := range spans {
+		id := graph.ID(0)
+		if s.Node != nil {
+			id = s.Node.ID
+		}
+		fmt.Fprintf(&b, "%d %d %s %d %d %v\n", s.Start, s.End, s.Kind, id, s.Parent, s.Whole)
 	}
-	return 0
+	return b.String()
 }
 
 func isMemberNode(ix *view.Index, n *graph.Node) bool {
@@ -190,7 +247,7 @@ func isMemberNode(ix *view.Index, n *graph.Node) bool {
 }
 
 func viewUsage() int {
-	fmt.Fprintln(os.Stderr, "usage: whim view [--ids] [--depth N] [--show node|stmt|fn|none] [--stop HEADS] [--c] [--no-cache] [--time]\n"+
+	fmt.Fprintln(os.Stderr, "usage: whim view [--ids] [--depth N] [--show node|stmt|fn|none] [--stop HEADS] [--c] [--spans F] [--no-cache] [--time]\n"+
 		"                 callers F | callees F | uses NAME | member S.M | type T | def NAME | follow 'STEPS' ROOT  [FILE]\n"+
 		"  a root is a name, S.M, struct T, F/local or #ID; STEPS are refers, typed, contains (each with <), inside, ^fn, ^stmt, call")
 	return 2

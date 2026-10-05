@@ -28,10 +28,12 @@ type Index struct {
 	G       *graph.Graph
 	byID    []*graph.Node
 	parent  []*graph.Node   // by id: the list holding a node, nil at the top
-	uses    [][]*graph.Node // by id: the nodes with a refers edge to it, in id order
+	uses    [][]*graph.Node // by id: the nodes with a refers edge to it, in the source's order
 	typedBy [][]*graph.Node // by id: the nodes with a typed edge to it
 	top     map[string][]*graph.Node
 	topSet  map[*graph.Node]bool
+	rank    []int32 // by id: the node's place in the walk, the containment's order
+	ranked  int32
 }
 
 // NewIndex indexes g.
@@ -44,7 +46,8 @@ func NewIndex(g *graph.Graph) *Index {
 	ix := &Index{
 		G: g, byID: make([]*graph.Node, maxID+1), parent: make([]*graph.Node, maxID+1),
 		uses: make([][]*graph.Node, maxID+1), typedBy: make([][]*graph.Node, maxID+1),
-		top: map[string][]*graph.Node{}, topSet: map[*graph.Node]bool{},
+		rank: make([]int32, maxID+1),
+		top:  map[string][]*graph.Node{}, topSet: map[*graph.Node]bool{},
 	}
 	for _, s := range g.Sections() {
 		for _, f := range s {
@@ -64,13 +67,16 @@ func (ix *Index) walk(n, parent *graph.Node) {
 	if n.ID != 0 {
 		ix.byID[n.ID] = n
 		ix.parent[n.ID] = parent
+		ix.ranked++
+		ix.rank[n.ID] = ix.ranked
 	}
 	for _, r := range n.Refs {
-		if r.ID != 0 && n.ID != 0 {
+		// an edge into a node an edit removed may name an id past the walk's
+		if r.ID != 0 && n.ID != 0 && int(r.ID) < len(ix.uses) {
 			ix.uses[r.ID] = append(ix.uses[r.ID], n)
 		}
 	}
-	if t := n.Type; t != nil && t.ID != 0 && n.ID != 0 {
+	if t := n.Type; t != nil && t.ID != 0 && n.ID != 0 && int(t.ID) < len(ix.typedBy) {
 		ix.typedBy[t.ID] = append(ix.typedBy[t.ID], n)
 	}
 	for _, k := range n.Kids {
@@ -95,7 +101,7 @@ func (ix *Index) Parent(n *graph.Node) *graph.Node {
 	return ix.parent[n.ID]
 }
 
-// Uses is every node with a refers edge to n, in id order: the uses of a
+// Uses is every node with a refers edge to n, in the source's order: the uses of a
 // declaration, a member, a label.
 func (ix *Index) Uses(n *graph.Node) []*graph.Node {
 	if n.ID == 0 || int(n.ID) >= len(ix.uses) {
@@ -416,7 +422,19 @@ func (ix *Index) locals(fn, x string) ([]*graph.Node, error) {
 	return out, nil
 }
 
-// byID sorts nodes by id: the source's order.
-func byID(ns []*graph.Node) {
-	sort.Slice(ns, func(i, j int) bool { return ns[i].ID < ns[j].ID })
+// inOrder sorts nodes in the source's order: the containment's, which is
+// the ids' on a graph imported or read, and not after an edit has given
+// new nodes fresh ids.
+func (ix *Index) inOrder(ns []*graph.Node) {
+	sort.SliceStable(ns, func(i, j int) bool { return ix.before(ns[i], ns[j]) })
+}
+
+// before says a comes before b in the containment's order.
+func (ix *Index) before(a, b *graph.Node) bool { return ix.order(a) < ix.order(b) }
+
+func (ix *Index) order(n *graph.Node) int32 {
+	if n.ID != 0 && int(n.ID) < len(ix.rank) && ix.rank[n.ID] != 0 {
+		return ix.rank[n.ID]
+	}
+	return ix.ranked + 1 + int32(n.ID) // not in the walk: after it, by id
 }

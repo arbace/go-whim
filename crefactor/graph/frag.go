@@ -99,6 +99,15 @@ type Frag struct {
 
 func spotErr(format string, a ...any) Spot { return Spot{err: fmt.Errorf(format, a...)} }
 
+// Err is why a spot could not be made, or nil: SpotOf, SpotRun and the
+// others refuse a place FRAG cannot take by a spot that carries the
+// refusal, which a caller may ask before it splices.
+func (s Spot) Err() error { return s.err }
+
+// Items says the spot is a run of items (an insertion when empty), not
+// one node's place: its fragment is statements or declarations.
+func (s Spot) Items() bool { return s.err == nil && !s.one }
+
 // SpotOf is n's own place: an item's (the fragment's items replace it), an
 // expression's or an initialiser element's (the fragment is one expression),
 // a body's or an else's (the fragment is a block, or for an else an if).

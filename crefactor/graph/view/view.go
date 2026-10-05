@@ -69,10 +69,10 @@ func (s Step) String() string {
 // A Hit is a child a relation reached, and the uses it was reached at.
 type Hit struct {
 	To  *graph.Node
-	Via []*graph.Node // in id order
+	Via []*graph.Node // in the source's order
 }
 
-// A Relation is a view's children of a node, in id order.
+// A Relation is a view's children of a node, in the source's order.
 type Relation func(ix *Index, n *graph.Node) []Hit
 
 // Steps is the relation of a list of steps.
@@ -140,12 +140,12 @@ func Steps(steps []Step) Relation {
 			}
 			cur = next
 		}
-		return hits(cur, func(a at) (*graph.Node, *graph.Node) { return a.n, a.via })
+		return hits(ix, cur, func(a at) (*graph.Node, *graph.Node) { return a.n, a.via })
 	}
 }
 
 // hits groups what a relation reached by node, each with its uses.
-func hits[T any](xs []T, f func(T) (*graph.Node, *graph.Node)) []Hit {
+func hits[T any](ix *Index, xs []T, f func(T) (*graph.Node, *graph.Node)) []Hit {
 	index := map[*graph.Node]int{}
 	var out []Hit
 	for _, x := range xs {
@@ -161,10 +161,10 @@ func hits[T any](xs []T, f func(T) (*graph.Node, *graph.Node)) []Hit {
 		}
 	}
 	for i := range out {
-		byID(out[i].Via)
+		ix.inOrder(out[i].Via)
 		out[i].Via = dedupe(out[i].Via)
 	}
-	sortHits(out)
+	sortHits(ix, out)
 	return out
 }
 
@@ -178,10 +178,10 @@ func dedupe(ns []*graph.Node) []*graph.Node {
 	return out
 }
 
-func sortHits(hs []Hit) {
-	// insertion by id keeps it stable and the lists are short
+func sortHits(ix *Index, hs []Hit) {
+	// insertion in the source's order keeps it stable and the lists are short
 	for i := 1; i < len(hs); i++ {
-		for j := i; j > 0 && hs[j].To.ID < hs[j-1].To.ID; j-- {
+		for j := i; j > 0 && ix.before(hs[j].To, hs[j-1].To); j-- {
 			hs[j], hs[j-1] = hs[j-1], hs[j]
 		}
 	}
@@ -279,7 +279,7 @@ func Build(ix *Index, root *graph.Node, spec Spec) *Tree {
 }
 
 // Contexts are the forms around uses: one for each statement (or
-// function) holding any, in id order, each with the uses it holds.
+// function) holding any, in the source's order, each with the uses it holds.
 func Contexts(ix *Index, uses []*graph.Node, show Show, label func(*Index, []*graph.Node) string) []Context {
 	if show == ShowNone || len(uses) == 0 {
 		return nil
@@ -305,7 +305,7 @@ func Contexts(ix *Index, uses []*graph.Node, show Show, label func(*Index, []*gr
 		out[i].Uses = append(out[i].Uses, u)
 	}
 	for i := 1; i < len(out); i++ {
-		for j := i; j > 0 && out[j].Form.ID < out[j-1].Form.ID; j-- {
+		for j := i; j > 0 && ix.before(out[j].Form, out[j-1].Form); j-- {
 			out[j], out[j-1] = out[j-1], out[j]
 		}
 	}

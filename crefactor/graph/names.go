@@ -23,3 +23,7 @@ func IsTypeDef(n *Node) bool { return isDefForm(n) }
 // `(NAME TYPE ...)`, `(TYPE)` for an anonymous struct or union, or a
 // `(static_assert ...)`.
 func Members(n *Node) []*Node { return members(n) }
+
+// DeclAtom is the atom of the declaration d that spells the name it
+// declares, or nil (rename.go's rule).
+func DeclAtom(d *Node) *Node { return declAtom(d) }

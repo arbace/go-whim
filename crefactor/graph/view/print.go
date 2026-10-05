@@ -27,55 +27,72 @@ func (p Printer) width() int {
 
 // Tree writes t, and a newline.
 func (p Printer) Tree(ix *Index, t *Tree) string {
+	return p.render(ix, t, nil)
+}
+
+// Render is Tree with its SPAN TABLE: where in the text each node printed
+// is, and each entry and context (spans.go).
+func (p Printer) Render(ix *Index, t *Tree) (string, []Span) {
+	sp := &spanner{}
+	return p.render(ix, t, sp), sp.spans
+}
+
+func (p Printer) render(ix *Index, t *Tree, sp *spanner) string {
 	var b strings.Builder
-	p.tree(&b, ix, t, 0)
+	p.tree(&b, ix, t, 0, sp)
 	b.WriteByte('\n')
 	return b.String()
 }
 
-func (p Printer) tree(b *strings.Builder, ix *Index, t *Tree, col int) {
+func (p Printer) tree(b *strings.Builder, ix *Index, t *Tree, col int, sp *spanner) {
 	pad := strings.Repeat(" ", col)
 	for _, n := range t.Notes {
 		b.WriteString(pad + ";; " + n + "\n")
 	}
 	b.WriteString(pad)
+	entry := sp.open(b, t.Node, SpanEntry, true)
 	line := "(" + t.Head
+	b.WriteString(line)
 	if t.Node != nil {
 		line += " " + p.name(ix, t, t.Link)
+		b.WriteString(" ")
+		name := sp.open(b, t.Node, SpanName, true)
+		b.WriteString(p.name(ix, t, t.Link))
+		sp.close(b, name)
 	}
 	at := col + len(line)
-	var lb strings.Builder
-	lb.WriteString(line)
 	for _, f := range t.Inline {
 		d := p.doc(f, nil)
 		if d.flatLen() <= p.width()-at-1 {
-			lb.WriteByte(' ')
-			d.layout(&lb, at+1, p.width())
+			b.WriteByte(' ')
+			d.layout(b, at+1, p.width(), sp)
 			at += 1 + d.flatLen()
 		} else {
-			lb.WriteString("\n" + pad + "  ")
-			d.layout(&lb, col+2, p.width())
+			b.WriteString("\n" + pad + "  ")
+			d.layout(b, col+2, p.width(), sp)
 			at = p.width() // the rest goes below
 		}
 	}
 	if t.Attrs != "" {
-		lb.WriteString(" " + t.Attrs)
+		b.WriteString(" " + t.Attrs)
 	}
-	b.WriteString(lb.String())
 	inner := strings.Repeat(" ", col+2)
 	for _, c := range t.Contexts {
 		b.WriteString("\n" + inner)
 		d := p.context(ix, c)
 		if c.Label != "" {
-			d = &pdoc{list: true, kids: []*pdoc{{text: ":" + c.Label}, d}, head: ":" + c.Label}
+			d = &pdoc{list: true, kids: []*pdoc{{text: ":" + c.Label}, d}, head: ":" + c.Label, ctx: c.Form, partial: d.partial}
+		} else {
+			d = &pdoc{wrap: d, ctx: c.Form, partial: d.partial}
 		}
-		d.layout(b, col+2, p.width())
+		d.layout(b, col+2, p.width(), sp)
 	}
 	for _, k := range t.Kids {
 		b.WriteString("\n")
-		p.tree(b, ix, k, col+2)
+		p.tree(b, ix, k, col+2, sp)
 	}
 	b.WriteString(")")
+	sp.close(b, entry)
 }
 
 // name is how an entry names its node: `#ID NAME`, a link `@ID NAME`; or
@@ -104,9 +121,18 @@ func (p Printer) name(ix *Index, t *Tree, link bool) string {
 // Form writes one form, whole, laid out from column 0, and a newline.
 func (p Printer) Form(n *graph.Node) string {
 	var b strings.Builder
-	p.doc(n, nil).layout(&b, 0, p.width())
+	p.doc(n, nil).layout(&b, 0, p.width(), nil)
 	b.WriteByte('\n')
 	return b.String()
+}
+
+// RenderForm is Form with its span table.
+func (p Printer) RenderForm(n *graph.Node) (string, []Span) {
+	var b strings.Builder
+	sp := &spanner{}
+	p.doc(n, nil).layout(&b, 0, p.width(), sp)
+	b.WriteByte('\n')
+	return b.String(), sp.spans
 }
 
 // context is a context's form, what holds no use elided unless it is shown
@@ -139,9 +165,9 @@ var collapsible = map[string]bool{"block": true, "init": true, "struct": true, "
 // form off the path, and every block off it, a run of them one `...`.
 func (p Printer) doc(n *graph.Node, path map[*graph.Node]bool) *pdoc {
 	if !n.IsList() {
-		return &pdoc{text: p.atom(n)}
+		return &pdoc{text: p.atom(n), node: n}
 	}
-	d := &pdoc{list: true, head: n.Head()}
+	d := &pdoc{list: true, head: n.Head(), node: n}
 	if p.IDs && n.ID != 0 {
 		d.pre = "#" + idText(n.ID)
 	}
@@ -156,10 +182,13 @@ func (p Printer) doc(n *graph.Node, path map[*graph.Node]bool) *pdoc {
 				d.kids = append(d.kids, &pdoc{text: Elided})
 			}
 			elided = true
+			d.partial = true
 			continue
 		}
 		elided = false
-		d.kids = append(d.kids, p.doc(k, path))
+		kd := p.doc(k, path)
+		d.partial = d.partial || kd.partial
+		d.kids = append(d.kids, kd)
 	}
 	return d
 }
@@ -186,9 +215,16 @@ type pdoc struct {
 	head      string
 	list      bool
 	kids      []*pdoc
+	node      *graph.Node // the node it prints, for the span table
+	partial   bool        // something below it is elided
+	ctx       *graph.Node // a context's form: a context's span around it
+	wrap      *pdoc       // a context with no label: the form, its span around it
 }
 
 func (d *pdoc) flatLen() int {
+	if d.wrap != nil {
+		return d.wrap.flatLen()
+	}
 	if !d.list {
 		return len(d.text)
 	}
@@ -202,7 +238,13 @@ func (d *pdoc) flatLen() int {
 	return l
 }
 
-func (d *pdoc) flat(b *strings.Builder) {
+func (d *pdoc) flat(b *strings.Builder, sp *spanner) {
+	s := d.open(b, sp)
+	defer d.close(b, sp, s)
+	if d.wrap != nil {
+		d.wrap.flat(b, sp)
+		return
+	}
 	if !d.list {
 		b.WriteString(d.text)
 		return
@@ -212,14 +254,37 @@ func (d *pdoc) flat(b *strings.Builder) {
 		if i > 0 {
 			b.WriteByte(' ')
 		}
-		k.flat(b)
+		k.flat(b, sp)
 	}
 	b.WriteString(")" + d.post)
+}
+
+// open starts d's spans: a context's, then its node's.
+func (d *pdoc) open(b *strings.Builder, sp *spanner) [2]int {
+	s := [2]int{-1, -1}
+	if sp == nil {
+		return s
+	}
+	if d.ctx != nil {
+		s[0] = sp.open(b, d.ctx, SpanContext, !d.partial)
+	}
+	if d.node != nil {
+		s[1] = sp.open(b, d.node, SpanForm, !d.partial)
+	}
+	return s
+}
+
+func (d *pdoc) close(b *strings.Builder, sp *spanner, s [2]int) {
+	sp.close(b, s[1])
+	sp.close(b, s[0])
 }
 
 // broken says a form is always broken: a body is a statement a line, as
 // C-lisp lays it out.
 func (d *pdoc) broken() bool {
+	if d.wrap != nil {
+		return d.wrap.broken()
+	}
 	if !d.list {
 		return false
 	}
@@ -260,9 +325,15 @@ func (d *pdoc) keep() int {
 	return atoms
 }
 
-func (d *pdoc) layout(b *strings.Builder, col, width int) {
-	if !d.list || !d.broken() && d.flatLen() <= width-col {
-		d.flat(b)
+func (d *pdoc) layout(b *strings.Builder, col, width int, sp *spanner) {
+	if !d.list && d.wrap == nil || !d.broken() && d.flatLen() <= width-col {
+		d.flat(b, sp)
+		return
+	}
+	s := d.open(b, sp)
+	defer d.close(b, sp, s)
+	if d.wrap != nil {
+		d.wrap.layout(b, col, width, sp)
 		return
 	}
 	b.WriteString(d.pre + "(")
@@ -273,7 +344,7 @@ func (d *pdoc) layout(b *strings.Builder, col, width int) {
 	at := col + len(d.pre) + 1
 	inner := col + 2
 	first := d.kids[0]
-	first.layout(b, at, width)
+	first.layout(b, at, width, sp)
 	k := 0
 	if !first.list {
 		k = d.keep()
@@ -284,13 +355,13 @@ func (d *pdoc) layout(b *strings.Builder, col, width int) {
 	for i, x := range d.kids[1:] {
 		if i < k && (x.flatLen() <= width-at-1 || i == 0 && !x.list) {
 			b.WriteByte(' ')
-			x.layout(b, at+1, width)
+			x.layout(b, at+1, width, sp)
 			at += 1 + x.flatLen()
 			continue
 		}
 		k = 0
 		b.WriteString("\n" + strings.Repeat(" ", inner))
-		x.layout(b, inner, width)
+		x.layout(b, inner, width, sp)
 	}
 	b.WriteString(")" + d.post)
 }
