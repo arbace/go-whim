@@ -46,12 +46,21 @@ const graphHeader = ";; a C translation unit as a graph"
 //	              and context printed, its bytes in the text
 //	--no-cache    import, and neither read nor write the cache
 //	--time        the load, the view and the print timed, on stderr
+//	--at POS      the view at a cursor: the view printed, the node at POS
+//	              in its text (a byte offset, or LINE:COL from 1:1) found
+//	              by the span table, and the same view printed again
+//	              rooted at the entity that node is about -- what a use
+//	              refers to, a call's callee, a declaration, else the
+//	              nearest around it (view.EntityAt); the node and the
+//	              entity on stderr
+//	--as VIEW     with --at, that view at the cursor instead (callers,
+//	              callees, uses, member, type, def)
 func runView(args []string) int {
 	var (
 		ids, cOut, noCache, timing bool
 		opt                        view.Options
 		rest                       []string
-		spanFile                   string
+		spanFile, at, as           string
 	)
 	for i := 0; i < len(args); i++ {
 		a := args[i]
@@ -71,6 +80,16 @@ func runView(args []string) int {
 			noCache = true
 		case "--time":
 			timing = true
+		case "--at", "--as":
+			v, ok := next()
+			if !ok {
+				return viewUsage()
+			}
+			if a == "--at" {
+				at = v
+			} else {
+				as = v
+			}
 		case "--spans":
 			f, ok := next()
 			if !ok {
@@ -139,6 +158,14 @@ func runView(args []string) int {
 		return 1
 	}
 	built := time.Since(start)
+	if at != "" {
+		start = time.Now()
+		if text, spans, err = viewAt(ix, text, spans, at, name, as, opt, view.Printer{IDs: ids}, cOut); err != nil {
+			fmt.Fprintf(os.Stderr, "  view         %v\n", err)
+			return 1
+		}
+		built += time.Since(start)
+	}
 	os.Stdout.WriteString(text)
 	if spanFile != "" {
 		if err := os.WriteFile(spanFile, []byte(spanTable(spans)), 0o644); err != nil {
@@ -241,13 +268,77 @@ func spanTable(spans []view.Span) string {
 	return b.String()
 }
 
+// viewAt is the view at a cursor: the entity at pos (a byte, or LINE:COL)
+// of the printed text, and the view name (or as) rooted there.
+func viewAt(ix *view.Index, text string, spans []view.Span, pos, name, as string, opt view.Options, p view.Printer, cOut bool) (string, []view.Span, error) {
+	off, err := textOffset(text, pos)
+	if err != nil {
+		return "", nil, err
+	}
+	e, on := view.EntityAt(ix, spans, off)
+	if e == nil {
+		return "", nil, fmt.Errorf("--at %s: no node there", pos)
+	}
+	if as == "" {
+		as = name
+	}
+	if as == "follow" {
+		return "", nil, fmt.Errorf("--at: follow needs its steps; --as another view")
+	}
+	what := ""
+	if on.ID != 0 {
+		what = fmt.Sprintf("#%d ", on.ID)
+	}
+	if on.IsList() {
+		what += "(" + on.Head() + ")"
+	} else {
+		what += on.Atom
+	}
+	fmt.Fprintf(os.Stderr, "  at           %s: %s, about #%d %s\n", pos, what, e.ID, ix.Name(e))
+	return viewText(ix, as, []string{fmt.Sprintf("#%d", e.ID)}, opt, p, cOut)
+}
+
+// textOffset is a position in text: a byte offset, or LINE:COL from 1:1
+// (COL a byte in the line).
+func textOffset(text, pos string) (int, error) {
+	l, c, ok := strings.Cut(pos, ":")
+	if !ok {
+		n, err := strconv.Atoi(pos)
+		if err != nil || n < 0 || n >= len(text) {
+			return 0, fmt.Errorf("--at %s: not a byte of the view's %d", pos, len(text))
+		}
+		return n, nil
+	}
+	line, err1 := strconv.Atoi(l)
+	col, err2 := strconv.Atoi(c)
+	if err1 != nil || err2 != nil || line < 1 || col < 1 {
+		return 0, fmt.Errorf("--at %s: not LINE:COL", pos)
+	}
+	off := 0
+	for i := 1; i < line; i++ {
+		k := strings.IndexByte(text[off:], '\n')
+		if k < 0 {
+			return 0, fmt.Errorf("--at %s: the view has %d lines", pos, i)
+		}
+		off += k + 1
+	}
+	end := strings.IndexByte(text[off:], '\n')
+	if end < 0 {
+		end = len(text) - off
+	}
+	if col > end {
+		return 0, fmt.Errorf("--at %s: line %d has %d bytes", pos, line, end)
+	}
+	return off + col - 1, nil
+}
+
 func isMemberNode(ix *view.Index, n *graph.Node) bool {
 	p := ix.Parent(n)
 	return n.Is("member") || p != nil && graph.IsTypeDef(p) && (p.Is("struct") || p.Is("union"))
 }
 
 func viewUsage() int {
-	fmt.Fprintln(os.Stderr, "usage: whim view [--ids] [--depth N] [--show node|stmt|fn|none] [--stop HEADS] [--c] [--spans F] [--no-cache] [--time]\n"+
+	fmt.Fprintln(os.Stderr, "usage: whim view [--ids] [--depth N] [--show node|stmt|fn|none] [--stop HEADS] [--c] [--spans F] [--at POS [--as VIEW]] [--no-cache] [--time]\n"+
 		"                 callers F | callees F | uses NAME | member S.M | type T | def NAME | follow 'STEPS' ROOT  [FILE]\n"+
 		"  a root is a name, S.M, struct T, F/local or #ID; STEPS are refers, typed, contains (each with <), inside, ^fn, ^stmt, call")
 	return 2

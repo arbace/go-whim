@@ -44,6 +44,7 @@ func (e *Editor) RenamePrototypeParams(fn string, i int, to string) (int, error)
 		return 0, fmt.Errorf("rename %s's parameter %d: no declaration of it but its definition", fn, i)
 	}
 	for _, a := range atoms {
+		e.g.save(a)
 		a.Atom = to
 	}
 	e.Log = append(e.Log, act)

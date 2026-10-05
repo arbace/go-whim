@@ -52,6 +52,11 @@ type EditOptions struct {
 	// Printed, when set, is the text the edit was made on: refused unless
 	// the view prints the same now.
 	Printed *string
+	// InPlace edits the graph handed in, under a journal (graph.Begin),
+	// instead of a copy: a refusal undoes what was made, and the Result's
+	// Journal undoes the edit made.  It spares the copy, the graph's Lisp
+	// printed and read (130 ms on whim-vim.c's).
+	InPlace bool
 }
 
 // An Op is one edit an aligned text makes.
@@ -103,6 +108,9 @@ type Result struct {
 	FallOut graph.FallOutStats
 	Recheck graph.RecheckStats
 	Text    string // the view printed again
+	// Journal, for an edit made in place, undoes it (Journal.Undo; Session
+	// keeps them in order).
+	Journal *graph.Journal
 }
 
 // tamper, when a test sets it, changes the alignment's ops before they are
@@ -110,12 +118,28 @@ type Result struct {
 var tamper func(*graph.Editor, []Op)
 
 // Edit aligns edited with the view render prints of g and makes the edit
-// on a copy of g, which it returns; g is not touched.
+// on a copy of g, which it returns; g is not touched -- or, InPlace, on g
+// itself, which a refusal leaves as it was.
 func Edit(g *graph.Graph, render Render, edited string, opt EditOptions) (*Result, error) {
-	w, err := graph.Read(g.Lisp())
+	if !opt.InPlace {
+		w, err := graph.Read(g.Lisp())
+		if err != nil {
+			return nil, err
+		}
+		return edit(w, render, edited, opt)
+	}
+	j := g.Begin()
+	r, err := edit(g, render, edited, opt)
+	j.End()
 	if err != nil {
+		j.Undo()
 		return nil, err
 	}
+	r.Journal = j
+	return r, nil
+}
+
+func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Result, error) {
 	text, spans, err := render(w)
 	if err != nil {
 		return nil, err

@@ -661,6 +661,7 @@ func (e *Editor) replaceKeepingTypes(ns, with []*Node) error {
 	back := map[*Node]bool{}
 	for _, k := range saved {
 		if k.q.Type == nil && e.Live(k.q) {
+			e.g.save(k.q)
 			k.q.Type = k.t
 			e.typed(k.q)
 			back[k.q] = true

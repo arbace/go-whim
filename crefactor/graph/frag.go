@@ -963,6 +963,7 @@ func (s *synth) carry() error {
 			if err != nil {
 				return err
 			}
+			s.e.g.save(x)
 			x.Refs[i] = o
 		}
 		if x.Type != nil {
@@ -970,6 +971,7 @@ func (s *synth) carry() error {
 			if err != nil {
 				return err
 			}
+			s.e.g.save(x)
 			x.Type = t
 		}
 	}
@@ -981,6 +983,7 @@ func (s *synth) carry() error {
 		}
 	}
 	for _, x := range all {
+		s.e.g.save(x)
 		x.ID = 0
 		x.up = nil
 	}
@@ -1028,6 +1031,7 @@ func (s *synth) hole(j *fragJob, h fragHole, used map[*Node]bool) error {
 	if parent == nil {
 		j.nodes[idx] = node
 	} else {
+		s.e.g.save(parent)
 		parent.Kids[idx] = node
 	}
 	return nil
@@ -1089,6 +1093,7 @@ func (s *synth) external(t *Node) (*Node, error) {
 			if err != nil {
 				return nil, err
 			}
+			s.e.g.save(m)
 			m.Type = ty
 		}
 		s.e.addMember(o, m)
@@ -1111,6 +1116,7 @@ func (s *synth) external(t *Node) (*Node, error) {
 	n := NewList()
 	for _, a := range t.Kids {
 		if !a.list {
+			s.e.g.save(n)
 			n.Kids = append(n.Kids, NewAtom(a.Atom))
 		}
 	}
@@ -1120,6 +1126,7 @@ func (s *synth) external(t *Node) (*Node, error) {
 		if err != nil {
 			return nil, err
 		}
+		s.e.g.save(n)
 		n.Type = ty
 	}
 	s.e.addTo(2, n)
@@ -1193,6 +1200,7 @@ func (s *synth) typ(t *Node) (*Node, error) {
 			ps := NewList()
 			for _, p := range a.Kids {
 				if p.Type == nil {
+					s.e.g.save(ps)
 					ps.Kids = append(ps.Kids, NewAtom(p.Atom))
 					continue
 				}
@@ -1200,16 +1208,20 @@ func (s *synth) typ(t *Node) (*Node, error) {
 				if err != nil {
 					return nil, err
 				}
+				s.e.g.save(ps)
 				ps.Kids = append(ps.Kids, &Node{Type: pt})
 			}
+			s.e.g.save(n)
 			n.Kids = append(n.Kids, ps)
 		case a.Type != nil:
 			at, err := s.typ(a.Type)
 			if err != nil {
 				return nil, err
 			}
+			s.e.g.save(n)
 			n.Kids = append(n.Kids, &Node{Type: at})
 		default:
+			s.e.g.save(n)
 			n.Kids = append(n.Kids, NewAtom(a.Atom))
 		}
 	}
@@ -1291,6 +1303,7 @@ func (e *Editor) addMember(s, m *Node) {
 	for _, k := range m.Kids {
 		k.up = m
 	}
+	e.g.save(s)
 	s.Kids = append(s.Kids, m)
 	e.g.Fresh(m)
 	e.Log = append(e.Log, Act{Op: "add", New: []ID{m.ID}})
@@ -1346,6 +1359,7 @@ func (s *synth) retype(q *Node) error {
 			return err
 		}
 	}
+	s.e.g.save(q)
 	q.Type = t
 	if t != nil {
 		for i, u := range s.e.Untyped {
@@ -1364,6 +1378,7 @@ func (s *synth) retype(q *Node) error {
 // retargetTo is Retarget without its spelling's check: the synthesized
 // import, which resolved the use by its spelling, said it.
 func (e *Editor) retargetTo(use *Node, i int, to *Node) {
+	e.g.save(use)
 	use.Refs[i] = to
 	e.extra[to] = append(e.extra[to], use)
 	e.Log = append(e.Log, Act{Op: "retarget", Moved: []ID{use.ID}})

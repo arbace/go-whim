@@ -124,6 +124,7 @@ func (e *Editor) Recheck() RecheckStats {
 	}
 	retype := func(d, t *Node) {
 		if d.Type != t {
+			e.g.save(d)
 			d.Type = t
 			e.typed(d)
 			st.Typed++
@@ -133,6 +134,7 @@ func (e *Editor) Recheck() RecheckStats {
 			for q := e.Parent(u); q != nil && isExprForm(q) && !rc.todo[q]; q = e.Parent(q) {
 				if q.Type != nil {
 					rc.old[q] = q.Type
+					e.g.save(q)
 					q.Type = nil
 				}
 				add(q)
@@ -346,17 +348,22 @@ func (e *Editor) s6RetargetStale(tx *typeTx) (int, []*Node) {
 						if p.Type != nil {
 							pt := canon(p.Type)
 							lost = lost || pt == nil
+							e.g.save(ps)
 							ps.Kids = append(ps.Kids, &Node{Type: pt})
 						} else {
+							e.g.save(ps)
 							ps.Kids = append(ps.Kids, NewAtom(p.Atom))
 						}
 					}
+					e.g.save(k)
 					k.Kids = append(k.Kids, ps)
 				case x.Type != nil:
 					xt := canon(x.Type)
 					lost = lost || xt == nil
+					e.g.save(k)
 					k.Kids = append(k.Kids, &Node{Type: xt})
 				default:
+					e.g.save(k)
 					k.Kids = append(k.Kids, NewAtom(x.Atom))
 				}
 			}
@@ -437,12 +444,14 @@ func (e *Editor) s6RetargetStale(tx *typeTx) (int, []*Node) {
 		c := canon(u.Type)
 		switch {
 		case c == nil && e.Live(u) && !e.s6InTypes(u):
+			e.g.save(u)
 			u.Type = nil
 			redo = append(redo, u)
 			n++
 		case c == nil:
 			// a type node's operand: what it types goes with it
 		case c != nil && c != u.Type:
+			e.g.save(u)
 			u.Type = c
 			if isDefForm(c) {
 				e.typedBy[c] = append(e.typedBy[c], u)
@@ -489,6 +498,7 @@ func (e *Editor) s6Unparen() int {
 		t := x.Type
 		if e.Replace(x, in) == nil {
 			if in.Type == nil {
+				e.g.save(in)
 				in.Type = t
 			}
 			n++
@@ -587,6 +597,7 @@ func (rc *s6checker) ensure(n *Node) *Node {
 		t = rc.old[n] // what it cannot derive keeps the type it had
 	}
 	if t != nil {
+		rc.e.g.save(n)
 		n.Type = t
 		rc.e.typed(n)
 	}
@@ -658,6 +669,7 @@ func (rc *s6checker) basic(words ...string) *Node {
 	}
 	n := NewList(NewAtom("basic"))
 	for _, w := range words {
+		rc.e.g.save(n)
 		n.Kids = append(n.Kids, NewAtom(w))
 	}
 	return rc.tx.intern(n)

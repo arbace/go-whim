@@ -31,6 +31,7 @@ func (b *builder) decayOperands(n *Node) {
 			p = tx.pointer(el)
 		}
 		if p != nil {
+			b.e.g.save(k)
 			k.Type = p
 		}
 	}

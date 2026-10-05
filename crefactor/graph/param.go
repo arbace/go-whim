@@ -830,6 +830,7 @@ func (pe *paramEdit) commit() (ParamStats, error) {
 	act := Act{Op: "retype"}
 	for _, d := range pe.tcList {
 		if d.Type != pe.newT[d] {
+			pe.e.g.save(d)
 			d.Type = pe.newT[d]
 			if d.ID != 0 {
 				act.Moved = append(act.Moved, d.ID)
@@ -856,10 +857,13 @@ func (pe *paramEdit) toLocal(p *Node) error {
 	pl := p.up
 	f := e.Parent(pl.up)
 	i := slices.Index(pl.Kids, p)
+	pe.e.g.save(pl)
 	pl.Kids = slices.Delete(slices.Clone(pl.Kids), i, i+1)
+	pe.e.g.save(p)
 	p.Kids = append([]*Node{NewAtom("def")}, p.Kids...)
 	p.Kids[0].up = p
 	at := defnItemsAt(f)
+	pe.e.g.save(f)
 	f.Kids = slices.Insert(slices.Clone(f.Kids), at, p)
 	p.up = f
 	e.Written = append(e.Written, pl, f)
@@ -993,6 +997,7 @@ func (e *Editor) AddParam(fn string, i int, param string, arg func(c *Node) (str
 			if !a.IsList() || a.Head() != "attr" && a.Head() != "std-attr" {
 				return st, fmt.Errorf("param: %q: after the type only attributes", param)
 			}
+			e.g.save(p)
 			p.Kids = append(p.Kids, attrNode(a))
 		}
 		if b.err != nil {
@@ -1002,6 +1007,7 @@ func (e *Editor) AddParam(fn string, i int, param string, arg func(c *Node) (str
 		if pt == nil {
 			return st, fmt.Errorf("param: the type of %s is not one PARAM can say", param)
 		}
+		e.g.save(p)
 		p.Type = pt
 		if plain.formType(fnf, false) != d.Type {
 			return st, fmt.Errorf("param: the type form of %s does not say its type node", label(d))
@@ -1067,6 +1073,7 @@ func (e *Editor) AddParam(fn string, i int, param string, arg func(c *Node) (str
 	e.argLists = false
 	act := Act{Op: "retype"}
 	for _, m := range ms {
+		e.g.save(m.d)
 		m.d.Type = newT[m.d]
 		act.Moved = append(act.Moved, m.d.ID)
 		st.Retyped++

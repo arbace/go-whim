@@ -276,11 +276,13 @@ func b3dbDropSelection(e *Editor, chain *Node, at int, only *Node) error {
 		r = chain.Kids[1]
 	} else {
 		r = NewList(append(append([]*Node{}, chain.Kids[:at]...), chain.Kids[at+1:]...)...)
+		e.g.save(r)
 		r.Type = only.Type
 	}
 	p := e.Parent(chain)
 	if p != nil && r.list && (r.Is(".") || r.Is("->")) && p.Head() == r.Head() && len(p.Kids) > 2 && p.Kids[1] == chain {
 		m := NewList(append(append([]*Node{}, r.Kids...), p.Kids[2:]...)...)
+		e.g.save(m)
 		m.Type = p.Type
 		return e.Replace(p, m)
 	}

@@ -43,6 +43,7 @@ func (e *Editor) SetStorage(d *Node, class string) error {
 		for _, k := range kids[1:] {
 			k.up = f
 		}
+		e.g.save(f)
 		f.Kids = kids
 		act.Moved = append(act.Moved, f.ID)
 	}

@@ -63,6 +63,7 @@ func (e *Editor) InsertMember(at *Node, after bool, src string) (*Node, error) {
 	b := &builder{e: e, p: def, i: indexIn(def.Kids, at), used: map[string]bool{}, local: map[string]*Node{}}
 	m := NewList(NewAtom(name))
 	for _, f := range forms[0].List[1:] {
+		e.g.save(m)
 		m.Kids = append(m.Kids, b.typ(f))
 	}
 	if b.err != nil {
@@ -73,6 +74,7 @@ func (e *Editor) InsertMember(at *Node, after bool, src string) (*Node, error) {
 	if t == nil {
 		return nil, fmt.Errorf("insert member %s: its type does not follow from its form", name)
 	}
+	e.g.save(m)
 	m.Type = t
 	i := indexIn(def.Kids, at)
 	if after {
@@ -180,6 +182,7 @@ func (e *Editor) RederiveValue(n *Node) int {
 		e.typed(n)
 		return 0
 	}
+	e.g.save(n)
 	n.Type = t
 	e.typed(n)
 	return 1 + e.Rederive(e.Parent(n))

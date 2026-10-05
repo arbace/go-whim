@@ -1911,13 +1911,82 @@ the FRAG unit alone.
 
 ### What the editor at the end needs next
 
-- **The view rooted at the cursor**: the span table gives the node under a
-  position; re-rooting is a rebuild of the tree, milliseconds.
 - **Edits as they are typed**: the alignment is of whole texts; a buffer
   knows which span changed, which is the alignment for nothing.
-- **Undo** without the copy: the `Log`'s acts reversed.
 - **Calls and returns** under `agree.go`'s rules, and the insertion of
   top-level forms beside the view's (refused now).
+
+The view at the cursor and undo were on this list; they are built (below).
+
+## The view at the cursor, and undo (2026-10-05)
+
+**The view at the cursor** (`view/cursor.go`). `Cursor(spans, pos)` is
+the span at a byte of a printed view: the innermost form or name holding
+it, else the innermost context or entry. `Index.Entity(n)` is what the
+node there is about, the root of the view an editor opens at it: the
+entity a use refers to (a call's callee for anywhere on the call's head
+or arguments), a declaration's own, else the nearest around it -- a
+statement's function, a member's struct -- a top-level one by its `Rep`.
+`EntityAt` is the two, climbing the span table where an atom has no id (a
+head, a literal) and so no parent in the index. `whim view --at POS`
+prints the view, finds the node at POS (a byte, or LINE:COL), and prints
+the same view rooted at its entity, `--as VIEW` another; the node and the
+entity on stderr:
+
+```
+$ go tool whim view --at 9:29 def ml_clearmarked
+  at           9:29: #95634 ml_find_line, about #95929 ml_find_line
+(defn static ml_find_line (fn ((buf (ptr buf_T)) (lnum linenr_T) (action int)) (ptr bhdr_T))
+...
+$ go tool whim view --at 10:15 --as callers --depth 1 def ml_clearmarked
+  at           10:15: ->, about #95592 ml_clearmarked
+(callers ml_clearmarked
+  (in ex_global
+    (call ml_clearmarked)))
+```
+
+Re-rooting is the index's: on whim-vim.c's graph, the cursor found and
+the uses view at it built and printed in 0.15 ms (`TestSessionProduct`).
+Held by `TestCursorSample`: a call's callee, its head and its argument
+(fact), a global, a member (`struct other.b_ml`), an assignment's head
+(its function), a typedef in a type, nothing past the text, and the
+callers view re-rooted from a cursor in `main` the callers view of `fact`.
+
+**Undo without the copy** (`journal.go`). The `Log`'s acts could not be
+reversed: an act records ids, not what the nodes held. So the graph keeps a
+JOURNAL instead: from `Graph.Begin`, every node an edit is about to change
+is saved once -- its atom, kids, refers edges, typed edge and id -- with the
+three sections and the id allocator, and `Journal.Undo` puts them back,
+pointer for pointer, so that a node an untouched form refers to is the same
+node after. Every assignment to a node's fields in the editor's code is
+preceded by its save (102 sites, and the collection's filter of a list's
+kids, which now saves a list only when one of its kids goes); an Editor's
+indexes are not journaled but made again.
+
+The rule is held to the whole pipeline: `internal/graphcheck`'s
+`TestUndoPhases` runs every phase 1-103 on its snapshot's graph under a
+journal -- its output its snapshot's -- undoes it, and requires the graph's
+Lisp to be the snapshot's byte for byte. It found the two writes the first
+pass missed: the collection's in-place filter (every phase) and MoveTo's
+swap through `e.kids(...)[i]` (phase 78). 103 of 103 now, 124 s.
+
+`view.Edit` takes `InPlace`: the edit made on the graph handed in, under a
+journal, a refusal undoing what was made, the Result's `Journal` undoing
+the edit. A `Session` keeps a graph's edits in order and undoes them the
+other way round. On whim-vim.c's graph (`TestSessionProduct`):
+
+| edit, `def ml_clearmarked` | nodes saved | in place | on a copy | undone |
+| --- | ---: | ---: | ---: | ---: |
+| a constant | 6 | 358 ms | 508 ms | 1.8 µs |
+| a local renamed | 5 | 156 ms | 227 ms | 1.4 µs |
+| the function deleted, its call closed over | 2 | 168 ms | 254 ms | 2.3 µs |
+
+Each in-place edit is the copy's (`graph.Equal`), each undo gives the
+graph's Lisp as it was before that edit byte for byte, and a refusal in
+place leaves it untouched with nothing to undo (`TestSessionSample` the
+same over five edits of the sample, and an edit again after the undos).
+`whim view-edit` is one edit a process and keeps its copy; the session is
+for a program that holds the graph, as an editor will.
 
 ## Open questions
 

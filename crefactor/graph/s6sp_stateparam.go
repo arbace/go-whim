@@ -263,9 +263,11 @@ func (e *Editor) StateParam(o StateParamOptions) (StateParamResult, error) {
 		m := NewList(NewAtom("def"))
 		for _, k := range d.Kids[1:i] {
 			if k.list || k.Atom != "static" {
+				e.g.save(m)
 				m.Kids = append(m.Kids, Clone(k))
 			}
 		}
+		e.g.save(m)
 		m.Kids = append(m.Kids, Clone(d.Kids[i]), Clone(d.Kids[i+1]))
 		c, err := FormsC([]*Node{m})
 		if err != nil {
@@ -354,8 +356,10 @@ func (e *Editor) StateParam(o StateParamOptions) (StateParamResult, error) {
 			}
 			sel := ns[0]
 			if sel.Type.Is("array") && !e.Parent(u).Is("addr") {
+				e.g.save(sel)
 				sel.Type = tx.pointer(pointee(sel.Type))
 			}
+			e.g.save(u)
 			u.Type = sel.Type // the value is the same: what holds it keeps its type
 			if err := e.Replace(u, sel); err != nil {
 				return r, err

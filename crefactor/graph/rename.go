@@ -180,6 +180,7 @@ func (e *Editor) Rename(d *Node, to string) (*Renamed, error) {
 	r := &Renamed{}
 	act := Act{Op: "rename"}
 	for _, x := range decls {
+		e.g.save(declAtom(x))
 		declAtom(x).Atom = to
 		r.Decls = append(r.Decls, x)
 		act.Moved = append(act.Moved, x.ID)
@@ -187,10 +188,13 @@ func (e *Editor) Rename(d *Node, to string) (*Renamed, error) {
 	for _, u := range uses {
 		switch {
 		case u.list:
+			e.g.save(u.Kids[1])
 			u.Kids[1].Atom = to
 		case strings.HasPrefix(u.Atom, "."):
+			e.g.save(u)
 			u.Atom = "." + to
 		default:
+			e.g.save(u)
 			u.Atom = to
 		}
 		r.Uses = append(r.Uses, u)
@@ -335,11 +339,14 @@ func (e *Editor) RetargetAs(use *Node, i int, to *Node) error {
 	}
 	spelled := use.Atom
 	if strings.HasPrefix(spelled, ".") {
+		e.g.save(use)
 		use.Atom = "." + name
 	} else {
+		e.g.save(use)
 		use.Atom = name
 	}
 	if err := e.Retarget(use, i, to); err != nil {
+		e.g.save(use)
 		use.Atom = spelled
 		return err
 	}
@@ -439,9 +446,11 @@ func (e *Editor) RespellString(s *Node, spelling string) error {
 	case !stringToken(spelling):
 		return fmt.Errorf("respell %s: %s is not one string literal", s.Atom, spelling)
 	}
+	e.g.save(s)
 	s.Atom = spelling
 	// the arrays it was, above it
 	for q := e.Parent(s); q != nil && q.Type != nil && q.Type.Is("array"); q = e.Parent(q) {
+		e.g.save(q)
 		q.Type = nil
 		e.untype(q)
 	}

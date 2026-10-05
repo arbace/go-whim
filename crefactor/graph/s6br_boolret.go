@@ -702,8 +702,10 @@ func (r *brRun) run() (BoolRetReport, error) {
 		}
 		d := x.Ref()
 		or := NewList(NewAtom(op), val, e.RefTo(d))
+		r.e.g.save(or)
 		or.Type = basicType(e.g, []string{"int"})
 		set := NewList(NewAtom("="), lhs, or)
+		r.e.g.save(set)
 		set.Type = typeOf(lhs)
 		if err := e.Replace(c.x, set); err != nil {
 			return rep, err
@@ -735,6 +737,7 @@ func (r *brRun) parenthesise(x *Node) error {
 		return nil
 	}
 	p := NewList(NewAtom("paren"), x)
+	r.e.g.save(p)
 	p.Type = typeOf(x)
 	return r.e.Replace(x, p)
 }
@@ -829,6 +832,7 @@ func (e *Editor) brRetype(places []*Node) error {
 	act := Act{Op: "retype"}
 	for _, d := range changed {
 		if d.Type != newT[d] {
+			e.g.save(d)
 			d.Type = newT[d]
 			if d.ID != 0 {
 				act.Moved = append(act.Moved, d.ID)
@@ -864,6 +868,7 @@ func (e *Editor) brRetype(places []*Node) error {
 					return true
 				}
 				if nt := typeOf(t.Kids[1]); nt != nil && nt != d.Type {
+					e.g.save(d)
 					d.Type = nt
 					e.typed(d)
 					more = append(more, d)
@@ -931,6 +936,7 @@ func (r *brRun) rewriteComparisons(core []*Node, yes map[string]bool) (int, erro
 		with := s.x
 		if s.negate {
 			with = NewList(NewAtom("!"), s.x)
+			r.e.g.save(with)
 			with.Type = basicType(r.e.g, []string{"int"})
 		}
 		if err := r.e.Replace(s.cmp, with); err != nil {

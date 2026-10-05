@@ -121,6 +121,7 @@ type Graph struct {
 	Types   []*Node // the type nodes
 	Externs []*Node // what the headers declare that the file uses
 	ids     IDs
+	journal *Journal // journal.go: the edits being recorded, or nil
 }
 
 // IDs is the graph's id allocator.

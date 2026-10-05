@@ -119,6 +119,7 @@ func (e *Editor) MoveFormsOwning(at *Node, after bool, ns []*Node, own func(lost
 	}
 	e.Log = append(e.Log, act)
 	for _, r := range re {
+		e.g.save(r.use)
 		r.use.Refs[r.i] = r.to
 		e.extra[r.to] = append(e.extra[r.to], r.use)
 		e.Log = append(e.Log, Act{Op: "retarget", Moved: []ID{r.use.ID}})
@@ -199,6 +200,7 @@ func (e *Editor) MoveFormsOwning(at *Node, after bool, ns []*Node, own func(lost
 			return out, fmt.Errorf("%s: %v", what, err)
 		}
 		for _, h := range keep {
+			e.g.save(h.q)
 			h.q.Type = h.t
 			e.typed(h.q)
 		}

@@ -23,6 +23,7 @@ func (e *Editor) ArrangeRowsTyped(def *Node, order []*Node, ix RowIndex) (*RowsD
 		Walk(r, func(n *Node) bool {
 			if n.Type == nil && n.Is("-") && len(n.Kids) == 2 && !n.Kids[1].list {
 				if t := e.literalType(n.Kids[1].Atom); t != nil {
+					e.g.save(n)
 					n.Type = t
 					e.typed(n)
 				}
@@ -49,6 +50,7 @@ func (e *Editor) ArrangeRowsTyped(def *Node, order []*Node, ix RowIndex) (*RowsD
 			n = max(n, pos[i]+1)
 		}
 		tx := e.typeTx()
+		e.g.save(def)
 		def.Type = tx.array(strconv.FormatInt(n, 10), elem)
 		tx.commit()
 		e.typed(def)

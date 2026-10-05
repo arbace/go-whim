@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 )
 
@@ -151,6 +152,7 @@ func (c *collector) cut(dead []deadLocal, orphans []*Node) error {
 				}
 				if deleted && !n.explicit {
 					v := NewAtom(formatValue(n.val))
+					c.g.save(n.form)
 					n.form.Kids = append(n.form.Kids, v)
 					c.st.Pinned++
 					if c.rec != nil {
@@ -247,6 +249,10 @@ func (c *collector) cut(dead []deadLocal, orphans []*Node) error {
 			if !n.list {
 				return false
 			}
+			if !slices.ContainsFunc(n.Kids, func(k *Node) bool { return gone[k] }) {
+				return true
+			}
+			c.g.save(n)
 			kept := n.Kids[:0]
 			for _, k := range n.Kids {
 				if !gone[k] {

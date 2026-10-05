@@ -142,6 +142,8 @@ func (e *Editor) MoveTo(n, to, fill *Node) error {
 	set := map[*Node]bool{n: true}
 	bind := e.binders([]*Node{n}, set)
 	swap := func() {
+		e.g.save(pn)
+		e.g.save(pt)
 		e.kids(pn)[in], e.kids(pt)[it] = e.kids(pt)[it], e.kids(pn)[in]
 		n.up, to.up = to.up, n.up
 	}
@@ -417,6 +419,7 @@ func (e *Editor) moved(op string, run []*Node, from, to *Node, re []retarget) {
 	}
 	e.Log = append(e.Log, act)
 	for _, r := range re {
+		e.g.save(r.use)
 		r.use.Refs[r.i] = r.to
 		e.extra[r.to] = append(e.extra[r.to], r.use)
 		e.Log = append(e.Log, Act{Op: "retarget", Moved: []ID{r.use.ID}})

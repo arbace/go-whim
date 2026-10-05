@@ -629,6 +629,7 @@ func (e *Editor) s6loRestore(saved map[*Node]*Node) {
 			continue // gone: nothing to type
 		}
 		if t := saved[n]; t != nil && e.Live(n) && n.Type == nil {
+			e.g.save(n)
 			n.Type = t
 			if e.inFile(t) {
 				e.typedBy[t] = append(e.typedBy[t], n)

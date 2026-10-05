@@ -240,6 +240,7 @@ func (e *Editor) setKids(p *Node, k []*Node) {
 	case e.top[2]:
 		e.g.Externs = k
 	default:
+		e.g.save(p)
 		p.Kids = k
 	}
 }
@@ -464,6 +465,7 @@ func (e *Editor) Retarget(use *Node, i int, to *Node) error {
 	if name := declName(to); !use.list && name != "" && name != use.Atom {
 		return fmt.Errorf("retarget #%d `%s` to #%d: it declares `%s`", use.ID, use.Atom, to.ID, name)
 	}
+	e.g.save(use)
 	use.Refs[i] = to
 	e.extra[to] = append(e.extra[to], use)
 	e.Log = append(e.Log, Act{Op: "retarget", Moved: []ID{use.ID}})
@@ -653,6 +655,7 @@ func (e *Editor) retype(p, old, new *Node) {
 		return
 	}
 	for q := p; q != nil && q.Type != nil && !IsStatement(q) && q.up != e.top[0]; q = e.Parent(q) {
+		e.g.save(q)
 		q.Type = nil
 		e.untype(q)
 	}

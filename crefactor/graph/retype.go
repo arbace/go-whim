@@ -238,6 +238,7 @@ func (e *Editor) retypeForms(places, forms, fns []*Node, typ string) (RetypeStat
 			continue // an unnamed parameter: no declarator, untyped as imported (Step6)
 		}
 		if d.Type != newT[d] {
+			e.g.save(d)
 			d.Type = newT[d]
 			st.Decls++
 			if d.ID != 0 {
@@ -340,6 +341,7 @@ func (tx *typeTx) rederiveCount(n *Node) int {
 			e.typed(q)
 			return k
 		}
+		tx.e.g.save(q)
 		q.Type = t
 		k++
 		if t == nil {

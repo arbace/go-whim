@@ -133,6 +133,7 @@ func (e *Editor) AddParamC(fn string, i int, param string, arg func(c *Node) (st
 	e.argLists = false
 	act := Act{Op: "retype"}
 	for _, m := range ms {
+		e.g.save(m.d)
 		m.d.Type = newT[m.d]
 		act.Moved = append(act.Moved, m.d.ID)
 		st.Retyped++

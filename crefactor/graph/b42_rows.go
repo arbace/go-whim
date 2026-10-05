@@ -63,12 +63,14 @@ func (e *Editor) DeleteRowsAsWritten(def *Node, rows []*Node) error {
 	}
 	if !known {
 		if def.Type != nil {
+			e.g.save(def)
 			def.Type = nil
 			e.untype(def)
 		}
 		return nil
 	}
 	tx := e.typeTx()
+	e.g.save(def)
 	def.Type = tx.array(strconv.FormatInt(n, 10), elem)
 	tx.commit()
 	e.typed(def)

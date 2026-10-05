@@ -358,8 +358,10 @@ internal/          whim's Go: cut (the cutters, each a function on crefactor/gra
                    (GRAPH_INPUT), the graph snapshots read back, the verbs
                    and capabilities on the snapshots, FoldX to the text
                    closure's recorded results, phase 88's include rule to
-                   gcc, and every phase's graph to the import of its C view,
-                   ids aside (s6_test.go, SameGraph); GRAPH_SNAPS),
+                   gcc, every phase's graph to the import of its C view,
+                   ids aside (s6_test.go, SameGraph), and every phase
+                   undone by the graph's journal, its graph the snapshot's
+                   byte for byte (TestUndoPhases); GRAPH_SNAPS),
                    build (whim's
                    pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
@@ -403,7 +405,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    tags: #g/n #g/r #g/t, #c/num #c/char #c/tok), and its
                    reader (`whim graph --edn`; doc/GRAPH.md, *EDN*); same.go
                    SameGraph (a graph against the import of its C view, ids
-                   aside); hash.go the content hashes, Unison's, beside
+                   aside); journal.go the journal (Begin, Undo: every node
+                   an edit changes saved first, undone in place, no copy;
+                   doc/GRAPH.md, *The view at the cursor, and undo*); hash.go the content hashes, Unison's, beside
                    the ids (a cycle a component hashed as one, its order a
                    colour refinement; doc/GRAPH.md, *Content hashes,
                    measured*) and changes.go what they say moved between
@@ -469,7 +473,11 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    FRAG's replacements and insertions, deletions), checked
                    where made, agree.go the assignments' types, and refused
                    unless the view printed again says what was written
-                   (doc/GRAPH.md, *Editable views, the first gate*); clj/ the same views
+                   (doc/GRAPH.md, *Editable views, the first gate*);
+                   cursor.go the view at a cursor (EntityAt: the span at a
+                   position, the entity its node is about; `whim view
+                   --at`) and Session, edits in place undone in order;
+                   clj/ the same views
                    in Clojure over the graph's EDN, clojure.edn its only
                    reader (gview.graph, gview.view, gview.main; the script
                    view-clj; --serve a long-lived process answering a
@@ -912,6 +920,7 @@ go tool whim graph --edn FILE    # the graph as EDN, for Clojure's reader (--edn
 go tool whim graph --changes N   # what phase N changed: the top-level forms whose content hash moved, added/removed/changed (--nominal: a type by its name; 0.4 s)
 go tool whim graph --snapshot N  # boundary N's graph as Lisp, from the store of graphs in .cache/boundaries
 go tool whim view callers F      # a read-only view of whim-vim.c's graph as Lisp: callers, callees, uses, member S.M, type T, def; 0.07 s once .cache/graph holds it (doc/GRAPH.md)
+go tool whim view --at L:C def F # the view at a cursor: the same view (--as another) rooted at what the node at L:C of the printed one is about
 crefactor/graph/view/clj/view-clj --serve F.edn  # the views in Clojure, a long-lived process: the EDN read once (2 s), then a request a line on stdin, answered in 0.1 ms median (doc/GRAPH.md, *The server*)
 go tool whim view-edit def F < EDITED  # that view edited (ids shown or not) made an edit of the graph, checked where made; writes the C (--lisp, --view; --fallout); 0.25-0.7 s an edit
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)

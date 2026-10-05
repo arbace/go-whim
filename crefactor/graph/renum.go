@@ -264,6 +264,7 @@ func (e *Editor) ArrangeEnum(enum *Node, order []*Node, how Values) (*Renumbered
 		}
 		a := NewAtom(formatValue(v))
 		a.up = n
+		e.g.save(n)
 		n.Kids = append(n.Kids, a)
 		r.Pinned = append(r.Pinned, n)
 	}

@@ -1523,6 +1523,7 @@ func (f *xfold) dropParam(nm string, fn *Node, i, n int, val int64) {
 			kids := append([]*Node(nil), call.Kids[:2+i]...)
 			kids = append(kids, call.Kids[3+i:]...)
 			nc := NewList(kids...)
+			f.e.g.save(nc)
 			nc.Type = call.Type
 			return f.e.Replace(call, nc)
 		})

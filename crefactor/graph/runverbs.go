@@ -178,6 +178,7 @@ func (v *Verbs) DropOperandAsText(pat string, n int, what string) {
 		}
 		r := NewList(append([]*Node{NewAtom(q.Head())}, rest...)...)
 		if !q.Is("|") {
+			v.e.g.save(r)
 			r.Type = q.Type // && and || are int whatever their operands
 		}
 		return v.e.Replace(q, r)

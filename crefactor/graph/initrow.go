@@ -411,6 +411,7 @@ func (e *Editor) resize(def *Node, pos []int64, ok []bool) {
 	var n int64
 	for i := range pos {
 		if !ok[i] {
+			e.g.save(def)
 			def.Type = nil
 			e.untype(def)
 			return
@@ -423,10 +424,12 @@ func (e *Editor) resize(def *Node, pos []int64, ok []bool) {
 	elem := t.Kids[2].Type
 	for _, x := range e.g.Types {
 		if x.Is("array") && len(x.Kids) == 3 && x.Kids[1].Atom == strconv.FormatInt(n, 10) && x.Kids[2].Type == elem {
+			e.g.save(def)
 			def.Type = x
 			return
 		}
 	}
+	e.g.save(def)
 	def.Type = nil
 	e.untype(def)
 }
@@ -538,6 +541,7 @@ func (b *builder) element(f *clisp.Node, t *Node) *Node {
 				k = len(ms) // positions after one are not followed
 			}
 			el := b.element(x, et)
+			b.e.g.save(n)
 			n.Kids = append(n.Kids, el)
 			k++
 		}
@@ -555,19 +559,23 @@ func (b *builder) element(f *clisp.Node, t *Node) *Node {
 				if m == nil {
 					return b.fail("no member `%s` in the row's type", d.Atom[1:])
 				}
+				b.e.g.save(n)
 				n.Kids = append(n.Kids, &Node{Atom: d.Atom, Refs: []*Node{m}})
 				cur = m.Type
 			case d.IsList() && d.Head() == "idx" && (len(d.List) == 2 || len(d.List) == 3):
 				x := NewList(NewAtom("idx"))
 				for _, k := range d.List[1:] {
+					b.e.g.save(x)
 					x.Kids = append(x.Kids, b.expr(k))
 				}
+				b.e.g.save(n)
 				n.Kids = append(n.Kids, x)
 				cur = pointee(cur)
 			default:
 				return b.fail("a designator is .member or (idx K), not %s", d)
 			}
 		}
+		b.e.g.save(n)
 		n.Kids = append(n.Kids, b.element(f.List[len(f.List)-1], cur))
 		return n
 	}

@@ -545,8 +545,10 @@ func (st *mxState) back(m *mx, want int) *Node {
 		return NewAtom(m.atom)
 	}
 	n := NewList(NewAtom(m.head))
+	st.e.g.save(n)
 	n.Kids = append(n.Kids, make([]*Node, len(m.kids))...)
 	for j, k := range m.kids {
+		st.e.g.save(n)
 		n.Kids[j+1] = st.back(k, placeLevel(n, j+1))
 	}
 	return n

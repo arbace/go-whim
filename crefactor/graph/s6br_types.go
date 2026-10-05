@@ -32,6 +32,7 @@ func (e *Editor) brTypeUntyped() int {
 			if t == nil {
 				continue
 			}
+			e.g.save(n)
 			n.Type = t
 			e.typed(n)
 			if e.inFile(t) {

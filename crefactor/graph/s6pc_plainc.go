@@ -53,6 +53,7 @@ func (e *Editor) s6pcReplace(old, with *Node) error {
 			parens = false
 		}
 		if q.Type != t {
+			e.g.save(q)
 			q.Type = t
 			if e.inFile(t) {
 				e.typedBy[t] = append(e.typedBy[t], q)
@@ -342,6 +343,7 @@ func (e *Editor) PlainIdentity(forms []*Node) (calls, funcs int, err error) {
 				return 0, 0, err
 			}
 			if t := e.s6pcDecay(typeOf(arg)); t != nil {
+				e.g.save(with)
 				with.Type = t // cc's: parentheses decay what they hold
 				e.typed(with)
 			}
@@ -378,6 +380,7 @@ func (e *Editor) s6pcBuild(at *Node, src string, holes Bindings, t *Node) (*Node
 	}
 	n := ns[0]
 	if n.Type == nil && t != nil {
+		e.g.save(n)
 		n.Type = t
 	}
 	if n.Type != nil {

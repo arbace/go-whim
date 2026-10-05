@@ -97,8 +97,10 @@ func (tx *typeTx) array(size string, t *Node) *Node {
 	}
 	n := NewList(NewAtom("array"))
 	if size != "" {
+		tx.e.g.save(n)
 		n.Kids = append(n.Kids, NewAtom(size))
 	}
+	tx.e.g.save(n)
 	n.Kids = append(n.Kids, &Node{Type: t})
 	return tx.intern(n)
 }
@@ -113,9 +115,11 @@ func (tx *typeTx) function(params []*Node, variadic bool, result *Node) *Node {
 		if p == nil {
 			return nil
 		}
+		tx.e.g.save(ps)
 		ps.Kids = append(ps.Kids, &Node{Type: p})
 	}
 	if variadic {
+		tx.e.g.save(ps)
 		ps.Kids = append(ps.Kids, NewAtom("..."))
 	}
 	return tx.intern(NewList(NewAtom("function"), ps, &Node{Type: result}))
@@ -296,6 +300,7 @@ func (tx *typeTx) basic(spelled []string) *Node {
 	}
 	n := NewList(NewAtom("basic"))
 	for _, w := range words {
+		tx.e.g.save(n)
 		n.Kids = append(n.Kids, NewAtom(w))
 	}
 	return tx.intern(n)
