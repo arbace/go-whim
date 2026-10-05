@@ -31,15 +31,15 @@ import (
 type Index struct {
 	G       *graph.Graph
 	byID    []*graph.Node
-	parent  []*graph.Node   // by id: the list holding a node, nil at the top
-	topOf   []*graph.Node   // by id: the top-level node holding it
-	local   []int32         // by id: its place in its top-level node's walk
-	uses    [][]*graph.Node // by id: the nodes with a refers edge to it
-	typedBy [][]*graph.Node // by id: the nodes with a typed edge to it
-	dirty   []bool          // by id: uses and typedBy to sort again by the source's order
-	dirties []graph.ID      // the ids dirty marks
-	gen     []uint32        // by id: the Update that last walked it
-	update  uint32          // the Update running
+	parent  []*graph.Node    // by id: the list holding a node, nil at the top
+	topOf   []*graph.Node    // by id: the top-level node holding it
+	local   []int32          // by id: its place in its top-level node's walk
+	uses    [][]*graph.Node  // by id: the nodes with a refers edge to it
+	typedBy [][]*graph.Node  // by id: the nodes with a typed edge to it
+	dirty   []bool           // by id: uses and typedBy to sort again by the source's order
+	dirties []graph.ID       // the ids dirty marks
+	gen     []uint32         // by id: the Update that last walked it
+	update  uint32           // the Update running
 	secs    [3][]*graph.Node // the sections as last indexed
 	top     map[string][]*graph.Node
 	topSet  map[*graph.Node]bool
