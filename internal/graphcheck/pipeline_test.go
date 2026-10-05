@@ -2,6 +2,7 @@ package graphcheck
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
@@ -85,46 +86,47 @@ func TestPhasesOnGraph(t *testing.T) {
 	}
 }
 
-// TestGraphSnapshots: every graph snapshot a run kept (qNNN.g) is the graph
-// of qNNN.c -- its header names that text's digest, and read back, its C
-// view is the text byte for byte, and written again it reads back the same
-// graph, ids and edges (step 2's gate on the pipeline's own graphs, which
-// hold edits: superseded ids, fresh ones, the last id given).
+// TestGraphSnapshots: every graph snapshot a run kept (qNNN in the store
+// of graphs, qNNN.gm its manifest) is the graph of qNNN.c -- its header
+// names that text's digest, and read back, its C view is the text byte for
+// byte, and written again it reads back the same graph, ids and edges (step
+// 2's gate on the pipeline's own graphs, which hold edits: superseded ids,
+// fresh ones, the last id given).
 func TestGraphSnapshots(t *testing.T) {
 	dir, _, _, _ := setup(t)
-	gs, _ := filepath.Glob(filepath.Join(dir, "q*.g"))
+	gs, _ := filepath.Glob(filepath.Join(dir, "q*.gm"))
 	if len(gs) == 0 {
 		t.Skip("no graph snapshots in GRAPH_SNAPS")
 	}
 	for _, f := range gs {
 		var n int
-		if _, err := fmt.Sscanf(filepath.Base(f), "q%03d.g", &n); err != nil {
+		if _, err := fmt.Sscanf(filepath.Base(f), "q%03d.gm", &n); err != nil {
 			t.Fatal(err)
 		}
 		text := snapOf(t, dir, n)
-		g := build.GraphSnapshot(n, text)
-		if g == nil {
-			// build.GraphSnapshot reads .cache/boundaries: read this one
-			b, err := os.ReadFile(f)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if g, err = graph.Read(b); err != nil {
-				t.Fatal(err)
-			}
+		b, err := graph.ReadStoreLisp(dir, fmt.Sprintf("q%03d", n))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if head := fmt.Sprintf(";; the graph of q%03d.c, sha256 %x\n", n, sha256.Sum256(text)); !bytes.HasPrefix(b, []byte(head)) {
+			t.Fatalf("q%03d's graph is not q%03d.c's", n, n)
+		}
+		g, err := graph.Read(b)
+		if err != nil {
+			t.Fatal(err)
 		}
 		c, err := g.C()
 		if err != nil || !bytes.Equal(c, text) {
-			t.Fatalf("q%03d.g: its C view is not q%03d.c (%v)", n, n, err)
+			t.Fatalf("q%03d's graph: its C view is not q%03d.c (%v)", n, n, err)
 		}
 		h, err := graph.Read(g.Lisp())
 		if err != nil {
 			t.Fatal(err)
 		}
 		if err := graph.Equal(g, h); err != nil {
-			t.Fatalf("q%03d.g written again: %v", n, err)
+			t.Fatalf("q%03d's graph written again: %v", n, err)
 		}
-		t.Logf("q%03d.g: the graph of q%03d.c, %s", n, n, g.Count())
+		t.Logf("q%03d's graph: the graph of q%03d.c, %s", n, n, g.Count())
 	}
 }
 
@@ -263,4 +265,60 @@ func measured(only []int) []build.Phase {
 		}
 	}
 	return out
+}
+
+// TestChangesPhase24: what the hashes say phase 24 changed is what its
+// GOAL.md says it does -- the write-only statics and the empty functions
+// removed, nothing added, block_autocmds() and unblock_autocmds() emptied,
+// getcmdline_int's window-id guards folded, window_S without w_id -- and by
+// content a member's change moves every form that names the struct, where
+// by name it moves the struct alone.
+func TestChangesPhase24(t *testing.T) {
+	dir, _, _, _ := setup(t)
+	g := func(n int) *graph.Graph {
+		text := snapOf(t, dir, n)
+		g, _ := pipeline.GraphSnapshotIn(dir, n, text)
+		if g == nil {
+			var err error
+			if g, _, err = graph.Import(fmt.Sprintf("q%03d.c", n), text); err != nil {
+				t.Fatal(err)
+			}
+		}
+		return g
+	}
+	a, b := g(23), g(24)
+	labels := func(cs []graph.Change) map[string]bool {
+		m := map[string]bool{}
+		for _, c := range cs {
+			m[c.Label] = true
+		}
+		return m
+	}
+	content, err := graph.Compare(a, b, graph.HashOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	nominal, err := graph.Compare(a, b, graph.HashOptions{Nominal: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	removed, changed := labels(content.Removed), labels(nominal.Changed)
+	for _, l := range []string{"def autocmd_blocked", "def autocmd_no_enter", "def autocmd_no_leave",
+		"def redrawing_for_callback", "def last_win_id", "defn trigger_undo_ftplugin", "defn out_flush_check"} {
+		if !removed[l] {
+			t.Errorf("%s is not among the removed", l)
+		}
+	}
+	for _, l := range []string{"defn block_autocmds", "defn unblock_autocmds", "defn getcmdline_int", "struct window_S"} {
+		if !changed[l] {
+			t.Errorf("%s is not among the changed, by name", l)
+		}
+	}
+	if len(content.Added)+len(nominal.Added) != 0 {
+		t.Errorf("phase 24 added %v", content.Added)
+	}
+	if len(nominal.Changed)*10 > len(content.Changed) || !labels(content.Changed)["typedef buf_T"] {
+		t.Errorf("by content %d changed, by name %d: no cascade through the structs", len(content.Changed), len(nominal.Changed))
+	}
+	t.Logf("phase 24: %d removed; changed %d by content, %d by name", len(content.Removed), len(content.Changed), len(nominal.Changed))
 }

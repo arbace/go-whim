@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -64,7 +63,7 @@ func (c Conv) String() string {
 	}
 	var parts []string
 	if c.FromSnapshot {
-		parts = append(parts, "read from its snapshot")
+		parts = append(parts, "read from the store")
 	}
 	if c.Imports > 0 {
 		parts = append(parts, fmt.Sprintf("%d import %s", c.Imports, ms(c.Import)))
@@ -158,38 +157,47 @@ func BeginsOnGraph(p Phase) bool {
 	return false
 }
 
-// GRAPH SNAPSHOTS.  qNNN.g is the graph a whole run handed from boundary NNN
-// to the phase after it, which begins on the graph: its Lisp (graph.Lisp),
-// headed by a comment naming the digest of qNNN.c, the text it was printed
-// as.  The reader ignores the comment; the check reads it first, and takes
-// the graph only when it is qNNN.c's -- a graph snapshot left by a run of
-// another plan, or of another input, is not read, and the phase imports
-// qNNN.c instead, which proves the same thing more slowly.
-
-func (c *Config) graphSnapPath(n int) string {
-	return filepath.Join(c.SnapDir, fmt.Sprintf("q%03d.g", n))
-}
+// GRAPH SNAPSHOTS.  The graph a whole run handed from boundary NNN to the
+// phase after it, which begins on the graph, is kept in SnapDir's store of
+// graphs (graph.Store): its Lisp, headed by a comment naming the digest of
+// qNNN.c, the text it was printed as, put as the graph qNNN -- the units of
+// its Lisp, each once, and a manifest qNNN.gm of their keys.  The reader
+// ignores the comment; the check reads it first, and takes the graph only
+// when it is qNNN.c's.  A graph the store cannot give whole (a manifest, an
+// index or a pack missing, cut short, or not the bytes put), or one of
+// another text (left by a run of another plan, or of another input), is not
+// read: the phase imports qNNN.c instead, which proves the same thing more
+// slowly, and the check says why.
 
 const graphSnapHead = ";; the graph of q%03d.c, sha256 %s\n"
 
-func (c *Config) writeGraphSnap(n int, text []byte, g *graph.Graph) error {
-	head := fmt.Sprintf(graphSnapHead, n, digestOf(text))
-	return os.WriteFile(c.graphSnapPath(n), append([]byte(head), g.Lisp()...), 0o644)
+func graphSnapName(n int) string { return fmt.Sprintf("q%03d", n) }
+
+func (o *Options) writeGraphSnap(n int, text []byte, g *graph.Graph) error {
+	return o.store.Put(graphSnapName(n), fmt.Appendf(nil, graphSnapHead, n, digestOf(text)), g)
 }
 
-// readGraphSnap is boundary n's graph, when its snapshot is text's; nil
-// otherwise.
-func (c *Config) readGraphSnap(n int, text []byte) *graph.Graph {
+// readGraphSnap is boundary n's graph, when the store holds it and it is
+// text's; nil and why otherwise (nil and nil: there is none).
+func (c *Config) readGraphSnap(n int, text []byte) (*graph.Graph, error) {
 	if c.SnapDir == "" {
-		return nil
+		return nil, nil
 	}
-	b, err := os.ReadFile(c.graphSnapPath(n))
-	if err != nil || !bytes.HasPrefix(b, []byte(fmt.Sprintf(graphSnapHead, n, digestOf(text)))) {
-		return nil
+	return GraphSnapshotIn(c.SnapDir, n, text)
+}
+
+// GraphSnapshotIn is readGraphSnap on a directory of snapshots: boundary
+// n's graph from dir's store, when it holds one and it is text's.
+func GraphSnapshotIn(dir string, n int, text []byte) (*graph.Graph, error) {
+	if !graph.StoreHas(dir, graphSnapName(n)) {
+		return nil, nil
 	}
-	g, err := graph.Read(b)
+	b, err := graph.ReadStoreLisp(dir, graphSnapName(n))
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return g
+	if !bytes.HasPrefix(b, fmt.Appendf(nil, graphSnapHead, n, digestOf(text))) {
+		return nil, fmt.Errorf("q%03d's graph is not q%03d.c's", n, n)
+	}
+	return graph.Read(b)
 }

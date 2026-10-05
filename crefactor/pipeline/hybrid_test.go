@@ -85,20 +85,19 @@ func TestHybridRun(t *testing.T) {
 		t.Fatalf("the product is\n%s\nwant\n%s", out, product)
 	}
 	for n, want := range map[int]bool{0: false, 1: true, 2: true, 3: true, 4: false} {
-		_, err := os.Stat(c.graphSnapPath(n))
-		if (err == nil) != want {
-			t.Errorf("q%03d.g: there %v, want %v", n, err == nil, want)
+		if has := graph.StoreHas(c.SnapDir, graphSnapName(n)); has != want {
+			t.Errorf("q%03d's graph: in the store %v, want %v", n, has, want)
 		}
 		if !want {
 			continue
 		}
 		text, _ := os.ReadFile(c.snapPath(n))
-		g := c.readGraphSnap(n, text)
+		g, err := c.readGraphSnap(n, text)
 		if g == nil {
-			t.Fatalf("q%03d.g is not q%03d.c's graph", n, n)
+			t.Fatalf("q%03d's graph is not q%03d.c's: %v", n, n, err)
 		}
 		if v, _ := g.C(); !bytes.Equal(v, text) {
-			t.Errorf("q%03d.g's C view is not q%03d.c", n, n)
+			t.Errorf("q%03d's graph's C view is not q%03d.c", n, n)
 		}
 	}
 	for _, want := range []string{
@@ -110,14 +109,17 @@ func TestHybridRun(t *testing.T) {
 			t.Errorf("no %q in the log:\n%s", want, log.String())
 		}
 	}
+	if !strings.Contains(log.String(), "graphs       3 kept in the store") {
+		t.Errorf("no account of the store in the log:\n%s", log.String())
+	}
 	// a second run takes away the graph snapshots no phase reads any more
 	c.Plan[2].Steps[0].Graph, c.Plan[2].Steps[0].Op = false, "replace"
 	c.Plan[2].Steps[0].Args = []string{"cube(2)", "8"}
 	if _, err := c.Run(options(dir)); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.Stat(c.graphSnapPath(1)); err == nil {
-		t.Error("q001.g outlived the plan that read it")
+	if graph.StoreHas(c.SnapDir, graphSnapName(1)) {
+		t.Error("q001's graph outlived the plan that read it")
 	}
 }
 
@@ -140,17 +142,58 @@ func TestHybridCheck(t *testing.T) {
 		return log.String(), err
 	}
 	log, err := check()
-	if err != nil || !strings.Contains(log, "3 of them began on the graph: 3 read from its graph snapshot, 0 imported from the text") {
+	if err != nil || !strings.Contains(log, "3 of them began on the graph: 3 read from the store of graphs, 0 imported from the text") {
 		t.Fatalf("%v\n%s", err, log)
 	}
-	// none for q002, and q003's of another text
-	os.Remove(c.graphSnapPath(2))
-	g3, _ := os.ReadFile(c.graphSnapPath(3))
-	os.WriteFile(c.graphSnapPath(3), bytes.Replace(g3, []byte("sha256 "), []byte("sha256 0"), 1), 0o644)
+	// none for q002, and q003's of another text: q001's manifest
+	m := func(n int) string { return filepath.Join(dir, "snap", graphSnapName(n)+".gm") }
+	m1, _ := os.ReadFile(m(1))
+	m2, _ := os.ReadFile(m(2))
+	m3, _ := os.ReadFile(m(3))
+	os.Remove(m(2))
+	os.WriteFile(m(3), m1, 0o644)
 	log, err = check()
-	if err != nil || !strings.Contains(log, "3 of them began on the graph: 1 read from its graph snapshot, 2 imported from the text") {
+	if err != nil || !strings.Contains(log, "3 of them began on the graph: 1 read from the store of graphs, 2 imported from the text") ||
+		!strings.Contains(log, "phase 4 imports q003.c: q003's graph is not q003.c's") ||
+		strings.Contains(log, "phase 3 imports") {
 		t.Fatalf("%v\n%s", err, log)
 	}
+	// a store that cannot give a graph whole is refused, never read: the
+	// phases it was for import, and the check says why
+	pack := filepath.Join(dir, "snap", "graphs.pack")
+	idx := filepath.Join(dir, "snap", "graphs.idx")
+	p, _ := os.ReadFile(pack)
+	x, _ := os.ReadFile(idx)
+	for _, bad := range []struct {
+		name, why string
+		spoil     func()
+	}{
+		{"a byte of the pack changed", "its digest differs", func() {
+			q := bytes.Clone(p)
+			q[len(q)/2] ^= 1
+			os.WriteFile(pack, q, 0o644)
+		}},
+		{"the pack cut short", "graphs.pack: unexpected EOF", func() { os.WriteFile(pack, p[:len(p)-1], 0o644) }},
+		{"the index cut short", "graphs.idx: not a whole index", func() { os.WriteFile(idx, x[:len(x)-1], 0o644) }},
+		{"no index (a run stopped part way)", "graphs.idx: no such file", func() { os.Remove(idx) }},
+		{"a key the index does not hold", "is not in the store", func() {
+			y := bytes.Clone(x)
+			y[len("whim graph store 1\n")] ^= 1
+			os.WriteFile(idx, y, 0o644)
+		}},
+	} {
+		os.WriteFile(m(2), m2, 0o644)
+		os.WriteFile(m(3), m3, 0o644)
+		os.WriteFile(pack, p, 0o644)
+		os.WriteFile(idx, x, 0o644)
+		bad.spoil()
+		log, err = check()
+		if err != nil || strings.Contains(log, "3 read from the store") || !strings.Contains(log, bad.why) {
+			t.Fatalf("%s: %v\n%s", bad.name, err, log)
+		}
+	}
+	os.WriteFile(pack, p, 0o644)
+	os.WriteFile(idx, x, 0o644)
 	// the control: phase 2's graph step writes another literal
 	c.Plan[2].Steps[0].Args = []string{"cube", "9"}
 	log, err = check()

@@ -1006,6 +1006,10 @@ converts the rest from `doc/GRAPH-MIGRATION.md`'s catalogue. Against go-whim
 
 ### The graph snapshots
 
+*Since 2026-10-05 the graphs are kept in a content-addressed store instead
+of as `qNNN.g` files: *The snapshots as a store; what a phase changed*.
+What follows is stage A's `.g`.*
+
 `qNNN.g` sits beside `qNNN.c` in `.cache/boundaries/`. It holds the graph a
 whole run handed from boundary NNN to the phase after it, when that phase
 begins on the graph. It is the graph's Lisp, headed by a comment line naming
@@ -1327,7 +1331,8 @@ with the ids sequential within it:
   graph from the store, so the parallel check's read would want measuring
   first.
 - **What a phase changed**, as a fact rather than a log: the forms whose
-  hash moved, which `Log`'s superseded ids approximate from inside.
+  hash moved, which `Log`'s superseded ids approximate from inside. (Both
+  built, keyed otherwise than this foresaw: *The snapshots as a store*.)
 - **Caches of derived facts** (the open question below): a per-function
   analysis keyed by the function's hash is valid exactly while the hash
   holds; keyed by the nominal hash, where the analysis does not look into
@@ -1338,13 +1343,97 @@ hash, edits copy-on-write -- the measurement says to pay the hash per
 top-level form and only for what an edit touched, and to decide first
 whether a struct's change is meant to re-identify its users.
 
+## The snapshots as a store; what a phase changed (2026-10-05)
+
+*Content hashes, measured* recommended two uses of the hashes at a phase's
+end. Both are built, on main `a430928`'s plan and snapshots.
+
+### The store
+
+`.cache/boundaries/` holds no `qNNN.g` now. A whole run keeps the 103
+graphs in one content-addressed store (`crefactor/graph`'s `store.go`):
+
+- `graphs.pack`, the distinct **units** of the graphs' Lisp, each once;
+  `graphs.idx`, each unit's key (the SHA-256 of its bytes), offset and
+  length; and `qNNN.gm`, a manifest per boundary: the SHA-256 of the whole
+  Lisp, the unit count, the units' keys in order.
+- **A unit is a top-level node's Lisp** -- a form, a type node, an external
+  node -- with the space before it (`Graph.LispUnits`, which concatenated
+  are `Lisp()`). The first unit is the header naming qNNN.c's digest, as
+  the `.g` had it.
+- **The key is the bytes, not the content hash.** A unit's Lisp names ids,
+  and the ids carry from phase to phase, so a form a phase did not touch is
+  the same bytes on both sides of it -- the struct cascade of the content
+  hashes does not reach the bytes, since a form names `buf_T` by its id.
+  That is why the measurement favours this granularity over a store of
+  nodes by hash (21.9% of the bytes, and a node's id would need a
+  manifest entry of its own to rebuild the same graph): on the 103 graphs,
+  603,707 units of which **16,033 are distinct**, and pack, index and
+  manifests are **72,368,663 bytes against the `.g` files' 700,708,162
+  (10.3%)**. The pack is 52.3 MB, the index 0.7 MB, the manifests 19.3 MB.
+- **Read back exactly**: the manifest's keys looked up, the runs of units
+  the pack holds one after another read at once, and the whole checked
+  against the manifest's digest. So a graph read is the Lisp written, byte
+  for byte, and `graph.Read` gives the same ids, edges and sections.
+  Measured (`TestMeasureStore`, `GRAPH_STORE` and `GRAPH_G`): **every one
+  of the 103 is its `.g` of main byte for byte**, `graph.Equal` with it,
+  its C view the same.
+- **Nothing is used that is not whole**: a manifest cut short, a key the
+  index does not hold, an index cut short or missing (a run stopped part
+  way: the index is written last, after the pack is flushed, before the
+  seal), a pack cut short or with a byte changed (the digest), or a graph
+  whose header names another text -- each is an error, never a graph. The
+  check then imports q(N-1).c and says why (`check  phase N imports
+  q(N-1).c: ...`). `crefactor/pipeline`'s `TestHybridCheck` spoils the
+  store each of these ways; `crefactor/graph`'s `TestStore` holds a round
+  trip and the sharing.
+- **Written** by a whole run, which removes the old store (and any `.g`)
+  first, puts each graph as the run hands it on, and logs it: `graphs  103
+  kept in the store, 603707 units of 16033 distinct: 72368663 bytes on disk
+  for 700708162 of Lisp`. **Read** by the parallel check, and by
+  `whim graph --snapshot N` (the Lisp a `.g` held) and `--changes`.
+
+**The read's cost**, one at a time, 5 runs, medians, the page cache warm:
+the bytes alone 1.2 ms a graph from a `.g` and 11.9 ms from the store (the
+index, about 6,000 units, the digest); with `graph.Read`, what a link
+pays, **44.4 ms from a `.g` and 48.0 ms from the store** (+3.6 ms, 8%), on
+links of 2-17 s. The gate: `rm -rf .cache/boundaries; make
+whim-build-check` in order, **138 s**, whim-vim.c byte for byte, every
+boundary compiling; again in parallel, **40 s** (25 s the links, 14 s the
+compiles), byte for byte, **103 links begun on the graph, 103 read from
+the store, 0 imported**, every boundary compiling. Space for nothing
+measurable: the store is kept and the `.g` files are gone.
+
+### What a phase changed
+
+`go tool whim graph --changes N [--nominal]` (`graph.Compare`): the
+top-level forms and external nodes of q(N-1) and qN, each graph from the
+store (imported where it holds none, as q103), paired by id -- ids carry
+-- and else by head and name (`UnitLabel`) in file order, listed as
+`added`, `removed`, and `changed` where the content hash moved. The type
+nodes are left out: a type that changes moves what it types. `--nominal`
+hashes a type's definition by its name.
+
+Phase 24 (old 78), against its `GOAL.md`: 0 added; 24 removed -- the
+write-only statics `autocmd_blocked`, `autocmd_no_enter`,
+`autocmd_no_leave`, `redrawing_for_callback`, `last_win_id`, the empty
+functions and their prototypes, `LOWEST_WIN_ID`; changed **1,149 by
+content, 72 by name**: `block_autocmds` and `unblock_autocmds` emptied,
+`getcmdline_int`'s window-id guards folded, `struct window_S` without
+`w_id`, and the functions that called what went. By content the member
+moves `win_T`, so `buf_T` and every form naming either (the cascade of
+*What they share*); by name only the struct does. `internal/graphcheck`'s
+`TestChangesPhase24` holds the report to this, and `TestCompare` to the
+oracle's cases on a sample. 0.4 s with both graphs from the store,
+against 3.7 s importing the two texts.
+
 ## EDN (2026-10-04)
 
 The second preferred direction of *Decided for steps 1-3*: a serialisation
 Clojure's reader reads for nothing. `crefactor/graph`'s `edn.go` writes
 the graph as EDN and reads it back, beside the Lisp, which stays the
 snapshots' notation; `go tool whim graph --edn [-o OUT] FILE` writes it (FILE
-C, or a graph's Lisp such as `qNNN.g`), `graph --edn --check FILE...` holds
+C, or a graph's Lisp such as `whim graph --snapshot N` writes), `graph --edn --check FILE...` holds
 files to its round trip.
 
 ### The form

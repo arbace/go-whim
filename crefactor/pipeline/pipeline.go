@@ -146,5 +146,6 @@ type Options struct {
 	Keep    string
 	Refused []string
 
-	snap bool // a whole ordinary run from phase 0: write the snapshots
+	snap  bool               // a whole ordinary run from phase 0: write the snapshots
+	store *graph.StoreWriter // and the graphs, into SnapDir's store
 }

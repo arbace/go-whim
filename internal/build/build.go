@@ -128,6 +128,7 @@ func AdvanceFrom(p Phase, text []byte, g *graph.Graph, w io.Writer) ([]byte, pip
 	return config.AdvanceFrom(p, text, g, w)
 }
 
-// GraphSnapshot is the graph kept beside boundary n in .cache/boundaries
-// (qNNN.g), when it is text's.
-func GraphSnapshot(n int, text []byte) *graph.Graph { return config.GraphSnapshot(n, text) }
+// GraphSnapshot is the graph kept of boundary n in .cache/boundaries' store
+// of graphs, when it is text's; nil otherwise, with why when the store
+// holds one it cannot give or of another text.
+func GraphSnapshot(n int, text []byte) (*graph.Graph, error) { return config.GraphSnapshot(n, text) }

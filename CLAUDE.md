@@ -397,7 +397,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    ids, refers edges (members by type) and typed edges;
                    types.go the type and external nodes; cview.go the C
                    view, cemit's text byte for byte; lisp.go the graph as
-                   Lisp and its reader (the snapshots qNNN.g); edn.go the
+                   Lisp and its reader; store.go the store of graphs the
+                   snapshots are kept in (each top-level node's Lisp once,
+                   by its bytes' SHA-256, and a manifest a graph); edn.go the
                    graph as EDN, which clojure.edn reads as it is (six
                    tags: #g/n #g/r #g/t, #c/num #c/char #c/tok), and its
                    reader (`whim graph --edn`; doc/GRAPH.md, *EDN*); same.go
@@ -405,7 +407,8 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    aside); hash.go the content hashes, Unison's, beside
                    the ids (a cycle a component hashed as one, its order a
                    colour refinement; doc/GRAPH.md, *Content hashes,
-                   measured*); headers.go what one header provides, parsed by
+                   measured*) and changes.go what they say moved between
+                   two graphs (`whim graph --changes`); headers.go what one header provides, parsed by
                    cc alone. The collection: collect.go, keys.go and cut.go
                    the sweep's rules on the nodes, as garbage collection;
                    editcollect.go through the editor, its index kept. The
@@ -891,6 +894,8 @@ make caprice.hsl      # the Haskell core as one ghc-lisp module, checked, compil
 make whim-vim.lc      # the C product as s-expressions (C-lisp): back byte for byte, compiled to bin/whim-vim's bytes (7 s; doc/C-LISP.md)
 go tool whim graph --check FILE  # the graph of FILE: its C view FILE byte for byte, written as Lisp and read back the same graph (doc/GRAPH.md)
 go tool whim graph --edn FILE    # the graph as EDN, for Clojure's reader (--edn --check FILE: written, read back, the same graph)
+go tool whim graph --changes N   # what phase N changed: the top-level forms whose content hash moved, added/removed/changed (--nominal: a type by its name; 0.4 s)
+go tool whim graph --snapshot N  # boundary N's graph as Lisp, from the store of graphs in .cache/boundaries
 go tool whim view callers F      # a read-only view of whim-vim.c's graph as Lisp: callers, callees, uses, member S.M, type T, def; 0.07 s once .cache/graph holds it (doc/GRAPH.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make bin/whim-vim    # the C product's binary
@@ -922,10 +927,13 @@ make help            # every target, with a line each
   CPU, a load of 54-62) when every phase edited text, and 815 s before
   `doc/PIPELINE-REFORM.md` §7's profile (`doc/GRAPH-MIGRATION.md`, *Fin as
   built*, has the steps between; `--cpuprofile F` writes a profile). A whole
-  run keeps every boundary in `.cache/boundaries/` (qNNN.c), and beside each
-  the graph handed the next phase, as Lisp (qNNN.g, headed by qNNN.c's digest:
-  103, one before every phase but the seed), and seals the set with the
-  input's digest (`manifest`).
+  run keeps every boundary in `.cache/boundaries/` (qNNN.c), and the graph
+  each handed the next phase (103, one before every phase but the seed) in a
+  content-addressed store beside them -- the distinct top-level nodes' Lisp
+  once (`graphs.pack`, `graphs.idx`) and a manifest a graph (`qNNN.gm`), the
+  Lisp headed by qNNN.c's digest: 72 MB where the 103 `qNNN.g` files it
+  replaced were 701 (`doc/GRAPH.md`, *The snapshots as a store*) -- and
+  seals the set with the input's digest (`manifest`).
 - **The collection is the sweep's closure on the graph** (`crefactor/graph`'s
   `collect.go`, told vim's roots and guard by `whim.GraphCollect`): everything
   reachable from `main` and the static_asserts, by refers edges in C's three
@@ -941,8 +949,9 @@ make help            # every target, with a line each
   on a file).
 - **`whim-build-check` runs phase by phase, in parallel.** With a sealed set of
   snapshots for the input on disk, it checks that phase 0 seeds the input into
-  q000 and that EVERY phase N, begun on q(N-1).g read back (75-90 ms; the
-  import of q(N-1).c where there is no graph snapshot of that text), gives
+  q000 and that EVERY phase N, begun on q(N-1)'s graph read back from the
+  store (48 ms, 44 from a `.g`; the import of q(N-1).c where the store holds
+  none of that text or cannot give it whole, which the check names), gives
   qN -- all phases at once, `--jobs N` at a time (default: every core) -- and
   that the last snapshot is the committed `whim-vim.c`. That is the induction a
   run in order walks, so it proves the same thing; a phase whose program
@@ -956,7 +965,7 @@ make help            # every target, with a line each
   not yet a program (q004-q029 did not compile until part 4d and phase 22 were
   fixed, their `GOAL.md`s), and `-fsyntax-only`, under a second, cannot see a
   function declared and defined nowhere, which only the link does. Measured:
-  **34 s** (25 s the links, all 103 begun on their graph snapshot, 9 s the
+  **34 s** (25 s the links, all 103 begun on their graph read from the store, 9 s the
   compiles) at a load of 8-14, against 105 s at 54-69 when every phase edited
   text. It proves the text, not the editor; `make whim-test` is what sees the
   editor (see *What this is*).

@@ -25,7 +25,13 @@ import (
 //	                                  it as it is), FILE C or the graph's Lisp
 //	whim graph --edn --check FILE...  FILE's graph written as EDN and read back:
 //	                                  the same graph, its C view FILE's text
+//	whim graph --changes N ...        what phase N changed, from the hashes
+//	whim graph --snapshot N ...       boundary N's graph from the store
+//	                                  (graphchanges.go)
 func runGraph(args []string) int {
+	if len(args) > 0 && (args[0] == "--changes" || args[0] == "--snapshot") {
+		return runGraphBoundary(args[0], args[1:])
+	}
 	out, mode, files, edn := "", "", []string(nil), false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
@@ -104,7 +110,7 @@ func runGraph(args []string) int {
 }
 
 func graphUsage() int {
-	fmt.Fprintln(os.Stderr, "usage: whim graph [--edn] [-o OUT] FILE | whim graph [--edn] --check FILE... | whim graph --collect [-o OUT] FILE")
+	fmt.Fprintln(os.Stderr, "usage: whim graph [--edn] [-o OUT] FILE | whim graph [--edn] --check FILE... | whim graph --collect [-o OUT] FILE | whim graph --changes N [--nominal] [--dir D] | whim graph --snapshot N [-o OUT] [--dir D]")
 	return 2
 }
 

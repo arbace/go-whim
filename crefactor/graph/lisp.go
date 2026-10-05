@@ -47,10 +47,24 @@ type Lasting interface{ Last() ID }
 const Width = 100
 
 // Lisp writes the graph.
-func (g *Graph) Lisp() []byte {
+func (g *Graph) Lisp() []byte { return bytes.Join(g.LispUnits(), nil) }
+
+// LispUnits is the graph's Lisp cut into its units, which concatenated are
+// Lisp(): the opening comment, then a unit for each top-level node -- a
+// form, a type node, an external node -- holding the space and the section
+// head before it, then the sections' ends and `(ids N)`.  A unit is what a
+// store of graphs keys by its bytes (Store): ids carry from phase to phase,
+// so a form a phase did not touch is the same bytes before and after it.
+func (g *Graph) LispUnits() [][]byte {
+	var units [][]byte
 	var b bytes.Buffer
+	cut := func() {
+		units = append(units, bytes.Clone(b.Bytes()))
+		b.Reset()
+	}
 	b.WriteString(";; a C translation unit as a graph: crefactor/graph\n")
 	for i, f := range g.Forms {
+		cut()
 		if i > 0 && !(f.Is("include") && g.Forms[i-1].Is("include")) {
 			b.WriteByte('\n')
 		}
@@ -61,8 +75,10 @@ func (g *Graph) Lisp() []byte {
 		head  string
 		nodes []*Node
 	}{{typesHead, g.Types}, {externsHead, g.Externs}} {
+		cut()
 		b.WriteString("\n(" + s.head)
 		for _, n := range s.nodes {
+			cut()
 			b.WriteString("\n  ")
 			layout(&b, n, 2)
 		}
@@ -71,7 +87,8 @@ func (g *Graph) Lisp() []byte {
 	if l, ok := g.ids.(Lasting); ok {
 		b.WriteString("\n(" + idsHead + " " + strconv.FormatUint(uint64(l.Last()), 10) + ")\n")
 	}
-	return b.Bytes()
+	cut()
+	return units
 }
 
 // prefix and suffix are a node's marks.

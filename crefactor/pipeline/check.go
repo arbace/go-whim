@@ -50,9 +50,12 @@ func (c *Config) AdvanceFrom(p Phase, text []byte, g *graph.Graph, w io.Writer) 
 	return pr.text, pr.conv, err
 }
 
-// GraphSnapshot is the graph a whole run kept beside boundary n, read back
-// from its Lisp, when there is one and it is text's graph; nil otherwise.
-func (c *Config) GraphSnapshot(n int, text []byte) *graph.Graph { return c.readGraphSnap(n, text) }
+// GraphSnapshot is the graph a whole run kept of boundary n, read back
+// from the store, when there is one and it is text's graph; nil otherwise,
+// with why when there is one the store cannot give or of another text.
+func (c *Config) GraphSnapshot(n int, text []byte) (*graph.Graph, error) {
+	return c.readGraphSnap(n, text)
+}
 
 // advance is Advance on the program as it is held: a phase that begins on
 // the graph may be handed it (pr.ed).  It leaves the text, and the graph
@@ -203,6 +206,7 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 		// the links begun on the graph: read from the graph snapshot, or
 		// imported from the text where there is none of that text
 		read, imported int
+		refusals       []string // the graphs the store held and could not give: why
 		links          []string // each link's time and conversions, for -v
 	)
 	for i := 1; i < len(c.Plan); i++ {
@@ -223,8 +227,12 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 				t0 := time.Now()
 				var g *graph.Graph
 				if BeginsOnGraph(p) && !p.NoSource {
-					g = c.readGraphSnap(prev.N, in)
+					var why error
+					g, why = c.readGraphSnap(prev.N, in)
 					mu.Lock()
+					if why != nil {
+						refusals = append(refusals, fmt.Sprintf("  check        phase %d imports q%03d.c: %v", p.N, prev.N, why))
+					}
 					if g != nil {
 						read++
 					} else {
@@ -282,8 +290,12 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 	fmt.Fprintf(o.W, "  check        %d phases, each from its snapshot, %d at a time: every one reproduces the next, %ds\n",
 		len(c.Plan)-1, jobs, int(time.Since(start).Seconds()))
 	if read+imported > 0 {
-		fmt.Fprintf(o.W, "  check        %d of them began on the graph: %d read from its graph snapshot, %d imported from the text\n",
+		fmt.Fprintf(o.W, "  check        %d of them began on the graph: %d read from the store of graphs, %d imported from the text\n",
 			read+imported, read, imported)
+	}
+	sort.Strings(refusals)
+	for _, l := range refusals {
+		fmt.Fprintln(o.W, l)
 	}
 	if err := c.compileAll(o.W, jobs); err != nil {
 		return nil, err

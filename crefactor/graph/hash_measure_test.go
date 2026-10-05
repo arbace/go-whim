@@ -17,7 +17,7 @@ import (
 )
 
 // GRAPH_BOUNDARIES is a directory of the pipeline's boundaries, qNNN.c and
-// the graph snapshots beside them, qNNN.g (.cache/boundaries); the hash
+// the graph snapshots in their store (.cache/boundaries); the hash
 // measurements read each boundary's graph from its snapshot when it is
 // there and of that text, and import the text otherwise.  GRAPH_JOBS is how
 // many at once (8; 1 for the times).
@@ -42,7 +42,7 @@ func boundaries(t *testing.T) (dir string, ns []int, jobs int) {
 	return dir, ns, jobs
 }
 
-// boundary is boundary n's text and graph: read from qNNN.g when that
+// boundary is boundary n's text and graph: read from the store when its
 // snapshot is of qNNN.c (its header names the text's digest), else
 // imported.  read says which; gsize is the snapshot's bytes.
 func boundary(dir string, n int) (src []byte, g *Graph, read bool, gsize int, err error) {
@@ -51,7 +51,7 @@ func boundary(dir string, n int) (src []byte, g *Graph, read bool, gsize int, er
 		return nil, nil, false, 0, err
 	}
 	sum := sha256.Sum256(src)
-	if b, e := os.ReadFile(filepath.Join(dir, fmt.Sprintf("q%03d.g", n))); e == nil &&
+	if b, e := ReadStoreLisp(dir, fmt.Sprintf("q%03d", n)); e == nil &&
 		bytes.HasPrefix(b, fmt.Appendf(nil, ";; the graph of q%03d.c, sha256 %s\n", n, hex.EncodeToString(sum[:]))) {
 		g, err = Read(b)
 		return src, g, true, len(b), err

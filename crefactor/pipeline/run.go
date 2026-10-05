@@ -49,12 +49,24 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 			return nil, err
 		}
 		os.Remove(filepath.Join(c.SnapDir, "manifest"))
-		// and the graph snapshots: this run writes those its plan reads
+		// and the graph snapshots: this run writes those its plan reads,
+		// into a store begun anew (and the .g files of before the store)
 		if old, err := filepath.Glob(filepath.Join(c.SnapDir, "q*.g")); err == nil {
 			for _, f := range old {
 				os.Remove(f)
 			}
 		}
+		st, err := graph.CreateStore(c.SnapDir)
+		if err != nil {
+			return nil, err
+		}
+		o.store = st
+		defer func() {
+			if o.store != nil {
+				o.store.Discard()
+				o.store = nil
+			}
+		}()
 	}
 
 	// pr is the program between phases: the text, always, and the graph
@@ -158,7 +170,7 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 				return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 			}
 			if o.snap && last >= 0 {
-				if err := c.writeGraphSnap(last, in, pr.ed.Graph()); err != nil {
+				if err := o.writeGraphSnap(last, in, pr.ed.Graph()); err != nil {
 					return nil, err
 				}
 			}
@@ -233,6 +245,15 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 		return nil, err
 	}
 	if o.snap {
+		st := o.store
+		o.store = nil
+		if err := st.Close(); err != nil {
+			return nil, err
+		}
+		if st.Units > 0 {
+			fmt.Fprintf(o.W, "  graphs       %d kept in the store, %d units of %d distinct: %d bytes on disk for %d of Lisp\n",
+				st.Graphs, st.Units, st.New, st.Size(), st.Bytes)
+		}
 		if err := os.WriteFile(filepath.Join(c.SnapDir, "manifest"), []byte(digestOf(src)+"\n"), 0o644); err != nil {
 			return nil, err
 		}
