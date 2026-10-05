@@ -190,6 +190,14 @@ func TestBufferProduct(t *testing.T) {
 		}
 	}
 	t.Logf("changes: %s", strings.Join(times, ", "))
+	// the index kept, against a new one: the last edit's forms walked again
+	saved := b.S.done[len(b.S.done)-1].Saved()
+	t0 := time.Now()
+	n := b.Ix.Update(saved)
+	upd := time.Since(t0)
+	t0 = time.Now()
+	NewIndex(g)
+	t.Logf("the index: Update %v (%d top-level nodes walked), NewIndex %v", upd, n, time.Since(t0))
 	if !strings.Contains(b.Printed, "(= lowest_marked (+ 1 1)))") {
 		t.Fatalf("the buffer:\n%s", b.Printed)
 	}

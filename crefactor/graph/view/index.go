@@ -13,6 +13,7 @@ package view
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -23,17 +24,35 @@ import (
 // An Index is what a view asks of a graph that the graph's edges hold the
 // other way round: every node's parent, every node's uses (its incoming
 // refers edges) and the nodes typed by it, the file's top-level forms by
-// the name they declare.  It is built once, in one walk.
+// the name they declare.  It is built once, in one walk, and kept by
+// top-level node: each one's nodes and edges are its own entries, so that
+// after an edit only the top-level nodes it changed are walked again
+// (Update), where a new index walks every node (33 ms on whim-vim.c's).
 type Index struct {
 	G       *graph.Graph
 	byID    []*graph.Node
 	parent  []*graph.Node   // by id: the list holding a node, nil at the top
-	uses    [][]*graph.Node // by id: the nodes with a refers edge to it, in the source's order
+	topOf   []*graph.Node   // by id: the top-level node holding it
+	local   []int32         // by id: its place in its top-level node's walk
+	uses    [][]*graph.Node // by id: the nodes with a refers edge to it
 	typedBy [][]*graph.Node // by id: the nodes with a typed edge to it
+	dirty   []bool          // by id: uses and typedBy to sort again by the source's order
+	dirties []graph.ID      // the ids dirty marks
+	gen     []uint32        // by id: the Update that last walked it
+	update  uint32          // the Update running
+	secs    [3][]*graph.Node // the sections as last indexed
 	top     map[string][]*graph.Node
 	topSet  map[*graph.Node]bool
-	rank    []int32 // by id: the node's place in the walk, the containment's order
-	ranked  int32
+	place   map[*graph.Node][2]int // a top-level node's section and place in it
+	held    map[*graph.Node]*held  // what each top-level node put in the index
+	kept    bool                   // walking in Update: what add appends is sorted after
+}
+
+// held is what one top-level node's walk put in the index: its nodes'
+// ids, and the edges out of them, so that they can be taken out again.
+type held struct {
+	ids        []graph.ID
+	refs, typd [][2]*graph.Node // (user, target)
 }
 
 // NewIndex indexes g.
@@ -43,45 +62,227 @@ func NewIndex(g *graph.Graph) *Index {
 		maxID = max(maxID, n.ID)
 		return true
 	})
-	ix := &Index{
-		G: g, byID: make([]*graph.Node, maxID+1), parent: make([]*graph.Node, maxID+1),
-		uses: make([][]*graph.Node, maxID+1), typedBy: make([][]*graph.Node, maxID+1),
-		rank: make([]int32, maxID+1),
-		top:  map[string][]*graph.Node{}, topSet: map[*graph.Node]bool{},
-	}
-	for _, s := range g.Sections() {
-		for _, f := range s {
+	ix := &Index{G: g, topSet: map[*graph.Node]bool{}, place: map[*graph.Node][2]int{}, held: map[*graph.Node]*held{}}
+	ix.grow(maxID)
+	for si, sec := range g.Sections() {
+		ix.secs[si] = sec
+		for k, f := range sec {
 			ix.topSet[f] = true
-			ix.walk(f, nil)
+			ix.place[f] = [2]int{si, k}
+			ix.add(f)
 		}
 	}
-	for _, f := range g.Forms {
+	ix.names()
+	return ix
+}
+
+// grow makes the by-id tables hold id.
+func (ix *Index) grow(id graph.ID) {
+	n := int(id) + 1
+	if n <= len(ix.byID) {
+		return
+	}
+	n = max(n, len(ix.byID)+len(ix.byID)/4)
+	ext := func(xs []*graph.Node) []*graph.Node { return append(xs, make([]*graph.Node, n-len(xs))...) }
+	ix.byID, ix.parent, ix.topOf = ext(ix.byID), ext(ix.parent), ext(ix.topOf)
+	ix.local = append(ix.local, make([]int32, n-len(ix.local))...)
+	ix.uses = append(ix.uses, make([][]*graph.Node, n-len(ix.uses))...)
+	ix.typedBy = append(ix.typedBy, make([][]*graph.Node, n-len(ix.typedBy))...)
+	ix.dirty = append(ix.dirty, make([]bool, n-len(ix.dirty))...)
+	ix.gen = append(ix.gen, make([]uint32, n-len(ix.gen))...)
+}
+
+// names indexes the file's forms by the names they declare.
+func (ix *Index) names() {
+	ix.top = map[string][]*graph.Node{}
+	for _, f := range ix.G.Forms {
 		if name := graph.DeclName(f); name != "" {
 			ix.top[name] = append(ix.top[name], f)
 		}
 	}
-	return ix
 }
 
-func (ix *Index) walk(n, parent *graph.Node) {
-	if n.ID != 0 {
-		ix.byID[n.ID] = n
-		ix.parent[n.ID] = parent
-		ix.ranked++
-		ix.rank[n.ID] = ix.ranked
-	}
-	for _, r := range n.Refs {
-		// an edge into a node an edit removed may name an id past the walk's
-		if r.ID != 0 && n.ID != 0 && int(r.ID) < len(ix.uses) {
-			ix.uses[r.ID] = append(ix.uses[r.ID], n)
+// add walks the top-level node f into the index.
+func (ix *Index) add(f *graph.Node) {
+	h := &held{}
+	ix.held[f] = h
+	var rank int32
+	var walk func(n, parent *graph.Node)
+	walk = func(n, parent *graph.Node) {
+		if n.ID != 0 {
+			ix.grow(n.ID)
+			ix.byID[n.ID], ix.parent[n.ID], ix.topOf[n.ID] = n, parent, f
+			rank++
+			ix.local[n.ID] = rank
+			ix.gen[n.ID] = ix.update
+			h.ids = append(h.ids, n.ID)
+		}
+		for _, r := range n.Refs {
+			if r.ID != 0 && n.ID != 0 {
+				ix.grow(r.ID)
+				ix.uses[r.ID] = append(ix.uses[r.ID], n)
+				ix.mark(r.ID)
+				h.refs = append(h.refs, [2]*graph.Node{n, r})
+			}
+		}
+		if t := n.Type; t != nil && t.ID != 0 && n.ID != 0 {
+			ix.grow(t.ID)
+			ix.typedBy[t.ID] = append(ix.typedBy[t.ID], n)
+			ix.mark(t.ID)
+			h.typd = append(h.typd, [2]*graph.Node{n, t})
+		}
+		for _, k := range n.Kids {
+			walk(k, n)
 		}
 	}
-	if t := n.Type; t != nil && t.ID != 0 && n.ID != 0 && int(t.ID) < len(ix.typedBy) {
-		ix.typedBy[t.ID] = append(ix.typedBy[t.ID], n)
+	walk(f, nil)
+}
+
+// merged is a list of users in the source's order again: those of the
+// top-level nodes this Update walked, sorted, each one's run placed among
+// the rest by a binary search -- they kept their order, and a list of
+// thousands (the uses of int) is neither sorted nor compared whole for the
+// few an edit changed.
+func (ix *Index) merged(xs []*graph.Node, _ map[*graph.Node]bool) []*graph.Node {
+	var keep, fresh []*graph.Node
+	for _, u := range xs {
+		if ix.gen[u.ID] == ix.update {
+			fresh = append(fresh, u)
+		} else {
+			keep = append(keep, u)
+		}
 	}
-	for _, k := range n.Kids {
-		ix.walk(k, n)
+	if len(fresh) == 0 {
+		return xs
 	}
+	ix.inOrder(fresh)
+	out := make([]*graph.Node, 0, len(xs))
+	at := 0
+	for i := 0; i < len(fresh); {
+		j := i + 1
+		for j < len(fresh) && ix.topOf[fresh[j].ID] == ix.topOf[fresh[i].ID] {
+			j++
+		}
+		p := at + sort.Search(len(keep)-at, func(k int) bool { return ix.before(fresh[i], keep[at+k]) })
+		out = append(out, keep[at:p]...)
+		out = append(out, fresh[i:j]...)
+		at, i = p, j
+	}
+	return append(out, keep[at:]...)
+}
+
+// mark notes, in Update, that id's lists are to be sorted again.
+func (ix *Index) mark(id graph.ID) {
+	if ix.kept && !ix.dirty[id] {
+		ix.dirty[id] = true
+		ix.dirties = append(ix.dirties, id)
+	}
+}
+
+// drop takes what f's walk put in the index out of it.
+func (ix *Index) drop(f *graph.Node) {
+	h := ix.held[f]
+	if h == nil {
+		return
+	}
+	delete(ix.held, f)
+	for _, id := range h.ids {
+		if ix.topOf[id] == f {
+			ix.byID[id], ix.parent[id], ix.topOf[id], ix.local[id] = nil, nil, nil, 0
+		}
+	}
+	gone := map[*graph.Node]bool{}
+	for _, e := range h.refs {
+		gone[e[0]] = true
+	}
+	for _, e := range h.typd {
+		gone[e[0]] = true
+	}
+	strip := func(xs []*graph.Node) []*graph.Node {
+		out := xs[:0]
+		for _, u := range xs {
+			if !gone[u] {
+				out = append(out, u)
+			}
+		}
+		return out
+	}
+	targets := map[graph.ID]bool{}
+	for _, e := range h.refs {
+		targets[e[1].ID] = true
+	}
+	for _, e := range h.typd {
+		targets[e[1].ID] = true
+	}
+	for t := range targets {
+		ix.uses[t] = strip(ix.uses[t])
+		ix.typedBy[t] = strip(ix.typedBy[t])
+		ix.mark(t)
+	}
+}
+
+// Update brings the index to the graph after an edit, or its undo, made
+// in place: changed is every node the edit changed that the index held
+// before it (a journal's Saved).  The top-level nodes holding them are
+// walked again, those a section gained are walked, those it lost taken
+// out; nothing else is visited.  It returns how many were walked.
+func (ix *Index) Update(changed []*graph.Node) int {
+	ix.update++
+	ix.kept = true
+	defer func() { ix.kept = false }()
+	again := map[*graph.Node]bool{}
+	for _, n := range changed {
+		if n.ID != 0 && int(n.ID) < len(ix.byID) && ix.byID[n.ID] == n && ix.topOf[n.ID] != nil {
+			again[ix.topOf[n.ID]] = true
+		}
+	}
+	// the sections: those not as they were are placed again, and what
+	// they gained or lost is walked or taken out
+	names := false
+	for si, sec := range ix.G.Sections() {
+		if slices.Equal(sec, ix.secs[si]) {
+			continue
+		}
+		names = names || si == 0
+		now := map[*graph.Node]bool{}
+		for k, f := range sec {
+			now[f] = true
+			ix.place[f] = [2]int{si, k}
+			if !ix.topSet[f] {
+				again[f] = true // gained
+			}
+		}
+		for _, f := range ix.secs[si] {
+			if !now[f] {
+				again[f] = true // lost
+				delete(ix.topSet, f)
+				delete(ix.place, f)
+			}
+		}
+		for f := range now {
+			ix.topSet[f] = true
+		}
+		ix.secs[si] = sec
+	}
+	for f := range again {
+		ix.drop(f)
+	}
+	for f := range again {
+		if ix.topSet[f] {
+			ix.add(f)
+			names = names || ix.place[f][0] == 0
+		}
+	}
+	for _, t := range ix.dirties {
+		ix.uses[t] = ix.merged(ix.uses[t], again)
+		ix.typedBy[t] = ix.merged(ix.typedBy[t], again)
+		ix.dirty[t] = false
+	}
+	ix.dirties = ix.dirties[:0]
+	if names {
+		ix.names()
+	}
+	return len(again)
 }
 
 // Node is the node of an id, or nil.
@@ -429,12 +630,83 @@ func (ix *Index) inOrder(ns []*graph.Node) {
 	sort.SliceStable(ns, func(i, j int) bool { return ix.before(ns[i], ns[j]) })
 }
 
-// before says a comes before b in the containment's order.
-func (ix *Index) before(a, b *graph.Node) bool { return ix.order(a) < ix.order(b) }
-
-func (ix *Index) order(n *graph.Node) int32 {
-	if n.ID != 0 && int(n.ID) < len(ix.rank) && ix.rank[n.ID] != 0 {
-		return ix.rank[n.ID]
+// before says a comes before b in the containment's order: their
+// top-level nodes' sections and places, then their places in them.
+func (ix *Index) before(a, b *graph.Node) bool {
+	ka, kb := ix.order(a), ix.order(b)
+	for i := range ka {
+		if ka[i] != kb[i] {
+			return ka[i] < kb[i]
+		}
 	}
-	return ix.ranked + 1 + int32(n.ID) // not in the walk: after it, by id
+	return false
+}
+
+func (ix *Index) order(n *graph.Node) [4]int {
+	if n.ID != 0 && int(n.ID) < len(ix.topOf) && ix.topOf[n.ID] != nil {
+		p := ix.place[ix.topOf[n.ID]]
+		return [4]int{0, p[0], p[1], int(ix.local[n.ID])}
+	}
+	return [4]int{1, int(n.ID)} // not in the walk: after it, by id
+}
+
+// sameIndex is where two indexes of one graph differ, or nil: an index
+// kept by Update against a new one (the tests' checkWhole).
+func sameIndex(a, b *Index) error {
+	n := max(len(a.byID), len(b.byID))
+	at := func(xs []*graph.Node, i int) *graph.Node {
+		if i < len(xs) {
+			return xs[i]
+		}
+		return nil
+	}
+	list := func(xs [][]*graph.Node, i int) []*graph.Node {
+		if i < len(xs) {
+			return xs[i]
+		}
+		return nil
+	}
+	for i := 1; i < n; i++ {
+		if at(a.byID, i) != at(b.byID, i) {
+			return fmt.Errorf("node #%d: kept %v, new %v", i, at(a.byID, i) != nil, at(b.byID, i) != nil)
+		}
+		if at(a.byID, i) == nil {
+			continue
+		}
+		if at(a.parent, i) != at(b.parent, i) {
+			return fmt.Errorf("#%d's parent differs", i)
+		}
+		for k, xs := range [2][2][]*graph.Node{{list(a.uses, i), list(b.uses, i)}, {list(a.typedBy, i), list(b.typedBy, i)}} {
+			if len(xs[0]) != len(xs[1]) {
+				return fmt.Errorf("#%d: %d %s kept, %d new", i, len(xs[0]), [2]string{"uses", "typed"}[k], len(xs[1]))
+			}
+			for j := range xs[0] {
+				if xs[0][j] != xs[1][j] {
+					return fmt.Errorf("#%d: its %s in another order (at %d: #%d, new #%d)", i, [2]string{"uses", "typed"}[k], j, xs[0][j].ID, xs[1][j].ID)
+				}
+			}
+		}
+	}
+	if len(a.topSet) != len(b.topSet) {
+		return fmt.Errorf("%d top-level nodes kept, %d new", len(a.topSet), len(b.topSet))
+	}
+	for f := range a.topSet {
+		if !b.topSet[f] {
+			return fmt.Errorf("#%d is top-level in the kept index alone", f.ID)
+		}
+	}
+	if len(a.top) != len(b.top) {
+		return fmt.Errorf("%d names kept, %d new", len(a.top), len(b.top))
+	}
+	return nil
+}
+
+// verify panics, under the tests' checkWhole, when ix is not what a new
+// index of its graph would be.
+func (ix *Index) verify(after string) {
+	if checkWhole {
+		if err := sameIndex(ix, NewIndex(ix.G)); err != nil {
+			panic(fmt.Sprintf("after %s, the index kept by Update is not a new one's: %v", after, err))
+		}
+	}
 }

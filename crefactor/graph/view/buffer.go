@@ -165,7 +165,8 @@ func (b *Buffer) Undo() (bool, error) {
 	if !b.S.Undo() {
 		return false, nil
 	}
-	b.Ix = NewIndex(b.S.G)
+	b.Ix.Update(b.S.undone.Saved())
+	b.Ix.verify("an undo")
 	return true, b.reprint()
 }
 
@@ -190,7 +191,8 @@ func (b *Buffer) Rename(pos int, to string) (*graph.Renamed, *graph.Node, error)
 	}); err != nil {
 		return nil, d, err
 	}
-	b.Ix = NewIndex(b.S.G)
+	b.Ix.Update(b.S.done[len(b.S.done)-1].Saved())
+	b.Ix.verify("a rename")
 	return rn, d, b.reprint()
 }
 

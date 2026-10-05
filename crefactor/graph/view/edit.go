@@ -61,6 +61,12 @@ type EditOptions struct {
 	// Index, in place, is a current index of the graph: the edit begins on
 	// it rather than indexing the graph again (33 ms on whim-vim.c's).
 	Index *Index
+	// Editor, in place, is a current editor of the graph, kept by a
+	// session from one edit to the next (18 ms on whim-vim.c's to make).
+	Editor *graph.Editor
+	// stale, set when an edit in place was undone after it changed the
+	// graph: the Editor handed in is not the graph's any more.
+	stale *bool
 	// within, a typed change's: the alignment begins at that form of the
 	// printed text (buffer.go).
 	within *within
@@ -145,7 +151,17 @@ func Edit(g *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 	r, err := edit(g, render, edited, opt)
 	j.End()
 	if err != nil {
+		changed := j.Changed() > 0
 		j.Undo()
+		if changed {
+			if opt.Index != nil {
+				opt.Index.Update(j.Saved())
+				opt.Index.verify("a refusal undone")
+			}
+			if opt.stale != nil {
+				*opt.stale = true
+			}
+		}
 		return nil, err
 	}
 	r.Journal = j
@@ -164,7 +180,10 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 	if opt.Printed != nil && *opt.Printed != text {
 		return nil, refuse("the view prints otherwise than the text the edit was made on")
 	}
-	e := graph.NewEditor(w)
+	e := opt.Editor
+	if e == nil || !opt.InPlace || e.Graph() != w {
+		e = graph.NewEditor(w)
+	}
 	a := &aligner{e: e, ix: ix, ids: opt.IDs, info: map[*sx]sinfo{}, renamed: map[*sx]string{}}
 	var ops []Op
 	if opt.within != nil {
@@ -200,7 +219,15 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 		}
 	}
 	// the alignment's check: the view printed again says what was written
-	r.Index = NewIndex(w)
+	reindex := func() *Index {
+		if j := w.Recording(); j != nil && ix == opt.Index {
+			ix.Update(j.Saved()) // the forms the edit changed, walked again
+			ix.verify("an edit")
+			return ix
+		}
+		return NewIndex(w)
+	}
+	r.Index = reindex()
 	again, againSpans, rerr := render(r.Index)
 	if rerr != nil {
 		again = "" // the view's root went: an empty view
@@ -228,7 +255,7 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 	}
 	r.Recheck = e.Recheck()
 	if len(r.Closure) > 0 || r.Recheck != (graph.RecheckStats{}) {
-		r.Index = NewIndex(w) // the closure's and the re-check's changes indexed too
+		r.Index = reindex() // the closure's and the re-check's changes indexed too
 		if t, sp, err := render(r.Index); err == nil {
 			r.Text, r.Spans = t, sp
 		}

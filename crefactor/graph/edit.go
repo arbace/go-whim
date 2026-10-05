@@ -777,6 +777,15 @@ func (e *Editor) live(d Dangling) bool {
 // Check is the whole graph held to the invariants, for a test: every node
 // contained once and indexed where it is, every edge to a node the graph
 // holds or a dangling record, every typed edge to a held node or recorded.
+// Settle ends one edit of an editor kept for the next: what the edit
+// removed, emptied and touched, and its log, are cleared, the indexes the
+// editor keeps as it edits are kept.  An edit that stands, nothing left
+// dangling, is settled; one undone leaves the editor stale (make another).
+func (e *Editor) Settle() {
+	e.removed, e.emptied, e.touched, e.Log = nil, nil, nil, nil
+	e.wasTop = map[*Node]bool{}
+}
+
 // CheckForms is Check on the top-level forms given alone: where they are,
 // what they contain, and their edges.  Under a journal, the forms holding
 // what an edit saved and made are all an edit can have broken -- a

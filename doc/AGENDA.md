@@ -6,20 +6,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Queued, measured, not started
 
-- **The editor and the index kept across edits** (doc/GRAPH.md, *An
-  applied change's cost*). An applied change through `whim view-serve` is
-  115-145 ms on whim-vim.c's graph and a pending one 21-27 ms; of an
-  applied one, a fresh `graph.Editor` (18 ms) and the view's `Index` built
-  again after it (33 ms) are now the largest parts, FRAG's pared unit
-  20-40 ms. Both could be kept by the session and updated from what the
-  journal saved; a pending change that fails before FRAG (a form that does
-  not print as C) need not make an editor at all.
-- **A Neovim client** beside `vim/` (Lua, `vim.system` or `jobstart`), the
-  same requests; the vim client is held by `TestVimClient` and was typed
-  into live through a terminal, Neovim's is not written.
-- **The derived layer, cached or kept** (doc/GRAPH.md, *Open questions*):
-  which analyses a view or an edit recomputes, by the graph's digest or
-  under edits.
 - **The guests, further** (doc/GUEST.md): a translated editor other than
   Go's (whimsy, whim++) as a guest; the Go guest's default on a native
   arm64 Linux, measured only under emulation so far (one vCPU).
@@ -31,6 +17,10 @@ Nothing known.
 
 
 ## Declined, with the reason recorded
+
+- **A Neovim client** (2026-10-05) beside `vim/`'s: the user's call -- the
+  vim client is the one used; view-serve's requests are what another
+  client would speak.
 
 - **The generic steps moved to the end, and `BoolRet` run once** (2026-10-02;
   the pipeline reform's G, `PIPELINE-REFORM.md` §7). Each move was run from

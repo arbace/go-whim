@@ -98,8 +98,18 @@ func EntityAt(ix *Index, spans []Span, pos int) (entity, on *graph.Node) {
 // round with no copy of the graph kept.  An Index or Editor made before an
 // edit or an undo is stale after it.
 type Session struct {
-	G    *graph.Graph
-	done []*graph.Journal
+	G      *graph.Graph
+	done   []*graph.Journal
+	ed     *graph.Editor  // kept from one edit to the next, nil when stale
+	undone *graph.Journal // the last edit undone
+}
+
+// editor is the session's editor of its graph, made when there is none.
+func (s *Session) editor() *graph.Editor {
+	if s.ed == nil {
+		s.ed = graph.NewEditor(s.G)
+	}
+	return s.ed
 }
 
 // NewSession edits g.
@@ -109,10 +119,17 @@ func NewSession(g *graph.Graph) *Session { return &Session{G: g} }
 // graph as it was and is not an edit to undo.
 func (s *Session) Edit(render Render, edited string, opt EditOptions) (*Result, error) {
 	opt.InPlace = true
+	opt.Editor = s.editor()
+	stale := false
+	opt.stale = &stale
 	r, err := Edit(s.G, render, edited, opt)
+	if stale {
+		s.ed = nil
+	}
 	if err != nil {
 		return nil, err
 	}
+	r.Editor.Settle()
 	s.done = append(s.done, r.Journal)
 	return r, nil
 }
@@ -122,7 +139,7 @@ func (s *Session) Edit(render Render, edited string, opt EditOptions) (*Result, 
 // invariants of the forms it changed; refused, nothing is left of it.
 func (s *Session) Do(f func(e *graph.Editor) error) (*graph.Journal, error) {
 	j := s.G.Begin()
-	e := graph.NewEditor(s.G)
+	e := s.editor()
 	err := f(e)
 	if err == nil {
 		if d := e.Dangling(); len(d) > 0 {
@@ -141,9 +158,13 @@ func (s *Session) Do(f func(e *graph.Editor) error) (*graph.Journal, error) {
 	}
 	j.End()
 	if err != nil {
+		if j.Changed() > 0 {
+			s.ed = nil
+		}
 		j.Undo()
 		return nil, err
 	}
+	e.Settle()
 	s.done = append(s.done, j)
 	return j, nil
 }
@@ -156,6 +177,7 @@ func (s *Session) Undo() bool {
 	j := s.done[len(s.done)-1]
 	s.done = s.done[:len(s.done)-1]
 	j.Undo()
+	s.ed, s.undone = nil, j
 	return true
 }
 

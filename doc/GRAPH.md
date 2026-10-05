@@ -2114,17 +2114,23 @@ invariants (`Editor.Check`, a walk of every node). Both are cut now:
   tests hold every in-place edit's local check to the whole graph's
   (`checkWhole`).
 
+Then what every edit made afresh is kept (*The derived layer, kept under
+edits*, below): the session's editor, settled between edits; the view's
+index, updated from the journal; and cc's configuration, which asked the
+host's C compiler for its macros and paths -- a process of its own, 40-50
+ms of wall time a FRAG that no profile of the process's CPU showed.
 Through the server, typed changes on `def ml_clearmarked`:
 
-| request | before | now |
-| --- | ---: | ---: |
-| `change` (pending) | 21 ms | 21-27 ms |
-| `change` (applied) | 390 ms | 115-145 ms |
-| `undo` | 57 ms | 23-35 ms |
+| request | at first | the unit pared | all kept |
+| --- | ---: | ---: | ---: |
+| `change` (pending) | 21 ms | 21-27 ms | 0.3-0.4 ms |
+| `change` (applied) | 390 ms | 115-145 ms | 48-58 ms |
+| `undo` | 57 ms | 23-35 ms | 3-5 ms |
+| `rename` | | 42 ms | 31 ms |
 
-What is left of an applied change is a fresh editor (18 ms) and the index
-after the edit (33 ms), FRAG's pared unit 20-40 ms, the rest the views
-printed: `doc/AGENDA.md` has the next step.
+What is left of an applied change, 30 ms of its CPU, is FRAG's pared unit
+(cc's parse, check and import of it, and `formDeclares` walking every form
+to name what each declares, 8 ms), the re-check and the views printed.
 
 ## The vim client (2026-10-05)
 
@@ -2169,10 +2175,46 @@ reported (`applied ... added NAME`; the client says `:WhimView def NAME`).
 undone; renamed to `odd`, which the file declares, refused and the graph
 untouched.
 
+## The derived layer, kept under edits (2026-10-05)
+
+*Is the derived layer cached by the graph's digest, or kept incrementally
+under edits?* Measured on the first of it a session needs, both: kept
+under edits within a process, by the structure that edits; cached by
+digest across processes, as it was.
+
+- **Within a process that edits, kept, and held to a rebuild.** The view's
+  `Index` is kept by top-level node (`view/index.go`): each top-level node's
+  ids, parents and edges are its own entries, and `Index.Update(changed)`
+  walks again only the top-level nodes holding a node the journal saved,
+  and those a section gained or lost; the source's order is the section,
+  the top-level node's place and the node's place within it, and a list of
+  uses an edit touched has its new run placed by a binary search, not
+  sorted whole. 4.5 ms where a new index is 25-43 (whim-vim.c's graph, one
+  form changed). The same update follows an undo (the undone journal's
+  saved nodes) and a refusal undone. The `Editor` is kept by the session
+  from one edit to the next (`Editor.Settle` clears one edit's records, the
+  uses and containment it keeps as it edits are kept), made again only
+  after an undo or a refusal that had changed the graph. **The gate**: under
+  the view tests' `checkWhole`, every index an edit, a refusal, an undo or
+  a rename updated is compared with a new one's -- every id, parent, use
+  and typed edge in order, the names (`sameIndex`) -- and every in-place
+  edit's local invariants with the whole graph's; the package's tests pass
+  with both on.
+- **Across processes, by digest.** What a process starts from is cached
+  by what it was made from: `.cache/graph` holds a C file's graph by the
+  file's digest and the binary's (`whim view`, `view-serve`: 40-66 ms to
+  load, where the import is 1.5 s), the snapshot store each top-level node
+  by its bytes' SHA-256, and cc's configuration is made once a process.
+
+*Which analyses are cheap enough to recompute per view?* The views'
+own: a view built and printed from the index is 0.1-0.5 ms (`at`, `open`
+past the load). What is not recomputed per edit is what walks the graph:
+the index, the editor's uses, the invariants (`CheckForms` on the forms an
+edit touched). FRAG's `formDeclares`, 8 ms of an applied change, is the
+last walk of every form an edit makes.
+
 ## Open questions
 
-- Is the derived layer cached by the graph's digest, or kept incrementally
-  under edits -- and which analyses are cheap enough to recompute per view?
 - Does the lowered layer of `doc/IR.md` live in the same store from the
   start, or join it once steps 1-3 stand?
 - What is the smallest editor that proves the view idea? The read-only

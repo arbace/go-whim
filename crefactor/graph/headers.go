@@ -102,7 +102,7 @@ func initHeaders() error {
 	if headers.byKey != nil {
 		return nil
 	}
-	cfg, err := cc.NewConfig("linux", "amd64")
+	cfg, err := ccConfig()
 	if err != nil {
 		return err
 	}
