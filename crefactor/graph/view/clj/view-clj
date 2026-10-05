@@ -1,0 +1,23 @@
+#!/bin/sh
+# view-clj: crefactor/graph/view's named views in Clojure, over a graph's
+# EDN (doc/GRAPH.md, *Views in Clojure, over the EDN*):
+#
+#   view-clj [--ids] [--depth N] [--show S] [--stop HEADS] [--time] VIEW ARG FILE.edn
+#
+# Clojure 1.12.5 and the two spec jars it needs, from ~/.m2 (or
+# GRAPH_CLOJURE_CP), and this directory's src/; nothing is installed or
+# compiled ahead.  With GVIEW_CLASSES naming a directory, the namespaces
+# are AOT-compiled into it once and loaded from there after.
+here=$(cd "$(dirname "$0")" && pwd)
+m2=${M2:-$HOME/.m2/repository}/org/clojure
+cp=${GRAPH_CLOJURE_CP:-$m2/clojure/1.12.5/clojure-1.12.5.jar:$m2/spec.alpha/0.5.238/spec.alpha-0.5.238.jar:$m2/core.specs.alpha/0.4.74/core.specs.alpha-0.4.74.jar}
+tmp=${TMPDIR:-$here/.tmp}
+if [ -n "$GVIEW_CLASSES" ]; then
+	if [ ! -f "$GVIEW_CLASSES/gview/main.class" ] || [ -n "$(find "$here/src" -newer "$GVIEW_CLASSES/gview/main.class" -name '*.clj')" ]; then
+		mkdir -p "$GVIEW_CLASSES"
+		java -Djava.io.tmpdir="$tmp" -Dclojure.compile.path="$GVIEW_CLASSES" -cp "$GVIEW_CLASSES:$here/src:$cp" \
+			clojure.main -e "(compile 'gview.main)" >/dev/null || exit 1
+	fi
+	exec java -Djava.io.tmpdir="$tmp" -Xss16m -cp "$GVIEW_CLASSES:$cp" gview.main "$@"
+fi
+exec java -Djava.io.tmpdir="$tmp" -Xss16m -cp "$here/src:$cp" clojure.main -m gview.main "$@"

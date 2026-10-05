@@ -1438,6 +1438,75 @@ token), which EDN cannot read. The EDN is for tools and an editor in
 Clojure; the snapshots stay Lisp, which is two-thirds the size and
 faster to read.
 
+## Views in Clojure, over the EDN (2026-10-05)
+
+Whether the EDN is an interchange format and not only a second notation is
+whether a Lisp tool can do real work on it with nothing of ours at run time.
+`crefactor/graph/view/clj/` is that tool: the named views of *Views,
+read-only* written again in Clojure (about 780 lines, blank lines aside, in
+three namespaces), reading the graph with `clojure.edn/read` and nothing
+else, and printing what `go tool whim view` prints, byte for byte. It lives
+beside the Go views it mirrors, inside the generic module: like them it
+names nothing in any one program, and the Go test that holds it to them is
+in their package.
+
+- **`gview.graph`**: the six tags' readers -- `#g/n` a node (`deftype`, so
+  that a node's identity is the object's, as a pointer's is in the Go), its
+  edges kept as ids and resolved through the index; `#g/r` an edge; `#g/t`
+  an edge, or alone a type's operand; `#c/num`, `#c/char`, `#c/tok` an atom
+  of the token -- the forms' syntax the views ask (`decl-name`,
+  `decl-type`, `tag-of`, `type-def?`, `members`: `names.go` and `forms.go`),
+  and the index (parents, uses and typed-by as the refers and typed edges
+  backwards, the top-level forms by name, `rep`, `holder`, `statement`) with
+  `find-roots`: `#ID`, `NAME`, `S.M`, `struct T`, `F/x`.
+- **`gview.view`**: the steps (`refers`, `typed`, `contains`, each with `<`,
+  `inside`, `^fn`, `^stmt`, `call`), the tree built depth first with links
+  for revisits, the contexts and the access labels, the named views
+  `callers`, `callees`, `uses`, `member`, `type`, `def` and `follow`, and the
+  printer, C-lisp's layout rules with widths counted in bytes as the Go
+  counts them.
+- **`gview.main`** and `view-clj`, a script: `view-clj [--ids] [--depth N]
+  [--show S] [--stop HEADS] [--time] VIEW ARG FILE.edn`, the Go's flags but
+  `--c` (def's C view wants C's printer, which is not this tool's), the
+  graph's EDN (`go tool whim graph --edn`) in place of the C file; `--batch
+  CASES OUTDIR FILE.edn` reads the EDN once and runs a view a line.
+  `java -cp` Clojure 1.12.5 and its two spec jars from `~/.m2` (or
+  `GRAPH_CLOJURE_CP`), the namespaces loaded from source; with
+  `GVIEW_CLASSES=DIR` they are AOT-compiled there once and loaded from
+  there after. Nothing is installed.
+
+**The gate** (`crefactor/graph/view`'s `TestClojureViews`, skipped without
+java or the jar): whim-vim.c's graph, imported and read back, written as
+EDN; for each case `view-clj --batch` prints and the Go views print in
+process, the same bytes and the same error. The cases are 24 chosen -- every
+view and flag, `callers ml_get` and `callees main` unlimited (27,026 and
+38,189 lines), ids, `--show` each way, `--stop`, `follow`, a local, an
+enumerator, two errors -- and, for every name the file declares, `uses` of
+it, for every function defined `def` and `callers` to depth 1, and `type`
+of every struct or union a typedef names: **6,370 of 6,370 the same
+bytes**, no difference by design. The control: the printer's width 99 for
+100 moves 13 of the 24 chosen cases.
+
+**Measured** (whim-vim.c, 9,663,341 bytes of EDN, at a load of 2-4):
+
+| | the Go (`whim view`, the cache read) | the Clojure, from source | the Clojure, AOT |
+| --- | ---: | ---: | ---: |
+| the graph read | 40-44 ms (its Lisp) | 0.9-1.2 s (`clojure.edn`) | 0.9-1.1 s |
+| indexed | 15-18 ms | 160-200 ms | 170-340 ms |
+| `callers ml_get`, built and printed | 1 ms | 30-32 ms | 42-63 ms |
+| `callees main` unlimited | 85 ms | | 649 ms |
+| the whole run, wall | 0.06 s (0.17 s through `go tool`) | 2.5-2.75 s, 640-700 MB | 1.8-2.2 s, 520-610 MB |
+| the gate's 6,370 views in one JVM | | 4.2 s, 0.66 ms a view | |
+
+The Clojure tool is 30-40 times the Go's wall time for one view, nearly
+all of it the JVM starting and `clojure.edn` building persistent
+collections and tagged literals from 9.7 MB (the read the *EDN* section
+measured, 0.55-1.1 s warm); once read, a view is milliseconds, as in the
+Go, and a long-lived Clojure process -- an editor, a REPL -- pays the read
+once. **Not done**: a faster reader of our own (the point was that the
+standard one suffices), `--c`, and a launcher under `go tool whim` (a
+script is enough for a check of the format).
+
 ## Open questions
 
 - Is the derived layer cached by the graph's digest, or kept incrementally

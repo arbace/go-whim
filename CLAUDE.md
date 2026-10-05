@@ -458,7 +458,12 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    and the roots by name, view.go the steps, the specs and
                    the tree built with links for revisits, named.go
                    callers, callees, uses, member, type and def, print.go
-                   the tree as C-lisp, ids on demand.
+                   the tree as C-lisp, ids on demand; clj/ the same views
+                   in Clojure over the graph's EDN, clojure.edn its only
+                   reader (gview.graph, gview.view, gview.main; the script
+                   view-clj), held byte for byte to the Go's by
+                   clj_test.go (doc/GRAPH.md, *Views in Clojure, over the
+                   EDN*).
                    sweep/: the text's closure (Prune), which whim's plan no
                    longer runs -- the collection is its rules on the nodes,
                    held to it by internal/graphcheck -- kept for `whim
