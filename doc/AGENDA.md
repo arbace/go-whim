@@ -7,7 +7,7 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 ## Queued, measured, not started
 
 - **The guests, further** (doc/GUEST.md): the Rust guest on arm64, which
-  needs core and alloc for aarch64 (not in this rustc); whim++ as a guest; the Go guest's default on a native arm64
+  needs core and alloc for aarch64 (not in this rustc); the Go guest's default on a native arm64
   Linux, measured only under emulation so far (one vCPU).
 
 ## Known stale, not yet scoped
@@ -17,6 +17,8 @@ Nothing known.
 
 
 ## Declined, with the reason recorded
+
+- **whim++ as a guest** (2026-10-05): the user's call, for now.
 
 - **The C guest on several vCPUs** (2026-10-05). The C core runs
   `match_lines` line after line by design; the parallel `:%s` is each
