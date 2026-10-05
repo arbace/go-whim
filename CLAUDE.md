@@ -881,7 +881,10 @@ doc/               GOALS.md (what holds for every phase), PHASES.md (the phases'
                    Hypervisor.framework, its host functions as hypercalls
                    to a small VMM: the design, its decisions and its
                    milestones as built; and the second guest, the Go
-                   editor on TamaGo))
+                   editor on TamaGo), LISP-SANDBOX.md (Joker beside Clojure,
+                   measured in Clojure's roles here and as a TamaGo guest --
+                   a REPL in the box -- and a functional Lisp on Go's runtime
+                   in the guest sketched: an assessment, nothing decided))
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
