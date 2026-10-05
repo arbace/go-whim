@@ -94,6 +94,9 @@ func (b *Buffer) Change(start, end int, text string) (*Typed, error) {
 	for q < len(p)-lo && q < len(t)-lo && p[len(p)-1-q] == t[len(t)-1-q] {
 		q++
 	}
+	if line, ok := noteAt(p, lo, len(p)-q); ok {
+		return b.pending(cur, "line %d is the view's note (`;;`), not the graph's: revert it", line), nil
+	}
 	neu, err := readSx(t, b.Opt.IDs)
 	if err != nil {
 		return b.pending(cur, "not yet forms: %v", err), nil
@@ -318,3 +321,21 @@ func innermost(x *sx, lo, hi int) *sx {
 
 // the session's graph, for a server that writes it
 func (b *Buffer) Graph() *graph.Graph { return b.S.G }
+
+// noteAt is the line, from 1, of a `;;` note of the printed text that the
+// change from lo to hi touches, if any: the view's notes are not forms, and
+// an edit in one reads as forms beside the view's own.
+func noteAt(p string, lo, hi int) (int, bool) {
+	start := strings.LastIndexByte(p[:lo], '\n') + 1
+	for at := start; at <= hi && at < len(p); {
+		end := strings.IndexByte(p[at:], '\n')
+		if end < 0 {
+			end = len(p) - at
+		}
+		if strings.HasPrefix(strings.TrimLeft(p[at:at+end], " "), ";;") {
+			return strings.Count(p[:at], "\n") + 1, true
+		}
+		at += end + 1
+	}
+	return 0, false
+}

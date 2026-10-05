@@ -2319,6 +2319,33 @@ program written and compiled. Six faults, each now held by a test:
 Then the same session, the helper typed above: every step as it should
 be, and the program written compiles.
 
+## The vim client used, a third time: callers, uses and member views (2026-10-05)
+
+Edits made through the views that are not a definition's, in vim through
+a terminal on whim-vim.c's graph: in `callers ml_find_line` one call's
+argument changed (`cw`) and three calls in three functions changed by one
+`:%s`; in `uses p_wiv` a whole context deleted (`d%`) and the object
+renamed from one of its uses (`:WhimRename`); `:WhimAt` on an entry's
+name; in `member memline_T.ml_locked_low` a use changed to another
+member's; the program written and compiled -- every edit in the C, and
+gcc builds it. Two faults:
+
+- **An edit that took a context out of its view was refused** as a wrong
+  alignment: the use of `ml_locked_low` made one of `ml_locked_high` is no
+  longer in the member's view, so the view printed again could not say what
+  was written. When it does not, the text as printed before the edit, each
+  op's node replaced in place by what the op made (a deletion's emptied, an
+  insertion's put beside its node), must say it instead (`inPlace`); a node
+  misplaced still puts the new text where it was not, and is caught
+  (`TestEditLeavesView`, with the tamper control). Renamings keep the view
+  printed again as their check.
+- **A change in the view's `;;` note** read as forms added beside the view's
+  own. It is pending now, its reason the note's line (`TestBufferNote`).
+
+Deleting one line of a form that spans several leaves it unbalanced, which
+is pending ("not yet forms"), as it should be: `d%` on its parenthesis
+deletes the form.
+
 ## The derived layer, kept under edits (2026-10-05)
 
 *Is the derived layer cached by the graph's digest, or kept incrementally

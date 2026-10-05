@@ -585,3 +585,30 @@ func indexOf(spans []Span, n *graph.Node) int {
 	}
 	return -1
 }
+
+// TestEditLeavesView: an edit after which the view no longer shows what it
+// wrote -- a use of opt made a use of another object leaves opt's uses
+// view -- is held to the text printed before, each op's node replaced in
+// place by what it made; the edit stands, and the view printed again lacks
+// the context.  The control still catches a node misplaced.
+func TestEditLeavesView(t *testing.T) {
+	g := sample(t).G
+	v := usesView("opt", false)
+	ed := edited(t, v, g, "(= opt 1)", "(= (. o b_ml) 1)")
+	r, err := Edit(g, v, ed, EditOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(r.Text, "(in main") {
+		t.Fatalf("main's context still in the view:\n%s", r.Text)
+	}
+	c, _ := r.Graph.C()
+	if !strings.Contains(string(c), "o.b_ml = 1;") {
+		t.Fatalf("the C:\n%s", c)
+	}
+	tamper = func(e *graph.Editor, ops []Op) { ops[0].Node = e.Sibling(ops[0].Node, 1) }
+	defer func() { tamper = nil }()
+	if _, err := Edit(g, v, ed, EditOptions{}); err == nil || !strings.Contains(err.Error(), "the alignment is wrong") {
+		t.Fatalf("a misplaced node was not caught: %v", err)
+	}
+}

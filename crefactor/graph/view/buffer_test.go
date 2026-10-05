@@ -308,3 +308,19 @@ func TestBufferRefusedThenAgain(t *testing.T) {
 		t.Fatal("ml_clearmarked or its call left")
 	}
 }
+
+// TestBufferNote: a change in the view's `;;` note is pending, said so.
+func TestBufferNote(t *testing.T) {
+	s := NewSession(sample(t).G)
+	b, err := s.Open(usesView("opt", false), EditOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(b.Text, ";;") {
+		t.Fatalf("no note:\n%s", b.Text)
+	}
+	r, _ := b.Change(3, 4, "X")
+	if r.Status != "pending" || !strings.Contains(r.Reason, "line 1 is the view's note") {
+		t.Fatalf("a change in the note: %s %s", r.Status, r.Reason)
+	}
+}

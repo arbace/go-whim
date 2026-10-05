@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/clisp"
@@ -233,7 +234,14 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 		again = "" // the view's root went: an empty view
 	}
 	if err := sameText(again, without(edited, a.beside), opt.IDs, a.entryHeads); err != nil {
-		return nil, refuse("the edit was made, and the view printed again does not say what was written (%v): the alignment is wrong", err)
+		// the view may no longer show what the edit wrote -- a use made
+		// another entity's leaves a uses or member view -- so the text as
+		// printed before, each op's node replaced in place by what it made,
+		// printed, says what was written as well (and a node misplaced still
+		// puts it where it was not)
+		if len(a.renamedOps(ops)) > 0 || sameText(inPlace(text, spans, ops, made, Printer{IDs: opt.IDs}), without(edited, a.beside), opt.IDs, a.entryHeads) != nil {
+			return nil, refuse("the edit was made, and the view printed again does not say what was written (%v): the alignment is wrong", err)
+		}
 	}
 	r.Text, r.Spans = again, againSpans
 	if d := e.Dangling(); len(d) > 0 {
@@ -1176,4 +1184,88 @@ func check(e *graph.Editor, w *graph.Graph, made [][]*graph.Node) error {
 		}
 	}
 	return err
+}
+
+// renamedOps are ops' renamings: the text printed before says them only
+// respelled, which inPlace does not.
+func (a *aligner) renamedOps(ops []Op) []Op {
+	var out []Op
+	for _, o := range ops {
+		if o.Kind == "rename" {
+			out = append(out, o)
+		}
+	}
+	return out
+}
+
+// inPlace is text, the view printed before an edit, with each op's span
+// replaced by what it made, printed by p -- a deleted node's span emptied,
+// an insertion's put before, after or at the end of its node's -- applied
+// from the last place back.  made is applyMade's: the splices' nodes, in
+// the order of the ops that splice.
+func inPlace(text string, spans []Span, ops []Op, made [][]*graph.Node, p Printer) string {
+	spanOf := func(n *graph.Node) (Span, bool) {
+		best, ok := Span{}, false
+		for _, s := range spans {
+			if s.Node == n && (s.Kind == SpanForm || !ok) {
+				best, ok = s, true
+			}
+		}
+		return best, ok
+	}
+	type cut struct {
+		lo, hi int
+		with   string
+	}
+	var cuts []cut
+	k := 0
+	for _, o := range ops {
+		switch o.Kind {
+		case "delete":
+			if sp, ok := spanOf(o.Node); ok {
+				cuts = append(cuts, cut{sp.Start, sp.End, ""})
+			}
+			continue
+		case "replace", "insert":
+		default:
+			continue
+		}
+		var printed []string
+		if k < len(made) {
+			for _, n := range made[k] {
+				t, _ := p.RenderForm(n)
+				printed = append(printed, t)
+			}
+		}
+		k++
+		with := " " + strings.Join(printed, " ") + " "
+		sp, ok := spanOf(o.Node)
+		if !ok {
+			continue
+		}
+		switch {
+		case o.Kind == "replace":
+			hi := sp.End
+			if o.Last != nil && o.Last != o.Node {
+				if l, ok := spanOf(o.Last); ok {
+					hi = l.End
+				}
+			}
+			cuts = append(cuts, cut{sp.Start, hi, with})
+		case o.Where == "before":
+			cuts = append(cuts, cut{sp.Start, sp.Start, with})
+		case o.Where == "after":
+			cuts = append(cuts, cut{sp.End, sp.End, with})
+		default: // at the end of the node: before its closing parenthesis
+			cuts = append(cuts, cut{sp.End - 1, sp.End - 1, with})
+		}
+	}
+	sort.Slice(cuts, func(i, j int) bool { return cuts[i].lo > cuts[j].lo })
+	for _, c := range cuts {
+		if c.lo < 0 || c.hi > len(text) || c.lo > c.hi {
+			continue
+		}
+		text = text[:c.lo] + c.with + text[c.hi:]
+	}
+	return text
 }
