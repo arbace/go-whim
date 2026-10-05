@@ -37,9 +37,10 @@ import (
 //     in is never touched: the edit is made on a copy, returned when it
 //     stands.
 
-// A Render prints a view of g with its span table, the same view each
-// time: Edit prints it on its copy, and again after the edit.
-type Render func(g *graph.Graph) (text string, spans []Span, err error)
+// A Render prints a view with its span table from an index of the graph,
+// the same view each time: Edit prints it before the edit, and again after
+// it on a fresh index.
+type Render func(ix *Index) (text string, spans []Span, err error)
 
 // EditOptions are how an edit is made.
 type EditOptions struct {
@@ -57,6 +58,12 @@ type EditOptions struct {
 	// Journal undoes the edit made.  It spares the copy, the graph's Lisp
 	// printed and read (130 ms on whim-vim.c's).
 	InPlace bool
+	// Index, in place, is a current index of the graph: the edit begins on
+	// it rather than indexing the graph again (33 ms on whim-vim.c's).
+	Index *Index
+	// within, a typed change's: the alignment begins at that form of the
+	// printed text (buffer.go).
+	within *within
 }
 
 // An Op is one edit an aligned text makes.
@@ -108,9 +115,12 @@ type Result struct {
 	FallOut graph.FallOutStats
 	Recheck graph.RecheckStats
 	Text    string // the view printed again
+	Spans   []Span // its span table
 	// Journal, for an edit made in place, undoes it (Journal.Undo; Session
 	// keeps them in order).
 	Journal *graph.Journal
+	// Index is the graph's after the edit.
+	Index *Index
 }
 
 // tamper, when a test sets it, changes the alignment's ops before they are
@@ -140,7 +150,11 @@ func Edit(g *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 }
 
 func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Result, error) {
-	text, spans, err := render(w)
+	ix := opt.Index
+	if ix == nil || !opt.InPlace || ix.G != w {
+		ix = NewIndex(w)
+	}
+	text, spans, err := render(ix)
 	if err != nil {
 		return nil, err
 	}
@@ -148,8 +162,13 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 		return nil, refuse("the view prints otherwise than the text the edit was made on")
 	}
 	e := graph.NewEditor(w)
-	a := &aligner{e: e, ix: NewIndex(w), ids: opt.IDs, info: map[*sx]sinfo{}, renamed: map[*sx]string{}}
-	ops, err := a.plan(text, spans, edited)
+	a := &aligner{e: e, ix: ix, ids: opt.IDs, info: map[*sx]sinfo{}, renamed: map[*sx]string{}}
+	var ops []Op
+	if opt.within != nil {
+		ops, err = a.planWithin(text, spans, edited, *opt.within)
+	} else {
+		ops, err = a.plan(text, spans, edited)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -165,14 +184,15 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 		return nil, err
 	}
 	// the alignment's check: the view printed again says what was written
-	again, _, rerr := render(w)
+	r.Index = NewIndex(w)
+	again, againSpans, rerr := render(r.Index)
 	if rerr != nil {
 		again = "" // the view's root went: an empty view
 	}
-	if err := sameText(again, edited, opt.IDs, a.entryHeads); err != nil {
+	if err := sameText(again, without(edited, a.beside), opt.IDs, a.entryHeads); err != nil {
 		return nil, refuse("the edit was made, and the view printed again does not say what was written (%v): the alignment is wrong", err)
 	}
-	r.Text = again
+	r.Text, r.Spans = again, againSpans
 	if d := e.Dangling(); len(d) > 0 {
 		if opt.FallOut == nil {
 			u := d[0]
@@ -191,6 +211,12 @@ func edit(w *graph.Graph, render Render, edited string, opt EditOptions) (*Resul
 		r.FallOut, r.Closure = st, append([]graph.Act(nil), e.Log[k:]...)
 	}
 	r.Recheck = e.Recheck()
+	if len(r.Closure) > 0 || r.Recheck != (graph.RecheckStats{}) {
+		r.Index = NewIndex(w) // the closure's and the re-check's changes indexed too
+		if t, sp, err := render(r.Index); err == nil {
+			r.Text, r.Spans = t, sp
+		}
+	}
 	if r.Recheck.Left > 0 {
 		return nil, refuse("%d expressions the edit wrote have no type the re-check derives", r.Recheck.Left)
 	}
@@ -502,6 +528,7 @@ type aligner struct {
 	info       map[*sx]sinfo
 	renamed    map[*sx]string // old atoms a renaming respells, to their new text
 	entryHeads map[string]bool
+	beside     [][2]int // the edited text's top-level forms made beside the view's, which it does not show
 }
 
 // plan reads the two texts, maps the printed one's forms to their spans,
@@ -515,6 +542,23 @@ func (a *aligner) plan(text string, spans []Span, edited string) ([]Op, error) {
 	if err != nil {
 		return nil, err
 	}
+	a.mapSpans(old, spans)
+	var pairs [][2]*sx
+	a.atoms(old, neu, &pairs)
+	ops := a.renames(pairs)
+	more, esc, err := a.align(old, neu)
+	if err != nil {
+		return nil, err
+	}
+	if esc {
+		return nil, refuse("the change is to the view's own structure, not to a form of the graph")
+	}
+	return append(ops, more...), nil
+}
+
+// mapSpans gives every form read from the printed text what the span table
+// says it is.
+func (a *aligner) mapSpans(old *sx, spans []Span) {
 	type key struct{ s, e int }
 	at := map[key][]int{}
 	for i, s := range spans {
@@ -544,17 +588,6 @@ func (a *aligner) plan(text string, spans []Span, edited string) ([]Op, error) {
 		}
 	}
 	mapAll(old)
-	var pairs [][2]*sx
-	a.atoms(old, neu, &pairs)
-	ops := a.renames(pairs)
-	more, esc, err := a.align(old, neu)
-	if err != nil {
-		return nil, err
-	}
-	if esc {
-		return nil, refuse("the change is to the view's own structure, not to a form of the graph")
-	}
-	return append(ops, more...), nil
 }
 
 // gap is a run of elements one list has and the other has not, between
@@ -826,6 +859,11 @@ func (a *aligner) run(o, n *sx, g gap) ([]Op, bool, error) {
 		// the view's own structure: only deletions, of whole forms
 		if len(news) > 0 {
 			if o.up == nil && len(olds) == 0 {
+				// beside a top-level form the view shows (a def view's):
+				// top-level forms of their own, after it or before it
+				if ops, ok, err := a.besideTop(o, news, g); ok || err != nil {
+					return ops, false, err
+				}
 				return nil, false, refuse("a form added beside the view's own: insert it inside a form")
 			}
 			return nil, false, refuse("`%s` added in the view's own structure (an entry, a label): a form goes inside a form", oneLine(news[0].String()))
@@ -1015,4 +1053,49 @@ func dropEmpty(x *sx, heads map[string]bool) *sx {
 		y.kids = append(y.kids, k)
 	}
 	return y
+}
+
+// besideTop is forms added at the view's top level beside a top-level form
+// it shows, made top-level forms after it (or before the next); ok false
+// when no neighbour is one.
+func (a *aligner) besideTop(o *sx, news []*sx, g gap) ([]Op, bool, error) {
+	top := func(k int) *graph.Node {
+		if k < 0 || k >= len(o.kids) {
+			return nil
+		}
+		if f := a.info[o.kids[k]].form; f != nil && a.ix.IsTop(f) && a.info[o.kids[k]].whole {
+			return f
+		}
+		return nil
+	}
+	where, at := "after", top(g.o0-1)
+	if at == nil {
+		where, at = "before", top(g.o1)
+	}
+	if at == nil {
+		return nil, false, nil
+	}
+	src, err := a.cText("top", news)
+	if err != nil {
+		return nil, true, err
+	}
+	for _, x := range news {
+		a.beside = append(a.beside, [2]int{x.start, x.end})
+	}
+	return []Op{{Kind: "insert", Node: at, Where: where, Src: src, As: "top"}}, true, nil
+}
+
+// without is text with the byte ranges cut out, in order.
+func without(text string, cut [][2]int) string {
+	if len(cut) == 0 {
+		return text
+	}
+	var b strings.Builder
+	at := 0
+	for _, c := range cut {
+		b.WriteString(text[at:c[0]])
+		at = c[1]
+	}
+	b.WriteString(text[at:])
+	return b.String()
 }

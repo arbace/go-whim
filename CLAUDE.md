@@ -477,6 +477,11 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    cursor.go the view at a cursor (EntityAt: the span at a
                    position, the entity its node is about; `whim view
                    --at`) and Session, edits in place undone in order;
+                   buffer.go edits as they are typed (Buffer: a change
+                   applied, pending, layout or same, aligned from the
+                   least form around it; `whim view-serve` drives one);
+                   agree.go also holds calls to their prototypes and
+                   returns to their functions;
                    clj/ the same views
                    in Clojure over the graph's EDN, clojure.edn its only
                    reader (gview.graph, gview.view, gview.main; the script
@@ -921,6 +926,7 @@ go tool whim graph --changes N   # what phase N changed: the top-level forms who
 go tool whim graph --snapshot N  # boundary N's graph as Lisp, from the store of graphs in .cache/boundaries
 go tool whim view callers F      # a read-only view of whim-vim.c's graph as Lisp: callers, callees, uses, member S.M, type T, def; 0.07 s once .cache/graph holds it (doc/GRAPH.md)
 go tool whim view --at L:C def F # the view at a cursor: the same view (--as another) rooted at what the node at L:C of the printed one is about
+go tool whim view-serve [FILE]   # an editing session for an editor to drive: a request a line on stdin (open, change, at, undo, c, write), answers framed as view-clj's
 crefactor/graph/view/clj/view-clj --serve F.edn  # the views in Clojure, a long-lived process: the EDN read once (2 s), then a request a line on stdin, answered in 0.1 ms median (doc/GRAPH.md, *The server*)
 go tool whim view-edit def F < EDITED  # that view edited (ids shown or not) made an edit of the graph, checked where made; writes the C (--lisp, --view; --fallout); 0.25-0.7 s an edit
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)

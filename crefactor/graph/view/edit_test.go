@@ -17,8 +17,7 @@ import (
 
 // defView is `def NAME` as a Render; usesView `uses NAME`.
 func defView(name string, ids bool) Render {
-	return func(g *graph.Graph) (string, []Span, error) {
-		ix := NewIndex(g)
+	return func(ix *Index) (string, []Span, error) {
 		ns, err := ix.Find(name)
 		if err != nil {
 			return "", nil, err
@@ -29,8 +28,7 @@ func defView(name string, ids bool) Render {
 }
 
 func usesView(name string, ids bool) Render {
-	return func(g *graph.Graph) (string, []Span, error) {
-		ix := NewIndex(g)
+	return func(ix *Index) (string, []Span, error) {
 		ns, err := ix.Find(name)
 		if err != nil {
 			return "", nil, err
@@ -53,7 +51,7 @@ func copyOf(t *testing.T, g *graph.Graph) *graph.Graph {
 // edited is the view's text with old replaced by new, once.
 func edited(t *testing.T, r Render, g *graph.Graph, old, new string) string {
 	t.Helper()
-	text, _, err := r(g)
+	text, _, err := r(NewIndex(g))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -302,7 +300,7 @@ func TestEditRefusals(t *testing.T) {
 				// get's b's uses: the if's block holds none, and is elided
 				r := usesView("get/b", false)
 				c.view = r
-				text, _, _ := r(g)
+				text, _, _ := r(NewIndex(g))
 				if !strings.Contains(text, "(if (-> b next) ...)") {
 					t.Fatalf("no elided block in:\n%s", text)
 				}
@@ -481,7 +479,7 @@ func TestEditProduct(t *testing.T) {
 			})
 	})
 	t.Run("a local renamed", func(t *testing.T) {
-		text, _, _ := def(g)
+		text, _, _ := def(NewIndex(g))
 		ed := strings.NewReplacer("(def i int)", "(def k int)", "(= i ", "(= k ", "(pre++ i)", "(pre++ k)", "db_line) i)", "db_line) k)").Replace(text)
 		r := productEdit(t, g, def, ed, EditOptions{}, func(e *graph.Editor, ix *Index) error {
 			_, err := e.Rename(root(t, ix, fn+"/i"), "k")
@@ -493,7 +491,7 @@ func TestEditProduct(t *testing.T) {
 	})
 	t.Run("an expression, with the ids shown", func(t *testing.T) {
 		v := defView(fn, true)
-		text, spans, _ := v(g)
+		text, spans, _ := v(NewIndex(g))
 		// the step's ++lnum, found by its span: the second operand of the comma
 		var at Span
 		for _, s := range spans {
@@ -515,7 +513,7 @@ func TestEditProduct(t *testing.T) {
 	})
 	t.Run("a statement deleted in a uses view", func(t *testing.T) {
 		v := usesView("p_wiv", false)
-		text, spans, _ := v(g)
+		text, spans, _ := v(NewIndex(g))
 		var at Span
 		for _, s := range spans {
 			if s.Kind == SpanContext && ix.Holder(s.Node) == root(t, ix, "ttest") {

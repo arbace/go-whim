@@ -57,3 +57,4 @@
 /whimsical/whimsical/editor.ss.*
 /whimsical/whimsical/*.so
 /whimsical/*.so
+*.test

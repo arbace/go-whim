@@ -29,7 +29,7 @@ func posOf(t *testing.T, text, s string, nth, off int) int {
 
 func TestCursorSample(t *testing.T) {
 	ix := sample(t)
-	text, spans, err := defView("main", false)(ix.G)
+	text, spans, err := defView("main", false)(ix)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func TestSessionProduct(t *testing.T) {
 	const fn = "ml_clearmarked"
 	def := defView(fn, false)
 
-	text, spans, _ := def(g)
+	text, spans, _ := def(NewIndex(g))
 	start := time.Now()
 	e, on := EntityAt(ix, spans, posOf(t, text, "lowest_marked", 0, 0))
 	at := Printer{}.Tree(ix, Uses(ix, e, Options{}))
@@ -164,7 +164,7 @@ func TestSessionProduct(t *testing.T) {
 	}{
 		{"a constant", func() string { return edited(t, def, g, "(= lowest_marked 0))", "(= lowest_marked 1))") }, EditOptions{}},
 		{"a local renamed", func() string {
-			text, _, _ := def(g)
+			text, _, _ := def(NewIndex(g))
 			return strings.NewReplacer("(def i int)", "(def k int)", "(= i ", "(= k ", "(pre++ i)", "(pre++ k)", "db_line) i)", "db_line) k)").Replace(text)
 		}, EditOptions{}},
 		{"the function deleted, its calls closed over", func() string { return "" }, EditOptions{FallOut: &fo}},

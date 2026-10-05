@@ -1911,12 +1911,9 @@ the FRAG unit alone.
 
 ### What the editor at the end needs next
 
-- **Edits as they are typed**: the alignment is of whole texts; a buffer
-  knows which span changed, which is the alignment for nothing.
-- **Calls and returns** under `agree.go`'s rules, and the insertion of
-  top-level forms beside the view's (refused now).
-
-The view at the cursor and undo were on this list; they are built (below).
+The view at the cursor, undo, edits as they are typed, calls and returns
+under agreement, and forms beside a def view's were on this list; they are
+built (below). What is left is in *An applied change's cost*, at the end.
 
 ## The view at the cursor, and undo (2026-10-05)
 
@@ -1987,6 +1984,114 @@ place leaves it untouched with nothing to undo (`TestSessionSample` the
 same over five edits of the sample, and an edit again after the undos).
 `whim view-edit` is one edit a process and keeps its copy; the session is
 for a program that holds the graph, as an editor will.
+
+## Edits as they are typed (2026-10-05)
+
+**The buffer** (`view/buffer.go`). A `Buffer` is a view's text as an editor
+holds it, opened on a `Session`, typed into by `Change(start, end, text)`:
+bytes of its text replaced. What is typed is half-made most of the time,
+and that is not an error. A change answers one of:
+
+- **applied**: the text is an edit that stands; it is made in place in the
+  session (undone by `Buffer.Undo`), and the buffer is the view printed
+  again;
+- **pending**, with the reason: the text is not yet forms (an open
+  parenthesis), or not yet an edit that stands (a name not yet whole, a
+  call with an argument missing); the text is kept and the graph not
+  touched;
+- **layout**: the text says the printed forms, spaced otherwise; kept,
+  nothing to edit;
+- **same**: the text is the view as printed again.
+
+Each answer gives the CURSOR, the change's end in the buffer after it: past
+what was typed, or, when the view was printed again and laid out anew,
+the same place in the new print (`MapPos`: the same byte before where the
+two texts differ, shifted after, and within, the same count of non-blank
+bytes). A buffer knows where it changed, so the alignment does not
+search: the printed text and the buffer agree before the change and after
+it, and the edit is aligned from the least form around the change (the
+forms read from both at the same place, the edited one's end shifted by
+what the change added), climbing only while that form cannot take the
+change (`planWithin`). `Render` takes an `Index` now, and a session's edit
+begins on the buffer's (`EditOptions.Index`), so an edit indexes the graph
+once, after it, where it indexed it three times.
+
+Held by `TestBufferSample` (an operand erased: pending; retyped: applied;
+a statement typed in, a byte a change: pending until it closes, applied
+once, the newline after it layout; all undone, the buffer as opened) and
+`TestBufferTyping` (in `main`, `3` made `(+ 3 1)` byte by byte -- `fact()`
+pending, six pending states, then applied -- and `fact` erased and `odd`
+typed: no state between changes the graph, and the two typed edits are
+`graph.Equal` to Edit's of the whole texts on a copy). On whim-vim.c's
+graph (`TestBufferProduct`): a pending change 0-29 ms, an applied one
+300-330 ms; undone, the graph's Lisp as it was.
+
+## Calls, returns and forms beside (2026-10-05)
+
+**Agreement** (`view/agree.go`) checked assignments and initialisers;
+typing showed what it let through: `fact()`, the argument erased, which
+cc's check does not refuse. It now checks, where an edit wrote, every call
+against its callee's prototype -- through a pointer to a function too, a
+name's type its declaration's -- the count of its arguments (more allowed
+when variadic) and each one's class against its parameter's by simple
+assignment's rules; and every return against its function's result: a
+value from a void function, none from another, a value the result cannot
+hold. `TestAgreeCallsReturns`: seven refusals (too many, too few, a struct
+for an int, an int for a pointer, through `table[0]`, a bare return from an
+int function, a pointer returned as an int), three edits that agree still
+made; every edit test of the package unchanged.
+
+**Forms beside a def view's.** A form added at a def view's top level,
+beside the definition it shows, was refused as the view's own structure;
+it is now a top-level form of its own, inserted after the definition (or
+before the next), the view printed again held to what was written without
+it (it does not show it). `TestTopBeside`: `twice`, typed after `fact`
+byte by byte, is a function after `fact` in the C, and the graph is its C
+view's import. Beside a uses view's entries it is still refused.
+
+## The editing server (2026-10-05)
+
+`whim view-serve [FILE]` is the session and its buffer for an editor to
+drive: the graph loaded once (from `.cache/graph`, 66 ms), then a request a
+line on stdin and an answer on stdout, framed as `view-clj --serve`'s (`ok
+N` or `error N`, the body's N bytes, `;;end`), with what an edit answers in
+the header's words:
+
+```
+open [--ids] [--depth N] [--show S] [--stop H] VIEW ARG   the buffer on a view
+text                    the buffer; header: STATUS [REASON]
+change FROM TO TEXT     bytes (or LINE:COL) replaced; TEXT '...' or "..." (a Go string);
+                        header: applied|pending|layout|same CURSOR [REASON]
+at POS [VIEW]           the buffer on the view at the cursor; header: #ID NAME
+undo | revert           the last edit undone | what is pending dropped
+c NAME | write FILE     a definition's C | the program's C written
+edits | stats | ping | quit
+```
+
+The Go server and not the Clojure one, because the edits are the Go's: the
+editor, FRAG, the journal; the Clojure server answers views of an EDN
+snapshot. Held by `TestViewServe` (cmd/whim): every request through pipes,
+a pending change and an applied one, the C after it, the view at a cursor,
+undo to the first edit and no further, and bad requests answered as errors
+with the server still answering. On whim-vim.c's graph, each request a
+round trip:
+
+| request | ms |
+| --- | ---: |
+| `open def ml_clearmarked` | 42 |
+| `change` (pending) | 21 |
+| `change` (applied) | 390 |
+| `at` (callers of `ml_find_line`) | 0.5 |
+| `undo` | 57 |
+
+### An applied change's cost
+
+Profiled on whim-vim.c's graph: 60% of an applied change is FRAG's pared
+unit -- the fragment's C with the declarations it needs, parsed and
+checked by cc -- and 20% the graph's invariants (`Editor.Check`, a walk of
+every node), the rest the index after and the editor before. Typing at the
+speed of keys wants FRAG's unit cached by what it declares, and the
+invariants checked where the edit wrote; neither is done.
 
 ## Open questions
 

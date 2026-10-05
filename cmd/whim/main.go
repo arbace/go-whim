@@ -31,7 +31,7 @@ var order = []string{
 	"sweep",
 	"funcreach",
 	"score", "cmdnames", "droplocal", "nointro", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "nostartup", "nohome", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
-	"build", "cemit", "c2lisp", "lisp2c", "graph", "view", "view-edit",
+	"build", "cemit", "c2lisp", "lisp2c", "graph", "view", "view-edit", "view-serve",
 	"parse", "fieldref", "reach", "measure", "cdiff", "test", "cut", "gen", "skel", "java", "clj", "caprice", "whimsy", "whimsical", "whiml", "wpp", "guest", "pre", "gocat", "hscat",
 }
 
@@ -101,6 +101,7 @@ var tools = map[string]tool{
 	"graph":       {runGraph, "graph [-o OUT] FILE | graph --check FILE... | graph --collect [-o OUT] FILE"},
 	"view":        {runView, "view [--ids] [--depth N] [--show node|stmt|fn|none] [--stop HEADS] [--c] [--spans F] [--no-cache] [--time] callers F | callees F | uses NAME | member S.M | type T | def NAME | follow STEPS ROOT [FILE]"},
 	"view-edit":   {runViewEdit, "view-edit [view's flags] [--fallout] [--lisp|--view] [-i EDITED] [-o OUT] VIEW ARG [FILE] < EDITED"},
+	"view-serve":  {runViewServe, "view-serve [--no-cache] [FILE] < REQUESTS"},
 	"build":       {runBuild, "build [--check] [-v] [--canonical] [--keep-going] [--from N] [--to N] [--src F] [--out F] [--work D] [--keep D]"},
 	"parse":       {runParse, "parse <file.c>"},
 	"cdiff":       {runCdiff, "cdiff [-n N] A.c B.c"},

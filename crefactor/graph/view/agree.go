@@ -12,7 +12,9 @@ import (
 // and types every expression, but it does not refuse what C's constraints
 // on simple assignment refuse and a compiler reports: an integer stored in
 // a pointer, a pointer in an integer, one struct in another or in a
-// scalar.  An edit through a view is checked for them where it wrote:
+// scalar -- nor a call with more arguments or fewer than its prototype
+// says, nor a return with a value from a void function or without one from
+// another.  An edit through a view is checked for them where it wrote:
 // every assignment and initialised declaration among the nodes it made,
 // its value's type against its target's, on the typed edges FRAG gave
 // them.  Pointers are not told apart by what they point at (`void *` and
@@ -106,6 +108,18 @@ func agrees(e *graph.Editor, made [][]*graph.Node) error {
 				var to tclass
 				var v *graph.Node
 				switch {
+				case x.Is("call") && len(x.Kids) >= 2:
+					if why := callAgrees(x); why != "" {
+						c, _ := clisp.PrintExpr(graph.Lisp(x))
+						err = refuse("a call that does not agree: `%s` %s", strings.TrimSpace(c), why)
+					}
+					continue
+				case x.Is("return"):
+					if why := returnAgrees(e, x); why != "" {
+						c, _ := clisp.PrintItems([]*clisp.Node{graph.Lisp(x)})
+						err = refuse("a return that does not agree: `%s` %s", strings.TrimSpace(c), why)
+					}
+					continue
 				case x.Is("=") && len(x.Kids) == 3:
 					l, _ := valueClass(x.Kids[1])
 					to, v = l, x.Kids[2]
@@ -154,6 +168,87 @@ func assignable(to, from tclass, null bool) string {
 	case "struct":
 		if from.kind != "struct" || from.agg != to.agg {
 			return bad()
+		}
+	}
+	return ""
+}
+
+// fnType is the function type a call's callee has (through a pointer to
+// one), or nil.
+func fnType(callee *graph.Node) *graph.Node {
+	t := callee.Type
+	if callee.IsList() && callee.Is("paren") && len(callee.Kids) == 2 {
+		return fnType(callee.Kids[1])
+	}
+	if t == nil && !callee.IsList() {
+		if d := callee.Ref(); d != nil {
+			t = d.Type // a name: its declaration's type
+		}
+	}
+	if t != nil && t.Is("pointer") {
+		t = operandOf(t)
+	}
+	if t == nil || !t.Is("function") || len(t.Kids) < 3 {
+		return nil
+	}
+	return t
+}
+
+// callAgrees is why a call's arguments do not agree with its callee's
+// prototype -- their count, or one's class against its parameter's, by
+// simple assignment's rules -- or "".
+func callAgrees(c *graph.Node) string {
+	t := fnType(c.Kids[1])
+	if t == nil {
+		return ""
+	}
+	var params []*graph.Node
+	variadic := false
+	for _, p := range t.Kids[1].Kids {
+		if !p.IsList() && p.Atom == "..." {
+			variadic = true
+			continue
+		}
+		params = append(params, p)
+	}
+	args := c.Kids[2:]
+	switch {
+	case len(args) < len(params):
+		return fmt.Sprintf("passes %s where the prototype takes %d", plural(len(args), "argument"), len(params))
+	case len(args) > len(params) && !variadic:
+		return fmt.Sprintf("passes %s where the prototype takes %d", plural(len(args), "argument"), len(params))
+	}
+	for i, p := range params {
+		from, null := valueClass(args[i])
+		if why := assignable(classOf(p.Type), from, null); why != "" {
+			return fmt.Sprintf("argument %d %s", i+1, why)
+		}
+	}
+	return ""
+}
+
+// returnAgrees is why a return does not agree with its function's result
+// -- a value from a void function, none from another, or a value its
+// result cannot hold -- or "".
+func returnAgrees(e *graph.Editor, r *graph.Node) string {
+	f := e.Function(r)
+	if f == nil {
+		return ""
+	}
+	t := f.Type // a definition's typed edge: its function type
+	if t == nil || !t.Is("function") || len(t.Kids) < 3 {
+		return ""
+	}
+	res := classOf(t.Kids[2].Type)
+	switch {
+	case len(r.Kids) < 2 && res.kind != "void" && res.kind != "":
+		return fmt.Sprintf("returns no value from a function returning %s", res)
+	case len(r.Kids) >= 2 && res.kind == "void":
+		return "returns a value from a function returning void"
+	case len(r.Kids) >= 2:
+		from, null := valueClass(r.Kids[1])
+		if why := assignable(res, from, null); why != "" {
+			return why
 		}
 	}
 	return ""
