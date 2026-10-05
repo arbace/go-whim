@@ -78,13 +78,13 @@ func vcpuInit(c *vcpu) error {
 	// and EFER.NXE is refused
 	buf := make([]byte, 8+kvmCPUIDEntries*sizeofKvmCpuidEntry)
 	*(*uint32)(unsafe.Pointer(&buf[0])) = kvmCPUIDEntries
-	if _, err := ioctl(vm.kvm, kvmGetSupportedCPU, uintptr(unsafe.Pointer(&buf[0]))); err != nil {
+	if _, err := ioctlPtr(vm.kvm, kvmGetSupportedCPU, unsafe.Pointer(&buf[0])); err != nil {
 		return fail(Error, "KVM_GET_SUPPORTED_CPUID", err)
 	}
-	if _, err := ioctl(c.fd, kvmSetCPUID2, uintptr(unsafe.Pointer(&buf[0]))); err != nil {
+	if _, err := ioctlPtr(c.fd, kvmSetCPUID2, unsafe.Pointer(&buf[0])); err != nil {
 		return fail(Error, "KVM_SET_CPUID2", err)
 	}
-	if _, err := ioctl(c.fd, kvmGetRegs, uintptr(unsafe.Pointer(&c.isa.regs[0]))); err != nil {
+	if _, err := ioctlPtr(c.fd, kvmGetRegs, unsafe.Pointer(&c.isa.regs[0])); err != nil {
 		return fail(Error, "KVM_GET_REGS", err)
 	}
 	c.put64(kvmRunValidRegs, kvmSyncX86Regs)
@@ -93,7 +93,7 @@ func vcpuInit(c *vcpu) error {
 
 func beforeRun(c *vcpu) error {
 	if c.isa.sregsDirt {
-		if _, err := ioctl(c.fd, kvmSetSregs, uintptr(unsafe.Pointer(&c.isa.sregs))); err != nil {
+		if _, err := ioctlPtr(c.fd, kvmSetSregs, unsafe.Pointer(&c.isa.sregs)); err != nil {
 			return fail(IllegalGuest, "KVM_SET_SREGS", err)
 		}
 		c.isa.sregsDirt = false
@@ -169,7 +169,7 @@ func VCPUSetReg(v VCPU, r Reg, val uint64) error {
 
 func (c *vcpu) sregs() (*kvmSregs, error) {
 	if !c.isa.sregsValid {
-		if _, err := ioctl(c.fd, kvmGetSregs, uintptr(unsafe.Pointer(&c.isa.sregs))); err != nil {
+		if _, err := ioctlPtr(c.fd, kvmGetSregs, unsafe.Pointer(&c.isa.sregs)); err != nil {
 			return nil, fail(Error, "KVM_GET_SREGS", err)
 		}
 		c.isa.sregsValid = true

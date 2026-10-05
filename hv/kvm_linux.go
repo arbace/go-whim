@@ -89,9 +89,45 @@ type vcpu struct {
 	spurious uint64 // KVM_RUN interrupted by a signal and run again
 }
 
+// ioctl is the ioctl req on fd with an argument that is a number, retried
+// while interrupted.
 func ioctl(fd int, req, arg uintptr) (uintptr, error) {
 	for range ioctlRetries {
 		r, _, e := syscall.Syscall(syscall.SYS_IOCTL, uintptr(fd), req, arg)
+		if e == syscall.EINTR || e == syscall.EAGAIN {
+			continue
+		}
+		if e != 0 {
+			return r, e
+		}
+		return r, nil
+	}
+	return 0, syscall.EINTR
+}
+
+// ioctlPtr is ioctl with an argument that is the address of an object.  It
+// is a pointer until the system call, made a number only in its argument
+// list: a goroutine's stack moves when it grows -- at a function's
+// prologue, this one's among them -- and an address taken as a number
+// before then would still name the old stack, where the kernel would read
+// a stale copy and write what no one reads.  (Found in the aarch64 VM: a
+// Go guest's AP, on a goroutine of its own whose stack grew at its first
+// exit, read X0 by KVM_GET_ONE_REG as 0, its store's data as the call
+// block's address, and the monitor took the doorbell for a stray store.)
+func ioctlPtr(fd int, req uintptr, arg unsafe.Pointer) (uintptr, error) {
+	return ioctlAt(fd, req, arg, nil, nil)
+}
+
+// ioctlAt is ioctlPtr for an argument that holds the address of another
+// object, as a number the kernel reads (KVM_GET_ONE_REG's addr): *at is
+// set to inner's address here, past the last point before the call where
+// the stack can move (syscall.Syscall does not grow it).
+func ioctlAt(fd int, req uintptr, arg unsafe.Pointer, at *uint64, inner unsafe.Pointer) (uintptr, error) {
+	for range ioctlRetries {
+		if at != nil {
+			*at = uint64(uintptr(inner))
+		}
+		r, _, e := syscall.Syscall(syscall.SYS_IOCTL, uintptr(fd), req, uintptr(arg))
 		if e == syscall.EINTR || e == syscall.EAGAIN {
 			continue
 		}
@@ -195,7 +231,7 @@ func VMMap(mem []byte, ipa IPA, flags MemoryFlags) error {
 	if flags&MemoryWrite == 0 {
 		r.flags |= kvmMemReadonly
 	}
-	if _, err := ioctl(vm.fd, kvmSetUserMemRegion, uintptr(unsafe.Pointer(&r))); err != nil {
+	if _, err := ioctlPtr(vm.fd, kvmSetUserMemRegion, unsafe.Pointer(&r)); err != nil {
 		return fail(Error, "KVM_SET_USER_MEMORY_REGION", err)
 	}
 	vm.slots[ipa] = memSlot{vm.nextSlot, uint64(len(mem))}
@@ -212,7 +248,7 @@ func VMUnmap(ipa IPA, size uint64) error {
 		return BadArgument
 	}
 	r := kvmUserspaceMemoryRegion{slot: s.slot, guestPhys: uint64(ipa)}
-	if _, err := ioctl(vm.fd, kvmSetUserMemRegion, uintptr(unsafe.Pointer(&r))); err != nil {
+	if _, err := ioctlPtr(vm.fd, kvmSetUserMemRegion, unsafe.Pointer(&r)); err != nil {
 		return fail(Error, "KVM_SET_USER_MEMORY_REGION", err)
 	}
 	delete(vm.slots, ipa)

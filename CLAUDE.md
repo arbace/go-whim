@@ -264,9 +264,8 @@ slim-vim.c  --whim-->  whim-vim.c
   control the launcher with its image's one `" INSERT"` changed; it answers
   all 80 and all 240 as the C does, on four vCPUs by default and on one
   (`WHIM_GUEST_CPUS`; *SMP* there: 43.0 exits a key, 4.1 without `par_*`;
-  on one 39.47 and 3.78, as before there were more), and its arm64 build all 80 as the C does inside the aarch64 VM
-  (before the merged call, which is built and vetted for arm64, not run
-  there since).
+  on one 39.47 and 3.78, as before there were more), and its arm64 build all 80 as the C does inside the aarch64 VM: at one vCPU before the merged call, and with it
+  at two and four (`doc/GUEST.md`, *SMP*, *arm64*).
   Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
@@ -736,8 +735,11 @@ hv/                a virtual machine as Apple's Hypervisor.framework shapes one
                    x86 names behind the same shape, regs_amd64.go); the KVM
                    backend by raw ioctl, no cgo (kvm_linux*.go), which reports
                    an MMIO store as the framework's data abort; hvf_darwin.go
-                   the framework bound by purego, no cgo (compiled for
-                   darwin/arm64 here, never run)
+                   the framework bound by purego, no cgo (run on the M2
+                   Max, milestone 4; every vCPU on its VM's first's vTimer
+                   offset, as KVM keeps them); the KVM ioctls' pointer
+                   arguments carried as pointers to the call (ioctlPtr,
+                   ioctlAt), since a goroutine's stack moves
 vmm/               the monitor: the guest's ELF in one slot, identity-mapped
                    with each segment's permissions (layout.go), the vCPU set
                    in the mode the core runs in (setup_<isa>.go), the exit
@@ -776,7 +778,9 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    (Alpine Edge aarch64 netbooted by qemu with an emulated
                    EL2, KVM inside, a job agent served by QEMU itself:
                    doc/GUEST.md, *The aarch64 VM*); mac/ the Mac's side
-                   (doc/GUEST.md, *Running on the Mac*): mac.sh, the
+                   (doc/GUEST.md, *Running on the Mac*): mac.sh (its
+                   steps; --cpus N, and scale: the Go guest's :%s on 1-8
+                   vCPUs against the C, internal/suite's TestGuestScale), the
                    entitlements, and shim.h, which lets Apple's clang build
                    whim-vim.c
 Makefile           the whole build: fetches the input, runs the pipeline, builds the

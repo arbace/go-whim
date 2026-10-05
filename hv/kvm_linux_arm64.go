@@ -58,10 +58,10 @@ type kvmVCPUInit struct {
 
 func vcpuInit(c *vcpu) error {
 	var init kvmVCPUInit
-	if _, err := ioctl(vm.fd, kvmArmPreferredTgt, uintptr(unsafe.Pointer(&init))); err != nil {
+	if _, err := ioctlPtr(vm.fd, kvmArmPreferredTgt, unsafe.Pointer(&init)); err != nil {
 		return fail(Unsupported, "KVM_ARM_PREFERRED_TARGET", err)
 	}
-	if _, err := ioctl(c.fd, kvmArmVCPUInit, uintptr(unsafe.Pointer(&init))); err != nil {
+	if _, err := ioctlPtr(c.fd, kvmArmVCPUInit, unsafe.Pointer(&init)); err != nil {
 		return fail(Error, "KVM_ARM_VCPU_INIT", err)
 	}
 	return nil
@@ -73,16 +73,16 @@ type kvmOneReg struct {
 
 func (c *vcpu) getOne(id uint64) (uint64, error) {
 	var v uint64
-	r := kvmOneReg{id, uint64(uintptr(unsafe.Pointer(&v)))}
-	if _, err := ioctl(c.fd, kvmGetOneReg, uintptr(unsafe.Pointer(&r))); err != nil {
+	r := kvmOneReg{id: id}
+	if _, err := ioctlAt(c.fd, kvmGetOneReg, unsafe.Pointer(&r), &r.addr, unsafe.Pointer(&v)); err != nil {
 		return 0, fail(BadArgument, "KVM_GET_ONE_REG", err)
 	}
 	return v, nil
 }
 
 func (c *vcpu) setOne(id, v uint64) error {
-	r := kvmOneReg{id, uint64(uintptr(unsafe.Pointer(&v)))}
-	if _, err := ioctl(c.fd, kvmSetOneReg, uintptr(unsafe.Pointer(&r))); err != nil {
+	r := kvmOneReg{id: id}
+	if _, err := ioctlAt(c.fd, kvmSetOneReg, unsafe.Pointer(&r), &r.addr, unsafe.Pointer(&v)); err != nil {
 		return fail(BadArgument, "KVM_SET_ONE_REG", err)
 	}
 	return nil
@@ -272,8 +272,8 @@ type kvmSMCCCFilter struct {
 // Called after VMCreate, before the first vCPU runs.
 func ForwardHVC(base, n uint32) error {
 	f := kvmSMCCCFilter{base: base, nr: n, action: kvmSMCCCFilterFwd}
-	a := kvmDeviceAttr{group: kvmSMCCCCtrlGroup, attr: kvmSMCCCFilterAttr, addr: uint64(uintptr(unsafe.Pointer(&f)))}
-	if _, err := ioctl(vm.fd, kvmSetDeviceAttr, uintptr(unsafe.Pointer(&a))); err != nil {
+	a := kvmDeviceAttr{group: kvmSMCCCCtrlGroup, attr: kvmSMCCCFilterAttr}
+	if _, err := ioctlAt(vm.fd, kvmSetDeviceAttr, unsafe.Pointer(&a), &a.addr, unsafe.Pointer(&f)); err != nil {
 		return fail(Unsupported, "KVM_ARM_VM_SMCCC_FILTER", err)
 	}
 	return nil

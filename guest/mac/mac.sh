@@ -7,16 +7,20 @@
 # built on Linux (make mac-images; Apple's clang has no ELF linker) and
 # copied to lib/whim-guest/ under the same names; the monitor is told which
 # by WHIM_GUEST_IMAGE.  --go takes the Go guest's image,
-# lib/whim-guest/whim-guest-go-arm64.elf, for the C guest's.
+# lib/whim-guest/whim-guest-go-arm64.elf, for the C guest's; --cpus N gives
+# the Go guest N vCPUs (WHIM_GUEST_CPUS: 1 to 32, or host; on the Mac 1 by
+# default until measured -- doc/GUEST.md, *SMP*), the C guest always one.
+# The options come after the step's name, in any order.
 #
 #   guest/mac/mac.sh check                 what the Mac is: macOS, the chip, kern.hv_support, the tools
 #   guest/mac/mac.sh hv                    hv's arm64 tests on the framework: the smallest guests
 #   guest/mac/mac.sh build                 bin/whim-guest, signed
 #   guest/mac/mac.sh hello [--go]          the hello image: prints hello, exits 3 (--go: the Go guest types hello, exits 0)
-#   guest/mac/mac.sh run [--go] [ARG...]   the editor: bin/whim-guest on lib/whim-guest/whim-guest-arm64.elf (--go: the Go guest's)
+#   guest/mac/mac.sh run [--go] [--cpus N] [ARG...]  the editor: bin/whim-guest on lib/whim-guest/whim-guest-arm64.elf (--go: the Go guest's)
 #   guest/mac/mac.sh c                     the C reference, bin/whim-vim-mac, by clang with guest/mac/shim.h
-#   guest/mac/mac.sh suite [--go] [--wide] the suite: the guest held to the C, with its control
-#   guest/mac/mac.sh heavy [--go]          the heavy case: the C, then the guest, answers compared, times reported
+#   guest/mac/mac.sh suite [--go] [--cpus N] [--wide]  the suite: the guest held to the C, with its control
+#   guest/mac/mac.sh heavy [--go] [--cpus N]  the heavy case: the C, then the guest, answers compared, times reported
+#   guest/mac/mac.sh scale [LIST]          the Go guest's :%s over 200,000 lines on 1,2,4,8 vCPUs (or LIST) against the C: a table
 set -eu
 cd "$(dirname "$0")/../.."
 export TMPDIR="$PWD/.tmp" CGO_ENABLED=0
@@ -29,20 +33,33 @@ cmd=${1:-}
 [ $# -gt 0 ] && shift
 L=lib/whim-guest
 img=$L/whim-guest-arm64.elf how="make mac-images, on Linux, copied to $L/"
-if [ "${1:-}" = --go ]; then
+wide=
+while [ $# -gt 0 ]; do
+	case $1 in
+	--go) img=$L/whim-guest-go-arm64.elf ;;
+	--wide) wide=1 ;;
+	--cpus)
+		[ $# -ge 2 ] || { echo "mac.sh: --cpus N" >&2; exit 2; }
+		export WHIM_GUEST_CPUS="$2"
+		shift
+		;;
+	*) break ;;
+	esac
 	shift
-	img=$L/whim-guest-go-arm64.elf
-fi
-# suite: the guest held to bin/whim-vim-mac by TestGuestPrebuilt, the image
-# beside the monitor named by WHIM_SUITE_GUEST_IMAGE; its arguments the
-# test's environment.
+done
+# suite TEST VAR=VAL...: TEST, the guest held to bin/whim-vim-mac (TestGuestPrebuilt,
+# TestGuestScale), the image beside the monitor named by
+# WHIM_SUITE_GUEST_IMAGE; the rest the test's environment.
 suite() {
+	t=$1
+	shift
 	need bin/whim-guest "mac.sh build"
 	need "$img" "$how"
 	need bin/whim-vim-mac "mac.sh c"
 	go test -c -o bin/suite.test ./internal/suite
+	echo "mac.sh: $t, $img, WHIM_GUEST_CPUS=${WHIM_GUEST_CPUS:-default}" >&2
 	env "$@" WHIM_SUITE_C=bin/whim-vim-mac WHIM_SUITE_GUEST=bin/whim-guest WHIM_SUITE_GUEST_IMAGE="$img" \
-		bin/suite.test -test.run TestGuestPrebuilt -test.v
+		bin/suite.test -test.run "$t" -test.v -test.timeout 3h
 }
 
 case "$cmd" in
@@ -94,17 +111,25 @@ c)
 	clang -std=gnu23 -O0 -w -include guest/mac/shim.h -o bin/whim-vim-mac .tmp/whim-vim-mac.c
 	;;
 suite)
-	if [ "${1:-}" = --wide ]; then
-		suite WHIM_SUITE_WIDE=1 WHIM_SUITE_SRC=src/whim-vim.c
+	if [ -n "$wide" ]; then
+		suite TestGuestPrebuilt WHIM_SUITE_WIDE=1 WHIM_SUITE_SRC=src/whim-vim.c
 	else
-		suite
+		suite TestGuestPrebuilt
 	fi
 	;;
 heavy)
-	suite WHIM_SUITE_HEAVY=only
+	suite TestGuestPrebuilt WHIM_SUITE_HEAVY=only
+	;;
+scale)
+	# The Go guest's parallel :%s/\v(a|b)+c/X/g over 200,000 lines
+	# (WHIM_SUITE_SCALE_LINES), the median of 5 runs (WHIM_SUITE_SCALE_RUNS)
+	# with it and 5 without, on each count of vCPUs, beside the C's;
+	# every answer held to the C's.
+	img=$L/whim-guest-go-arm64.elf
+	suite TestGuestScale WHIM_SUITE_SCALE="${1:-1,2,4,8}"
 	;;
 *)
-	sed -n '11,18s/^# //p' "$0" >&2
+	sed -n '/^#   guest/s/^# //p' "$0" >&2
 	exit 2
 	;;
 esac

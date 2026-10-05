@@ -771,8 +771,9 @@ and the Go guest by TamaGo), not run in the aarch64 VM since.
 
 ### SMP: the Go guest on several vCPUs
 
-*Built on amd64, its gate met; arm64 built and vetted, not run; the Mac's
-backend compiled, not run.* The Go editor's parallel `:%s` (`editor.Chunks`:
+*Built on amd64, its gate met; on arm64 the quick suite met at 2 and 4
+vCPUs in the aarch64 VM (below, *arm64*); on the Mac built, its review and
+steps ready (*The Go guest on several vCPUs on the Mac*), not yet run.* The Go editor's parallel `:%s` (`editor.Chunks`:
 `match_lines` in chunks, on goroutines) now runs on several vCPUs, as the
 design in *The second guest* had it, with one change (the call block).
 
@@ -892,9 +893,21 @@ for the vCPUs to look again). So the default is four. A start and `:q!`:
 28 ms at one vCPU, 32 at four, 34 at 16, 69 at 32.
 
 *arm64* (`boot_arm64.s`, `vmm/setup_arm64.go`): the same, the count in X5,
-an AP's number in X2, `SP_EL0` its stack and its own `SP_EL1`; built and
-vetted, not run in the aarch64 VM, and the launcher's default there is one
-vCPU.
+an AP's number in X2, `SP_EL0` its stack and its own `SP_EL1`; the
+launcher's default there is one vCPU. *Run in the aarch64 VM* (2026-10-05,
+KVM/arm64 under QEMU's emulated EL2, `-smp 8`): the first run at four vCPUs
+stopped on an AP's first call, every time -- the KVM backend's stale stack
+address, fixed (*The Go guest on several vCPUs on the Mac*, *Found on the
+way*). Then a session building 4,000 lines and running a `:%s` across them
+answers byte for byte as the C does at 1, 2, 3, 4 and 8 vCPUs, every AP
+started; and the quick suite (`TestGuestPrebuilt`, the test under `taskset
+-c 0-2`: with all eight emulated CPUs the C's own runs overran their 10 s
+in `par_*` cases beside the guest's) answers all 80 as the C does at four
+vCPUs and at two, the control seen by 76 -- 403,741 and 279,059 exits
+(77.8 and 53.8 a key; one vCPU's 317,193 there before the merged call), the
+parks and wakes of an emulated machine; the guest's runs 1,054 s and 818 s
+of tests of 1,392 s and 1,121 s. `hv`'s `TestCounterVCPUsARM64` passes
+there.
 
 ## Running on the Mac
 
@@ -1067,6 +1080,100 @@ Mac-only follow-up, not tried.
      Paste back from each suite its case lines (`N cases: ... answers all
      exactly as the C does; its control seen by M`), the exits line and
      the `PASS`/`FAIL`; from each heavy, its `heavy` line.
+   - *SMP* (*The Go guest on several vCPUs on the Mac*, below), the same
+     monitor, rebuilt (`mac.sh build`: the vTimer offsets): `mac.sh hv`
+     (`TestCounterVCPUsARM64` among them), then `mac.sh suite --go --cpus
+     4`, `mac.sh suite --go --cpus 8`, `mac.sh suite --go --cpus 4
+     --wide`, `mac.sh heavy --go --cpus 4` and `--cpus 8`, and `mac.sh
+     scale` (1, 2, 4 and 8 vCPUs; `mac.sh scale 1,2,4,8,12` for the
+     twelve cores). Paste back the same lines as above, the stats line
+     `cpus N started M parked T` where it is printed, and `scale`'s table
+     whole.
+
+**The Go guest on several vCPUs on the Mac** (*SMP*, above). The Mac's
+default is one vCPU (`defaultCPUs`: four on Linux amd64 alone, where it was
+measured) until the Mac's own run says otherwise; `--cpus N` after a step's
+name passes `WHIM_GUEST_CPUS=N` to the monitor, for `run`, `hello`, `suite`
+and `heavy` (the C guest always has one). `mac.sh scale [LIST]` is
+`internal/suite`'s `TestGuestScale` on the Mac's programs: the
+`:%s/\v(a|b)+c/X/g` over 200,000 lines built by keys (eight lines of
+`PARALLEL-SUBSTITUTE.md`'s kinds, `ggVGy24999P`), each session run 5 times
+with the `:%s` and 5 without, alternately, keys from a file, the `:%s`'s
+time the difference of the medians, on the C and on the Go guest at each
+count of vCPUs (1, 2, 4 and 8 by default), every guest answer held to the
+C's; it prints a table of the times, each count's speedup over one vCPU and
+its time over the C's (`WHIM_SUITE_SCALE_LINES`, `_RUNS` change the size).
+*Checked on KVM here* (2026-10-05), the Mac's flow with the amd64 images
+standing in as before: `mac.sh scale` -- the C 7,850 ms, the Go guest 6,148
+at one vCPU, 3,078 at two (2.00x), 1,604 at four (3.83x), 874 at eight
+(7.03x), every answer the C's; `mac.sh heavy --go --cpus 4` C 438 ms, the
+Go guest 607 (1.4x). What to look for there: a count whose answer differs
+from the C's fails the run (`answers the :%s differently from the C`); a
+start that spins until the watchdog at more than one vCPU and not at one is
+an AP's start (`whim_apentry`, `setupAP`'s system registers on the
+framework); `scale` slower at two than at one is the parks (`WHIM_GUEST_PARK`,
+1 ms: try `200us` and `5ms` beside it and paste both tables).
+
+*The arm64 SMP path, reviewed for the framework* (2026-10-05):
+
+- *A vCPU on the thread that created it*: every AP is created, set up
+  (`setupAP`) and started (`startAP`) on its own locked thread, as
+  `hv_vcpu_create` requires; the monitor reads and writes a vCPU's
+  registers only from its own exit loop. `hv_vcpus_exit` is called with one
+  vCPU at a time (`halt`, the watchdog), from any thread, which the
+  framework allows; an exit asked of a vCPU not running ends its next run
+  at once (`ExitReasonCanceled`), and the loop takes a canceled run that
+  ends nothing for a spurious one.
+- *Per-vCPU system registers*: each AP gets the boot vCPU's `MAIR_EL1`,
+  `TCR_EL1`, `TTBR0_EL1`, `VBAR_EL1`, `SCTLR_EL1`, its own `SP_EL1`, then
+  `SP_EL0`, `CPSR`, `PC` and X0-X2 at its start; `CPACR_EL1`'s FP bits the
+  AP sets itself (`whim_apentry`). No `TPIDR_EL0`/`EL1`: TamaGo keeps g in
+  X28 on arm64 and asks the thread register only under cgo (`iscgo`), which
+  it never is.
+- *The virtual counter*: **fixed**. KVM/arm64 keeps one counter for a VM
+  (`CNTVOFF_EL2` the same for every vCPU); the framework has a vTimer offset
+  for each vCPU, and nothing documents that two vCPUs created apart start
+  on one counter. The board takes the boot vCPU's `CNTVCT_EL0` at its entry
+  as nanotime's zero and subtracts it unsigned on every vCPU, so an AP whose
+  counter ran behind would see time wrap and go backwards across Ps.
+  `hv.VCPUCreate` on the Mac now reads the VM's first vCPU's offset
+  (`hv_vcpu_get_vtimer_offset`) and gives it to every later one
+  (`hv_vcpu_set_vtimer_offset`, on the vCPU's own thread), and `hv`'s
+  `TestCounterVCPUsARM64` holds it: two vCPUs created 100 ms apart on two
+  threads, the later one's reading, taken after the earlier one's, not the
+  smaller. It passes on KVM in the aarch64 VM; `mac.sh hv` runs it on the
+  framework.
+- *The virtual timer*: not needed, and not bound. A parked vCPU parks in the
+  monitor (`abi.CPUPark`, a call: its thread waits in Go, not in
+  `hv_vcpu_run`), and is woken by another's `abi.CPUWake` or the monitor's
+  limit, so no vCPU waits for an interrupt (no `WFI`, no `WFE`), and the
+  guest never arms `CNTV_CTL_EL0`; a `VTIMER_ACTIVATED` exit would still be
+  reported as a stop, as on one vCPU.
+- *Memory ordering*: nothing to fix. A call block is written by the vCPU
+  that rings the doorbell and read by the monitor on that vCPU's own thread
+  after the trap, the answer written there before the same vCPU resumes:
+  one processor, in program order, the trap a context synchronisation. What
+  crosses vCPUs -- a `CPUStart`'s g0 and stack, written by one vCPU and run
+  by another; a wake's token -- crosses through the monitor's channels and
+  mutex (Go's: acquire and release on arm64) after the writer's trap, and
+  the guest's own hand-offs are the runtime's atomics (`semasleep`'s
+  `Cas`/`Xadd`, `LDAR`/`STLR`/`CAS` on arm64). The guest's memory is Normal
+  write-back inner shareable at stage 1 (`dSHInner`, `TCR_EL1.SH0` 3), so
+  its exclusives and atomics are coherent across vCPUs whatever stage 2
+  says. The board's assembly has no hand-made synchronisation to fence
+  (`doorbell` one store, `ticks` an `ISB` before `CNTVCT_EL0`).
+- *Found on the way, on KVM*: the aarch64 VM's first run at four vCPUs
+  stopped every time on an AP's first call (`the guest touched 0xf0000000
+  with no memory there`): `KVM_GET_ONE_REG` read X0 as 0 where the store's
+  data was the call block's address. The KVM backend took a stack object's
+  address as a number (`kvm_one_reg.addr`, and the `ioctl` argument
+  itself) before calling `ioctl`, whose prologue can grow the goroutine's
+  stack and move it: the kernel then wrote the old stack. An AP's goroutine
+  is new and its stack small, so its first exit grew it. Now `hv`'s
+  `ioctlPtr` and `ioctlAt` carry pointers to the system call and make the
+  inner address a number past the last point the stack can move; every
+  pointer argument, amd64's too, goes that way. The Mac's backend calls the
+  framework through purego with Go pointers and was never exposed.
 
 **What to look for when it fails.**
 

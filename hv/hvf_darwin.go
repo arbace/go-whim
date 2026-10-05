@@ -5,14 +5,21 @@
 // each hv_* function bound to a Go function of its C signature by
 // RegisterLibFunc -- with no cgo, so `GOOS=darwin GOARCH=arm64
 // CGO_ENABLED=0 go build` compiles it anywhere (doc/GUEST.md, *Decided*).
-// NOT RUN: there has been no Mac to run it on (milestone 4).  The binary
+// Run on the M2 Max (milestone 4: doc/GUEST.md, *Running on the Mac*).  The binary
 // that runs it needs the com.apple.security.hypervisor entitlement (an
 // ad-hoc codesign with an entitlements plist).
 //
 // The mapping is one Go function for one C function; the framework does the
 // rest -- PC left on a store that exits, the exit record in memory it owns
 // (copied after each run into the one this package hands out), a vCPU bound
-// to the thread that created it.
+// to the thread that created it -- but for one thing KVM does and the
+// framework is not documented to: KVM/arm64 keeps a VM's vCPUs on one
+// virtual counter (CNTVOFF_EL2 the same for all), and here each vCPU has a
+// vTimer offset of its own, so VCPUCreate gives every vCPU the VM's first's
+// (TestCounterVCPUsARM64).  A guest on several vCPUs reads CNTVCT_EL0 on
+// each and takes it for one clock: one vCPU's behind another's would run
+// its time backwards, and the guest's nanotime, a difference from the boot
+// vCPU's reading, would wrap.
 package hv
 
 import (
@@ -54,11 +61,17 @@ var (
 	hvVCPUSetReg         func(vcpu uint64, reg uint32, value uint64) int32
 	hvVCPUGetSysReg      func(vcpu uint64, reg uint16, value *uint64) int32
 	hvVCPUSetSysReg      func(vcpu uint64, reg uint16, value uint64) int32
+	hvVCPUGetVTimerOff   func(vcpu uint64, offset *uint64) int32
+	hvVCPUSetVTimerOff   func(vcpu uint64, offset uint64) int32
 
 	bind    sync.Once
 	bindErr error
 	exitsMu sync.Mutex
 	exits   = map[VCPU]vcpuExits{}
+	// vmCounter is the VM's vTimer offset, its first vCPU's: every other
+	// vCPU is given it (under exitsMu; VMCreate forgets it).
+	vmCounter    uint64
+	vmCounterSet bool
 )
 
 type vcpuExits struct {
@@ -88,6 +101,8 @@ func load() error {
 			"hv_vcpu_set_reg":           &hvVCPUSetReg,
 			"hv_vcpu_get_sys_reg":       &hvVCPUGetSysReg,
 			"hv_vcpu_set_sys_reg":       &hvVCPUSetSysReg,
+			"hv_vcpu_get_vtimer_offset": &hvVCPUGetVTimerOff,
+			"hv_vcpu_set_vtimer_offset": &hvVCPUSetVTimerOff,
 		} {
 			purego.RegisterLibFunc(fn, lib, name)
 		}
@@ -108,6 +123,9 @@ func VMCreate(config *VMConfig) error {
 	if err := load(); err != nil {
 		return err
 	}
+	exitsMu.Lock()
+	vmCounterSet = false
+	exitsMu.Unlock()
 	c := uintptr(0)
 	if config != nil && config.IPASize != 0 {
 		c = hvVMConfigCreate()
@@ -129,17 +147,30 @@ func VMMap(mem []byte, ipa IPA, flags MemoryFlags) error {
 // VMUnmap is hv_vm_unmap.
 func VMUnmap(ipa IPA, size uint64) error { return ret(hvVMUnmap(uint64(ipa), uintptr(size))) }
 
-// VCPUCreate is hv_vcpu_create, on the calling thread (locked: LockThread).
+// VCPUCreate is hv_vcpu_create, on the calling thread (locked: LockThread),
+// the vCPU put on the VM's virtual counter: the first's vTimer offset
+// read, every later one's set to it (hv_vcpu_*_vtimer_offset, on the
+// vCPU's own thread).
 func VCPUCreate() (VCPU, *VCPUExit, error) {
 	var v uint64
 	var e *cExit
 	if err := ret(hvVCPUCreate(&v, &e, 0)); err != nil {
 		return 0, nil, err
 	}
-	rec := &VCPUExit{}
 	exitsMu.Lock()
+	defer exitsMu.Unlock()
+	var err error
+	if vmCounterSet {
+		err = ret(hvVCPUSetVTimerOff(v, vmCounter))
+	} else if err = ret(hvVCPUGetVTimerOff(v, &vmCounter)); err == nil {
+		vmCounterSet = true
+	}
+	if err != nil {
+		hvVCPUDestroy(v)
+		return 0, nil, fmt.Errorf("the vCPU's vTimer offset: %w", err)
+	}
+	rec := &VCPUExit{}
 	exits[VCPU(v)] = vcpuExits{e, rec}
-	exitsMu.Unlock()
 	return VCPU(v), rec, nil
 }
 

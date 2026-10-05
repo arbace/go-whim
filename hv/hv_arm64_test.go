@@ -2,8 +2,10 @@ package hv
 
 import (
 	"encoding/binary"
+	"fmt"
 	"os"
 	"runtime"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -131,5 +133,74 @@ func TestSysRegsARM64(t *testing.T) {
 		if val, err := VCPUGetSysReg(v, r); err != nil || val != 0x8000 {
 			t.Fatalf("%#x: %#x %v", r, val, err)
 		}
+	}
+}
+
+// TestCounterVCPUsARM64: two vCPUs of one VM read one virtual counter.  The
+// second is created 100 ms after the first, on a thread of its own, and
+// each reads CNTVCT_EL0 once it runs, the first first: the second's
+// reading is not the smaller, as it would be were each vCPU's counter its
+// own from its creation (the framework's vTimer offset is per vCPU, and
+// VCPUCreate sets it to the VM's first's; KVM keeps one for the VM).  A Go
+// guest on several vCPUs takes their counters for one clock.
+func TestCounterVCPUsARM64(t *testing.T) {
+	code := []uint32{
+		0xd53be040, // mrs x0, cntvct_el0
+		0xd2a00021, // movz x1, #0x10000
+		0xf9000020, // str x0, [x1]
+		0x14000000, // b .
+	}
+	v, exit := newTinyGuest(t, code)
+	read := func(v VCPU, exit *VCPUExit) (uint64, error) {
+		if err := VCPURun(v); err != nil {
+			return 0, err
+		}
+		if exit.Reason != ExitReasonException || exit.Exception.PhysicalAddress != 0x10000 {
+			return 0, fmt.Errorf("exit %v at %#x", exit.Reason, exit.Exception.PhysicalAddress)
+		}
+		return VCPUGetReg(v, RegX0)
+	}
+	time.Sleep(100 * time.Millisecond)
+	// The second vCPU, on its own thread for its life: created, then run
+	// when told, then destroyed there, before the VM (the cleanup).
+	type reading struct {
+		val uint64
+		err error
+	}
+	run, got, done := make(chan struct{}), make(chan reading, 1), make(chan struct{})
+	var once sync.Once
+	start := func() { once.Do(func() { close(run) }) }
+	created := make(chan error)
+	go func() {
+		defer close(done)
+		runtime.LockOSThread()
+		defer runtime.UnlockOSThread()
+		w, wexit, err := VCPUCreate()
+		created <- err
+		if err != nil {
+			return
+		}
+		defer VCPUDestroy(w)
+		VCPUSetReg(w, RegCPSR, 0x3c5)
+		VCPUSetReg(w, RegPC, 0x1000)
+		<-run
+		val, err := read(w, wexit)
+		got <- reading{val, err}
+	}()
+	if err := <-created; err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { start(); <-done })
+	first, err := read(v, exit)
+	if err != nil {
+		t.Fatal(err)
+	}
+	start()
+	second := <-got
+	if second.err != nil {
+		t.Fatal(second.err)
+	}
+	if second.val < first {
+		t.Fatalf("the second vCPU's counter %d is behind the first's %d: not one clock", second.val, first)
 	}
 }
