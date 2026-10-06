@@ -460,12 +460,24 @@ wake -- the parked look again at once, one about to park finds the token
 1 ms, 200 forced collections on two vCPUs take 1.20 s (2.0 before), on
 four 0.94 s (1.77), the pauses' p50 82-131 µs (1,311); the views' index
 on four vCPUs pauses 6.0 ms in all (44.5), the churn 16 ms (82.7), its
-p50 131 µs -- its p99 one pause of 5 ms, a goroutine reaching no safe
-point (TamaGo has no asynchronous preemption: `preemptMSupported` is
-false without signals). The editor pays nothing: the Go guest's quick
-suite is 43.40 exits a key, as before. What is left is TamaGo's: an idle
-M could give its P up, as on other systems, so that a stop would not
-wait for it at all.
+p50 131 µs -- its p99 one pause of 5 ms. The editor pays nothing: the Go
+guest's quick suite is 43.40 exits a key, as before.
+
+**The long pause, traced.** In about one run in six the churn has one
+pause of 1.3-5 ms. A trace of one, 5.1 ms (mark termination), shows the
+other idle vCPUs joining in 47 and 73 µs. The goroutine running the
+program is preempted only at +5,076 µs, inside `mallocgc`, on an allocation
+path that checks for preemption at every call -- so it was most likely
+not running at all: its vCPU's thread was off the host's CPU. The
+monitor's threads see 14-31 involuntary context switches in every run,
+the short ones as the long, so the count does not prove it, and nothing
+in the guest can. It is not the missing asynchronous preemption, which
+would matter only for a loop without calls.
+
+An idle M giving its P up, as Go does on other systems, would spare a
+stop the wait for idle vCPUs. With the wake that wait is 47-73 µs, and
+the change is TamaGo's scheduler ("Ms are bound to P on tamago"), so it
+is left.
 
 
 ## Closures (2026-10-06)
