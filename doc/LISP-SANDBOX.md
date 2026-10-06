@@ -621,16 +621,19 @@ case show nothing of it, and nothing there yields.
 
 ## The editor on the console (2026-10-06)
 
-`gview.vi` (`guest/joker/gview/vi.joke`, 221 lines of Joker) is a modal
+`gview.vi` (`guest/joker/gview/vi.joke`, 367 lines of Joker) is a modal
 editor over the editing server: `(gview.vi/edit "def F")` opens the
 view as a buffer of `ed`'s session and edits it with vim's keys until
 `:q`, then hands its last state back to the REPL it was called from.
-- **Normal mode:** `h j k l` and the arrows, `0 $ w b gg G`, `x dd`,
-  `i a A I o O`, `u` (the session's undo), Enter (the view at the cursor:
-  what the node there is about) and `K` (its callers).
+- **Normal mode**, a count before most: `h j k l` and the arrows,
+  `0 $ w b gg G`, `x dd yy p P` (the unnamed register, or `"a` before
+  one for a named one), `i a A I o O`, `v V` (visual, characters or
+  lines: a motion, then `d x y`), `/PATTERN n N`, `u` (the session's
+  undo), Enter (the view at the cursor: what the node there is about),
+  `K` (its callers) and Ctrl-O (back to where Enter or `K` left).
 - **Command line:** `:q`; `:w NAME`, the C into the store under ref
   `NAME`; `:e VIEW ARG`, another view; `:rename NAME`, the entity at the
-  cursor with every declaration and use; `:undo`.
+  cursor with every declaration and use; `:undo`; `:back`.
 - **`:(FORM)`:** a Joker form evaluated, its value on the status line.
   The REPL is the command line.
 
@@ -656,9 +659,21 @@ a statement typed into `vim_snprintf` and applied, undone, the function
 renamed, `:w`, and `:(+ 1 2)`. On a pseudo-terminal the guest draws a
 screen a key and gives the REPL back after `:q`.
 
-Not done: counts, registers, visual mode, search, a viewport wider than
-a screen's columns (long lines are cut). Offsets are characters in Joker
-and bytes in the server, which agree for the views' ASCII.
+A command that changes the text sends its change when it ends: `5x`,
+`2dd` and a visual `d` are each one request. `:e` and Ctrl-O put the
+editor's own buffer on the other view (`@B open`), so a session keeps
+one. Lines wider than the screen scroll sideways with the cursor, and
+a visual selection is shown in reverse. `TestJokerViKeys` holds each
+feature as a session of its own on the sample: a line yanked and put
+below another and the C with it twice; `2dd` and `Vjd` the same
+applied edit; `/opt` then `n` and `x` leaving `pt`, which the server
+calls undefined; a named register put above; Enter, then Ctrl-O back
+to the offset left; `:e uses opt` on the same buffer; `$` on a
+20-column screen showing the line's end.
+
+Not done: `c`, `.`, text objects, marks, the counts on `p` beyond
+repetition. Offsets are characters in Joker and bytes in the server,
+which agree for the views' ASCII.
 
 ## What could be done next
 

@@ -840,7 +840,8 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    *data-readers*; gview/ crefactor/graph/view/clj's views
                    ported to Joker, graph.joke, view.joke and main.joke,
                    and vi.joke, gview.vi, a modal editor on the console
-                   over ed's buffers (vim's keys, :e :w :rename :undo, a
+                   over ed's buffers (vim's keys with counts, registers,
+                   visual mode, search, Ctrl-O back; :e :w :rename, a
                    Joker form on the command line), embedded; cmd/jokerhost the same language and views on
                    the host, built by the ordinary go -- `jokerhost view`
                    is view-clj; joker.go builds both, `--joker`;
