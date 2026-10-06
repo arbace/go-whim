@@ -3,11 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/arbace/go-whim/crefactor/graph/view"
 	"io"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/arbace/go-whim/crefactor/graph/view"
+	"github.com/arbace/go-whim/internal/whim"
 )
 
 // TestViewServe: the editing server on the views' sample, driven as an
@@ -21,7 +23,8 @@ func TestViewServe(t *testing.T) {
 	}
 	inR, inW := io.Pipe()
 	outR, outW := io.Pipe()
-	go func() { serveViews(g, viewSample, inR, outW); outW.Close() }()
+	fo := whim.GraphFallOut
+	go func() { view.NewServer(g, viewSample, view.ServerOptions{FallOut: &fo}).Serve(inR, outW); outW.Close() }()
 	rd := bufio.NewReader(outR)
 	ask := func(req string) (kind, head, body string) {
 		t.Helper()
@@ -129,10 +132,10 @@ func TestViewServeBuffers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sv := &viewServer{g: g, file: viewSample, s: view.NewSession(g), bufs: map[int]*sbuf{}, next: 1}
+	sv := view.NewServer(g, viewSample, view.ServerOptions{})
 	ask := func(req string) (string, string) {
 		t.Helper()
-		head, body, err := sv.answer(req)
+		head, body, err := sv.Answer(req)
 		if err != nil {
 			t.Fatalf("%s: %v", req, err)
 		}
@@ -155,7 +158,7 @@ func TestViewServeBuffers(t *testing.T) {
 		t.Fatalf("buffers: %q", list)
 	}
 	ask("@1 close")
-	if _, _, err := sv.answer("@1 text"); err == nil {
+	if _, _, err := sv.Answer("@1 text"); err == nil {
 		t.Fatal("a closed buffer answered")
 	}
 	if head, _ := ask("@2 undo"); head != "" {

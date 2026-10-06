@@ -1,11 +1,14 @@
 # crefactor/cc — the C front end, forked
 
-modernc.org/cc/v4 v4.29.7, the fifteen non-test files and `c23.go` of its
+modernc.org/cc/v4 v4.29.7, the fifteen non-test files and `c23.go` and `host.go` of its
 own, with the C23 productions upstream's parser refuses added (`c23.go`, and
 hooks in upstream's files, each marked `go-whim`), one lookup and the type check of a parsed tree exported, three faults
 corrected, and what the host's C compiler says asked once a process
 (`newConfig` memoized by its options, each `NewConfig` given copies: the
-compiler's process was 40-50 ms of every edit whim's program graph made). Upstream's BSD licence is beside this file and the copyright stays
+compiler's process was 40-50 ms of every edit whim's program graph made). And
+what the compiler says can be given instead of asked (`host.go`: `SetHost`, a
+`Host` with its headers as a file system, and a bundle of both), for a program
+with no compiler -- the editor in a guest (`doc/LISP-SANDBOX.md`). Upstream's BSD licence is beside this file and the copyright stays
 with The CC Authors.
 
 **The delta is the source here, and nowhere else.** It was a patch under

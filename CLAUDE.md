@@ -491,8 +491,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    buffer.go edits as they are typed (Buffer: a change
                    applied, pending, layout or same, aligned from the
                    least form around it; any number on one session, the
-                   others printed again by an edit; `whim view-serve`
-                   drives them);
+                   others printed again by an edit; server.go Server,
+                   the editing server `whim view-serve` runs and the Joker
+                   guest's ed);
                    agree.go also holds calls to their prototypes and
                    returns to their functions;
                    clj/ the same views
@@ -818,6 +819,8 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    own: main.go a REPL on the console, the views loaded,
                    store.go the store's hypercalls; box/ the namespace box
                    on a store, the guest's or jokerhost's --store DIR;
+                   ed/ the namespace ed: crefactor/graph/view's Server on
+                   a graph's EDN, cc's host the store's bundle;
                    joker/ Joker forked,
                    its core and the namespaces that need no system, the
                    vector fault fixed, tagged literals read by
@@ -961,6 +964,7 @@ make bin/whim-guest-rs # the Rust editor's core as a virtual machine: whimsy wit
 make whim-test-guest-rs  # the quick suite with the Rust guest too (whim test --guest-rs; --wide --guest-rs)
 go tool whim guest --joker --tamago /root/tamago-go  # Joker, a Clojure dialect, as a VM: a REPL on the console, the graph views loaded, the store the namespace box (bin/whim-guest-joker, 24 MB; doc/LISP-SANDBOX.md, *The views in Joker, in the box*)
 go tool whim store DIR graph graph src/whim-vim.c  # a store for WHIM_GUEST_STORE=DIR: the graph's EDN, the ref graph pointing at it -- (box/load "graph") in the box (put FILE, get HASH, ref NAME [HASH]; doc/LISP-SANDBOX.md, *The store*)
+go tool whim store DIR cc cc src/whim-vim.c  # the C host for the box: what the compiler says and the 32 headers whim-vim.c reads (116 KB), so that (ed/start (box/load "graph") (box/load "cc")) edits in the box as view-serve does on the host (doc/LISP-SANDBOX.md, *The editor in the box*)
 go tool whim guest --hello  # milestone 1's guest: "hello", exit 3, one exit a call
 go tool whim guest --bench [--alt]  # a stand-in making argv[1] hypercalls, to time one (--alt: a port on amd64, an HVC on arm64)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)

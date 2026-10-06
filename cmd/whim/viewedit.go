@@ -137,7 +137,7 @@ func runViewEdit(args []string) int {
 	loaded := time.Since(start)
 	p := view.Printer{IDs: ids}
 	render := func(ix *view.Index) (string, []view.Span, error) {
-		return viewText(ix, name, rest[1:need], opt, p, false)
+		return view.Text(ix, name, rest[1:need], opt, p, false)
 	}
 	eo := view.EditOptions{IDs: ids}
 	if fallout {

@@ -338,8 +338,9 @@ store every call answers -1.
 
 - `WHIM_GUEST_STORE=DIR` gives the launcher a store;
 - `go tool whim store DIR put FILE | get HASH | ref NAME [HASH] | graph
-  NAME FILE` is it on the host -- `graph` writes FILE's graph as EDN (a C
-  file imported, or a graph's Lisp read) and points NAME at it;
+  NAME FILE | cc NAME FILE` is it on the host -- `graph` writes FILE's graph
+  as EDN (a C file imported, or a graph's Lisp read) and points NAME at
+  it, `cc` the C host's bundle (*The editor in the box*);
 - in Joker, the namespace `box` (`guest/joker/box`, one package for the
   guest's hypercalls and jokerhost's `--store DIR`):
 
@@ -358,6 +359,50 @@ user=> (time (count (box/load "graph")))
 store of its own, 48 of 48 and 24 of 24 as before; `vmm`'s `TestDirStore`
 holds the store's refusals and its compare-and-set.
 
+## The editor in the box (2026-10-06)
+
+The editing server -- the session, its buffers and their journal, what
+`whim view-serve` answers -- runs in the box, driven from the REPL. It is
+`crefactor/graph/view`'s `Server` now (`server.go`, moved out of
+`cmd/whim`, which calls it), linked into the guest as the namespace `ed`
+(`guest/joker/ed`):
+
+- `(ed/start edn cc)`: a session on the graph `edn`, read by
+  `graph.ReadEDN` -- whim-vim.c's, 431,697 nodes, in 132 ms in the box;
+- `(ed/req LINE)`: one of view-serve's requests, `{:head H :body B}`, an
+  error thrown with its message; `(ed/! LINE)` prints the body;
+- `write NAME` puts the C in the store and points ref `NAME` at it. A
+  buffer opened `--fallout` is refused: the closure's options are vim's
+  (`internal/whim`), which would bring the translators into the image.
+
+**The box has no C compiler**, and an applied edit parses and checks a
+fragment's pared unit with cc, whose `NewConfig` asks the host's compiler
+what it predefines and where its headers are, then reads the headers.
+cc's fork takes a preset now (`crefactor/cc/host.go`, `SetHost`): the
+compiler's answers and the headers as a file system. `graph.HostBundle`
+records them while it imports a file -- for whim-vim.c 32 headers, 116
+KB of JSON -- and `whim store DIR cc NAME FILE` puts it in the store, so
+`(ed/start (box/load "graph") (box/load "cc"))` edits as the host does:
+
+```
+user=> (ed/req "open def vim_snprintf")
+user=> (ed/! (str "change " at " " at " \"\\n  (= str_l 0)\""))    ; a statement typed in
+"Elapsed time: 54.638237 msecs"
+"applied 147"
+user=> (print (:body (ed/req "c vim_snprintf")))   ; ... str_l = 0; va_start(ap, fmt); ...
+user=> (ed/! "undo")                                ; 3.8 ms
+user=> (ed/! "write edited")
+"2082553"
+```
+
+The fragment declares a `va_list`, from the bundle's `stdarg.h`. The
+whole run, the monitor started and the graph read, is 0.7 s.
+`TestJokerEditGuest` holds it: the change applied, the C printed with
+it, undone, the C written to the store whim-vim.c byte for byte, and the
+same change refused when no bundle is given. `TestHostBundle` holds an
+import on a bundle read back to the host compiler's graph. The image is
+28.6 MB, the graph packages and cc the 4.3 above the views'.
+
 ## What could be done next
 
 1. ~~The Joker guest~~ and 2. ~~tagged literals~~: built, above, and
@@ -368,7 +413,8 @@ holds the store's refusals and its compare-and-set.
    TLS in the guest, the host a packet forwarder under a policy.
 4. Measure the collector inside the box (pauses, heap) on the views' index
    and the REPL.
-5. A compiler from the graph's forms to Go closures, held to Joker's
+5. ~~The editor in the box~~: built, above.
+6. A compiler from the graph's forms to Go closures, held to Joker's
    answers, as each backend here is held to the C's.
 
 ## Appendix: the scratch guests

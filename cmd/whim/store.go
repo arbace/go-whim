@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/vmm"
 )
 
@@ -15,11 +16,14 @@ import (
 // stdout; ref prints NAME's hash, or with HASH points NAME at it; graph
 // stores FILE's graph as EDN -- a C file imported, or a graph's Lisp read,
 // as `whim graph --edn` writes it -- and points NAME at it, so that the
-// Joker guest's (box/load NAME) is the EDN its views read.
+// Joker guest's (box/load NAME) is the EDN its views read; cc stores what
+// the host's C compiler says and the headers FILE reads (crefactor/graph's
+// HostBundle) and points NAME at it, the compiler the guest's editor
+// (ed/start) has.
 //
-//	whim store DIR put FILE | get HASH | ref NAME [HASH] | graph NAME FILE
+//	whim store DIR put FILE | get HASH | ref NAME [HASH] | graph NAME FILE | cc NAME FILE
 func runStore(args []string) int {
-	const usage = "usage: whim store DIR put FILE | get HASH | ref NAME [HASH] | graph NAME FILE"
+	const usage = "usage: whim store DIR put FILE | get HASH | ref NAME [HASH] | graph NAME FILE | cc NAME FILE"
 	if len(args) < 3 {
 		fmt.Fprintln(os.Stderr, usage)
 		return 2
@@ -80,6 +84,23 @@ func runStore(args []string) int {
 		if err := s.SetRef(args[2], h, nil); err != nil {
 			return fail(err)
 		}
+	case op == "cc" && len(args) == 4:
+		src, err := os.ReadFile(args[3])
+		if err != nil {
+			return fail(err)
+		}
+		b, err := graph.HostBundle(args[3], src)
+		if err != nil {
+			return fail(err)
+		}
+		h, err := s.Put(b)
+		if err != nil {
+			return fail(err)
+		}
+		if err := s.SetRef(args[2], h, nil); err != nil {
+			return fail(err)
+		}
+		fmt.Printf("  store        %s -> %s: the C host for %s, %d bytes\n", args[2], hex.EncodeToString(h[:12]), args[3], len(b))
 	case op == "graph" && len(args) == 4:
 		src, err := os.ReadFile(args[3])
 		if err != nil {

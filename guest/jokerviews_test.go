@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -66,11 +67,7 @@ func TestJokerViewsGuest(t *testing.T) {
 	if testing.Short() {
 		t.Skip("short")
 	}
-	gocmd := needTamaGo(t)
-	img, err := JokerImage(gocmd, Native(), t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
+	img := jokerImage(t)
 	t.Run("sample", func(t *testing.T) {
 		ix := viewIndex(t, "../crefactor/graph/view/testdata/sample.c")
 		guestViews(t, img, ix, append(sampleCases(), generatedCases(ix, 1)...))
@@ -404,3 +401,29 @@ func goView(ix *view.Index, args []string) (string, string) {
 	}
 	return b.String(), ""
 }
+
+// jokerImage is the Joker guest's image, built once for the package's
+// tests.
+func jokerImage(t *testing.T) []byte {
+	t.Helper()
+	gocmd := needTamaGo(t)
+	jokerOnce.Do(func() {
+		dir, err := os.MkdirTemp("", "joker.")
+		if err != nil {
+			jokerErr = err
+			return
+		}
+		defer os.RemoveAll(dir)
+		jokerImg, jokerErr = JokerImage(gocmd, Native(), dir)
+	})
+	if jokerErr != nil {
+		t.Fatal(jokerErr)
+	}
+	return jokerImg
+}
+
+var (
+	jokerOnce sync.Once
+	jokerImg  []byte
+	jokerErr  error
+)

@@ -2052,7 +2052,9 @@ view's import. Beside a uses view's entries it is still refused.
 ## The editing server (2026-10-05)
 
 `whim view-serve [FILE]` is the session and its buffer for an editor to
-drive: the graph loaded once (from `.cache/graph`, 66 ms), then a request a
+drive (`crefactor/graph/view`'s `Server`, `server.go`, which the Joker
+guest's namespace `ed` drives in the box too: doc/LISP-SANDBOX.md, *The
+editor in the box*): the graph loaded once (from `.cache/graph`, 66 ms), then a request a
 line on stdin and an answer on stdout, framed as `view-clj --serve`'s (`ok
 N` or `error N`, the body's N bytes, `;;end`), with what an edit answers in
 the header's words:

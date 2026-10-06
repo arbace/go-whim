@@ -117,7 +117,7 @@ var tools = map[string]tool{
 	"whiml":       {runWhiml, "whiml [--out DIR] [FILE]"},
 	"wpp":         {runWpp, "wpp [--out DIR] [FILE]"},
 	"guest":       {runGuest, "guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--rust|--joker [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]"},
-	"store":       {runStore, "store DIR put FILE | get HASH | ref NAME [HASH] | graph NAME FILE"},
+	"store":       {runStore, "store DIR put FILE | get HASH | ref NAME [HASH] | graph NAME FILE | cc NAME FILE"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
 	"gocat":       {runGocat, "gocat <dir>"},
 	"hscat":       {runHscat, "hscat [--ghc GHC] [--hsl FILE] [--out DIR] [--no-test] [SRC]"},

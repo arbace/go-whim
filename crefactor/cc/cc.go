@@ -396,6 +396,9 @@ func NewConfig(goos, goarch string, opts ...string) (r *Config, err error) {
 		SysIncludePaths:     sysIncludePaths,
 		keywords:            keywords,
 	}
+	if h := preset.Load(); h != nil && len(opts) == 0 {
+		r.FS = h.FS // go-whim: host.go
+	}
 
 	if s := LongDouble64Flag(goos, goarch); s != "" {
 		for _, v := range opts {
@@ -573,6 +576,9 @@ func stdcVersion(predefined string) int64 {
 // a process of its own, 40-50 ms of every NewConfig, which whim's editing of
 // its program graph made at every edit (go-whim: README.md).
 func newConfig(opts []string) (cc, predefined string, includePaths, sysIncludePaths []string, keywords map[string]rune, err error) {
+	if _, cc, predefined, includePaths, sysIncludePaths, keywords, ok := presetConfig(opts); ok {
+		return cc, predefined, includePaths, sysIncludePaths, keywords, nil // go-whim: host.go
+	}
 	key := strings.Join(opts, "\x00")
 	hostConfigs.Lock()
 	h, ok := hostConfigs.m[key]

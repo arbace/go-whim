@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/arbace/go-whim/crefactor/clisp"
 	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/graph/view"
 )
@@ -149,10 +148,10 @@ func runView(args []string) int {
 	ix := view.NewIndex(g)
 	indexed := time.Since(start)
 	start = time.Now()
-	text, spans, err := viewText(ix, name, rest[1:need], opt, view.Printer{IDs: ids}, cOut)
+	text, spans, err := view.Text(ix, name, rest[1:need], opt, view.Printer{IDs: ids}, cOut)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "  view         %v\n", err)
-		if errors.Is(err, errViewUsage) {
+		if errors.Is(err, view.ErrUsage) {
 			return viewUsage()
 		}
 		return 1
@@ -180,78 +179,6 @@ func runView(args []string) int {
 	return 0
 }
 
-// errViewUsage is a view named that is not one.
-var errViewUsage = errors.New("no such view")
-
-// viewText is the view name of args ([ARG] or [STEPS ROOT]) on ix, printed
-// by p, with its span table: one text for each root the argument names.
-func viewText(ix *view.Index, name string, args []string, opt view.Options, p view.Printer, cOut bool) (string, []view.Span, error) {
-	roots, err := ix.Find(args[len(args)-1])
-	if err == nil && name == "member" && !isMemberNode(ix, roots[0]) {
-		err = fmt.Errorf("%s is not a member: member is S.M", args[len(args)-1])
-	}
-	if err != nil {
-		return "", nil, err
-	}
-	var out strings.Builder
-	var spans []view.Span
-	add := func(s string, sp []view.Span) {
-		base, first := out.Len(), len(spans)
-		for _, x := range sp {
-			x.Start += base
-			x.End += base
-			if x.Parent >= 0 {
-				x.Parent += first
-			}
-			spans = append(spans, x)
-		}
-		out.WriteString(s)
-	}
-	for _, root := range roots {
-		var t *view.Tree
-		switch name {
-		case "callers":
-			t = view.Callers(ix, root, opt)
-		case "callees":
-			t = view.Callees(ix, root, opt)
-		case "uses":
-			t = view.Uses(ix, root, opt)
-		case "member":
-			t = view.Member(ix, root, opt)
-		case "type":
-			s, err := ix.Aggregate(args[0])
-			if err != nil {
-				return "", nil, err
-			}
-			t = view.Type(ix, s, opt)
-		case "def":
-			d := view.Def(ix, root)
-			if cOut {
-				c, err := clisp.Print([]*clisp.Node{graph.Lisp(d)})
-				if err != nil {
-					return "", nil, err
-				}
-				out.Write(c)
-			} else {
-				add(p.RenderForm(d))
-			}
-			continue
-		case "follow":
-			steps, err := view.ParseSteps(args[0])
-			if err != nil {
-				return "", nil, err
-			}
-			t = view.Build(ix, root, view.Spec{Name: "follow", Child: "to", Rel: view.Steps(steps),
-				Depth: followDepth(opt.Depth), Stop: opt.Stop, Show: opt.Show})
-			t.Notes = append(t.Notes, "steps: "+args[0])
-		default:
-			return "", nil, errViewUsage
-		}
-		add(p.Render(ix, t))
-	}
-	return out.String(), spans, nil
-}
-
 // spanTable is a span table as text: a line a span, its bytes, its kind,
 // its node's id (0 for a token), the span it is in, and whether it is
 // whole.
@@ -271,7 +198,7 @@ func spanTable(spans []view.Span) string {
 // viewAt is the view at a cursor: the entity at pos (a byte, or LINE:COL)
 // of the printed text, and the view name (or as) rooted there.
 func viewAt(ix *view.Index, text string, spans []view.Span, pos, name, as string, opt view.Options, p view.Printer, cOut bool) (string, []view.Span, error) {
-	off, err := textOffset(text, pos)
+	off, err := view.TextOffset(text, pos)
 	if err != nil {
 		return "", nil, err
 	}
@@ -295,46 +222,7 @@ func viewAt(ix *view.Index, text string, spans []view.Span, pos, name, as string
 		what += on.Atom
 	}
 	fmt.Fprintf(os.Stderr, "  at           %s: %s, about #%d %s\n", pos, what, e.ID, ix.Name(e))
-	return viewText(ix, as, []string{fmt.Sprintf("#%d", e.ID)}, opt, p, cOut)
-}
-
-// textOffset is a position in text: a byte offset, or LINE:COL from 1:1
-// (COL a byte in the line).
-func textOffset(text, pos string) (int, error) {
-	l, c, ok := strings.Cut(pos, ":")
-	if !ok {
-		n, err := strconv.Atoi(pos)
-		if err != nil || n < 0 || n >= len(text) {
-			return 0, fmt.Errorf("--at %s: not a byte of the view's %d", pos, len(text))
-		}
-		return n, nil
-	}
-	line, err1 := strconv.Atoi(l)
-	col, err2 := strconv.Atoi(c)
-	if err1 != nil || err2 != nil || line < 1 || col < 1 {
-		return 0, fmt.Errorf("--at %s: not LINE:COL", pos)
-	}
-	off := 0
-	for i := 1; i < line; i++ {
-		k := strings.IndexByte(text[off:], '\n')
-		if k < 0 {
-			return 0, fmt.Errorf("--at %s: the view has %d lines", pos, i)
-		}
-		off += k + 1
-	}
-	end := strings.IndexByte(text[off:], '\n')
-	if end < 0 {
-		end = len(text) - off
-	}
-	if col > end {
-		return 0, fmt.Errorf("--at %s: line %d has %d bytes", pos, line, end)
-	}
-	return off + col - 1, nil
-}
-
-func isMemberNode(ix *view.Index, n *graph.Node) bool {
-	p := ix.Parent(n)
-	return n.Is("member") || p != nil && graph.IsTypeDef(p) && (p.Is("struct") || p.Is("union"))
+	return view.Text(ix, as, []string{fmt.Sprintf("#%d", e.ID)}, opt, p, cOut)
 }
 
 func viewUsage() int {
@@ -396,12 +284,3 @@ func cacheKey(src []byte) string {
 }
 
 // followDepth is an ad hoc view's depth: 1 unless asked, -1 no limit.
-func followDepth(d int) int {
-	switch {
-	case d == 0:
-		return 1
-	case d < 0:
-		return 0
-	}
-	return d
-}

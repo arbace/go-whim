@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/guest/joker/box"
+	"github.com/arbace/go-whim/guest/joker/ed"
 	"github.com/arbace/go-whim/guest/joker/gview"
 	"github.com/arbace/go-whim/vmm"
 	. "github.com/candid82/joker/core"
@@ -92,6 +93,7 @@ func main() {
 				exit(1)
 			}
 			box.Install(s)
+			ed.Install(s)
 		case a == "-e" && i+1 < len(args):
 			i++
 			ran = true

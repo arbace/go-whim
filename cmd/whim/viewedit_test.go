@@ -22,7 +22,7 @@ func printed(t *testing.T, file, name, arg string, ids bool) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	text, _, err := viewText(view.NewIndex(g), name, []string{arg}, view.Options{}, view.Printer{IDs: ids}, false)
+	text, _, err := view.Text(view.NewIndex(g), name, []string{arg}, view.Options{}, view.Printer{IDs: ids}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
