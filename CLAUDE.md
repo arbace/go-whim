@@ -841,6 +841,7 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    ported to Joker, graph.joke, view.joke and main.joke,
                    and vi.joke, gview.vi, a modal editor on the console
                    over ed's buffers (vim's keys with counts, registers,
+                   operators and text objects, . and marks,
                    visual mode, search, Ctrl-O back; :e :w :rename, a
                    Joker form on the command line), embedded; cmd/jokerhost the same language and views on
                    the host, built by the ordinary go -- `jokerhost view`

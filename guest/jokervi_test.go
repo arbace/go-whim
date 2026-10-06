@@ -184,6 +184,14 @@ func TestJokerViKeys(t *testing.T) {
 		{"enter", "jjjj\r", "60", []string{"<<def #67 #67 get >>"}},
 		{"another view", ":e uses opt\n", "60", []string{"<<uses opt buf 1 >>"}},
 		{"sideways", "$", "20", []string{" int)"}},
+		{"change word", "jjjjjj$hcw7\x1b", "60", []string{"<<def get applied ", "opt = 7;"}},
+		{"replace", "jjjjjj$hr5", "60", []string{"<<def get applied ", "opt = 5;"}},
+		{"change in parens", "jjjjjj$hci(= opt 3\x1b", "60", []string{"<<def get applied ", "opt = 3;"}},
+		{"change spaces", "jjj$hhciw9\x1b", "60", []string{"<<def get applied ", "b->b_ml += 92;"}},
+		{"delete in word", "jjjjjj$hdiw", "60", []string{"<<def get pending ", "(= opt)"}},
+		{"dot", "jjj$hr5jjj$h.", "60", []string{"<<def get applied ", "b->b_ml += 5;", "opt = 5;"}},
+		{"mark", "jjjjjj$hma0`ar4", "60", []string{"<<def get applied ", "opt = 4;"}},
+		{"delete to the end", "jjjjjj$hD", "60", []string{"<<def get pending "}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			st := viStore(t, "../crefactor/graph/view/testdata/sample.c", false)

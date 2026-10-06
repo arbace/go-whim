@@ -136,7 +136,7 @@
   (let [{:keys [text off]} st]
     (assoc st :text (str (subs text 0 off) x (subs text off)) :off (+ off (count x)))))
 
-(defn- word-char? [c] (re-matches #"[A-Za-z0-9_]" (str c)))
+(defn- word-char? [c] (boolean (re-matches #"[A-Za-z0-9_]" (str c))))
 
 (defn- word-forward [t off]
   (let [n (count t)
@@ -223,27 +223,109 @@
       "N" (times n #(search % true) st)
       nil)))
 
+(defn- word-end
+  "The end of the word (or the run of other characters) at off: the
+  offset after it."
+  [t off]
+  (let [n (count t)
+        w? (and (< off n) (word-char? (nth t off)))]
+    (loop [i off] (if (and (< i n) (= w? (boolean (word-char? (nth t i)))) (not (#{\space \newline} (nth t i)))) (recur (inc i)) i))))
+
+(defn- object
+  "The span [from to] of text object k (w, parens, quotes) round off, the
+  delimiters and spaces with it when around?; nil when there is none."
+  [t off k around?]
+  (let [n (count t)]
+    (case k
+      "w" (if (and (< off n) (= (nth t off) \space))
+            (let [b (loop [i off] (if (and (pos? i) (= (nth t (dec i)) \space)) (recur (dec i)) i))
+                  e (loop [i off] (if (and (< i n) (= (nth t i) \space)) (recur (inc i)) i))]
+              [b (if around? (word-end t e) e)])
+          (let [w? (and (< off n) (word-char? (nth t off)))
+                b (loop [i off] (if (and (pos? i) (= w? (boolean (word-char? (nth t (dec i))))) (not (#{\space \newline} (nth t (dec i))))) (recur (dec i)) i))
+                e (word-end t off)
+                e2 (if around? (loop [i e] (if (and (< i n) (= (nth t i) \space)) (recur (inc i)) i)) e)]
+            (when (< b e) [b e2])))
+      ("(" ")" "b") (let [open (loop [i off d 0]
+                                 (cond (neg? i) nil
+                                       (and (= (nth t i) \() (zero? d)) i
+                                       (= (nth t i) \() (recur (dec i) (dec d))
+                                       (and (= (nth t i) \)) (not= i off)) (recur (dec i) (inc d))
+                                       :else (recur (dec i) d)))
+                          close (when open
+                                  (loop [i (inc open) d 0]
+                                    (cond (>= i n) nil
+                                          (and (= (nth t i) \)) (zero? d)) i
+                                          (= (nth t i) \)) (recur (inc i) (dec d))
+                                          (= (nth t i) \() (recur (inc i) (inc d))
+                                          :else (recur (inc i) d))))]
+                      (when close (if around? [open (inc close)] [(inc open) close])))
+      "\"" (let [b (s/last-index-of (subs t 0 (inc (min off (dec n)))) "\"")
+                 b (if (and b (= b off)) (or (s/last-index-of (subs t 0 off) "\"") b) b)
+                 e (when b (s/index-of t "\"" (inc b)))]
+             (when (and b e) (if around? [b (inc e)] [(inc b) e])))
+      nil)))
+
+(defn- operate
+  "Operator op (d c y) on [from to]: cut, cut and insert, or yank."
+  [st op from to lines?]
+  (case op
+    "d" (cut st from to lines?)
+    "c" (assoc (cut st from to lines?) :mode :insert :off from)
+    "y" (assoc (yank st from to lines?) :off from)))
+
 (defn- normal [st k]
   (let [[r c] (pos st)
         t (:text st)
         n (or (:count st) 1)
         pend (:pend st)
         st (dissoc st :pend)
-        done #(dissoc % :count :reg)]
+        done #(dissoc % :count :reg :obj)]
     (cond
-      (and (re-matches #"[1-9]" k) (not pend)) (assoc st :count (+ (* 10 (or (:count st) 0)) (read-string k)))
-      (and (= k "0") (:count st) (not pend)) (assoc st :count (* 10 (:count st)))
+      (and (re-matches #"[1-9]" k) (not (#{"\"" "m" "'" "`" "r"} pend)) (not (:obj st))) (assoc st :pend pend :count (+ (* 10 (or (:count st) 0)) (read-string k)))
+      (and (= k "0") (:count st) (not (#{"\"" "m" "'" "`" "r"} pend))) (assoc st :pend pend :count (* 10 (:count st)))
       (= pend "\"") (assoc st :reg k)
       (= pend "g") (done (if (= k "g") (move st (if (:count st) (dec n) 0) 0) st))
-      (= pend "d") (done (if (= k "d") (let [[b e] (line-span t r n)] (cut st b e true)) st))
-      (= pend "y") (done (if (= k "y") (let [[b e] (line-span t r n)] (yank st b e true)) st))
+      (= pend "m") (done (assoc-in st [:marks k] (:off st)))
+      (= pend "r") (done (let [e (+ (:off st) n)]
+                           (if (and (<= e (line-end t (starts t) r)) (= (count k) 1))
+                             (assoc st :text (str (subs t 0 (:off st)) (apply str (repeat n k)) (subs t e)) :off (dec e))
+                             st)))
+      (#{"'" "`"} pend) (done (if-let [o (get (:marks st) k)]
+                                (let [st (clamp (assoc st :off o))]
+                                  (if (= pend "'") (let [[r2] (pos st)] (move st r2 0)) st))
+                                (assoc st :msg (str "no mark " k))))
+      (#{"d" "c" "y"} pend)
+      (cond
+        (= k pend) (done (let [[b e] (line-span t r n)
+                               e (if (and (= pend "c") (> e b) (= (nth t (dec e)) \newline)) (dec e) e)]
+                           (operate st pend b e (not= pend "c"))))
+        (#{"i" "a"} k) (assoc st :pend pend :obj k)
+        (:obj st) (done (if-let [[b e] (object t (:off st) k (= (:obj st) "a"))]
+                          (operate st pend b e false)
+                          (assoc st :msg (str "no object " (:obj st) k))))
+        (and (= pend "c") (= k "w")) (done (operate st pend (:off st) (word-end t (:off st)) false))
+        :else (done (if-let [m (motion st k n)]
+                      (let [a (:off st) z (:off m)
+                            [from to] (if (< z a) [z a] [a z])
+                            to (if (#{"$" "l" "<right>"} k) (min (line-end t (starts t) r) (max to (inc a))) to)]
+                        (if (#{"j" "k" "<down>" "<up>" "G"} k)
+                          (let [ss (starts t) r1 (row-of ss from) r2 (row-of ss to)
+                                [b e] (line-span t r1 (inc (- r2 r1)))]
+                            (operate st pend b e true))
+                          (operate st pend from to false)))
+                      st)))
       :else
       (if-let [m (motion st k n)]
         (done m)
         (case k
-          ("g" "d" "y" "\"") (assoc st :pend k)
+          ("g" "d" "c" "y" "\"" "m" "'" "`" "r") (assoc st :pend k)
           "x" (done (let [e (min (line-end t (starts t) r) (+ (:off st) n))]
                       (if (< (:off st) e) (cut st (:off st) e false) st)))
+          "s" (done (let [e (min (line-end t (starts t) r) (+ (:off st) n))] (operate st "c" (:off st) e false)))
+          "D" (done (cut st (:off st) (line-end t (starts t) r) false))
+          "C" (done (operate st "c" (:off st) (line-end t (starts t) r) false))
+          "S" (done (let [[b e] (line-span t r n) e (if (and (> e b) (= (nth t (dec e)) \newline)) (dec e) e)] (operate st "c" b e false)))
           "p" (done (put st false n))
           "P" (done (put st true n))
           "i" (done (assoc st :mode :insert))
@@ -262,7 +344,6 @@
           "\u000f" (done (back st))
           "/" (done (assoc st :mode :search :cmd ""))
           ":" (done (assoc st :mode :cmd :cmd ""))
-          "<esc>" (done st)
           (done st))))))
 
 (defn- visual [st k]
@@ -300,7 +381,12 @@
     ("\u007f" "\b") (if (empty? (:cmd st)) (assoc st :mode :normal :cmd nil) (update st :cmd #(subs % 0 (dec (count %)))))
     (update st :cmd str k)))
 
-(defn step
+(defn- idle?
+  "Normal mode with no command begun: where a command starts, and ends."
+  [st]
+  (and (= (:mode st) :normal) (nil? (:pend st)) (nil? (:count st)) (nil? (:reg st)) (nil? (:obj st))))
+
+(defn- step1
   "A key's effect on the editor's state.  A command that leaves normal
   mode with the text changed sends the change."
   [st k]
@@ -310,9 +396,29 @@
               :cmd (line-input st k command)
               :search (line-input st k (fn [st p] (search (assoc st :pattern p) false)))
               (normal st k))]
-    (if (and (= (:mode st2) :normal) (not (:pend st2)) (not (:count st2)) (not= (:text st2) (:server st2)))
+    (if (and (idle? st2) (not= (:text st2) (:server st2)))
       (sync st2)
       st2)))
+
+(defn step
+  "A key's effect on the editor's state, the keys of each command that
+  changed the text kept, for . to type again (n times, its count)."
+  [st k]
+  (if (and (= k ".") (= (:mode st) :normal) (nil? (:pend st)))
+    (let [keys (:last st) n (or (:count st) 1)]
+      (if (empty? keys)
+        (dissoc st :count)
+        (assoc (reduce step1 (dissoc st :count) (apply concat (repeat n keys))) :last keys)))
+    (let [begin? (idle? st)
+          rec (if begin? [k] (conj (:rec st []) k))
+          from (if begin? (:text st) (:rec-from st))
+          st2 (step1 st k)]
+      (if (idle? st2)
+        (let [changed? (not= from (:text st2))
+              repeatable? (not (#{"u" ":" "/" "\r" "\n" "K" "\u000f" "p" "P"} (first (drop-while #(re-matches #"[0-9\"]" %) rec))))]
+          (-> st2 (dissoc :rec :rec-from)
+              (assoc :last (if (and changed? repeatable?) rec (:last st2)))))
+        (assoc st2 :rec rec :rec-from from)))))
 
 (defn- render [st]
   (let [[rows cols] (term/size)

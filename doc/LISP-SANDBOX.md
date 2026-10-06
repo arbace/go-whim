@@ -629,13 +629,15 @@ yield.
 
 ## The editor on the console (2026-10-06)
 
-`gview.vi` (`guest/joker/gview/vi.joke`, 367 lines of Joker) is a modal
+`gview.vi` (`guest/joker/gview/vi.joke`, 473 lines of Joker) is a modal
 editor over the editing server: `(gview.vi/edit "def F")` opens the
 view as a buffer of `ed`'s session and edits it with vim's keys until
 `:q`, then hands its last state back to the REPL it was called from.
 - **Normal mode**, a count before most: `h j k l` and the arrows,
   `0 $ w b gg G`, `x dd yy p P` (the unnamed register, or `"a` before
-  one for a named one), `i a A I o O`, `v V` (visual, characters or
+  one for a named one), the operators `d c y` on a motion or a text
+  object (`iw aw`, `i( a(`, `i" a"`), `D C s S r`, `.` (the last change
+  again, its keys replayed), marks (`ma`, `'a`, `` `a ``), `i a A I o O`, `v V` (visual, characters or
   lines: a motion, then `d x y`), `/PATTERN n N`, `u` (the session's
   undo), Enter (the view at the cursor: what the node there is about),
   `K` (its callers) and Ctrl-O (back to where Enter or `K` left).
@@ -679,8 +681,16 @@ calls undefined; a named register put above; Enter, then Ctrl-O back
 to the offset left; `:e uses opt` on the same buffer; `$` on a
 20-column screen showing the line's end.
 
-Not done: `c`, `.`, text objects, marks, the counts on `p` beyond
-repetition. Offsets are characters in Joker and bytes in the server,
+`.` repeats a change as the keys that made it: each command that changed
+the text is kept as its keys, from where normal mode was idle to where
+it is again, and `.` types them at the cursor; undo, the command line,
+search, Enter, `K`, Ctrl-O and the puts are not repeated. The tests add
+a session each: `cw`, `r`, `ci(`, `ciw` on spaces, `diw`, `D`; `r5`
+repeated by `.` on another line, both applied; a mark set, left and
+jumped back to. Marks are offsets, not moved by an edit before them.
+
+Not done: the counts on `p` beyond repetition, marks that follow edits,
+`.` with the count of the change it repeats. Offsets are characters in Joker and bytes in the server,
 which agree for the views' ASCII.
 
 ## What could be done next
