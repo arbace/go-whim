@@ -381,6 +381,9 @@ func (c *ccomp) compile(expr Expr) (ccode, error) {
 		}
 		site := &CallSite{Position: e.Pos(), name: e.Name()}
 		check := e.callable.Pos()
+		// an inline cache: the arity the last closure called here took
+		var lastP *cProto
+		var lastA *cArity
 		return func(f *cframe) Object {
 			fn := callee(f)
 			if _, ok := fn.(Callable); !ok {
@@ -391,9 +394,18 @@ func (c *ccomp) compile(expr Expr) (ccode, error) {
 				vals[i] = a(f)
 			}
 			f.site = site
-			res := callAt(site, fn, vals)
-			clear(vals)
-			return res
+			if x, ok := fn.(*Fn); ok && x.cproto != nil {
+				a := lastA
+				if x.cproto != lastP {
+					if a = x.cproto.arity(n); a != nil {
+						lastP, lastA = x.cproto, a
+					}
+				}
+				if a != nil {
+					return callArityAt(site, x, a, vals)
+				}
+			}
+			return callAt(site, fn, vals) // the caller's frame clears vals when it returns
 		}, nil
 	case *FnExpr:
 		p, err := compileClosureFn(e, c, nil)
@@ -674,6 +686,19 @@ func callClosure(fn *Fn, args []Object) Object {
 		}
 		panic(RT.NewError(p.arityError(len(args)).Error()))
 	}
+	return callArity(fn, a, args)
+}
+
+// callArityAt is callAt of a closure whose arity a call site knows.
+func callArityAt(site *CallSite, fn *Fn, a *cArity, args []Object) Object {
+	prev := RT.currentExpr
+	RT.currentExpr = site
+	defer func() { RT.currentExpr = prev }()
+	return callArity(fn, a, args)
+}
+
+// callArity is a call of fn's arity a.
+func callArity(fn *Fn, a *cArity, args []Object) Object {
 	if fw := a.fwd; fw != nil {
 		if p, ok := fw.vr.Resolve().(Proc); ok && p.Package == "" {
 			prev := RT.currentExpr

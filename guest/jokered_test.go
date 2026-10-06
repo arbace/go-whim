@@ -18,8 +18,10 @@ import (
 // into vim_snprintf's view is applied (its fragment parsed and checked on
 // the bundle's headers, va_list among them), the C printed has it, undo
 // takes it back, and the C written to the store is whim-vim.c byte for
-// byte.  Without the bundle the same edit is refused: the box has no
-// compiler to ask.  It needs TamaGo and /dev/kvm.
+// byte; ml_clearmarked deleted whole is pending, being called, and applied
+// in a buffer opened --fallout (vim's options, internal/whim/vimgraph),
+// its call going with it.  Without the bundle the same edit is refused:
+// the box has no compiler to ask.  It needs TamaGo and /dev/kvm.
 func TestJokerEditGuest(t *testing.T) {
 	if testing.Short() {
 		t.Skip("short")
@@ -63,6 +65,11 @@ func TestJokerEditGuest(t *testing.T) {
 (println "<<c" (:body (ed/req "c vim_snprintf")) ">>")
 (println "<<undo" (:head (ed/req "undo")) ">>")
 (println "<<write" (:head (ed/req "write edited")) ">>")
+(ed/req "open def ml_clearmarked")
+(println "<<plain" (:head (ed/req (str "change 0 " (count (:body (ed/req "text"))) " \"\""))) ">>")
+(ed/req "open --fallout def ml_clearmarked")
+(println "<<fallout" (:head (ed/req (str "change 0 " (count (:body (ed/req "text"))) " \"\""))) ">>")
+(println "<<gone" (try (ed/req "c ml_clearmarked") (catch Error e (ex-message e))) ">>")
 `
 		con := &console{in: []byte(keys)}
 		code, err := vmm.Run(vmm.Config{Image: img, Host: con, Store: st, Args: []string{"joker"}})
@@ -75,7 +82,8 @@ func TestJokerEditGuest(t *testing.T) {
 		return con.out.String()
 	}
 	out := run(`(box/load "cc")`)
-	for _, want := range []string{"<<change applied ", "    str_l = 0;\n    va_start(ap, fmt);", "<<undo  >>", "<<write " + strconv.Itoa(len(src)) + " >>"} {
+	for _, want := range []string{"<<change applied ", "    str_l = 0;\n    va_start(ap, fmt);", "<<undo  >>", "<<write " + strconv.Itoa(len(src)) + " >>",
+		"<<plain pending ", "--fallout", "<<fallout applied ", "<<gone "} {
 		if !strings.Contains(out, want) {
 			t.Fatalf("no %q in:\n%s", want, out)
 		}

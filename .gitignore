@@ -61,3 +61,5 @@
 
 # guest/joker/joker's generated core (go generate, by go tool whim guest --joker)
 guest/joker/joker/core/a_*.go
+# its lock, held while one build generates it (guest/joker.go)
+guest/joker/joker/.generate.lock

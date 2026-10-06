@@ -372,8 +372,12 @@ The editing server -- the session, its buffers and their journal, what
 - `(ed/req LINE)`: one of view-serve's requests, `{:head H :body B}`, an
   error thrown with its message; `(ed/! LINE)` prints the body;
 - `write NAME` puts the C in the store and points ref `NAME` at it. A
-  buffer opened `--fallout` is refused: the closure's options are vim's
-  (`internal/whim`), which would bring the translators into the image.
+  buffer opened `--fallout` closes over a deletion's uses with vim's
+  options, which moved from `internal/whim` (it would bring the
+  translators into the image) to a package of their own,
+  `internal/whim/vimgraph`: `ml_clearmarked` deleted whole is pending in a
+  plain buffer, being called, and applied with its call in one opened
+  `--fallout`.
 
 **The box has no C compiler**, and an applied edit parses and checks a
 fragment's pared unit with cc, whose `NewConfig` asks the host's compiler
@@ -503,6 +507,9 @@ Three things make it faster than the VM rather than slower:
   the VM's comment insists ("Vars are mutable").
 - **Resolution at compile time**: no opcode dispatch, no operand
   decoding, no stack shuffling.
+- **An inline cache at each call site**: the arity the last closure
+  called there took, kept beside the site, so a call of the same function
+  chooses none (choosing was 12% of `fib`'s time).
 
 **Held to the VM.**
 - Upstream Joker's eval tests (`tests/eval`, 42 files with the standard
@@ -515,27 +522,36 @@ Three things make it faster than the VM rather than slower:
   whim-vim.c's graph, on both, each the Go's bytes.
 - `TestJokerViewsGuest`: in the box, on both, 48 of 48 and 24 of 24.
   It failed once, on closures in the box, in its first run, and the
-  message was lost to a filter; the twelve runs since have passed.
+  message was lost to a filter. It has not failed since: 21 runs, nine
+  of them three processes side by side. Run four at once, they found
+  something else: each regenerates Joker's core into the source tree, and
+  one compiled a file another was writing -- `guest.JokerGenerate` holds
+  a lock now (`joker/.generate.lock`) until the build after it ends.
 
 **Measured** (ms, the best of three; host, then the box at 1 and 4 vCPUs):
 
 | | fib 27 | loop 3M | reduce 1M | assoc 200k | sort 200k | strings 200k |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| host, VM | 239 | 1,365 | 999 | 804 | 3,278 | 592 |
-| host, closures | 125 | 1,003 | 786 | 702 | 2,367 | 541 |
-| box 1 vCPU, VM | 321 | 3,253 | 1,265 | 1,065 | 6,891 | 822 |
-| box 1 vCPU, closures | 171 | 1,794 | 978 | 976 | 4,908 | 734 |
-| box 4 vCPUs, VM | 325 | 1,914 | 1,044 | 775 | 4,090 | 637 |
-| box 4 vCPUs, closures | 172 | 1,178 | 771 | 694 | 2,911 | 532 |
+| host, VM | 222 | 1,451 | 1,009 | 765 | 3,205 | 589 |
+| host, closures | 96 | 841 | 918 | 641 | 2,072 | 482 |
+| box 1 vCPU, VM | 321 | 3,232 | 1,227 | 1,035 | 6,640 | 805 |
+| box 1 vCPU, closures | 141 | 1,611 | 1,192 | 1,019 | 4,519 | 729 |
+| box 4 vCPUs, VM | 323 | 1,860 | 1,014 | 699 | 3,950 | 632 |
+| box 4 vCPUs, closures | 141 | 1,026 | 775 | 673 | 2,652 | 450 |
 
-Calls and arithmetic run 1.4 to 1.9 times as fast; work in the
+Calls and arithmetic run 1.7 to 2.3 times as fast (1.4 to 1.9 before
+the inline cache); work in the
 persistent collections and the natives runs 1.1 to 1.3 times. The views
 are 1.3 times as fast on the host (6,370 views: 97 s against 127) and 1.2
 in the box (the 24 product views: 42 s against 50). The closures fall
 short of the sketch's "two to five times an interpreter's" because
 Joker's interpreter is not a tree-walker: its VM is already a compiler,
 to bytecode. What is left is Joker's values -- boxed numbers, persistent
-maps -- and its natives, which a closure calls as the VM does.
+maps -- and its natives, which a closure calls as the VM does. In the
+loop of a million additions, half the time is the collector's: every
+`Int` a native returns is two words boxed in an interface (`convT`), for
+the bytecode as for the closures, so a number without a box is the next
+step, and a change to Joker's values rather than to either backend.
 
 ## What could be done next
 

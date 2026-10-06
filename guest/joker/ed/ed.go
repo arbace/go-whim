@@ -15,8 +15,8 @@
 //	(ed/! line)        the same, the body printed: the head
 //
 // `write NAME` puts the C in the store and points ref NAME at it.  A
-// buffer opened --fallout is refused: the closure's options are vim's
-// (internal/whim), which the guest does not link.
+// buffer opened --fallout closes over a deletion's uses with vim's options
+// (internal/whim/vimgraph).
 package ed
 
 import (
@@ -27,6 +27,7 @@ import (
 	"github.com/arbace/go-whim/crefactor/graph"
 	"github.com/arbace/go-whim/crefactor/graph/view"
 	"github.com/arbace/go-whim/guest/joker/box"
+	"github.com/arbace/go-whim/internal/whim/vimgraph"
 	. "github.com/candid82/joker/core"
 )
 
@@ -58,7 +59,8 @@ func Install(s box.Store) {
 		}
 		n := 0
 		g.Walk(func(*graph.Node) bool { n++; return true })
-		sv = view.NewServer(g, "<store>", view.ServerOptions{Write: func(name string, c []byte) error {
+		fo := vimgraph.FallOut
+		sv = view.NewServer(g, "<store>", view.ServerOptions{FallOut: &fo, Write: func(name string, c []byte) error {
 			h, err := s.Put(c)
 			if err != nil {
 				return err
