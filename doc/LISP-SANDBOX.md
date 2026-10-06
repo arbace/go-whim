@@ -445,10 +445,24 @@ either way -- 0.2-2% of the time in pauses -- and on four vCPUs the
 concurrent mark runs beside the program: 200 forced collections take 1.67
 s on one vCPU, 2.0 s on two at 1 ms, 0.98 s on four at 50 µs.
 
-What is left is TamaGo's: a stop of the world could wake the idle vCPUs
-itself (`preemptM` is empty on tamago, and there is no hook for it), and
-an idle M could give its P up, as on other systems, so that a stop would
-not wait for it at all.
+**The stop wakes them now** (2026-10-06). The runtime has no hook at a
+stop of the world, but the stopping M waits for the others in
+`semasleep` 100 µs at a time (`stopTheWorldWithSema`, `forEachP`), which
+reaches the board's idle with a deadline that near, and an idle vCPU's
+wait is a timer's or none. So when the board idles with a deadline
+within 200 µs it calls `CPUWake` with -1, which gives every other vCPU a
+wake -- the parked look again at once, one about to park finds the token
+-- and a timer that near wakes them for nothing. At the default limit,
+1 ms, 200 forced collections on two vCPUs take 1.20 s (2.0 before), on
+four 0.94 s (1.77), the pauses' p50 82-131 µs (1,311); the views' index
+on four vCPUs pauses 6.0 ms in all (44.5), the churn 16 ms (82.7), its
+p50 131 µs -- its p99 one pause of 5 ms, a goroutine reaching no safe
+point (TamaGo has no asynchronous preemption: `preemptMSupported` is
+false without signals). The editor pays nothing: the Go guest's quick
+suite is 43.40 exits a key, as before. What is left is TamaGo's: an idle
+M could give its P up, as on other systems, so that a stop would not
+wait for it at all.
+
 
 ## Closures (2026-10-06)
 

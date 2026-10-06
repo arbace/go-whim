@@ -60,7 +60,8 @@ const (
 	// lets it look again (doc/GUEST.md, *SMP*: no longer than a
 	// millisecond while another vCPU runs the guest).
 	CPUPark
-	// CPUWake ends vCPU a[0]'s park, or its next one when it is not parked.
+	// CPUWake ends vCPU a[0]'s park, or its next one when it is not parked;
+	// a[0] = -1: every vCPU's but the caller's.
 	CPUWake
 	// CPUSelf is the calling vCPU's number, in ret: 0 the boot vCPU.
 	CPUSelf

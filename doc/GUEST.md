@@ -866,8 +866,11 @@ is what it says. The editor does not want it shorter: at 200 µs the quick
 suite costs 51.2 exits a key, at 50 µs 63.1 (43.4 at 1 ms), the heavy
 case the same. A stop of the world does: an idle vCPU joins one only when
 it looks again, so the collector's pauses on several vCPUs are the limit
--- 1.3 ms at 1 ms, 230-330 µs at 50 µs (doc/LISP-SANDBOX.md, *The
-collector in the box*).
+-- 1.3 ms at 1 ms, 230-330 µs at 50 µs -- until the board woke them:
+idling with a deadline within 200 µs, a stop of the world's wait, it
+calls `CPUWake` with -1, a wake for every other vCPU, and the pauses
+are 82-131 µs at the default limit, the quick suite's exits as they
+were (doc/LISP-SANDBOX.md, *The collector in the box*).
 
 
 *Gate met* (amd64 here). The quick suite 80 of 80 and the wide 240 of 240

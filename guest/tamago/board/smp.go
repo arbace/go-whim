@@ -21,6 +21,9 @@ import (
 // runnable meanwhile is seen without an exit.
 const spinNs = 20_000
 
+// stopWaitNs is the longest idle wait taken for a stop of the world's.
+const stopWaitNs = 200_000
+
 // tls is each AP's thread-local slot, by its number: the runtime's g, at
 // FS's base less 8 on amd64 (the ELF's TLS, as the runtime's settls lays
 // it; whim_apentry sets FS); arm64 keeps g in a register.  The boot
@@ -82,6 +85,13 @@ func idleSMP(until int64) {
 	now := nanotime()
 	end := now + spinNs
 	limited := until > 0 && until != math.MaxInt64
+	if limited && until-now <= stopWaitNs {
+		// A wait this short is a stop of the world's (stopTheWorldWithSema
+		// and forEachP wait 100 µs at a time): it waits for every idle
+		// vCPU to look again, which TamaGo never asks one to do, so the
+		// parked are woken.  A timer this near wakes them for nothing.
+		Call(abi.CPUWake, -1, 0, 0, 0, 0)
+	}
 	if limited && until < end {
 		end = until
 	}

@@ -67,6 +67,10 @@ func (c *vcpu) smpCall(nr uint64, a [5]int64) (int64, error) {
 	case callCPUSelf:
 		return int64(c.id), nil
 	case callCPUWake:
+		if a[0] == -1 {
+			m.wakeParked(c)
+			return 0, nil
+		}
 		if a[0] < 0 || a[0] >= int64(len(m.cpus)) {
 			return -1, nil
 		}
@@ -105,6 +109,18 @@ func (m *machine) release(lo, hi int64) {
 		return
 	}
 	dontNeed(m.mem[lo:hi])
+}
+
+// wakeParked ends the park of every vCPU but c, or its next: a stop of
+// the world's, which TamaGo makes wait for every idle vCPU to look again
+// (guest/tamago/board/smp.go).  A vCPU about to park is given the token
+// too, so that it looks again at once rather than at the next call.
+func (m *machine) wakeParked(c *vcpu) {
+	for _, o := range m.cpus {
+		if o != c {
+			o.wake()
+		}
+	}
 }
 
 // wake ends c's park, or its next.
