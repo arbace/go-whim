@@ -171,33 +171,3 @@ func buildGuestGo(root, dir string) (*jvmEditor, error) {
 	e.report = guestExits
 	return e, nil
 }
-
-// THE RUST GUEST (doc/GUEST.md, *The Rust guest*), on demand: `whim test
-// --guest-rs`.  whimsy's core without std, linked with the C guest's
-// runtime and appended to the same monitor -- held to the same: every case
-// as the C candidate answers it, and a control of its own, the launcher
-// with the image's one " INSERT" changed.  One vCPU: its chunks are the C
-// loop's.
-func buildGuestRs(dir string) (*jvmEditor, error) {
-	a := guest.Native()
-	e := &jvmEditor{name: "Rust guest", where: "guest/whimsy/, whimsy/, vmm/", file: "the image", launcher: "whim-guest-rs",
-		frame: regexp.MustCompile(`$^`),
-		note:  "its control is the launcher with the image's one \" INSERT\" changed in its bytes"}
-	img, err := guest.RustImage(a, filepath.Join(dir, "guest-rs-image"))
-	if err != nil {
-		return nil, err
-	}
-	mon, err := guest.Monitor(a, filepath.Join(dir, "guest-rs"))
-	if err != nil {
-		return nil, err
-	}
-	e.bin = filepath.Join(dir, "whim-guest-rs")
-	if err := guest.Launcher(mon, img, e.bin); err != nil {
-		return nil, err
-	}
-	if e.ctl, err = patchControl(e.bin, dir, "whim-guest-rs-control", []byte(" INSERT"), []byte(" INSERX")); err != nil {
-		return nil, err
-	}
-	e.report = guestExits
-	return e, nil
-}

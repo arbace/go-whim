@@ -266,14 +266,10 @@ slim-vim.c  --whim-->  whim-vim.c
   (`WHIM_GUEST_CPUS`; *SMP* there: 43.0 exits a key, 4.1 without `par_*`;
   on one 39.47 and 3.78, as before there were more), and its arm64 build all 80 as the C does inside the aarch64 VM: at one vCPU before the merged call, and with it
   at two and four (`doc/GUEST.md`, *SMP*, *arm64*).
-  **`--guest-rs`** adds the RUST GUEST (`guest/whimsy/`, `doc/GUEST.md`,
-  *The third guest*): whimsy's core, the generated `editor.rs`, built
-  without std as a static library and linked with the C guest's runtime,
-  run by the same monitor (amd64), its control the launcher with its
-  image's one `" INSERT"` changed; it answers all 80 and all 240 as the C
-  does, on four vCPUs by default (its chunks on every vCPU, by the Go
-  guest's calls: `guest/whimsy/smp.rs`) and on one, in the C guest's exits
-  to the call on one.
+  A third guest, whimsy's core without std on the C guest's runtime
+  (`--guest-rs`), answered them all too and was removed on 2026-10-06
+  (`doc/GUEST.md`, *The third guest*, says what it measured and where its
+  code is).
   Both suites are exact under load (`internal/suite/stress_test.go`,
   48 busy loops on the 64 cores, every case's runs held to its first): fed
   from a file, 0 differing runs of 6,720 for the wide suite on the C and the
@@ -295,7 +291,7 @@ slim-vim.c  --whim-->  whim-vim.c
   C's, and an editor over 25 times the C's time failing the run (one built
   already, `--haskell-bin`'s, is timed but not held to it: the `-O0`
   ghc-lisp caprice 81-84) -- measured,
-  C++ 0.2-0.3, Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, the guest 0.8-0.9 (its 10,416 exits, every one a hypercall; 1.1-1.6 and 20,786 before the merged wait and read), the Rust guest 0.8-0.9, the Go guest 1.3-1.4 (1.6-1.8 before), Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
+  C++ 0.2-0.3, Rust 0.25-0.3, Go 0.5-0.6, OCaml 0.5-0.6, Scheme 0.8-0.9, the guest 0.8-0.9 (its 10,416 exits, every one a hypercall; 1.1-1.6 and 20,786 before the merged wait and read), the Go guest 1.3-1.4 (1.6-1.8 before), Haskell 1.0-1.3, Java 1.6-2.1, Clojure 3.4-3.9 (4.2-4.5 before
   its big functions were compiled sooner, `doc/CLOJURE-PROFILE.md`) since the
   parallel `:%s` (Java 2.3 and Clojure 9-10 before), and the Clojure 55 with the JIT's
   huge-method limit left on, which is what it refuses.
@@ -848,11 +844,7 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    is view-clj; joker.go builds both, `--joker`;
                    guest/jokerviews_test.go holds the views to the Go's on the
                    host and in the box, jokered_test.go and jokervi_test.go
-                   the editor in the box, by requests and by keys; doc/LISP-SANDBOX.md); whimsy/ the Rust guest's crate (lib.rs:
-                   whimsy's core, runtime and printf by path, without std, its
-                   allocator and panic; host.rs the 17 host functions as rt.c's,
-                   and the arena; smp.rs the chunks on every vCPU;
-                   rust.go builds it, `--rust`); vm/aarch64.sh the arm64 gate.s VM
+                   the editor in the box, by requests and by keys; doc/LISP-SANDBOX.md); vm/aarch64.sh the arm64 gate.s VM
                    (Alpine Edge aarch64 netbooted by qemu with an emulated
                    EL2, KVM inside, a job agent served by QEMU itself:
                    doc/GUEST.md, *The aarch64 VM*); mac/ the Mac's side
@@ -978,8 +970,6 @@ make whim-test-guest  # the quick suite with the guest editor too (whim test --g
 make bin/whim-guest-go TAMAGO_ROOT=/root/tamago-go  # the Go editor as a virtual machine: built with TamaGo, appended to the same monitor (8 s)
 go tool whim guest --go --arch arm64  # the same for arm64, run in the aarch64 VM (guest/vm/aarch64.sh: fetch, start, put, run, stop; doc/GUEST.md, *The aarch64 VM*)
 make whim-test-guest-go TAMAGO_ROOT=/root/tamago-go  # the quick suite with the Go guest too (whim test --guest-go; --wide --guest-go)
-make bin/whim-guest-rs # the Rust editor's core as a virtual machine: whimsy without std, linked with the C guest's runtime (amd64)
-make whim-test-guest-rs  # the quick suite with the Rust guest too (whim test --guest-rs; --wide --guest-rs)
 go tool whim guest --joker --tamago /root/tamago-go  # Joker, a Clojure dialect, as a VM: a REPL on the console, the graph views loaded, the store the namespace box (bin/whim-guest-joker, 24 MB; doc/LISP-SANDBOX.md, *The views in Joker, in the box*)
 go tool whim store DIR graph graph src/whim-vim.c  # a store for WHIM_GUEST_STORE=DIR: the graph's EDN, the ref graph pointing at it -- (box/load "graph") in the box (put FILE, get HASH, ref NAME [HASH]; doc/LISP-SANDBOX.md, *The store*)
 go tool whim store DIR cc cc src/whim-vim.c  # the C host for the box: what the compiler says and the 32 headers whim-vim.c reads (116 KB), so that (ed/start (box/load "graph") (box/load "cc")) edits in the box as view-serve does on the host (doc/LISP-SANDBOX.md, *The editor in the box*)

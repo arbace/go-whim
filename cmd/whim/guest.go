@@ -23,19 +23,18 @@ import (
 // instead: the Go editor, editor/ as it stands, built with TamaGo
 // (guest/tamago/; the distribution $TAMAGO_ROOT or --tamago DIR) and
 // appended to the same monitor, at bin/whim-guest-go (with --image, the
-// image alone).  --rust builds the third: whimsy's core (whimsy/src), without
-// std, linked with the C guest's runtime, at bin/whim-guest-rs.  --joker
+// image alone).  --joker
 // builds Joker, a Clojure dialect, as a REPL on the console with TamaGo
 // (guest/joker; doc/LISP-SANDBOX.md), at bin/whim-guest-joker: the graph
 // views in Joker loaded (guest/joker/gview) and the monitor's store the
 // namespace box: the data the image no longer holds, in a store `whim
 // store` writes (WHIM_GUEST_STORE=DIR).
 //
-//	whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--rust|--joker [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]
+//	whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--joker [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]
 func runGuest(args []string) int {
 	a := guest.Native()
 	src, out, standIn := "src/whim-vim.c", "", ""
-	alt, imageOnly, goGuest, rustGuest, jokerGuest, tamago := false, false, false, false, false, ""
+	alt, imageOnly, goGuest, jokerGuest, tamago := false, false, false, false, ""
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--arch" && i+1 < len(args):
@@ -53,8 +52,6 @@ func runGuest(args []string) int {
 			imageOnly = true
 		case args[i] == "--go":
 			goGuest = true
-		case args[i] == "--rust":
-			rustGuest = true
 		case args[i] == "--joker":
 			jokerGuest = true
 		case args[i] == "--tamago" && i+1 < len(args):
@@ -66,7 +63,7 @@ func runGuest(args []string) int {
 		case len(args[i]) > 0 && args[i][0] != '-':
 			src = args[i]
 		default:
-			fmt.Fprintln(os.Stderr, "usage: whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--rust|--joker [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]")
+			fmt.Fprintln(os.Stderr, "usage: whim guest [--arch amd64|arm64] [--hello|--bench|--go [--tamago DIR]|--joker [--tamago DIR]] [--alt] [--image] [-o OUT] [FILE]")
 			return 2
 		}
 	}
@@ -77,9 +74,6 @@ func runGuest(args []string) int {
 		out = filepath.Join("bin", "whim-guest")
 		if goGuest {
 			out += "-go"
-		}
-		if rustGuest {
-			out += "-rs"
 		}
 		if jokerGuest {
 			out += "-joker"
@@ -112,10 +106,6 @@ func runGuest(args []string) int {
 		err = guest.BuildJokerImage(tamago, a, dir, out)
 	case jokerGuest:
 		err = guest.BuildJoker(tamago, a, dir, out)
-	case rustGuest && imageOnly:
-		err = guest.BuildRustImage(a, dir, out)
-	case rustGuest:
-		err = guest.BuildRust(a, dir, out)
 	case goGuest && imageOnly:
 		err = guest.BuildGoImage(tamago, a, dir, out)
 	case goGuest:
@@ -137,9 +127,6 @@ func runGuest(args []string) int {
 	}
 	if goGuest {
 		what = "the Go editor (editor/), with TamaGo,"
-	}
-	if rustGuest {
-		what = "the Rust editor's core (whimsy/), without std,"
 	}
 	if jokerGuest {
 		what = "Joker's REPL (guest/joker), with TamaGo, the views and the store,"

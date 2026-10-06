@@ -6,9 +6,8 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Queued, measured, not started
 
-- **The guests, further** (doc/GUEST.md): the Rust guest on arm64, which
-  needs core and alloc for aarch64 (not in this rustc); the Go guest's default on a native arm64
-  Linux, measured only under emulation so far (one vCPU).
+- **The guests, further** (doc/GUEST.md): the Go guest's default on a
+  native arm64 Linux, measured only under emulation so far (one vCPU).
 
 ## Known stale, not yet scoped
 
@@ -18,18 +17,21 @@ Nothing known.
 
 ## Declined, with the reason recorded
 
+- **The Rust guest** (2026-10-06): removed, the user's call -- the box's
+  direction is Go and Joker, and Rust is set aside. What it measured and
+  where its code is: doc/GUEST.md, *The third guest*.
+
 - **whim++ as a guest** (2026-10-05): the user's call, for now.
 
 - **The C guest on several vCPUs** (2026-10-05). The C core runs
   `match_lines` line after line by design; the parallel `:%s` is each
-  translated editor's runtime (`internal/whim/gen.go`), and the Rust
-  guest's (`guest/whimsy/smp.rs`). The C's would need a pipeline phase
+  translated editor's runtime (`internal/whim/gen.go`), and was the Rust
+  guest's (removed 2026-10-06, doc/GUEST.md). The C's would need a pipeline phase
   handing the loop to an eighteenth host function, which every editor's
   host glue would then have to answer -- the core/host line, computed and
   exactly the host's names, moved for one guest's sake -- and the C guest
   is the guests' baseline, its exits and latency what the others are held
-  beside. Declined: the Rust guest is the guests' SMP on the shared runtime
-  and monitor.
+  beside. Declined: the Go guest is the guests' SMP.
 
 - **A Neovim client** (2026-10-05) beside `vim/`'s: the user's call -- the
   vim client is the one used; view-serve's requests are what another

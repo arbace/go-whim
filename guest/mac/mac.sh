@@ -7,10 +7,8 @@
 # built on Linux (make mac-images; Apple's clang has no ELF linker) and
 # copied to lib/whim-guest/ under the same names; the monitor is told which
 # by WHIM_GUEST_IMAGE.  --go takes the Go guest's image,
-# lib/whim-guest/whim-guest-go-arm64.elf, for the C guest's, and --rs the Rust
-# guest's, lib/whim-guest/whim-guest-rs-arm64.elf (built in an arm64 Linux:
-# doc/GUEST.md, *The Rust guest on arm64*); --cpus N gives
-# the Go or the Rust guest N vCPUs (WHIM_GUEST_CPUS: 1 to 32, or host; 4 by
+# lib/whim-guest/whim-guest-go-arm64.elf, for the C guest's; --cpus N gives
+# the Go guest N vCPUs (WHIM_GUEST_CPUS: 1 to 32, or host; 4 by
 # default, as measured -- doc/GUEST.md, *Running on the Mac*), the C guest
 # always one.
 # The options come after the step's name, in any order.
@@ -18,12 +16,12 @@
 #   guest/mac/mac.sh check                 what the Mac is: macOS, the chip, kern.hv_support, the tools
 #   guest/mac/mac.sh hv                    hv's arm64 tests on the framework: the smallest guests
 #   guest/mac/mac.sh build                 bin/whim-guest, signed
-#   guest/mac/mac.sh hello [--go|--rs]     the hello image: prints hello, exits 3 (--go, --rs: the Go or the Rust guest types hello, exits 0)
-#   guest/mac/mac.sh run [--go|--rs] [--cpus N] [ARG...]  the editor: bin/whim-guest on lib/whim-guest/whim-guest-arm64.elf (--go, --rs: the Go or the Rust guest's)
+#   guest/mac/mac.sh hello [--go]          the hello image: prints hello, exits 3 (--go: the Go guest types hello, exits 0)
+#   guest/mac/mac.sh run [--go] [--cpus N] [ARG...]  the editor: bin/whim-guest on lib/whim-guest/whim-guest-arm64.elf (--go: the Go guest's)
 #   guest/mac/mac.sh c                     the C reference, bin/whim-vim-mac, by clang with guest/mac/shim.h
-#   guest/mac/mac.sh suite [--go|--rs] [--cpus N] [--wide]  the suite: the guest held to the C, with its control
-#   guest/mac/mac.sh heavy [--go|--rs] [--cpus N]  the heavy case: the C, then the guest, answers compared, times reported
-#   guest/mac/mac.sh scale [--rs] [LIST]   the Go (--rs: the Rust) guest's :%s over 200,000 lines on 1,2,4,8 vCPUs (or LIST) against the C: a table
+#   guest/mac/mac.sh suite [--go] [--cpus N] [--wide]  the suite: the guest held to the C, with its control
+#   guest/mac/mac.sh heavy [--go] [--cpus N]  the heavy case: the C, then the guest, answers compared, times reported
+#   guest/mac/mac.sh scale [LIST]          the Go guest's :%s over 200,000 lines on 1,2,4,8 vCPUs (or LIST) against the C: a table
 set -eu
 cd "$(dirname "$0")/../.."
 export TMPDIR="$PWD/.tmp" CGO_ENABLED=0
@@ -36,14 +34,10 @@ cmd=${1:-}
 [ $# -gt 0 ] && shift
 L=lib/whim-guest
 img=$L/whim-guest-arm64.elf how="make mac-images, on Linux, copied to $L/"
-wide= rs=
+wide=
 while [ $# -gt 0 ]; do
 	case $1 in
 	--go) img=$L/whim-guest-go-arm64.elf ;;
-	--rs)
-		img=$L/whim-guest-rs-arm64.elf rs=1
-		how="go tool whim guest --rust --image -o $img, in an arm64 Linux (doc/GUEST.md), copied here"
-		;;
 	--wide) wide=1 ;;
 	--cpus)
 		[ $# -ge 2 ] || { echo "mac.sh: --cpus N" >&2; exit 2; }
@@ -91,8 +85,8 @@ build)
 hello)
 	need bin/whim-guest "mac.sh build"
 	s=0
-	if [ "$img" = $L/whim-guest-go-arm64.elf ] || [ -n "$rs" ]; then
-		# The Go and Rust guests have no stand-in: the editor itself, its keys from a
+	if [ "$img" = $L/whim-guest-go-arm64.elf ]; then
+		# The Go guest has no stand-in: the editor itself, its keys from a
 		# file -- hello typed, :q! -- its screen printed.
 		need "$img" "$how"
 		printf 'ihello\033:q!\r' > "$TMPDIR/hello-go.keys"
@@ -132,12 +126,8 @@ scale)
 	# (WHIM_SUITE_SCALE_LINES), the median of 5 runs (WHIM_SUITE_SCALE_RUNS)
 	# with it and 5 without, on each count of vCPUs, beside the C's;
 	# every answer held to the C's.
-	if [ -n "$rs" ]; then
-		suite TestGuestScale WHIM_SUITE_SCALE="${1:-1,2,4,8}" WHIM_SUITE_GUEST_NAME="Rust guest"
-	else
-		img=$L/whim-guest-go-arm64.elf
-		suite TestGuestScale WHIM_SUITE_SCALE="${1:-1,2,4,8}"
-	fi
+	img=$L/whim-guest-go-arm64.elf
+	suite TestGuestScale WHIM_SUITE_SCALE="${1:-1,2,4,8}"
 	;;
 *)
 	sed -n '/^#   guest/s/^# //p' "$0" >&2

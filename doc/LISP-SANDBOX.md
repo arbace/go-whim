@@ -99,7 +99,7 @@ in the appendix):
 | guest | image | start | `fib 27` | |
 | --- | ---: | ---: | ---: | --- |
 | the C core (`whim-guest.elf`) | 0.9 MB | | | the baseline |
-| the Rust core (`whim-guest-rs.elf`) | 1.3 MB | | | |
+| the Rust core (`whim-guest-rs.elf`, removed since) | 1.3 MB | | | |
 | the Go editor (Go guest, arm64) | 5.4 MB | | | |
 | **Joker**, core namespaces | **17.7 MB** | 0.06 s | 0.44 s (host: 0.26) | REPL on the console |
 | **yaegi** (a Go interpreter) | 27.3 MB | | 0.57 s | |

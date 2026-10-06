@@ -22,15 +22,9 @@ typedef typeof(sizeof(0)) whim_usize;
 
 void *memcpy(void *dst, const void *src, whim_usize n);
 
-/* The core's linkage, and its host functions': static in the one
- * translation unit the C core is compiled in; external when the core is
- * compiled apart (a Rust core: guest/whimsy, built -DWHIM_CORE_APART), which
- * defines vim_main and deathtrap and calls the host functions by name. */
-#ifdef WHIM_CORE_APART
-#define WHIM_CORE
-#else
+/* The core's linkage, and its host functions': static, in the one
+ * translation unit the core is compiled in. */
 #define WHIM_CORE static
-#endif
 
 WHIM_CORE int vim_main(int argc, char **argv);
 WHIM_CORE void deathtrap(int sigarg);
@@ -466,26 +460,6 @@ __attribute__((used, noreturn)) void
 whim_main(long argc, char **argv, char *heap)
 {
     whim_heap = heap;
-#if defined(WHIM_CORE_APART) && defined(__x86_64__)
-    /* a core compiled apart may use SSE (Rust's core is built for x86-64's
-     * baseline, SSE2): CR4's OSFXSR and OSXMMEXCPT, as a Go guest's board
-     * sets them; CR0's MP is the monitor's, and EM is clear */
-    {
-        unsigned long cr4;
-        __asm__ volatile("mov %%cr4, %0" : "=r"(cr4));
-        cr4 |= (1ul << 9) | (1ul << 10);
-        __asm__ volatile("mov %0, %%cr4" : : "r"(cr4));
-    }
-#elif defined(WHIM_CORE_APART) && defined(__aarch64__)
-    /* and on arm64 FP and SIMD (Rust's core for aarch64 uses them): CPACR_EL1's
-     * FPEN, as a Go guest's board sets it */
-    {
-        unsigned long cpacr;
-        __asm__ volatile("mrs %0, cpacr_el1" : "=r"(cpacr));
-        cpacr |= 3ul << 20;
-        __asm__ volatile("msr cpacr_el1, %0\n\tisb" : : "r"(cpacr));
-    }
-#endif
     host_exit(vim_main((int)argc, argv));
     for (;;)
     {

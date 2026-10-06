@@ -463,13 +463,6 @@ bin/whim-guest-go: force  ## the Go editor as a virtual machine, built with Tama
 whim-test-guest-go:  ## the quick suite with the Go guest too, required to answer as the C does (TAMAGO_ROOT=...)
 	@go tool whim test --guest-go $(if $(TAMAGO_ROOT),--tamago $(TAMAGO_ROOT))
 
-.PHONY: bin/whim-guest-rs whim-test-guest-rs
-bin/whim-guest-rs: force  ## the Rust editor's core as a virtual machine: whimsy without std, on the C guest's runtime (amd64)
-	@go tool whim guest --rust
-
-whim-test-guest-rs:  ## the quick suite with the Rust guest too, required to answer as the C does
-	@go tool whim test --guest-rs
-
 # The Mac's images (doc/GUEST.md, *Running on the Mac*): Apple's clang links
 # no ELF, so the three arm64 guest images are built here, alone, into
 # lib/whim-guest/, and copied to the same place on the Mac, whose signed
@@ -507,7 +500,7 @@ go-test:  ## the Go tests of both modules: this one and crefactor/
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and jars
-	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical bin/whimsical-debug bin/whiml bin/whim++ bin/whim-guest bin/whim-guest-arm64 bin/whim-guest-go bin/whim-guest-rs braaam.jar vijure.jar editor.lgo caprice.hsl whim-vim.lc
+	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure bin/caprice bin/whimsy bin/whimsical bin/whimsical-debug bin/whiml bin/whim++ bin/whim-guest bin/whim-guest-arm64 bin/whim-guest-go braaam.jar vijure.jar editor.lgo caprice.hsl whim-vim.lc
 	rm -rf lib/braaam lib/vijure lib/caprice lib/whimsy lib/whimsical lib/whimsical-debug lib/whiml lib/wpp lib/whim-guest .cache/caprice-suite .cache/whimsy-suite .cache/whimsical-suite .cache/whimsical-suite-debug .cache/whiml-suite .cache/wpp-suite
 
 .PHONY: clean-cache

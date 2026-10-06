@@ -42,7 +42,7 @@ func scaleKeys(lines int, sub bool) []byte {
 
 // TestGuestScale (doc/GUEST.md, *SMP*; the Mac's: guest/mac/mac.sh scale)
 // times a guest's parallel :%s on several vCPUs against the C -- the Go
-// guest's, or the Rust guest's (WHIM_SUITE_GUEST_NAME names it):
+// guest's, or another's (WHIM_SUITE_GUEST_NAME names it):
 // WHIM_SUITE_SCALE the vCPU counts ("1,2,4,8"), WHIM_SUITE_C,
 // WHIM_SUITE_GUEST and WHIM_SUITE_GUEST_IMAGE as TestGuestPrebuilt has
 // them, WHIM_SUITE_SCALE_LINES the lines (200000), WHIM_SUITE_SCALE_RUNS the
@@ -80,7 +80,7 @@ func TestGuestScale(t *testing.T) {
 	}
 	abs := func(p string) string { a, _ := filepath.Abs(p); return a }
 	c, g = abs(c), abs(g)
-	label := "Go guest" // the guest's name in the table: WHIM_SUITE_GUEST_NAME ("Rust guest")
+	label := "Go guest" // the guest's name in the table: WHIM_SUITE_GUEST_NAME
 	if n := os.Getenv("WHIM_SUITE_GUEST_NAME"); n != "" {
 		label = n
 	}
