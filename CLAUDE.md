@@ -832,7 +832,7 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    second backend, the parsed forms compiled to Go
                    closures (joker/core/closure.go), held to the VM's
                    answers by TestJokerClosures and both views tests, a
-                   reduce into a fresh literal built in place;
+                   reduce, an update or a loop accumulator built in place;
                    joker/ Joker forked,
                    its core and the namespaces that need no system, the
                    vector fault fixed, tagged literals read by

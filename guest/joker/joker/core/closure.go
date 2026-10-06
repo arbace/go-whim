@@ -319,6 +319,17 @@ func (c *ccomp) compile(expr Expr) (ccode, error) {
 	case *LetExpr:
 		return c.let(e, false)
 	case *LoopExpr:
+		if !e.recursive {
+			if inPlace, vars, err := c.inPlaceLoop(e); err != nil {
+				return nil, err
+			} else if inPlace != nil {
+				asWritten, err := c.let((*LetExpr)(e), true)
+				if err != nil {
+					return nil, err
+				}
+				return guarded(vars, inPlace, asWritten), nil
+			}
+		}
 		return c.let((*LetExpr)(e), !e.recursive)
 	case *RecurExpr:
 		if c.loopSlots == nil {
@@ -375,14 +386,7 @@ func (c *ccomp) compile(expr Expr) (ccode, error) {
 			if err != nil {
 				return nil, err
 			}
-			return func(f *cframe) Object {
-				for v, val := range vars {
-					if v.Value != val {
-						return asWritten(f) // a var redefined: as written
-					}
-				}
-				return inPlace(f)
-			}, nil
+			return guarded(vars, inPlace, asWritten), nil
 		}
 		return c.compileCall(e)
 	}
@@ -978,7 +982,7 @@ var inPlaceCore map[string]Object
 
 func keepInPlaceCore() {
 	inPlaceCore = map[string]Object{}
-	for _, n := range []string{"reduce", "transient", "persistent!", "assoc", "assoc!", "conj", "conj!", "dissoc", "dissoc!", "disj", "disj!"} {
+	for _, n := range []string{"reduce", "transient", "persistent!", "update", "get", "assoc", "assoc!", "conj", "conj!", "dissoc", "dissoc!", "disj", "disj!"} {
 		if v, ok := GLOBAL_ENV.CoreNamespace.mappings[STRINGS.Intern(n)]; ok {
 			inPlaceCore[n] = v.Value
 		}
@@ -1125,6 +1129,30 @@ func inPlaceTail(e Expr, acc *Binding, vars map[*Var]Object) Expr {
 		}
 		return x
 	case *CallExpr:
+		if vr, ok := isCoreVar(x.callable, "update"); ok && len(x.args) >= 3 {
+			if b, ok := x.args[0].(*BindingExpr); !ok || b.binding != acc {
+				return nil
+			}
+			for _, a := range x.args[1:] {
+				if mentions(a, acc) {
+					return nil
+				}
+			}
+			bang, get := coreVar("assoc!"), coreVar("get")
+			if bang == nil || get == nil {
+				return nil
+			}
+			vars[vr], vars[bang], vars[get] = vr.Value, bang.Value, get.Value
+			pos := x.Pos()
+			ref := func(v *Var) Expr { return &VarRefExpr{Position: pos, vr: v} }
+			kb := &Binding{name: MakeSymbol("update-key__")}
+			k := &BindingExpr{Position: pos, binding: kb}
+			got := &CallExpr{Position: pos, callable: ref(get), args: []Expr{x.args[0], k}}
+			fargs := append([]Expr{got}, x.args[3:]...)
+			val := &CallExpr{Position: pos, callable: x.args[2], args: fargs}
+			body := &CallExpr{Position: pos, callable: ref(bang), args: []Expr{x.args[0], k, val}}
+			return &LetExpr{Position: pos, names: []Symbol{kb.name}, bindings: []*Binding{kb}, values: []Expr{x.args[1]}, body: []Expr{body}}
+		}
 		for name, op := range inPlaceOps {
 			vr, ok := isCoreVar(x.callable, name)
 			if !ok {
@@ -1246,4 +1274,149 @@ func (c *ccomp) inPlaceReduce(e *CallExpr) (ccode, map[*Var]Object, error) {
 	in := call(ps, &CallExpr{Position: pos, callable: e.callable, args: []Expr{&fn2, call(tr, e.args[1]), e.args[2]}})
 	code, err := c.compile(in)
 	return code, vars, err
+}
+
+// guarded runs inPlace while every var holds what it held when the code
+// was compiled, asWritten once one does not.
+func guarded(vars map[*Var]Object, inPlace, asWritten ccode) ccode {
+	return func(f *cframe) Object {
+		for v, val := range vars {
+			if v.Value != val {
+				return asWritten(f)
+			}
+		}
+		return inPlace(f)
+	}
+}
+
+// inPlaceLoop is a loop whose accumulators -- bindings that start as an
+// empty literal collection -- are built as transients: each recur hands
+// one on only through assoc, conj, dissoc, disj or update (as a reduce's
+// tail may), and the loop's other tails return it, made persistent, or
+// do not mention it.  nil when no binding is one.
+func (c *ccomp) inPlaceLoop(e *LoopExpr) (ccode, map[*Var]Object, error) {
+	tr, ps := coreVar("transient"), coreVar("persistent!")
+	if tr == nil || ps == nil {
+		return nil, nil, nil
+	}
+	l := *e
+	l.values = append([]Expr(nil), e.values...)
+	l.body = append([]Expr(nil), e.body...)
+	vars := map[*Var]Object{tr: tr.Value, ps: ps.Value}
+	any := false
+	for i, b := range e.bindings {
+		if !emptyColl(e.values[i]) || len(l.body) == 0 {
+			continue
+		}
+		mentioned := false
+		for _, v := range e.values[i+1:] {
+			mentioned = mentioned || mentions(v, b)
+		}
+		for _, y := range l.body[:len(l.body)-1] {
+			mentioned = mentioned || mentions(y, b)
+		}
+		if mentioned {
+			continue
+		}
+		vs := map[*Var]Object{}
+		tail := loopTail(l.body[len(l.body)-1], b, i, len(e.bindings), ps, vs)
+		if tail == nil {
+			continue
+		}
+		pos := e.values[i].Pos()
+		l.values[i] = &CallExpr{Position: pos, callable: &VarRefExpr{Position: pos, vr: tr}, args: []Expr{e.values[i]}}
+		l.body[len(l.body)-1] = tail
+		for v, val := range vs {
+			vars[v] = val
+		}
+		any = true
+	}
+	if !any {
+		return nil, nil, nil
+	}
+	code, err := c.let((*LetExpr)(&l), true)
+	return code, vars, err
+}
+
+// loopTail rewrites a loop body's tail for accumulator acc, binding i of
+// n: a recur's argument i as a reduce's tail (the others not mentioning
+// acc), any other tail returning acc made persistent, or not mentioning
+// it.  nil when acc is used otherwise.
+func loopTail(e Expr, acc *Binding, i, n int, ps *Var, vars map[*Var]Object) Expr {
+	switch x := e.(type) {
+	case *RecurExpr:
+		if len(x.args) != n {
+			return nil
+		}
+		for j, a := range x.args {
+			if j != i && mentions(a, acc) {
+				return nil
+			}
+		}
+		t := inPlaceTail(x.args[i], acc, vars)
+		if t == nil {
+			return nil
+		}
+		c := *x
+		c.args = append([]Expr(nil), x.args...)
+		c.args[i] = t
+		return &c
+	case *IfExpr:
+		if mentions(x.cond, acc) {
+			return nil
+		}
+		p, q := loopTail(x.positive, acc, i, n, ps, vars), loopTail(x.negative, acc, i, n, ps, vars)
+		if p == nil || q == nil {
+			return nil
+		}
+		c := *x
+		c.positive, c.negative = p, q
+		return &c
+	case *DoExpr:
+		if len(x.body) == 0 {
+			return x
+		}
+		for _, y := range x.body[:len(x.body)-1] {
+			if mentions(y, acc) {
+				return nil
+			}
+		}
+		last := loopTail(x.body[len(x.body)-1], acc, i, n, ps, vars)
+		if last == nil {
+			return nil
+		}
+		c := *x
+		c.body = append(append([]Expr(nil), x.body[:len(x.body)-1]...), last)
+		return &c
+	case *LetExpr:
+		if x.recursive || len(x.body) == 0 {
+			return nil
+		}
+		for _, y := range x.values {
+			if mentions(y, acc) {
+				return nil
+			}
+		}
+		for _, y := range x.body[:len(x.body)-1] {
+			if mentions(y, acc) {
+				return nil
+			}
+		}
+		last := loopTail(x.body[len(x.body)-1], acc, i, n, ps, vars)
+		if last == nil {
+			return nil
+		}
+		c := *x
+		c.body = append(append([]Expr(nil), x.body[:len(x.body)-1]...), last)
+		return &c
+	case *BindingExpr:
+		if x.binding == acc {
+			return &CallExpr{Position: x.Pos(), callable: &VarRefExpr{Position: x.Pos(), vr: ps}, args: []Expr{x}}
+		}
+		return x
+	}
+	if mentions(e, acc) {
+		return nil
+	}
+	return e
 }

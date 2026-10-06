@@ -37,8 +37,9 @@ markdown. So the module requires nothing outside Go's standard library.
   stack traces included, and the views. Its frames are on a stack the
   runtime keeps per execution (`Runtime.cstack`, saved and restored with
   the VM's context).
-  It also builds a `reduce` into a fresh empty collection in place, as a
-  transient, where it proves the accumulator unshared and the vars hold
+  It also builds a `reduce` into a fresh empty collection, an `update` in
+  one, and a `loop`'s accumulators in place, as transients, where it
+  proves the accumulator unshared and the vars hold
   the core's own functions (doc/LISP-SANDBOX.md, *In place, where
   unshared*).
 - `core/object.go`, `read.go`, `types_info_gen.go`'s list, `boxed.go`, `parse.go`:

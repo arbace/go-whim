@@ -673,6 +673,48 @@ The answers are the same bytes, held three ways:
 - printed maps keep their order, because a transient grows from an array
   map to a hash map as the persistent one does.
 
+**Loops and `update`** (2026-10-06). The same proof was extended where
+measurement said it pays. Each case was first written by hand against
+transients:
+- a `loop` building a map: 4.9 times as fast;
+- a `loop` building a vector: 3.1 times;
+- `update` in a reduce: 3.3 times;
+- `assoc-in`: nothing, because only its outer map could be transient.
+  It is left alone.
+
+Now:
+- **`update` in a tail.** `(update acc k f a...)` becomes
+  `(let [k* k] (assoc! acc k* (f (get acc k*) a...)))`, the key
+  evaluated once (a test's key is a `swap!`).
+- **`loop` accumulators.** Any binding of a `loop` that starts as an
+  empty literal is built as a transient when:
+  - each `recur` hands it on as a reduce's tail may (the other arguments
+    not mentioning it);
+  - the loop's other tails return it, made persistent there, or don't
+    mention it.
+
+  A tail like `[:done (count v)]`, or a test on it, leaves the loop as
+  written.
+
+The same vars are checked, at compile time and at each call, `update`
+and `get` among them.
+
+| (ms) | update, 200k into 5k keys | loop assoc 200k | loop conj 1M |
+| --- | ---: | ---: | ---: |
+| host, VM | 498 | 405 | 841 |
+| host, closures | 124 | 95 | 181 |
+| box, 4 vCPUs, VM | 478 | 462 | 972 |
+| box, 4 vCPUs, closures | 156 | 100 | 241 |
+
+`TestJokerClosures`' corpus gains these forms and a redefined `update`:
+- `update` with extra arguments, and with a key evaluated for its side
+  effect;
+- a `cond` whose tails `recur` with `assoc` and with `update`;
+- loops on a map, a vector and a set, two of them with exits that fall
+  back.
+
+Upstream's 42 files are the same on both backends.
+
 ## Capabilities used once (2026-10-06)
 
 The store's refs could be written by anyone, any number of times
