@@ -138,4 +138,5 @@ func Install(s Store) {
 		}
 		return NIL
 	})
+	installTxn(s, ns, def)
 }

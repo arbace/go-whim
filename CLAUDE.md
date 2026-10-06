@@ -818,7 +818,9 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    faulty/ a stand-in; joker/ the Joker guest (a module of its
                    own: main.go a REPL on the console, the views loaded,
                    store.go the store's hypercalls; box/ the namespace box
-                   on a store, the guest's or jokerhost's --store DIR;
+                   on a store, the guest's or jokerhost's --store DIR, and
+                   its transactions, used once (txn.go: box/txn, commit!,
+                   with-txn);
                    ed/ the namespace ed: crefactor/graph/view's Server on
                    a graph's EDN, cc's host the store's bundle, vim's
                    fall-out options internal/whim/vimgraph's;
@@ -829,7 +831,8 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    --closures (the guest's and jokerhost's) the fork's
                    second backend, the parsed forms compiled to Go
                    closures (joker/core/closure.go), held to the VM's
-                   answers by TestJokerClosures and both views tests;
+                   answers by TestJokerClosures and both views tests, a
+                   reduce into a fresh literal built in place;
                    joker/ Joker forked,
                    its core and the namespaces that need no system, the
                    vector fault fixed, tagged literals read by

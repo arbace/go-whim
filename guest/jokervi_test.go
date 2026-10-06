@@ -192,13 +192,16 @@ func TestJokerViKeys(t *testing.T) {
 		{"dot", "jjj$hr5jjj$h.", "60", []string{"<<def get applied ", "b->b_ml += 5;", "opt = 5;"}},
 		{"mark", "jjjjjj$hma0`ar4", "60", []string{"<<def get applied ", "opt = 4;"}},
 		{"delete to the end", "jjjjjj$hD", "60", []string{"<<def get pending "}},
+		{"a mark follows an edit", "jjjjjj$hmakkkkjyyp`ar9", "60", []string{"<<def get applied ", "b->b_ml += 2;\n    b->b_ml += 2;", "opt = 9;"}},
+		{"dot puts", "jjjyyp.", "60", []string{"b->b_ml += 2;\n    b->b_ml += 2;\n    b->b_ml += 2;"}},
+		{"dot with a count", "x3.", "60", []string{`>> "n static get (fn ((b`}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			st := viStore(t, "../crefactor/graph/view/testdata/sample.c", false)
 			cmd := exec.Command(host, "--gview", "--store", st.dir)
 			cmd.Stdin = strings.NewReader(`(ed/start (box/load "graph") nil)` + "\n" +
 				`(def st (gview.vi/edit "def get"))` + "\n" + c.keys + ":q\n" +
-				`(println "<<" (:view st) (:msg st) ">>")` + "\n" + `(println (:body (ed/req "c get")))` + "\n")
+				`(println "<<" (:view st) (:msg st) ">>" (pr-str (subs (:text st) 0 (min 24 (count (:text st))))))` + "\n" + `(println (:body (ed/req "c get")))` + "\n")
 			cmd.Env = append(os.Environ(), "LINES=12", "COLUMNS="+c.cols)
 			b, err := cmd.CombinedOutput()
 			if err != nil {

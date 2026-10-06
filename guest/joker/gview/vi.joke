@@ -386,18 +386,34 @@
   [st]
   (and (= (:mode st) :normal) (nil? (:pend st)) (nil? (:count st)) (nil? (:reg st)) (nil? (:obj st))))
 
+(defn- shift-marks
+  "The marks moved with an edit from text a to text b: one after the change
+  by its length, one inside it to its start."
+  [st a b]
+  (if (or (= a b) (empty? (:marks st)))
+    st
+    (let [n (min (count a) (count b))
+          p (loop [i 0] (if (and (< i n) (= (nth a i) (nth b i))) (recur (inc i)) i))
+          q (loop [i 0] (if (and (< i (- n p)) (= (nth a (- (count a) 1 i)) (nth b (- (count b) 1 i))))
+                          (recur (inc i)) i))
+          end (- (count a) q)
+          d (- (count b) (count a))]
+      (assoc st :marks (into {} (map (fn [[k o]] [k (cond (>= o end) (+ o d) (> o p) p :else o)]) (:marks st)))))))
+
 (defn- step1
   "A key's effect on the editor's state.  A command that leaves normal
-  mode with the text changed sends the change."
+  mode with the text changed sends the change; the marks follow every
+  change, the server's printing again included."
   [st k]
   (let [st2 (case (:mode st)
               :insert (insert st k)
               :visual (visual st k)
               :cmd (line-input st k command)
               :search (line-input st k (fn [st p] (search (assoc st :pattern p) false)))
-              (normal st k))]
+              (normal st k))
+        st2 (shift-marks st2 (:text st) (:text st2))]
     (if (and (idle? st2) (not= (:text st2) (:server st2)))
-      (sync st2)
+      (let [s (sync st2)] (shift-marks s (:text st2) (:text s)))
       st2)))
 
 (defn step
@@ -405,17 +421,21 @@
   changed the text kept, for . to type again (n times, its count)."
   [st k]
   (if (and (= k ".") (= (:mode st) :normal) (nil? (:pend st)))
-    (let [keys (:last st) n (or (:count st) 1)]
+    (let [keys (:last st)
+          ;; a count given replaces the change's own, as vim's does
+          keys (if (:count st)
+                 (concat (map str (str (:count st))) (drop-while #(re-matches #"[0-9]" %) keys))
+                 keys)]
       (if (empty? keys)
         (dissoc st :count)
-        (assoc (reduce step1 (dissoc st :count) (apply concat (repeat n keys))) :last keys)))
+        (assoc (reduce step1 (dissoc st :count) keys) :last (:last st))))
     (let [begin? (idle? st)
           rec (if begin? [k] (conj (:rec st []) k))
           from (if begin? (:text st) (:rec-from st))
           st2 (step1 st k)]
       (if (idle? st2)
         (let [changed? (not= from (:text st2))
-              repeatable? (not (#{"u" ":" "/" "\r" "\n" "K" "\u000f" "p" "P"} (first (drop-while #(re-matches #"[0-9\"]" %) rec))))]
+              repeatable? (not (#{"u" ":" "/" "\r" "\n" "K" "\u000f"} (first (drop-while #(re-matches #"[0-9\"]" %) rec))))]
           (-> st2 (dissoc :rec :rec-from)
               (assoc :last (if (and changed? repeatable?) rec (:last st2)))))
         (assoc st2 :rec rec :rec-from from)))))

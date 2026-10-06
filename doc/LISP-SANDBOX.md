@@ -627,9 +627,81 @@ long work runs as goroutines in chunks, and the end of each chunk is a
 point where the mark workers get the processor. Nothing there needs a
 yield.
 
+## In place, where unshared (2026-10-06)
+
+The question was whether ownership's in-place updates are worth having
+without ownership. Measured first: Joker's transients build a map 3.1
+times as fast as `assoc` (200,000 entries, 183 ms against 561) and a
+vector 2.2 times as fast as `conj`. The builders that make a fresh
+collection (`frequencies`, `group-by`, `mapv`, `zipmap`) are natives
+already, and `into` uses transients already. What was left was the
+idiom:
+
+```clojure
+(reduce (fn [m x] (assoc m x (f x))) {} coll)
+```
+
+Here the accumulator starts as a fresh empty literal, and the function
+hands it only to `assoc`, `conj`, `dissoc` or `disj`, in tail position.
+Nothing else can see the collection until `reduce` returns it.
+
+Perceus learns that by counting references while the program runs. The
+closure compiler instead proves it from the shape when it compiles.
+- The reduce is rewritten to start from `(transient {})`, call the `!`
+  forms, and end with `persistent!`.
+- Allowed tails: the accumulator itself, or one of those calls on it
+  with arguments that do not mention it. They may sit under `if`, `do`
+  and `let`, and a mention anywhere else -- `(count m)`, a closure that
+  captures `m` -- leaves the reduce as written.
+- The vars must hold the core's own functions, kept when the core is
+  loaded. That is checked when the reduce is compiled and again at each
+  call, so a redefined `assoc` is honoured either way: a test redefines
+  it and gets its answers.
+
+Measured (ms), the VM beside the closures:
+
+| | assoc 200k | conj 1M |
+| --- | ---: | ---: |
+| host, VM | 662 | 1,257 |
+| host, closures | 258 | 516 |
+| box, 4 vCPUs, VM | 684 | 1,157 |
+| box, 4 vCPUs, closures | 274 | 595 |
+
+The answers are the same bytes, held three ways:
+- `TestJokerClosures`' corpus gains these reduces and the redefinition;
+- upstream's 42 files are the same on both backends;
+- printed maps keep their order, because a transient grows from an array
+  map to a hash map as the persistent one does.
+
+## Capabilities used once (2026-10-06)
+
+The store's refs could be written by anyone, any number of times
+(`box/ref!`). A transaction is now an affine capability: it is used
+once, and released where its scope ends.
+- **`(box/txn name)`** holds the ref as it is.
+- **`(box/commit! t s)`** stores `s` and points the ref at it only if the
+  ref is still what `t` saw. It answers true, or false when another write
+  came first.
+- **`(box/abort! t)`** gives it up.
+- **Spending.** Commit or abort spends `t`, and committing a spent `t` is
+  an error: it cannot be used twice.
+- **`(box/with-txn [t name] ...)`** aborts `t` on every way out of its
+  body. A transaction that escapes the scope is spent there, at the end
+  of the scope, not whenever a collector finds it.
+
+`TestJokerTxn` holds this on the host and in the box:
+- a commit, then a second one refused as spent;
+- two transactions on one snapshot, the second refused as a conflict;
+- one escaped from `with-txn`, spent;
+- an exception in `with-txn`'s body, leaving the ref as it was.
+
+This is ownership's discipline for a resource, checked as the program
+runs, which a dynamic language allows. A network connection would take
+the same shape.
+
 ## The editor on the console (2026-10-06)
 
-`gview.vi` (`guest/joker/gview/vi.joke`, 473 lines of Joker) is a modal
+`gview.vi` (`guest/joker/gview/vi.joke`, 493 lines of Joker) is a modal
 editor over the editing server: `(gview.vi/edit "def F")` opens the
 view as a buffer of `ed`'s session and edits it with vim's keys until
 `:q`, then hands its last state back to the REPL it was called from.
@@ -689,8 +761,12 @@ a session each: `cw`, `r`, `ci(`, `ciw` on spaces, `diw`, `D`; `r5`
 repeated by `.` on another line, both applied; a mark set, left and
 jumped back to. Marks are offsets, not moved by an edit before them.
 
-Not done: the counts on `p` beyond repetition, marks that follow edits,
-`.` with the count of the change it repeats. Offsets are characters in Joker and bytes in the server,
+Marks move with the text: an edit before a mark shifts it by the
+change's length, one around it brings it to the change's start, and the
+server's printing again counts as an edit. `.` repeats puts, and a count
+given to `.` replaces the change's own, as vim's does (`x` then `3.`
+deletes three). Tested: a mark set on a constant, a line put above it,
+`` `a `` back to the same constant; `yyp.` putting the line twice; `x3.`. Offsets are characters in Joker and bytes in the server,
 which agree for the views' ASCII.
 
 ## What could be done next

@@ -368,6 +368,30 @@ func (c *ccomp) compile(expr Expr) (ccode, error) {
 		vr := e.vr
 		return func(*cframe) Object { return vr.Resolve() }, nil
 	case *CallExpr:
+		if inPlace, vars, err := c.inPlaceReduce(e); err != nil {
+			return nil, err
+		} else if inPlace != nil {
+			asWritten, err := c.compileCall(e)
+			if err != nil {
+				return nil, err
+			}
+			return func(f *cframe) Object {
+				for v, val := range vars {
+					if v.Value != val {
+						return asWritten(f) // a var redefined: as written
+					}
+				}
+				return inPlace(f)
+			}, nil
+		}
+		return c.compileCall(e)
+	}
+	return c.compileRest(expr)
+}
+
+// compileCall is a call's code.
+func (c *ccomp) compileCall(e *CallExpr) (ccode, error) {
+	{
 		callee, err := c.compile(e.callable)
 		if err != nil {
 			return nil, err
@@ -408,6 +432,12 @@ func (c *ccomp) compile(expr Expr) (ccode, error) {
 			}
 			return callAt(site, fn, vals) // the caller's frame clears vals when it returns
 		}, nil
+	}
+}
+
+// compileRest is compile's cases after the call's.
+func (c *ccomp) compileRest(expr Expr) (ccode, error) {
+	switch e := expr.(type) {
 	case *FnExpr:
 		p, err := compileClosureFn(e, c, nil)
 		if err != nil {
@@ -795,7 +825,11 @@ func LoadCoreClosures() error {
 	ns := GLOBAL_ENV.CurrentNamespace()
 	GLOBAL_ENV.SetCurrentNamespace(GLOBAL_ENV.CoreNamespace)
 	defer GLOBAL_ENV.SetCurrentNamespace(ns)
-	return ProcessReader(NewReader(strings.NewReader(coreSource), "<joker.core>"), "", EVAL)
+	if err := ProcessReader(NewReader(strings.NewReader(coreSource), "<joker.core>"), "", EVAL); err != nil {
+		return err
+	}
+	keepInPlaceCore()
+	return nil
 }
 
 // A cstack is the closures' frames and their values, reused call after
@@ -913,4 +947,303 @@ func yieldTick() {
 	if calls++; calls&0xffff == 0 {
 		runtime.Gosched()
 	}
+}
+
+// IN PLACE WHERE UNSHARED.  A reduce whose start is an empty literal
+// collection and whose function uses its accumulator only as the first
+// argument of assoc, conj, dissoc or disj in tail position --
+//
+//	(reduce (fn [m x] (assoc m x (f x))) {} coll)
+//
+// -- builds a collection nothing else can see until reduce returns it: it
+// is built as a transient, the calls their ! forms, and made persistent at
+// the end (doc/LISP-SANDBOX.md, *In place, where unshared*).  The shape is
+// proved here; that the vars still hold the core's functions is checked at
+// each call, and where one was redefined the reduce runs as written.
+
+// inPlaceOps are the calls an accumulator may be handed to, and the forms
+// they take on a transient, with the arguments each allows.
+var inPlaceOps = map[string]struct {
+	bang  string
+	nargs int
+}{
+	"assoc": {"assoc!", 3}, "conj": {"conj!", 2}, "dissoc": {"dissoc!", 2}, "disj": {"disj!", 2},
+}
+
+// inPlaceCore is the core's own functions the rewrite relies on, kept
+// when the core is loaded (LoadCoreClosures): a var that holds another
+// when a reduce is compiled is not the core's, and the reduce is not
+// rewritten.
+var inPlaceCore map[string]Object
+
+func keepInPlaceCore() {
+	inPlaceCore = map[string]Object{}
+	for _, n := range []string{"reduce", "transient", "persistent!", "assoc", "assoc!", "conj", "conj!", "dissoc", "dissoc!", "disj", "disj!"} {
+		if v, ok := GLOBAL_ENV.CoreNamespace.mappings[STRINGS.Intern(n)]; ok {
+			inPlaceCore[n] = v.Value
+		}
+	}
+}
+
+// coreVar is joker.core's var name while it holds the core's own function,
+// or nil.
+func coreVar(name string) *Var {
+	v, ok := GLOBAL_ENV.CoreNamespace.mappings[STRINGS.Intern(name)]
+	if !ok || inPlaceCore == nil || v.Value == nil || v.Value != inPlaceCore[name] {
+		return nil
+	}
+	return v
+}
+
+func isCoreVar(e Expr, name string) (*Var, bool) {
+	r, ok := e.(*VarRefExpr)
+	if !ok || r.vr != coreVar(name) || r.vr == nil {
+		return nil, false
+	}
+	return r.vr, true
+}
+
+// emptyColl says e is an empty literal map, vector or set.
+func emptyColl(e Expr) bool {
+	switch x := e.(type) {
+	case *MapExpr:
+		return len(x.keys) == 0
+	case *VectorExpr:
+		return len(x.v) == 0
+	case *SetExpr:
+		return len(x.elements) == 0
+	case *LiteralExpr:
+		if c, ok := x.obj.(Counted); ok {
+			switch x.obj.(type) {
+			case Map, Vec, *MapSet:
+				return c.Count() == 0
+			}
+		}
+	}
+	return false
+}
+
+// mentions says e names b anywhere, closures included.
+func mentions(e Expr, b *Binding) bool {
+	found := false
+	var walk func(e Expr)
+	walk = func(e Expr) {
+		if found || e == nil {
+			return
+		}
+		switch x := e.(type) {
+		case *BindingExpr:
+			found = x.binding == b
+		case *VectorExpr:
+			for _, y := range x.v {
+				walk(y)
+			}
+		case *MapExpr:
+			for i := range x.keys {
+				walk(x.keys[i])
+				walk(x.values[i])
+			}
+		case *SetExpr:
+			for _, y := range x.elements {
+				walk(y)
+			}
+		case *IfExpr:
+			walk(x.cond)
+			walk(x.positive)
+			walk(x.negative)
+		case *DoExpr:
+			for _, y := range x.body {
+				walk(y)
+			}
+		case *LetExpr:
+			for _, y := range x.values {
+				walk(y)
+			}
+			for _, y := range x.body {
+				walk(y)
+			}
+		case *LoopExpr:
+			walk((*LetExpr)(x))
+		case *RecurExpr:
+			for _, y := range x.args {
+				walk(y)
+			}
+		case *CallExpr:
+			walk(x.callable)
+			for _, y := range x.args {
+				walk(y)
+			}
+		case *MetaExpr:
+			walk(x.meta)
+			walk(x.expr)
+		case *ThrowExpr:
+			walk(x.e)
+		case *TryExpr:
+			for _, y := range x.body {
+				walk(y)
+			}
+			for _, k := range x.catches {
+				for _, y := range k.body {
+					walk(y)
+				}
+			}
+			for _, y := range x.finallyExpr {
+				walk(y)
+			}
+		case *FnExpr:
+			for _, a := range x.arities {
+				for _, y := range a.body {
+					walk(y)
+				}
+			}
+			if x.variadic != nil {
+				for _, y := range x.variadic.body {
+					walk(y)
+				}
+			}
+		case *DefExpr:
+			walk(x.value)
+			walk(x.meta)
+		case *LiteralExpr, *VarRefExpr, *SetMacroExpr, *MacroCallExpr:
+		default:
+			found = true // an expression not known: assume it does
+		}
+	}
+	walk(e)
+	return found
+}
+
+// inPlaceTail rewrites e, a tail of the reducing function, for a transient
+// accumulator acc: each tail that hands acc on is the ! call, a tail that
+// is acc itself stays.  nil when e uses acc otherwise.  vars collects the
+// core vars it relies on.
+func inPlaceTail(e Expr, acc *Binding, vars map[*Var]Object) Expr {
+	switch x := e.(type) {
+	case *BindingExpr:
+		if x.binding == acc {
+			return x
+		}
+		return x
+	case *CallExpr:
+		for name, op := range inPlaceOps {
+			vr, ok := isCoreVar(x.callable, name)
+			if !ok {
+				continue
+			}
+			if len(x.args) != op.nargs {
+				return nil
+			}
+			if b, ok := x.args[0].(*BindingExpr); !ok || b.binding != acc {
+				return nil
+			}
+			for _, a := range x.args[1:] {
+				if mentions(a, acc) {
+					return nil
+				}
+			}
+			bang := coreVar(op.bang)
+			if bang == nil || vr.Value == nil || bang.Value == nil {
+				return nil
+			}
+			vars[vr], vars[bang] = vr.Value, bang.Value
+			c := *x
+			c.callable = &VarRefExpr{Position: x.callable.Pos(), vr: bang}
+			return &c
+		}
+		if mentions(x, acc) {
+			return nil
+		}
+		return x
+	case *IfExpr:
+		if mentions(x.cond, acc) {
+			return nil
+		}
+		p, n := inPlaceTail(x.positive, acc, vars), inPlaceTail(x.negative, acc, vars)
+		if p == nil || n == nil {
+			return nil
+		}
+		c := *x
+		c.positive, c.negative = p, n
+		return &c
+	case *DoExpr:
+		if len(x.body) == 0 {
+			return nil
+		}
+		for _, y := range x.body[:len(x.body)-1] {
+			if mentions(y, acc) {
+				return nil
+			}
+		}
+		last := inPlaceTail(x.body[len(x.body)-1], acc, vars)
+		if last == nil {
+			return nil
+		}
+		c := *x
+		c.body = append(append([]Expr(nil), x.body[:len(x.body)-1]...), last)
+		return &c
+	case *LetExpr:
+		if x.recursive || len(x.body) == 0 {
+			return nil
+		}
+		for _, y := range x.values {
+			if mentions(y, acc) {
+				return nil
+			}
+		}
+		for _, y := range x.body[:len(x.body)-1] {
+			if mentions(y, acc) {
+				return nil
+			}
+		}
+		last := inPlaceTail(x.body[len(x.body)-1], acc, vars)
+		if last == nil {
+			return nil
+		}
+		c := *x
+		c.body = append(append([]Expr(nil), x.body[:len(x.body)-1]...), last)
+		return &c
+	}
+	if mentions(e, acc) {
+		return nil
+	}
+	return e
+}
+
+// inPlaceReduce is the reduce call e built in place, and the vars and
+// values it relies on; nil when e is not one.
+func (c *ccomp) inPlaceReduce(e *CallExpr) (ccode, map[*Var]Object, error) {
+	rv, ok := isCoreVar(e.callable, "reduce")
+	if !ok || len(e.args) != 3 || !emptyColl(e.args[1]) || rv.Value == nil {
+		return nil, nil, nil
+	}
+	fn, ok := e.args[0].(*FnExpr)
+	if !ok || fn.variadic != nil || len(fn.arities) != 1 || fn.selfBinding != nil {
+		return nil, nil, nil
+	}
+	a := fn.arities[0]
+	if len(a.bindings) != 2 || len(a.body) != 1 {
+		return nil, nil, nil
+	}
+	acc := a.bindings[0]
+	vars := map[*Var]Object{rv: rv.Value}
+	body := inPlaceTail(a.body[0], acc, vars)
+	if body == nil || body == a.body[0] {
+		return nil, nil, nil
+	}
+	tr, ps := coreVar("transient"), coreVar("persistent!")
+	if tr == nil || ps == nil || tr.Value == nil || ps.Value == nil {
+		return nil, nil, nil
+	}
+	vars[tr], vars[ps] = tr.Value, ps.Value
+	fn2 := *fn
+	a2 := a
+	a2.body = []Expr{body}
+	fn2.arities = []FnArityExpr{a2}
+	pos := e.Pos()
+	call := func(v *Var, args ...Expr) *CallExpr {
+		return &CallExpr{Position: pos, callable: &VarRefExpr{Position: pos, vr: v}, args: args}
+	}
+	in := call(ps, &CallExpr{Position: pos, callable: e.callable, args: []Expr{&fn2, call(tr, e.args[1]), e.args[2]}})
+	code, err := c.compile(in)
+	return code, vars, err
 }
