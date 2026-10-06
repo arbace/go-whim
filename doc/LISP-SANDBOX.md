@@ -615,9 +615,17 @@ Against the table in *Closures*:
 
 Reading and indexing whim-vim.c's graph, whose EDN is mostly integers,
 peaks at 354 MB on the VM instead of 445, and at 324 instead of 387 on
-the closures. The Go editor guest runs on the same runtime and could
-stall the same way on one vCPU during a long `:%s`; its suite and heavy
-case show nothing of it, and nothing there yields.
+the closures.
+
+The Go editor guest runs on the same runtime, so it was measured for the
+same stall, with the collector on and off (`debug.SetGCPercent(-1)`, an
+experiment not kept). `TestGuestScale`'s `:%s` over 200,000 lines takes
+6,070 ms against 5,409 at one vCPU, 1,598 against 1,463 at four: the
+collector's ordinary 11% and 9%, the same share either way. The suite's
+heavy case at one vCPU is 596 ms against 554. It does not stall: its
+long work runs as goroutines in chunks, and the end of each chunk is a
+point where the mark workers get the processor. Nothing there needs a
+yield.
 
 ## The editor on the console (2026-10-06)
 
