@@ -450,6 +450,79 @@ itself (`preemptM` is empty on tamago, and there is no hook for it), and
 an idle M could give its P up, as on other systems, so that a stop would
 not wait for it at all.
 
+## Closures (2026-10-06)
+
+The next stage the sketch named -- a compiler to Go closures, held to
+the interpreter's answers -- is built as a second backend in the fork
+(`guest/joker/joker/core/closure.go`). Joker parses a form into an
+expression tree and compiles that to bytecode for its VM; the closure
+backend compiles the same tree to Go closures instead, each expression a
+function of the frame it runs in, with locals resolved to slots, captures
+to the closure's values and vars to their `*Var`. A closure-compiled
+function is still a `*Fn`, so `fn?`, metadata, macros and the natives
+that take functions see no difference. `--closures`, given to jokerhost
+or to the guest, chooses it for everything. The core library is
+re-evaluated from its source (`core.joke`, embedded, 0.1 s), since it
+ships as bytecode, so a program and the library it calls run on one
+backend.
+
+The semantics are the VM's, piece by piece:
+- a capture is the slot's value when the closure is made, and a
+  `letfn`'s bindings are cells its closures share;
+- `recur` assigns the loop's slots and runs the loop again;
+- `try` catches the Errors its catches name, and its finally runs on
+  every way out;
+- an error carries the call site being called, and its stack trace
+  lists the frames' calls as the VM lists its own.
+
+Three things make it faster than the VM rather than slower:
+- **No allocation for a call.** Frames and their values sit on a stack
+  that is reused, one per execution, saved and restored where the VM's
+  context is (Suspend, Resume, LockIndependent). A call's arguments are
+  temporaries in the caller's frame, at offsets fixed at compile time.
+  The first version allocated three objects a call and ran `fib` at 2.6
+  times the VM's time.
+- **Forwarding arities.** An arity whose body only passes its arguments
+  to a var's function -- `([x y] (add__ x y))`, most of the arithmetic
+  and comparisons -- calls that native directly while the var still holds
+  it. The check is made at each call, so a redefined var is honoured, as
+  the VM's comment insists ("Vars are mutable").
+- **Resolution at compile time**: no opcode dispatch, no operand
+  decoding, no stack shuffling.
+
+**Held to the VM.**
+- Upstream Joker's eval tests (`tests/eval`, 42 files with the standard
+  namespaces the guest links): 201 tests and 4,595 assertions, every
+  file's output the same bytes on both backends, stack traces included.
+  The 8 files that fail to load on a missing classpath fail identically.
+- `TestJokerClosures`: a corpus of forms covering each construct and
+  five errors, the same bytes.
+- `TestJokerViews` with `JOKER_VIEWS_ALL=1`: the 6,370 views on
+  whim-vim.c's graph, on both, each the Go's bytes.
+- `TestJokerViewsGuest`: in the box, on both, 48 of 48 and 24 of 24.
+  It failed once, on closures in the box, in its first run, and the
+  message was lost to a filter; the twelve runs since have passed.
+
+**Measured** (ms, the best of three; host, then the box at 1 and 4 vCPUs):
+
+| | fib 27 | loop 3M | reduce 1M | assoc 200k | sort 200k | strings 200k |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| host, VM | 239 | 1,365 | 999 | 804 | 3,278 | 592 |
+| host, closures | 125 | 1,003 | 786 | 702 | 2,367 | 541 |
+| box 1 vCPU, VM | 321 | 3,253 | 1,265 | 1,065 | 6,891 | 822 |
+| box 1 vCPU, closures | 171 | 1,794 | 978 | 976 | 4,908 | 734 |
+| box 4 vCPUs, VM | 325 | 1,914 | 1,044 | 775 | 4,090 | 637 |
+| box 4 vCPUs, closures | 172 | 1,178 | 771 | 694 | 2,911 | 532 |
+
+Calls and arithmetic run 1.4 to 1.9 times as fast; work in the
+persistent collections and the natives runs 1.1 to 1.3 times. The views
+are 1.3 times as fast on the host (6,370 views: 97 s against 127) and 1.2
+in the box (the 24 product views: 42 s against 50). The closures fall
+short of the sketch's "two to five times an interpreter's" because
+Joker's interpreter is not a tree-walker: its VM is already a compiler,
+to bytecode. What is left is Joker's values -- boxed numbers, persistent
+maps -- and its natives, which a closure calls as the VM does.
+
 ## What could be done next
 
 1. ~~The Joker guest~~ and 2. ~~tagged literals~~: built, above, and
@@ -461,8 +534,8 @@ not wait for it at all.
 4. ~~Measure the collector inside the box~~: measured, above (*The
    collector in the box*).
 5. ~~The editor in the box~~: built, above.
-6. A compiler from the graph's forms to Go closures, held to Joker's
-   answers, as each backend here is held to the C's.
+6. ~~A compiler from the forms to Go closures~~: built, above
+   (*Closures*), held to the VM's answers and faster than it.
 
 ## Appendix: the scratch guests
 

@@ -825,6 +825,10 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    a graph's EDN, cc's host the store's bundle;
                    rt/ the namespace rt: the heap, the collector's
                    pauses and Go's tracer, for measuring the box;
+                   --closures (the guest's and jokerhost's) the fork's
+                   second backend, the parsed forms compiled to Go
+                   closures (joker/core/closure.go), held to the VM's
+                   answers by TestJokerClosures and both views tests;
                    joker/ Joker forked,
                    its core and the namespaces that need no system, the
                    vector fault fixed, tagged literals read by

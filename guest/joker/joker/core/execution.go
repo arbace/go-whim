@@ -29,6 +29,14 @@ func (e *Execution) Call(fn *Fn, args []Object) Object {
 	if e == nil || e.vm == nil {
 		panic(RT.NewError("Execution is closed"))
 	}
+	if UseClosures || fn.cproto != nil {
+		fn.ensureCompiled()
+		if fn.cproto != nil {
+			previousExpr := RT.currentExpr
+			defer func() { RT.currentExpr = previousExpr }()
+			return callClosure(fn, args) // go-whim: closure.go
+		}
+	}
 	previousVM, previousExpr := RT.vm, RT.currentExpr
 	previousStack := RT.callstack
 	defer func() { RT.vm, RT.currentExpr, RT.callstack = previousVM, previousExpr, previousStack }()
@@ -59,6 +67,9 @@ func (e *Execution) Evaluate(expr Expr) Object {
 		RT.callstack = &Callstack{}
 	}
 	defer func() { RT.vm, RT.callstack = previousVM, previousStack }()
+	if UseClosures {
+		return EvaluateClosure(expr) // go-whim
+	}
 	proto, err := CompileTopLevel(expr)
 	PanicOnErr(err)
 	return e.Call(&Fn{proto: proto, isCompiled: true}, nil)
@@ -66,6 +77,9 @@ func (e *Execution) Evaluate(expr Expr) Object {
 
 // Evaluate executes parsed code without an explicit Execution.
 func Evaluate(expr Expr) Object {
+	if UseClosures {
+		return EvaluateClosure(expr) // go-whim
+	}
 	proto, err := CompileTopLevel(expr)
 	PanicOnErr(err)
 	return VMExecute(&Fn{proto: proto, isCompiled: true}, nil)

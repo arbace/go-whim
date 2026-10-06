@@ -57,10 +57,20 @@ func (c *console) Read(p []byte) (int, error) {
 
 func main() {
 	args := board.Args()
+	closures := false
+	if len(args) > 1 && args[1] == "--closures" {
+		closures = true
+		args = append(args[:1], args[2:]...)
+	}
 	GLOBAL_ENV.InitEnv(Stdin, Stdout, Stderr, nil)
 	RT.GIL.Lock()
 	ProcessCoreData()
 	GLOBAL_ENV.ReferCoreToUser()
+	if closures {
+		if err := LoadCoreClosures(); err != nil { // compiled to closures, the core too (joker/core/closure.go)
+			fmt.Println("closures:", err)
+		}
+	}
 	if err := gview.Load(); err != nil {
 		fmt.Println("gview:", err)
 	}

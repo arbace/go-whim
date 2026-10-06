@@ -104,6 +104,12 @@ func newArglistArityError(arglist Seq, argc int, name string) *ArityError {
 // the GIL.
 func (fn *Fn) CheckArity(argc int) *ArityError {
 	fn.ensureCompiled()
+	if fn.cproto != nil {
+		if fn.cproto.arity(argc) != nil {
+			return nil
+		}
+		return fn.cproto.arityError(argc) // go-whim
+	}
 	if selectArityProto(fn.proto, argc) != nil {
 		return nil
 	}

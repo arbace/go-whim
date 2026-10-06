@@ -393,6 +393,9 @@ func (vm *VM) callAtSite(callee Object, argc int, site *CallSite) bool {
 func (vm *VM) callValue(callee Object, argc int) bool {
 	switch fn := callee.(type) {
 	case *Fn:
+		if fn.cproto != nil || UseClosures {
+			return vm.callOtherCallable(fn, argc) // go-whim: closure.go
+		}
 		if fn.proto == nil {
 			// Compilation can evaluate macros while this VM is paused.
 			vm.nativeDepth++

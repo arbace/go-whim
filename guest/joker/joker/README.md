@@ -28,6 +28,15 @@ markdown. So the module requires nothing outside Go's standard library.
   `default-data-readers` and reads no tag with it. So the graph's EDN reads
   as it is: `(binding [*data-readers* {'g/n f ...}] (read-string s))`, which
   the views in Joker (`../gview`) do.
+- `core/closure.go` (new) with hooks in `object.go`, `arity.go`, `vm.go`,
+  `execution.go` and `eval.go`: a second backend, the parsed expressions
+  compiled to Go closures instead of bytecode, chosen by `UseClosures`
+  (`LoadCoreClosures` also re-evaluates `core.joke`'s source, embedded, so
+  that the core is closures too). It is held to the VM's answers
+  (doc/LISP-SANDBOX.md, *Closures*): upstream's eval tests the same bytes,
+  stack traces included, and the views. Its frames are on a stack the
+  runtime keeps per execution (`Runtime.cstack`, saved and restored with
+  the VM's context).
 
 **What it lacks that the views missed** (gaps, not faults; worked around
 in `../gview`, nothing changed here): no transducers -- `map` and

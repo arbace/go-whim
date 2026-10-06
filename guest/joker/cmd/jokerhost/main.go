@@ -4,7 +4,7 @@
 // the box can be run and tested beside it (doc/LISP-SANDBOX.md, *The views
 // in Joker, in the box*).
 //
-//	jokerhost [--gview] [--store DIR] [-e EXPR | FILE.joke]...
+//	jokerhost [--closures] [--gview] [--store DIR] [-e EXPR | FILE.joke]...
 //	jokerhost view [view-clj's arguments]
 //
 // The first evaluates each expression and file in order, printing the last
@@ -49,7 +49,7 @@ import (
 	_ "github.com/candid82/joker/std/uuid"
 )
 
-const usage = "usage: jokerhost [--gview] [--store DIR] [-e EXPR | FILE.joke]...\n       jokerhost view [view-clj's arguments]"
+const usage = "usage: jokerhost [--closures] [--gview] [--store DIR] [-e EXPR | FILE.joke]...\n       jokerhost view [view-clj's arguments]"
 
 func main() {
 	if f := os.Getenv("JOKERHOST_CPUPROFILE"); f != "" {
@@ -58,7 +58,12 @@ func main() {
 			defer pprof.StopCPUProfile()
 		}
 	}
+	closures := false
 	args := os.Args[1:]
+	if len(args) > 0 && args[0] == "--closures" {
+		closures = true
+		args = args[1:]
+	}
 	view := len(args) > 0 && args[0] == "view"
 	if view {
 		args = args[1:]
@@ -67,6 +72,9 @@ func main() {
 	RT.GIL.Lock()
 	ProcessCoreData()
 	GLOBAL_ENV.ReferCoreToUser()
+	if closures {
+		PanicOnErr(LoadCoreClosures()) // compiled to closures, not bytecode, the core too (core/closure.go)
+	}
 	rt.Install()
 	if view {
 		load()

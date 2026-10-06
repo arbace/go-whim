@@ -31,7 +31,8 @@ import (
 // sample, the golden views and, for every name it declares, uses, and def
 // and callers of every function, type of every struct a typedef names; on
 // whim-vim.c's graph, clj_test.go's fixed cases and every 25th of its
-// generated ones (JOKER_VIEWS_ALL=1: all of them).
+// generated ones (JOKER_VIEWS_ALL=1: all of them) -- each on the bytecode
+// VM and again compiled to closures (--closures, joker/core/closure.go).
 func TestJokerViews(t *testing.T) {
 	if testing.Short() {
 		t.Skip("short")
@@ -43,44 +44,58 @@ func TestJokerViews(t *testing.T) {
 	if err := JokerHost(host); err != nil {
 		t.Fatal(err)
 	}
-	t.Run("sample", func(t *testing.T) {
-		ix := viewIndex(t, "../crefactor/graph/view/testdata/sample.c")
-		jokerBatch(t, host, ix, append(sampleCases(), generatedCases(ix, 1)...))
-	})
-	t.Run("product", func(t *testing.T) {
-		ix := viewIndex(t, "../src/whim-vim.c")
-		every := 25
-		if os.Getenv("JOKER_VIEWS_ALL") != "" {
-			every = 1
+	for _, mode := range [][]string{nil, {"--closures"}} {
+		name := "vm"
+		if mode != nil {
+			name = "closures"
 		}
-		jokerBatch(t, host, ix, append(productCases(), generatedCases(ix, every)...))
-	})
+		t.Run("sample/"+name, func(t *testing.T) {
+			ix := viewIndex(t, "../crefactor/graph/view/testdata/sample.c")
+			jokerBatch(t, host, mode, ix, append(sampleCases(), generatedCases(ix, 1)...))
+		})
+		t.Run("product/"+name, func(t *testing.T) {
+			ix := viewIndex(t, "../src/whim-vim.c")
+			every := 25
+			if os.Getenv("JOKER_VIEWS_ALL") != "" {
+				every = 1
+			}
+			jokerBatch(t, host, mode, ix, append(productCases(), generatedCases(ix, every)...))
+		})
+	}
 }
 
 // TestJokerViewsGuest: the same views in the box -- the Joker guest built
 // with TamaGo, once, a graph's EDN put in a store of the test's as the ref
-// graph, its REPL told to read it (box/load) and index it and to answer cases as the server does (gview.main/serve-lines)
-// -- each answer the Go's: every sample case on the sample's graph, and
-// clj_serve_test.go's fixed cases on whim-vim.c's.  It needs TamaGo and
+// graph, its REPL told to read it (box/load) and index it and to answer
+// cases as the server does (gview.main/serve-lines) -- each answer the
+// Go's: every sample case on the sample's graph, and clj_serve_test.go's
+// fixed cases on whim-vim.c's; on the bytecode VM and compiled to
+// closures (--closures).  It needs TamaGo and
 // /dev/kvm, and skips without them.
 func TestJokerViewsGuest(t *testing.T) {
 	if testing.Short() {
 		t.Skip("short")
 	}
 	img := jokerImage(t)
-	t.Run("sample", func(t *testing.T) {
-		ix := viewIndex(t, "../crefactor/graph/view/testdata/sample.c")
-		guestViews(t, img, ix, append(sampleCases(), generatedCases(ix, 1)...))
-	})
-	t.Run("product", func(t *testing.T) {
-		ix := viewIndex(t, "../src/whim-vim.c")
-		guestViews(t, img, ix, productCases())
-	})
+	for _, mode := range [][]string{nil, {"--closures"}} {
+		name := "vm"
+		if mode != nil {
+			name = "closures"
+		}
+		t.Run("sample/"+name, func(t *testing.T) {
+			ix := viewIndex(t, "../crefactor/graph/view/testdata/sample.c")
+			guestViews(t, img, mode, ix, append(sampleCases(), generatedCases(ix, 1)...))
+		})
+		t.Run("product/"+name, func(t *testing.T) {
+			ix := viewIndex(t, "../src/whim-vim.c")
+			guestViews(t, img, mode, ix, productCases())
+		})
+	}
 }
 
 // guestViews runs the Joker guest img on a store holding ix's graph and
 // holds its answers to cases to the Go's.
-func guestViews(t *testing.T, img []byte, ix *view.Index, cases [][]string) {
+func guestViews(t *testing.T, img []byte, mode []string, ix *view.Index, cases [][]string) {
 	t.Helper()
 	edn, err := ix.G.EDN()
 	if err != nil {
@@ -105,7 +120,7 @@ func guestViews(t *testing.T, img []byte, ix *view.Index, cases [][]string) {
 	keys.WriteString("]) nil)\n")
 	con := &console{in: []byte(keys.String())}
 	start := time.Now()
-	code, err := vmm.Run(vmm.Config{Image: img, Host: con, Store: st, Args: []string{"joker"}})
+	code, err := vmm.Run(vmm.Config{Image: img, Host: con, Store: st, Args: append([]string{"joker"}, mode...)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,7 +219,7 @@ func viewIndex(t *testing.T, path string) *view.Index {
 
 // jokerBatch runs cases through jokerhost view --batch on ix's EDN and
 // holds every one to goView.
-func jokerBatch(t *testing.T, host string, ix *view.Index, cases [][]string) {
+func jokerBatch(t *testing.T, host string, mode []string, ix *view.Index, cases [][]string) {
 	t.Helper()
 	edn, err := ix.G.EDN()
 	if err != nil {
@@ -226,7 +241,7 @@ func jokerBatch(t *testing.T, host string, ix *view.Index, cases [][]string) {
 		t.Fatal(err)
 	}
 	start := time.Now()
-	cmd := exec.Command(host, "view", "--batch", casesFile, out, ednFile)
+	cmd := exec.Command(host, append(append([]string(nil), mode...), "view", "--batch", casesFile, out, ednFile)...)
 	cmd.Env = append(os.Environ(), "TMPDIR="+dir)
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -427,3 +442,37 @@ var (
 	jokerImg  []byte
 	jokerErr  error
 )
+
+// TestJokerClosures holds the closure backend (joker/core/closure.go) to
+// the bytecode VM on testdata/closures.joke, each form's output or error
+// (the Joker REPL's lines) the same bytes either way.
+func TestJokerClosures(t *testing.T) {
+	if testing.Short() {
+		t.Skip("short")
+	}
+	if _, err := exec.LookPath("go"); err != nil {
+		t.Skip("no go")
+	}
+	host := filepath.Join(t.TempDir(), "jokerhost")
+	if err := JokerHost(host); err != nil {
+		t.Fatal(err)
+	}
+	src, err := os.ReadFile("testdata/closures.joke")
+	if err != nil {
+		t.Fatal(err)
+	}
+	run := func(mode ...string) string {
+		cmd := exec.Command(host, mode...)
+		cmd.Stdin = bytes.NewReader(src)
+		b, _ := cmd.CombinedOutput()
+		return string(b)
+	}
+	vm, cl := run(), run("--closures")
+	if vm != cl {
+		t.Fatalf("the VM:\n%s\nclosures:\n%s", vm, cl)
+	}
+	if !strings.Contains(vm, "still here 55") {
+		t.Fatalf("the forms did not all run:\n%s", vm)
+	}
+	t.Logf("%d bytes of answers the same", len(vm))
+}

@@ -28,6 +28,7 @@ type (
 		callstack   *Callstack
 		currentExpr Traceable
 		vm          *vmContext // execution handle; snapshots never retain VM storage
+		cstack      *cstack    // go-whim: the closures' frames (closure.go)
 		GIL         sync.Mutex
 	}
 )
@@ -40,6 +41,7 @@ var RT *Runtime = &Runtime{
 // releases the GIL. The context remains live until that call returns; it must
 // be restored before the native code invokes Joker again after reacquiring it.
 type SuspendedExecution struct {
+	cstack    *cstack // go-whim
 	rt        *Runtime
 	context   *vmContext
 	expr      Traceable
@@ -47,7 +49,7 @@ type SuspendedExecution struct {
 }
 
 func (rt *Runtime) Suspend() SuspendedExecution {
-	s := SuspendedExecution{rt: rt, context: rt.vm, expr: rt.currentExpr, callstack: rt.callstack}
+	s := SuspendedExecution{rt: rt, context: rt.vm, expr: rt.currentExpr, callstack: rt.callstack, cstack: rt.cstack}
 	rt.GIL.Unlock()
 	return s
 }
@@ -60,6 +62,7 @@ func (s SuspendedExecution) Resume() {
 		panic(s.rt.NewError("Cannot resume an expired execution"))
 	}
 	s.rt.vm, s.rt.currentExpr, s.rt.callstack = s.context, s.expr, s.callstack
+	s.rt.cstack = s.cstack // go-whim
 }
 
 // LockIndependent starts a host callback without borrowing the paused
@@ -67,6 +70,7 @@ func (s SuspendedExecution) Resume() {
 func (rt *Runtime) LockIndependent() {
 	rt.GIL.Lock()
 	rt.vm, rt.currentExpr = nil, nil
+	rt.cstack = nil // go-whim: a fresh one
 	rt.callstack = &Callstack{}
 }
 
@@ -80,6 +84,9 @@ func (rt *Runtime) SetNativeSite(site Traceable) { rt.currentExpr = site }
 
 func (rt *Runtime) clone() *Runtime {
 	res := &Runtime{callstack: rt.callstack.clone(), currentExpr: rt.currentExpr}
+	if rt.vm == nil && rt.cstack != nil {
+		rt.cstack.appendTrace(res.callstack, rt.currentExpr) // go-whim: closure.go
+	}
 	if rt.vm != nil {
 		rt.vm.appendTrace(res.callstack)
 		if vm := rt.vm.vm; vm != nil && vm.frameCount > 0 {

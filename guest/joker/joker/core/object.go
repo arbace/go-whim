@@ -209,6 +209,7 @@ type (
 		proto      *FunctionProto
 		upvalues   []Object
 		isCompiled bool
+		cproto     *cProto // go-whim: closure.go, when UseClosures
 	}
 	ExInfo struct {
 		ArrayMap
@@ -736,6 +737,9 @@ func (fn *Fn) Hash() uint32 {
 
 func (fn *Fn) Call(args []Object) Object {
 	fn.ensureCompiled()
+	if fn.cproto != nil {
+		return callClosure(fn, args) // go-whim
+	}
 	return fn.callVM(args)
 }
 
@@ -743,11 +747,17 @@ func (fn *Fn) Call(args []Object) Object {
 // how they are reached (macro, callback, multimethod, lazy sequence). Failure
 // is an error, never a request to switch evaluators.
 func (fn *Fn) ensureCompiled() {
-	if fn.proto != nil {
+	if fn.proto != nil || fn.cproto != nil {
 		return
 	}
 	if fn.fnExpr == nil {
 		panic(RT.NewError("Function has no implementation"))
+	}
+	if UseClosures {
+		p, err := compileClosureFn(fn.fnExpr, nil, fn.env) // go-whim: closure.go
+		PanicOnErr(err)
+		fn.cproto = p
+		return
 	}
 	proto, err := CompileFnExpr(fn.fnExpr, fn.env)
 	PanicOnErr(err)
