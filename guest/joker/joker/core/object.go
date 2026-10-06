@@ -1,5 +1,5 @@
 //go:generate go run gen/gen_types.go assert *TransientVector Editable TransientCollection TransientAssociative TransientMapCollection TransientSetCollection Comparable Vec Char String Symbol Keyword *Regex Boolean Time Number Seqable Callable *Type Meta Int Double Stack Map Set Associative Reversible Named Comparator *Ratio *BigFloat *BigInt *Namespace *Var Error *Fn Deref *Atom Ref KVReduce Reduce Pending *File io.Reader io.Writer StringReader io.RuneReader *Channel CountedIndexed
-//go:generate go run gen/gen_types.go info *TransientVector *TransientArrayMap *TransientHashMap *TransientSet *List *ArrayMapSeq *ArrayMap *HashMap *ExInfo *Fn *Var Nil *Ratio *BigInt *BigFloat Char Double Int Boolean Time Keyword *Regex Symbol String Comment *LazySeq *MappingSeq *ArraySeq *ConsSeq *NodeSeq *ArrayNodeSeq *MapSet *Vector *ArrayVector *VectorSeq *VectorRSeq
+//go:generate go run gen/gen_types.go info *TransientVector *TransientArrayMap *TransientHashMap *TransientSet *List *ArrayMapSeq *ArrayMap *HashMap *ExInfo *Fn *Var Nil *Ratio *BigInt *BigFloat Char Double Boolean Time Keyword *Regex Symbol String Comment *LazySeq *MappingSeq *ArraySeq *ConsSeq *NodeSeq *ArrayNodeSeq *MapSet *Vector *ArrayVector *VectorSeq *VectorRSeq
 //go:generate go run -tags gen_code gen_code/gen_code.go
 
 package core
@@ -116,9 +116,7 @@ type (
 		Original string
 	}
 	Int struct {
-		InfoHolder
-		I        int
-		Original string
+		I int
 	}
 	BigInt struct {
 		InfoHolder
@@ -1304,9 +1302,6 @@ func (d Double) Compare(other Object) int {
 }
 
 func (i Int) ToString(escape bool) string {
-	if FORMAT_MODE && i.Original != "" {
-		return i.Original
-	}
 	return fmt.Sprintf("%d", i.I)
 }
 
@@ -1323,7 +1318,7 @@ func MakeIntVector(ii []int) *ArrayVector {
 }
 
 func MakeIntWithOriginal(orig string, i int) Int {
-	return Int{I: i, Original: orig}
+	return Int{I: i}
 }
 
 func (i Int) Equals(other interface{}) bool {
@@ -1973,3 +1968,10 @@ func CountedIndexedReduceInit(v CountedIndexed, c Callable, init Object) Object 
 		return acc
 	}
 }
+
+// GetInfo is an Int's position: none (go-whim: an Int is one word, no
+// pointer, so that a number boxed in an Object is the tiny allocator's).
+func (i Int) GetInfo() *ObjectInfo { return nil }
+
+// WithInfo is the Int itself: it keeps no position (go-whim, GetInfo).
+func (i Int) WithInfo(*ObjectInfo) Object { return i }

@@ -1811,6 +1811,14 @@ func parseList(obj Object, ctx *ParseContext) Expr {
 	} else {
 		ctx.isUnknownCallableScope = false
 	}
+	if lit, ok := callable.(*LiteralExpr); ok && lit.Position.startLine == 0 && pos.startLine > 0 {
+		// go-whim: an Int keeps no position (object.go), and a literal
+		// called -- (1 2), "1 is not a Fn" -- is where the reader had it:
+		// just inside its form
+		lit.Position = pos
+		lit.Position.startColumn++
+		lit.Position.endLine, lit.Position.endColumn = pos.startLine, pos.startColumn+1
+	}
 	res := &CallExpr{
 		callable: callable,
 		args:     parseSeq(seq.Rest(), ctx),

@@ -37,6 +37,13 @@ markdown. So the module requires nothing outside Go's standard library.
   stack traces included, and the views. Its frames are on a stack the
   runtime keeps per execution (`Runtime.cstack`, saved and restored with
   the VM's context).
+- `core/object.go`, `read.go`, `types_info_gen.go`'s list, `boxed.go`, `parse.go`:
+  an `Int` is one word, no position and no spelling, so that a number
+  boxed in an `Object` is the tiny allocator's and never scanned; `nil`
+  boxed once; a literal called placed just inside its form. Both
+  backends yield every 65,536 calls (`yieldTick`): on TamaGo, which has
+  no sysmon, a collection's mark workers otherwise wait out a long
+  computation (doc/LISP-SANDBOX.md, *Unboxed numbers*).
 
 **What it lacks that the views missed** (gaps, not faults; worked around
 in `../gview`, nothing changed here): no transducers -- `map` and

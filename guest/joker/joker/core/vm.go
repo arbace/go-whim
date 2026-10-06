@@ -188,7 +188,7 @@ func (vm *VM) executeLoop(fp **CallFrame, cp **Chunk, stopFrames int) Object {
 		case OP_CONST:
 			vm.Push(c.Constants[vm.readOperand(f, c)])
 		case OP_NIL:
-			vm.Push(NIL)
+			vm.Push(nilObject) // go-whim: boxed once
 		case OP_TRUE:
 			vm.Push(boxBoolean(true))
 		case OP_FALSE:
@@ -484,6 +484,7 @@ func selectArityProto(proto *FunctionProto, argc int) *ArityProto {
 	return nil
 }
 func (vm *VM) callFn(fn *Fn, argc int) {
+	yieldTick() // go-whim: closure.go
 	proto := fn.proto
 	a := selectArityProto(proto, argc)
 	if a == nil {

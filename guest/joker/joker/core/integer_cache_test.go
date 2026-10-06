@@ -69,19 +69,20 @@ func TestIntegerArithmeticCacheSemantics(t *testing.T) {
 		if tt.sub {
 			fn = procSubtract
 		}
+		// go-whim: an Int keeps no position and no spelling (object.go), so
+		// WithInfo leaves it as it is, and a result is the same Int again
 		info := &ObjectInfo{}
-		x := Int{I: tt.x, Original: "original spelling"}.WithInfo(info)
+		x := Int{I: tt.x}.WithInfo(info)
 		result := fn([]Object{x, Int{I: tt.y}})
 		i, ok := result.(Int)
-		if !ok || i.I != tt.want || i.GetInfo() != nil || i.Original != "" {
+		if !ok || i.I != tt.want || i.GetInfo() != nil {
 			t.Fatalf("%d, %d (subtract=%t): incorrect result %#v", tt.x, tt.y, tt.sub, result)
 		}
-		located := result.WithInfo(info)
-		if located.GetInfo() != info || result.GetInfo() != nil || x.GetInfo() != info || x.(Int).Original != "original spelling" {
-			t.Fatal("arithmetic changed operand info or contaminated a cached result")
+		if located := result.WithInfo(info); located.GetInfo() != nil || !located.Equals(result) || x.GetInfo() != nil {
+			t.Fatal("an Int kept a position")
 		}
 		again := fn([]Object{x, Int{I: tt.y}})
-		if again.GetInfo() != nil || !again.Equals(result) || again.(Int).Original != "" {
+		if again.GetInfo() != nil || !again.Equals(result) {
 			t.Fatal("cached arithmetic result changed on subsequent access")
 		}
 	}

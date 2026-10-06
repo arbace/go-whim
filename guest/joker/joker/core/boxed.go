@@ -5,6 +5,7 @@ package core
 var (
 	trueObject  Object = Boolean{B: true}
 	falseObject Object = Boolean{B: false}
+	nilObject   Object = NIL // go-whim: nil boxed once (closure.go, the VM's OP_NIL)
 	// Number entries let arithmetic return the existing box directly. The
 	// bounded cache adds about 84 KiB on 64-bit systems over the former
 	// 0..255 cache.

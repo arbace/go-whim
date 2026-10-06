@@ -553,6 +553,60 @@ loop of a million additions, half the time is the collector's: every
 the bytecode as for the closures, so a number without a box is the next
 step, and a change to Joker's values rather than to either backend.
 
+## Unboxed numbers (2026-10-06)
+
+The closures left the collector half of an arithmetic loop's time. Every
+`Int` a native returns is boxed in an `Object`, and an `Int` was four
+words: a pointer to its reader position, the value, and the literal's
+spelling (`Original`, which only Joker's formatter reads). Each box was a
+32-byte allocation the collector had to scan. In the fork it is one
+word now, `Int{I int}`:
+- no position (`GetInfo` is nil, `WithInfo` the Int itself), no spelling;
+- a box is the tiny allocator's 8 bytes, never scanned, and values below
+  256 are Go's own static boxes;
+- `nil`, boxed afresh at every `OP_NIL` and every recur's return, is
+  boxed once (`nilObject`).
+
+A position mattered in one place: an integer literal called, `(1 2)`,
+whose "1 is not a Fn" named the literal's column. The parser now puts a
+literal with no position just inside its form, where `(1` has it; only
+`( 1 2)`, with a space, moves by a column. Upstream's eval corpus is the
+same bytes on the old build, the new VM and the closures, 42 files of
+42.
+
+**The one-vCPU stall.** Measuring this found a larger cost on one vCPU.
+TamaGo has no `sysmon`, so nothing preempts a running goroutine. A
+collection that starts during a long computation has its mark workers
+waiting for the goroutine to block, so the computation runs with the
+write barrier on, assisting the marking. A trace in the box showed the
+mark phase active across a whole `fib`. It hit whichever run started a
+cycle at the wrong moment: `fib 27` on the VM took 1,280 ms instead of
+321. Both backends now yield the processor once every 65,536 calls
+(`yieldTick`), and the cycle finishes.
+
+Measured (ms, the best of three):
+
+| | fib 27 | loop 3M | reduce 1M | assoc 200k | sort 200k | strings 200k |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| host, VM | 227 | 1,145 | 852 | 722 | 2,619 | 587 |
+| host, closures | 100 | 534 | 800 | 625 | 1,568 | 493 |
+| box 1 vCPU, VM | 333 | 1,801 | 1,057 | 1,014 | 3,849 | 785 |
+| box 1 vCPU, closures | 143 | 804 | 956 | 913 | 2,630 | 703 |
+| box 4 vCPUs, VM | 327 | 1,713 | 806 | 698 | 3,396 | 601 |
+| box 4 vCPUs, closures | 146 | 733 | 626 | 646 | 2,063 | 481 |
+
+Against the table in *Closures*:
+- closures' `loop` 841 -> 534 ms on the host, 1,611 -> 804 in the box on
+  one vCPU;
+- `sort` 2,072 -> 1,568 on the host, 4,519 -> 2,630 in the box;
+- the VM's `loop` 3,232 -> 1,801 and `sort` 6,640 -> 3,849 on one vCPU.
+
+Reading and indexing whim-vim.c's graph, whose EDN is mostly integers,
+peaks at 354 MB on the VM instead of 445, and at 324 instead of 387 on
+the closures. The Go editor guest runs on the same runtime and could
+stall the same way on one vCPU during a long `:%s`; its suite and heavy
+case show nothing of it, and nothing there yields.
+
 ## The editor on the console (2026-10-06)
 
 `gview.vi` (`guest/joker/gview/vi.joke`, 221 lines of Joker) is a modal

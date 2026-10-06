@@ -20,6 +20,7 @@ package core
 import (
 	_ "embed"
 	"fmt"
+	"runtime"
 	"strings"
 )
 
@@ -182,7 +183,7 @@ func (c *ccomp) resolveUpvalue(b *Binding) int {
 
 func (c *ccomp) body(body []Expr) (ccode, error) {
 	if len(body) == 0 {
-		return func(*cframe) Object { return NIL }, nil
+		return func(*cframe) Object { return nilObject }, nil
 	}
 	codes := make([]ccode, len(body))
 	for i, e := range body {
@@ -341,7 +342,7 @@ func (c *ccomp) compile(expr Expr) (ccode, error) {
 				f.slots[s] = vals[i]
 			}
 			f.recur = true
-			return NIL
+			return nilObject
 		}, nil
 	case *BindingExpr:
 		if slot := c.resolveLocal(e.binding); slot >= 0 {
@@ -538,7 +539,7 @@ func (c *ccomp) let(e *LetExpr, loop bool) (ccode, error) {
 	return func(f *cframe) Object {
 		if recursive {
 			for _, s := range slots {
-				f.slots[s] = &bindingCell{Object: NIL}
+				f.slots[s] = &bindingCell{Object: nilObject}
 			}
 			for i, v := range values {
 				f.slots[slots[i]].(*bindingCell).Object = v(f)
@@ -699,6 +700,7 @@ func callArityAt(site *CallSite, fn *Fn, a *cArity, args []Object) Object {
 
 // callArity is a call of fn's arity a.
 func callArity(fn *Fn, a *cArity, args []Object) Object {
+	yieldTick()
 	if fw := a.fwd; fw != nil {
 		if p, ok := fw.vr.Resolve().(Proc); ok && p.Package == "" {
 			prev := RT.currentExpr
@@ -725,7 +727,7 @@ func callArity(fn *Fn, a *cArity, args []Object) Object {
 		if n := len(args) - a.arity; n > 0 {
 			f.slots[1+a.arity] = &ArraySeq{arr: append([]Object(nil), args[a.arity:]...)}
 		} else {
-			f.slots[1+a.arity] = NIL
+			f.slots[1+a.arity] = nilObject
 		}
 	} else {
 		copy(f.slots[1:], args)
@@ -895,5 +897,20 @@ func (s *cstack) appendTrace(stack *Callstack, current Traceable) {
 	}
 	for _, site := range sites {
 		stack.pushFrame(Frame{traceable: site})
+	}
+}
+
+// calls counts the calls made, both backends'.
+var calls uint32
+
+// yieldTick yields the processor every 65,536 calls.  A Go runtime with
+// no sysmon -- TamaGo's -- preempts nothing, so on one vCPU a collection
+// started while a long computation runs has its mark workers waiting for
+// the goroutine to block, and the computation runs with the write barrier
+// on and assisting, four times slower (doc/LISP-SANDBOX.md, *Unboxed
+// numbers*); a yield now and then lets the workers finish the cycle.
+func yieldTick() {
+	if calls++; calls&0xffff == 0 {
+		runtime.Gosched()
 	}
 }

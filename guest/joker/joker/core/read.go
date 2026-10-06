@@ -323,7 +323,7 @@ func scanInt(orig, str string, base int, reader *Reader) Object {
 		return scanBigInt(orig, str, base, reader)
 	}
 	// TODO: 32-bit issue
-	return MakeReadObject(reader, Int{I: int(i), Original: orig})
+	return MakeReadObject(reader, Int{I: int(i)})
 }
 
 func scanFloat(str string, reader *Reader) Object {
