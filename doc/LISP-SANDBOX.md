@@ -553,6 +553,47 @@ loop of a million additions, half the time is the collector's: every
 the bytecode as for the closures, so a number without a box is the next
 step, and a change to Joker's values rather than to either backend.
 
+## The editor on the console (2026-10-06)
+
+`gview.vi` (`guest/joker/gview/vi.joke`, 221 lines of Joker) is a modal
+editor over the editing server: `(gview.vi/edit "def F")` opens the
+view as a buffer of `ed`'s session and edits it with vim's keys until
+`:q`, then hands its last state back to the REPL it was called from.
+- **Normal mode:** `h j k l` and the arrows, `0 $ w b gg G`, `x dd`,
+  `i a A I o O`, `u` (the session's undo), Enter (the view at the cursor:
+  what the node there is about) and `K` (its callers).
+- **Command line:** `:q`; `:w NAME`, the C into the store under ref
+  `NAME`; `:e VIEW ARG`, another view; `:rename NAME`, the entity at the
+  cursor with every declaration and use; `:undo`.
+- **`:(FORM)`:** a Joker form evaluated, its value on the status line.
+  The REPL is the command line.
+
+The buffer is edited in Joker. An edit -- `x`, `dd`, an insert left by
+Esc -- goes to the server as the one change that turns the server's text
+into the buffer's (`change FROM TO TEXT CURSOR`). The server's answer is
+what the screen shows next: its text and its cursor, and its verdict on
+the status line: applied, pending with the reason, layout, or same. On
+the views' sample, `0` deleted from `(= opt 0)` is pending ("not yet a
+program"), `2` typed is applied, and the C says `opt = 2;`. Renaming
+`vim_snprintf` to `n2` in the box is refused, because `win_redr_ruler`
+has a local `n2` that a renamed call would name; that is the server's
+check, shown on the status line.
+
+The keys are the console's (`term`, `guest/joker/term`): the same
+buffered input the REPL reads forms from, so the editor takes the keys
+after the form that called it and the REPL the forms after `:q`. Raw
+mode and the window's size are the core's own host calls (`TermStart`,
+`TermStop`, `GetWinsize`). jokerhost reads its stdin, which is how
+`TestJokerVi` drives it on the sample. `TestJokerViGuest` drives the
+same session in the box, on whim-vim.c's graph and the C host's bundle:
+a statement typed into `vim_snprintf` and applied, undone, the function
+renamed, `:w`, and `:(+ 1 2)`. On a pseudo-terminal the guest draws a
+screen a key and gives the REPL back after `:q`.
+
+Not done: counts, registers, visual mode, search, a viewport wider than
+a screen's columns (long lines are cut). Offsets are characters in Joker
+and bytes in the server, which agree for the views' ASCII.
+
 ## What could be done next
 
 1. ~~The Joker guest~~ and 2. ~~tagged literals~~: built, above, and
@@ -566,6 +607,8 @@ step, and a change to Joker's values rather than to either backend.
 5. ~~The editor in the box~~: built, above.
 6. ~~A compiler from the forms to Go closures~~: built, above
    (*Closures*), held to the VM's answers and faster than it.
+7. ~~A modal editor on the console~~: built, above (*The editor on the
+   console*).
 
 ## Appendix: the scratch guests
 

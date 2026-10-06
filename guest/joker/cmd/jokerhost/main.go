@@ -23,12 +23,14 @@ import (
 	"io"
 	"os"
 	"runtime/pprof"
+	"strconv"
 	"strings"
 
 	"github.com/arbace/go-whim/guest/joker/box"
 	"github.com/arbace/go-whim/guest/joker/ed"
 	"github.com/arbace/go-whim/guest/joker/gview"
 	"github.com/arbace/go-whim/guest/joker/rt"
+	"github.com/arbace/go-whim/guest/joker/term"
 	"github.com/arbace/go-whim/vmm"
 	. "github.com/candid82/joker/core"
 
@@ -76,6 +78,8 @@ func main() {
 		PanicOnErr(LoadCoreClosures()) // compiled to closures, not bytecode, the core too (core/closure.go)
 	}
 	rt.Install()
+	term.Install(stdin, hostTerm{})
+	ed.Install(nil) // a session without a store: write refused; --store gives one
 	if view {
 		load()
 		v, err := eval("(gview.main/run (vec *command-line-args*))", "<view>")
@@ -178,7 +182,7 @@ func flush() {
 
 // repl reads forms from stdin, each evaluated and its value printed.
 func repl() {
-	reader := NewReader(bufio.NewReader(os.Stdin), "<repl>")
+	reader := NewReader(stdin, "<repl>")
 	pc := &ParseContext{GlobalEnv: GLOBAL_ENV}
 	for {
 		done := func() (done bool) {
@@ -215,3 +219,19 @@ func exit(code int) {
 	pprof.StopCPUProfile()
 	os.Exit(code)
 }
+
+// stdin is the REPL's forms and the editor's keys (the namespace term).
+var stdin = bufio.NewReader(os.Stdin)
+
+// hostTerm is the host runner's terminal: its size from LINES and COLUMNS
+// (24 by 80 without), its mode left as it is -- the runner is for tests,
+// its keys from a file.
+type hostTerm struct{}
+
+func (hostTerm) Size() (int, int, bool) {
+	r, _ := strconv.Atoi(os.Getenv("LINES"))
+	c, _ := strconv.Atoi(os.Getenv("COLUMNS"))
+	return r, c, r > 0 && c > 0
+}
+func (hostTerm) Start() {}
+func (hostTerm) Stop()  {}

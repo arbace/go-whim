@@ -20,6 +20,7 @@
 package ed
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -61,6 +62,9 @@ func Install(s box.Store) {
 		g.Walk(func(*graph.Node) bool { n++; return true })
 		fo := vimgraph.FallOut
 		sv = view.NewServer(g, "<store>", view.ServerOptions{FallOut: &fo, Write: func(name string, c []byte) error {
+			if s == nil {
+				return errors.New("no store to write to")
+			}
 			h, err := s.Put(c)
 			if err != nil {
 				return err

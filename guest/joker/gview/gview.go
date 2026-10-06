@@ -14,12 +14,12 @@ import (
 	. "github.com/candid82/joker/core"
 )
 
-//go:embed graph.joke view.joke main.joke
+//go:embed graph.joke view.joke main.joke vi.joke
 var src embed.FS
 
 // Files are the namespaces' sources in the order they load: each requires
 // only those before it.
-var Files = []string{"graph.joke", "view.joke", "main.joke"}
+var Files = []string{"graph.joke", "view.joke", "main.joke", "vi.joke"}
 
 // Load evaluates the three namespaces into Joker's global environment,
 // which must be initialised (InitEnv, ProcessCoreData) and its lock held.

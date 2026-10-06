@@ -1,0 +1,221 @@
+;; gview.vi -- a modal editor in the box (doc/LISP-SANDBOX.md, *The editor
+;; on the console*): vim's keys over a view of the program's graph, the
+;; view a buffer of the editing server (the namespace ed, view-serve's
+;; requests), the keys and the screen the console's (the namespace term).
+;;
+;; (gview.vi/edit "def ml_find_line") opens the view and edits it until :q.
+;; The text is edited here; an edit -- x, dd, an insert left by Esc -- is
+;; sent as the change that turns the server's text into this one, with
+;; the cursor, and the server's answer is what the buffer shows next:
+;; applied (the graph changed, and the view printed again), pending (not
+;; yet a program, the reason on the status line), layout or same.
+;;
+;; Normal mode: h j k l and the arrows, 0 $ w b gg G, x dd, i a A I o O,
+;; u (the session's undo), Enter (the view at the cursor: what the node
+;; there is about), K (its callers).  Command line: :q, :w NAME (the C into
+;; the store, ref NAME), :e VIEW ARG (another view), :rename NAME (the
+;; entity at the cursor, every declaration and use), :undo, and :(FORM) --
+;; Joker, its value on the status line: the REPL as the command line.
+(ns gview.vi
+  (:require [joker.string :as s]))
+
+(defn- starts
+  "The offsets lines start at."
+  [t]
+  (loop [i 0 acc [0]]
+    (let [j (s/index-of t "\n" i)]
+      (if (and j (< (inc j) (count t)))
+        (recur (inc j) (conj acc (inc j)))
+        acc))))
+
+(defn- row-of [ss off]
+  (loop [r (dec (count ss))]
+    (if (and (pos? r) (> (nth ss r) off)) (recur (dec r)) r)))
+
+(defn- line-end
+  "Where row ends: its newline, or the text's end."
+  [t ss r]
+  (if (< (inc r) (count ss)) (dec (nth ss (inc r))) (count t)))
+
+(defn- pos
+  "The cursor as [row col]."
+  [{:keys [text off]}]
+  (let [ss (starts text) r (row-of ss off)] [r (- off (nth ss r))]))
+
+(defn- at
+  "The offset of [r c] in t, c held to the line (its last character in
+  normal mode)."
+  [t r c insert?]
+  (let [ss (starts t)
+        r (max 0 (min r (dec (count ss))))
+        b (nth ss r)
+        e (line-end t ss r)
+        last (if insert? e (max b (dec e)))]
+    (max b (min (+ b c) last))))
+
+(defn- move [st r c] (assoc st :off (at (:text st) r c (= (:mode st) :insert))))
+
+(defn- answer
+  "The server's answer made the buffer: its text, the cursor at the
+  offset its header gives (or held), the header on the status line."
+  [st {:keys [head body]} cursor?]
+  (let [ws (s/split head #" ")
+        off (if (and cursor? (> (count ws) 1)) (read-string (second ws)) (:off st))]
+    (assoc st :text body :server body :msg head
+           :off (max 0 (min off (max 0 (dec (count body))))))))
+
+(defn- ask
+  "A request to the server; an error on the status line, the buffer as the
+  server has it."
+  [st req cursor?]
+  (try (answer st (ed/req req) cursor?)
+       (catch Error e (assoc st :text (:server st) :msg (str "error: " (ex-message e))
+                             :off (min (:off st) (max 0 (dec (count (:server st)))))))))
+
+(defn- sync
+  "The edit sent: the change from the server's text to the buffer's, the
+  cursor with it."
+  [st]
+  (let [a (:server st) b (:text st)]
+    (if (= a b)
+      st
+      (let [n (min (count a) (count b))
+            p (loop [i 0] (if (and (< i n) (= (nth a i) (nth b i))) (recur (inc i)) i))
+            q (loop [i 0] (if (and (< i (- n p)) (= (nth a (- (count a) 1 i)) (nth b (- (count b) 1 i))))
+                            (recur (inc i)) i))
+            from p
+            to (- (count a) q)
+            ins (subs b p (- (count b) q))]
+        (ask st (str "change " from " " to " " (pr-str ins) " " (min (:off st) (count b))) true)))))
+
+(defn- insert-text [st x]
+  (let [{:keys [text off]} st]
+    (assoc st :text (str (subs text 0 off) x (subs text off)) :off (+ off (count x)))))
+
+(defn- word-char? [c] (re-matches #"[A-Za-z0-9_]" (str c)))
+
+(defn- word-forward [t off]
+  (let [n (count t)
+        w? (and (< off n) (word-char? (nth t off)))
+        i (loop [i off] (if (and (< i n) (= w? (boolean (word-char? (nth t i)))) (not= (nth t i) \space)) (recur (inc i)) i))]
+    (loop [i i] (if (and (< i n) (#{\space \newline} (nth t i))) (recur (inc i)) (min i (max 0 (dec n)))))))
+
+(defn- word-back [t off]
+  (let [i (loop [i (dec off)] (if (and (pos? i) (#{\space \newline} (nth t i))) (recur (dec i)) i))
+        w? (and (>= i 0) (word-char? (nth t i)))]
+    (max 0 (loop [i i] (if (and (pos? i) (= w? (boolean (word-char? (nth t (dec i))))) (not (#{\space \newline} (nth t (dec i))))) (recur (dec i)) i)))))
+
+(defn- command
+  "A command line's command."
+  [st line]
+  (let [[c arg] (s/split (s/trim line) #" " 2)]
+    (cond
+      (s/starts-with? line "(") (assoc st :msg (try (pr-str (eval (read-string line)))
+                                                    (catch Error e (str "error: " (ex-message e)))))
+      (= c "q") (assoc st :quit true)
+      (= c "w") (assoc st :msg (try (str "written: " (:head (ed/req (str "write " (or arg "edited")))) " bytes")
+                                    (catch Error e (str "error: " (ex-message e)))))
+      (= c "e") (assoc (ask st (str "open " arg) false) :off 0)
+      (= c "rename") (ask st (str "rename " (:off st) " " arg) false)
+      (= c "undo") (ask st "undo" false)
+      :else (assoc st :msg (str "not a command: " c)))))
+
+(defn- normal [st k]
+  (let [[r c] (pos st)
+        t (:text st)
+        pend (:pend st)
+        st (dissoc st :pend)]
+    (cond
+      (= pend "g") (if (= k "g") (move st 0 0) st)
+      (= pend "d") (if (= k "d")
+                     (let [ss (starts t)
+                           b (nth ss r)
+                           e (if (< (inc r) (count ss)) (nth ss (inc r)) (count t))]
+                       (sync (assoc st :text (str (subs t 0 b) (subs t e)) :off (min b (max 0 (- (count t) (- e b) 1))))))
+                     st)
+      :else
+      (case k
+        ("h" "<left>") (move st r (dec c))
+        ("l" "<right>") (move st r (inc c))
+        ("j" "<down>") (move st (inc r) c)
+        ("k" "<up>") (move st (dec r) c)
+        "0" (move st r 0)
+        "$" (move st r 100000)
+        "w" (assoc st :off (word-forward t (:off st)))
+        "b" (assoc st :off (word-back t (:off st)))
+        "G" (move st 100000 0)
+        ("g" "d") (assoc st :pend k)
+        "x" (if (and (< (:off st) (count t)) (not= (nth t (:off st)) \newline))
+              (sync (assoc st :text (str (subs t 0 (:off st)) (subs t (inc (:off st))))))
+              st)
+        "i" (assoc st :mode :insert)
+        "a" (let [st (assoc st :mode :insert)] (if (and (< (:off st) (count t)) (not= (nth t (:off st)) \newline)) (update st :off inc) st))
+        "A" (move (assoc st :mode :insert) r 100000)
+        "I" (let [st (move (assoc st :mode :insert) r 0) o (:off st)]
+              (assoc st :off (loop [i o] (if (and (< i (count t)) (= (nth t i) \space)) (recur (inc i)) i))))
+        "o" (insert-text (move (assoc st :mode :insert) r 100000) "\n")
+        "O" (-> (move (assoc st :mode :insert) r 0) (insert-text "\n") (update :off dec))
+        "u" (ask st "undo" false)
+        ("\r" "\n") (assoc (ask st (str "at " (:off st)) false) :off 0)
+        "K" (assoc (ask st (str "at " (:off st) " callers") false) :off 0)
+        ":" (assoc st :mode :cmd :cmd "")
+        st))))
+
+(defn- insert [st k]
+  (let [t (:text st) o (:off st)]
+    (case k
+      "<esc>" (let [st (sync (assoc st :mode :normal)) [r c] (pos st)] (move st r (dec c)))
+      ("\u007f" "\b") (if (pos? o) (assoc st :text (str (subs t 0 (dec o)) (subs t o)) :off (dec o)) st)
+      ("\r" "\n") (insert-text st "\n")
+      ("<up>" "<down>" "<left>" "<right>") st
+      (insert-text st k))))
+
+(defn- cmdline [st k]
+  (case k
+    "<esc>" (assoc st :mode :normal :cmd nil)
+    ("\r" "\n") (command (assoc st :mode :normal :cmd nil) (:cmd st))
+    ("\u007f" "\b") (if (empty? (:cmd st)) (assoc st :mode :normal :cmd nil) (update st :cmd #(subs % 0 (dec (count %)))))
+    (update st :cmd str k)))
+
+(defn step
+  "A key's effect on the editor's state."
+  [st k]
+  (case (:mode st)
+    :insert (insert st k)
+    :cmd (cmdline st k)
+    (normal st k)))
+
+(defn- render [st]
+  (let [[rows cols] (term/size)
+        [r c] (pos st)
+        h (dec rows)
+        top (let [t (:top st 0)] (cond (< r t) r (>= r (+ t h)) (inc (- r h)) :else t))
+        ls (s/split (:text st) #"\n")
+        shown (take h (drop top ls))
+        line (fn [l] (if (> (count l) cols) (subs l 0 cols) l))
+        status (case (:mode st)
+                 :cmd (str ":" (:cmd st))
+                 :insert (str "-- INSERT -- " (:msg st))
+                 (str (:view st) "  " (:msg st)))]
+    (term/write (str "\u001b[H\u001b[2J"
+                     (s/join "\r\n" (map line shown))
+                     (apply str (repeat (- h (count shown)) "\r\n~"))
+                     "\r\n\u001b[7m" (line status) "\u001b[0m"
+                     "\u001b[" (inc (- r top)) ";" (inc c) "H"))
+    (assoc st :top top)))
+
+(defn edit
+  "The view VIEW (as view-serve's open takes it: \"def F\", \"callers
+  F\") edited on the console until :q, or the input's end; the editor's
+  last state."
+  [view]
+  (let [st (ask {:mode :normal :off 0 :view view :msg ""} (str "open " view) false)]
+    (term/start)
+    (try
+      (loop [st (render (assoc st :off 0))]
+        (let [k (term/key)]
+          (if (nil? k)
+            st
+            (let [st (step st k)]
+              (if (:quit st) st (recur (render st)))))))
+      (finally (term/write "\u001b[H\u001b[2J") (term/stop)))))

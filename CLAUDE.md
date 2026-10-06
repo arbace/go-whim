@@ -602,7 +602,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep's roots and guard, the collection's too), graph.go
-                   (crefactor/graph's collection and fall-out closure),
+                   (crefactor/graph's collection and fall-out closure;
+                   the closure's options vimgraph/'s, a package of their
+                   own so that the Joker guest links them alone),
                    xform.go and s6*.go (the knobs of the graph's transforms:
                    DropCalls, NeverNull, Nullptr, Own47, BoolRet,
                    StateParam), cut.go (Cut, the line), analysis.go (dead's
@@ -822,7 +824,10 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    store.go the store's hypercalls; box/ the namespace box
                    on a store, the guest's or jokerhost's --store DIR;
                    ed/ the namespace ed: crefactor/graph/view's Server on
-                   a graph's EDN, cc's host the store's bundle;
+                   a graph's EDN, cc's host the store's bundle, vim's
+                   fall-out options internal/whim/vimgraph's;
+                   term/ the namespace term: keys from the REPL's own
+                   input, the window's size, raw mode by the core's calls;
                    rt/ the namespace rt: the heap, the collector's
                    pauses and Go's tracer, for measuring the box;
                    --closures (the guest's and jokerhost's) the fork's
@@ -834,11 +839,14 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    vector fault fixed, tagged literals read by
                    *data-readers*; gview/ crefactor/graph/view/clj's views
                    ported to Joker, graph.joke, view.joke and main.joke,
-                   embedded; cmd/jokerhost the same language and views on
+                   and vi.joke, gview.vi, a modal editor on the console
+                   over ed's buffers (vim's keys, :e :w :rename :undo, a
+                   Joker form on the command line), embedded; cmd/jokerhost the same language and views on
                    the host, built by the ordinary go -- `jokerhost view`
                    is view-clj; joker.go builds both, `--joker`;
                    guest/jokerviews_test.go holds the views to the Go's on the
-                   host and in the box; doc/LISP-SANDBOX.md); whimsy/ the Rust guest's crate (lib.rs:
+                   host and in the box, jokered_test.go and jokervi_test.go
+                   the editor in the box, by requests and by keys; doc/LISP-SANDBOX.md); whimsy/ the Rust guest's crate (lib.rs:
                    whimsy's core, runtime and printf by path, without std, its
                    allocator and panic; host.rs the 17 host functions as rt.c's,
                    and the arena; smp.rs the chunks on every vCPU;

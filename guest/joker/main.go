@@ -23,6 +23,7 @@ import (
 	"github.com/arbace/go-whim/guest/joker/ed"
 	"github.com/arbace/go-whim/guest/joker/gview"
 	"github.com/arbace/go-whim/guest/joker/rt"
+	"github.com/arbace/go-whim/guest/joker/term"
 	"github.com/arbace/go-whim/guest/tamago/board"
 	. "github.com/candid82/joker/core"
 
@@ -71,12 +72,14 @@ func main() {
 			fmt.Println("closures:", err)
 		}
 	}
-	if err := gview.Load(); err != nil {
-		fmt.Println("gview:", err)
-	}
+	in := bufio.NewReader(&console{}) // the REPL's forms and the editor's keys
 	box.Install(callStore{})
 	ed.Install(callStore{})
 	rt.Install()
+	term.Install(in, guestTerm{})
+	if err := gview.Load(); err != nil { // after ed and term, which gview.vi names
+		fmt.Println("gview:", err)
+	}
 	if len(args) > 1 {
 		code := int32(0)
 		if err := ProcessReader(NewReader(strings.NewReader(args[1]), "<expr>"), "", EVAL); err != nil {
@@ -84,7 +87,7 @@ func main() {
 		}
 		board.Exit(code)
 	}
-	reader := NewReader(bufio.NewReader(&console{}), "<repl>")
+	reader := NewReader(in, "<repl>")
 	pc := &ParseContext{GlobalEnv: GLOBAL_ENV}
 	rc := newHistory() // *1, *2, *3 and *e
 	fmt.Println("joker in the box")
@@ -136,3 +139,14 @@ func newHistory() *history {
 func (h *history) push(o Object) {
 	h.third.Value, h.second.Value, h.first.Value = h.second.Value, h.first.Value, o
 }
+
+// guestTerm is the terminal the monitor's host keeps: its size and its raw
+// mode, by the core's own calls.
+type guestTerm struct{}
+
+func (guestTerm) Size() (int, int, bool) {
+	b := board.Call(abi.GetWinsize, 0, 0, 0, 0, 0)
+	return int(b.A[0]), int(b.A[1]), b.Ret != 0
+}
+func (guestTerm) Start() { board.Call(abi.TermStart, 0, 0, 0, 0, 0) }
+func (guestTerm) Stop()  { board.Call(abi.TermStop, 0, 0, 0, 0, 0) }
