@@ -49,7 +49,7 @@ type smp struct {
 // wake -- a token, so that a wake before the park is not lost.
 type park struct {
 	state parkState
-	wake  chan struct{}
+	p     parker
 }
 
 type parkState int
@@ -108,12 +108,7 @@ func (m *machine) release(lo, hi int64) {
 }
 
 // wake ends c's park, or its next.
-func (c *vcpu) wake() {
-	select {
-	case c.park.wake <- struct{}{}:
-	default:
-	}
-}
+func (c *vcpu) wake() { c.park.p.wake() }
 
 // parkFor parks c: until a wake, ns nanoseconds of the guest's (ns < 0: no
 // limit of its own), and at most the machine's limit while another vCPU
@@ -123,11 +118,9 @@ func (c *vcpu) parkFor(ns int64) error {
 	m := c.m
 	t0 := time.Now()
 	defer func() { c.parked += time.Since(t0) }()
-	var deadline <-chan time.Time
+	var deadline time.Time
 	if ns >= 0 {
-		t := time.NewTimer(time.Duration(ns))
-		defer t.Stop()
-		deadline = t.C
+		deadline = t0.Add(time.Duration(ns))
 	}
 	m.smp.Lock()
 	m.smp.running--
@@ -136,22 +129,32 @@ func (c *vcpu) parkFor(ns int64) error {
 		c.park.state = parkedLimited
 	}
 	m.smp.Unlock()
-	var limit *time.Timer
+	var limit time.Time
 	for {
-		var limited <-chan time.Time
 		m.smp.Lock()
-		if c.park.state == parkedLimited {
-			if limit == nil {
-				limit = time.NewTimer(m.smp.limit)
-				defer limit.Stop()
-			}
-			limited = limit.C
+		limited := c.park.state == parkedLimited
+		if limited && limit.IsZero() {
+			limit = time.Now().Add(m.smp.limit)
 		}
 		m.smp.Unlock()
+		until := deadline
+		if limited && (until.IsZero() || limit.Before(until)) {
+			until = limit
+		}
+		woken := c.park.p.wait(until)
 		select {
-		case <-c.park.wake:
-		case <-deadline:
-		case <-limited:
+		case <-m.quit:
+			return errStopped
+		default:
+		}
+		if woken {
+			break
+		}
+		now := time.Now()
+		if !deadline.IsZero() && !now.Before(deadline) {
+			break
+		}
+		if limited && !now.Before(limit) {
 			m.smp.Lock()
 			if m.smp.running == 0 {
 				c.park.state = parkedUntilWoken
@@ -159,10 +162,8 @@ func (c *vcpu) parkFor(ns int64) error {
 				continue
 			}
 			m.smp.Unlock()
-		case <-m.quit:
-			return errStopped
+			break
 		}
-		break
 	}
 	m.resume(c)
 	return nil

@@ -28,6 +28,7 @@ import (
 	"github.com/arbace/go-whim/guest/joker/box"
 	"github.com/arbace/go-whim/guest/joker/ed"
 	"github.com/arbace/go-whim/guest/joker/gview"
+	"github.com/arbace/go-whim/guest/joker/rt"
 	"github.com/arbace/go-whim/vmm"
 	. "github.com/candid82/joker/core"
 
@@ -66,6 +67,7 @@ func main() {
 	RT.GIL.Lock()
 	ProcessCoreData()
 	GLOBAL_ENV.ReferCoreToUser()
+	rt.Install()
 	if view {
 		load()
 		v, err := eval("(gview.main/run (vec *command-line-args*))", "<view>")

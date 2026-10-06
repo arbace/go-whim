@@ -272,7 +272,7 @@ func newMachine(cfg Config) (*machine, error) {
 
 func (m *machine) newVCPU(i int) *vcpu {
 	c := &vcpu{m: m, id: i, loopDone: make(chan struct{}), done: make(chan struct{})}
-	c.park.wake = make(chan struct{}, 1)
+	c.park.p.init()
 	if i > 0 {
 		c.start = make(chan [5]int64, 1)
 	}
@@ -308,6 +308,7 @@ func (m *machine) halt() {
 	m.quitOnce.Do(func() {
 		close(m.quit)
 		for _, c := range m.cpus {
+			c.wake() // a park ends, and sees quit
 			hv.VCPUsExit(c.v)
 		}
 	})

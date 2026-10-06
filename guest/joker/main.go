@@ -22,6 +22,7 @@ import (
 	"github.com/arbace/go-whim/guest/joker/box"
 	"github.com/arbace/go-whim/guest/joker/ed"
 	"github.com/arbace/go-whim/guest/joker/gview"
+	"github.com/arbace/go-whim/guest/joker/rt"
 	"github.com/arbace/go-whim/guest/tamago/board"
 	. "github.com/candid82/joker/core"
 
@@ -65,6 +66,7 @@ func main() {
 	}
 	box.Install(callStore{})
 	ed.Install(callStore{})
+	rt.Install()
 	if len(args) > 1 {
 		code := int32(0)
 		if err := ProcessReader(NewReader(strings.NewReader(args[1]), "<expr>"), "", EVAL); err != nil {

@@ -789,7 +789,9 @@ vmm/               the monitor: the guest's ELF in one slot, identity-mapped
                    none on macOS), store.go the store (blobs by SHA-256
                    and refs, a guest's five calls; DirStore a directory
                    within the filter as it stands; doc/LISP-SANDBOX.md,
-                   *The store*), Die (die_<os>.go), the slot's 16 KiB
+                   *The store*), park_linux.go a vCPU's park a futex
+                   (the host's Go timers wait whole milliseconds;
+                   park_other.go a channel),                    *The store*), Die (die_<os>.go), the slot's 16 KiB
                    alignment held by layout_test.go; cmd/whim-guest the
                    launcher, the image appended to it or beside it
                    (WHIM_GUEST_IMAGE, PROGRAM.elf: the Mac's way), run on
@@ -821,6 +823,8 @@ guest/             the guest image's builder (`go tool whim guest`): the core
                    on a store, the guest's or jokerhost's --store DIR;
                    ed/ the namespace ed: crefactor/graph/view's Server on
                    a graph's EDN, cc's host the store's bundle;
+                   rt/ the namespace rt: the heap, the collector's
+                   pauses and Go's tracer, for measuring the box;
                    joker/ Joker forked,
                    its core and the namespaces that need no system, the
                    vector fault fixed, tagged literals read by

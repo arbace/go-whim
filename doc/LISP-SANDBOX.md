@@ -403,6 +403,53 @@ same change refused when no bundle is given. `TestHostBundle` holds an
 import on a bundle read back to the host compiler's graph. The image is
 28.6 MB, the graph packages and cc the 4.3 above the views'.
 
+## The collector in the box (2026-10-06)
+
+The namespace `rt` (`guest/joker/rt`, in the guest and in jokerhost)
+reads Go's runtime: `(rt/mem)` the heap and the collector's work -- its
+stop-the-world pauses from `runtime/metrics`, a histogram whose buckets
+give the quantiles -- `(rt/gc)` a collection, and `(rt/trace-start)`,
+`(rt/trace-stop)` the execution tracer into memory, its bytes for
+`box/put` and `go tool trace` on the host. Three workloads, each a run of
+its own: **index**, the views' index of whim-vim.c's graph (box/load,
+read, index, a view); **ed**, the editor in the box started on it and 20
+edits each undone; **churn**, a map of a million entries built by
+`assoc` at the REPL. Times are the forms' (`time`), the heap live after a
+collection, sys the most the runtime held:
+
+| | index | ed: start, 20 edits | churn | live | sys | pauses, total | p50 / p99 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| box, 1 vCPU | 7.08 s | 155 ms, 1.56 s | 7.58 s | 164 / 97 / 12 MB | 506 / 299 / 691 MB | 0.3 / 0.3 / 0.5 ms | 3.6-5.1 / 28.7-41 µs |
+| box, 4 vCPUs, park 1 ms | 4.51 s | 147 ms, 1.21 s | 4.68 s | the same | 386 / 247 / 600 MB | 44.5 / 36.1 / 82.7 ms | 1,311 / 1,573-1,835 µs |
+| box, 4 vCPUs, park 50 µs | 4.36 s | 131 ms, 1.19 s | 4.75 s | the same | 415 / 238 / 616 MB | 11.0 / 8.0 / 18.7 ms | 229-328 / 459-524 µs |
+| host, GOMAXPROCS=1 | 5.28 s | 99 ms, 1.28 s | 6.58 s | 174 / 106 / 12 MB | 516 / 310 / 697 MB | 0.6 / 0.5 / 1.1 ms | 6.1-10.2 / 57-82 µs |
+| host, GOMAXPROCS=4 | 3.62 s | 89 ms, 1.12 s | 3.87 s | the same | 401 / 237 / 620 MB | 1.8 / 2.0 / 3.4 ms | 33-49 / 197-328 µs |
+
+**The heap is the program's, not the box's**: live and sys within a few
+per cent of the host's, the graph's index 164 MB live (the EDN's 9.66 MB
+read into Joker's vectors and maps), the editor's session 97 MB, and a
+collection runs as often in the box as on the host. On one vCPU the
+pauses are as short as the host's, shorter even: a stop of the world on
+one vCPU has nothing to wait for. **On several they were the monitor's:**
+TamaGo's idle Ms keep their Ps and nothing wakes them for a stop of the
+world, so each stop waits until every idle vCPU looks again -- at most the
+park's limit, 1 ms by default, the pauses' 1.3 ms. A runtime trace taken
+in the box showed it (the idle P going Running->Idle 0.9-1.3 ms after the
+stop began), and that the limit could not be shortened: the park waited on
+the host's Go timers, which a mostly idle Go program serves by
+`epoll_wait` in whole milliseconds, so 20 µs lasted 1.1 ms. The park is a
+futex now (doc/GUEST.md, *SMP*), and `WHIM_GUEST_PARK=50us` gives pauses of
+230-330 µs, a quarter of the total; the default stays 1 ms, which the
+editor's exits prefer (43 a key against 63). The collector costs little
+either way -- 0.2-2% of the time in pauses -- and on four vCPUs the
+concurrent mark runs beside the program: 200 forced collections take 1.67
+s on one vCPU, 2.0 s on two at 1 ms, 0.98 s on four at 50 µs.
+
+What is left is TamaGo's: a stop of the world could wake the idle vCPUs
+itself (`preemptM` is empty on tamago, and there is no hook for it), and
+an idle M could give its P up, as on other systems, so that a stop would
+not wait for it at all.
+
 ## What could be done next
 
 1. ~~The Joker guest~~ and 2. ~~tagged literals~~: built, above, and
@@ -411,8 +458,8 @@ import on a bundle read back to the host compiler's graph. The image is
    store*).
 3. A datagram hypercall, and a design note for the network: netstack and
    TLS in the guest, the host a packet forwarder under a policy.
-4. Measure the collector inside the box (pauses, heap) on the views' index
-   and the REPL.
+4. ~~Measure the collector inside the box~~: measured, above (*The
+   collector in the box*).
 5. ~~The editor in the box~~: built, above.
 6. A compiler from the graph's forms to Go closures, held to Joker's
    answers, as each backend here is held to the C's.

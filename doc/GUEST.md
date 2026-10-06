@@ -854,8 +854,21 @@ nothing can make work but a Host call's return or a park's end, and a park
 lasts until the next of those that leaves one vCPU running, which wakes
 every vCPU so parked. So an idle editor costs nothing: three seconds
 waiting for a key, 0.02-0.04 s of CPU at 1, 4 or 16 vCPUs alike. The
-limit measured at 100 µs, 250 µs, 1 ms and 5 ms: the heavy case and the
-`:%s` below within their noise from 100 µs to 1 ms, both slower at 5 ms.
+limit was measured at 100 µs, 250 µs, 1 ms and 5 ms, the heavy case and
+the `:%s` below within their noise up to 1 ms and both slower at 5 ms --
+but a limit under 1 ms was 1 ms then: the park waited on the host's Go
+timers, and a wait under a millisecond in a program whose threads are all
+blocked is netpoll's `epoll_wait` of one millisecond (a 20 µs limit and an
+80 µs deadline both lasted 1.1 ms). On Linux the park is a futex now, its
+timeout in nanoseconds (`vmm/park_linux.go`; `futex` was in the filter
+already; elsewhere a channel and a timer, `park_other.go`), and the limit
+is what it says. The editor does not want it shorter: at 200 µs the quick
+suite costs 51.2 exits a key, at 50 µs 63.1 (43.4 at 1 ms), the heavy
+case the same. A stop of the world does: an idle vCPU joins one only when
+it looks again, so the collector's pauses on several vCPUs are the limit
+-- 1.3 ms at 1 ms, 230-330 µs at 50 µs (doc/LISP-SANDBOX.md, *The
+collector in the box*).
+
 
 *Gate met* (amd64 here). The quick suite 80 of 80 and the wide 240 of 240
 at 1, 4 and 16 vCPUs and by default (4), as the C answers, the controls
